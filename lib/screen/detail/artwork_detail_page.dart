@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -183,113 +184,87 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               )
             ],
           ),
-          body: Stack(
-            children: [
-              SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    Hero(
-                      tag: "detail_${asset.id}",
-                      child: _ArtworkView(
-                        payload: widget.payload,
-                        token: asset,
+          body: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 40,
+                ),
+                Hero(
+                  tag: "detail_${asset.id}",
+                  child: _ArtworkView(
+                    payload: widget.payload,
+                    token: asset,
+                  ),
+                ),
+                Visibility(
+                  visible: true, //asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16.0, right: 16.0, top: 40),
+                      child: AuSecondaryButton(
+                        text: "web3_glossary".tr(),
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, AppRouter.previewPrimerPage,
+                              arguments: asset);
+                        },
                       ),
                     ),
-                    Visibility(
-                      visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 40),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 43.0,
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(76),
-                                  side: const BorderSide(color: AppColor.white),
-                                ),
-                              ),
-                            ),
-                            child: Text("web3_glossary".tr(),
-                                style: theme.textTheme.ppMori400White14),
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                  context, AppRouter.previewPrimerPage,
-                                  arguments: asset);
-                            },
-                          ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                Visibility(
+                  visible: editionSubTitle.isNotEmpty,
+                  child: Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Text(
+                      editionSubTitle,
+                      style: theme.textTheme.ppMori400Grey12,
+                    ),
+                  ),
+                ),
+                debugInfoWidget(context, currentAsset),
+                const SizedBox(height: 16.0),
+                Padding(
+                  padding: ResponsiveLayout.getPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        label: 'Desc',
+                        child: HtmlWidget(
+                          asset.desc ?? "",
+                          textStyle: theme.textTheme.ppMori400White12,
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    Visibility(
-                      visible: editionSubTitle.isNotEmpty,
-                      child: Padding(
-                        padding: ResponsiveLayout.getPadding,
-                        child: Text(
-                          editionSubTitle,
-                          style: theme.textTheme.ppMori400Grey12,
+                      const SizedBox(height: 40.0),
+                      artworkDetailsMetadataSection(context, asset, artistName),
+                      if (asset.fungible == true) ...[
+                        BlocBuilder<AccountsBloc, AccountsState>(
+                          builder: (context, state) {
+                            final addresses = state.addresses;
+                            return tokenOwnership(context, asset, addresses);
+                          },
                         ),
-                      ),
-                    ),
-                    debugInfoWidget(context, currentAsset),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: ResponsiveLayout.getPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Semantics(
-                            label: 'Desc',
-                            child: HtmlWidget(
-                              asset.desc ?? "",
-                              textStyle: theme.textTheme.ppMori400White12,
-                            ),
-                          ),
-                          const SizedBox(height: 40.0),
-                          artworkDetailsMetadataSection(
-                              context, asset, artistName),
-                          if (asset.fungible == true) ...[
-                            BlocBuilder<AccountsBloc, AccountsState>(
-                              builder: (context, state) {
-                                final addresses = state.addresses;
-                                return tokenOwnership(
-                                    context, asset, addresses);
-                              },
-                            ),
-                          ] else ...[
-                            state.provenances.isNotEmpty
-                                ? _provenanceView(context, state.provenances)
-                                : const SizedBox()
-                          ],
-                          artworkDetailsRightSection(context, asset),
-                          const SizedBox(height: 80.0),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ReportButton(
-                  token: currentAsset,
-                  scrollController: _scrollController,
-                ),
-              ),
-            ],
+                      ] else ...[
+                        state.provenances.isNotEmpty
+                            ? _provenanceView(context, state.provenances)
+                            : const SizedBox()
+                      ],
+                      artworkDetailsRightSection(context, asset),
+                      const SizedBox(height: 80.0),
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         );
       } else {
@@ -407,6 +382,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     : null,
               );
             },
+          ),
+          OptionItem(
+            title: 'report_nft_rendering_issues'.tr(),
+            icon: const Icon(AuIcon.help_us),
+            onTap: () => showReportIssueDialog(context, asset),
           ),
         ],
       ],

@@ -9,9 +9,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
@@ -57,13 +58,15 @@ class _ReportRenderingIssueWidgetState
           children: [
             Text(
               'report_issue_subtitle'.tr(),
-              style: theme.primaryTextTheme.bodyText1,
+              style: theme.textTheme.ppMori400White14,
             ),
             const SizedBox(
               height: 40,
             ),
-            Text('select_a_type_of_issue'.tr().toUpperCase(),
-                style: theme.primaryTextTheme.headline5),
+            Text(
+              'select_a_type_of_issue'.tr(),
+              style: theme.textTheme.ppMori400White14,
+            ),
             const SizedBox(height: 16),
             ListView.builder(
                 shrinkWrap: true,
@@ -80,20 +83,21 @@ class _ReportRenderingIssueWidgetState
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(topics[index],
-                                  style: theme.primaryTextTheme.headline4),
+                                  style: theme.textTheme.ppMori400White14),
                               RoundCheckBox(
+                                  size: 24.0,
+                                  borderColor: theme.colorScheme.secondary,
                                   uncheckedColor: Colors.transparent,
                                   checkedColor: theme.colorScheme.secondary,
                                   checkedWidget: Icon(
-                                    Icons.check,
+                                    CupertinoIcons.checkmark,
                                     color: theme.colorScheme.primary,
-                                    size: 16,
+                                    size: 14,
                                   ),
                                   animationDuration:
                                       const Duration(milliseconds: 100),
                                   isChecked:
                                       _selectedTopices.contains(topics[index]),
-                                  size: 24,
                                   onTap: (_) => _selectTopics(topics[index])),
                             ],
                           ),
@@ -106,27 +110,14 @@ class _ReportRenderingIssueWidgetState
                   );
                 }),
             const SizedBox(height: 15),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "generate_report".tr(),
-                    onPress: () => _reportIssue(),
-                    isProcessing: _isProcessing,
-                    color: _isSubmissionEnabled
-                        ? theme.colorScheme.secondary
-                        : AppColor.secondarySpanishGrey,
-                    textStyle: theme.textTheme.button,
-                  ),
-                ),
-              ],
+            AuPrimaryButton(
+              onPressed: _isSubmissionEnabled ? () => _reportIssue() : null,
+              text: "generate_report".tr(),
             ),
-            TextButton(
+            const SizedBox(height: 10),
+            AuSecondaryButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                "cancel".tr(),
-                style: theme.primaryTextTheme.button,
-              ),
+              text: "cancel_dialog".tr(),
             ),
           ],
         ),
