@@ -109,12 +109,17 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/mobile_external_webs/linkEthereumAccountWallet_test.dart
-      - name: Run auto tests for Suite "Purchase Tez NFT"
+      - name: Run auto tests for Suite "Purchase Feral File Ethereum NFT"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter pub run test auto-test/mobile_external_webs/purchaseFeralfileEthereumToken_test.dart
+      - name: Run auto tests for Suite "Purchase Tez NFT in outside exchanges"
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/mobile_external_webs/purchase_tez_nft_test.dart
-      - name: Run auto tests for Suite "Purchase Feral File NFT"
+      - name: Run auto tests for Suite "Purchase Feral File Tez NFT"
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE          
