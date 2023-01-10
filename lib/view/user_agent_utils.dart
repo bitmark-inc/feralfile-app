@@ -27,6 +27,7 @@ abstract class IDeviceInfo {
   abstract final bool isAndroid;
   abstract final bool isIOS;
   Future<void> init();
+  Future<String?> getMachineName();
 }
 
 class _MobileInfo extends IDeviceInfo {
@@ -54,6 +55,7 @@ class _MobileInfo extends IDeviceInfo {
 
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
+  @override
   Future<String?> getMachineName() async {
     if (isIOS) {
       return (await _deviceInfo.iosInfo).utsname.machine;
