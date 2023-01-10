@@ -12,10 +12,12 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -55,11 +57,10 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      appBar: getCloseAppBar(
+      appBar: getBackAppBar(
         context,
+        title: "how_can_we_help".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
@@ -68,13 +69,12 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "how_can_we_help".tr(),
-                style: theme.textTheme.headline1,
-              ),
               addTitleSpace(),
               _reportItemsWidget(context),
+              const SizedBox(height: 20),
+              addOnlyDivider(),
               _resourcesWidget(context),
+              addOnlyDivider(),
             ],
           ),
         ),
@@ -83,21 +83,22 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
   }
 
   Widget _reportItemsWidget(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       children: [
         ...ReportIssueType.getSuggestList.map((item) {
           return Column(
             children: [
-              TappableForwardRow(
-                leftWidget: Text(ReportIssueType.toTitle(item),
-                    style: theme.textTheme.headline4),
-                onTap: () => Navigator.of(context).pushNamed(
-                    AppRouter.supportThreadPage,
-                    arguments: NewIssuePayload(reportIssueType: item)),
+              AuSecondaryButton(
+                text: ReportIssueType.toTitle(item),
+                onPressed: () => Navigator.of(context).pushNamed(
+                  AppRouter.supportThreadPage,
+                  arguments: NewIssuePayload(reportIssueType: item),
+                ),
+                backgroundColor: Colors.white,
+                borderColor: Colors.black,
+                textColor: Colors.black,
               ),
-              addOnlyDivider(),
+              const SizedBox(height: 10),
             ],
           );
         })
@@ -121,16 +122,15 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TappableForwardRow(
-                  leftWidget: Text('support_history'.tr(),
-                      style: theme.textTheme.headline4),
-                  rightWidget: numberOfIssuesInfo[1] > 0
-                      ? BadgeView(number: numberOfIssuesInfo[1])
-                      : null,
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.supportListPage)),
-              const SizedBox(
-                height: 18,
-              )
+                leftWidget: Text('support_history'.tr(),
+                    style: theme.textTheme.ppMori400Black14),
+                rightWidget: numberOfIssuesInfo[1] > 0
+                    ? BadgeView(number: numberOfIssuesInfo[1])
+                    : null,
+                onTap: () =>
+                    Navigator.of(context).pushNamed(AppRouter.supportListPage),
+                padding: const EdgeInsets.fromLTRB(0, 23, 0, 20),
+              ),
             ],
           );
         });
