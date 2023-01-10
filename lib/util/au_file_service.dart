@@ -157,6 +157,10 @@ class AuFileService extends FileService {
         log.info("[AuFileService] Download failed: ${info.url}");
         info.task.completeError(Exception("Download failed ${info.url}"));
         _taskId2Info.remove(id);
+      } else if (status == DownloadTaskStatus.canceled) {
+        log.info("[AuFileService] Download cancelled: ${info.url}");
+        info.task.completeError(Exception("Download cancelled ${info.url}"));
+        _taskId2Info.remove(id);
       }
     }
   }
@@ -184,6 +188,7 @@ class AuFileService extends FileService {
         fileName: fileName,
         showNotification: false,
         openFileFromNotification: false,
+        timeout: 5000,
       );
       info = Info(url, fileInfo.extension, taskId ?? "", fileName, Completer());
       _taskId2Info[taskId ?? ""] = info;

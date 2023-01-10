@@ -25,6 +25,7 @@
 		58958D6A283F6C2100D698AD /* BiometricAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58958D68283F6C2100D698AD /* BiometricAuthentication.swift */; };
 		58A4B4F627E33A99001F30D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
 		58A4B4F727E33AA0001F30D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
+		63069820296D1030003BA6D0 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */; };
 		630DA1EE27DB5A4600586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */; };
@@ -274,6 +275,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63069820296D1030003BA6D0 /* libsqlite3.tbd in Frameworks */,
 				76F3289E27D1EC1C00C3B9FA /* CloudKit.framework in Frameworks */,
 				637862AB28B48DED00DBA925 /* WalletConnect in Frameworks */,
 				76F3289F27D1EC1C00C3B9FA /* BeaconBlockchainTezos in Frameworks */,
