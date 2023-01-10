@@ -463,24 +463,21 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Semantics(
-      label: loading ? "loading" : "",
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: ClipPath(
-          clipper: loading ? AutonomyTopRightRectangleClipper() : null,
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            color: const Color.fromRGBO(227, 227, 227, 1),
-            child: Visibility(
-              visible: loading,
-              child: Align(
-                alignment: AlignmentDirectional.bottomStart,
-                child: loadingIndicator(
-                  size: 13,
-                  valueColor: theme.colorScheme.primary,
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
-                ),
+    return AspectRatio(
+      aspectRatio: 1,
+      child: ClipPath(
+        clipper: loading ? AutonomyTopRightRectangleClipper() : null,
+        child: Container(
+          padding: const EdgeInsets.all(13),
+          color: const Color.fromRGBO(227, 227, 227, 1),
+          child: Visibility(
+            visible: loading,
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: loadingIndicator(
+                size: 13,
+                valueColor: theme.colorScheme.primary,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
               ),
             ),
           ),

@@ -406,7 +406,6 @@ class HomePageState extends State<HomePage>
     ];
 
     return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
       slivers: sources,
       controller: _controller,
     );
