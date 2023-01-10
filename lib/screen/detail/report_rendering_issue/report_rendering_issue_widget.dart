@@ -34,7 +34,8 @@ class _ReportRenderingIssueWidgetState
     extends State<ReportRenderingIssueWidget> {
   final List<String> _selectedTopices = [];
   bool _isSubmissionEnabled = false;
-  bool _isProcessing = false;
+
+  // bool _isProcessing = false;
 
   final metricClient = injector.get<MetricClientService>();
 
@@ -147,7 +148,7 @@ class _ReportRenderingIssueWidgetState
     );
     setState(() {
       _isSubmissionEnabled = false;
-      _isProcessing = true;
+      // _isProcessing = true;
     });
 
     final githubURL = await injector<CustomerSupportService>()

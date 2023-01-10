@@ -239,14 +239,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                         ),
                       ),
                       const SizedBox(height: 40.0),
-                      artworkDetailsMetadataSection(
-                          context, asset, artistName),
+                      artworkDetailsMetadataSection(context, asset, artistName),
                       if (asset.fungible == true) ...[
                         BlocBuilder<AccountsBloc, AccountsState>(
                           builder: (context, state) {
                             final addresses = state.addresses;
-                            return tokenOwnership(
-                                context, asset, addresses);
+                            return tokenOwnership(context, asset, addresses);
                           },
                         ),
                       ] else ...[
