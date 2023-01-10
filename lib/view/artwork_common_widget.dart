@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/jumping_dot.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';

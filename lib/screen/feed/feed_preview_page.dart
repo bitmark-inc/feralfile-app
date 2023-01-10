@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -114,7 +116,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     Sentry.getSpan()?.finish(status: const SpanStatus.ok());
-    // _controller.dispose();
     super.dispose();
   }
 
@@ -154,154 +155,33 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   }
 
   Widget _listItem(FeedEvent event, AssetToken? asset) {
-    return Stack(
-      children: [
-        Column(children: [
-          Center(
-            child: FeedArtwork(
-              assetToken: asset,
-            ),
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: _controlView(
-              event,
-              asset,
-            ),
-          ),
-          const SizedBox(
-            height: 60,
-          ),
-        ]),
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              if (asset == null) {
-                return;
-              }
-              _moveToInfo(asset, event);
-            },
-            child: Container(
-              color: Colors.transparent,
-            ),
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        if (asset == null) {
+          return;
+        }
+        _moveToInfo(asset, event);
+      },
+      child: Column(children: [
+        Center(
+          child: FeedArtwork(
+            assetToken: asset,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _controlViewWhenNoAsset(FeedEvent event) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.primary,
-      padding: const EdgeInsets.only(
-        left: 15,
-        right: 5,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(children: [
-                  Flexible(child: BlocBuilder<IdentityBloc, IdentityState>(
-                      builder: (context, identityState) {
-                    final followingName = event.recipient
-                            .toIdentityOrMask(identityState.identityMap) ??
-                        event.recipient;
-
-                    return Text(
-                      followingName,
-                      style: ResponsiveLayout.isMobile
-                          ? theme.textTheme.ppMori400White14
-                          : theme.textTheme.atlasWhiteBold14,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  })),
-                ]),
-                const SizedBox(height: 4),
-                RichText(
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                      style: theme.primaryTextTheme.headline5,
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'nft_indexing'.tr(),
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.ppMori400White12
-                              : theme.textTheme.atlasWhiteItalic14,
-                        ),
-                      ],
-                    )),
-              ],
-            ),
-          ),
-          const SizedBox(),
-        ],
-      ),
-    );
-  }
-
-  Widget _controlView(FeedEvent event, AssetToken? asset) {
-    //return _controlViewWhenNoAsset(event);
-    if (asset == null) {
-      return _controlViewWhenNoAsset(event);
-    }
-
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.primary,
-      padding: const EdgeInsets.only(left: 15, right: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: BlocBuilder<IdentityBloc, IdentityState>(
-                builder: (context, identityState) {
-              final artistName =
-                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          asset.title.isEmpty ? 'nft' : '${asset.title} ',
-                          overflow: TextOverflow.ellipsis,
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.ppMori400White14
-                              : theme.textTheme.atlasWhiteItalic14,
-                        ),
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        if (artistName != null) ...[
-                          RichText(
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                                text: 'by'.tr(args: [artistName]),
-                                style: theme.textTheme.ppMori400White12),
-                          ),
-                        ]
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ],
-      ),
+        const SizedBox(
+          height: 15,
+        ),
+        BlocProvider(
+          create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
+          child: Align(
+              alignment: Alignment.topCenter,
+              child: ControlView(feedEvent: event, feedToken: asset)),
+        ),
+        const SizedBox(
+          height: 60,
+        ),
+      ]),
     );
   }
 
@@ -524,6 +404,223 @@ class FeedDetailPayload {
     return FeedDetailPayload(
       feedToken ?? this.feedToken,
       feedEvent ?? this.feedEvent,
+    );
+  }
+}
+
+class ControlView extends StatefulWidget {
+  final FeedEvent feedEvent;
+  final AssetToken? feedToken;
+
+  const ControlView({Key? key, required this.feedEvent, this.feedToken})
+      : super(key: key);
+
+  @override
+  State<ControlView> createState() => _ControlViewState();
+}
+
+class _ControlViewState extends State<ControlView> {
+  @override
+  void initState() {
+    fetchIdentities();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void fetchIdentities() {
+    final currentToken = widget.feedToken;
+    final currentFeedEvent = widget.feedEvent;
+
+    final neededIdentities = [
+      currentToken?.artistName ?? '',
+      currentFeedEvent.recipient
+    ];
+    neededIdentities.removeWhere((element) => element == '');
+
+    if (neededIdentities.isNotEmpty) {
+      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
+    }
+  }
+
+  Widget _controlViewWhenNoAsset(FeedEvent event) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primary,
+      padding: const EdgeInsets.only(
+        left: 15,
+        right: 5,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      style: theme.primaryTextTheme.headline5,
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: 'nft_indexing'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400White12
+                              : theme.textTheme.atlasWhiteItalic14,
+                        ),
+                      ],
+                    )),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Flexible(child: BlocBuilder<IdentityBloc, IdentityState>(
+                      builder: (context, identityState) {
+                    final followingName = event.recipient
+                            .toIdentityOrMask(identityState.identityMap) ??
+                        event.recipient;
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          AppRouter.galleryPage,
+                          arguments: GalleryPagePayload(
+                            address: event.recipient,
+                            artistName: followingName,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        followingName,
+                        style: ResponsiveLayout.isMobile
+                            ? theme.textTheme.ppMori400White14
+                            : theme.textTheme.atlasWhiteBold14,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  })),
+                ]),
+              ],
+            ),
+          ),
+          const SizedBox(),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = widget.feedToken;
+    final event = widget.feedEvent;
+    if (asset == null) {
+      return _controlViewWhenNoAsset(event);
+    }
+    final neededIdentities = [asset.artistName ?? '', event.recipient];
+    neededIdentities.removeWhere((element) => element == '');
+    if (neededIdentities.isNotEmpty) {
+      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
+    }
+
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primary,
+      padding: const EdgeInsets.only(left: 15, right: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: BlocBuilder<IdentityBloc, IdentityState>(
+                builder: (context, identityState) {
+              final artistName =
+                  asset.artistName?.toIdentityOrMask(identityState.identityMap);
+              final followingName =
+                  event.recipient.toIdentityOrMask(identityState.identityMap) ??
+                      event.recipient;
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          asset.title.isEmpty ? 'nft' : '${asset.title} ',
+                          overflow: TextOverflow.ellipsis,
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.ppMori400White14
+                              : theme.textTheme.atlasWhiteItalic14,
+                        ),
+                        const SizedBox(
+                          height: 3,
+                        ),
+                        if (artistName != null) ...[
+                          RichText(
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                                text: 'by'.tr(args: [artistName]),
+                                style: theme.textTheme.ppMori400White12),
+                          ),
+                        ],
+                        const SizedBox(
+                          height: 3,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.ppMori400White12
+                                      : theme.textTheme.ppMori400White14,
+                                  children: [
+                                    TextSpan(
+                                      text: "_by".tr(
+                                          args: [event.actionRepresentation]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              child: Text(
+                                followingName,
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.ppMori400White12
+                                        .copyWith(color: AppColor.auSuperTeal)
+                                    : theme.textTheme.ppMori400White14,
+                              ),
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  AppRouter.galleryPage,
+                                  arguments: GalleryPagePayload(
+                                    address: event.recipient,
+                                    artistName: followingName,
+                                  ),
+                                );
+                              },
+                            ),
+                            Text(" • ",
+                                style: theme.primaryTextTheme.headline5),
+                            Text(
+                                getDateTimeRepresentation(
+                                    event.timestamp.toLocal()),
+                                style: theme.primaryTextTheme.headline5),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 }
