@@ -457,7 +457,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     final textStyle = isSelected
         ? theme.textTheme.atlasBlackBold12
         : theme.textTheme.atlasBlackNormal12;
-    return  GestureDetector(
+    return GestureDetector(
       onTap: () {
         context.read<SendArtworkBloc>().add(FeeOptionChangedEvent(
             feeOption, state.address ?? "", state.quantity));
