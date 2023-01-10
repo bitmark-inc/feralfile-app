@@ -5,7 +5,9 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
@@ -203,6 +205,9 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         otp: otp,
       );
       memoryValues.airdropFFExhibitionId.value = null;
+      final metricClient = injector<MetricClientService>();
+      metricClient
+          .addEvent(MixpanelEvent.acceptGiftNFT, data: {'id': artworkId});
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
       await UIHelper.showClaimTokenError(

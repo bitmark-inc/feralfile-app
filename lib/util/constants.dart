@@ -290,7 +290,7 @@ class MixpanelEvent {
   static const clickLoadIPFSAgain = 'click_load_IPFS_again';
   static const showLoadingArtwork = 'show_loading_artwork';
   static const seeArtworkFullScreen = 'see_artwork_fullscreen';
-  static const streamChromecast = 'stream_chromecast';
+  static const streamArtwork = 'stream_artwork';
   static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
@@ -311,4 +311,14 @@ class MixpanelEvent {
   static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
   static const editorialViewArticle = 'editorial_view_article';
+  static const enableNotification = 'enable_notification';
+  static const tabNotification = 'tab_notification';
+  static const viewEditorial = 'view_editorial';
+  static const finishArticles = 'finish_articles';
+  static const visitExhibition = 'visit_exhibition';
+  static const visitExhibitionArtwork = 'visit_exhibition_artwork';
+  static const tabOnLinkInEditorial = 'tab_on_link_in_editorial';
+  static const createPlaylist = 'create_playlist';
+  static const undoCreatePlaylist = 'undo_create_playlist';
+  static const acceptGiftNFT = 'accept_gift_NFT';
 }

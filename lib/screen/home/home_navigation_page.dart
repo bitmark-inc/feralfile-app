@@ -19,7 +19,9 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -290,6 +292,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         _onItemTapped(1);
+        final metricClient = injector<MetricClientService>();
+        metricClient.addEvent(MixpanelEvent.tabNotification, data: {
+          'type': notificationType,
+          'body': notification.body,
+        });
         break;
       default:
         log.warning("unhandled notification type: $notificationType");

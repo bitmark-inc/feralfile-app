@@ -7,7 +7,6 @@
 
 import 'dart:async';
 
-import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -20,9 +19,7 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -81,11 +78,7 @@ class FeedPreviewScreen extends StatefulWidget {
 }
 
 class _FeedPreviewScreenState extends State<FeedPreviewScreen>
-    with
-        RouteAware,
-        AfterLayoutMixin<FeedPreviewScreen>,
-        WidgetsBindingObserver,
-        TickerProviderStateMixin {
+    with RouteAware, WidgetsBindingObserver, TickerProviderStateMixin {
   String? swipeDirection;
 
   late FeedBloc _bloc;
@@ -95,14 +88,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     super.initState();
     _bloc = context.read<FeedBloc>();
     _bloc.add(GetFeedsEvent());
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(
-      MixpanelEvent.viewDiscovery,
-    );
   }
 
   @override

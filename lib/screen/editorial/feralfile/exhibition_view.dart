@@ -5,12 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/editorial/common/bottom_link.dart';
 import 'package:autonomy_flutter/screen/editorial/common/publisher_view.dart';
 import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_state.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -73,12 +75,18 @@ class _ExhibitionViewState extends State<ExhibitionView> {
             child: BottomLink(
               name: "visit".tr(),
               tag: widget.tag,
-              onTap: () => exhibition != null
-                  ? launchUrl(
-                      Uri.parse(feralFileExhibitionUrl(exhibition.slug)),
-                      mode: LaunchMode.externalApplication,
-                    )
-                  : null,
+              onTap: () {
+                if (exhibition == null) return;
+                launchUrl(
+                  Uri.parse(feralFileExhibitionUrl(exhibition.slug)),
+                  mode: LaunchMode.externalApplication,
+                );
+                final metricClient = injector<MetricClientService>();
+                metricClient.addEvent(
+                  MixpanelEvent.visitExhibition,
+                  data: {'id': exhibition.id},
+                );
+              },
             ),
           ),
         ],
@@ -99,10 +107,15 @@ class _ExhibitionViewState extends State<ExhibitionView> {
         final artwork = artworks[index];
 
         return GestureDetector(
-          onTap: () => launchUrl(
-            Uri.parse(feralFileArtworkUrl(artwork.slug)),
-            mode: LaunchMode.externalApplication,
-          ),
+          onTap: () {
+            launchUrl(
+              Uri.parse(feralFileArtworkUrl(artwork.slug)),
+              mode: LaunchMode.externalApplication,
+            );
+            final metricClient = injector<MetricClientService>();
+            metricClient.addEvent(MixpanelEvent.visitExhibitionArtwork,
+                data: {'id': artwork.id, 'exhibition': exhibition.id});
+          },
           child: Container(
             margin: EdgeInsets.only(
               left: index == 0 ? 15.0 : 0.0,

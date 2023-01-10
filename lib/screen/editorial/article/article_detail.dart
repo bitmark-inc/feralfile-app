@@ -36,10 +36,21 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     connectTimeout: 2000,
   ));
 
+  late ScrollController _controller;
+  final metricClient = injector.get<MetricClientService>();
+
   @override
   void initState() {
     super.initState();
+    _controller = ScrollController();
+    _controller.addListener(_trackEventWhenScrollToEnd);
     _trackEvent();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -53,6 +64,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           _header(context),
           Expanded(
             child: SingleChildScrollView(
+              controller: _controller,
               padding: ResponsiveLayout.pageEdgeInsets,
               child: Column(
                 children: [
@@ -90,6 +102,12 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                 if (href == null) return;
                                 if (await canLaunchUrlString(href)) {
                                   launchUrlString(href);
+                                  metricClient.addEvent(
+                                      MixpanelEvent.tabOnLinkInEditorial,
+                                      data: {
+                                        'link': href,
+                                        'name': title,
+                                      });
                                 }
                               },
                             ),
@@ -245,8 +263,15 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: links
                 .map((e) => GestureDetector(
-                    onTap: () => launchUrl(Uri.parse(e.second),
-                        mode: LaunchMode.externalApplication),
+                    onTap: () {
+                      launchUrl(Uri.parse(e.second),
+                          mode: LaunchMode.externalApplication);
+                      metricClient
+                          .addEvent(MixpanelEvent.tabOnLinkInEditorial, data: {
+                        'name': name,
+                        'link': e.second,
+                      });
+                    },
                     child: Text(
                       e.first,
                       style: theme.textTheme.ppMori400Green12,
@@ -259,12 +284,20 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   }
 
   void _trackEvent() {
-    final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.editorialViewArticle, data: {
       "publisher": widget.post.publisher.name,
-      "title": widget.post.content["title"]
-    }, hashedData: {
-      "title": widget.post.content["title"]
+      "title": widget.post.content["title"],
     });
+  }
+
+  void _trackEventWhenScrollToEnd() {
+    final isEnd =
+        _controller.position.atEdge && (_controller.position.pixels != 0);
+    if (isEnd) {
+      metricClient.addEvent(MixpanelEvent.finishArticles, data: {
+        "publisher": widget.post.publisher.name,
+        "title": widget.post.content["title"],
+      });
+    }
   }
 }
