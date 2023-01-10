@@ -336,23 +336,23 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     final textStyle = isSelected
         ? theme.textTheme.atlasBlackBold12
         : theme.textTheme.atlasBlackNormal12;
-    return Row(
-      children: [
-        Text(feeOption.name, style: textStyle),
-        const Spacer(),
-        Text(_gasFee(state, feeOption: feeOption), style: textStyle),
-        const SizedBox(width: 56),
-        GestureDetector(
-          onTap: () {
-            context
-                .read<WCSendTransactionBloc>()
-                .add(FeeOptionChangedEvent(feeOption));
-          },
-          child: SvgPicture.asset(isSelected
+    return GestureDetector(
+      onTap: () {
+        context
+            .read<WCSendTransactionBloc>()
+            .add(FeeOptionChangedEvent(feeOption));
+      },
+      child: Row(
+        children: [
+          Text(feeOption.name, style: textStyle),
+          const Spacer(),
+          Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+          const SizedBox(width: 56),
+          SvgPicture.asset(isSelected
               ? "assets/images/radio_btn_selected.svg"
               : "assets/images/radio_btn_not_selected.svg"),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

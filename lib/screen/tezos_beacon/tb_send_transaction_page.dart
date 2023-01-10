@@ -436,24 +436,24 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final textStyle = isSelected
         ? theme.textTheme.atlasBlackBold12
         : theme.textTheme.atlasBlackNormal12;
-    return Row(
-      children: [
-        Text(feeOption.name, style: textStyle),
-        const Spacer(),
-        Text(_gasFee(feeOption), style: textStyle),
-        const SizedBox(width: 56),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              this.feeOption = feeOption;
-              _fee = feeOptionValue?.getFee(feeOption).toInt();
-            });
-          },
-          child: SvgPicture.asset(isSelected
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          this.feeOption = feeOption;
+          _fee = feeOptionValue?.getFee(feeOption).toInt();
+        });
+      },
+      child: Row(
+        children: [
+          Text(feeOption.name, style: textStyle),
+          const Spacer(),
+          Text(_gasFee(feeOption), style: textStyle),
+          const SizedBox(width: 56),
+          SvgPicture.asset(isSelected
               ? "assets/images/radio_btn_selected.svg"
               : "assets/images/radio_btn_not_selected.svg"),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
