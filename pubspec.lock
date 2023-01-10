@@ -212,21 +212,21 @@ packages:
       name: cached_network_image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.3"
   cached_network_image_platform_interface:
     dependency: transitive
     description:
       name: cached_network_image_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "2.0.0"
   cached_network_image_web:
     dependency: transitive
     description:
       name: cached_network_image_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   cast:
     dependency: "direct main"
     description:
@@ -1304,8 +1304,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.21"
-      resolved-ref: e4e3d1e7843f26d1df202a5fe88da59f995768fd
+      ref: "v1.0.22"
+      resolved-ref: bfcefa61c15a1b93c081c06d4faf9b0084b2a4d0
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2192,7 +2192,7 @@ packages:
       name: video_player
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.7"
+    version: "2.4.10"
   video_player_android:
     dependency: transitive
     description:
