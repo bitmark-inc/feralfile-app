@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,57 +27,63 @@ AppBar getBackAppBar(BuildContext context,
     ),
     leading: const SizedBox(),
     leadingWidth: 0.0,
-    toolbarHeight: isDefaultAccount ? 34 : null,
+    toolbarHeight: isDefaultAccount ? 90 : 100,
     title: Padding(
       padding: isDefaultAccount
-          ? const EdgeInsets.only(top: 24, bottom: 8)
+          ? const EdgeInsets.only(top: 16, bottom: 2)
           : const EdgeInsets.all(0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: onBack,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-              child: Row(
-                children: [
-                  if (onBack != null) ...[
-                    Row(
-                      children: [
-                        SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                        const SizedBox(width: 7),
-                        Text(
-                          backTitle,
-                          style: theme.textTheme.button,
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: onBack,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+                  child: Row(
+                    children: [
+                      if (onBack != null) ...[
+                        Row(
+                          children: [
+                            SvgPicture.asset('assets/images/icon_back.svg'),
+                            Text(
+                              backTitle,
+                              style: const TextStyle(color: Colors.transparent),
+                            ),
+                          ],
                         ),
+                      ] else ...[
+                        const SizedBox(width: 60),
                       ],
-                    ),
-                  ] else ...[
-                    const SizedBox(width: 60),
-                  ],
-                ],
+                    ],
+                  ),
+                ),
               ),
-            ),
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.ppMori400Black16,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              action != null
+                  ? IconButton(
+                      tooltip: "AppbarAction",
+                      constraints: const BoxConstraints(maxWidth: 36.0),
+                      onPressed: action,
+                      icon: Icon(
+                        Icons.more_horiz,
+                        color: theme.colorScheme.primary,
+                      ))
+                  : const SizedBox(width: 60),
+            ],
           ),
-          Expanded(
-            child: Text(
-              title,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.button,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          action != null
-              ? IconButton(
-                  tooltip: "AppbarAction",
-                  constraints: const BoxConstraints(maxWidth: 36.0),
-                  onPressed: action,
-                  icon: Icon(
-                    Icons.more_horiz,
-                    color: theme.colorScheme.primary,
-                  ))
-              : const SizedBox(width: 60),
+          const SizedBox(height: 13),
+          addOnlyDivider(),
         ],
       ),
     ),
