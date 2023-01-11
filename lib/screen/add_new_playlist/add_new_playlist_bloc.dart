@@ -2,12 +2,13 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:uuid/uuid.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 class AddNewPlaylistBloc
     extends Bloc<AddNewPlaylistEvent, AddNewPlaylistState> {
@@ -87,6 +88,8 @@ class AddNewPlaylistBloc
         injector.get<SettingsDataService>().backup();
       }
       emit(state.copyWith(isAddSuccess: true));
+      final metricClient = injector<MetricClientService>();
+      metricClient.addEvent(MixpanelEvent.createPlaylist);
     });
   }
 }

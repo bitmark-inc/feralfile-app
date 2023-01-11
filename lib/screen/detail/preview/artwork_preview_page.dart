@@ -386,16 +386,21 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () {
-                    metricClient.addEvent("stream_airplay");
+                    metricClient.addEvent(MixpanelEvent.streamArtwork, data: {
+                      'id': asset?.id,
+                      'device type': AUCastDeviceType.Airplay.name
+                    });
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
               return GestureDetector(
                 onTap: isSubscribed
                     ? () {
-                        metricClient.addEvent(
-                          MixpanelEvent.streamChromecast,
-                        );
+                        metricClient.addEvent(MixpanelEvent.streamArtwork,
+                            data: {
+                              'id': asset?.id,
+                              'device type': AUCastDeviceType.Chromecast.name
+                            });
                         UIHelper.hideInfoDialog(context);
                         var copiedDevice = _castDevices[index];
                         if (copiedDevice.isActivated) {

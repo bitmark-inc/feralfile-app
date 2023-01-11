@@ -5,10 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -63,6 +66,15 @@ class _EditorialPageState extends State<EditorialPage>
       setState(() {
         _showFullHeader = isShowFullHeader;
       });
+    }
+  }
+
+  void _trackEvent(int index) {
+    final metricClient = injector<MetricClientService>();
+    if (index == 0 && widget.isShowDiscover) {
+      metricClient.addEvent(MixpanelEvent.viewDiscovery);
+    } else {
+      metricClient.addEvent(MixpanelEvent.viewEditorial);
     }
   }
 
@@ -184,6 +196,9 @@ class _EditorialPageState extends State<EditorialPage>
                                 style: const TextStyle(height: 0.8),
                               ),
                             ],
+                            onTap: (index) {
+                              _trackEvent(index);
+                            },
                           ),
                         ],
                       ),
