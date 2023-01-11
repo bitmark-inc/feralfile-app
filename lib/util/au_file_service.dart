@@ -180,7 +180,7 @@ class AuFileService extends FileService {
           DEFAULT_IPFS_PREFIX,
         );
       }
-      if (Uri.tryParse(fallbackUrl ?? url)?.hasAbsolutePath ?? false) {
+      if (!(Uri.tryParse(fallbackUrl ?? url)?.hasAbsolutePath ?? false)) {
         return Future.error(Exception("Invalid url $url"));
       }
 
