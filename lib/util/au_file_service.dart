@@ -180,6 +180,10 @@ class AuFileService extends FileService {
           DEFAULT_IPFS_PREFIX,
         );
       }
+      if (Uri.tryParse(fallbackUrl ?? url)?.hasAbsolutePath ?? false) {
+        return Future.error(Exception("Invalid url $url"));
+      }
+
       final fileName = "${md5.convert(utf8.encode(url))}.${fileInfo.extension}";
       final taskId = await FlutterDownloader.enqueue(
         url: fallbackUrl ?? url,
