@@ -138,7 +138,7 @@
 		<false/>
 		<key>io.flutter.embedded_views_preview</key>
 		<true/>
+		<key>FDMaximumConcurrentTasks</key>
+    	<integer>10</integer>
 	</dict>
-    <key>FDMaximumConcurrentTasks</key>
-    <integer>10</integer>
 </plist>
