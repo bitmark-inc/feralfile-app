@@ -113,7 +113,7 @@ jobs:
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE
-          flutter pub run test auto-test/mobile_external_webs/purchaseFeralfileEthereumToken_test.dart
+          flutter pub run test auto-test/mobile_external_webs/purchaseFeralFileEthereumToken_test.dart
       - name: Run auto tests for Suite "Purchase Tez NFT in outside exchanges"
         if: success() || failure()
         run: |

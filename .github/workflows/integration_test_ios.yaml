@@ -118,7 +118,7 @@ jobs:
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE          
-          flutter pub run test auto-test/mobile_external_webs/purchaseFeralfileTezosToken_test.dart
+          flutter pub run test auto-test/mobile_external_webs/purchaseFeralFileEthereumToken_test.dart
       # - name: Run Flutter Driver tests for Suite "Send/transfer artworks"
       #   if: success() || failure()
       #   run: |
