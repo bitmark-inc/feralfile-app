@@ -383,12 +383,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               );
             },
           ),
-          OptionItem(
-            title: 'report_nft_rendering_issues'.tr(),
-            icon: const Icon(AuIcon.help_us),
-            onTap: () => showReportIssueDialog(context, asset),
-          ),
         ],
+        OptionItem(
+          title: 'report_nft_rendering_issues'.tr(),
+          icon: const Icon(AuIcon.help_us),
+          onTap: () => showReportIssueDialog(context, asset),
+        ),
       ],
     );
   }
