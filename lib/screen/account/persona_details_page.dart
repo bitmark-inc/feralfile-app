@@ -121,30 +121,28 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         context,
         title: title?.replaceFirst('did:key:', '') ?? '',
         onBack: () => Navigator.of(context).pop(),
-        isDefaultAccount: isDefaultAccount,
       ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              isDefaultAccount
-                  ? Column(
-                      children: [
-                        _defaultAccount(context),
-                        const SizedBox(height: 16),
-                      ],
-                    )
-                  : const SizedBox(),
-              _addressesSection(uuid),
-              const SizedBox(height: 40),
-              _preferencesSection(),
-              const SizedBox(height: 40),
-              _backupSection(),
-              const SizedBox(height: 40),
-            ],
-          ),
+      body: SingleChildScrollView(
+        padding: ResponsiveLayout.pageEdgeInsets,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            isDefaultAccount
+                ? Column(
+                    children: [
+                      const SizedBox(height: 30),
+                      _defaultAccount(context),
+                      const SizedBox(height: 16),
+                    ],
+                  )
+                : const SizedBox(),
+            _addressesSection(uuid),
+            const SizedBox(height: 40),
+            _preferencesSection(),
+            const SizedBox(height: 40),
+            _backupSection(),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
