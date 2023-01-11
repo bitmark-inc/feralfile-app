@@ -15,8 +15,7 @@ AppBar getBackAppBar(BuildContext context,
     {String backTitle = "BACK",
     String title = "",
     required Function()? onBack,
-    Function()? action,
-    bool isDefaultAccount = false}) {
+    Function()? action}) {
   final theme = Theme.of(context);
 
   return AppBar(
@@ -27,65 +26,60 @@ AppBar getBackAppBar(BuildContext context,
     ),
     leading: const SizedBox(),
     leadingWidth: 0.0,
-    toolbarHeight: isDefaultAccount ? 90 : 100,
-    title: Padding(
-      padding: isDefaultAccount
-          ? const EdgeInsets.only(top: 16, bottom: 2)
-          : const EdgeInsets.all(0),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: onBack,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                  child: Row(
-                    children: [
-                      if (onBack != null) ...[
-                        Row(
-                          children: [
-                            SvgPicture.asset('assets/images/icon_back.svg'),
-                            Text(
-                              backTitle,
-                              style: const TextStyle(color: Colors.transparent),
-                            ),
-                          ],
-                        ),
-                      ] else ...[
-                        const SizedBox(width: 60),
-                      ],
+    toolbarHeight: 80,
+    title: Column(
+      children: [
+        const SizedBox(height: 28),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onBack,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+                child: Row(
+                  children: [
+                    if (onBack != null) ...[
+                      Row(
+                        children: [
+                          SvgPicture.asset('assets/images/icon_back.svg'),
+                          Text(
+                            backTitle,
+                            style: const TextStyle(color: Colors.transparent),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      const SizedBox(width: 60),
                     ],
-                  ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: Text(
-                  title,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.ppMori400Black16,
-                  textAlign: TextAlign.center,
-                ),
+            ),
+            Expanded(
+              child: Text(
+                title,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.ppMori400Black16,
+                textAlign: TextAlign.center,
               ),
-              action != null
-                  ? IconButton(
-                      tooltip: "AppbarAction",
-                      constraints: const BoxConstraints(maxWidth: 36.0),
-                      onPressed: action,
-                      icon: Icon(
-                        Icons.more_horiz,
-                        color: theme.colorScheme.primary,
-                      ))
-                  : const SizedBox(width: 60),
-            ],
-          ),
-          const SizedBox(height: 13),
-          addOnlyDivider(),
-        ],
-      ),
+            ),
+            action != null
+                ? IconButton(
+                    tooltip: "AppbarAction",
+                    constraints: const BoxConstraints(maxWidth: 36.0),
+                    onPressed: action,
+                    icon: Icon(
+                      Icons.more_horiz,
+                      color: theme.colorScheme.primary,
+                    ))
+                : const SizedBox(width: 60),
+          ],
+        ),
+        const SizedBox(height: 13),
+        addOnlyDivider(),
+      ],
     ),
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
