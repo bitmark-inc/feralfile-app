@@ -202,7 +202,16 @@ class HomePageState extends State<HomePage>
     final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
-            builder: (context, state) {
+            buildWhen: (previousState, currentState) {
+      final diffLength =
+          currentState.tokens.length - previousState.tokens.length;
+      if (diffLength > 0) {
+        _metricClient.addEvent(MixpanelEvent.addNFT, data: {
+          'number': diffLength,
+        });
+      }
+      return true;
+    }, builder: (context, state) {
       final hiddenTokens =
           injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
       final sentArtworks =
