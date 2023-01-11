@@ -87,8 +87,6 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _issuesWidget() {
-    final theme = Theme.of(context);
-
     final issues = _issues;
     if (issues == null) {
       return const Center(child: CupertinoActivityIndicator());
@@ -99,6 +97,9 @@ class _SupportListPageState extends State<SupportListPage>
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
         child: addTitleSpace(),
+      ),
+      const SliverToBoxAdapter(
+        child: SizedBox(height: 20),
       ),
       SliverList(
         delegate: SliverChildBuilderDelegate(

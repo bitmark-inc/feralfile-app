@@ -434,9 +434,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                       child: Bubble(
                         color: color,
                         borderColor: isError ? orangeRust : null,
-                        margin: nextMessageInGroup
-                            ? const BubbleEdges.symmetric(horizontal: 6)
-                            : null,
                         radius: const Radius.circular(10),
                         nipWidth: 0.1,
                         nipRadius: 0,
@@ -459,9 +456,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           )
         : Bubble(
             color: color,
-            margin: nextMessageInGroup
-                ? const BubbleEdges.symmetric(horizontal: 6)
-                : null,
             radius: const Radius.circular(10),
             nipWidth: 0.1,
             nipRadius: 0,
