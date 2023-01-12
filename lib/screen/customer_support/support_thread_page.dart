@@ -19,10 +19,9 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:bubble/bubble.dart';
@@ -207,20 +206,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("ask_attach_crash".tr(),
-              //"Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
-              style: theme.primaryTextTheme.bodyText1),
-          const SizedBox(height: 40),
-          AuFilledButton(
-            text: "attach_crash_logH".tr(),
-            color: theme.colorScheme.secondary,
-            textStyle: theme.textTheme.button,
-            onPress: () => onConfirm(true),
+          Text(
+            "ask_attach_crash".tr(),
+            //"Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
+            style: theme.primaryTextTheme.ppMori400White14,
           ),
-          AuFilledButton(
+          const SizedBox(height: 40),
+          PrimaryButton(
+            text: "attach_crash_logH".tr(),
+            onTap: () => onConfirm(true),
+          ),
+          const SizedBox(height: 10),
+          OutlineButton(
             text: "conti_no_crash_log".tr(),
-            textStyle: theme.primaryTextTheme.button,
-            onPress: () => onConfirm(false),
+            onTap: () => onConfirm(false),
           ),
           const SizedBox(height: 40),
         ],
@@ -725,44 +724,32 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _handleAttachmentPressed() {
-    final theme = Theme.of(context);
-
     UIHelper.showDialog(
       context,
       "attach_file".tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () {
+          PrimaryButton(
+            onTap: () {
               _handleImageSelection();
               Navigator.of(context).pop();
             },
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child:
-                  Text('photo'.tr(), style: theme.primaryTextTheme.headline4),
-            ),
+            text: 'photo'.tr(),
           ),
-          addDialogDivider(),
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () async {
+          const SizedBox(
+            height: 10,
+          ),
+          PrimaryButton(
+            onTap: () async {
               await _addAppLogs();
             },
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('debug_log'.tr(),
-                  style: theme.primaryTextTheme.headline4),
-            ),
+            text: 'debug_log'.tr(),
           ),
-          const SizedBox(height: 40),
-          Align(
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("cancel".tr(), style: theme.primaryTextTheme.button),
-            ),
+          const SizedBox(height: 10),
+          OutlineButton(
+            onTap: () => Navigator.of(context).pop(),
+            text: "cancel_dialog".tr(),
           ),
           const SizedBox(height: 15),
         ],

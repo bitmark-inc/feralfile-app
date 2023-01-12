@@ -9,7 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -62,7 +62,7 @@ class _ReportRenderingIssueWidgetState
               style: theme.textTheme.ppMori400White14,
             ),
             const SizedBox(
-              height: 40,
+              height: 10,
             ),
             Text(
               'select_a_type_of_issue'.tr(),
@@ -111,13 +111,13 @@ class _ReportRenderingIssueWidgetState
                   );
                 }),
             const SizedBox(height: 15),
-            AuPrimaryButton(
-              onPressed: _isSubmissionEnabled ? () => _reportIssue() : null,
+            PrimaryButton(
               text: "generate_report".tr(),
+              onTap: _isSubmissionEnabled ? () => _reportIssue() : null,
             ),
             const SizedBox(height: 10),
-            AuSecondaryButton(
-              onPressed: () => Navigator.pop(context),
+            OutlineButton(
+              onTap: () => Navigator.pop(context),
               text: "cancel_dialog".tr(),
             ),
           ],

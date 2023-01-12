@@ -259,9 +259,11 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 if (notificationEnable) {
                   showInfoNotification(
                     const Key("signed"),
-                    "signed".tr().toUpperCase(),
-                    frontWidget:
-                        SvgPicture.asset("assets/images/checkbox_icon.svg"),
+                    "signed".tr(),
+                    frontWidget: SvgPicture.asset(
+                      "assets/images/checkbox_icon.svg",
+                      width: 24,
+                    ),
                   );
                 }
               }),

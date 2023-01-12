@@ -422,11 +422,14 @@ Widget get autonomyLogo {
   return FutureBuilder<bool>(
       future: isAppCenterBuild(),
       builder: (context, snapshot) {
-        return SvgPicture.asset(
-          snapshot.data == true
-              ? "assets/images/logo_dev.svg"
-              : "assets/images/penrose_moma.svg",
-          width: 50,
+        return GestureDetector(
+          onTap: () {},
+          child: SvgPicture.asset(
+            snapshot.data == true
+                ? "assets/images/logo_dev.svg"
+                : "assets/images/penrose_moma.svg",
+            width: 50,
+          ),
         );
       });
 }
@@ -435,6 +438,7 @@ Widget loadingIndicator({
   double size = 27,
   Color valueColor = Colors.black,
   Color backgroundColor = Colors.black54,
+  double strokeWidth = 2.0,
 }) {
   return SizedBox(
     width: size,
@@ -442,7 +446,7 @@ Widget loadingIndicator({
     child: CircularProgressIndicator(
       backgroundColor: backgroundColor,
       color: valueColor,
-      strokeWidth: 2,
+      strokeWidth: strokeWidth,
     ),
   );
 }

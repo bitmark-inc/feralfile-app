@@ -559,17 +559,19 @@ class HomePageState extends State<HomePage>
     log.info("[HomePage] Show subscription notification");
     await configService.setLastTimeAskForSubscription(DateTime.now());
     const key = Key("subscription");
-    showInfoNotification(
-      key,
-      "subscription_hint".tr(),
-      duration: const Duration(seconds: 5),
-      openHandler: () {
-        UpgradesView.showSubscriptionDialog(context, null, null, () {
-          hideOverlay(key);
-          context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-        });
-      },
-    );
+    if (!mounted) return;
+    showInfoNotification(key, "subscription_hint".tr(),
+        duration: const Duration(seconds: 5), openHandler: () {
+      UpgradesView.showSubscriptionDialog(context, null, null, () {
+        hideOverlay(key);
+        context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+      });
+    }, addOnTextSpan: [
+      TextSpan(
+        text: 'trial_today'.tr(),
+        style: Theme.of(context).textTheme.ppMori400Green14,
+      )
+    ]);
   }
 
   void _handleBackground() {
