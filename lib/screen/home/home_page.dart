@@ -346,26 +346,36 @@ class HomePageState extends State<HomePage>
                 child: autonomyLogo,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: SizedBox(
-                height: 103,
-                child: ValueListenableBuilder(
-                  valueListenable: _playlists,
-                  builder: (context, value, child) => ListPlaylistWidget(
-                    playlists: _playlists.value,
-                    onUpdateList: () async {
-                      if (injector
-                          .get<ConfigurationService>()
-                          .isDemoArtworksMode()) return;
-                      await injector
-                          .get<ConfigurationService>()
-                          .setPlayList(_playlists.value, override: true);
-                      injector.get<SettingsDataService>().backup();
-                    },
+            FutureBuilder<bool>(
+              future: injector<IAPService>().isSubscribed(),
+              builder: (context, subscriptionSnapshot) {
+                final isSubscribed = subscriptionSnapshot.hasData &&
+                    subscriptionSnapshot.data == true;
+                return Visibility(
+                  visible: isSubscribed,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: SizedBox(
+                      height: 103,
+                      child: ValueListenableBuilder(
+                        valueListenable: _playlists,
+                        builder: (context, value, child) => ListPlaylistWidget(
+                          playlists: _playlists.value,
+                          onUpdateList: () async {
+                            if (injector
+                                .get<ConfigurationService>()
+                                .isDemoArtworksMode()) return;
+                            await injector
+                                .get<ConfigurationService>()
+                                .setPlayList(_playlists.value, override: true);
+                            injector.get<SettingsDataService>().backup();
+                          },
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             )
           ],
         ),
