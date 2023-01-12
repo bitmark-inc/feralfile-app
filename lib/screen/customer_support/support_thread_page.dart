@@ -494,9 +494,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                setState(() {
-                  _status = "clickToReopen";
-                });
+                if (_status == "close") {
+                  setState(() {
+                    _status = "clickToReopen";
+                  });
+                }
               },
               style: theme.textButtonNoPadding,
               child: Text(
