@@ -26,64 +26,60 @@ AppBar getBackAppBar(BuildContext context,
     ),
     leading: const SizedBox(),
     leadingWidth: 0.0,
-    toolbarHeight: 80,
-    title: Column(
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const SizedBox(height: 28),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onBack,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                child: Row(
-                  children: [
-                    if (onBack != null) ...[
-                      Row(
-                        children: [
-                          SvgPicture.asset('assets/images/icon_back.svg'),
-                          Text(
-                            backTitle,
-                            style: const TextStyle(color: Colors.transparent),
-                          ),
-                        ],
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: onBack,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+            child: Row(
+              children: [
+                if (onBack != null) ...[
+                  Row(
+                    children: [
+                      SvgPicture.asset('assets/images/icon_back.svg'),
+                      Text(
+                        backTitle,
+                        style: const TextStyle(color: Colors.transparent),
                       ),
-                    ] else ...[
-                      const SizedBox(width: 60),
                     ],
-                  ],
-                ),
-              ),
+                  ),
+                ] else ...[
+                  const SizedBox(width: 60),
+                ],
+              ],
             ),
-            Expanded(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.ppMori400Black16,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            action != null
-                ? IconButton(
-                    tooltip: "AppbarAction",
-                    constraints: const BoxConstraints(maxWidth: 36.0),
-                    onPressed: action,
-                    icon: Icon(
-                      Icons.more_horiz,
-                      color: theme.colorScheme.primary,
-                    ))
-                : const SizedBox(width: 60),
-          ],
+          ),
         ),
-        const SizedBox(height: 13),
-        addOnlyDivider(),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.ppMori400Black16,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        action != null
+            ? IconButton(
+                tooltip: "AppbarAction",
+                constraints: const BoxConstraints(maxWidth: 36.0),
+                onPressed: action,
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: theme.colorScheme.primary,
+                ))
+            : const SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(1),
+      child: addOnlyDivider(),
+    ),
   );
 }
 
