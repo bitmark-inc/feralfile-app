@@ -125,11 +125,12 @@ class ReportIssueType {
   static const Other = 'other';
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
+  static const Announcement = 'announcement';
 
   static List<String> get getList =>
       [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
 
-  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
+  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other, Announcement];
 
   static String toTitle(String item) {
     switch (item) {
@@ -143,6 +144,8 @@ class ReportIssueType {
         return 'Report a bug';
       case ReportNFTIssue:
         return 'Report NFT issue';
+      case Announcement:
+        return "Announcement";
       default:
         return 'Something else?';
     }

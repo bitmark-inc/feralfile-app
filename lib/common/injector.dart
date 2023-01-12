@@ -233,6 +233,7 @@ Future<void> setup() async {
                 baseUrl: Environment.renderingReportURL),
             injector(),
             injector(),
+            mainnetDB.announcementDao,
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);

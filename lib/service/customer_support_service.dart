@@ -8,7 +8,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
@@ -54,6 +56,8 @@ abstract class CustomerSupportService {
 
   Future<List<Issue>> getIssues();
 
+  Future<List<Object>> getIssuesAndAnnouncement();
+
   Future draftMessage(DraftCustomerSupport draft);
 
   Future processMessages();
@@ -88,6 +92,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   final RenderingReportApi _renderingReportApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
+  final AnnouncementLocalDao _announcementDao;
+
   @override
   List<String> errorMessages = [];
   int retryTime = 0;
@@ -108,6 +114,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     this._renderingReportApi,
     this._accountService,
     this._configurationService,
+    this._announcementDao,
   );
 
   bool _isProcessingDraftMessages = false;
@@ -496,6 +503,42 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     if (now > lastReportTime + _ipfsReportThreshold) {
       reportBox.put(token.id, now);
       await createRenderingIssueReport(token, ["IPFS Loading"]);
+    }
+  }
+
+  @override
+  Future<List<Object>> getIssuesAndAnnouncement() async {
+    List<Object> result = [];
+    List<Issue> issues = await getIssues();
+    List<AnnouncementLocal> announcements =
+        await _announcementDao.getAnnouncements();
+
+    if (issues.isNotEmpty && announcements.isNotEmpty) {
+      for (var issue in issues) {
+        final announcement = announcements.firstWhereOrNull((element) => element.announcementID == issue.announcementID);
+        if (announcement!= null) {
+          issue.announcement = announcement;
+          announcements.remove(announcement);
+        }
+      }
+    }
+    result.addAll(issues);
+    result.addAll(announcements);
+    result.sort((a, b) {
+      final aTimestamp = _getTimestamp(a);
+      final bTimestamp = _getTimestamp(b);
+      return bTimestamp.compareTo(aTimestamp);
+    });
+    return result;
+  }
+
+  int _getTimestamp(Object a) {
+    if (a is Issue) {
+      return a.timestamp.millisecondsSinceEpoch * 1000;
+    } else if (a is AnnouncementLocal) {
+      return a.announceAt;
+    } else {
+      return 0;
     }
   }
 }

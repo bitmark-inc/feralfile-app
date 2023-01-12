@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -28,6 +29,9 @@ class Issue {
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
+  String? announcementID;
+  @JsonKey(ignore: true)
+  AnnouncementLocal? announcement;
 
   Issue({
     required this.issueID,
@@ -40,6 +44,7 @@ class Issue {
     required this.lastMessage,
     this.draft,
     required this.rating,
+    this.announcementID,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);

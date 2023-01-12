@@ -84,21 +84,25 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
     return Column(
       children: [
         ...ReportIssueType.getSuggestList.map((item) {
-          return Column(
-            children: [
-              AuSecondaryButton(
-                text: ReportIssueType.toTitle(item),
-                onPressed: () => Navigator.of(context).pushNamed(
-                  AppRouter.supportThreadPage,
-                  arguments: NewIssuePayload(reportIssueType: item),
+          if (item != ReportIssueType.Announcement) {
+            return Column(
+              children: [
+                AuSecondaryButton(
+                  text: ReportIssueType.toTitle(item),
+                  onPressed: () => Navigator.of(context).pushNamed(
+                    AppRouter.supportThreadPage,
+                    arguments: NewIssuePayload(reportIssueType: item),
+                  ),
+                  backgroundColor: Colors.white,
+                  borderColor: Colors.black,
+                  textColor: Colors.black,
                 ),
-                backgroundColor: Colors.white,
-                borderColor: Colors.black,
-                textColor: Colors.black,
-              ),
-              const SizedBox(height: 10),
-            ],
-          );
+                const SizedBox(height: 10),
+              ],
+            );
+          } else {
+            return const SizedBox();
+          }
         })
       ],
     );
