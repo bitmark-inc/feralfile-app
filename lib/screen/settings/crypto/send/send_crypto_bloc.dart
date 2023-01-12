@@ -293,8 +293,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
         newState.maxAllow = maxAllow;
         newState.isValid = _isValid(newState);
-        newState.isAmountError = !newState.isValid &&
-            newState.address != null;
+        newState.isAmountError = !newState.isValid && newState.address != null;
       }
       newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);
