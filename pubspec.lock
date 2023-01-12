@@ -82,8 +82,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.11"
-      resolved-ref: fbbe90dceeea97f31ba2270f6766d48271db6bd5
+      ref: "1.0.16"
+      resolved-ref: "0bb90d06dc41ef773eb146ab6408b0bcc939756e"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -620,7 +620,7 @@ packages:
       name: flutter_chat_ui
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.6"
+    version: "1.6.4"
   flutter_dotenv:
     dependency: "direct main"
     description:

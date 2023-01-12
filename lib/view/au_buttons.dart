@@ -39,10 +39,18 @@ class AuPrimaryButton extends StatelessWidget {
 class AuSecondaryButton extends StatelessWidget {
   final Function() onPressed;
   final String text;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? borderColor;
 
-  const AuSecondaryButton(
-      {Key? key, required this.onPressed, required this.text})
-      : super(key: key);
+  const AuSecondaryButton({
+    Key? key,
+    required this.onPressed,
+    required this.text,
+    this.backgroundColor,
+    this.textColor,
+    this.borderColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +59,20 @@ class AuSecondaryButton extends StatelessWidget {
       height: 43.0,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
+          backgroundColor: backgroundColor ?? Colors.transparent,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Colors.white),
+            side: BorderSide(color: borderColor ?? Colors.white),
             borderRadius: BorderRadius.circular(32.0),
           ),
         ),
         onPressed: onPressed,
-        child: Text(text, style: Theme.of(context).textTheme.ppMori400White14),
+        child: Text(
+          text,
+          style: Theme.of(context)
+              .textTheme
+              .ppMori400White14
+              .copyWith(color: textColor),
+        ),
       ),
     );
   }

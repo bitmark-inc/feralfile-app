@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,7 @@ class _SupportListPageState extends State<SupportListPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "support_history".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: _issuesWidget(),
@@ -84,8 +86,6 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _issuesWidget() {
-    final theme = Theme.of(context);
-
     final issues = _issues;
     if (issues == null) {
       return const Center(child: CupertinoActivityIndicator());
@@ -95,12 +95,10 @@ class _SupportListPageState extends State<SupportListPage>
 
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
-        child: Container(
-            padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
-            child: Text(
-              "support_history".tr(),
-              style: theme.textTheme.headline1,
-            )),
+        child: addTitleSpace(),
+      ),
+      const SliverToBoxAdapter(
+        child: SizedBox(height: 20),
       ),
       SliverList(
         delegate: SliverChildBuilderDelegate(
@@ -147,15 +145,15 @@ class _SupportListPageState extends State<SupportListPage>
               children: [
                 Text(
                   ReportIssueType.toTitle(issue.reportIssueType),
-                  style: theme.textTheme.headline4,
+                  style: theme.textTheme.ppMori400Black16,
                 ),
                 if (issue.unread > 0) ...[
                   const SizedBox(width: 8),
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
                         shape: BoxShape.circle,
                       ),
                       width: 10,
@@ -167,9 +165,13 @@ class _SupportListPageState extends State<SupportListPage>
             ),
             Row(
               children: [
-                Text(getVerboseDateTimeRepresentation(
-                    issue.lastMessage?.timestamp.toLocal() ??
-                        issue.timestamp.toLocal())),
+                Text(
+                  getVerboseDateTimeRepresentation(
+                      issue.lastMessage?.timestamp.toLocal() ??
+                          issue.timestamp.toLocal()),
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: AppColor.auQuickSilver),
+                ),
                 const SizedBox(width: 14),
                 SvgPicture.asset('assets/images/iconForward.svg'),
               ],
@@ -183,7 +185,7 @@ class _SupportListPageState extends State<SupportListPage>
             getPreviewMessage(issue),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyText1,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ),
         hasDivider
