@@ -7,8 +7,10 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:floor/floor.dart';
@@ -18,14 +20,19 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
-@Database(version: 14, entities: [Identity, DraftCustomerSupport])
+@Database(
+    version: 15, entities: [Identity, DraftCustomerSupport, AnnouncementLocal])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
+
   DraftCustomerSupportDao get draftCustomerSupportDao;
+
+  AnnouncementLocalDao get announcementDao;
 
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
+    await announcementDao.removeAll();
   }
 }
 
@@ -102,4 +109,9 @@ final migrateV12ToV13 = Migration(12, 13, (database) async {
 final migrateV13ToV14 = Migration(13, 14, (database) async {
   await database.execute("DROP TABLE IF EXISTS AssetToken;");
   await database.execute("DROP TABLE IF EXISTS Provenance;");
+});
+
+final migrateV14ToV15 = Migration(14, 15, (database) async {
+  await database.execute(
+      'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementID` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL,  PRIMARY KEY (`announcementID`))');
 });

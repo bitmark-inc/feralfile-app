@@ -1,4 +1,3 @@
-
 import 'package:autonomy_flutter/model/announcement.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -10,7 +9,8 @@ abstract class AnnouncementApi {
   factory AnnouncementApi(Dio dio, {String baseUrl}) = _AnnouncementApi;
 
   @POST("/announcements")
-  Future<AnnouncementPostResponse> callAnnouncement();
+  Future<AnnouncementPostResponse> callAnnouncement(
+      @Body() Map<String, dynamic> body);
 
   @GET("/announcements")
   Future<List<Announcement>> getAnnouncements({

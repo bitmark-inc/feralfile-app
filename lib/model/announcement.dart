@@ -26,9 +26,9 @@ class Announcement {
 
 @JsonSerializable()
 class AnnouncementPostResponse {
-  final String announcementId;
+  final String announcementID;
 
-  AnnouncementPostResponse({required this.announcementId});
+  AnnouncementPostResponse({required this.announcementID});
 
   factory AnnouncementPostResponse.fromJson(Map<String, dynamic> json) =>
       _$AnnouncementPostResponseFromJson(json);

@@ -26,11 +26,11 @@ Map<String, dynamic> _$AnnouncementToJson(Announcement instance) =>
 AnnouncementPostResponse _$AnnouncementPostResponseFromJson(
         Map<String, dynamic> json) =>
     AnnouncementPostResponse(
-      announcementId: json['announcementId'] as String,
+      announcementID: json['announcementID'] as String,
     );
 
 Map<String, dynamic> _$AnnouncementPostResponseToJson(
         AnnouncementPostResponse instance) =>
     <String, dynamic>{
-      'announcementId': instance.announcementId,
+      'announcementID': instance.announcementID,
     };
