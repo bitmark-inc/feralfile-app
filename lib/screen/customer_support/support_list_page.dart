@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
@@ -33,7 +34,7 @@ class SupportListPage extends StatefulWidget {
 
 class _SupportListPageState extends State<SupportListPage>
     with RouteAware, WidgetsBindingObserver {
-  List<Issue>? _issues;
+  List<Object>? _issues;
 
   @override
   void didChangeDependencies() {
@@ -61,11 +62,8 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   void loadIssues() async {
-    final issues = await injector<CustomerSupportService>().getIssues();
-    issues.sort((a, b) =>
-        (b.draft?.createdAt ?? b.lastMessage?.timestamp ?? b.timestamp)
-            .compareTo(
-                a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp));
+    final issues =
+        await injector<CustomerSupportService>().getIssuesAndAnnouncement();
     if (mounted) {
       setState(() {
         _issues = issues;
@@ -101,23 +99,45 @@ class _SupportListPageState extends State<SupportListPage>
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final issue = issues[index];
-            final status = issue.status;
-            final lastMessage = getLastMessage(issue);
-            final isRated = (lastMessage.contains(STAR_RATING) ||
-                    lastMessage.contains(RATING_MESSAGE_START)) &&
-                issue.rating > 0;
-            bool hasDivider = (index < issues.length - 1);
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              child: _contentRow(issue, hasDivider),
-              onTap: () => Navigator.of(context).pushNamed(
-                  AppRouter.supportThreadPage,
-                  arguments: DetailIssuePayload(
-                      reportIssueType: issue.reportIssueType,
-                      issueID: issue.issueID,
-                      status: status,
-                      isRated: isRated)),
-            );
+            if (issue is Issue) {
+              final status = issue.status;
+              final lastMessage = getLastMessage(issue);
+              final isRated = (lastMessage.contains(STAR_RATING) ||
+                      lastMessage.contains(RATING_MESSAGE_START)) &&
+                  issue.rating > 0;
+              bool hasDivider = (index < issues.length - 1);
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveLayout.pageEdgeInsets.left),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  child: _contentRow(issue, hasDivider),
+                  onTap: () => Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments: DetailIssuePayload(
+                          reportIssueType: issue.reportIssueType,
+                          issueID: issue.issueID,
+                          status: status,
+                          isRated: isRated)),
+                ),
+              );
+            } else if (issue is AnnouncementLocal) {
+              bool hasDivider = (index < issues.length - 1);
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveLayout.pageEdgeInsets.left),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  child: _announcementRow(issue, hasDivider),
+                  onTap: () => Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments: NewIssuePayload(
+                          reportIssueType: ReportIssueType.Announcement)),
+                ),
+              );
+            } else {
+              return const SizedBox();
+            }
           },
           childCount: issues.length,
         ),
@@ -131,54 +151,43 @@ class _SupportListPageState extends State<SupportListPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        ReportIssueType.toTitle(issue.reportIssueType),
-                        style: theme.textTheme.ppMori400Black16,
-                      ),
-                      if (issue.unread > 0) ...[
-                        const SizedBox(width: 8),
-                        Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: redDotIcon()),
-                      ]
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        getVerboseDateTimeRepresentation(
-                            issue.lastMessage?.timestamp.toLocal() ??
-                                issue.timestamp.toLocal()),
-                        style: theme.textTheme.ppMori400Black14
-                            .copyWith(color: AppColor.auQuickSilver),
-                      ),
-                      const SizedBox(width: 14),
-                      SvgPicture.asset('assets/images/iconForward.svg'),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 17),
-              Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: Text(
-                  getPreviewMessage(issue),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.ppMori400Black14,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  ReportIssueType.toTitle(issue.reportIssueType),
+                  style: theme.textTheme.ppMori400Black16,
                 ),
-              ),
-            ],
+                if (issue.unread > 0) ...[
+                  _unread(),
+                ]
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  getVerboseDateTimeRepresentation(
+                      issue.lastMessage?.timestamp.toLocal() ??
+                          issue.timestamp.toLocal()),
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: AppColor.auQuickSilver),
+                ),
+                const SizedBox(width: 14),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 17),
+        Padding(
+          padding: const EdgeInsets.only(right: 14),
+          child: Text(
+            getPreviewMessage(issue),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ),
         hasDivider
@@ -247,5 +256,75 @@ class _SupportListPageState extends State<SupportListPage>
       return "file_sent"
           .tr(args: [attachmentTitle]); //'File sent: $attachmentTitle';
     }
+  }
+
+  Widget _announcementRow(AnnouncementLocal announcement, bool hasDivider) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  ReportIssueType.toTitle(ReportIssueType.Announcement),
+                  style: theme.textTheme.ppMori400Black16,
+                ),
+                if (announcement.unread) ...[
+                  _unread(),
+                ]
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  getVerboseDateTimeRepresentation(DateTime.fromMillisecondsSinceEpoch(announcement.announceAt)),
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: AppColor.auQuickSilver),
+                ),
+                const SizedBox(width: 14),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 17),
+        Padding(
+          padding: const EdgeInsets.only(right: 14),
+          child: Text(
+            announcement.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ),
+        hasDivider
+            ? addDivider()
+            : const SizedBox(
+          height: 32,
+        ),
+      ],
+    );
+  }
+  Widget _unread() {
+    return Row(
+      children: [
+        const SizedBox(width: 8),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+            width: 10,
+            height: 10,
+          ),
+        )
+      ],
+    );
   }
 }

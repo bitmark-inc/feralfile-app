@@ -128,9 +128,9 @@ class ReportIssueType {
   static const Announcement = 'announcement';
 
   static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
 
-  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other, Announcement];
+  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
   static String toTitle(String item) {
     switch (item) {

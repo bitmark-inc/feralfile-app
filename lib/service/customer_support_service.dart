@@ -515,8 +515,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
     if (issues.isNotEmpty && announcements.isNotEmpty) {
       for (var issue in issues) {
-        final announcement = announcements.firstWhereOrNull((element) => element.announcementID == issue.announcementID);
-        if (announcement!= null) {
+        final announcement = announcements.firstWhereOrNull(
+            (element) => element.announcementID == issue.announcementID);
+        if (announcement != null) {
           issue.announcement = announcement;
           announcements.remove(announcement);
         }
@@ -534,7 +535,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   int _getTimestamp(Object a) {
     if (a is Issue) {
-      return a.timestamp.millisecondsSinceEpoch * 1000;
+      final timestamp =
+          a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp;
+      return timestamp.millisecondsSinceEpoch * 1000;
     } else if (a is AnnouncementLocal) {
       return a.announceAt;
     } else {
