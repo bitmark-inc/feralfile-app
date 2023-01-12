@@ -22,11 +22,8 @@ abstract class PubdocAPI {
   @GET("/versions.json")
   Future<String> getVersionContent();
 
-  @GET("/release_notes/{app}/{name}.md")
-  Future<String> getReleaseNotesContent(
-    @Path("app") String app,
-    @Path("name") String name,
-  );
+  @GET("/release_notes/{app}/changelog.md")
+  Future<String> getReleaseNotesContent(@Path("app") String app);
 
   @GET("/demo/demo_account.json")
   Future<String> getDemoAccount();
