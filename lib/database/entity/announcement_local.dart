@@ -4,6 +4,7 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
+import 'package:autonomy_flutter/model/announcement.dart';
 import 'package:floor/floor.dart';
 
 @entity
@@ -23,4 +24,13 @@ class AnnouncementLocal {
       required this.announceAt,
       required this.type,
       required this.unread});
+
+  factory AnnouncementLocal.fromAnnouncement(Announcement announcement) =>
+      AnnouncementLocal(
+          announcementID: announcement.announcementId,
+          title: announcement.title,
+          body: announcement.body,
+          announceAt: announcement.announceAt,
+          type: announcement.type,
+          unread: true);
 }

@@ -378,11 +378,11 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
   @override
   Future<void> updateRead(
     String announcementID,
-    String unread,
+    bool unread,
   ) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE AnnouncementLocal SET unread = ?2 WHERE announcementID = ?1',
-        arguments: [announcementID, unread]);
+        arguments: [announcementID, unread ? 1 : 0]);
   }
 
   @override
@@ -404,7 +404,7 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
   @override
   Future<void> insertAnnouncement(AnnouncementLocal announcementLocal) async {
     await _announcementLocalInsertionAdapter.insert(
-        announcementLocal, OnConflictStrategy.replace);
+        announcementLocal, OnConflictStrategy.ignore);
   }
 }
 

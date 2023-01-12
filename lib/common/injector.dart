@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
@@ -234,6 +235,8 @@ Future<void> setup() async {
             injector(),
             injector(),
             mainnetDB.announcementDao,
+            AnnouncementApi(authenticatedDio,
+                baseUrl: Environment.customerSupportURL),
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);

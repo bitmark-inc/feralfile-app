@@ -18,6 +18,10 @@ import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
+  Future<void> setAnnouncementLastPullTime(int lastPullTime);
+
+  int? getAnnouncementLastPullTime();
+
   Future<void> setIAPReceipt(String? value);
 
   String? getIAPReceipt();
@@ -209,6 +213,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
+
+  static const String ANNOUNCEMENT_LAST_PULL_TIME = "announcement_last_pull_time";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -780,5 +786,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setAllowContribution(bool value) async {
     await _preferences.setBool(ALLOW_CONTRIBUTION, value);
+  }
+
+  @override
+  int? getAnnouncementLastPullTime() {
+    return _preferences.getInt(ANNOUNCEMENT_LAST_PULL_TIME);
+  }
+
+  @override
+  Future<void> setAnnouncementLastPullTime(int lastPullTime) async {
+    await _preferences.setInt(ANNOUNCEMENT_LAST_PULL_TIME, lastPullTime);
   }
 }

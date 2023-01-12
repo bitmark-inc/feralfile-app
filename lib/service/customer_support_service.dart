@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
@@ -82,6 +83,12 @@ abstract class CustomerSupportService {
   Future<void> removeErrorMessage(String uuid, {bool isDelete = false});
 
   void sendMessageFail(String uuid);
+
+  Future<void> markAnnouncementAsRead(String announcementID);
+
+  Future<void> fetchAnnouncement();
+  
+  Future<String> createAnnouncement(String type);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
@@ -93,6 +100,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   final AccountService _accountService;
   final ConfigurationService _configurationService;
   final AnnouncementLocalDao _announcementDao;
+  final AnnouncementApi _announcementApi;
 
   @override
   List<String> errorMessages = [];
@@ -109,13 +117,13 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   Map<String, String> tempIssueIDMap = {};
 
   CustomerSupportServiceImpl(
-    this._draftCustomerSupportDao,
-    this._customerSupportApi,
-    this._renderingReportApi,
-    this._accountService,
-    this._configurationService,
-    this._announcementDao,
-  );
+      this._draftCustomerSupportDao,
+      this._customerSupportApi,
+      this._renderingReportApi,
+      this._accountService,
+      this._configurationService,
+      this._announcementDao,
+      this._announcementApi);
 
   bool _isProcessingDraftMessages = false;
 
@@ -537,11 +545,35 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     if (a is Issue) {
       final timestamp =
           a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp;
-      return timestamp.millisecondsSinceEpoch * 1000;
+      return timestamp.millisecondsSinceEpoch ~/ 1000;
     } else if (a is AnnouncementLocal) {
       return a.announceAt;
     } else {
       return 0;
     }
   }
+
+  @override
+  Future<void> fetchAnnouncement() async {
+    final lastPullTime = _configurationService.getAnnouncementLastPullTime();
+    final announcements = await _announcementApi.getAnnouncements(
+        lastPullTime: lastPullTime ?? 0);
+    for (var announcement in announcements) {
+      await _announcementDao
+          .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
+    }
+  }
+
+  @override
+  Future<void> markAnnouncementAsRead(String announcementID) async {
+    await _announcementDao.updateRead(announcementID, false);
+  }
+
+  @override
+  Future<String> createAnnouncement(String type) async {
+    final body = {"announcementContextID": type};
+    final response = await _announcementApi.callAnnouncement(body);
+    return response.announcementID;
+  }
 }
+
