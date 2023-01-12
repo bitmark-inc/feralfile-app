@@ -282,6 +282,20 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     on<FeeOptionChangedEvent>((event, emit) async {
       final newState = state.clone();
       newState.feeOption = event.feeOption;
+      if (state.balance != null &&
+          state.fee != null &&
+          state.feeOptionValue != null) {
+        var maxAllow = _type != CryptoType.USDC
+            ? state.balance! -
+                state.feeOptionValue!.getFee(event.feeOption) -
+                _safeBuffer
+            : state.balance!;
+        if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
+        newState.maxAllow = maxAllow;
+        newState.isValid = _isValid(newState);
+        newState.isAmountError = !newState.isValid &&
+            newState.address != null;
+      }
       newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);
     });
