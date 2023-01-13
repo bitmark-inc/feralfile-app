@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -113,6 +114,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _askRatingMessengerID = const Uuid().v4();
   final _askReviewMessengerID = const Uuid().v4();
   final _announcementMessengerID = const Uuid().v4();
+  final _customerSupportService = injector<CustomerSupportService>();
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
@@ -149,16 +151,19 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   @override
   void initState() {
-    injector<CustomerSupportService>().processMessages();
-    injector<CustomerSupportService>()
-        .triggerReloadMessages
+    _customerSupportService.processMessages();
+    _customerSupportService.triggerReloadMessages
         .addListener(_loadIssueDetails);
 
-    injector<CustomerSupportService>()
-        .customerSupportUpdate
+    _customerSupportService.customerSupportUpdate
         .addListener(_loadCustomerSupportUpdates);
 
     final payload = widget.payload;
+    if (payload.announcement != null && payload.announcement!.unread) {
+      _customerSupportService
+          .markAnnouncementAsRead(payload.announcement!.announcementID);
+      _callMixpanelReadAnnouncementEvent(payload.announcement!);
+    }
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       if (_reportIssueType == ReportIssueType.Bug) {
@@ -176,9 +181,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _reportIssueType = payload.reportIssueType;
       _status = payload.status;
       _isRated = payload.isRated;
-      _issueID =
-          injector<CustomerSupportService>().tempIssueIDMap[payload.issueID] ??
-              payload.issueID;
+      _issueID = _customerSupportService.tempIssueIDMap[payload.issueID] ??
+          payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
       Future.delayed(const Duration(milliseconds: 300), () {
@@ -203,13 +207,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
+  void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
+    final metricClient = injector.get<MetricClientService>();
+    metricClient.addEvent(
+      MixpanelEvent.readAnnouncement,
+      data: {"type": announcement.type},
+      hashedData: {},
+    );
+  }
+
   @override
   void dispose() {
-    injector<CustomerSupportService>()
-        .triggerReloadMessages
+    _customerSupportService.triggerReloadMessages
         .removeListener(_loadIssueDetails);
-    injector<CustomerSupportService>()
-        .customerSupportUpdate
+    _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
 
     memoryValues.viewingSupportThreadIssueID = null;
@@ -432,10 +443,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        await injector<CustomerSupportService>()
-                            .removeErrorMessage(uuid);
+                        await _customerSupportService.removeErrorMessage(uuid);
                         _loadDrafts();
-                        injector<CustomerSupportService>().processMessages();
+                        _customerSupportService.processMessages();
                         Future.delayed(const Duration(seconds: 5), () {
                           _loadDrafts();
                         });
@@ -452,8 +462,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        await injector<CustomerSupportService>()
-                            .removeErrorMessage(uuid, isDelete: true);
+                        await _customerSupportService.removeErrorMessage(uuid,
+                            isDelete: true);
                         await _loadDrafts();
                         if (_draftMessages.isEmpty && _messages.isEmpty) {
                           if (!mounted) return;
@@ -588,8 +598,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   void _loadIssueDetails() async {
     if (_issueID == null) return;
-    final issueDetails =
-        await injector<CustomerSupportService>().getDetails(_issueID!);
+    final issueDetails = await _customerSupportService.getDetails(_issueID!);
+    if (widget.payload.announcement != null && issueDetails.issue.unread > 0) {
+      _callMixpanelReadAnnouncementEvent(widget.payload.announcement!);
+    }
 
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
@@ -622,8 +634,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Future _loadDrafts() async {
     if (_issueID == null) return;
-    final drafts =
-        await injector<CustomerSupportService>().getDrafts(_issueID!);
+    final drafts = await _customerSupportService.getDrafts(_issueID!);
     final draftMessages =
         (await Future.wait(drafts.map((e) => _convertChatMessage(e, null))))
             .expand((i) => i)
@@ -636,8 +647,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _loadCustomerSupportUpdates() async {
-    final update =
-        injector<CustomerSupportService>().customerSupportUpdate.value;
+    final update = _customerSupportService.customerSupportUpdate.value;
     if (update == null) return;
     if (update.draft.issueID != _issueID) return;
 
@@ -662,6 +672,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = "TEMP-${const Uuid().v4()}";
 
       final payload = widget.payload;
+
+      if (payload.announcement != null) {
+        final metricClient = injector.get<MetricClientService>();
+        metricClient.addEvent(
+          MixpanelEvent.replyAnnouncement,
+          data: {"type": payload.announcement!.type},
+          hashedData: {},
+        );
+      }
+
       if (payload is ExceptionErrorPayload) {
         final sentryID = payload.sentryID;
         if (sentryID.isNotEmpty) {
@@ -700,16 +720,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       setState(() {
         _status = "reopening";
       });
-      await injector<CustomerSupportService>().reopen(_issueID!);
+      await _customerSupportService.reopen(_issueID!);
       _status = "open";
       _isRated = false;
     }
 
-    await injector<CustomerSupportService>().draftMessage(draft);
+    await _customerSupportService.draftMessage(draft);
     if (isRating) {
       final rating = getRating(data.text ?? "");
       if (rating > 0) {
-        await injector<CustomerSupportService>().rateIssue(_issueID!, rating);
+        await _customerSupportService.rateIssue(_issueID!, rating);
       }
     }
     setState(() {
@@ -744,8 +764,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final filename =
         "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
 
-    final localPath = await injector<CustomerSupportService>()
-        .storeFile(filename, combinedBytes);
+    final localPath =
+        await _customerSupportService.storeFile(filename, combinedBytes);
 
     await _submit(
       CSMessageType.PostLogs.rawValue,
@@ -802,7 +822,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       final bytes = await element.readAsBytes();
       final fileName = "${bytes.length}_${element.name}";
       final localPath =
-          await injector<CustomerSupportService>().storeFile(fileName, bytes);
+          await _customerSupportService.storeFile(fileName, bytes);
       return LocalAttachment(path: localPath, fileName: fileName);
     }));
 
@@ -838,7 +858,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     } else if (message is DraftCustomerSupport) {
       id = message.uuid;
       author = _user;
-      final errorMessages = injector<CustomerSupportService>().errorMessages;
+      final errorMessages = _customerSupportService.errorMessages;
       status = (errorMessages != null && errorMessages.contains(id))
           ? types.Status.error
           : types.Status.sending;
@@ -868,8 +888,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       ));
     }
 
-    final storedDirectory =
-        await injector<CustomerSupportService>().getStoredDirectory();
+    final storedDirectory = await _customerSupportService.getStoredDirectory();
     List<String> titles = [];
     List<String> uris = [];
     List<String> contentTypes = [];

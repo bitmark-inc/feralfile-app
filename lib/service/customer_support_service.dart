@@ -580,5 +580,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final announcementID = announcementPostResponse.announcementID;
     await fetchAnnouncement();
     final announcement = _announcementDao.getAnnouncement(announcementID);
+    ///display in-app notification
   }
 }
