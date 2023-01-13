@@ -14,6 +14,6 @@ abstract class AnnouncementApi {
 
   @GET("/announcements")
   Future<List<Announcement>> getAnnouncements({
-    @Query("lastPullTime") int lastPullTime,
+    @Query("lastPullTime") required int lastPullTime,
   });
 }

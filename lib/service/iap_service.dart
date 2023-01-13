@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -223,6 +224,10 @@ class IAPServiceImpl implements IAPService {
           log.info("[IAPService] verifying the receipt");
           if (subscriptionStatus?.isPremium == true) {
             _configurationService.setIAPJWT(jwt);
+            Future.delayed(const Duration(seconds: 2), () async {
+              injector<CustomerSupportService>()
+                  .createAnnouncement("SUBSCRIBED");
+            });
             final status = subscriptionStatus!;
             if (status.isTrial == true) {
               purchases.value[purchaseDetails.productID] =

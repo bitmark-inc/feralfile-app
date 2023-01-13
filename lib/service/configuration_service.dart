@@ -7,10 +7,12 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +23,10 @@ abstract class ConfigurationService {
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
 
   int? getAnnouncementLastPullTime();
+
+  Future<void> setOldUser();
+
+  bool getIsOldUser();
 
   Future<void> setIAPReceipt(String? value);
 
@@ -214,7 +220,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
 
-  static const String ANNOUNCEMENT_LAST_PULL_TIME = "announcement_last_pull_time";
+  static const String ANNOUNCEMENT_LAST_PULL_TIME =
+      "announcement_last_pull_time";
+  static const String OLD_USER = "old_user";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -378,7 +386,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDoneOnboarding(bool value) async {
     log.info("setDoneOnboarding: $value");
+    final currentValue = isDoneOnboarding();
     await _preferences.setBool(KEY_DONE_ONBOARING, value);
+    if (currentValue == false && value == true && getIsOldUser() == false) {
+      await setOldUser();
+      Future.delayed(const Duration(seconds: 2), () async {
+        injector<CustomerSupportService>().createAnnouncement("WELCOME");
+      });
+    }
   }
 
   @override
@@ -796,5 +811,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setAnnouncementLastPullTime(int lastPullTime) async {
     await _preferences.setInt(ANNOUNCEMENT_LAST_PULL_TIME, lastPullTime);
+  }
+
+  @override
+  bool getIsOldUser() {
+    return _preferences.getBool(OLD_USER) ?? false;
+  }
+
+  @override
+  Future<void> setOldUser() async {
+    await _preferences.setBool(OLD_USER, true);
   }
 }

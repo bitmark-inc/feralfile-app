@@ -87,8 +87,8 @@ abstract class CustomerSupportService {
   Future<void> markAnnouncementAsRead(String announcementID);
 
   Future<void> fetchAnnouncement();
-  
-  Future<String> createAnnouncement(String type);
+
+  Future<void> createAnnouncement(String type);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
@@ -306,6 +306,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             sendAttachments,
             title: data.title,
             mutedText: draftMsg.mutedMessages.split("[SEPARATOR]"),
+            announcementID: data.announcementId,
           );
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
           await _draftCustomerSupportDao.deleteDraft(draftMsg);
@@ -356,6 +357,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     List<SendAttachment>? attachments, {
     String? title,
     List<String>? mutedText,
+    String? announcementID,
   }) async {
     var issueTitle = title ?? message;
     if (issueTitle == null || issueTitle.isEmpty) {
@@ -395,6 +397,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'title': issueTitle,
       'message': submitMessage,
       'tags': tags,
+      'announcementID': announcementID ?? "",
     };
 
     return await _customerSupportApi.createIssue(payload);
@@ -570,10 +573,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<String> createAnnouncement(String type) async {
+  Future<void> createAnnouncement(String type) async {
     final body = {"announcementContextID": type};
-    final response = await _announcementApi.callAnnouncement(body);
-    return response.announcementID;
+    final announcementPostResponse =
+        await _announcementApi.callAnnouncement(body);
+    final announcementID = announcementPostResponse.announcementID;
+    await fetchAnnouncement();
+    final announcement = _announcementDao.getAnnouncement(announcementID);
   }
 }
-

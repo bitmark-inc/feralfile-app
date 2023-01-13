@@ -404,6 +404,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final personas = await cloudDB.personaDao.getPersonas();
     final connections = await cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
+      configurationService.setOldUser();
       final defaultAccount = await accountService.getDefaultAccount();
       final backupVersion =
           await backupService.fetchBackupVersion(defaultAccount);

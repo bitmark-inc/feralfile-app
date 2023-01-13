@@ -113,12 +113,15 @@ class _SupportListPageState extends State<SupportListPage>
                   behavior: HitTestBehavior.translucent,
                   child: _contentRow(issue, hasDivider),
                   onTap: () => Navigator.of(context).pushNamed(
-                      AppRouter.supportThreadPage,
-                      arguments: DetailIssuePayload(
-                          reportIssueType: issue.reportIssueType,
-                          issueID: issue.issueID,
-                          status: status,
-                          isRated: isRated)),
+                    AppRouter.supportThreadPage,
+                    arguments: DetailIssuePayload(
+                      reportIssueType: issue.reportIssueType,
+                      issueID: issue.issueID,
+                      status: status,
+                      isRated: isRated,
+                      announcement: issue.announcement,
+                    ),
+                  ),
                 ),
               );
             } else if (issue is AnnouncementLocal) {
@@ -130,9 +133,11 @@ class _SupportListPageState extends State<SupportListPage>
                   behavior: HitTestBehavior.translucent,
                   child: _announcementRow(issue, hasDivider),
                   onTap: () => Navigator.of(context).pushNamed(
-                      AppRouter.supportThreadPage,
-                      arguments: NewIssuePayload(
-                          reportIssueType: ReportIssueType.Announcement)),
+                    AppRouter.supportThreadPage,
+                    arguments: NewIssuePayload(
+                      reportIssueType: ReportIssueType.Announcement,
+                    ),
+                  ),
                 ),
               );
             } else {
@@ -281,7 +286,9 @@ class _SupportListPageState extends State<SupportListPage>
             Row(
               children: [
                 Text(
-                  getVerboseDateTimeRepresentation(DateTime.fromMillisecondsSinceEpoch(announcement.announceAt)),
+                  getVerboseDateTimeRepresentation(
+                      DateTime.fromMillisecondsSinceEpoch(
+                          announcement.announceAt)),
                   style: theme.textTheme.ppMori400Black14
                       .copyWith(color: AppColor.auQuickSilver),
                 ),
@@ -304,11 +311,12 @@ class _SupportListPageState extends State<SupportListPage>
         hasDivider
             ? addDivider()
             : const SizedBox(
-          height: 32,
-        ),
+                height: 32,
+              ),
       ],
     );
   }
+
   Widget _unread() {
     return Row(
       children: [

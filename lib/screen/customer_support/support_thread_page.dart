@@ -10,6 +10,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
@@ -37,13 +38,18 @@ import 'package:uuid/uuid.dart';
 
 import '../../util/datetime_ext.dart';
 
-abstract class SupportThreadPayload {}
+abstract class SupportThreadPayload {
+  AnnouncementLocal? get announcement;
+}
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
+  @override
+  final AnnouncementLocal? announcement;
 
   NewIssuePayload({
     required this.reportIssueType,
+    this.announcement,
   });
 }
 
@@ -52,21 +58,27 @@ class DetailIssuePayload extends SupportThreadPayload {
   final String issueID;
   final String status;
   final bool isRated;
+  @override
+  final AnnouncementLocal? announcement;
 
   DetailIssuePayload(
       {required this.reportIssueType,
       required this.issueID,
       this.status = "",
-      this.isRated = false});
+      this.isRated = false,
+      this.announcement});
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
   final String metadata;
+  @override
+  final AnnouncementLocal? announcement;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
+    this.announcement,
   });
 }
 
@@ -100,6 +112,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _resolvedMessengerID = const Uuid().v4();
   final _askRatingMessengerID = const Uuid().v4();
   final _askReviewMessengerID = const Uuid().v4();
+  final _announcementMessengerID = const Uuid().v4();
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
@@ -117,15 +130,21 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   types.CustomMessage get _askRatingMessenger => types.CustomMessage(
         author: _bitmark,
         id: _askRatingMessengerID,
-        metadata: const {"status": "rateIssue"},
+        metadata: {"status": "rateIssue", "content": "rate_issue".tr()},
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
   types.CustomMessage get _askReviewMessenger => types.CustomMessage(
         author: _bitmark,
         id: _askReviewMessengerID,
-        metadata: const {"status": "careToShare"},
+        metadata: {"status": "careToShare", "content": "care_to_share".tr()},
         createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
+  types.CustomMessage get _announcementMessenger => types.CustomMessage(
+        id: _announcementMessengerID,
+        author: _bitmark,
+        metadata: const {"status": "announcement"},
       );
 
   @override
@@ -268,8 +287,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         }
       }
     }
-
-    if (_issueID == null || messages.isNotEmpty) {
+    if (widget.payload.announcement != null) {
+      messages.add(_announcementMessenger);
+    } else if (_issueID == null || messages.isNotEmpty) {
       messages.add(_introMessenger);
     }
 
@@ -523,20 +543,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           child: _ratingBar(message.metadata?["rating"]),
         );
       case "careToShare":
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.auSuperTeal,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              "care_to_share".tr(),
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black16,
-            ),
-          ]),
-        );
       case "rateIssue":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -544,7 +550,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-              "rate_issue".tr(),
+              message.metadata?["content"],
               textAlign: TextAlign.start,
               style: ResponsiveLayout.isMobile
                   ? theme.textTheme.ppMori700Black14
@@ -552,7 +558,29 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             ),
           ]),
         );
-
+      case "announcement":
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          color: AppColor.auSuperTeal,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              widget.payload.announcement!.title,
+              textAlign: TextAlign.start,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ppMori700Black14
+                  : theme.textTheme.ppMori700Black16,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              widget.payload.announcement!.body,
+              textAlign: TextAlign.start,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ppMori400Black14
+                  : theme.textTheme.ppMori400Black16,
+            ),
+          ]),
+        );
       default:
         return const SizedBox();
     }
@@ -698,7 +726,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   void _handleSendPressed(types.PartialText message) async {
     _submit(
       CSMessageType.PostMessage.rawValue,
-      DraftCustomerSupportData(text: message.text),
+      DraftCustomerSupportData(
+          text: message.text,
+          announcementId: widget.payload.announcement?.announcementID),
     );
   }
 
@@ -718,10 +748,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         .storeFile(filename, combinedBytes);
 
     await _submit(
-        CSMessageType.PostLogs.rawValue,
-        DraftCustomerSupportData(
-          attachments: [LocalAttachment(fileName: filename, path: localPath)],
-        ));
+      CSMessageType.PostLogs.rawValue,
+      DraftCustomerSupportData(
+        attachments: [LocalAttachment(fileName: filename, path: localPath)],
+        announcementId: widget.payload.announcement?.announcementID,
+      ),
+    );
 
     if (!mounted) return;
     Navigator.pop(context);
@@ -775,10 +807,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }));
 
     await _submit(
-        CSMessageType.PostPhotos.rawValue,
-        DraftCustomerSupportData(
-          attachments: attachments,
-        ));
+      CSMessageType.PostPhotos.rawValue,
+      DraftCustomerSupportData(
+        attachments: attachments,
+        announcementId: widget.payload.announcement?.announcementID,
+      ),
+    );
   }
 
   Future<List<types.Message>> _convertChatMessage(
