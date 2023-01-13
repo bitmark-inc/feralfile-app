@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -168,11 +169,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
       body: Stack(
         children: [
           Container(
-            margin: EdgeInsets.only(
-                top: 16.0,
-                left: 16.0,
-                right: 16.0,
-                bottom: MediaQuery.of(context).padding.bottom),
+            margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
