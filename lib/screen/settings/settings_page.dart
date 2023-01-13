@@ -244,8 +244,8 @@ class _SettingsPageState extends State<SettingsPage>
                                 _lastTap = now;
                               }),
                         TextButton(
-                            onPressed: () => injector<VersionService>()
-                                .showReleaseNotes(onlyWhenUnread: false),
+                            onPressed: () =>
+                                injector<VersionService>().showReleaseNotes(),
                             child: Text(
                               "release_notes".tr(),
                               style: ResponsiveLayout.isMobile

@@ -41,10 +41,7 @@ class _PubdocAPI implements PubdocAPI {
   }
 
   @override
-  Future<String> getReleaseNotesContent(
-    app,
-    name,
-  ) async {
+  Future<String> getReleaseNotesContent(app) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -56,7 +53,7 @@ class _PubdocAPI implements PubdocAPI {
     )
         .compose(
           _dio.options,
-          '/release_notes/${app}/${name}.md',
+          '/release_notes/${app}/changelog.md',
           queryParameters: queryParameters,
           data: _data,
         )
