@@ -320,6 +320,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 onTap: onMoreTap,
                 child: SvgPicture.asset(
                   'assets/images/more_circle.svg',
+                  color: theme.auQuickSilver,
                   width: 24,
                 ),
               )
