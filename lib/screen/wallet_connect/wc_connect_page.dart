@@ -39,6 +39,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 import '../../service/account_service.dart';
 
@@ -243,27 +244,54 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (notificationEnable) {
       if (widget.beaconRequest?.appName != null) {
         metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
+        if (!mounted) return;
         showInfoNotification(
           const Key("connected"),
-          "connected_to"
-              .tr(args: [widget.beaconRequest!.appName!]).toUpperCase(),
-          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+          "connected_to".tr(),
+          frontWidget: SvgPicture.asset(
+            "assets/images/checkbox_icon.svg",
+            width: 24,
+          ),
+          addOnTextSpan: [
+            TextSpan(
+              text: widget.beaconRequest!.appName!,
+              style: Theme.of(context).textTheme.ppMori400Green14,
+            )
+          ],
         );
       } else if (widget.wcConnectArgs?.peerMeta.name != null) {
         metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
+        if (!mounted) return;
         showInfoNotification(
           const Key("connected"),
-          "connected_to"
-              .tr(args: [widget.wcConnectArgs!.peerMeta.name]).toUpperCase(),
-          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+          "connected_to".tr(),
+          frontWidget: SvgPicture.asset(
+            "assets/images/checkbox_icon.svg",
+            width: 24,
+          ),
+          addOnTextSpan: [
+            TextSpan(
+              text: widget.beaconRequest!.appName!,
+              style: Theme.of(context).textTheme.ppMori400Green14,
+            )
+          ],
         );
       } else if (widget.wc2Proposal?.proposer.name != null) {
         metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
+        if (!mounted) return;
         showInfoNotification(
           const Key("connected"),
-          "connected_to"
-              .tr(args: [widget.wc2Proposal!.proposer.name]).toUpperCase(),
-          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+          "connected_to".tr(),
+          frontWidget: SvgPicture.asset(
+            "assets/images/checkbox_icon.svg",
+            width: 24,
+          ),
+          addOnTextSpan: [
+            TextSpan(
+              text: widget.beaconRequest!.appName!,
+              style: Theme.of(context).textTheme.ppMori400Green14,
+            )
+          ],
         );
       }
     }

@@ -9,12 +9,13 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ForgetExistView extends StatelessWidget {
   const ForgetExistView({Key? key}) : super(key: key);
@@ -37,12 +38,12 @@ class ForgetExistView extends StatelessWidget {
             children: [
               Text(
                 "• ",
-                style: theme.primaryTextTheme.bodyText1,
+                style: theme.primaryTextTheme.ppMori400White14,
               ),
               Expanded(
                 child: RichText(
                   text: TextSpan(
-                    style: theme.primaryTextTheme.bodyText1,
+                    style: theme.primaryTextTheme.ppMori400White14,
                     children: <TextSpan>[
                       TextSpan(
                           text: "action_irrevocable".tr(),
@@ -62,13 +63,13 @@ class ForgetExistView extends StatelessWidget {
             children: [
               Text(
                 "• ",
-                style: theme.primaryTextTheme.bodyText1,
+                style: theme.primaryTextTheme.ppMori400White14,
               ),
               Expanded(
                 child: Text(
                   "this_not_effect".tr(),
                   //"This will not affect private keys of linked accounts",
-                  style: theme.primaryTextTheme.bodyText1,
+                  style: theme.primaryTextTheme.ppMori400White14,
                 ),
               ),
             ],
@@ -78,13 +79,13 @@ class ForgetExistView extends StatelessWidget {
             children: [
               Text(
                 "• ",
-                style: theme.primaryTextTheme.bodyText1,
+                style: theme.primaryTextTheme.ppMori400White14,
               ),
               Expanded(
                 child: Text(
                   "active_subscription".tr(),
                   //"If you have an active subscription, you will need to manually cancel it in your device’s settings.",
-                  style: theme.primaryTextTheme.bodyText1,
+                  style: theme.primaryTextTheme.ppMori400White14,
                 ),
               ),
             ],
@@ -128,23 +129,28 @@ class ForgetExistView extends StatelessWidget {
           const SizedBox(
             height: 40,
           ),
-          AuFilledButton(
-            text:
-                state.isProcessing == true ? "forgetting".tr() : "confirm".tr(),
-            enabled: state.isProcessing == null && state.isChecked,
-            onPress: () {
-              context.read<ForgetExistBloc>().add(ConfirmForgetExistEvent());
-            },
-            color: theme.colorScheme.secondary,
+          PrimaryButton(
+            text: state.isProcessing == true
+                ? "forgetting".tr()
+                : "h_confirm".tr(),
+            color: state.isProcessing == null && state.isChecked
+                ? null
+                : theme.disableColor,
+            onTap: state.isProcessing == null && state.isChecked
+                ? () {
+                    context
+                        .read<ForgetExistBloc>()
+                        .add(ConfirmForgetExistEvent());
+                  }
+                : null,
             isProcessing: state.isProcessing == true,
-            textStyle: theme.textTheme.button,
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "cancel".tr(),
-              style: theme.primaryTextTheme.button,
-            ),
+          const SizedBox(
+            height: 10,
+          ),
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: "cancel_dialog".tr(),
           ),
         ],
       );

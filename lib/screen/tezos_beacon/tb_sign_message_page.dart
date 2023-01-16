@@ -194,9 +194,11 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                 if (notificationEnable) {
                                   showInfoNotification(
                                     const Key("signed"),
-                                    "signed".tr().toUpperCase(),
+                                    "signed".tr(),
                                     frontWidget: SvgPicture.asset(
-                                        "assets/images/checkbox_icon.svg"),
+                                      "assets/images/checkbox_icon.svg",
+                                      width: 24,
+                                    ),
                                   );
                                 }
                               })

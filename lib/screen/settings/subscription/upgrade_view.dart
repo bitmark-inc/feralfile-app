@@ -15,13 +15,13 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
-import 'package:autonomy_theme/style/style.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class UpgradesView extends StatelessWidget {
   static const String tag = 'select_network';
@@ -237,42 +237,50 @@ class UpgradesView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (feature != null) ...[
-            Text(feature.moreAutonomyDescription,
-                style: theme.primaryTextTheme.bodyText1),
+            Text(
+              feature.moreAutonomyDescription,
+              style: theme.textTheme.ppMori400White14,
+            ),
             const SizedBox(height: 16),
           ],
-          Text('upgrading_gives_you'.tr(),
-              style: theme.primaryTextTheme.bodyText1),
+          Text(
+            'upgrading_gives_you'.tr(),
+            style: theme.textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 16),
           SvgPicture.asset(
             'assets/images/premium_comparation.svg',
             height: 320,
           ),
           const SizedBox(height: 16),
-          Text("gg_tv_app".tr(),
-              //"*Google TV app plus AirPlay & Chromecast streaming",
-              style: theme.primaryTextTheme.headline5),
-          const SizedBox(height: 40),
-          AuFilledButton(
-            text: "sub_then_price".tr(args: [price ?? "4.99usd".tr()]),
+          PrimaryButton(
+            text: "sub_then_price".tr(),
             //"SUBSCRIBE FOR A 30-DAY FREE TRIAL\n(THEN ${price ?? "4.99"}/MONTH)",
-            textAlign: TextAlign.center,
-            onPress: () {
+            onTap: () {
               if (onPressSubscribe != null) onPressSubscribe();
               Navigator.of(context).pop();
             },
-            color: theme.colorScheme.secondary,
-            textStyle: theme.textTheme.button,
           ),
-          TextButton(
-            onPressed: () {
+          const SizedBox(height: 10),
+          OutlineButton(
+            onTap: () {
               onCancel?.call();
               Navigator.of(context).pop();
             },
-            child: Text(
-              "not_now".tr(),
-              style: theme.primaryTextTheme.button,
-            ),
+            text: "not_now".tr(),
           ),
+          const SizedBox(height: 40),
+          Text(
+            "gg_tv_app".tr(),
+            //"*Google TV app plus AirPlay & Chromecast streaming",
+            style: theme.textTheme.ppMori400White12,
+          ),
+          Text(
+            "then_price".tr(args: [price ?? '4.99usd'.tr()]),
+            //"*Google TV app plus AirPlay & Chromecast streaming",
+            style: theme.textTheme.ppMori400White12,
+          ),
+          const SizedBox(height: 10),
         ],
       ),
     );

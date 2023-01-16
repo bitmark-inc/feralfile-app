@@ -29,7 +29,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -206,9 +206,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     child: Padding(
                       padding: const EdgeInsets.only(
                           left: 16.0, right: 16.0, top: 40),
-                      child: AuSecondaryButton(
+                      child: OutlineButton(
                         text: "web3_glossary".tr(),
-                        onPressed: () {
+                        onTap: () {
                           Navigator.pushNamed(
                               context, AppRouter.previewPrimerPage,
                               arguments: asset);
@@ -373,7 +373,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     },
                   );
                 },
-                actionButton: 'see_transaction_detail'.tr().toUpperCase(),
+                actionButton: 'see_transaction_detail'.tr(),
                 closeButton: "close".tr().toUpperCase(),
                 onClose: () => isSentAll
                     ? Navigator.of(context).popAndPushNamed(

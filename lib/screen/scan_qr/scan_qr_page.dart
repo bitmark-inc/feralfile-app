@@ -138,13 +138,17 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
               ),
               onQRViewCreated: _onQRViewCreated,
             ),
-            GestureDetector(
+            Positioned(
+              right: 0,
+              child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () => Navigator.of(context).pop(),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15, 55, 15, 15),
                   child: closeIcon(color: theme.colorScheme.secondary),
-                )),
+                ),
+              ),
+            ),
             Padding(
               padding: EdgeInsets.fromLTRB(
                   0,
@@ -199,41 +203,41 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
         return Column(
           children: [
             Text(
-              "scan_qr_to".tr().toUpperCase(),
-              style: theme.primaryTextTheme.button,
+              "scan_qr_to".tr(),
+              style: theme.textTheme.ppMori400White14,
             ),
             const SizedBox(height: 24),
             Text(
               "apps".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasWhiteBold12
+                  ? theme.textTheme.ppMori700White14
                   : theme.textTheme.atlasWhiteBold14,
             ),
             Text(
               "such_as_openSea".tr(),
-              style: theme.primaryTextTheme.headline5,
+              style: theme.textTheme.ppMori400White14,
             ),
             const SizedBox(height: 8),
             Text(
               "wallets".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasWhiteBold12
+                  ? theme.textTheme.ppMori700White14
                   : theme.textTheme.atlasWhiteBold14,
             ),
             Text(
               'such_as_metamask'.tr(),
-              style: theme.primaryTextTheme.headline5,
+              style: theme.textTheme.ppMori400White14,
             ),
             const SizedBox(height: 8),
             Text(
               "h_autonomy".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasWhiteBold12
+                  ? theme.textTheme.ppMori700White14
                   : theme.textTheme.atlasWhiteBold14,
             ),
             Text(
               'on_tv_or_desktop'.tr(),
-              style: theme.primaryTextTheme.headline5,
+              style: theme.textTheme.ppMori400White14,
             ),
           ],
         );

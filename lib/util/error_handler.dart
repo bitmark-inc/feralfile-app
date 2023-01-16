@@ -16,8 +16,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -159,53 +159,55 @@ Future showErrorDialog(BuildContext context, String title, String description,
           maxWidth: ResponsiveLayout.isMobile
               ? double.infinity
               : Constants.maxWidthModalTablet),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) {
         return Container(
           color: Colors.transparent,
-          child: ClipPath(
-            clipper: AutonomyTopRightRectangleClipper(),
-            child: Container(
-              color: theme.colorScheme.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(title, style: theme.primaryTextTheme.headline1),
-                  if (description.isNotEmpty) ...[
-                    const SizedBox(height: 40),
-                    Text(
-                      description,
-                      style: theme.primaryTextTheme.bodyText1,
-                    ),
-                    const SizedBox(height: 40),
-                    AuFilledButton(
-                      text: defaultButton,
-                      onPress: () {
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.auGreyBackground,
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(20),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(title, style: theme.primaryTextTheme.ppMori700White24),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 40),
+                  Text(
+                    description,
+                    style: theme.primaryTextTheme.ppMori400White14,
+                  ),
+                  const SizedBox(height: 40),
+                  PrimaryButton(
+                    text: defaultButton,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      if (defaultButtonOnPress != null) {
+                        defaultButtonOnPress();
+                      }
+                    },
+                  ),
+                  if (cancelButton != null) ...[
+                    const SizedBox(height: 10),
+                    OutlineButton(
+                      text: cancelButton,
+                      onTap: () {
                         Navigator.of(context).pop();
-                        if (defaultButtonOnPress != null) {
-                          defaultButtonOnPress();
+
+                        if (cancelButtonOnPress != null) {
+                          cancelButtonOnPress();
                         }
                       },
-                      color: theme.colorScheme.secondary,
-                      textStyle: theme.textTheme.button,
                     ),
-                    if (cancelButton != null)
-                      AuFilledButton(
-                        text: cancelButton,
-                        onPress: () {
-                          Navigator.of(context).pop();
-
-                          if (cancelButtonOnPress != null) {
-                            cancelButtonOnPress();
-                          }
-                        },
-                        textStyle: theme.primaryTextTheme.button,
-                      ),
-                  ],
-                  const SizedBox(height: 40),
+                  ]
                 ],
-              ),
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         );

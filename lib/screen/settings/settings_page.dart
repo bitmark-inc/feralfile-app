@@ -187,6 +187,7 @@ class _SettingsPageState extends State<SettingsPage>
                         style: theme.textTheme.headline1,
                       ),
                       const SizedBox(height: 32.0),
+
                       TappableForwardRowWithContent(
                           leftWidget: Text(
                             'rebuild_metadata'.tr(),
@@ -356,7 +357,7 @@ class _SettingsPageState extends State<SettingsPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
       },
-      "cancel".tr(),
+      "cancel_dialog".tr(),
     );
   }
 }

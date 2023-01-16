@@ -188,9 +188,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                               },
                             );
                           },
-                          actionButton:
-                              'see_transaction_detail'.tr().toUpperCase(),
-                          closeButton: "close".tr().toUpperCase(),
+                          actionButton: 'see_transaction_detail'.tr(),
+                          closeButton: "close".tr(),
                         );
                       },
                     ),

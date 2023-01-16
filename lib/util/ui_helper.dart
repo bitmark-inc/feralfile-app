@@ -111,7 +111,7 @@ class UIHelper {
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
       {bool isDismissible = false,
-      isRoundCorner = false,
+      isRoundCorner = true,
       Color? backgroundColor,
       int autoDismissAfter = 0,
       FeedbackType? feedback = FeedbackType.selection}) async {
@@ -138,6 +138,7 @@ class UIHelper {
               ? double.infinity
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) {
         return Container(
           color: Colors.transparent,
@@ -145,7 +146,7 @@ class UIHelper {
             clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
             child: Container(
               decoration: BoxDecoration(
-                color: backgroundColor ?? theme.colorScheme.primary,
+                color: backgroundColor ?? theme.auGreyBackground,
                 borderRadius: isRoundCorner
                     ? const BorderRadius.only(
                         topRight: Radius.circular(20),
@@ -201,31 +202,21 @@ class UIHelper {
           if (description.isNotEmpty) ...[
             Text(
               description,
-              style: theme.primaryTextTheme.bodyText1,
+              style: theme.primaryTextTheme.ppMori400White14,
             ),
           ],
           descriptionWidget ?? const SizedBox.shrink(),
           const SizedBox(height: 40),
           if (onAction != null) ...[
-            AuFilledButton(
-              onPress: () => onAction.call(),
+            PrimaryButton(
+              onTap: () => onAction.call(),
               text: actionButton ?? '',
-              color: theme.colorScheme.secondary,
-              textStyle: theme.textTheme.button,
             ),
+            const SizedBox(height: 10),
           ],
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => onClose?.call() ?? Navigator.pop(context),
-                  child: Text(
-                    closeButton ?? 'cancel'.tr(),
-                    style: theme.primaryTextTheme.button,
-                  ),
-                ),
-              ),
-            ],
+          OutlineButton(
+            onTap: () => onClose?.call() ?? Navigator.pop(context),
+            text: closeButton ?? 'cancel'.tr(),
           ),
           const SizedBox(height: 15),
         ]),
@@ -261,43 +252,35 @@ class UIHelper {
       title,
       SizedBox(
         width: double.infinity,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (description.isNotEmpty) ...[
-            Text(
-              description,
-              style: theme.primaryTextTheme.bodyText1,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (description.isNotEmpty) ...[
+              Text(
+                description,
+                style: theme.primaryTextTheme.ppMori400White14,
+              ),
+            ],
+            descriptionWidget ?? const SizedBox.shrink(),
+            const SizedBox(height: 40),
+            if (onAction != null) ...[
+              PrimaryButton(
+                onTap: () => onAction.call(),
+                text: actionButton ?? '',
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+            ],
+            OutlineButton(
+              onTap: () => onClose?.call() ?? Navigator.pop(context),
+              text: closeButton ?? 'cancel_dialog'.tr(),
             ),
           ],
-          descriptionWidget ?? const SizedBox.shrink(),
-          const SizedBox(height: 40),
-          Row(
-            children: [
-              Expanded(
-                child: PrimaryButton(
-                  onTap: () => onClose?.call() ?? Navigator.pop(context),
-                  text: closeButton ?? 'cancel_dialog'.tr(),
-                  color: theme.auLightGrey,
-                ),
-              ),
-              if (onAction != null) ...[
-                const SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                  child: PrimaryButton(
-                    onTap: () => onAction.call(),
-                    text: actionButton ?? '',
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 15),
-        ]),
+        ),
       ),
       isDismissible: isDismissible,
       feedback: feedback,
-      isRoundCorner: true,
     );
   }
 
@@ -380,40 +363,22 @@ class UIHelper {
             if (description.isNotEmpty) ...[
               Text(
                 description,
-                style: theme.primaryTextTheme.bodyText1,
+                style: theme.primaryTextTheme.ppMori400White14,
               ),
             ],
             const SizedBox(height: 40),
             if (closeButton.isNotEmpty && onClose == null) ...[
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        closeButton,
-                        style: theme.primaryTextTheme.button,
-                      ),
-                    ),
-                  ),
-                ],
+              OutlineButton(
+                onTap: () => Navigator.pop(context),
+                text: closeButton,
               ),
               const SizedBox(height: 15),
             ] else if (closeButton.isNotEmpty && onClose != null) ...[
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: onClose,
-                      child: Text(
-                        closeButton,
-                        style: theme.primaryTextTheme.button,
-                      ),
-                    ),
-                  ),
-                ],
+              OutlineButton(
+                onTap: onClose,
+                text: closeButton,
               ),
               const SizedBox(height: 15),
             ]
@@ -479,8 +444,8 @@ class UIHelper {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.cast,
+              SvgPicture.asset(
+                'assets/images/cast_icon.svg',
                 color: theme.disableColor,
               ),
               const SizedBox(
@@ -491,17 +456,15 @@ class UIHelper {
                   isPDFArtwork
                       ? 'unavailable_cast_pdf_des'.tr()
                       : 'unavailable_cast_interactive_des'.tr(),
-                  style: theme.textTheme.atlasDimgreyBold16,
+                  style: theme.textTheme.ppMori400Grey14,
                 ),
               )
             ],
           ),
           const SizedBox(height: 40),
-          AuFilledButton(
-            text: 'ok'.tr(),
-            onPress: () => Navigator.pop(context),
-            textStyle: theme.textTheme.button,
-            color: theme.colorScheme.secondary,
+          OutlineButton(
+            text: 'close'.tr(),
+            onTap: () => Navigator.pop(context),
           ),
           const SizedBox(height: 10),
         ],
@@ -514,33 +477,34 @@ class UIHelper {
       {bool inOnboarding = false}) {
     final theme = Theme.of(context);
     return showDialog(
-        context,
-        'account_linked'.tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  style: theme.primaryTextTheme.bodyText1,
-                  text: "au_receive_auth".tr(),
-                ),
-                TextSpan(
-                  style: theme.primaryTextTheme.headline4,
-                  text: alias,
-                ),
-                TextSpan(
-                  style: theme.primaryTextTheme.bodyText1,
-                  text: "dot"
-                      .tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
-                ),
-              ]),
-            ),
-            const SizedBox(height: 67),
-          ],
-        ),
-        isDismissible: true,
-        autoDismissAfter: 5);
+      context,
+      'account_linked'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RichText(
+            text: TextSpan(children: [
+              TextSpan(
+                style: theme.primaryTextTheme.ppMori400White14,
+                text: "au_receive_auth".tr(),
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.ppMori700White16,
+                text: alias,
+              ),
+              TextSpan(
+                style: theme.primaryTextTheme.ppMori400White14,
+                text:
+                    "dot".tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 67),
+        ],
+      ),
+      isDismissible: true,
+      autoDismissAfter: 5,
+    );
   }
 
   static Future showAirdropNotStarted(BuildContext context) async {
@@ -554,17 +518,16 @@ class UIHelper {
         children: [
           Text(
             error.dialogMessage,
-            style: theme.primaryTextTheme.bodyText1,
+            style: theme.primaryTextTheme.ppMori400White14,
           ),
           const SizedBox(
             height: 40,
           ),
-          AuFilledButton(
+          OutlineButton(
             text: "close".tr(),
-            onPress: () {
+            onTap: () {
               Navigator.of(context).pop();
             },
-            textStyle: theme.primaryTextTheme.button,
           ),
         ],
       ),
@@ -730,34 +693,40 @@ class UIHelper {
     final theme = Theme.of(context);
 
     showDialog(
-        context,
-        "generated".tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('multichain_generate'.tr(),
-                style: theme.primaryTextTheme.headline5),
-            const SizedBox(height: 16),
-            Text("ethereum_address".tr(),
-                style: theme.primaryTextTheme.headline4),
-            const SizedBox(height: 16),
-            Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
-            const SizedBox(height: 40),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "continue".tr().toUpperCase(),
-                    onPress: () => onContinue(),
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.button,
-                  ),
+      context,
+      "generated".tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'multichain_generate'.tr(),
+            style: theme.primaryTextTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "ethereum_address".tr(),
+            style: theme.primaryTextTheme.ppMori700White14,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "tezos_address".tr(),
+            style: theme.primaryTextTheme.ppMori700White14,
+          ),
+          const SizedBox(height: 40),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  text: "continue".tr(),
+                  onTap: () => onContinue(),
                 ),
-              ],
-            ),
-            const SizedBox(height: 15),
-          ],
-        ));
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+        ],
+      ),
+    );
   }
 
   static showImportedPersonaDialog(BuildContext context,
@@ -812,22 +781,22 @@ class UIHelper {
                 ? RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                        style: theme.textTheme.ppMori400White12,
+                        style: theme.textTheme.ppMori400White14,
                         text: "art_no_appear".tr(),
                       ),
                       TextSpan(
-                        style: theme.textTheme.ppMori700White12,
+                        style: theme.textTheme.ppMori700White14,
                         text: "hidden_art".tr(),
                       ),
                       TextSpan(
-                        style: theme.textTheme.ppMori400White12,
+                        style: theme.textTheme.ppMori400White14,
                         text: "section_setting".tr(),
                       ),
                     ]),
                   )
                 : Text(
                     "art_visible".tr(),
-                    style: theme.primaryTextTheme.bodyText1,
+                    style: theme.primaryTextTheme.ppMori400White14,
                   ),
             const SizedBox(height: 40),
             PrimaryButton(
@@ -1051,6 +1020,7 @@ class UIHelper {
             maxWidth: ResponsiveLayout.isMobile
                 ? double.infinity
                 : Constants.maxWidthModalTablet),
+        barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
         builder: (context) {
           return Container(

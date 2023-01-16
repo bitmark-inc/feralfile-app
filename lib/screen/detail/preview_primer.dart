@@ -91,6 +91,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
             maxWidth: ResponsiveLayout.isMobile
                 ? double.infinity
                 : Constants.maxWidthModalTablet),
+        barrierColor: Colors.black.withOpacity(0.5),
         builder: (BuildContext context) {
           return const FullscreenIntroPopup();
         },

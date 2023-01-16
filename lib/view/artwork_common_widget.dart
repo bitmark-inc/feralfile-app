@@ -18,8 +18,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
-import 'package:autonomy_flutter/view/jumping_dot.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -61,38 +60,41 @@ class PendingTokenWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Semantics(
       label: "gallery_artwork_${tokenId}_pending",
-      child: ClipPath(
-        clipper: AutonomyTopRightRectangleClipper(),
-        child: Container(
-          color: AppColor.secondaryDimGreyBackground,
-          child: Stack(
-            children: [
-              if (thumbnail?.isNotEmpty == true) ...[
-                SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: CachedNetworkImage(
-                    imageUrl: thumbnail!,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12.8,
-                  vertical: 19.26,
+      child: Container(
+        color: theme.auLightGrey,
+        padding: const EdgeInsets.all(10),
+        child: Stack(
+          children: [
+            if (thumbnail?.isNotEmpty == true) ...[
+              SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: thumbnail!,
+                  fit: BoxFit.cover,
                 ),
-                child: const Align(
-                    alignment: Alignment.bottomLeft,
-                    child: JumpingDots(
-                      color: AppColor.secondaryDimGrey,
-                      radius: 3.2,
-                    )),
               )
+            ] else ...[
+              Center(
+                child: loadingIndicator(
+                  size: 22,
+                  strokeWidth: 1.5,
+                  valueColor: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+                ),
+              ),
             ],
-          ),
+            Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: Text(
+                "pending_token".tr(),
+                style: theme.textTheme.ppMori700QuickSilver8,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -149,7 +151,7 @@ class TokenThumbnailWidget extends StatelessWidget {
               errorWidget: (context, url, error) => AspectRatio(
                 aspectRatio: 1,
                 child: Container(
-                  color: const Color.fromRGBO(227, 227, 227, 1),
+                  color: Theme.of(context).auLightGrey,
                   child: BrokenTokenWidget(token: token),
                 ),
               ),
@@ -341,7 +343,7 @@ class GalleryUnSupportWidget extends StatelessWidget {
         width: size.width,
         height: size.width,
         padding: const EdgeInsets.all(13),
-        color: const Color.fromRGBO(227, 227, 227, 1),
+        color: theme.auLightGrey,
         child: Stack(
           children: [
             Center(
@@ -389,22 +391,29 @@ class GalleryUnSupportThumbnailWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    return ClipPath(
-      clipper: AutonomyTopRightRectangleClipper(),
-      child: Container(
-        width: size.width,
-        height: size.width,
-        padding: const EdgeInsets.all(13),
-        color: const Color.fromRGBO(227, 227, 227, 1),
-        child: Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: Text(
-            type.toUpperCase(),
-            style: theme.textTheme.ibmGreyNormal12,
+    final theme = Theme.of(context);
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: theme.auLightGrey,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/unsupported_token.svg',
+              width: 24,
+            ),
           ),
-        ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Text(
+              'unsupported_token'.tr(),
+              style: theme.textTheme.ppMori700QuickSilver8,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -416,18 +425,25 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ClipPath(
-      clipper: AutonomyTopRightRectangleClipper(),
-      child: Container(
-        padding: const EdgeInsets.all(13.0),
-        color: const Color.fromRGBO(227, 227, 227, 1),
-        child: Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: Text(
-            'IPFS!',
-            style: theme.textTheme.ibmGreyNormal12,
+    return Container(
+      padding: const EdgeInsets.all(10.0),
+      color: theme.auLightGrey,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/ipfs_error_icon.svg',
+              width: 24,
+            ),
           ),
-        ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Text(
+              "IPFS_error".tr(),
+              style: theme.textTheme.ppMori700QuickSilver8,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -439,13 +455,28 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return ClipPath(
-      clipper: AutonomyTopRightRectangleClipper(),
-      child: Container(
-        padding: const EdgeInsets.all(15.0),
-        height: size.width,
-        width: size.width,
-        color: Colors.black,
+    final theme = Theme.of(context);
+    return Container(
+      height: size.width,
+      width: size.width,
+      padding: const EdgeInsets.all(10),
+      color: theme.auLightGrey,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/no_thumbnail.svg',
+              width: 24,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Text(
+              "no_thumbnail".tr(),
+              style: theme.textTheme.ppMori700QuickSilver8,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -466,22 +497,33 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
       label: loading ? "loading" : "",
       child: AspectRatio(
         aspectRatio: 1,
-        child: ClipPath(
-          clipper: loading ? AutonomyTopRightRectangleClipper() : null,
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            color: const Color.fromRGBO(227, 227, 227, 1),
-            child: Visibility(
-              visible: loading,
-              child: Align(
-                alignment: AlignmentDirectional.bottomStart,
-                child: loadingIndicator(
-                  size: 13,
-                  valueColor: theme.colorScheme.primary,
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          color: theme.auLightGrey,
+          child: Stack(
+            children: [
+              Visibility(
+                visible: loading,
+                child: Center(
+                  child: loadingIndicator(
+                    size: 22,
+                    strokeWidth: 1.5,
+                    valueColor: theme.colorScheme.primary,
+                    backgroundColor: theme.colorScheme.primary.withOpacity(0.5),
+                  ),
                 ),
               ),
-            ),
+              Visibility(
+                visible: loading,
+                child: Align(
+                  alignment: AlignmentDirectional.bottomStart,
+                  child: Text(
+                    "loading".tr(),
+                    style: theme.textTheme.ppMori700QuickSilver8,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -494,7 +536,7 @@ Widget placeholder(BuildContext context) {
   return AspectRatio(
     aspectRatio: 1,
     child: Container(
-      color: const Color.fromRGBO(227, 227, 227, 1),
+      color: theme.auLightGrey,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -696,8 +738,7 @@ void showReportIssueDialog(BuildContext context, AssetToken token) {
       onReported: (githubURL) =>
           _showReportRenderingDialogSuccess(context, githubURL),
     ),
-    backgroundColor: AppColor.auGreyBackground,
-    isRoundCorner: true,
+    backgroundColor: Theme.of(context).auGreyBackground,
   );
 }
 
@@ -715,8 +756,8 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           style: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 40),
-        AuPrimaryButton(
-          onPressed: () {
+        PrimaryButton(
+          onTap: () {
             Share.share(githubURL).then((value) {
               Navigator.of(context).pop();
             });
@@ -724,8 +765,8 @@ void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
           text: "share".tr(),
         ),
         const SizedBox(height: 10),
-        AuSecondaryButton(
-          onPressed: () => Navigator.pop(context),
+        OutlineButton(
+          onTap: () => Navigator.pop(context),
           text: "cancel_dialog".tr(),
         ),
         const SizedBox(height: 15),

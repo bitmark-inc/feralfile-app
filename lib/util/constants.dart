@@ -174,7 +174,7 @@ extension PremiumFeatureExtension on PremiumFeature {
   String get description {
     switch (rawValue) {
       case 'AutonomyTV':
-        return 'Subscribe to play your collection on external devices.';
+        return ' to play your collection on external devices.';
       default:
         return '';
     }
