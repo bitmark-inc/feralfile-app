@@ -90,7 +90,7 @@ class PendingTokenWidget extends StatelessWidget {
             Align(
               alignment: AlignmentDirectional.bottomStart,
               child: Text(
-                'Pending',
+                "pending_token".tr(),
                 style: theme.textTheme.ppMori700QuickSilver8,
               ),
             ),
@@ -151,7 +151,7 @@ class TokenThumbnailWidget extends StatelessWidget {
               errorWidget: (context, url, error) => AspectRatio(
                 aspectRatio: 1,
                 child: Container(
-                  color: const Color.fromRGBO(227, 227, 227, 1),
+                  color: Theme.of(context).auLightGrey,
                   child: BrokenTokenWidget(token: token),
                 ),
               ),
@@ -343,7 +343,7 @@ class GalleryUnSupportWidget extends StatelessWidget {
         width: size.width,
         height: size.width,
         padding: const EdgeInsets.all(13),
-        color: const Color.fromRGBO(227, 227, 227, 1),
+        color: theme.auLightGrey,
         child: Stack(
           children: [
             Center(
@@ -409,7 +409,7 @@ class GalleryUnSupportThumbnailWidget extends StatelessWidget {
           Align(
             alignment: AlignmentDirectional.bottomStart,
             child: Text(
-              'Unsupported Token',
+              'unsupported_token'.tr(),
               style: theme.textTheme.ppMori700QuickSilver8,
             ),
           ),
@@ -427,7 +427,7 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(10.0),
-      color: const Color.fromRGBO(227, 227, 227, 1),
+      color: theme.auLightGrey,
       child: Stack(
         children: [
           Center(
@@ -439,7 +439,7 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
           Align(
             alignment: AlignmentDirectional.bottomStart,
             child: Text(
-              'IPFS Error',
+              "IPFS_error".tr(),
               style: theme.textTheme.ppMori700QuickSilver8,
             ),
           ),
@@ -472,7 +472,7 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
           Align(
             alignment: AlignmentDirectional.bottomStart,
             child: Text(
-              'No Thumbnail',
+              "no_thumbnail".tr(),
               style: theme.textTheme.ppMori700QuickSilver8,
             ),
           ),
@@ -518,7 +518,7 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
                 child: Align(
                   alignment: AlignmentDirectional.bottomStart,
                   child: Text(
-                    'Loading',
+                    "loading".tr(),
                     style: theme.textTheme.ppMori700QuickSilver8,
                   ),
                 ),
@@ -536,7 +536,7 @@ Widget placeholder(BuildContext context) {
   return AspectRatio(
     aspectRatio: 1,
     child: Container(
-      color: const Color.fromRGBO(227, 227, 227, 1),
+      color: theme.auLightGrey,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
