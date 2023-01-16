@@ -781,22 +781,22 @@ class UIHelper {
                 ? RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                        style: theme.textTheme.ppMori400White12,
+                        style: theme.textTheme.ppMori400White14,
                         text: "art_no_appear".tr(),
                       ),
                       TextSpan(
-                        style: theme.textTheme.ppMori700White12,
+                        style: theme.textTheme.ppMori700White14,
                         text: "hidden_art".tr(),
                       ),
                       TextSpan(
-                        style: theme.textTheme.ppMori400White12,
+                        style: theme.textTheme.ppMori400White14,
                         text: "section_setting".tr(),
                       ),
                     ]),
                   )
                 : Text(
                     "art_visible".tr(),
-                    style: theme.primaryTextTheme.bodyText1,
+                    style: theme.primaryTextTheme.ppMori400White14,
                   ),
             const SizedBox(height: 40),
             PrimaryButton(

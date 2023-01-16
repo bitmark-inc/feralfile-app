@@ -26,7 +26,8 @@ class PrimaryButton extends StatelessWidget {
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: enabled ? theme.auSuperTeal : theme.auLightGrey,
+          backgroundColor:
+              enabled ? color ?? theme.auSuperTeal : theme.auLightGrey,
           disabledForegroundColor: theme.auLightGrey,
           disabledBackgroundColor: theme.auLightGrey,
           shape: RoundedRectangleBorder(
@@ -89,7 +90,7 @@ class OutlineButton extends StatelessWidget {
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
+          backgroundColor: color ?? theme.auGreyBackground,
           shape: RoundedRectangleBorder(
             side: const BorderSide(color: Colors.white),
             borderRadius: BorderRadius.circular(32.0),

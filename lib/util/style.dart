@@ -422,14 +422,11 @@ Widget get autonomyLogo {
   return FutureBuilder<bool>(
       future: isAppCenterBuild(),
       builder: (context, snapshot) {
-        return GestureDetector(
-          onTap: () {},
-          child: SvgPicture.asset(
-            snapshot.data == true
-                ? "assets/images/logo_dev.svg"
-                : "assets/images/penrose_moma.svg",
-            width: 50,
-          ),
+        return SvgPicture.asset(
+          snapshot.data == true
+              ? "assets/images/logo_dev.svg"
+              : "assets/images/penrose_moma.svg",
+          width: 50,
         );
       });
 }
