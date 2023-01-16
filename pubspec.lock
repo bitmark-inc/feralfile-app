@@ -82,8 +82,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.0.16"
-      resolved-ref: "0bb90d06dc41ef773eb146ab6408b0bcc939756e"
+      ref: "1.0.17"
+      resolved-ref: "08b8a00d7a56a300a11ad18edbf233bf9d920200"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
