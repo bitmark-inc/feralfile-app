@@ -157,6 +157,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     if (_wcURIListener == null) return;
 
     injector<WalletConnectDappService>().wcURI.removeListener(_wcURIListener!);
+    injector<WalletConnectDappService>().disconnect();
   }
 
   Future _linkMetamask() async {

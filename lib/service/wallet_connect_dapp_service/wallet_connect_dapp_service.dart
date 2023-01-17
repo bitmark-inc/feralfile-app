@@ -7,35 +7,41 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rand.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/models/session/wc_approve_session_response.dart';
 import 'package:wallet_connect/wallet_connect.dart';
-import 'package:uuid/uuid.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WalletConnectDappService {
-  late WCClient _wcClient;
+  WCClient? _wcClient;
   late WCSession _wcSession;
   WCSessionStore? _wcSessionStore;
   ValueNotifier<String?> wcURI = ValueNotifier(null);
   late WCPeerMeta _dappPeerMeta;
   ValueNotifier<bool> isConnected = ValueNotifier(false);
   ValueNotifier<WCConnectedSession?> remotePeerAccount = ValueNotifier(null);
+  bool waitingForConnection = false;
 
   final ConfigurationService _configurationService;
 
   WalletConnectDappService(this._configurationService);
+
   Timer? _timeoutTimer;
 
-  Future start() async {
-    _wcClient = WCClient(
+  start() {
+    _wcClient ??= WCClient(
       onSessionRequest: _onSessionRequest,
       onSessionUpdate: _onSessionUpdate,
       onFailure: _onFailure,
@@ -77,7 +83,7 @@ class WalletConnectDappService {
 
     Sentry.startTransaction('WalletConnect_dapp', 'connect');
     Sentry.getSpan()?.setTag("bridgeServer", _wcSession.bridge);
-    _wcClient.connectNewSession(
+    _wcClient?.connectNewSession(
         session: _wcSession, peerMeta: _dappPeerMeta, isWallet: false);
   }
 
@@ -86,13 +92,15 @@ class WalletConnectDappService {
     _configurationService.setWCDappAccounts(null);
     isConnected.value = false;
     // remotePeerAccount.value = [];
-    _wcClient.disconnect();
+    waitingForConnection = false;
+    _wcClient?.disconnect();
   }
 
   _onConnect() {
     _timeoutTimer?.cancel();
     final accounts = _configurationService.getWCDappAccounts();
     log.info("WC connected, stored accounts: $accounts");
+    waitingForConnection = true;
     if (accounts != null) {
       isConnected.value = true;
       // remotePeerAccount.value = accounts;
@@ -103,6 +111,18 @@ class WalletConnectDappService {
   _onDisconnect(code, reason) {
     log.info("WC disconnected, reason: $reason, code: $code");
     isConnected.value = false;
+    if (waitingForConnection) {
+      final context = injector<NavigationService>().navigatorKey.currentContext;
+      if (context != null) {
+        UIHelper.showMessageAction(
+            context, "timeout".tr(), "sorry_the_request_has_timeout".tr(),
+            actionButton: "try_again".tr(), onAction: () {
+          Navigator.of(context).pop();
+          start();
+          connect();
+        });
+      }
+    }
     Sentry.getSpan()?.finish(status: const SpanStatus.aborted());
   }
 
@@ -142,7 +162,7 @@ class WalletConnectDappService {
           peerMeta: _dappPeerMeta,
           remotePeerMeta: response.peerMeta,
           chainId: response.chainId!,
-          peerId: _wcClient.peerId!,
+          peerId: _wcClient!.peerId!,
           remotePeerId: response.peerId);
 
       late List<String> accounts;
