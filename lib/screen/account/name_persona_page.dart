@@ -12,12 +12,12 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,10 +61,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: null,
-      ),
+      appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
       body: BlocListener<PersonaBloc, PersonaState>(
         listener: (context, state) {
           switch (state.namePersonaState) {
@@ -90,16 +87,12 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "account_alias".tr(),
-                        style: theme.textTheme.headline1,
-                      ),
-                      addTitleSpace(),
+                      const SizedBox(height: 60),
                       Text(
                         injector<ConfigurationService>().isDoneOnboarding()
                             ? "need_add_alias".tr()
                             : "aa_you_can_add".tr(),
-                        style: theme.textTheme.bodyText1,
+                        style: theme.textTheme.ppMori400Black14,
                       ),
                       const SizedBox(height: 40),
                       AuTextField(
@@ -121,9 +114,9 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: AuFilledButton(
+                        child: PrimaryButton(
                           text: "save_alias".tr().toUpperCase(),
-                          onPress: isSavingAliasDisabled
+                          onTap: isSavingAliasDisabled
                               ? null
                               : () {
                                   context.read<PersonaBloc>().add(
@@ -134,11 +127,11 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
                   !injector<ConfigurationService>().isDoneOnboarding()
-                      ? TextButton(
-                          onPressed: () async {
+                      ? OutlineButton(
+                          onTap: () async {
                             //_doneNaming();
-
                             if (!mounted) {
                               _doneNaming();
                               return;
@@ -147,8 +140,11 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                                 .read<PersonaBloc>()
                                 .add(NamePersonaEvent(''));
                           },
-                          child:
-                              Text("skip".tr(), style: theme.textTheme.button))
+                          text: "skip".tr(),
+                          color: AppColor.white,
+                          textColor: AppColor.primaryBlack,
+                          borderColor: AppColor.primaryBlack,
+                        )
                       : const SizedBox(),
                 ],
               ),

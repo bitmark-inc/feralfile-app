@@ -73,6 +73,9 @@ class OutlineButton extends StatelessWidget {
   final double? width;
   final bool isProcessing;
   final bool enabled;
+  final Color? textColor;
+  final Color? borderColor;
+
   const OutlineButton({
     Key? key,
     this.onTap,
@@ -81,6 +84,8 @@ class OutlineButton extends StatelessWidget {
     this.width,
     this.enabled = true,
     this.isProcessing = false,
+    this.textColor,
+    this.borderColor,
   }) : super(key: key);
 
   @override
@@ -92,7 +97,7 @@ class OutlineButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? theme.auGreyBackground,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Colors.white),
+            side: BorderSide(color: borderColor ?? Colors.white),
             borderRadius: BorderRadius.circular(32.0),
           ),
         ),
@@ -102,7 +107,8 @@ class OutlineButton extends StatelessWidget {
           child: Center(
             child: Text(
               text ?? '',
-              style: theme.textTheme.ppMori400White14,
+              style:
+                  theme.textTheme.ppMori400White14.copyWith(color: textColor),
             ),
           ),
         ),
