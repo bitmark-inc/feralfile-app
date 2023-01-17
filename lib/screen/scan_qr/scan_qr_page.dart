@@ -24,17 +24,17 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/src/scheduler/ticker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:slidable_button/slidable_button.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -48,11 +48,13 @@ class ScanQRPage extends StatefulWidget {
   State<ScanQRPage> createState() => _ScanQRPageState();
 }
 
-class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
+class _ScanQRPageState extends State<ScanQRPage>
+    with RouteAware, TickerProviderStateMixin {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late QRViewController controller;
   var isScanDataError = false;
   var _isLoading = false;
+  AnimationController? _controller;
 
   @override
   void initState() {
@@ -61,6 +63,8 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
     if (Platform.isIOS) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
     }
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
     checkPermission();
   }
 
@@ -83,6 +87,12 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
         });
       }
     }
+  }
+
+  void _navigateShowMyCode() {
+    Navigator.of(context).pushNamed(AppRouter.globalReceivePage).then((value) {
+      _controller?.reverse();
+    });
   }
 
   @override
@@ -159,25 +169,68 @@ class _ScanQRPageState extends State<ScanQRPage> with RouteAware {
                   0),
               child: Center(child: _instructionView()),
             ),
-            Positioned.fill(
-                child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
-                child: AuFilledButton(
-                    text: "show_qr".tr(),
-                    icon: SvgPicture.asset(
-                      "assets/images/iconQr.svg",
-                      color: theme.colorScheme.secondary,
-                      height: 16.0,
-                      width: 16.0,
+            Positioned(
+                bottom: 30,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
+                    child: HorizontalSlidableButton(
+                      controller: _controller,
+                      width: MediaQuery.of(context).size.width,
+                      height: 50,
+                      buttonWidth: MediaQuery.of(context).size.width / 2,
+                      color: theme.auLightGrey,
+                      buttonColor: theme.auLightGrey,
+                      label: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'scan_code'.tr(),
+                              style: theme.textTheme.ppMori400White14,
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              'scan_code'.tr(),
+                              style: theme.textTheme.ppMori400White14,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                _controller?.forward();
+                                _navigateShowMyCode();
+                              },
+                              child: Text(
+                                'show_my_code'.tr(),
+                                style:
+                                    theme.textTheme.ppMori400White14.copyWith(
+                                  color: theme.disabledColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onChanged: (position) {
+                        if (position == SlidableButtonPosition.end) {
+                          _navigateShowMyCode();
+                        }
+                      },
                     ),
-                    onPress: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.globalReceivePage);
-                    }),
-              ),
-            )),
+                  ),
+                )),
             if (_isLoading) ...[
               Center(
                 child: CupertinoActivityIndicator(

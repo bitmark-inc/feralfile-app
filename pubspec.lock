@@ -1848,6 +1848,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  slidable_button:
+    dependency: "direct main"
+    description:
+      name: slidable_button
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0+1"
   sliver_tools:
     dependency: transitive
     description:
