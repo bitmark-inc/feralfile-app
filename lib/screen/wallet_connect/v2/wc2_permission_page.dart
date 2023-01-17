@@ -56,6 +56,8 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
   final selectedAddress = {};
 
+  bool _includeLinkedAccount = false;
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +67,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     params.permissions.firstOrNull?.request.chains.forEach((element) {
       selectedAddress[element] = null;
     });
+
+    _includeLinkedAccount =
+        params.permissions.firstOrNull?.includeLinkedAccount ?? false;
 
     _selectETHAddress = selectedAddress.containsKey('eip155:1');
     _selectXTZAddress = selectedAddress.containsKey('tezos');
@@ -225,6 +230,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         if (stateAccount == null) return const SizedBox();
 
                         return ListAccountConnect(
+                          includeLinkedAccount: _includeLinkedAccount,
                           accounts: stateAccount,
                           showETH: _selectETHAddress,
                           showXTZ: _selectXTZAddress,
@@ -269,6 +275,7 @@ class ListAccountConnect extends StatefulWidget {
   final List<Account> accounts;
   final bool showETH;
   final bool showXTZ;
+  final bool includeLinkedAccount;
   final Function(String)? onSelectEth;
   final Function(String)? onSelectTez;
 
@@ -279,6 +286,7 @@ class ListAccountConnect extends StatefulWidget {
     this.showXTZ = true,
     this.onSelectEth,
     this.onSelectTez,
+    required this.includeLinkedAccount,
   }) : super(key: key);
 
   @override
@@ -324,7 +332,7 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
                           });
                         },
                       )
-                    else
+                    else if (widget.includeLinkedAccount)
                       LinkedAccountConnectItem(
                         account: account,
                         ethSelectedAddress: ethSelectedAddress,
@@ -333,14 +341,12 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
                         showXTZ: widget.showXTZ,
                         onSelectEth: (value) {
                           widget.onSelectEth?.call(value);
-
                           setState(() {
                             ethSelectedAddress = value;
                           });
                         },
                         onSelectTez: (value) {
                           widget.onSelectTez?.call(value);
-
                           setState(() {
                             tezSelectedAddress = value;
                           });
