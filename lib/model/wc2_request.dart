@@ -80,18 +80,22 @@ class Wc2Permission {
   Wc2Permission({
     required this.type,
     required this.request,
+    this.includeLinkedAccount,
   });
 
   String type;
+  bool? includeLinkedAccount;
   Wc2ChainsPermissionRequest request;
 
   factory Wc2Permission.fromJson(Map<String, dynamic> json) => Wc2Permission(
         type: json["type"],
+        includeLinkedAccount: json["includeLinkedAccount"],
         request: Wc2ChainsPermissionRequest.fromJson(json["request"]),
       );
 
   Map<String, dynamic> toJson() => {
         "type": type,
+        "includeLinkedAccount": includeLinkedAccount,
         "request": request.toJson(),
       };
 }

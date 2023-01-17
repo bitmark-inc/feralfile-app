@@ -109,7 +109,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
       Set<P2PPeer> bcPeers = {};
 
       for (var connection in event.connectionItem.connections) {
-        await _cloudDB.connectionDao.deleteConnection(connection);
+        _cloudDB.connectionDao.deleteConnection(connection);
         if (connection.connectionType ==
             ConnectionType.walletConnect2.rawValue) {
           final topic = connection.key.split(":").lastOrNull;
