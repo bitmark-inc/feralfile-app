@@ -606,10 +606,24 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                             ? widget.account.persona?.name
                             : snapshot.data ?? '';
                     return Expanded(
-                      child: Text(
-                        name?.replaceFirst('did:key:', '') ?? '',
-                        style: theme.textTheme.headline4,
-                        overflow: TextOverflow.ellipsis,
+                      child: GestureDetector(
+                        onTap: () {
+                          final ethAddress =
+                              ethereumBloc.state.personaAddresses?[uuid];
+                          final xtzAddress =
+                              tezosBloc.state.personaAddresses?[uuid];
+                          if (widget.showETH && ethAddress != null) {
+                            widget.onSelectEth?.call(ethAddress);
+                          }
+                          if (widget.showXTZ && xtzAddress != null) {
+                            widget.onSelectTez?.call(xtzAddress);
+                          }
+                        },
+                        child: Text(
+                          name?.replaceFirst('did:key:', '') ?? '',
+                          style: theme.textTheme.headline4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     );
                   },
