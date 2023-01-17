@@ -185,7 +185,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         Container(
           padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
           child: Semantics(
-            label: "Settings",
+            label: isInSettingsPage ? "close_icon" : "Settings",
             child: IconButton(
               onPressed: () {
                 if (_opacity == 0) return;
