@@ -67,14 +67,14 @@ class CloudPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 15),
                           ExternalAppInfoView(
-                            icon: Image.asset("assets/images/googleCloud.png"),
-                            appName: "google_cloud".tr(),
+                            icon: Image.asset("assets/images/iCloudDrive.png"),
+                            appName: "icloud_drive".tr(),
                             status: isAvailable
                                 ? "turned_on".tr()
                                 : "turned_off".tr(),
                             statusColor: isAvailable
-                                ? AppColor.red
-                                : AppColor.auQuickSilver,
+                                ? AppColor.auQuickSilver
+                                : AppColor.red,
                           ),
                           const SizedBox(height: 15),
                           Text(

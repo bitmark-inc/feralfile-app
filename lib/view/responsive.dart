@@ -78,6 +78,13 @@ class ResponsiveLayout extends StatelessWidget {
         0,
       );
 
+  static EdgeInsets get tappableForwardRowEdgeInsets => EdgeInsets.fromLTRB(
+    padding,
+    20,
+    padding,
+    20,
+  );
+
   static EdgeInsets get pageHorizontalEdgeInsets =>
       EdgeInsets.symmetric(horizontal: padding);
 }

@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAppOptionsPage extends StatefulWidget {
   final WalletApp walletApp;
+
   const LinkAppOptionsPage({Key? key, required this.walletApp})
       : super(key: key);
 
@@ -43,63 +44,66 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final padding = EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding);
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () => Navigator.of(context).pop(),
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
-        child: Column(children: [
-          Expanded(
-              child: SingleChildScrollView(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                "where_are_you_using"
-                    .tr(args: [widget.walletApp.toString().split(".").last]),
-                style: theme.textTheme.headline1,
-              ),
-              addTitleSpace(),
-              _mobileAppOnThisDeviceOptionWidget(context),
-              addOnlyDivider(),
-              _browserExtensionOptionWidget(context),
-              const SizedBox(
-                height: 40,
-              ),
-              if (widget.walletApp == WalletApp.MetaMask) ...[
-                Container(
-                  color: AppColor.chatPrimaryColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'important'.tr(),
-                          style: theme.textTheme.atlasGreyBold14,
-                        ),
-                        const SizedBox(
-                          height: 5,
-                        ),
-                        RichText(
-                          text: TextSpan(
-                              text: 'autonomy_currently'.tr(),
-                              children: [
-                                TextSpan(
-                                    text: '${'ethereum_mainnet'.tr()}. ',
-                                    style: theme.textTheme.atlasBlackBold14),
-                                TextSpan(text: 'all_other_evm_networks'.tr()),
-                              ],
-                              style: theme.textTheme.atlasBlackNormal14),
-                        ),
-                      ],
-                    ),
+      appBar: getBackAppBar(context,
+          onBack: () => Navigator.of(context).pop(),
+          title: widget.walletApp.toString().split(".").last),
+      body: SingleChildScrollView(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          addTitleSpace(),
+          Padding(
+            padding: padding,
+            child: Text(
+              "where_are_you_using"
+                  .tr(args: [widget.walletApp.toString().split(".").last]),
+              style: theme.textTheme.ppMori700Black24,
+            ),
+          ),
+          addTitleSpace(),
+          _mobileAppOnThisDeviceOptionWidget(context),
+          addOnlyDivider(),
+          _browserExtensionOptionWidget(context),
+          addOnlyDivider(),
+          const SizedBox(height: 30),
+          if (widget.walletApp == WalletApp.MetaMask) ...[
+            Padding(
+              padding: padding,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.auSuperTeal,
+                  borderRadius: BorderRadiusGeometry.lerp(
+                      const BorderRadius.all(Radius.circular(5)),
+                      const BorderRadius.all(Radius.circular(5)),
+                      5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'important'.tr(),
+                        style: theme.textTheme.ppMori700Black14,
+                      ),
+                      const SizedBox(height: 15),
+                      RichText(
+                        text: TextSpan(
+                            text: 'autonomy_currently'.tr(),
+                            children: [
+                              TextSpan(
+                                  text: '${'ethereum_mainnet'.tr()}. ',
+                                  style: theme.textTheme.ppMori400Black14),
+                              TextSpan(text: 'all_other_evm_networks'.tr()),
+                            ],
+                            style: theme.textTheme.ppMori400Black14),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ]),
-          ))
+              ),
+            ),
+          ],
         ]),
       ),
     );
@@ -108,8 +112,9 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   Widget _mobileAppOnThisDeviceOptionWidget(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRow(
+      padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
       leftWidget: Text('mobile_app_on_this_device'.tr(),
-          style: theme.textTheme.headline4),
+          style: theme.textTheme.ppMori400Black14),
       onTap: () => _linkMetamask(),
     );
   }
@@ -117,8 +122,9 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   Widget _browserExtensionOptionWidget(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRow(
-      leftWidget:
-          Text('browser_extension'.tr(), style: theme.textTheme.headline4),
+      padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
+      leftWidget: Text('browser_extension'.tr(),
+          style: theme.textTheme.ppMori400Black14),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkMetamaskPage),
     );
   }

@@ -1145,6 +1145,25 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
   );
 }
 
+Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
+  final theme = Theme.of(context);
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "$stepNumber.",
+        style: theme.textTheme.ppMori400Black14,
+      ),
+      const SizedBox(
+        width: 10,
+      ),
+      Expanded(
+        child: Text(stepGuide, style: theme.textTheme.ppMori400Black14),
+      )
+    ],
+  );
+}
+
 String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
 }
