@@ -115,7 +115,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                     children: [
                       Expanded(
                         child: PrimaryButton(
-                          text: "save_alias".tr().toUpperCase(),
+                          text: "save_alias".tr(),
                           onTap: isSavingAliasDisabled
                               ? null
                               : () {

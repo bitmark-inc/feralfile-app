@@ -11,11 +11,12 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/external_app_info_view.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
@@ -80,7 +81,6 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
-
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -89,6 +89,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                 Navigator.of(context).pop();
               }
             : null,
+        title: "backed_up".tr(),
       ),
       body: _contentWidget(context),
     );
@@ -106,40 +107,32 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isEncryptionAvailable == true
-                          ? "backed_up".tr()
-                          : isEncryptionAvailable == false
-                              ? "enable_backup_encryption".tr()
-                              : "google_cld_bk_unavailable".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
                     Text(
                       "autonomy_will_auto_bk".tr(),
                       //"Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
                       style: theme.textTheme.bodyText1,
                     ),
-                    if (isEncryptionAvailable == true) ...[
-                      const SizedBox(height: 40),
-                      Center(
-                          child: SvgPicture.asset("assets/images/cloudOn.svg")),
-                    ] else ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        isEncryptionAvailable == false
-                            ? "automatic_google_cloud_bks"
-                                .tr() //"Automatic Google cloud backups are enabled, but you are not using end-to-end encryption. We recommend enabling it so we can securely back up your account."
-                            : "google_cloud_backup_is"
-                                .tr(), //"Google cloud backup is currently turned off on your device. If your device supports it, we recommend you enable it so we can safely back up your account.",
-                        style: theme.textTheme.headline4,
-                      ),
-                      const SizedBox(height: 40),
-                      Center(
-                          child: SvgPicture.asset(isEncryptionAvailable == false
-                              ? "assets/images/cloudEncryption.svg"
-                              : "assets/images/cloudOff.svg")),
-                    ],
+                    const SizedBox(height: 15),
+                    ExternalAppInfoView(
+                      icon: Image.asset("assets/images/googleCloud.png"),
+                      appName: "google_cloud".tr(),
+                      status: isEncryptionAvailable != null
+                          ? "turned_on".tr()
+                          : "turned_off".tr(),
+                      statusColor: isEncryptionAvailable == null
+                          ? AppColor.red
+                          : AppColor.auQuickSilver,
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      isEncryptionAvailable == true
+                          ? "you_backed_up".tr()
+                          : isEncryptionAvailable == false
+                              ? "automatic_google_cloud_bks".tr()
+                              : "recommend_google_cloud".tr(),
+                      style: theme.textTheme.ppMori700Black14,
+                    ),
                   ]),
             ),
           ),
@@ -150,15 +143,13 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
   }
 
   Widget _buttonsGroup(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (isEncryptionAvailable == true) {
       return Row(
         children: [
           Expanded(
-            child: AuFilledButton(
-              text: "continue".tr().toUpperCase(),
-              onPress: () => _continue(context),
+            child: PrimaryButton(
+              text: "continue".tr(),
+              onTap: () => _continue(context),
             ),
           ),
         ],
@@ -169,19 +160,23 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           Row(
             children: [
               Expanded(
-                child: AuFilledButton(
-                  text: "open_device_setting".tr().toUpperCase(),
-                  onPress: () => isEncryptionAvailable == false
+                child: PrimaryButton(
+                  text: "open_device_setting".tr(),
+                  onTap: () => isEncryptionAvailable == false
                       ? OpenSettings.openBiometricEnrollSetting()
                       : OpenSettings.openAddAccountSetting(),
                 ),
               ),
             ],
           ),
-          TextButton(
-              onPressed: () => _continue(context),
-              child: Text("continue_without_it".tr(),
-                  style: theme.textTheme.button)),
+          const SizedBox(height: 10),
+          OutlineButton(
+            onTap: () => _continue(context),
+            text: "skip".tr(),
+            color: AppColor.white,
+            borderColor: AppColor.primaryBlack,
+            textColor: AppColor.primaryBlack,
+          ),
         ],
       );
     }

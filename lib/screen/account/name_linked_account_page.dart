@@ -107,7 +107,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                   children: [
                     Expanded(
                       child: AuFilledButton(
-                        text: "save_alias".tr().toUpperCase(),
+                        text: "save_alias".tr(),
                         onPress: isSavingAliasDisabled
                             ? null
                             : () {

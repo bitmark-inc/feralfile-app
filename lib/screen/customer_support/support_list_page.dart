@@ -97,9 +97,6 @@ class _SupportListPageState extends State<SupportListPage>
       SliverToBoxAdapter(
         child: addTitleSpace(),
       ),
-      const SliverToBoxAdapter(
-        child: SizedBox(height: 20),
-      ),
       SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
