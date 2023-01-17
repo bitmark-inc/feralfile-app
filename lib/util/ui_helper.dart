@@ -216,7 +216,7 @@ class UIHelper {
           ],
           OutlineButton(
             onTap: () => onClose?.call() ?? Navigator.pop(context),
-            text: closeButton ?? 'cancel'.tr(),
+            text: closeButton ?? 'cancel_dialog'.tr(),
           ),
           const SizedBox(height: 15),
         ]),
