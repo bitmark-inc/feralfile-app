@@ -42,6 +42,7 @@ class AuTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isEmpty = controller.text.isEmpty;
     return Expanded(
         flex: expanded ? 1 : 0,
         child: Container(
@@ -50,7 +51,15 @@ class AuTextField extends StatelessWidget {
                 : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
             decoration: BoxDecoration(
                 border: Border.all(
-                    color: isError ? AppColor.red : theme.colorScheme.primary)),
+                    color: isEmpty
+                        ? AppColor.auLightGrey
+                        : isError
+                            ? AppColor.red
+                            : theme.colorScheme.primary),
+                borderRadius: BorderRadiusGeometry.lerp(
+                    const BorderRadius.all(Radius.circular(5)),
+                    const BorderRadius.all(Radius.circular(5)),
+                    5)),
             child: Row(
               children: [
                 Expanded(
