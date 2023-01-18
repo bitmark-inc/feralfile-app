@@ -44,7 +44,6 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final padding = EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding);
     return Scaffold(
       appBar: getBackAppBar(context,
           onBack: () => Navigator.of(context).pop(),
@@ -53,7 +52,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           addTitleSpace(),
           Padding(
-            padding: padding,
+            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
             child: Text(
               "where_are_you_using"
                   .tr(args: [widget.walletApp.toString().split(".").last]),
@@ -68,7 +67,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
           const SizedBox(height: 30),
           if (widget.walletApp == WalletApp.MetaMask) ...[
             Padding(
-              padding: padding,
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColor.auSuperTeal,

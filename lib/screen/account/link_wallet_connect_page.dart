@@ -56,7 +56,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
         Navigator.of(context).pop();
       }, title: "other_ethereum_wallets".tr()),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

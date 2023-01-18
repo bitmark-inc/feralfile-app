@@ -52,7 +52,7 @@ class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
           title: "kukai".tr(),
         ),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
             children: [
               Expanded(

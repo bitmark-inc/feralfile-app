@@ -65,7 +65,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
     return Scaffold(
       appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

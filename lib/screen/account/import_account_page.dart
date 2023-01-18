@@ -66,7 +66,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         Navigator.of(context).pop();
       }, title: "import_wallet".tr()),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

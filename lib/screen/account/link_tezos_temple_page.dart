@@ -74,7 +74,7 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
           title: "temple".tr(),
         ),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
             children: [
               Expanded(

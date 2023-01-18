@@ -267,12 +267,6 @@ class _OnboardingPageState extends State<OnboardingPage>
         injector<WalletConnectService>().initSessions(forced: true);
       },
       builder: (context, state) {
-        if (fromBranchLink ||
-            (state.onboardingStep == OnboardingStep.undefined) ||
-            fromDeeplink) {
-          return loadingScreen(theme, "h_loading...".tr());
-        }
-
         if (creatingAccount) {
           return BlocListener<PersonaBloc, PersonaState>(
             listener: (context, personaState) {
@@ -302,7 +296,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         }
 
         return Padding(
-          padding: ResponsiveLayout.pageEdgeInsets,
+          padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -317,54 +311,53 @@ class _OnboardingPageState extends State<OnboardingPage>
               const SizedBox(height: 20),
               addBoldDivider(),
               Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
-              SizedBox(
-                height: 320,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (state.onboardingStep == OnboardingStep.startScreen) ...[
-                      Text("ne_make_a_new_account".tr(),
-                          style: theme.textTheme.ppMori400Grey14),
-                      const SizedBox(height: 20),
-                      PrimaryButton(
-                        text: "create_a_new_wallet".tr(),
-                        onTap: () {
-                          context.read<PersonaBloc>().add(CreatePersonaEvent());
-                          setState(() {
-                            creatingAccount = true;
-                          });
-                        },
-                      ),
-                      addDivider(height: 40),
-                      Text("ad_i_already_have".tr(),
-                          style: theme.textTheme.ppMori400Grey14),
-                      const SizedBox(height: 20),
-                      PrimaryButton(
-                        text: "link_existing_wallet".tr(),
-                        onTap: () => Navigator.of(context)
-                            .pushNamed(AppRouter.linkAccountpage),
-                      ),
-                    ] else if (state.onboardingStep ==
-                        OnboardingStep.restore) ...[
-                      Text("retrieve_at_once".tr(),
-                          style: theme.textTheme.ppMori400Grey14),
-                      const SizedBox(height: 20),
-                      PrimaryButton(
-                        text: "restore_autonomy".tr(),
-                        onTap: !state.isLoading
-                            ? () {
-                                metricClient
-                                    .addEvent(MixpanelEvent.restoreAccount);
-                                context.read<RouterBloc>().add(
-                                    RestoreCloudDatabaseRoutingEvent(
-                                        state.backupVersion));
-                              }
-                            : null,
-                      ),
-                    ]
-                  ],
+              const Spacer(),
+              if (fromBranchLink ||
+                  fromDeeplink ||
+                  (state.onboardingStep == OnboardingStep.undefined)) ...[
+                PrimaryButton(
+                  text: "h_loading...".tr(),
+                  isProcessing: true,
+                )
+              ] else if (state.onboardingStep ==
+                  OnboardingStep.startScreen) ...[
+                Text("ne_make_a_new_account".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "create_a_new_wallet".tr(),
+                  onTap: () {
+                    context.read<PersonaBloc>().add(CreatePersonaEvent());
+                    setState(() {
+                      creatingAccount = true;
+                    });
+                  },
                 ),
-              )
+                addDivider(height: 40),
+                Text("ad_i_already_have".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "link_existing_wallet".tr(),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.linkAccountpage),
+                ),
+              ] else if (state.onboardingStep == OnboardingStep.restore) ...[
+                Text("retrieve_at_once".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "restore_autonomy".tr(),
+                  onTap: !state.isLoading
+                      ? () {
+                          metricClient.addEvent(MixpanelEvent.restoreAccount);
+                          context.read<RouterBloc>().add(
+                              RestoreCloudDatabaseRoutingEvent(
+                                  state.backupVersion));
+                        }
+                      : null,
+                ),
+              ]
             ],
           ),
         );

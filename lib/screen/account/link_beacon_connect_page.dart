@@ -42,7 +42,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
         title: "other_tezos_wallets".tr(),
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

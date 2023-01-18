@@ -71,6 +71,14 @@ class ResponsiveLayout extends StatelessWidget {
         32,
       );
 
+  static EdgeInsets get pageHorizontalEdgeInsetsWithSubmitButton =>
+      EdgeInsets.fromLTRB(
+        padding,
+        0,
+        padding,
+        32,
+      );
+
   static EdgeInsets get pageEdgeInsetsNotBottom => EdgeInsets.fromLTRB(
         padding,
         padding,

@@ -62,7 +62,7 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
           Navigator.of(context).pop();
         }, title: "metamask".tr()),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
             children: [
               Expanded(

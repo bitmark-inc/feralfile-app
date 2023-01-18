@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -78,7 +79,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
           }
         },
         child: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -87,7 +88,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 60),
+                      addTitleSpace(),
                       Text(
                         injector<ConfigurationService>().isDoneOnboarding()
                             ? "need_add_alias".tr()
