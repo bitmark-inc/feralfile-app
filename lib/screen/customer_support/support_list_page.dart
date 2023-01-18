@@ -185,7 +185,8 @@ class _SupportListPageState extends State<SupportListPage>
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.ppMori400Black14,
                 ),
-              ),],
+              ),
+            ],
           ),
         ),
         hasDivider

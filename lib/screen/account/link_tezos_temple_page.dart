@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -76,43 +75,42 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
         ),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-          child:
-              Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          addTitleSpace(),
-                          Text(
-                            "link_to_extension".tr(),
-                            style: theme.textTheme.ppMori700Black24,
-                          ),
-                          addTitleSpace(),
-                          Text(
-                            "to_link_temple".tr(),
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                          const SizedBox(height: 15),
-                          stepWidget(context, '1', "ltt_generate_a_link".tr()),
-                          const SizedBox(height: 15),
-                          stepWidget(context, '2', "ltt_when_prompted_by".tr()),
-                          const SizedBox(height: 30),
-                        ],
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Text(
+                        "link_to_extension".tr(),
+                        style: theme.textTheme.ppMori700Black24,
                       ),
-                    ),
+                      addTitleSpace(),
+                      Text(
+                        "to_link_temple".tr(),
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
+                      const SizedBox(height: 15),
+                      stepWidget(context, '1', "ltt_generate_a_link".tr()),
+                      const SizedBox(height: 15),
+                      stepWidget(context, '2', "ltt_when_prompted_by".tr()),
+                      const SizedBox(height: 30),
+                    ],
                   ),
-                  PrimaryButton(
-                    text: "generate_link".tr(),
-                    onTap: () {
-                      metricClient.addEvent(MixpanelEvent.generateLink);
-                      withDebounce(() => _generateLinkAndListen(),
-                          debounceTime: 2000000);
-                    },
-                  ),
-                ],
+                ),
               ),
+              PrimaryButton(
+                text: "generate_link".tr(),
+                onTap: () {
+                  metricClient.addEvent(MixpanelEvent.generateLink);
+                  withDebounce(() => _generateLinkAndListen(),
+                      debounceTime: 2000000);
+                },
+              ),
+            ],
+          ),
         ));
   }
 

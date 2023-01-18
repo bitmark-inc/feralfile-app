@@ -88,7 +88,6 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                       stepWidget(context, '2', "lte_when_prompted_by".tr()),
                       //'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
                       const SizedBox(height: 30),
-
                     ],
                   ),
                 ),
@@ -105,7 +104,6 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
           ),
         ));
   }
-
 
   // MARK: - Handlers
   Future _generateLinkAndListen() async {
