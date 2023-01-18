@@ -63,20 +63,18 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
         title: "how_can_we_help".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              addTitleSpace(),
-              _reportItemsWidget(context),
-              const SizedBox(height: 20),
-              addOnlyDivider(),
-              _resourcesWidget(context),
-              addOnlyDivider(),
-            ],
-          ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _reportItemsWidget(context),
+            ),
+            const SizedBox(height: 30),
+            _resourcesWidget(context),
+          ],
         ),
       ),
     );
@@ -121,6 +119,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              addOnlyDivider(),
               TappableForwardRow(
                 leftWidget: Text('support_history'.tr(),
                     style: theme.textTheme.ppMori400Black14),
@@ -129,8 +128,9 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                     : null,
                 onTap: () =>
                     Navigator.of(context).pushNamed(AppRouter.supportListPage),
-                padding: const EdgeInsets.fromLTRB(0, 23, 0, 20),
+                padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
               ),
+              addOnlyDivider(),
             ],
           );
         });
