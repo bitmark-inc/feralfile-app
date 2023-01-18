@@ -168,6 +168,10 @@ abstract class ConfigurationService {
 
   Future setSentTezosArtworkMetric(int hashedAddresses);
 
+  bool allowContribution();
+
+  Future<void> setAllowContribution(bool value);
+
   // Reload
   Future<void> reload();
 
@@ -222,6 +226,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
+
+  static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -749,5 +755,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool hasFeed() {
     return _preferences.getBool(HAVE_FEED) ?? false;
+  }
+
+  @override
+  bool allowContribution() {
+    return _preferences.getBool(ALLOW_CONTRIBUTION) ?? true;
+  }
+
+  @override
+  Future<void> setAllowContribution(bool value) async {
+    await _preferences.setBool(ALLOW_CONTRIBUTION, value);
   }
 }
