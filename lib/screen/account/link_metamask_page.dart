@@ -63,38 +63,45 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
         }, title: "metamask".tr()),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                addTitleSpace(),
-                Text(
-                  "link_to_extension".tr(),
-                  style: theme.textTheme.ppMori700Black24,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Text(
+                        "link_to_extension".tr(),
+                        style: theme.textTheme.ppMori700Black24,
+                      ),
+                      addTitleSpace(),
+                      Text(
+                        "lte_to_link_your".tr(),
+                        //"To link your MetaMask browser extension to Autonomy:",
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
+                      const SizedBox(height: 15),
+                      stepWidget(context, '1', "lte_generate_a_link".tr()),
+                      //'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
+                      const SizedBox(height: 15),
+                      stepWidget(context, '2', "lte_when_prompted_by".tr()),
+                      //'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
+                      const SizedBox(height: 30),
+
+                    ],
+                  ),
                 ),
-                addTitleSpace(),
-                Text(
-                  "lte_to_link_your".tr(),
-                  //"To link your MetaMask browser extension to Autonomy:",
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-                const SizedBox(height: 15),
-                stepWidget(context, '1', "lte_generate_a_link".tr()),
-                //'Generate a link request and send it to the web browser where you are currently signed in to MetaMask.'),
-                const SizedBox(height: 15),
-                stepWidget(context, '2', "lte_when_prompted_by".tr()),
-                //'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
-                const SizedBox(height: 30),
-                PrimaryButton(
-                  text: "generate_link".tr(),
-                  onTap: () {
-                    metricClient.addEvent(MixpanelEvent.generateLink);
-                    withDebounce(() => _generateLinkAndListen(),
-                        debounceTime: 2000000);
-                  },
-                ),
-              ],
-            ),
+              ),
+              PrimaryButton(
+                text: "generate_link".tr(),
+                onTap: () {
+                  metricClient.addEvent(MixpanelEvent.generateLink);
+                  withDebounce(() => _generateLinkAndListen(),
+                      debounceTime: 2000000);
+                },
+              ),
+            ],
           ),
         ));
   }

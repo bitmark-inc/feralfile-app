@@ -54,37 +54,43 @@ class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
           child:
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    addTitleSpace(),
-                    Text(
-                      "link_to_extension".tr(),
-                      style: theme.textTheme.ppMori700Black24,
+              Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          addTitleSpace(),
+                          Text(
+                            "link_to_extension".tr(),
+                            style: theme.textTheme.ppMori700Black24,
+                          ),
+                          addTitleSpace(),
+                          Text(
+                            "to_link_kukai".tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          const SizedBox(height: 15),
+                          stepWidget(context, '1', "ltk_generate_a_link".tr()),
+                          const SizedBox(height: 15),
+                          stepWidget(context, '2', "ltk_when_prompted_by".tr()),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
                     ),
-                    addTitleSpace(),
-                    Text(
-                      "to_link_kukai".tr(),
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                    const SizedBox(height: 15),
-                    stepWidget(context, '1', "ltk_generate_a_link".tr()),
-                    const SizedBox(height: 15),
-                    stepWidget(context, '2', "ltk_when_prompted_by".tr()),
-                    const SizedBox(height: 30),
-                    PrimaryButton(
-                      text: "generate_link".tr(),
-                      onTap: () {
-                        metricClient.addEvent(MixpanelEvent.generateLink);
-                        withDebounce(() async {
-                          final uri = await tezosBeaconService.getConnectionURI();
-                          Share.share("https://wallet.kukai.app/tezos$uri");
-                        }, debounceTime: 2000000);
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  PrimaryButton(
+                    text: "generate_link".tr(),
+                    onTap: () {
+                      metricClient.addEvent(MixpanelEvent.generateLink);
+                      withDebounce(() async {
+                        final uri = await tezosBeaconService.getConnectionURI();
+                        Share.share("https://wallet.kukai.app/tezos$uri");
+                      }, debounceTime: 2000000);
+                    },
+                  ),
+                ],
               ),
         ));
   }

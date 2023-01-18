@@ -115,12 +115,14 @@ class AuTextField extends StatelessWidget {
           hintText: placeholder,
           hintMaxLines: hintMaxLines,
           hintStyle: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasSpanishGreyNormal16
-              : theme.textTheme.atlasSpanishGreyNormal20,
+              ? theme.textTheme.ppMori400Black14
+                  .copyWith(color: AppColor.auQuickSilver)
+              : theme.textTheme.ppMori400Black16
+                  .copyWith(color: AppColor.auQuickSilver, fontSize: 20),
         ),
         keyboardType: keyboardType,
-        style: theme.textTheme.subtitle1
-            ?.copyWith(color: isError ? AppColor.red : null),
+        style: theme.textTheme.ppMori400Black14
+            .copyWith(color: isError ? AppColor.red : null),
         controller: controller,
         onChanged: onChanged,
         onSubmitted: onSubmit ?? onChanged,

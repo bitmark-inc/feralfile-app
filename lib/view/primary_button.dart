@@ -96,6 +96,7 @@ class OutlineButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? theme.auGreyBackground,
+          elevation: 0,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: borderColor ?? Colors.white),
             borderRadius: BorderRadius.circular(32.0),

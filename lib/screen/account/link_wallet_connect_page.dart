@@ -7,19 +7,23 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LinkWalletConnectPage extends StatefulWidget {
   final String unableOpenAppname;
+
   const LinkWalletConnectPage({Key? key, this.unableOpenAppname = ""})
       : super(key: key);
 
@@ -28,8 +32,6 @@ class LinkWalletConnectPage extends StatefulWidget {
 }
 
 class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
-  bool _copied = false;
-
   @override
   void initState() {
     super.initState();
@@ -47,13 +49,12 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textStyle = theme.textTheme.ppMori400Black14;
+    final Uri uri = Uri.parse("https://www.walletconnect.com");
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
+      appBar: getBackAppBar(context, onBack: () {
+        Navigator.of(context).pop();
+      }, title: "other_ethereum_wallets".tr()),
       body: Container(
         margin: ResponsiveLayout.pageEdgeInsets,
         child: Column(
@@ -64,36 +65,49 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      "scan_code_to_link".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
+                    _wcQRCode(),
+                    const SizedBox(height: 60),
+                    ExternalAppInfoView(
+                        icon: Image.asset(
+                            "assets/images/walletconnect-alternative.png"),
+                        appName: "wallet.connect".tr(),
+                        status: "compatible".tr()),
+                    const SizedBox(height: 15),
                     if (widget.unableOpenAppname.isNotEmpty) ...[
                       Text(
                           'sctl_we_were_unable'
-                              .tr(args: ['widget.unableOpenAppname']),
+                              .tr(args: [widget.unableOpenAppname]),
                           //"We were unable to open ${widget.unableOpenAppname} on this device.",
-                          style: theme.textTheme.headline4),
-                      const SizedBox(height: 24),
+                          style: theme.textTheme.ppMori700Black14),
+                      const SizedBox(height: 15),
                     ],
                     Text(
                       "sctl_if_your_wallet".tr(),
                       //"If your wallet is on another device, you can open it and scan the QR code below to link your account to Autonomy: ",
-                      style: theme.textTheme.bodyText1,
+                      style: textStyle,
                     ),
-                    const SizedBox(height: 24),
-                    _wcQRCode(),
-                    if (_copied) ...[
-                      const SizedBox(height: 24),
-                      Center(
-                          child: Text(
-                        "copied".tr(),
-                        style: ResponsiveLayout.isMobile
-                            ? theme.textTheme.atlasBlackBold12
-                            : theme.textTheme.atlasBlackBold14,
-                      )),
-                    ]
+                    const SizedBox(height: 10),
+                    RichText(
+                      text: TextSpan(children: [
+                        TextSpan(
+                          text: "sure_eth_support".tr(),
+                          style: textStyle,
+                        ),
+                        TextSpan(
+                          text: "wallet.connect".tr(),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => launchUrl(uri,
+                                mode: LaunchMode.externalApplication),
+                          style: textStyle.copyWith(
+                              decoration: TextDecoration.underline),
+                        ),
+                        TextSpan(
+                          text: "_protocol".tr(),
+                          style: textStyle,
+                        ),
+                      ]),
+                    ),
                   ],
                 ),
               ),
@@ -123,11 +137,9 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                       ),
             ),
             onTap: () {
-              Vibrate.feedback(FeedbackType.light);
               Clipboard.setData(ClipboardData(text: wcURI));
-              setState(() {
-                _copied = true;
-              });
+              showInfoNotification(
+                  const Key("beacon_deeplink"), "copied_to_clipboard".tr());
             },
           );
         });
