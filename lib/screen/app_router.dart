@@ -225,17 +225,28 @@ class AppRouter {
         );
       case onboardingPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(
-                      injector(),
-                      injector(),
-                      injector(),
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: const OnboardingPage()));
+          settings: settings,
+          builder: (context) => MultiBlocProvider(providers: [
+            BlocProvider(
+              create: (_) => RouterBloc(
+                injector(),
+                injector(),
+                injector(),
+                injector<CloudDatabase>(),
+                injector(),
+                injector<AuditService>(),
+              ),
+            ),
+            BlocProvider(
+              create: (_) => PersonaBloc(
+                injector<CloudDatabase>(),
+                injector(),
+                injector(),
+                injector<AuditService>(),
+              ),
+            ),
+          ], child: const OnboardingPage()),
+        );
 
       case previewPrimerPage:
         return PageTransition(

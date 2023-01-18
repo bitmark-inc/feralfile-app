@@ -53,7 +53,7 @@ class ResponsiveLayout extends StatelessWidget {
           : Constants.paddingTabletLandScape;
 
   static double get padding => isMobile
-      ? 14
+      ? 15
       : isTablet
           ? 20
           : 30;

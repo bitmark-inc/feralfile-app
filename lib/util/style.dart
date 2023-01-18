@@ -410,6 +410,14 @@ Divider addOnlyDivider() {
   );
 }
 
+Divider addBoldDivider() {
+  return const Divider(
+    height: 1.0,
+    thickness: 1.0,
+    color: Colors.black,
+  );
+}
+
 Divider addDialogDivider({double height = 32}) {
   return Divider(
     height: height,

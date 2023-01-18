@@ -1147,6 +1147,22 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
   );
 }
 
+Widget loadingScreen(ThemeData theme, String text) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset("assets/images/autonomy_loader.png"),
+        const SizedBox(height: 20),
+        Text(
+          text,
+          style: theme.textTheme.ppMori400Black14,
+        )
+      ],
+    ),
+  );
+}
+
 Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
   final theme = Theme.of(context);
   return Row(
