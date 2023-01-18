@@ -224,7 +224,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     ),
                     PrimaryButton(
                       text: "accept_ownership".tr(),
-                      color: theme.colorScheme.secondary,
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
@@ -320,6 +319,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
             OutlineButton(
               text: "decline".tr(),
               enabled: !_processing,
+              color: theme.colorScheme.primary,
               onTap: () {
                 metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
