@@ -52,6 +52,11 @@ const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 const CHECK_WEB3_PRIMER_URL =
     'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
+const CHECK_WEB3_CONTRACT_ADDRESS = [
+  "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
+  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
+];
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
