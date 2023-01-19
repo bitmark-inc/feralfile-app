@@ -99,7 +99,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
           children: [
             Text(
               token!.title,
-              style: theme.textTheme.ppMori400White12,
+              style: theme.textTheme.ppMori400White14,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -132,9 +132,14 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
         actions: [
           IconButton(
             onPressed: () => Navigator.pop(context),
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+            ),
             icon: Icon(
               AuIcon.close,
               color: theme.colorScheme.secondary,
+              size: 20,
             ),
             tooltip: 'close_icon',
           )
@@ -152,9 +157,10 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                   height: 40,
                 ),
                 GestureDetector(
-                  child: TokenThumbnailWidget(
-                    token: token!,
-                  ),
+                  child: Center(
+                      child: FeedArtwork(
+                    assetToken: token,
+                  )),
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 const SizedBox(
