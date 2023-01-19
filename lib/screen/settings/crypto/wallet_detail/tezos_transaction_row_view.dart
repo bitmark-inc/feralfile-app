@@ -6,12 +6,13 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/fiat_formater.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:autonomy_flutter/util/datetime_ext.dart';
 
 const _nanoTEZFactor = 1000000;
 
@@ -66,7 +67,7 @@ class TezosTXRowView extends StatelessWidget {
               const Spacer(),
               Text(
                 tx is! TZKTTokenTransfer
-                    ? "${tx.txAmountSign(currentAddress)}${((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).toStringAsPrecision(2)}  USD"
+                    ? "${tx.txAmountSign(currentAddress)}${FiatFormatter((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).format()}  USD"
                     : "",
                 style: theme.textTheme.headline5,
               )

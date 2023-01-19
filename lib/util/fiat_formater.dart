@@ -6,21 +6,15 @@
 //
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:web3dart/web3dart.dart';
 
-class EthAmountFormatter {
-  EthAmountFormatter(this.amount, {this.digit = 6});
+class FiatFormatter {
+  FiatFormatter(this.amount, {this.digit = 2});
 
-  final BigInt amount;
+  final double amount;
   final int digit;
-  String format({
-    fromUnit = EtherUnit.wei,
-    toUnit = EtherUnit.ether,
-  }) {
+  String format() {
     final formater =
         NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
-
-    return formater.format(
-        EtherAmount.fromUnitAndValue(fromUnit, amount).getValueInUnit(toUnit));
+    return formater.format(amount);
   }
 }
