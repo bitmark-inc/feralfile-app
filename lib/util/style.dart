@@ -252,7 +252,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
       theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
   final textStyleGreen =
       theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
-  final textStyleGrey = theme.textTheme.ppMori400Grey12..copyWith(fontSize: 17);
+  final textStyleGrey = theme.textTheme.ppMori400Grey12.copyWith(fontSize: 17);
   return MarkdownStyleSheet(
     a: const TextStyle(
       fontFamily: AppTheme.ppMori,
@@ -284,7 +284,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: textStyleWhite,
-    img: textStyleWhite,
+    img: textStyleGrey.copyWith(fontSize: 12),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
