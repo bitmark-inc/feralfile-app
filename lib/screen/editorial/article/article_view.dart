@@ -31,7 +31,7 @@ class ArticleView extends StatelessWidget {
           const SizedBox(height: 10.0),
           Text(
             post.content["title"],
-            style: theme.textTheme.ppMori400White14,
+            style: theme.textTheme.ppMori400White16,
             maxLines: 2,
           ),
           const SizedBox(height: 15.0),
@@ -50,7 +50,7 @@ class ArticleView extends StatelessWidget {
           const SizedBox(height: 15.0),
           Text(
             post.content["description"],
-            style: theme.textTheme.ppMori400White12,
+            style: theme.textTheme.ppMori400White14,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),

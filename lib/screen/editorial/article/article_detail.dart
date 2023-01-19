@@ -68,7 +68,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 4.0, horizontal: 8.0),
                       child: Text(widget.post.tag ?? "",
-                          style: theme.textTheme.ppMori400Grey12),
+                          style: theme.textTheme.ppMori400Grey14),
                     ),
                   ),
                   const SizedBox(height: 32.0),
@@ -186,11 +186,14 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PublisherView(publisher: widget.post.publisher),
+                PublisherView(
+                  publisher: widget.post.publisher,
+                  isLargeSize: true,
+                ),
                 const SizedBox(height: 10.0),
                 Text(
                   widget.post.content["title"],
-                  style: theme.textTheme.ppMori400White14,
+                  style: theme.textTheme.ppMori400White16,
                   maxLines: 3,
                 ),
               ],
