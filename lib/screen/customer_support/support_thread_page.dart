@@ -930,8 +930,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           : theme.textTheme.receivedMessageBodyTextStyle16,
       receivedMessageDocumentIconColor: Colors.transparent,
       sentMessageDocumentIconColor: Colors.transparent,
-      documentIcon: Image.asset(
-        "assets/images/chatFileIcon.png",
+      documentIcon: SvgPicture.asset(
+        "assets/images/bug_icon.svg",
         width: 20,
       ),
       sentMessageCaptionTextStyle: ResponsiveLayout.isMobile
