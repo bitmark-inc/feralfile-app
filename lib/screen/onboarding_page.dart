@@ -277,6 +277,9 @@ class _OnboardingPageState extends State<OnboardingPage>
                     Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
                         arguments: createdPersona.uuid);
                   }
+                  setState(() {
+                    creatingAccount = false;
+                  });
                   break;
                 case ActionState.error:
                   setState(() {
