@@ -53,6 +53,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   late QRViewController controller;
   var isScanDataError = false;
   var _isLoading = false;
+  String? currentCode;
   AnimationController? _controller;
 
   @override
@@ -174,7 +175,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 right: 0,
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 10.0),
                     child: HorizontalSlidableButton(
                       controller: _controller,
                       width: MediaQuery.of(context).size.width,
@@ -308,7 +309,8 @@ class _ScanQRPageState extends State<ScanQRPage>
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
       if (scanData.code == null) return;
-
+      if (scanData.code == currentCode && isScanDataError) return;
+      currentCode = scanData.code;
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
@@ -391,6 +393,11 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _handleError(String data) {
     setState(() {
       isScanDataError = true;
+    });
+    Future.delayed(const Duration(seconds: 4), () {
+      setState(() {
+        isScanDataError = false;
+      });
     });
 
     log.info("[Scanner][start] scan ${widget.scannerItem}");
