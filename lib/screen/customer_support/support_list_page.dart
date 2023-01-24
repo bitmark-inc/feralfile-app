@@ -136,6 +136,7 @@ class _SupportListPageState extends State<SupportListPage>
                     AppRouter.supportThreadPage,
                     arguments: NewIssuePayload(
                       reportIssueType: ReportIssueType.Announcement,
+                      announcement: issue,
                     ),
                   ),
                 ),

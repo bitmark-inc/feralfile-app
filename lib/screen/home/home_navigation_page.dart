@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -292,20 +293,32 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
-
-    showNotifications(context, event.notification,
-        notificationOpenedHandler: _handleNotificationClicked);
+    if (data['notification_type'] == "announcement_pushed") {
+      showInfoNotification(
+          const Key("Announcement"), "au_has_announcement".tr(),
+          addOnTextSpan: [
+            TextSpan(
+                text: "tap_to_view".tr(),
+                style: Theme.of(context).textTheme.ppMori400Green14),
+          ], openHandler: () async {
+        final announcementID = '${data["announcement_id"]}';
+        _openAnnouncement(announcementID);
+      });
+    } else {
+      showNotifications(context, event.notification,
+          notificationOpenedHandler: _handleNotificationClicked);
+    }
     event.complete(null);
   }
 
-  void _handleNotificationClicked(OSNotification notification) {
+  void _handleNotificationClicked(OSNotification notification) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
       return;
     }
 
     log.info(
-        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+        "Tap to notification: ${notification.body ?? "empty"} \nAdditional data: ${notification.additionalData!}");
 
     final notificationType = notification.additionalData!["notification_type"];
     switch (notificationType) {
@@ -319,13 +332,24 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       case "customer_support_new_message":
       case "customer_support_close_issue":
         final issueID = '${notification.additionalData!["issue_id"]}';
+        final announcement = await injector<CustomerSupportService>()
+            .findAnnouncementFromIssueId(issueID);
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.supportThreadPage,
           ((route) =>
               route.settings.name == AppRouter.homePage ||
               route.settings.name == AppRouter.homePageNoTransition),
-          arguments: DetailIssuePayload(reportIssueType: "", issueID: issueID),
+          arguments: DetailIssuePayload(
+              reportIssueType: "",
+              issueID: issueID,
+              announcement: announcement),
         );
+        break;
+      case "announcement_pushed":
+        final announcementID =
+            '${notification.additionalData!["announcement_id"]}';
+        _openAnnouncement(announcementID);
         break;
 
       case "artwork_created":
@@ -344,5 +368,22 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         log.warning("unhandled notification type: $notificationType");
         break;
     }
+  }
+
+  _openAnnouncement(String announcementID) async {
+    await injector<CustomerSupportService>().fetchAnnouncement();
+    final announcement = await injector<CustomerSupportService>()
+        .findAnnouncement(announcementID);
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRouter.supportThreadPage,
+      ((route) =>
+          route.settings.name == AppRouter.homePage ||
+          route.settings.name == AppRouter.homePageNoTransition),
+      arguments: NewIssuePayload(
+        reportIssueType: ReportIssueType.Announcement,
+        announcement: announcement,
+      ),
+    );
   }
 }

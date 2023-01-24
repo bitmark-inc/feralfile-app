@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
@@ -16,15 +17,21 @@ import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -89,6 +96,10 @@ abstract class CustomerSupportService {
   Future<void> fetchAnnouncement();
 
   Future<void> createAnnouncement(String type);
+
+  Future<AnnouncementLocal?> findAnnouncementFromIssueId(String issueId);
+
+  Future<AnnouncementLocal?> findAnnouncement(String announcementID);
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
@@ -579,7 +590,45 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         await _announcementApi.callAnnouncement(body);
     final announcementID = announcementPostResponse.announcementID;
     await fetchAnnouncement();
-    final announcement = _announcementDao.getAnnouncement(announcementID);
-    ///display in-app notification
+    final announcement = await _announcementDao.getAnnouncement(announcementID);
+    showInfoNotification(const Key("Announcement"), "au_has_announcement".tr(),
+        addOnTextSpan: [
+          TextSpan(
+              text: "tap_to_view".tr(),
+              style: Theme.of(injector<NavigationService>()
+                      .navigatorKey
+                      .currentContext!)
+                  .textTheme
+                  .ppMori400Green14),
+        ], openHandler: () {
+      injector<NavigationService>().navigateUntil(
+        AppRouter.supportThreadPage,
+        ((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition),
+        arguments: NewIssuePayload(
+          reportIssueType: ReportIssueType.Announcement,
+          announcement: announcement,
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<AnnouncementLocal?> findAnnouncementFromIssueId(String issueId) async {
+    await fetchAnnouncement();
+    final issues = await _customerSupportApi.getIssues();
+    final issue =
+        issues.firstWhereOrNull((element) => element.issueID == issueId);
+    if (issue != null && issue.announcementID != null) {
+      return await _announcementDao.getAnnouncement(issue.announcementID!);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Future<AnnouncementLocal?> findAnnouncement(String announcementID) async {
+    return await _announcementDao.getAnnouncement(announcementID);
   }
 }
