@@ -375,7 +375,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
               BlocConsumer<PersonaBloc, PersonaState>(
                   listener: (context, state) {
                 var statePersonas = state.personas;
@@ -550,7 +550,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             "select_grand_access".tr(), //"Select an account to grant access:",
             style: theme.textTheme.ppMori400Black14,
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 12.0),
           Expanded(
             child: ListView(
               children: <Widget>[
@@ -630,7 +630,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: "connect".tr().toUpperCase(),
+                  text: "connect".tr(),
                   onTap: _isAccountSelected
                       ? () {
                           metricClient.addEvent(MixpanelEvent.connectMarket);
