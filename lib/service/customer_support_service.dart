@@ -39,6 +39,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'metric_client_service.dart';
+
 class CustomerSupportUpdate {
   DraftCustomerSupport draft;
   PostedMessageResponse response;
@@ -572,6 +574,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final lastPullTime = _configurationService.getAnnouncementLastPullTime();
     final announcements = await _announcementApi.getAnnouncements(
         lastPullTime: lastPullTime ?? 0);
+    final metricClient = injector.get<MetricClientService>();
+    metricClient.addEvent(
+      MixpanelEvent.receiveAnnouncement,
+      data: {"quantity": announcements.length},
+      hashedData: {},
+    );
     for (var announcement in announcements) {
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));

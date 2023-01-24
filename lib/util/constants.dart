@@ -333,4 +333,5 @@ class MixpanelEvent {
   static const acceptOwnershipFail = 'accept_ownership_fail';
   static const readAnnouncement = 'read_announcement';
   static const replyAnnouncement = 'reply_announcement';
+  static const receiveAnnouncement = 'receive_announcement';
 }
