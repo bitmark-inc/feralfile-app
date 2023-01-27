@@ -58,10 +58,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
       } else {
+        final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
           feedBloc.add(OpenFeedEvent());
           feedBloc.add(GetFeedsEvent());
+          metricClient.addEvent(MixpanelEvent.viewDiscovery);
+        } else {
+          metricClient.addEvent(MixpanelEvent.viewEditorial);
         }
         context.read<EditorialBloc>().add(GetEditorialEvent());
       }

@@ -50,6 +50,7 @@ class _EditorialPageState extends State<EditorialPage>
     _editorialController = ScrollController();
     _feedController.addListener(_scrollListener);
     _editorialController.addListener(_scrollListener);
+    _tabController.addListener(_handleTabChange);
     _tabController.addListener(_scrollListener);
     context.read<EditorialBloc>().add(GetEditorialEvent());
   }
@@ -66,6 +67,12 @@ class _EditorialPageState extends State<EditorialPage>
       setState(() {
         _showFullHeader = isShowFullHeader;
       });
+    }
+  }
+
+  void _handleTabChange() {
+    if (_tabController.index != _tabController.previousIndex) {
+      _trackEvent(_tabController.index);
     }
   }
 
@@ -196,9 +203,6 @@ class _EditorialPageState extends State<EditorialPage>
                                 style: const TextStyle(height: 0.8),
                               ),
                             ],
-                            onTap: (index) {
-                              _trackEvent(index);
-                            },
                           ),
                         ],
                       ),

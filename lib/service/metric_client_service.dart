@@ -81,6 +81,7 @@ class MetricClientService {
       data: data,
       hashedData: hashedData,
     );
+    mixPanelClient.mixpanel.flush();
   }
 
   timerEvent(String name) {
