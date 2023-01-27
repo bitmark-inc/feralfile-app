@@ -269,7 +269,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       builder: (context, state) {
         if (creatingAccount) {
           return BlocListener<PersonaBloc, PersonaState>(
-            listener: (context, personaState) {
+            listener: (context, personaState) async {
               switch (personaState.createAccountState) {
                 case ActionState.done:
                   final createdPersona = personaState.persona;
@@ -277,9 +277,12 @@ class _OnboardingPageState extends State<OnboardingPage>
                     Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
                         arguments: createdPersona.uuid);
                   }
-                  setState(() {
-                    creatingAccount = false;
+                  Future.delayed(const Duration(seconds: 1), () {
+                    setState(() {
+                      creatingAccount = false;
+                    });
                   });
+
                   break;
                 case ActionState.error:
                   setState(() {
