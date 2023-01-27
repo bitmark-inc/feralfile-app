@@ -109,7 +109,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     direction: MarqueerDirection.ltr,
                                     pps: 30,
                                     child: Text(
-                                      'gift_edition'.tr(),
+                                      'gift_edition'.tr().toUpperCase(),
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                   ),
@@ -135,7 +135,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                   child: Marqueer(
                                     pps: 30,
                                     child: Text(
-                                      'gift_edition'.tr(),
+                                      'gift_edition'.tr().toUpperCase(),
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                   ),
