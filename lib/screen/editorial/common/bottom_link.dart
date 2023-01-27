@@ -28,7 +28,7 @@ class BottomLink extends StatelessWidget {
         children: [
           Text(
             name,
-            style: theme.textTheme.ppMori400Green12,
+            style: theme.textTheme.ppMori400Green14,
           ),
           Container(
             decoration: BoxDecoration(
@@ -37,7 +37,7 @@ class BottomLink extends StatelessWidget {
                 ),
                 borderRadius: const BorderRadius.all(Radius.circular(64))),
             padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-            child: Text(tag, style: theme.textTheme.ppMori400Grey12),
+            child: Text(tag, style: theme.textTheme.ppMori400Grey14),
           )
         ],
       ),

@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/fiat_formater.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -230,6 +231,6 @@ class TezosTXDetailPage extends StatelessWidget {
   }
 
   String _totalAmount(TZKTOperation tx, String? currentAddress) {
-    return "${tx.totalAmount(currentAddress)} (${((tx.quote.usd * (tx.getTotalAmount(currentAddress)) / _nanoTEZFactor)).toStringAsPrecision(2)} USD)";
+    return "${tx.totalAmount(currentAddress)} (${FiatFormatter((tx.quote.usd * (tx.getTotalAmount(currentAddress)) / _nanoTEZFactor)).format()} USD)";
   }
 }

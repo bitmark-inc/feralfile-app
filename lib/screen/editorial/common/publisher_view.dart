@@ -12,8 +12,11 @@ import 'package:flutter/material.dart';
 
 class PublisherView extends StatelessWidget {
   final Publisher publisher;
+  final bool isLargeSize;
 
-  const PublisherView({Key? key, required this.publisher}) : super(key: key);
+  const PublisherView(
+      {Key? key, required this.publisher, this.isLargeSize = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,9 @@ class PublisherView extends StatelessWidget {
         const SizedBox(width: 10.0),
         Text(
           publisher.name,
-          style: Theme.of(context).textTheme.ppMori400Grey12,
+          style: isLargeSize
+              ? Theme.of(context).textTheme.ppMori400Grey14
+              : Theme.of(context).textTheme.ppMori400Grey12,
         ),
       ],
     );

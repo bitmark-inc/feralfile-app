@@ -589,7 +589,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       children: [
                         Text(
                           assetToken?.title ?? '',
-                          style: theme.textTheme.ppMori400White12,
+                          style: theme.textTheme.ppMori400White14,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -622,9 +622,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   actions: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                      ),
                       icon: Icon(
                         AuIcon.close,
                         color: theme.colorScheme.secondary,
+                        size: 20,
                       ),
                       tooltip: 'close_icon',
                     )

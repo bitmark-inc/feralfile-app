@@ -284,7 +284,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: textStyleWhite,
-    img: textStyleWhite,
+    img: textStyleGrey.copyWith(fontSize: 12),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
