@@ -1097,8 +1097,10 @@ learnMoreAboutAutonomySecurityWidget(BuildContext context,
     child: Text(
       title,
       style: ResponsiveLayout.isMobile
-          ? theme.textTheme.linkStyle
-          : theme.textTheme.linkStyle16,
+          ? theme.textTheme.ppMori400Black14
+              .copyWith(decoration: TextDecoration.underline)
+          : theme.textTheme.ppMori400Black16
+              .copyWith(decoration: TextDecoration.underline),
     ),
   );
 }
@@ -1145,6 +1147,41 @@ wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
   );
 }
 
+Widget loadingScreen(ThemeData theme, String text) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset("assets/images/autonomy_loader.png"),
+        const SizedBox(height: 20),
+        Text(
+          text,
+          style: theme.textTheme.ppMori400Black14,
+        )
+      ],
+    ),
+  );
+}
+
+Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
+  final theme = Theme.of(context);
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "$stepNumber.",
+        style: theme.textTheme.ppMori400Black14,
+      ),
+      const SizedBox(
+        width: 10,
+      ),
+      Expanded(
+        child: Text(stepGuide, style: theme.textTheme.ppMori400Black14),
+      )
+    ],
+  );
+}
+
 String getDateTimeRepresentation(DateTime dateTime) {
   return Jiffy(dateTime).fromNow();
 }
@@ -1153,6 +1190,7 @@ class OptionItem {
   String? title;
   Function()? onTap;
   Widget? icon;
+
   OptionItem({
     this.title,
     this.onTap,

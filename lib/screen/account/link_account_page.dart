@@ -20,7 +20,9 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -62,30 +64,44 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final padding = EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding);
     return Scaffold(
       appBar: getBackAppBar(
         context,
         onBack: () {
           Navigator.of(context).pop();
         },
+        title: "link_wallet".tr(),
       ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsNotBottom,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "link_account".tr(),
-                style: theme.textTheme.headline1,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            _tezosLinkView(context),
+            const SizedBox(height: 30),
+            Padding(
+              padding: padding,
+              child: Column(
+                children: [
+                  OutlineButton(
+                    text: "import_wallet".tr(),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRouter.importAccountPage),
+                    color: AppColor.white,
+                    borderColor: AppColor.primaryBlack,
+                    textColor: AppColor.primaryBlack,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "im_view_and_control".tr(),
+                    style: theme.textTheme.ppMori400Black14
+                        .copyWith(color: AppColor.auQuickSilver),
+                  )
+                ],
               ),
-              addTitleSpace(),
-              //_bitmarkLinkView(context),
-              //const SizedBox(height: 40),
-              _tezosLinkView(context),
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -94,15 +110,17 @@ class _LinkAccountPageState extends State<LinkAccountPage>
   Widget _tezosLinkView(BuildContext context) {
     final tezosBeaconService = injector<TezosBeaconService>();
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.tappableForwardRowEdgeInsets;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TappableForwardRow(
+            padding: padding,
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/kukai_wallet.png"),
                 const SizedBox(width: 16),
-                Text("kukai".tr(), style: theme.textTheme.headline4),
+                Text("kukai".tr(), style: theme.textTheme.ppMori400Black14),
               ],
             ),
             onTap: () =>
@@ -111,11 +129,12 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         _linkLedger(),
         addOnlyDivider(),
         TappableForwardRow(
+          padding: padding,
           leftWidget: Row(
             children: [
               Image.asset("assets/images/metamask-alternative.png"),
               const SizedBox(width: 16),
-              Text("metamask".tr(), style: theme.textTheme.headline4),
+              Text("metamask".tr(), style: theme.textTheme.ppMori400Black14),
             ],
           ),
           onTap: () => Navigator.of(context).pushNamed(
@@ -124,35 +143,38 @@ class _LinkAccountPageState extends State<LinkAccountPage>
         ),
         addOnlyDivider(),
         TappableForwardRow(
+            padding: padding,
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/temple_wallet.png"),
                 const SizedBox(width: 16),
-                Text("temple".tr(), style: theme.textTheme.headline4),
+                Text("temple".tr(), style: theme.textTheme.ppMori400Black14),
               ],
             ),
             onTap: () =>
                 Navigator.of(context).pushNamed(AppRouter.linkTezosTemplePage)),
         addOnlyDivider(),
         TappableForwardRow(
+            padding: padding,
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/walletconnect-alternative.png"),
                 const SizedBox(width: 16),
                 Text("other_ethereum_wallets".tr(),
-                    style: theme.textTheme.headline4),
+                    style: theme.textTheme.ppMori400Black14),
               ],
             ),
             onTap: () => Navigator.of(context)
                 .pushNamed(AppRouter.linkWalletConnectPage)),
         addOnlyDivider(),
         TappableForwardRow(
+            padding: padding,
             leftWidget: Row(
               children: [
                 Image.asset("assets/images/tezos_wallet.png"),
                 const SizedBox(width: 16),
                 Text("other_tezos_wallets".tr(),
-                    style: theme.textTheme.headline4),
+                    style: theme.textTheme.ppMori400Black14),
               ],
             ),
             onTap: () async {
@@ -162,6 +184,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
               Navigator.of(context)
                   .pushNamed(AppRouter.linkBeaconConnectPage, arguments: uri);
             }),
+        addOnlyDivider(),
       ],
     );
   }
@@ -171,11 +194,12 @@ class _LinkAccountPageState extends State<LinkAccountPage>
     return Column(
       children: [
         TappableForwardRow(
+            padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
             leftWidget: Row(
               children: [
                 SvgPicture.asset("assets/images/iconLedger.svg"),
                 const SizedBox(width: 16),
-                Text("ledger".tr(), style: theme.textTheme.headline4),
+                Text("ledger".tr(), style: theme.textTheme.ppMori400Black14),
               ],
             ),
             onTap: () => Navigator.of(context).pushNamed(

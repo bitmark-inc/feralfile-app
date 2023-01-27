@@ -11,10 +11,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,12 +63,9 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: null,
-      ),
+      appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -76,17 +74,13 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "account_alias".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
                     Text(
                       "aa_you_can_add".tr(),
                       //"You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
-                      style: theme.textTheme.bodyText1,
+                      style: theme.textTheme.ppMori400Black14,
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 15),
                     AuTextField(
                         title: "",
                         placeholder: "enter_alias".tr(),
@@ -106,9 +100,9 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: AuFilledButton(
-                        text: "save_alias".tr().toUpperCase(),
-                        onPress: isSavingAliasDisabled
+                      child: PrimaryButton(
+                        text: "save_alias".tr(),
+                        onTap: isSavingAliasDisabled
                             ? null
                             : () {
                                 context.read<AccountsBloc>().add(
@@ -120,13 +114,18 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                     ),
                   ],
                 ),
-                TextButton(
-                    onPressed: () {
-                      context.read<AccountsBloc>().add(NameLinkedAccountEvent(
-                          widget.connection, widget.connection.accountNumber));
-                      _doneNaming();
-                    },
-                    child: Text("skip".tr(), style: theme.textTheme.button)),
+                const SizedBox(height: 10),
+                OutlineButton(
+                  onTap: () {
+                    context.read<AccountsBloc>().add(NameLinkedAccountEvent(
+                        widget.connection, widget.connection.accountNumber));
+                    _doneNaming();
+                  },
+                  text: "skip".tr(),
+                  borderColor: AppColor.primaryBlack,
+                  textColor: AppColor.primaryBlack,
+                  color: AppColor.white,
+                ),
               ],
             ),
           ],

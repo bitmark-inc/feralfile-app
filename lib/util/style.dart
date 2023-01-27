@@ -393,7 +393,7 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
 }
 
 SizedBox addTitleSpace() {
-  return const SizedBox(height: 40);
+  return const SizedBox(height: 60);
 }
 
 Divider addDivider({double height = 32}) {
@@ -407,6 +407,14 @@ Divider addOnlyDivider() {
   return const Divider(
     height: 1.0,
     thickness: 1.0,
+  );
+}
+
+Divider addBoldDivider() {
+  return const Divider(
+    height: 1.0,
+    thickness: 1.0,
+    color: Colors.black,
   );
 }
 

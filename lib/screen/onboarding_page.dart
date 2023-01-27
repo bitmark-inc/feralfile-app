@@ -25,8 +25,10 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
-import 'package:autonomy_flutter/view/eula_privacy.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +37,7 @@ import 'package:logging/logging.dart';
 
 import '../database/cloud_database.dart';
 import '../util/migration/migration_util.dart';
+import 'bloc/persona/persona_bloc.dart';
 
 final logger = Logger('App');
 
@@ -47,34 +50,17 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
-  final bool _processing = false;
   bool fromBranchLink = false;
   bool fromDeeplink = false;
-
-  late AnimationController controller;
-  late Animation<double> animation;
-  late Tween<double> _topTween;
-  static final _opacityTween = Tween<double>(begin: 0, end: 1.0);
-  Tween<double> _maxWidthTween = Tween<double>(begin: 0, end: 1.0);
-
-  static const _durationAnimation = Duration(milliseconds: 300);
+  bool creatingAccount = false;
 
   final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: _durationAnimation, vsync: this);
-    animation = CurvedAnimation(parent: controller, curve: Curves.easeIn);
-    controller.forward();
     handleBranchLink();
     handleDeepLink();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 
   @override
@@ -251,24 +237,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   // @override
   @override
   Widget build(BuildContext context) {
-    final centerTop = MediaQuery.of(context).size.height / 2 - 132;
-    final heightScreen = MediaQuery.of(context).size.height;
-    final widthScreen = MediaQuery.of(context).size.width;
-    final widthLogo = widthScreen - 120;
-    final maxWidthLogo = widthLogo > 265.0 ? 265.0 : widthLogo;
-    var maxTop = MediaQuery.of(context).size.height - (300 + maxWidthLogo);
-    maxTop = maxTop < 83 ? 83 : maxTop;
-
-    final fixedTop = maxTop > 200 ? 200.0 : maxTop;
-    final spaceLogo = (heightScreen - fixedTop - 430) > 67
-        ? 67
-        : (heightScreen - fixedTop - 430);
-
-    _topTween = Tween<double>(begin: centerTop, end: fixedTop);
-    _maxWidthTween = Tween<double>(begin: 265.0, end: maxWidthLogo);
-
     final theme = Theme.of(context);
-    const edgeInsets = EdgeInsets.only(bottom: 32.0, left: 16.0, right: 16.0);
 
     return Scaffold(
         body: BlocConsumer<RouterBloc, RouterState>(
@@ -298,105 +267,108 @@ class _OnboardingPageState extends State<OnboardingPage>
         injector<WalletConnectService>().initSessions(forced: true);
       },
       builder: (context, state) {
-        return Stack(
-          children: [
-            AnimatedPositioned(
-              top: _topTween.evaluate(animation),
-              left: (widthScreen - _maxWidthTween.evaluate(animation)) / 2,
-              right: (widthScreen - _maxWidthTween.evaluate(animation)) / 2,
-              duration: _durationAnimation,
-              child: Container(
-                child: _logo(maxWidthLogo: _maxWidthTween.evaluate(animation)),
-              ),
-            ),
-            Column(
-              children: [
-                SizedBox(
-                  height: fixedTop + maxWidthLogo + spaceLogo,
-                  width: widthScreen,
-                ),
-                AnimatedOpacity(
-                  opacity: _opacityTween.evaluate(animation),
-                  duration: _durationAnimation,
-                  child: Image.asset('assets/images/autonomy_logotype.png'),
-                ),
-                const Spacer(),
-                Container(
-                  margin: edgeInsets,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: fromBranchLink ||
-                            (state.onboardingStep ==
-                                OnboardingStep.undefined) ||
-                            fromDeeplink
-                        ? [
-                            Center(
-                                child: Text(
-                              tr('loading...').toUpperCase(),
-                              style: theme.textTheme.ibmBlackNormal14,
-                            ))
-                          ]
-                        : [
-                            privacyView(context),
-                            const SizedBox(height: 32.0),
-                            _getStartupButton(state),
-                          ],
-                  ),
+        if (creatingAccount) {
+          return BlocListener<PersonaBloc, PersonaState>(
+            listener: (context, personaState) async {
+              switch (personaState.createAccountState) {
+                case ActionState.done:
+                  final createdPersona = personaState.persona;
+                  if (createdPersona != null) {
+                    Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                        arguments: createdPersona.uuid);
+                  }
+                  Future.delayed(const Duration(seconds: 1), () {
+                    setState(() {
+                      creatingAccount = false;
+                    });
+                  });
+
+                  break;
+                case ActionState.error:
+                  setState(() {
+                    creatingAccount = false;
+                  });
+                  break;
+                default:
+                  break;
+              }
+            },
+            child: loadingScreen(theme, "generating_wallet".tr()),
+          );
+        }
+
+        if (state.isLoading) {
+          return loadingScreen(theme, "restoring_autonomy".tr());
+        }
+
+        return Padding(
+          padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 40),
+              _logo(maxWidthLogo: 50),
+              const SizedBox(height: 104),
+              addBoldDivider(),
+              Text("collect".tr(), style: theme.textTheme.ppMori700Black36),
+              const SizedBox(height: 20),
+              addBoldDivider(),
+              Text("view".tr(), style: theme.textTheme.ppMori700Black36),
+              const SizedBox(height: 20),
+              addBoldDivider(),
+              Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
+              const Spacer(),
+              if (fromBranchLink ||
+                  fromDeeplink ||
+                  (state.onboardingStep == OnboardingStep.undefined)) ...[
+                PrimaryButton(
+                  text: "h_loading...".tr(),
+                  isProcessing: true,
                 )
-              ],
-            ),
-          ],
+              ] else if (state.onboardingStep ==
+                  OnboardingStep.startScreen) ...[
+                Text("ne_make_a_new_account".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "create_a_new_wallet".tr(),
+                  onTap: () {
+                    context.read<PersonaBloc>().add(CreatePersonaEvent());
+                    setState(() {
+                      creatingAccount = true;
+                    });
+                  },
+                ),
+                addDivider(height: 40),
+                Text("ad_i_already_have".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "link_existing_wallet".tr(),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRouter.linkAccountpage),
+                ),
+              ] else if (state.onboardingStep == OnboardingStep.restore) ...[
+                Text("retrieve_at_once".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "restore_autonomy".tr(),
+                  onTap: !state.isLoading
+                      ? () {
+                          metricClient.addEvent(MixpanelEvent.restoreAccount);
+                          context.read<RouterBloc>().add(
+                              RestoreCloudDatabaseRoutingEvent(
+                                  state.backupVersion));
+                        }
+                      : null,
+                ),
+              ]
+            ],
+          ),
         );
       },
     ));
-  }
-
-  Future _gotoOwnGalleryPage() async {
-    if (!mounted) return;
-    return Navigator.of(context).pushNamed(AppRouter.beOwnGalleryPage);
-  }
-
-  Widget _getStartupButton(RouterState state) {
-    switch (state.onboardingStep) {
-      case OnboardingStep.startScreen:
-        return Row(
-          children: [
-            Expanded(
-              child: AuFilledButton(
-                isProcessing: _processing,
-                enabled: !_processing,
-                text: "start".tr().toUpperCase(),
-                key: const Key("start_button"),
-                onPress: () async {
-                  _gotoOwnGalleryPage();
-                },
-              ),
-            )
-          ],
-        );
-      case OnboardingStep.restore:
-        return Row(
-          children: [
-            Expanded(
-              child: AuFilledButton(
-                text: "restore".tr().toUpperCase(),
-                key: const Key("restore_button"),
-                onPress: !state.isLoading
-                    ? () {
-                        metricClient.addEvent(MixpanelEvent.restoreAccount);
-                        context.read<RouterBloc>().add(
-                            RestoreCloudDatabaseRoutingEvent(
-                                state.backupVersion));
-                      }
-                    : null,
-              ),
-            )
-          ],
-        );
-
-      default:
-        return const SizedBox();
-    }
   }
 
   Widget _logo({double? maxWidthLogo}) {

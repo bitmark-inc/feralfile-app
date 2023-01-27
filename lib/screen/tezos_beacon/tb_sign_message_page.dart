@@ -18,11 +18,13 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -127,9 +129,10 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
             _rejectRequest(reason: "User reject");
             Navigator.of(context).pop();
           },
+          title: "signature_request".tr(),
         ),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: const EdgeInsets.only(bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -138,12 +141,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 8.0),
-                      Text(
-                        "signature_request".tr(),
-                        style: theme.textTheme.headline1,
-                      ),
-                      const SizedBox(height: 40.0),
+                      addTitleSpace(),
                       Text(
                         "connection".tr(),
                         style: theme.textTheme.headline4,
@@ -156,56 +154,75 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       const Divider(height: 32),
                       Text(
                         "message".tr(),
-                        style: theme.textTheme.headline4,
+                        style: theme.textTheme.ppMori700Black14,
                       ),
                       const SizedBox(height: 16.0),
-                      Text(
-                        messageInUtf8,
-                        style: theme.textTheme.bodyText2,
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: AppColor.auLightGrey,
+                            borderRadius: BorderRadiusGeometry.lerp(
+                                const BorderRadius.all(Radius.circular(5)),
+                                const BorderRadius.all(Radius.circular(5)),
+                                5),
+                          ),
+                          child: Text(
+                            messageInUtf8,
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "sign".tr().toUpperCase(),
-                      onPress: _currentPersona != null
-                          ? () => withDebounce(() async {
-                                final signature = await injector<TezosService>()
-                                    .signMessage(_currentPersona!, message);
-                                await _approveRequest(signature: signature);
-                                if (!mounted) return;
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButton(
+                        text: "sign".tr(),
+                        onTap: _currentPersona != null
+                            ? () => withDebounce(() async {
+                                  final signature =
+                                      await injector<TezosService>()
+                                          .signMessage(
+                                              _currentPersona!, message);
+                                  await _approveRequest(signature: signature);
+                                  if (!mounted) return;
 
-                                final metricClient =
-                                    injector.get<MetricClientService>();
+                                  final metricClient =
+                                      injector.get<MetricClientService>();
 
-                                metricClient.addEvent(
-                                  "Sign In",
-                                  hashedData: {"uuid": widget.request.id},
-                                );
-                                Navigator.of(context).pop();
-                                final notificationEnable =
-                                    injector<ConfigurationService>()
-                                            .isNotificationEnabled() ??
-                                        false;
-                                if (notificationEnable) {
-                                  showInfoNotification(
-                                    const Key("signed"),
-                                    "signed".tr(),
-                                    frontWidget: SvgPicture.asset(
-                                      "assets/images/checkbox_icon.svg",
-                                      width: 24,
-                                    ),
+                                  metricClient.addEvent(
+                                    "Sign In",
+                                    hashedData: {"uuid": widget.request.id},
                                   );
-                                }
-                              })
-                          : null,
-                    ),
-                  )
-                ],
+                                  Navigator.of(context).pop();
+                                  final notificationEnable =
+                                      injector<ConfigurationService>()
+                                              .isNotificationEnabled() ??
+                                          false;
+                                  if (notificationEnable) {
+                                    showInfoNotification(
+                                      const Key("signed"),
+                                      "signed".tr(),
+                                      frontWidget: SvgPicture.asset(
+                                        "assets/images/checkbox_icon.svg",
+                                        width: 24,
+                                      ),
+                                    );
+                                  }
+                                })
+                            : null,
+                      ),
+                    )
+                  ],
+                ),
               )
             ],
           ),

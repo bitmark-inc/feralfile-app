@@ -122,7 +122,7 @@ Widget accountItem(BuildContext context, Account account,
                 child: Text(
                   name.replaceFirst('did:key:', ''),
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.headline4,
+                  style: theme.textTheme.ppMori400Black14,
                 ),
               );
             },
@@ -156,7 +156,7 @@ Widget accountItem(BuildContext context, Account account,
             connection.name.isNotEmpty
                 ? connection.name.maskIfNeeded()
                 : connection.accountNumber.mask(4),
-            style: theme.textTheme.headline4,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ],
       ),

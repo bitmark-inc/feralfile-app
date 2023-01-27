@@ -53,7 +53,7 @@ class ResponsiveLayout extends StatelessWidget {
           : Constants.paddingTabletLandScape;
 
   static double get padding => isMobile
-      ? 14
+      ? 15
       : isTablet
           ? 20
           : 30;
@@ -71,11 +71,26 @@ class ResponsiveLayout extends StatelessWidget {
         32,
       );
 
+  static EdgeInsets get pageHorizontalEdgeInsetsWithSubmitButton =>
+      EdgeInsets.fromLTRB(
+        padding,
+        0,
+        padding,
+        32,
+      );
+
   static EdgeInsets get pageEdgeInsetsNotBottom => EdgeInsets.fromLTRB(
         padding,
         padding,
         padding,
         0,
+      );
+
+  static EdgeInsets get tappableForwardRowEdgeInsets => EdgeInsets.fromLTRB(
+        padding,
+        20,
+        padding,
+        20,
       );
 
   static EdgeInsets get pageHorizontalEdgeInsets =>
