@@ -423,7 +423,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 padding:
                                     ResponsiveLayout.pageHorizontalEdgeInsets,
                                 child: PrimaryButton(
-                                  text: "connect".tr().toUpperCase(),
+                                  text: "connect".tr(),
                                   onTap: () =>
                                       withDebounce(() => _approveThenNotify()),
                                 ),

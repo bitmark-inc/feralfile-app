@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -142,26 +143,26 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       addTitleSpace(),
-                      Text(
-                        "connection".tr(),
-                        style: theme.textTheme.headline4,
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: _tbAppInfo(widget.request),
                       ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        widget.request.appName ?? "",
-                        style: theme.textTheme.bodyText2,
+                      const SizedBox(height: 60),
+                      addOnlyDivider(),
+                      const SizedBox(height: 30),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          "message".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
                       ),
-                      const Divider(height: 32),
-                      Text(
-                        "message".tr(),
-                        style: theme.textTheme.ppMori700Black14,
-                      ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 4.0),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 15, horizontal: 10),
+                              vertical: 20, horizontal: 22),
                           decoration: BoxDecoration(
                             color: AppColor.auLightGrey,
                             borderRadius: BorderRadiusGeometry.lerp(
@@ -228,6 +229,41 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _tbAppInfo(BeaconRequest request) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        request.icon != null
+            ? CachedNetworkImage(
+                imageUrl: request.icon!,
+                width: 64.0,
+                height: 64.0,
+                errorWidget: (context, url, error) => SvgPicture.asset(
+                  "assets/images/tezos_social_icon.svg",
+                  width: 64.0,
+                  height: 64.0,
+                ),
+              )
+            : SvgPicture.asset(
+                "assets/images/tezos_social_icon.svg",
+                width: 64.0,
+                height: 64.0,
+              ),
+        const SizedBox(width: 24.0),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(request.appName ?? "",
+                  style: theme.textTheme.ppMori700Black24),
+            ],
+          ),
+        )
+      ],
     );
   }
 }
