@@ -429,9 +429,11 @@ class _ScanQRPageState extends State<ScanQRPage>
       isScanDataError = true;
     });
     Future.delayed(const Duration(seconds: 4), () {
-      setState(() {
-        isScanDataError = false;
-      });
+      if (mounted) {
+        setState(() {
+          isScanDataError = false;
+        });
+      }
     });
 
     log.info("[Scanner][start] scan ${widget.scannerItem}");
