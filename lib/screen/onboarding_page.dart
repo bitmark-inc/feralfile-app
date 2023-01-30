@@ -332,11 +332,14 @@ class _OnboardingPageState extends State<OnboardingPage>
                 const SizedBox(height: 20),
                 PrimaryButton(
                   text: "create_a_new_wallet".tr(),
-                  onTap: () {
-                    context.read<PersonaBloc>().add(CreatePersonaEvent());
+                  onTap: () async {
                     setState(() {
                       creatingAccount = true;
                     });
+                    await Future.delayed(const Duration(milliseconds: 200), () {
+                      context.read<PersonaBloc>().add(CreatePersonaEvent());
+                    });
+
                   },
                 ),
                 addDivider(height: 40),
