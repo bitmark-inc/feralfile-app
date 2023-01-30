@@ -33,21 +33,16 @@ AppBar getBackAppBar(BuildContext context,
           behavior: HitTestBehavior.translucent,
           onTap: onBack,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+            padding: const EdgeInsets.fromLTRB(0, 7, 24, 8),
             child: Row(
               children: [
                 if (onBack != null) ...[
-                  Row(
-                    children: [
-                      SvgPicture.asset('assets/images/icon_back.svg'),
-                      Text(
-                        backTitle,
-                        style: const TextStyle(color: Colors.transparent),
-                      ),
-                    ],
-                  ),
+                  Semantics(
+                      label: "BACK",
+                      child:
+                          SvgPicture.asset('assets/images/icon_back.svg')),
                 ] else ...[
-                  const SizedBox(width: 60),
+                  const SizedBox(width: 12),
                 ],
               ],
             ),
@@ -70,7 +65,7 @@ AppBar getBackAppBar(BuildContext context,
                   Icons.more_horiz,
                   color: theme.colorScheme.primary,
                 ))
-            : const SizedBox(width: 60),
+            : const SizedBox(width: 36),
       ],
     ),
     backgroundColor: Colors.transparent,
