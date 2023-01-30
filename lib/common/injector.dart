@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
+import 'package:autonomy_flutter/gateway/crowd_sourcing_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
@@ -29,6 +30,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -180,6 +182,11 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
+  injector.registerLazySingleton(() =>
+      CrowdSourcingApi(authenticatedDio, baseUrl: Environment.indexerURL));
+
+  injector
+      .registerLazySingleton(() => BackgroundService(injector(), injector()));
 
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
   final nftBloc = await NftCollection.createBloc(
