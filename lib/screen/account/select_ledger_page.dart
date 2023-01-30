@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -32,24 +33,26 @@ class _SelectLedgerPageState extends State<SelectLedgerPage> {
         onBack: () {
           Navigator.of(context).pop();
         },
+        title: "ledger".tr(),
       ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsNotBottom,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Text(
                 "select_wallet".tr(),
-                style: theme.textTheme.headline1,
+                style: theme.textTheme.ppMori700Black24,
               ),
-              addTitleSpace(),
-              _linkLedger("Tezos"),
-              addOnlyDivider(),
-              _linkLedger("Ethereum"),
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+            addTitleSpace(),
+            _linkLedger("Tezos"),
+            addOnlyDivider(),
+            _linkLedger("Ethereum"),
+            addOnlyDivider(),
+          ],
         ),
       ),
     );
@@ -57,20 +60,23 @@ class _SelectLedgerPageState extends State<SelectLedgerPage> {
 
   Widget _linkLedger(String blockchain) {
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        TappableForwardRow(
-            leftWidget: Row(
-              children: [
-                SvgPicture.asset("assets/images/iconLedger.svg"),
-                const SizedBox(width: 16),
-                Text(blockchain, style: theme.textTheme.headline4),
-              ],
-            ),
-            onTap: () => Navigator.of(context).pushNamed(
-                AppRouter.linkLedgerWalletPage,
-                arguments: blockchain)),
-      ],
+    return Padding(
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+      child: Column(
+        children: [
+          TappableForwardRow(
+              leftWidget: Row(
+                children: [
+                  SvgPicture.asset("assets/images/iconLedger.svg"),
+                  const SizedBox(width: 35),
+                  Text(blockchain, style: theme.textTheme.ppMori400Black14),
+                ],
+              ),
+              onTap: () => Navigator.of(context).pushNamed(
+                  AppRouter.linkLedgerWalletPage,
+                  arguments: blockchain)),
+        ],
+      ),
     );
   }
 }

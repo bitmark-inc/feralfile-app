@@ -18,10 +18,13 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
@@ -90,9 +93,10 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             if (!mounted) return;
             Navigator.of(context).pop();
           },
+          title: "signature_request".tr(),
         ),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: EdgeInsets.only(bottom: ResponsiveLayout.padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -101,40 +105,88 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 8.0),
-                      Text(
-                        "signature_request".tr(),
-                        style: theme.textTheme.headline1,
+                      addTitleSpace(),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: _wcAppInfo(widget.args.peerMeta),
                       ),
-                      const SizedBox(height: 40.0),
-                      Text(
-                        "connection".tr(),
-                        style: theme.textTheme.headline4,
+                      const SizedBox(height: 60.0),
+                      addOnlyDivider(),
+                      const SizedBox(height: 30.0),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          "message".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
                       ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        widget.args.peerMeta.name,
-                        style: theme.textTheme.bodyText2,
-                      ),
-                      const Divider(height: 32),
-                      Text(
-                        "message".tr(),
-                        style: theme.textTheme.headline4,
-                      ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        messageInUtf8,
-                        style: theme.textTheme.bodyText2,
+                      const SizedBox(height: 4.0),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 20, horizontal: 22),
+                          decoration: BoxDecoration(
+                            color: AppColor.auLightGrey,
+                            borderRadius: BorderRadiusGeometry.lerp(
+                                const BorderRadius.all(Radius.circular(5)),
+                                const BorderRadius.all(Radius.circular(5)),
+                                5),
+                          ),
+                          child: Text(
+                            messageInUtf8,
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              _signButton(context, message, messageInUtf8),
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: _signButton(context, message, messageInUtf8),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _wcAppInfo(WCPeerMeta peerMeta) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        if (peerMeta.icons.isNotEmpty) ...[
+          CachedNetworkImage(
+            imageUrl: peerMeta.icons.first,
+            width: 64.0,
+            height: 64.0,
+            errorWidget: (context, url, error) => SizedBox(
+                width: 64,
+                height: 64,
+                child:
+                    Image.asset("assets/images/walletconnect-alternative.png")),
+          ),
+        ] else ...[
+          SizedBox(
+              width: 64,
+              height: 64,
+              child:
+                  Image.asset("assets/images/walletconnect-alternative.png")),
+        ],
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(peerMeta.name, style: theme.textTheme.ppMori700Black24),
+            ],
+          ),
+        )
+      ],
     );
   }
 
@@ -147,41 +199,41 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
       }
 
       /***
-       * Temporary ignore checking state with FF, will remove in the future
-      if (event is LinkAccountSuccess) {
-        Navigator.of(context).pop();
-        return;
-      } else if (event is AlreadyLinkedError) {
-        // because user may be wanting to login FeralFile; so skip to show this error
-        // Thread: https://bitmark.slack.com/archives/C034EPS6CLS/p1648218027439049
-        Navigator.of(context).pop();
-        return;
-      } else if (event is FFUnlinked) {
-        Navigator.of(context).pop();
-        return;
-      } else if (event is FFNotConnected) {
-        showErrorDiablog(
-            context,
-            ErrorEvent(
-                null,
-                "uh_oh".tr(),
-                "must_create_ff".tr(),
-                //"To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
-                ErrorItemState.close), defaultAction: () {
-          Navigator.of(context).popUntil((route) =>
+           * Temporary ignore checking state with FF, will remove in the future
+              if (event is LinkAccountSuccess) {
+              Navigator.of(context).pop();
+              return;
+              } else if (event is AlreadyLinkedError) {
+              // because user may be wanting to login FeralFile; so skip to show this error
+              // Thread: https://bitmark.slack.com/archives/C034EPS6CLS/p1648218027439049
+              Navigator.of(context).pop();
+              return;
+              } else if (event is FFUnlinked) {
+              Navigator.of(context).pop();
+              return;
+              } else if (event is FFNotConnected) {
+              showErrorDiablog(
+              context,
+              ErrorEvent(
+              null,
+              "uh_oh".tr(),
+              "must_create_ff".tr(),
+              //"To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
+              ErrorItemState.close), defaultAction: () {
+              Navigator.of(context).popUntil((route) =>
               route.settings.name == AppRouter.settingsPage ||
               route.settings.name == AppRouter.homePage ||
               route.settings.name == AppRouter.homePageNoTransition);
-        });
-      }
-       */
+              });
+              }
+           */
     }, builder: (context, state) {
       return Row(
         children: [
           Expanded(
-            child: AuFilledButton(
-              text: "sign".tr().toUpperCase(),
-              onPress: () => withDebounce(() async {
+            child: PrimaryButton(
+              text: "sign".tr(),
+              onTap: () => withDebounce(() async {
                 final args = widget.args;
                 final wc2Params = args.wc2Params;
                 final WalletStorage wallet;
