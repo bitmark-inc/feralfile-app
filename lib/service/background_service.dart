@@ -73,7 +73,7 @@ class BackgroundService {
         "[BackgroundService] register service: ${packageInfo.packageName}");
     BackgroundFetch.scheduleTask(TaskConfig(
         taskId: packageInfo.packageName,
-        delay: 86400000, // <-- 1 day in milliseconds
+        delay: 600000, // <-- 1 day in milliseconds
         periodic: true,
         requiresNetworkConnectivity: true));
   }
