@@ -39,8 +39,7 @@ AppBar getBackAppBar(BuildContext context,
                 if (onBack != null) ...[
                   Semantics(
                       label: "BACK",
-                      child:
-                          SvgPicture.asset('assets/images/icon_back.svg')),
+                      child: SvgPicture.asset('assets/images/icon_back.svg')),
                 ] else ...[
                   const SizedBox(width: 12),
                 ],

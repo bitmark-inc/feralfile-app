@@ -339,7 +339,6 @@ class _OnboardingPageState extends State<OnboardingPage>
                     await Future.delayed(const Duration(milliseconds: 200), () {
                       context.read<PersonaBloc>().add(CreatePersonaEvent());
                     });
-
                   },
                 ),
                 addDivider(height: 40),
