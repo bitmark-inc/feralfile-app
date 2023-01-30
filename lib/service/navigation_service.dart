@@ -195,7 +195,7 @@ class NavigationService {
         navigatorKey.currentContext!,
         'contacting'.tr(),
         'contact_with_dapp'.tr(),
-        closeButton: "cancel".tr(),
+        closeButton: "cancel_dialog".tr(),
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {

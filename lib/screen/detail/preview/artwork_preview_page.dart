@@ -332,7 +332,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         ),
                         OutlineButton(
                           onTap: () => Navigator.pop(context),
-                          text: "cancel".tr(),
+                          text: "cancel_dialog".tr(),
                         ),
                       ],
                     ),
