@@ -26,6 +26,7 @@ allprojects {
             }
         }
         maven { url 'https://jitpack.io' }
+        maven { url "${project(':background_fetch').projectDir}/libs"}
     }
 }
 
