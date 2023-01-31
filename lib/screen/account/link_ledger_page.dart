@@ -19,8 +19,9 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -29,7 +30,6 @@ import 'package:nft_collection/services/tokens_service.dart';
 
 class LinkLedgerPage extends StatefulWidget {
   final String payload;
-
   const LinkLedgerPage({Key? key, required this.payload}) : super(key: key);
 
   @override
@@ -37,28 +37,9 @@ class LinkLedgerPage extends StatefulWidget {
 }
 
 class _LinkLedgerPageState extends State<LinkLedgerPage> {
-  List<LedgerHardwareWallet> ledgerWallets = [];
-  LedgerPageState ledgerState = LedgerPageState.loading;
-
   @override
   void initState() {
     super.initState();
-    fetchLedgerWallets();
-  }
-
-  Future<void> fetchLedgerWallets() async {
-    final service = injector<LedgerHardwareService>();
-    if (await service.scanForLedgerWallet()) {
-      final wallets = await service.ledgerWallets().first;
-      setState(() {
-        ledgerWallets = wallets.toList();
-        ledgerState = LedgerPageState.loadDone;
-      });
-    } else {
-      setState(() {
-        ledgerState = LedgerPageState.noConnect;
-      });
-    }
   }
 
   @override
@@ -71,152 +52,166 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (ledgerState == LedgerPageState.loading) {
-      return loadingScreen(theme, "loading_wallet".tr());
-    }
-    if (ledgerState == LedgerPageState.connecting) {
-      return loadingScreen(theme, "connecting".tr());
-    }
-    return Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.of(context).pop();
-          },
-          title: "ledger_wallet".tr(),
-        ),
-        body: BlocListener<AccountsBloc, AccountsState>(
-            listener: (context, state) {
-              final event = state.event;
-              if (event == null) return;
-
-              if (event is LinkAccountSuccess) {
-                final linkedAccount = event.connection;
-                final walletName =
-                    linkedAccount.ledgerConnection?.ledgerName ?? 'ledger'.tr();
-
-                // SideEffect: pre-fetch tokens
-                injector<TokensService>()
-                    .fetchTokensForAddresses(linkedAccount.accountNumbers);
-
-                UIHelper.showInfoDialog(
-                  context,
-                  "account_linked".tr(),
-                  "al_autonomy_has_received".tr(namedArgs: {
-                    "accountNumbers": linkedAccount.accountNumbers.last.mask(4),
-                    "walletName": walletName
-                  }),
-                );
-                //"Autonomy has received authorization to link to your account ${linkedAccount.accountNumbers.last.mask(4)} in $walletName.");
-
-                const delay = 3;
-
-                Future.delayed(const Duration(seconds: delay), () {
-                  UIHelper.hideInfoDialog(context);
-
-                  if (injector<ConfigurationService>().isDoneOnboarding()) {
-                    Navigator.of(context).pushNamed(
-                        AppRouter.nameLinkedAccountPage,
-                        arguments: linkedAccount);
-                  } else {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        AppRouter.nameLinkedAccountPage, (route) => false,
-                        arguments: linkedAccount);
-                  }
-                });
-              }
-
-              if (event is AlreadyLinkedError) {
-                showErrorDiablog(
-                    context,
-                    ErrorEvent(
-                        null,
-                        "already_linked".tr(),
-                        "al_you’ve_already".tr(),
-                        //"You’ve already linked this account to Autonomy.",
-                        ErrorItemState.seeAccount), defaultAction: () {
-                  Navigator.of(context).pushNamed(
-                      AppRouter.linkedAccountDetailsPage,
-                      arguments: event.connection);
-                });
-              }
-
-              context.read<AccountsBloc>().add(ResetEventEvent());
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                addTitleSpace(),
-                Padding(
-                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                  child: Text(
-                    "select_wallet".tr(),
-                    style: theme.textTheme.ppMori700Black24,
-                  ),
-                ),
-                const SizedBox(height: 60),
-                _deviceList(context),
-              ],
-            )));
-  }
-
-  Widget _deviceList(BuildContext context) {
-    final theme = Theme.of(context);
-    switch (ledgerState) {
-      case LedgerPageState.loadDone:
-      case LedgerPageState.connecting:
-        return ListView.builder(
-            shrinkWrap: true,
-            itemBuilder: ((context, index) {
-              return Column(
-                children: [
-                  Padding(
-                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                    child: TappableForwardRow(
-                      leftWidget: Row(
-                        children: [
-                          SvgPicture.asset("assets/images/iconLedger.svg"),
-                          const SizedBox(width: 35),
-                          Text(
-                            ledgerWallets[index].name,
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                        ],
-                      ),
-                      onTap: () => _onDeviceTap(context, ledgerWallets[index]),
-                    ),
-                  ),
-                  addOnlyDivider(),
-                ],
-              );
-            }),
-            itemCount: ledgerWallets.length);
-      case LedgerPageState.noConnect:
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-          child: Text(
+    return FutureBuilder<bool>(
+      future: injector<LedgerHardwareService>().scanForLedgerWallet(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return loadingScreen(theme, "loading_wallet".tr());
+        }
+        if (snapshot.data == false) {
+          return Text(
             "your_bluetooth_device_na".tr(),
             //"Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
-            style: theme.textTheme.ppMori400Black14,
-          ),
+            style: theme.textTheme.headline4,
+          );
+        }
+        return StreamBuilder<Iterable<LedgerHardwareWallet>>(
+          stream: injector<LedgerHardwareService>().ledgerWallets(),
+          builder: (context, snapshot) {
+            log.info("snapshot: $snapshot");
+            final deviceList = snapshot.data;
+            if (deviceList == null) {
+              return loadingScreen(theme, "loading_wallet".tr());
+            }
+
+            List<LedgerHardwareWallet> ledgerWallets = deviceList.toList();
+            return Scaffold(
+              appBar: getBackAppBar(
+                context,
+                title: "ledger_wallet".tr(),
+                onBack: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              body: BlocListener<AccountsBloc, AccountsState>(
+                listener: (context, state) {
+                  final event = state.event;
+                  if (event == null) return;
+
+                  if (event is LinkAccountSuccess) {
+                    final linkedAccount = event.connection;
+                    final walletName =
+                        linkedAccount.ledgerConnection?.ledgerName ??
+                            'ledger'.tr();
+
+                    // SideEffect: pre-fetch tokens
+                    injector<TokensService>()
+                        .fetchTokensForAddresses(linkedAccount.accountNumbers);
+
+                    UIHelper.showInfoDialog(
+                      context,
+                      "account_linked".tr(),
+                      "al_autonomy_has_received".tr(namedArgs: {
+                        "accountNumbers":
+                            linkedAccount.accountNumbers.last.mask(4),
+                        "walletName": walletName
+                      }),
+                    );
+                    //"Autonomy has received autorization to link to your account ${linkedAccount.accountNumbers.last.mask(4)} in $walletName.");
+
+                    const delay = 3;
+
+                    Future.delayed(const Duration(seconds: delay), () {
+                      UIHelper.hideInfoDialog(context);
+
+                      if (injector<ConfigurationService>().isDoneOnboarding()) {
+                        Navigator.of(context).pushNamed(
+                            AppRouter.nameLinkedAccountPage,
+                            arguments: linkedAccount);
+                      } else {
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRouter.nameLinkedAccountPage, (route) => false,
+                            arguments: linkedAccount);
+                      }
+                    });
+                  }
+
+                  if (event is AlreadyLinkedError) {
+                    showErrorDiablog(
+                        context,
+                        ErrorEvent(
+                            null,
+                            "already_linked".tr(),
+                            "al_you’ve_already".tr(),
+                            //"You’ve already linked this account to Autonomy.",
+                            ErrorItemState.seeAccount), defaultAction: () {
+                      Navigator.of(context).pushNamed(
+                          AppRouter.linkedAccountDetailsPage,
+                          arguments: event.connection);
+                    });
+                  }
+
+                  context.read<AccountsBloc>().add(ResetEventEvent());
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Text(
+                        "select_wallet".tr(),
+                        style: theme.textTheme.ppMori700Black24,
+                      ),
+                    ),
+                    const SizedBox(height: 60),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemBuilder: ((context, index) {
+                        return Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  ResponsiveLayout.pageHorizontalEdgeInsets,
+                              child: TappableForwardRow(
+                                leftWidget: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                        "assets/images/iconLedger.svg"),
+                                    const SizedBox(width: 35),
+                                    Text(
+                                      ledgerWallets[index].name,
+                                      style: theme.textTheme.ppMori400Black14,
+                                    ),
+                                  ],
+                                ),
+                                onTap: () =>
+                                    _onDeviceTap(context, ledgerWallets[index]),
+                              ),
+                            ),
+                            addOnlyDivider(),
+                          ],
+                        );
+                      }),
+                      itemCount: ledgerWallets.length,
+                    )
+                  ],
+                ),
+              ),
+            );
+          },
         );
-      default:
-        return const SizedBox();
-    }
+      },
+    );
   }
 
   _onDeviceTap(BuildContext context, LedgerHardwareWallet ledger) async {
-    UIHelper.showInfoDialog(context, ledger.name, "connecting".tr(),
-        feedback: null);
-    if (!ledger.isConnected) {
-      setState(() {
-        ledgerState = LedgerPageState.connecting;
-      });
-      final result = await injector<LedgerHardwareService>().connect(ledger);
+    // UIHelper.showInfoDialog(context, ledger.name, "connecting".tr(),
+    //     feedback: null);
+    final theme = Theme.of(context);
 
-      setState(() {
-        ledgerState = LedgerPageState.loadDone;
-      });
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => loadingScreen(
+          theme,
+          "connecting".tr(),
+        ),
+      ),
+    );
+
+    if (!ledger.isConnected) {
+      final result = await injector<LedgerHardwareService>().connect(ledger);
       if (!result) {
         if (!mounted) return;
         UIHelper.hideInfoDialog(context);
@@ -299,11 +294,4 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
           autoDismissAfter: 2, feedback: FeedbackType.error);
     });
   }
-}
-
-enum LedgerPageState {
-  loadDone,
-  loading,
-  noConnect,
-  connecting,
 }

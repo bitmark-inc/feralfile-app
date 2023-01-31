@@ -60,7 +60,10 @@ class _SimpleNotificationToast extends StatelessWidget {
           }
         },
         child: Container(
-          color: theme.auGreyBackground,
+          decoration: BoxDecoration(
+            color: theme.auGreyBackground,
+            borderRadius: BorderRadius.circular(5),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 60),
           child: Center(
               child: Row(
