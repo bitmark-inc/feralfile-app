@@ -314,4 +314,7 @@ class MixpanelEvent {
   static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
   static const editorialViewArticle = 'editorial_view_article';
+  static const scanQR = 'scan_qr';
+  static const acceptOwnershipSuccess = 'accept_ownership_success';
+  static const acceptOwnershipFail = 'accept_ownership_fail';
 }
