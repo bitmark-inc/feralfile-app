@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -52,6 +53,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   late QRViewController controller;
   var isScanDataError = false;
   var _isLoading = false;
+  bool cameraPermission = false;
   String? currentCode;
   AnimationController? _controller;
 
@@ -77,9 +79,18 @@ class _ScanQRPageState extends State<ScanQRPage>
     await Permission.camera.request();
     final status = await Permission.camera.status;
 
-    if (status.isPermanentlyDenied) {
-      openAppSettings();
+    if (status.isPermanentlyDenied || status.isDenied) {
+      if (cameraPermission) {
+        setState(() {
+          cameraPermission = false;
+        });
+      }
     } else {
+      if (!cameraPermission) {
+        setState(() {
+          cameraPermission = true;
+        });
+      }
       if (Platform.isAndroid) {
         Future.delayed(const Duration(seconds: 1), () {
           controller.resumeCamera();
@@ -138,6 +149,9 @@ class _ScanQRPageState extends State<ScanQRPage>
                 borderColor: isScanDataError
                     ? AppColor.red
                     : theme.colorScheme.secondary,
+                overlayColor: cameraPermission
+                    ? const Color.fromRGBO(0, 0, 0, 80)
+                    : const Color.fromRGBO(255, 255, 255, 60),
                 cutOutSize: qrSize,
                 borderWidth: 8,
                 borderRadius: 40,
@@ -145,6 +159,13 @@ class _ScanQRPageState extends State<ScanQRPage>
                 cutOutBottomOffset: 32 + cutPaddingTop,
               ),
               onQRViewCreated: _onQRViewCreated,
+              onPermissionSet: (ctrl, p) {
+                if (ctrl.hasPermissions) {
+                  setState(() {
+                    cameraPermission = true;
+                  });
+                }
+              },
             ),
             Positioned(
               right: 0,
@@ -169,64 +190,82 @@ class _ScanQRPageState extends State<ScanQRPage>
               child: Center(
                 child: Column(
                   children: [
-                    const Spacer(),
-                    _instructionView(),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0.0),
-                      child: HorizontalSlidableButton(
-                        controller: _controller,
-                        width: MediaQuery.of(context).size.width,
-                        height: 50,
-                        buttonWidth: MediaQuery.of(context).size.width / 2,
-                        color: theme.auLightGrey,
-                        buttonColor: theme.auLightGrey,
-                        label: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'scan_code'.tr(),
-                                style: theme.textTheme.ppMori400White14,
+                    if (cameraPermission) ...[
+                      const Spacer(),
+                      _instructionView(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0.0),
+                        child: HorizontalSlidableButton(
+                          controller: _controller,
+                          width: MediaQuery.of(context).size.width,
+                          height: 50,
+                          buttonWidth: MediaQuery.of(context).size.width / 2,
+                          color: theme.auLightGrey,
+                          buttonColor: theme.auLightGrey,
+                          label: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                borderRadius: BorderRadius.circular(50),
                               ),
-                            ),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Text(
-                                'scan_code'.tr(),
-                                style: theme.textTheme.ppMori400White14,
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  _controller?.forward();
-                                  _navigateShowMyCode();
-                                },
+                              child: Center(
                                 child: Text(
-                                  'show_my_code'.tr(),
-                                  style:
-                                      theme.textTheme.ppMori400White14.copyWith(
-                                    color: theme.disabledColor,
-                                  ),
+                                  'scan_code'.tr(),
+                                  style: theme.textTheme.ppMori400White14,
                                 ),
                               ),
-                            ],
+                            ),
                           ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  'scan_code'.tr(),
+                                  style: theme.textTheme.ppMori400White14,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    _controller?.forward();
+                                    _navigateShowMyCode();
+                                  },
+                                  child: Text(
+                                    'show_my_code'.tr(),
+                                    style: theme.textTheme.ppMori400White14
+                                        .copyWith(
+                                      color: theme.disabledColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          onChanged: (position) {
+                            if (position == SlidableButtonPosition.end) {
+                              _navigateShowMyCode();
+                            }
+                          },
                         ),
-                        onChanged: (position) {
-                          if (position == SlidableButtonPosition.end) {
-                            _navigateShowMyCode();
-                          }
-                        },
                       ),
-                    ),
+                    ] else ...[
+                      _instructionViewNoPermission(),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: PrimaryButton(
+                          text: "open_setting".tr(
+                            namedArgs: {
+                              "device": Platform.isAndroid ? "Device" : "iOS",
+                            },
+                          ),
+                          onTap: () {
+                            openAppSettings();
+                          },
+                        ),
+                      )
+                    ],
                     const Spacer(),
                   ],
                 ),
@@ -242,6 +281,21 @@ class _ScanQRPageState extends State<ScanQRPage>
             ]
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _instructionViewNoPermission() {
+    final theme = Theme.of(context);
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final qrSize = size1 < 240.0 ? size1 : 240.0;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      width: qrSize,
+      child: Text(
+        'please_ensure'.tr(),
+        style: theme.textTheme.ppMori400White14,
+        textAlign: TextAlign.center,
       ),
     );
   }
