@@ -165,8 +165,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       },
       child: Column(children: [
         Center(
-          child: FeedArtwork(
-            assetToken: asset,
+          child: IgnorePointer(
+            child: FeedArtwork(
+              assetToken: asset,
+            ),
           ),
         ),
         const SizedBox(
