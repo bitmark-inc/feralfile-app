@@ -17,7 +17,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
@@ -51,7 +51,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         Timber.d("Pair client: $uri")
         try {
             CoreClient.Pairing.pair(Core.Params.Pair(uri), onError = { e ->
-                throw e.throwable
+                Timber.e(e.throwable, "Pair client failed")
             })
             result.success()
         } catch (e: Throwable) {
@@ -90,7 +90,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                     relayProtocol = proposal.relayProtocol
                 ),
                 onError = { e ->
-                    throw e.throwable
+                    Timber.e(e.throwable, "Approve session failed")
                 })
             pendingProposals.remove(proposal)
             result.success()
@@ -114,7 +114,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                     reason = reason.ifBlank { "disapprovedChains" }
                 ),
                 onError = { e ->
-                    throw e.throwable
+                    Timber.e(e.throwable, "Reject session failed")
                 })
             result.success()
         } catch (e: Throwable) {
@@ -139,7 +139,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                     sessionTopic = topic,
                     jsonRpcResponse = jsonRpcResponse
                 ), onError = { e ->
-                    throw e.throwable
+                    Timber.e(e.throwable, "Reject session failed")
                 })
             pendingRequests.remove(request)
             result.success()
@@ -159,10 +159,11 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             SignClient.respond(
                 Sign.Params.Response(
                     topic,
-                    Sign.Model.JsonRpcResponse.JsonRpcError(request.request.id, 0, reason)),
+                    Sign.Model.JsonRpcResponse.JsonRpcError(request.request.id, 0, reason)
+                ),
                 onError = { e ->
-                throw e.throwable
-            })
+                    Timber.e(e.throwable, "Reject session failed")
+                })
             request.let {
                 pendingRequests.remove(it)
             }
@@ -193,7 +194,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         try {
             Timber.e("Delete pairing. Topic: $topic")
             CoreClient.Pairing.disconnect(topic, onError = { e ->
-                throw e.throwable
+                Timber.e(e.throwable, "Delete pairing error")
             })
             result.success()
         } catch (e: Throwable) {
@@ -251,7 +252,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                 val topic = call.argument<String?>("topic").orEmpty()
                 deletePairing(topic = topic, result = result)
             }
-            "cleanup" ->  {
+            "cleanup" -> {
                 val retainIds: List<String> = call.argument("retain_ids") ?: emptyList()
                 cleanupSessions(retainIds, result)
             }
