@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_row_view.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -101,14 +102,14 @@ class _TezosTXListViewState extends State<TezosTXListView> {
                           return Container(
                             padding: ResponsiveLayout.pageEdgeInsets,
                             child: Text("unable_load_tzkt".tr(),
-                                style: theme.textTheme.bodyText1),
+                                style: theme.textTheme.ppMori400Black14),
                           );
                         },
                         noItemsFoundIndicatorBuilder: (context) {
                           return Container(
                             padding: ResponsiveLayout.pageEdgeInsets,
                             child: Text("transaction_appear_hear".tr(),
-                                style: theme.textTheme.bodyText1),
+                                style: theme.textTheme.ppMori400Black14),
                           );
                         },
                         itemBuilder: (context, item, index) {

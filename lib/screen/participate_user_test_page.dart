@@ -42,14 +42,14 @@ class ParticipateUserTestPage extends StatelessWidget {
                     addTitleSpace(),
                     Text(
                       "like_to_test".tr(),
-                      style: theme.textTheme.headline3,
+                      style: theme.textTheme.ppMori700Black24,
                     ),
                     const SizedBox(
                       height: 32,
                     ),
                     Text(
                       "help_us_verify".tr(),
-                      style: theme.textTheme.bodyText1,
+                      style: theme.textTheme.ppMori400Black16,
                     ),
                     const SizedBox(
                       height: 32,
@@ -65,7 +65,7 @@ class ParticipateUserTestPage extends StatelessWidget {
                         children: [
                           Text(
                             "what_to_expect".tr(),
-                            style: theme.textTheme.bodyText1,
+                            style: theme.textTheme.ppMori700Black14,
                           ),
                           const SizedBox(height: 12),
                           ...[
@@ -120,7 +120,11 @@ class ParticipateUserTestPage extends StatelessWidget {
                     text: "schedule_test".tr(),
                     onPressed: () => launchUrl(
                         Uri.parse(USER_TEST_CALENDAR_LINK),
-                        mode: LaunchMode.inAppWebView),
+                        mode: LaunchMode.inAppWebView,
+                        webViewConfiguration: WebViewConfiguration(
+                            headers: <String, String>{
+                              'my_header_key': 'my_header_value'
+                            })),
                   ),
                 ),
               ],

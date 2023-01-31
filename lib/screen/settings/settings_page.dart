@@ -46,7 +46,6 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
-    //context.read<AccountsBloc>().add(GetAccountsEvent());
     injector<SettingsDataService>().backup();
     injector<VersionService>().checkForUpdate();
     _controller = ScrollController();
@@ -76,7 +75,6 @@ class _SettingsPageState extends State<SettingsPage>
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    //context.read<AccountsBloc>().add(GetAccountsEvent());
     injector<SettingsDataService>().backup();
   }
 
@@ -238,7 +236,6 @@ class _SettingsPageState extends State<SettingsPage>
                   },
                 ),
                 key: const Key("version"),
-                //"Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
                 style: theme.textTheme.ppMori400Grey14,
               ),
             ),
@@ -256,7 +253,6 @@ class _SettingsPageState extends State<SettingsPage>
                       "demo_mode".tr(),
                       "demo_mode_en".tr(
                           args: [newValue ? "enable".tr() : "disable".tr()]),
-                      //"Demo mode ${newValue ? 'enabled' : 'disabled'}!",
                       autoDismissAfter: 1);
                 }
               } else {
@@ -265,7 +261,6 @@ class _SettingsPageState extends State<SettingsPage>
               _lastTap = now;
             }),
       const SizedBox(height: 10),
-
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
         final isLastestVersion =
             injector<ConfigurationService>().isLastestVersion();
@@ -289,7 +284,6 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
         );
       }),
-      //privacyView(context),
     ]);
   }
 }

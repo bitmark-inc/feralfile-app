@@ -78,7 +78,7 @@ class _WalletPageState extends State<WalletPage>
               Padding(
                 padding: padding,
                 child: PrimaryButton(
-                  text: 'Add Wallet',
+                  text: 'add_wallet'.tr(),
                   onTap: () {
                     Navigator.of(context).pushNamed(AppRouter.accessMethodPage);
                   },

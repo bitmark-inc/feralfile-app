@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -612,29 +613,15 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 ),
                                 contentPadding: EdgeInsets.zero,
                                 trailing: (hasRadio
-                                    ? Transform.scale(
-                                        scale: 1.2,
-                                        child: Radio(
-                                          activeColor:
-                                              theme.colorScheme.primary,
-                                          fillColor: MaterialStateProperty
-                                              .resolveWith<Color>(
-                                                  (Set<MaterialState> states) {
-                                            if (states.contains(
-                                                MaterialState.disabled)) {
-                                              return theme.colorScheme.primary;
-                                            }
-                                            return theme.colorScheme.primary;
-                                          }),
-                                          value: persona,
-                                          groupValue: selectedPersona,
-                                          onChanged: (Persona? value) {
-                                            setState(() {
-                                              selectedPersona = persona;
-                                              _isAccountSelected = true;
-                                            });
-                                          },
-                                        ),
+                                    ? AuRadio(
+                                        onTap: (Persona? persona) {
+                                          setState(() {
+                                            selectedPersona = persona;
+                                            _isAccountSelected = true;
+                                          });
+                                        },
+                                        value: persona,
+                                        groupValue: selectedPersona,
                                       )
                                     : null),
                               ),

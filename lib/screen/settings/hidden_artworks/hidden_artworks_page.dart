@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:ui';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -161,6 +159,8 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                               )
                             : CachedNetworkImage(
                                 imageUrl: asset.getGalleryThumbnailUrl()!,
+                                width: double.infinity,
+                                height: double.infinity,
                                 fit: BoxFit.cover,
                                 memCacheHeight: _cachedImageSize,
                                 memCacheWidth: _cachedImageSize,
@@ -176,15 +176,12 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                       ),
                       ClipRRect(
                         // Clip it cleanly.
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                          child: Container(
-                            color: Colors.white.withOpacity(0.4),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              AuIcon.hidden_artwork,
-                              color: AppColor.white,
-                            ),
+                        child: Container(
+                          color: Colors.black.withOpacity(0.4),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            AuIcon.hidden_artwork,
+                            color: AppColor.white,
                           ),
                         ),
                       ),

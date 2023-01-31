@@ -81,37 +81,38 @@ class ConnectionDetailsPage extends StatelessWidget {
                             height: 12,
                           ),
                           Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppColor.auLightGrey,
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ...grantPermissions
-                                      .map(
-                                        (permission) => Row(
-                                          children: [
-                                            const SizedBox(
-                                              width: 12,
-                                            ),
-                                            Text("•",
-                                                style: theme.textTheme
-                                                    .ppMori400Black14),
-                                            const SizedBox(
-                                              width: 6,
-                                            ),
-                                            Text(permission,
-                                                style: theme.textTheme
-                                                    .ppMori400Black14),
-                                          ],
-                                        ),
-                                      )
-                                      .toList(),
-                                ],
-                              ))
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColor.auLightGrey,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...grantPermissions
+                                    .map(
+                                      (permission) => Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 12,
+                                          ),
+                                          Text("•",
+                                              style: theme
+                                                  .textTheme.ppMori400Black14),
+                                          const SizedBox(
+                                            width: 6,
+                                          ),
+                                          Text(permission,
+                                              style: theme
+                                                  .textTheme.ppMori400Black14),
+                                        ],
+                                      ),
+                                    )
+                                    .toList(),
+                              ],
+                            ),
+                          )
                         ],
                       ),
                     ),
@@ -127,10 +128,6 @@ class ConnectionDetailsPage extends StatelessWidget {
                   textColor: AppColor.primaryBlack,
                   borderColor: AppColor.primaryBlack,
                   text: 'disconnect_and_revoke'.tr(),
-                  // child: Text(
-                  //   'disconnect_and_revoke'.tr(),
-                  //   style: theme.textTheme.ppMori400Black14,
-                  // ),
                   onTap: () => _showDeleteConnectionConfiguration(context),
                 ),
               ),
@@ -146,78 +143,77 @@ class ConnectionDetailsPage extends StatelessWidget {
     final connection = connectionItem.representative;
 
     showModalBottomSheet(
-        context: pageContext,
-        enableDrag: false,
-        backgroundColor: Colors.transparent,
-        constraints: BoxConstraints(
-            maxWidth: ResponsiveLayout.isMobile
-                ? double.infinity
-                : Constants.maxWidthModalTablet),
-        barrierColor: Colors.black.withOpacity(0.5),
-        builder: (context) {
-          return Container(
-            color: Colors.transparent,
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.auGreyBackground,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "revoke_all_rights".tr(),
-                    style: theme.primaryTextTheme.ppMori700White24,
-                  ),
-                  const SizedBox(height: 40),
-                  RichText(
-                    text: TextSpan(
-                      style: theme.primaryTextTheme.ppMori400White14,
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: "sure_revoke".tr(),
-                        ),
-                        TextSpan(
-                            text: 'autonomyL'.tr(),
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                          text: 'from_all_rights_on'.tr(),
-                        ),
-                        TextSpan(
-                            text: connection.appName,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                          text: '?'.tr(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  PrimaryButton(
-                    text: "revoke_all".tr(),
-                    onTap: () {
-                      pageContext
-                          .read<ConnectionsBloc>()
-                          .add(DeleteConnectionsEvent(connectionItem));
-                      Navigator.of(context).pop();
-                      Navigator.of(pageContext).pop();
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  OutlineButton(
-                    onTap: () => Navigator.of(context).pop(),
-                    text: "cancel_dialog".tr(),
-                  )
-                ],
+      context: pageContext,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.auGreyBackground,
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(20),
               ),
             ),
-          );
-        });
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "revoke_all_rights".tr(),
+                  style: theme.primaryTextTheme.ppMori700White24,
+                ),
+                const SizedBox(height: 40),
+                RichText(
+                  text: TextSpan(
+                    style: theme.primaryTextTheme.ppMori400White14,
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: "sure_revoke".tr(),
+                      ),
+                      TextSpan(
+                          text: 'autonomyL'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text: 'from_all_rights_on'.tr(),
+                      ),
+                      TextSpan(
+                          text: connection.appName,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text: '?'.tr(),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                PrimaryButton(
+                  text: "revoke_all".tr(),
+                  onTap: () {
+                    pageContext
+                        .read<ConnectionsBloc>()
+                        .add(DeleteConnectionsEvent(connectionItem));
+                    Navigator.of(context).pop();
+                    Navigator.of(pageContext).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                OutlineButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  text: "cancel_dialog".tr(),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

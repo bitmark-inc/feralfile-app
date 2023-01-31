@@ -306,6 +306,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                         .setHidePersonaInGallery(widget.persona.uuid, value);
                     final hiddenAddress =
                         await injector<AccountService>().getHiddenAddresses();
+                    if (!mounted) return;
                     setState(() {
                       context.read<NftCollectionBloc>().add(
                           UpdateHiddenTokens(ownerAddresses: hiddenAddress));
