@@ -43,7 +43,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
       ),
       body: Container(
         color: theme.backgroundColor,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +52,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
               child: Markdown(
                 data: widget.releaseNotes,
                 softLineBreak: true,
-                padding: const EdgeInsets.only(bottom: 50),
+                padding: const EdgeInsets.only(bottom: 50, top: 32),
                 styleSheet: markDownChangeLogStyle(context),
                 builders: <String, MarkdownElementBuilder>{
                   '#': TagBuilder(),

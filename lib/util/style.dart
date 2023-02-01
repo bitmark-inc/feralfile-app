@@ -382,14 +382,34 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(2.0),
     ),
-    horizontalRuleDecoration: const BoxDecoration(
-      border: Border(
-        top: BorderSide(
-          color: AppColor.auSuperTeal,
-        ),
-      ),
+    horizontalRuleDecoration: CustomBoxDecoration(
+      color: AppColor.auSuperTeal,
     ),
   );
+}
+
+class CustomBoxDecoration extends ShapeDecoration {
+  CustomBoxDecoration({
+    color,
+  }) : super(
+          shape: const Border(),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.transparent,
+              color,
+              color,
+              Colors.transparent,
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.495, 0.495, 0.505, 0.505, 1.0],
+          ),
+        );
+
+  @override
+  EdgeInsetsGeometry get padding => const EdgeInsets.symmetric(vertical: 22.0);
 }
 
 SizedBox addTitleSpace() {
