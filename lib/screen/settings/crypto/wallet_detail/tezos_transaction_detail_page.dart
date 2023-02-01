@@ -9,13 +9,13 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/fiat_formater.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 const _nanoTEZFactor = 1000000;
@@ -46,36 +46,52 @@ class TezosTXDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final DateFormat formatter = dateFormatterYMDHM;
-    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
-
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return Scaffold(
       appBar: getBackAppBar(context,
+          title: dateFormatterYMD.format(tx.getTimeStamp()).toUpperCase(),
           onBack: () => isBackHome
               ? Navigator.of(context).pushNamed(AppRouter.homePage)
               : Navigator.of(context).pop()),
-      body: Container(
-        margin: EdgeInsets.only(
-            top: 16.0, left: 16.0, right: 16.0, bottom: safeAreaBottom + 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(tx.transactionTitleDetail(currentAddress),
-                style: theme.textTheme.headline1),
-            const SizedBox(height: 27),
-            if (tx.isSendNFT(currentAddress) ||
-                tx.isReceiveNFT(currentAddress)) ...[
-              listViewNFT(context, tx, formatter)
-            ] else ...[
-              listViewNonNFT(context, tx, formatter)
-            ],
-            if (tx is TZKTOperation) ...[
-              AuFilledButton(
-                text: "share".tr(),
-                onPress: () => Share.share(_txURL(tx as TZKTOperation)),
-              ),
-            ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          addTitleSpace(),
+          Padding(
+            padding: padding,
+            child: Text(tx.transactionTitleDetail(currentAddress),
+                style: theme.textTheme.ppMori400Black16),
+          ),
+          const SizedBox(height: 48),
+          addOnlyDivider(),
+          if (tx.isSendNFT(currentAddress) ||
+              tx.isReceiveNFT(currentAddress)) ...[
+            listViewNFT(context, tx, formatter)
+          ] else ...[
+            listViewNonNFT(context, tx, formatter)
           ],
-        ),
+          if (tx is TZKTOperation) ...[
+            GestureDetector(
+              onTap: () => launchUrlString(_txURL(tx as TZKTOperation)),
+              child: Container(
+                alignment: Alignment.bottomCenter,
+                padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
+                color: AppColor.secondaryDimGreyBackground,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("powered_by_tzkt".tr(),
+                        style: theme.textTheme.ppMori400Black14),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    SvgPicture.asset("assets/images/external_link.svg"),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -92,24 +108,28 @@ class TezosTXDetailPage extends StatelessWidget {
       tx_ = (tx as TZKTOperation).tokenTransfer;
       amount = _totalAmount(tx, currentAddress);
     }
+
     return Expanded(
       child: ListView(
         children: [
           tx_!.isSendNFT(currentAddress)
               ? _transactionInfo(context, "to".tr(), tx_.to?.address)
               : _transactionInfo(context, "from".tr(), tx_.from?.address),
+          addOnlyDivider(),
           _transactionInfo(context, "contract".tr(),
               tx_.token?.contract?.alias ?? tx_.token?.contract?.address),
+          addOnlyDivider(),
           _transactionInfo(context, "status".tr(), tx_.transactionStatus()),
+          addOnlyDivider(),
           _transactionInfo(context, "date".tr(),
               formatter.format(tx_.getTimeStamp()).toUpperCase()),
+          addOnlyDivider(),
           _transactionInfo(context, "token_id".tr(), tx_.token?.tokenId),
+          addOnlyDivider(),
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
+          addOnlyDivider(),
           if (hasFee) ...[
             _transactionInfo(context, "gas_fee2".tr(), amount),
-          ],
-          if (tx is TZKTOperation) ...[
-            _viewOnTZKT(context, tx),
           ],
         ],
       ),
@@ -126,9 +146,11 @@ class TezosTXDetailPage extends StatelessWidget {
     }
     return Expanded(
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
           if (tx_.parameter != null) ...[
             _transactionInfo(context, "call".tr(), tx_.parameter?.entrypoint),
+            addOnlyDivider(),
             _transactionInfo(context, "contract".tr(),
                 tx_.target?.alias ?? tx_.target?.address)
           ] else if (tx_.type == "transaction") ...[
@@ -136,17 +158,22 @@ class TezosTXDetailPage extends StatelessWidget {
                 ? _transactionInfo(context, "to".tr(), tx_.target?.address)
                 : _transactionInfo(context, "from".tr(), tx_.sender?.address),
           ],
+          addOnlyDivider(),
           _transactionInfo(context, "status".tr(), tx.transactionStatus()),
+          addOnlyDivider(),
           _transactionInfo(context, "date".tr(),
               formatter.format(tx.getTimeStamp()).toUpperCase()),
+          addOnlyDivider(),
           if (tx_.type == "transaction")
             _transactionInfo(context, "amount".tr(), _transactionAmount(tx_)),
+          addOnlyDivider(),
           if (tx_.sender?.address == currentAddress) ...[
             _transactionInfo(context, "gas_fee2".tr(), _gasFee(tx_)),
-            _transactionInfo(context, "total_amount".tr(),
-                _totalAmount(tx_, currentAddress)),
+            addOnlyDivider(),
+            _transactionInfoCustom(context, "total_amount".tr(),
+                _totalAmountWidget(context, tx_, currentAddress)),
+            addOnlyDivider(),
           ],
-          _viewOnTZKT(context, tx_),
         ],
       ),
     );
@@ -154,72 +181,58 @@ class TezosTXDetailPage extends StatelessWidget {
 
   Widget _transactionInfo(BuildContext context, String title, String? detail) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            spacing: 16,
-            runSpacing: 16,
-            runAlignment: WrapAlignment.center,
-            children: [
-              Text(title, style: theme.textTheme.headline4),
-              if (detail != null)
-                Text(
-                  detail,
-                  textAlign: TextAlign.left,
-                  style: theme.textTheme.subtitle1
-                      ?.copyWith(color: AppColor.secondaryDimGrey),
-                ),
-            ],
+    return Padding(
+      padding: padding.copyWith(top: 16, bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 24),
+            child: Text(title, style: theme.textTheme.ppMori400Grey14),
           ),
-        ),
-        const Divider(),
-      ],
+          if (detail != null)
+            Flexible(
+              child: Text(
+                detail,
+                textAlign: TextAlign.right,
+                style: theme.textTheme.ppMori400Black14,
+                maxLines: 5,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _transactionInfoCustom(
+      BuildContext context, String title, Widget? rightWidget) {
+    final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets;
+
+    return Padding(
+      padding: padding.copyWith(top: 16, bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 24),
+            child: Text(title, style: theme.textTheme.ppMori400Grey14),
+          ),
+          if (rightWidget != null)
+            Flexible(
+              child: rightWidget,
+            ),
+        ],
+      ),
     );
   }
 
   String _txURL(TZKTOperation tx) {
     return "https://tzkt.io/${tx.hash}";
-  }
-
-  Widget _viewOnTZKT(BuildContext context, TZKTOperation tx) {
-    final theme = Theme.of(context);
-    final customLinkStyle = theme.textTheme.linkStyle.copyWith(
-      fontSize: 16,
-      fontWeight: FontWeight.w700,
-    );
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: theme.colorScheme.primary,
-                ),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: "powered_by_tzkt".tr(),
-                    style: customLinkStyle,
-                  ),
-                ],
-              ),
-            ),
-            SvgPicture.asset("assets/images/external_link.svg"),
-          ],
-        ),
-      ),
-      onTap: () => launchUrlString(_txURL(tx)),
-    );
   }
 
   String _transactionAmount(TZKTOperation tx) {
@@ -232,5 +245,25 @@ class TezosTXDetailPage extends StatelessWidget {
 
   String _totalAmount(TZKTOperation tx, String? currentAddress) {
     return "${tx.totalAmount(currentAddress)} (${FiatFormatter((tx.quote.usd * (tx.getTotalAmount(currentAddress)) / _nanoTEZFactor)).format()} USD)";
+  }
+
+  Widget _totalAmountWidget(
+      BuildContext context, TZKTOperation tx, String? currentAddress) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          tx.totalAmount(currentAddress),
+          textAlign: TextAlign.right,
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        Text(
+          '${((tx.quote.usd * (tx.getTotalAmount(currentAddress)) / _nanoTEZFactor)).toStringAsPrecision(2)} USD',
+          textAlign: TextAlign.right,
+          style: theme.textTheme.ppMori400Grey14,
+        )
+      ],
+    );
   }
 }

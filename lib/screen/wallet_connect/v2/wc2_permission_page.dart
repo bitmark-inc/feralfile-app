@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
@@ -518,24 +519,20 @@ class _LinkedAccountConnectItemState extends State<LinkedAccountConnectItem> {
                       ),
                       Text(e.address.maskIfNeeded()),
                       const Spacer(),
-                      Transform.scale(
-                        scale: 1.2,
-                        child: Radio(
-                          activeColor: theme.colorScheme.primary,
-                          value: e.address,
-                          groupValue: e.cryptoType == CryptoType.ETH
-                              ? widget.ethSelectedAddress
+                      AuRadio(
+                        value: e.address,
+                        groupValue: e.cryptoType == CryptoType.ETH
+                            ? widget.ethSelectedAddress
+                            : e.cryptoType == CryptoType.XTZ
+                                ? widget.tezSelectedAddress
+                                : '',
+                        onTap: (value) {
+                          e.cryptoType == CryptoType.ETH
+                              ? widget.onSelectEth?.call(e.address)
                               : e.cryptoType == CryptoType.XTZ
-                                  ? widget.tezSelectedAddress
-                                  : '',
-                          onChanged: (value) {
-                            e.cryptoType == CryptoType.ETH
-                                ? widget.onSelectEth?.call(e.address)
-                                : e.cryptoType == CryptoType.XTZ
-                                    ? widget.onSelectTez?.call(e.address)
-                                    : '';
-                          },
-                        ),
+                                  ? widget.onSelectTez?.call(e.address)
+                                  : '';
+                        },
                       )
                     ],
                   ),
@@ -612,10 +609,24 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                             ? widget.account.persona?.name
                             : snapshot.data ?? '';
                     return Expanded(
-                      child: Text(
-                        name?.replaceFirst('did:key:', '') ?? '',
-                        style: theme.textTheme.headline4,
-                        overflow: TextOverflow.ellipsis,
+                      child: GestureDetector(
+                        onTap: () {
+                          final ethAddress =
+                              ethereumBloc.state.personaAddresses?[uuid];
+                          final xtzAddress =
+                              tezosBloc.state.personaAddresses?[uuid];
+                          if (widget.showETH && ethAddress != null) {
+                            widget.onSelectEth?.call(ethAddress);
+                          }
+                          if (widget.showXTZ && xtzAddress != null) {
+                            widget.onSelectTez?.call(xtzAddress);
+                          }
+                        },
+                        child: Text(
+                          name?.replaceFirst('did:key:', '') ?? '',
+                          style: theme.textTheme.headline4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     );
                   },
@@ -684,16 +695,12 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                         ),
                         Text(tezAddress.maskIfNeeded()),
                         const Spacer(),
-                        Transform.scale(
-                          scale: 1.2,
-                          child: Radio(
-                            activeColor: theme.colorScheme.primary,
-                            value: tezAddress,
-                            groupValue: widget.tezSelectedAddress,
-                            onChanged: (value) {
-                              widget.onSelectTez?.call(tezAddress);
-                            },
-                          ),
+                        AuRadio(
+                          value: tezAddress,
+                          groupValue: widget.tezSelectedAddress,
+                          onTap: (value) {
+                            widget.onSelectTez?.call(tezAddress);
+                          },
                         )
                       ],
                     ),

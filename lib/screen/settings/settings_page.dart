@@ -8,24 +8,13 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
-import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/preferences/preferences_view.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
-import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/eula_privacy.dart';
-import 'package:autonomy_flutter/view/penrose_top_bar_view.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -33,10 +22,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -47,10 +32,9 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage>
-    with RouteAware, WidgetsBindingObserver {
+    with RouteAware, WidgetsBindingObserver, TickerProviderStateMixin {
   PackageInfo? _packageInfo;
   late ScrollController _controller;
-  late final UpgradesBloc _upgradesBloc = UpgradesBloc(injector(), injector());
   int _lastTap = 0;
   int _consecutiveTaps = 0;
 
@@ -62,8 +46,8 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
-    context.read<AccountsBloc>().add(GetAccountsEvent());
     injector<SettingsDataService>().backup();
+    injector<VersionService>().checkForUpdate();
     _controller = ScrollController();
   }
 
@@ -91,199 +75,128 @@ class _SettingsPageState extends State<SettingsPage>
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    context.read<AccountsBloc>().add(GetAccountsEvent());
     injector<SettingsDataService>().backup();
+  }
+
+  Widget _settingItem(
+      {required String title,
+      required Widget icon,
+      required Function() onTap}) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
+      child: TappableForwardRow(
+        leftWidget: Row(
+          children: [
+            icon,
+            const SizedBox(width: 32),
+            Text(
+              title,
+              style: theme.textTheme.ppMori400Black16,
+            )
+          ],
+        ),
+        onTap: onTap,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return PrimaryScrollController(
-      controller: _controller,
-      child: Scaffold(
-        body: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.dark,
-          child: Stack(
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        title: "settings".tr(),
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
+      body: SafeArea(
+        child: NotificationListener(
+          child: Column(
             children: [
-              NotificationListener(
-                child: SingleChildScrollView(
-                  padding: ResponsiveLayout.pageEdgeInsets,
-                  controller: _controller,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).padding.top + 52,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "accounts".tr(),
-                                style: theme.textTheme.headline1,
-                              ),
-                              _cloudAvailabilityWidget(),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          const AccountsView(
-                            isInSettingsPage: true,
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context)
-                                .pushNamed(AppRouter.accessMethodPage),
-                            child: Text(
-                              'plus_account'.tr(),
-                              style: theme.textTheme.subtitle1,
-                            ),
-                          ),
-                          const SizedBox(width: 13),
-                        ],
-                      ),
-                      const SizedBox(height: 40),
-                      BlocProvider(
-                        create: (_) => PreferencesBloc(injector()),
-                        child: PreferenceView(
-                          key: _preferenceKey,
-                        ),
-                      ),
-                      const SizedBox(height: 40.0),
-                      BlocProvider.value(
-                        value: _upgradesBloc,
-                        child: const UpgradesView(),
-                      ),
-                      const SizedBox(height: 40),
-                      // START HELP US IMPROVE
-                      Text(
-                        "help_us_improve".tr(),
-                        style: theme.textTheme.headline1,
-                      ),
-
-                      const SizedBox(height: 16.0),
-                      TappableForwardRow(
-                          leftWidget: Text('p_bug_bounty'.tr(),
-                              style: theme.textTheme.headline4),
-                          onTap: () => Navigator.of(context)
-                              .pushNamed(AppRouter.bugBountyPage)),
-                      addOnlyDivider(),
-                      TappableForwardRow(
-                          leftWidget: Text('p_user_test'.tr(),
-                              style: theme.textTheme.headline4),
-                          onTap: () => Navigator.of(context)
-                              .pushNamed(AppRouter.participateUserTestPage)),
-                      // END HELP US IMPROVE
-                      const SizedBox(height: 40.0),
-                      Text(
-                        "data_management".tr(),
-                        style: theme.textTheme.headline1,
-                      ),
-                      const SizedBox(height: 32.0),
-                      TappableForwardRowWithContent(
-                          leftWidget: Text(
-                            'rebuild_metadata'.tr(),
-                            style: theme.textTheme.headline4,
-                          ),
-                          bottomWidget: Text('clear_cache'.tr(),
-                              style: theme.textTheme.bodyText1),
-                          onTap: () => _showRebuildGalleryDialog()),
-                      addDivider(),
-                      TappableForwardRowWithContent(
-                          leftWidget: Text(
-                            'forget_exist'.tr(),
-                            style: theme.textTheme.headline4,
-                          ),
-                          bottomWidget: Text("erase_all".tr(),
-                              //'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
-                              style: theme.textTheme.bodyText1),
-                          onTap: () => _showForgetIExistDialog()),
-                      const SizedBox(height: 56),
-                      Column(children: [
-                        if (_packageInfo != null)
-                          GestureDetector(
-                              child: Text(
-                                "version_".tr(namedArgs: {
-                                  "version": _packageInfo!.version,
-                                  "buildNumber": _packageInfo!.buildNumber
-                                }),
-                                key: const Key("version"),
-                                //"Version ${_packageInfo!.version}(${_packageInfo!.buildNumber})",
-                                style: theme.textTheme.headline5,
-                              ),
-                              onTap: () async {
-                                int now = DateTime.now().millisecondsSinceEpoch;
-                                if (now - _lastTap < 1000) {
-                                  _consecutiveTaps++;
-                                  if (_consecutiveTaps == 3) {
-                                    final newValue =
-                                        await injector<ConfigurationService>()
-                                            .toggleDemoArtworksMode();
-                                    if (!mounted) return;
-                                    await UIHelper.showInfoDialog(
-                                        context,
-                                        "demo_mode".tr(),
-                                        "demo_mode_en".tr(args: [
-                                          newValue
-                                              ? "enable".tr()
-                                              : "disable".tr()
-                                        ]),
-                                        //"Demo mode ${newValue ? 'enabled' : 'disabled'}!",
-                                        autoDismissAfter: 1);
-                                  }
-                                } else {
-                                  _consecutiveTaps = 0;
-                                }
-                                _lastTap = now;
-                              }),
-                        TextButton(
-                            onPressed: () => injector<VersionService>()
-                                .showReleaseNotes(onlyWhenUnread: false),
-                            child: Text(
-                              "release_notes".tr(),
-                              style: ResponsiveLayout.isMobile
-                                  ? theme.textTheme.linkStyle2
-                                  : theme.textTheme.linkStyle14,
-                            )),
-                        const SizedBox(height: 10),
-                        privacyView(context),
-                      ]),
-                      const SizedBox(height: 60),
-                    ],
+              addTitleSpace(),
+              Column(
+                children: [
+                  _settingItem(
+                    title: "wallets".tr(),
+                    icon: const Icon(AuIcon.account),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRouter.walletPage);
+                    },
                   ),
-                ),
-                onNotification: (ScrollNotification notification) {
-                  var currentContext = _preferenceKey.currentContext;
-                  if (currentContext == null) return false;
-                  final renderObject = currentContext.findRenderObject();
-                  if (renderObject == null) return false;
-                  final viewport = RenderAbstractViewport.of(renderObject);
-                  if (viewport != null) {
-                    final bottom =
-                        viewport.getOffsetToReveal(renderObject, 1.0).offset;
-                    final top =
-                        viewport.getOffsetToReveal(renderObject, 0.0).offset;
-                    final offset = notification.metrics.pixels;
-                    if (offset > 2 * (top + (bottom - top) / 3)) {
-                      _clearPendingSettings();
-                    }
-                  }
-                  return false;
-                },
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: "preferences".tr(),
+                    icon: const Icon(AuIcon.preferences),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.preferencesPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: "hidden_artwork".tr(),
+                    icon: const Icon(AuIcon.hidden_artwork),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.hiddenArtworksPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: "autonomy_pro".tr(),
+                    icon: const Icon(AuIcon.subscription),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.subscriptionPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: "data_management".tr(),
+                    icon: const Icon(AuIcon.data_management),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.dataManagementPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: "help_us_improve".tr(),
+                    icon: const Icon(AuIcon.help_us),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRouter.helpUsPage);
+                    },
+                  ),
+                  addOnlyDivider(),
+                ],
               ),
-              PenroseTopBarView(
-                _controller,
-                PenroseTopBarViewStyle.settings,
+              const Spacer(),
+              Container(
+                padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+                alignment: Alignment.bottomCenter,
+                child: _versionSection(),
               ),
             ],
           ),
+          onNotification: (ScrollNotification notification) {
+            var currentContext = _preferenceKey.currentContext;
+            if (currentContext == null) return false;
+            final renderObject = currentContext.findRenderObject();
+            if (renderObject == null) return false;
+            final viewport = RenderAbstractViewport.of(renderObject);
+            if (viewport != null) {
+              final bottom =
+                  viewport.getOffsetToReveal(renderObject, 1.0).offset;
+              final top = viewport.getOffsetToReveal(renderObject, 0.0).offset;
+              final offset = notification.metrics.pixels;
+              if (offset > 2 * (top + (bottom - top) / 3)) {
+                _clearPendingSettings();
+              }
+            }
+            return false;
+          },
         ),
       ),
     );
@@ -304,59 +217,73 @@ class _SettingsPageState extends State<SettingsPage>
     });
   }
 
-  Widget _cloudAvailabilityWidget() {
-    return ValueListenableBuilder<bool>(
-        valueListenable: injector<CloudService>().isAvailableNotifier,
-        builder: (BuildContext context, bool isAvailable, Widget? child) {
-          if (isAvailable) {
-            return const SizedBox();
-          } else {
-            return IconButton(
-              onPressed: () => Navigator.of(context)
-                  .pushNamed(AppRouter.cloudPage, arguments: "settings"),
-              icon: SvgPicture.asset("assets/images/iconCloudOff.svg"),
-            );
-          }
-        });
-  }
-
-  void _showForgetIExistDialog() {
-    UIHelper.showDialog(
-      context,
-      "forget_exist".tr(),
-      BlocProvider(
-        create: (_) => ForgetExistBloc(
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector<NftCollectionBloc>().database,
-            injector(),
-            injector()),
-        child: const ForgetExistView(),
-      ),
-    );
-  }
-
-  void _showRebuildGalleryDialog() {
-    showErrorDialog(
-      context,
-      "rebuild_metadata".tr(),
-      "this_action_clear".tr(),
-      //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
-      "rebuild".tr(),
-      () async {
-        await injector<NftCollectionBloc>().tokensService.purgeCachedGallery();
-        await injector<CacheManager>().emptyCache();
-        if (!mounted) return;
-        context.read<IdentityBloc>().add(RemoveAllEvent());
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-      },
-      "cancel".tr(),
-    );
+  Widget _versionSection() {
+    final theme = Theme.of(context);
+    return Column(children: [
+      if (_packageInfo != null)
+        GestureDetector(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(color: AppColor.auGrey),
+              ),
+              child: Text(
+                "version_".tr(
+                  namedArgs: {
+                    "version": _packageInfo!.version,
+                    "buildNumber": _packageInfo!.buildNumber
+                  },
+                ),
+                key: const Key("version"),
+                style: theme.textTheme.ppMori400Grey14,
+              ),
+            ),
+            onTap: () async {
+              injector<VersionService>().showReleaseNotes();
+              int now = DateTime.now().millisecondsSinceEpoch;
+              if (now - _lastTap < 1000) {
+                _consecutiveTaps++;
+                if (_consecutiveTaps == 3) {
+                  final newValue = await injector<ConfigurationService>()
+                      .toggleDemoArtworksMode();
+                  if (!mounted) return;
+                  await UIHelper.showInfoDialog(
+                      context,
+                      "demo_mode".tr(),
+                      "demo_mode_en".tr(
+                          args: [newValue ? "enable".tr() : "disable".tr()]),
+                      autoDismissAfter: 1);
+                }
+              } else {
+                _consecutiveTaps = 0;
+              }
+              _lastTap = now;
+            }),
+      const SizedBox(height: 10),
+      StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        final isLastestVersion =
+            injector<ConfigurationService>().isLastestVersion();
+        return GestureDetector(
+          onTap: () {
+            if (isLastestVersion) return;
+            injector<VersionService>().openLastestVersion();
+          },
+          child: isLastestVersion
+              ? Text(
+                  'up_to_date'.tr(),
+                  style: theme.textTheme.ppMori400Grey12,
+                )
+              : Text(
+                  'update_to_the_latest_version'.tr(),
+                  style: theme.textTheme.linkStyle14.copyWith(
+                      fontWeight: FontWeight.w400,
+                      decorationColor: AppColor.disabledColor,
+                      color: AppColor.disabledColor,
+                      shadows: [const Shadow()]),
+                ),
+        );
+      }),
+    ]);
   }
 }

@@ -18,6 +18,7 @@
     </queries>
 
     <application
+        tools:replace="android:label"
         android:name=".app.AutonomyApp"
         android:icon="${appIcon}"
         android:label="@string/app_name"

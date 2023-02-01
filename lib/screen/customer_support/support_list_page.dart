@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,7 @@ class _SupportListPageState extends State<SupportListPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "support_history".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: _issuesWidget(),
@@ -84,8 +86,6 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Widget _issuesWidget() {
-    final theme = Theme.of(context);
-
     final issues = _issues;
     if (issues == null) {
       return const Center(child: CupertinoActivityIndicator());
@@ -95,12 +95,7 @@ class _SupportListPageState extends State<SupportListPage>
 
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
-        child: Container(
-            padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
-            child: Text(
-              "support_history".tr(),
-              style: theme.textTheme.headline1,
-            )),
+        child: addTitleSpace(),
       ),
       SliverList(
         delegate: SliverChildBuilderDelegate(
@@ -112,20 +107,16 @@ class _SupportListPageState extends State<SupportListPage>
                     lastMessage.contains(RATING_MESSAGE_START)) &&
                 issue.rating > 0;
             bool hasDivider = (index < issues.length - 1);
-            return Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveLayout.pageEdgeInsets.left),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                child: _contentRow(issue, hasDivider),
-                onTap: () => Navigator.of(context).pushNamed(
-                    AppRouter.supportThreadPage,
-                    arguments: DetailIssuePayload(
-                        reportIssueType: issue.reportIssueType,
-                        issueID: issue.issueID,
-                        status: status,
-                        isRated: isRated)),
-              ),
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              child: _contentRow(issue, hasDivider),
+              onTap: () => Navigator.of(context).pushNamed(
+                  AppRouter.supportThreadPage,
+                  arguments: DetailIssuePayload(
+                      reportIssueType: issue.reportIssueType,
+                      issueID: issue.issueID,
+                      status: status,
+                      isRated: isRated)),
             );
           },
           childCount: issues.length,
@@ -140,50 +131,62 @@ class _SupportListPageState extends State<SupportListPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  ReportIssueType.toTitle(issue.reportIssueType),
-                  style: theme.textTheme.headline4,
-                ),
-                if (issue.unread > 0) ...[
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      width: 10,
-                      height: 10,
-                    ),
-                  ),
-                ]
-              ],
-            ),
-            Row(
-              children: [
-                Text(getVerboseDateTimeRepresentation(
-                    issue.lastMessage?.timestamp.toLocal() ??
-                        issue.timestamp.toLocal())),
-                const SizedBox(width: 14),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 17),
         Padding(
-          padding: const EdgeInsets.only(right: 14),
-          child: Text(
-            getPreviewMessage(issue),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyText1,
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        ReportIssueType.toTitle(issue.reportIssueType),
+                        style: theme.textTheme.ppMori400Black16,
+                      ),
+                      if (issue.unread > 0) ...[
+                        const SizedBox(width: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            width: 10,
+                            height: 10,
+                          ),
+                        ),
+                      ]
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        getVerboseDateTimeRepresentation(
+                            issue.lastMessage?.timestamp.toLocal() ??
+                                issue.timestamp.toLocal()),
+                        style: theme.textTheme.ppMori400Black14
+                            .copyWith(color: AppColor.auQuickSilver),
+                      ),
+                      const SizedBox(width: 14),
+                      SvgPicture.asset('assets/images/iconForward.svg'),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 17),
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: Text(
+                  getPreviewMessage(issue),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+              ),
+            ],
           ),
         ),
         hasDivider

@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cast/cast.dart';
@@ -260,7 +261,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     }
     return UIHelper.showDialog(
       context,
-      "select_a_device".tr(),
+      "select_device".tr(),
       FutureBuilder<List<CastDevice>>(
         future: CastDiscoveryService().search(),
         builder: (context, snapshot) {
@@ -314,8 +315,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               child: Text(
                                 'searching_for_device'.tr(),
                                 style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.atlasSpanishGreyBold16
-                                    : theme.textTheme.atlasSpanishGreyBold20,
+                                    ? theme.textTheme.ppMori400Grey14
+                                    : theme.textTheme.ppMori400Grey16,
                               ),
                             ),
                           )
@@ -329,12 +330,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             asset: asset,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "cancel".tr(),
-                            style: theme.primaryTextTheme.button,
-                          ),
+                        OutlineButton(
+                          onTap: () => Navigator.pop(context),
+                          text: "cancel_dialog".tr(),
                         ),
                       ],
                     ),
@@ -363,8 +361,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           child: Text(
             'no_device_detected'.tr(),
             style: ResponsiveLayout.isMobile
-                ? theme.textTheme.atlasSpanishGreyBold16
-                : theme.textTheme.atlasSpanishGreyBold20,
+                ? theme.textTheme.ppMori400Grey14
+                : theme.textTheme.ppMori400Grey16,
           ),
         ),
       );
@@ -386,16 +384,21 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
               return GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () {
-                    metricClient.addEvent("stream_airplay");
+                    metricClient.addEvent(MixpanelEvent.streamArtwork, data: {
+                      'id': asset?.id,
+                      'device type': AUCastDeviceType.Airplay.name
+                    });
                   },
                   child: _airplayItem(context, isSubscribed));
             case AUCastDeviceType.Chromecast:
               return GestureDetector(
                 onTap: isSubscribed
                     ? () {
-                        metricClient.addEvent(
-                          MixpanelEvent.streamChromecast,
-                        );
+                        metricClient.addEvent(MixpanelEvent.streamArtwork,
+                            data: {
+                              'id': asset?.id,
+                              'device type': AUCastDeviceType.Chromecast.name
+                            });
                         UIHelper.hideInfoDialog(context);
                         var copiedDevice = _castDevices[index];
                         if (copiedDevice.isActivated) {
@@ -413,8 +416,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   padding: const EdgeInsets.symmetric(vertical: 17),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.cast,
+                      SvgPicture.asset(
+                        'assets/images/cast_icon.svg',
                         color: isSubscribed
                             ? theme.colorScheme.secondary
                             : AppColor.secondaryDimGrey,
@@ -422,7 +425,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       const SizedBox(width: 17),
                       Text(
                         device.chromecastDevice!.name,
-                        style: theme.primaryTextTheme.headline4?.copyWith(
+                        style: theme.primaryTextTheme.ppMori400White14.copyWith(
                           color: isSubscribed
                               ? theme.colorScheme.secondary
                               : AppColor.secondaryDimGrey,
@@ -458,7 +461,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 padding: const EdgeInsets.only(left: 41, bottom: 5),
                 child: Text(
                   "airplay".tr(),
-                  style: theme.primaryTextTheme.headline4?.copyWith(
+                  style: theme.primaryTextTheme.ppMori400White14.copyWith(
                       color: isSubscribed
                           ? theme.colorScheme.secondary
                           : AppColor.secondaryDimGrey),
@@ -474,8 +477,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   )
                 : const Align(
                     alignment: Alignment.centerLeft,
-                    child: Icon(Icons.airplay_outlined,
-                        color: AppColor.secondaryDimGrey),
+                    child: Icon(
+                      Icons.airplay_outlined,
+                      color: AppColor.secondaryDimGrey,
+                    ),
                   ),
           ],
         ),
@@ -866,7 +871,7 @@ class FullscreenIntroPopup extends StatelessWidget {
     return Container(
       height: 300,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      color: theme.colorScheme.primary,
+      color: theme.auGreyBackground,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

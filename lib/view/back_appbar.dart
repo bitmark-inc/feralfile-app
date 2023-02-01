@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,8 +15,8 @@ AppBar getBackAppBar(BuildContext context,
     {String backTitle = "BACK",
     String title = "",
     required Function()? onBack,
-    Function()? action,
-    bool isDefaultAccount = false}) {
+    Widget? icon,
+    Function()? action}) {
   final theme = Theme.of(context);
 
   return AppBar(
@@ -24,65 +25,53 @@ AppBar getBackAppBar(BuildContext context,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: const SizedBox(),
-    leadingWidth: 0.0,
-    toolbarHeight: isDefaultAccount ? 34 : null,
-    title: Padding(
-      padding: isDefaultAccount
-          ? const EdgeInsets.only(top: 24, bottom: 8)
-          : const EdgeInsets.all(0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
+    centerTitle: true,
+    leadingWidth: 26,
+    leading: onBack != null
+        ? GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: onBack,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-              child: Row(
-                children: [
-                  if (onBack != null) ...[
-                    Row(
-                      children: [
-                        SvgPicture.asset('assets/images/nav-arrow-left.svg'),
-                        const SizedBox(width: 7),
-                        Text(
-                          backTitle,
-                          style: theme.textTheme.button,
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    const SizedBox(width: 60),
-                  ],
-                ],
+            child: Semantics(
+              label: "BACK",
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15),
+                child: SvgPicture.asset(
+                  'assets/images/icon_back.svg',
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              title,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.button,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          action != null
-              ? IconButton(
-                  tooltip: "AppbarAction",
-                  constraints: const BoxConstraints(maxWidth: 36.0),
-                  onPressed: action,
-                  icon: Icon(
-                    Icons.more_horiz,
-                    color: theme.colorScheme.primary,
-                  ))
-              : const SizedBox(width: 60),
-        ],
-      ),
+          )
+        : const SizedBox(),
+    automaticallyImplyLeading: false,
+    title: Text(
+      title,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.ppMori400Black16,
+      textAlign: TextAlign.center,
     ),
+    actions: [
+      if (action != null)
+        Padding(
+          padding: const EdgeInsets.only(right: 15),
+          child: IconButton(
+            tooltip: "AppbarAction",
+            constraints: const BoxConstraints(maxWidth: 36.0),
+            onPressed: action,
+            icon: icon ??
+                Icon(
+                  Icons.more_horiz,
+                  color: theme.colorScheme.primary,
+                ),
+          ),
+        )
+    ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(1),
+      child: addOnlyDivider(),
+    ),
   );
 }
 

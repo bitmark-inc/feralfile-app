@@ -66,8 +66,6 @@ class _TVConnectPageState extends State<TVConnectPage>
   void _reject() {
     final wcConnectArgs = widget.wcConnectArgs;
     injector<WalletConnectService>().rejectSession(wcConnectArgs.peerMeta);
-
-    Navigator.of(context).pop();
   }
 
   Future _approve() async {
@@ -118,7 +116,10 @@ class _TVConnectPageState extends State<TVConnectPage>
             children: [
               GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onTap: () => _reject(),
+                onTap: () {
+                  _reject();
+                  Navigator.of(context).pop();
+                },
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
                   child: Row(

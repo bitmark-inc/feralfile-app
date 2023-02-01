@@ -320,8 +320,100 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
   );
 }
 
+MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
+  const textColor = AppColor.primaryBlack;
+  final theme = Theme.of(context);
+  final textStyleBody = theme.textTheme.ppMori400Black16;
+  final textStyleGrey = theme.textTheme.ppMori400Grey12;
+  return MarkdownStyleSheet(
+    a: const TextStyle(
+      fontFamily: AppTheme.ppMori,
+      color: Colors.transparent,
+      fontWeight: FontWeight.w500,
+      shadows: [Shadow(offset: Offset(0, -1))],
+      decoration: TextDecoration.underline,
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: textColor,
+      decorationThickness: 1,
+    ),
+    p: textStyleBody,
+    pPadding: const EdgeInsets.only(bottom: 16),
+    code: textStyleBody.copyWith(backgroundColor: Colors.transparent),
+    h1: theme.textTheme.ppMori700Black36.copyWith(fontSize: 24),
+    h1Padding: const EdgeInsets.only(bottom: 24),
+    h2: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
+    h6Padding: EdgeInsets.zero,
+    em: textStyleGrey,
+    strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: textColor),
+    blockquote: textStyleBody,
+    img: textStyleBody,
+    checkbox: textStyleBody.copyWith(color: theme.colorScheme.secondary),
+    blockSpacing: 15.0,
+    listIndent: 24.0,
+    listBullet: textStyleBody.copyWith(color: textColor),
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: textStyleBody,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.only(left: 20),
+    blockquoteDecoration: const BoxDecoration(
+      border: Border(
+        left: BorderSide(width: 2, color: AppColor.auSuperTeal),
+      ),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: CustomBoxDecoration(
+      color: AppColor.auSuperTeal,
+    ),
+  );
+}
+
+class CustomBoxDecoration extends ShapeDecoration {
+  CustomBoxDecoration({
+    color,
+  }) : super(
+          shape: const Border(),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.transparent,
+              color,
+              color,
+              Colors.transparent,
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.495, 0.495, 0.505, 0.505, 1.0],
+          ),
+        );
+
+  @override
+  EdgeInsetsGeometry get padding => const EdgeInsets.symmetric(vertical: 22.0);
+}
+
 SizedBox addTitleSpace() {
-  return const SizedBox(height: 40);
+  return const SizedBox(height: 60);
 }
 
 Divider addDivider({double height = 32}) {
@@ -335,6 +427,14 @@ Divider addOnlyDivider() {
   return const Divider(
     height: 1.0,
     thickness: 1.0,
+  );
+}
+
+Divider addBoldDivider() {
+  return const Divider(
+    height: 1.0,
+    thickness: 1.0,
+    color: Colors.black,
   );
 }
 
@@ -363,6 +463,7 @@ Widget loadingIndicator({
   double size = 27,
   Color valueColor = Colors.black,
   Color backgroundColor = Colors.black54,
+  double strokeWidth = 2.0,
 }) {
   return SizedBox(
     width: size,
@@ -370,7 +471,7 @@ Widget loadingIndicator({
     child: CircularProgressIndicator(
       backgroundColor: backgroundColor,
       color: valueColor,
-      strokeWidth: 2,
+      strokeWidth: strokeWidth,
     ),
   );
 }

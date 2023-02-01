@@ -15,8 +15,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -48,6 +47,8 @@ class _AccountsViewState extends State<AccountsView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+
     return BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) {
       final accounts = state.accounts;
@@ -68,43 +69,42 @@ class _AccountsViewState extends State<AccountsView> {
       if (!widget.isInSettingsPage) {
         return _noEditAccountsListWidget(accounts);
       }
-      int index = 0;
       return SlidableAutoCloseBehavior(
         child: Column(
           children: [
             ...accounts.map(
               (account) {
-                index++;
                 return Column(
                   children: [
-                    Slidable(
-                      groupTag: 'accountsView',
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        dragDismissible: false,
-                        children: slidableActions(
-                            account, account.persona?.defaultAccount == 1),
-                      ),
-                      child: Column(
-                        children: [
-                          if (_editingAccountKey == null ||
-                              _editingAccountKey != account.key) ...[
-                            _viewAccountItem(account),
-                          ] else ...[
-                            _editAccountItem(account),
+                    Padding(
+                      padding: padding,
+                      child: Slidable(
+                        groupTag: 'accountsView',
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          dragDismissible: false,
+                          children: slidableActions(
+                              account, account.persona?.defaultAccount == 1),
+                        ),
+                        child: Column(
+                          children: [
+                            if (_editingAccountKey == null ||
+                                _editingAccountKey != account.key) ...[
+                              _viewAccountItem(account),
+                            ] else ...[
+                              _editAccountItem(account),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                    index < accounts.length
-                        ? Divider(
-                            height: 1.0,
-                            thickness: 1.0,
-                            color: (_editingAccountKey == null ||
-                                    _editingAccountKey != account.key)
-                                ? null
-                                : theme.colorScheme.primary)
-                        : const SizedBox(),
+                    Divider(
+                        height: 1.0,
+                        thickness: 1.0,
+                        color: (_editingAccountKey == null ||
+                                _editingAccountKey != account.key)
+                            ? null
+                            : theme.colorScheme.primary)
                   ],
                 );
               },
@@ -241,76 +241,69 @@ class _AccountsViewState extends State<AccountsView> {
               ? double.infinity
               : Constants.maxWidthModalTablet,
         ),
+        barrierColor: Colors.black.withOpacity(0.5),
         builder: (context) {
           return Container(
             color: Colors.transparent,
-            child: ClipPath(
-              clipper: AutonomyTopRightRectangleClipper(),
-              child: Container(
-                color: theme.colorScheme.primary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        (account.persona != null)
-                            ? 'delete_account'.tr()
-                            : 'remove_account'.tr(),
-                        style: theme.primaryTextTheme.headline1),
-                    const SizedBox(height: 40),
-                    RichText(
-                      text: TextSpan(
-                        style: theme.primaryTextTheme.bodyText1,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: (account.persona != null)
-                                ? "sure_delete_account".tr()
-                                : "sure_remove_account".tr(),
-                            //'Are you sure you want to delete the account ',
-                          ),
-                          TextSpan(
-                              text: '“$accountName”',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          const TextSpan(
-                            text: '?',
-                          ),
-                          if (account.persona != null) ...[
-                            TextSpan(text: "not_back_up_yet".tr())
-                            // If you haven’t backed up your recovery phrase, you will lose access to your funds.')
-                          ]
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AuFilledButton(
-                            text: (account.persona != null)
-                                ? "delete".tr()
-                                : "remove".tr().toUpperCase(),
-                            onPress: () {
-                              Navigator.of(context).pop();
-                              _deleteAccount(pageContext, account);
-                            },
-                            color: theme.colorScheme.secondary,
-                            textStyle: theme.textTheme.button,
-                          ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.auGreyBackground,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    (account.persona != null)
+                        ? 'delete_account'.tr()
+                        : 'remove_account'.tr(),
+                    style: theme.primaryTextTheme.ppMori700White24,
+                  ),
+                  const SizedBox(height: 40),
+                  RichText(
+                    text: TextSpan(
+                      style: theme.primaryTextTheme.ppMori400White14,
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: (account.persona != null)
+                              ? "sure_delete_account".tr()
+                              : "sure_remove_account".tr(),
+                          //'Are you sure you want to delete the account ',
                         ),
+                        TextSpan(
+                            text: '“$accountName”',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        const TextSpan(
+                          text: '?',
+                        ),
+                        if (account.persona != null) ...[
+                          TextSpan(text: "not_back_up_yet".tr())
+                          // If you haven’t backed up your recovery phrase, you will lose access to your funds.')
+                        ]
                       ],
                     ),
-                    Align(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text("cancel".tr(),
-                            style: theme.primaryTextTheme.button),
-                      ),
-                    )
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 40),
+                  PrimaryButton(
+                    text: (account.persona != null)
+                        ? "delete_dialog".tr()
+                        : "remove".tr(),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _deleteAccount(pageContext, account);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  OutlineButton(
+                    onTap: () => Navigator.of(context).pop(),
+                    text: "cancel_dialog".tr(),
+                  )
+                ],
               ),
             ),
           );

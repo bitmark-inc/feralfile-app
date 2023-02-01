@@ -9,11 +9,14 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,48 +85,55 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: () {
-        Navigator.of(context).pop();
-      }),
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+        title: "gift_edition".tr(),
+      ),
       body: Container(
-        padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        padding: const EdgeInsets.only(bottom: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 24,
+            addTitleSpace(),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Text(
+                "where_do_want_to_receive_gift".tr(),
+                style: theme.textTheme.ppMori700Black24,
+              ),
             ),
-            Text(
-              "where_do_want_to_receive_gift".tr(),
-              style: theme.textTheme.headline1,
+            const SizedBox(height: 60),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Text(
+                "claim_airdrop_select_account_desc".tr(args: [
+                  widget.blockchain ?? "Tezos",
+                  widget.blockchain ?? "Tezos",
+                ]),
+                style: theme.textTheme.ppMori400Black14,
+              ),
             ),
-            const SizedBox(
-              height: 40,
-            ),
-            Text(
-              "claim_airdrop_select_account_desc".tr(args: [
-                widget.blockchain ?? "Tezos",
-                widget.blockchain ?? "Tezos",
-              ]),
-              style: theme.textTheme.bodyText1,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
+            const SizedBox(height: 30),
             Expanded(child: _buildPersonaList(context)),
-            AuFilledButton(
-                isProcessing: _processing,
-                enabled: !_processing,
-                text: "confirm".tr(),
-                onPress: _selectedAccount == null
-                    ? null
-                    : () async {
-                        await _claimToken(
-                          _selectedAccount!,
-                          widget.artwork.id,
-                          otp: widget.otp,
-                        );
-                      }),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: PrimaryButton(
+                  isProcessing: _processing,
+                  enabled: !_processing,
+                  text: "h_confirm".tr(),
+                  onTap: _selectedAccount == null
+                      ? null
+                      : () async {
+                          await _claimToken(
+                            _selectedAccount!,
+                            widget.artwork.id,
+                            otp: widget.otp,
+                          );
+                        }),
+            ),
           ],
         ),
       ),
@@ -131,22 +141,16 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   Widget _accountItem(BuildContext context, Account account) {
-    final theme = Theme.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       child: IgnorePointer(
         child: Row(
           children: [
             Expanded(child: accountItem(context, account)),
-            Transform.scale(
-              scale: 1.2,
-              child: Radio(
-                activeColor: theme.colorScheme.primary,
+            AuRadio(
+                onTap: (_) {},
                 value: account.key,
-                groupValue: _selectedAccount?.key,
-                onChanged: (_) {},
-              ),
-            )
+                groupValue: _selectedAccount?.key)
           ],
         ),
       ),
@@ -172,13 +176,18 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
           [];
       final accountWidgets =
           accounts.map((e) => _accountItem(context, e)).toList();
-      return ListView.separated(
+      return ListView.builder(
         itemBuilder: (context, index) {
-          return _accountItem(context, accounts[index]);
+          return Column(
+            children: [
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: _accountItem(context, accounts[index]),
+              ),
+              if (accountWidgets.length > 1) ...[const Divider(height: 1.0)],
+            ],
+          );
         },
-        separatorBuilder: (_, index) => const Divider(
-          height: 1.0,
-        ),
         itemCount: accountWidgets.length,
       );
     });
@@ -212,6 +221,8 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         },
       );
       memoryValues.airdropFFExhibitionId.value = null;
+      metricClient
+          .addEvent(MixpanelEvent.acceptGiftNFT, data: {'id': artworkId});
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
       await UIHelper.showClaimTokenError(

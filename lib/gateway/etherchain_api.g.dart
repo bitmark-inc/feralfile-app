@@ -13,7 +13,7 @@ class _EtherchainApi implements EtherchainApi {
     this._dio, {
     this.baseUrl,
   }) {
-    baseUrl ??= 'https://etherchain.org';
+    baseUrl ??= 'https://beaconcha.in';
   }
 
   final Dio _dio;

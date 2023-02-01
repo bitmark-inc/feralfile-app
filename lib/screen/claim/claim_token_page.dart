@@ -16,13 +16,15 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:marqueer/marqueer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ClaimTokenPageArgs {
   final FFArtwork artwork;
@@ -75,17 +77,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: 52,
-              child: Center(
-                child: Text(
-                  "autonomy".tr(),
-                  style: theme.primaryTextTheme.subtitle1?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
             Expanded(
               child: NotificationListener<OverscrollIndicatorNotification>(
                 onNotification: (overScroll) {
@@ -100,68 +91,58 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       height: 24,
                     ),
                     FittedBox(
-                      child: Text(
-                        "congratulations".tr(),
-                        style: theme.primaryTextTheme.headline1,
-                        maxLines: 1,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    RichText(
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(
-                        text: giftIntro,
-                        style: theme.primaryTextTheme.bodyText1,
-                        children: [
-                          TextSpan(
-                            text: gifter,
-                            style: theme.primaryTextTheme.bodyText1
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                          TextSpan(
-                            text: ".",
-                            style: theme.primaryTextTheme.bodyText1,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    FittedBox(
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        child: Stack(
-                          alignment: AlignmentDirectional.center,
-                          children: [
-                            Transform.translate(
-                              offset: const Offset(1, 0),
-                              child: ClipPath(
-                                clipper: AutonomyTopRightRectangleClipper(),
-                                child: Container(
-                                  color: Colors.white,
-                                  padding: const EdgeInsets.all(2),
-                                  child: ClipPath(
-                                    clipper: AutonomyTopRightRectangleClipper(
-                                        customRadius: 12),
-                                    child: Container(
-                                      color: Colors.black,
-                                      child: CachedNetworkImage(
-                                        fit: BoxFit.cover,
-                                        imageUrl: artworkThumbnail,
-                                        width: 264,
-                                        height: 264,
-                                      ),
+                        child: Transform.translate(
+                          offset: const Offset(1, 0),
+                          child: Container(
+                            color: Colors.white,
+                            child: Column(
+                              children: [
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 20,
+                                  child: Marqueer(
+                                    direction: MarqueerDirection.ltr,
+                                    pps: 30,
+                                    child: Text(
+                                      'gift_edition'.tr().toUpperCase(),
+                                      style: theme.textTheme.ppMori400Black14,
                                     ),
                                   ),
                                 ),
-                              ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 45,
+                                    horizontal: 75,
+                                  ),
+                                  child: Container(
+                                    color: Colors.black,
+                                    child: CachedNetworkImage(
+                                      fit: BoxFit.cover,
+                                      imageUrl: artworkThumbnail,
+                                      width: 225,
+                                      height: 225,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 30,
+                                  child: Marqueer(
+                                    pps: 30,
+                                    child: Text(
+                                      'gift_edition'.tr().toUpperCase(),
+                                      style: theme.textTheme.ppMori400Black14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            Image.asset("assets/images/ribbon.png"),
-                          ],
+                          ),
                         ),
                         onTap: () {
                           Navigator.push(
@@ -175,39 +156,133 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                         },
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        artwork.title,
-                        style: makeLinkStyle(
-                            theme.primaryTextTheme.bodyText1!.copyWith(
-                          fontWeight: FontWeight.w700,
-                        )),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PreviewTokenClaim(
-                              artwork: widget.artwork,
-                            ),
+                    Padding(
+                      padding: const EdgeInsets.all(15),
+                      child: Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                child: Text(
+                                  artwork.title,
+                                  style: theme.textTheme.ppMori400White14,
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PreviewTokenClaim(
+                                        artwork: widget.artwork,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              Text(
+                                "by $artistName",
+                                style: theme.textTheme.ppMori400White14,
+                              ),
+                            ],
                           ),
+                          const Spacer(),
+                          SvgPicture.asset(
+                            "assets/images/penrose_moma.svg",
+                            color: theme.colorScheme.secondary,
+                            width: 27,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      color: theme.colorScheme.secondary,
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        text: giftIntro,
+                        style: theme.textTheme.ppMori400White14,
+                        children: [
+                          TextSpan(
+                            text: gifter,
+                            style: theme.primaryTextTheme.ppMori700White14,
+                          ),
+                          TextSpan(
+                            text: ".",
+                            style: theme.primaryTextTheme.ppMori400White14,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    PrimaryButton(
+                      text: "accept_ownership".tr(),
+                      enabled: !_processing,
+                      isProcessing: _processing,
+                      onTap: () async {
+                        metricClient.addEvent(
+                          MixpanelEvent.acceptOwnership,
+                          data: {
+                            "id": widget.artwork.id,
+                          },
                         );
+                        setState(() {
+                          _processing = true;
+                        });
+                        final blockchain = widget
+                                .artwork.exhibition?.mintBlockchain
+                                .capitalize() ??
+                            "Tezos";
+                        final accountService = injector<AccountService>();
+                        final addresses =
+                            await accountService.getAddress(blockchain);
+
+                        String? address;
+                        if (addresses.isEmpty) {
+                          final defaultAccount =
+                              await accountService.getDefaultAccount();
+                          final configService =
+                              injector<ConfigurationService>();
+                          await configService.setDoneOnboarding(true);
+                          await configService.setPendingSettings(true);
+                          address = blockchain == "Tezos"
+                              ? await defaultAccount.getTezosAddress()
+                              : await defaultAccount.getETHAddress();
+                        } else if (addresses.length == 1) {
+                          address = addresses.first;
+                        } else {
+                          if (!mounted) return;
+                          await Navigator.of(context).pushNamed(
+                            AppRouter.claimSelectAccountPage,
+                            arguments: SelectAccountPageArgs(
+                              blockchain,
+                              widget.artwork,
+                              widget.otp,
+                            ),
+                          );
+                        }
+                        if (address != null && mounted) {
+                          _claimToken(context, address);
+                        } else {
+                          setState(() {
+                            _processing = false;
+                          });
+                        }
                       },
                     ),
-                    Text(
-                      "by $artistName",
-                      style: theme.primaryTextTheme.bodyText1,
-                    ),
                     const SizedBox(
-                      height: 20,
+                      height: 30,
                     ),
                     Text(
                       "accept_ownership_desc".tr(),
-                      style: theme.primaryTextTheme.bodyText1,
+                      style: theme.primaryTextTheme.ppMori400White14,
                     ),
                     const SizedBox(
                       height: 16,
@@ -215,15 +290,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     RichText(
                       text: TextSpan(
                         text: "airdrop_accept_privacy_policy".tr(),
-                        style: theme.primaryTextTheme.bodyText1
-                            ?.copyWith(fontSize: 14),
+                        style: theme.textTheme.ppMori400Grey12,
                         children: [
                           TextSpan(
                               text: "airdrop_privacy_policy".tr(),
                               style: makeLinkStyle(
-                                  theme.primaryTextTheme.bodyText1!.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold)),
+                                theme.textTheme.ppMori400Grey12,
+                              ),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   _openFFArtistCollector();
@@ -241,66 +314,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               ),
             ),
             const SizedBox(
-              height: 24,
+              height: 10,
             ),
-            AuFilledButton(
-              text: "accept_ownership".tr(),
-              color: theme.colorScheme.secondary,
-              textStyle: theme.textTheme.button,
-              enabled: !_processing,
-              isProcessing: _processing,
-              onPress: () async {
-                metricClient.addEvent(
-                  MixpanelEvent.acceptOwnership,
-                  data: {
-                    "id": widget.artwork.id,
-                  },
-                );
-                setState(() {
-                  _processing = true;
-                });
-                final blockchain =
-                    widget.artwork.exhibition?.mintBlockchain.capitalize() ??
-                        "Tezos";
-                final accountService = injector<AccountService>();
-                final addresses = await accountService.getAddress(blockchain);
-
-                String? address;
-                if (addresses.isEmpty) {
-                  final defaultAccount =
-                      await accountService.getDefaultAccount();
-                  final configService = injector<ConfigurationService>();
-                  await configService.setDoneOnboarding(true);
-                  await configService.setPendingSettings(true);
-                  address = blockchain == "Tezos"
-                      ? await defaultAccount.getTezosAddress()
-                      : await defaultAccount.getETHAddress();
-                } else if (addresses.length == 1) {
-                  address = addresses.first;
-                } else {
-                  if (!mounted) return;
-                  await Navigator.of(context).pushNamed(
-                    AppRouter.claimSelectAccountPage,
-                    arguments: SelectAccountPageArgs(
-                      blockchain,
-                      widget.artwork,
-                      widget.otp,
-                    ),
-                  );
-                }
-                if (address != null && mounted) {
-                  _claimToken(context, address);
-                } else {
-                  setState(() {
-                    _processing = false;
-                  });
-                }
-              },
-            ),
-            AuFilledButton(
+            OutlineButton(
               text: "decline".tr(),
               enabled: !_processing,
-              onPress: () {
+              color: theme.colorScheme.primary,
+              onTap: () {
                 metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {

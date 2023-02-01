@@ -6,19 +6,25 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
+
 import 'hidden_artworks_bloc.dart';
 
 class HiddenArtworksPage extends StatefulWidget {
@@ -41,24 +47,71 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () => Navigator.of(context).pop(),
-      ),
+      appBar: getBackAppBar(context, title: "hidden_artwork".tr(), onBack: () {
+        Navigator.of(context).pop();
+      }),
       body: BlocBuilder<HiddenArtworksBloc, List<AssetToken>>(
           builder: (context, state) {
         return Container(
-          child: _assetsWidget(state),
+          child: state.isEmpty
+              ? _emptyHiddenArtwork(context)
+              : _assetsWidget(state),
         );
       }),
     );
   }
 
-  Widget _assetsWidget(List<AssetToken> tokens) {
+  Widget _emptyHiddenArtwork(BuildContext context) {
     final theme = Theme.of(context);
+    return Padding(
+      padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          addTitleSpace(),
+          Text(
+            'no_hidden_artwork'.tr(),
+            style: theme.textTheme.ppMori400Black16,
+            textAlign: TextAlign.start,
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'to_hide_an_artowrk'.tr(),
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+                WidgetSpan(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(),
+                      ),
+                      child: const Icon(
+                        Icons.more_horiz,
+                        size: 15,
+                      ),
+                    ),
+                  ),
+                ),
+                TextSpan(
+                  text: 'and_select'.tr(),
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
 
-    final artworkIdentities =
-        tokens.map((e) => ArtworkIdentity(e.id, e.ownerAddress)).toList();
+  Widget _assetsWidget(List<AssetToken> tokens) {
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
@@ -74,13 +127,9 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
 
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 24, 24, 14),
-            child: Text(
-              "Hidden",
-              style: theme.textTheme.headline1,
-            ),
+        const SliverToBoxAdapter(
+          child: SizedBox(
+            height: 3,
           ),
         ),
         SliverGrid(
@@ -94,43 +143,64 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                 final asset = tokens[index];
                 final ext = p.extension(asset.getGalleryThumbnailUrl()!);
                 return GestureDetector(
-                  child: Hero(
-                    tag: asset.id,
-                    child: ext == ".svg"
-                        ? SvgImage(
-                            url: asset.getGalleryThumbnailUrl()!,
-                            loadingWidgetBuilder: (_) =>
-                                const GalleryThumbnailPlaceholder(),
-                            errorWidgetBuilder: (_) =>
-                                const GalleryThumbnailErrorWidget(),
-                            unsupportWidgetBuilder: (context) =>
-                                const GalleryUnSupportThumbnailWidget(),
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: asset.getGalleryThumbnailUrl()!,
-                            fit: BoxFit.cover,
-                            memCacheHeight: _cachedImageSize,
-                            memCacheWidth: _cachedImageSize,
-                            cacheManager: injector<CacheManager>(),
-                            placeholder: (context, index) =>
-                                const GalleryThumbnailPlaceholder(),
-                            errorWidget: (context, url, error) =>
-                                const GalleryThumbnailErrorWidget(),
-                            placeholderFadeInDuration: const Duration(
-                              milliseconds: 300,
-                            ),
+                  child: Stack(
+                    children: [
+                      Hero(
+                        tag: asset.id,
+                        child: ext == ".svg"
+                            ? SvgImage(
+                                url: asset.getGalleryThumbnailUrl()!,
+                                loadingWidgetBuilder: (_) =>
+                                    const GalleryThumbnailPlaceholder(),
+                                errorWidgetBuilder: (_) =>
+                                    const GalleryThumbnailErrorWidget(),
+                                unsupportWidgetBuilder: (context) =>
+                                    const GalleryUnSupportThumbnailWidget(),
+                              )
+                            : CachedNetworkImage(
+                                imageUrl: asset.getGalleryThumbnailUrl()!,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                                memCacheHeight: _cachedImageSize,
+                                memCacheWidth: _cachedImageSize,
+                                cacheManager: injector<CacheManager>(),
+                                placeholder: (context, index) =>
+                                    const GalleryThumbnailPlaceholder(),
+                                errorWidget: (context, url, error) =>
+                                    const GalleryThumbnailErrorWidget(),
+                                placeholderFadeInDuration: const Duration(
+                                  milliseconds: 300,
+                                ),
+                              ),
+                      ),
+                      ClipRRect(
+                        // Clip it cleanly.
+                        child: Container(
+                          color: Colors.black.withOpacity(0.4),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            AuIcon.hidden_artwork,
+                            color: AppColor.white,
                           ),
+                        ),
+                      ),
+                    ],
                   ),
-                  onTap: () {
-                    final index = artworkIdentities.indexWhere((element) =>
-                        element.id == asset.id &&
-                        element.owner == asset.ownerAddress);
-                    final payload =
-                        ArtworkDetailPayload(artworkIdentities, index);
+                  onTap: () async {
+                    const isHidden = true;
+                    await injector<ConfigurationService>()
+                        .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+                    injector<SettingsDataService>().backup();
 
-                    Navigator.of(context).pushNamed(
-                        AppRouter.artworkDetailsPage,
-                        arguments: payload);
+                    if (!mounted) return;
+                    UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                        onOK: () {
+                      Navigator.of(context).pop();
+                      context
+                          .read<HiddenArtworksBloc>()
+                          .add(HiddenArtworksEvent());
+                    });
                   },
                 );
               },

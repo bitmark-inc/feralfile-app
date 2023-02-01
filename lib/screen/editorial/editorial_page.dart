@@ -5,10 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -47,6 +50,7 @@ class _EditorialPageState extends State<EditorialPage>
     _editorialController = ScrollController();
     _feedController.addListener(_scrollListener);
     _editorialController.addListener(_scrollListener);
+    _tabController.addListener(_handleTabChange);
     _tabController.addListener(_scrollListener);
     context.read<EditorialBloc>().add(GetEditorialEvent());
   }
@@ -63,6 +67,21 @@ class _EditorialPageState extends State<EditorialPage>
       setState(() {
         _showFullHeader = isShowFullHeader;
       });
+    }
+  }
+
+  void _handleTabChange() {
+    if (_tabController.index != _tabController.previousIndex) {
+      _trackEvent(_tabController.index);
+    }
+  }
+
+  void _trackEvent(int index) {
+    final metricClient = injector<MetricClientService>();
+    if (index == 0 && widget.isShowDiscover) {
+      metricClient.addEvent(MixpanelEvent.viewDiscovery);
+    } else {
+      metricClient.addEvent(MixpanelEvent.viewEditorial);
     }
   }
 

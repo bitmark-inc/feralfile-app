@@ -29,9 +29,12 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -73,6 +76,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   bool generatedPersona = false;
   final metricClient = injector.get<MetricClientService>();
   bool _isAccountSelected = false;
+  final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
   @override
   void initState() {
@@ -107,7 +111,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     injector<NavigationService>().setIsWCConnectInShow(false);
   }
 
-  void _reject() async {
+  Future<void> _reject() async {
     final wc2Proposal = widget.wc2Proposal;
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
@@ -129,9 +133,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       injector<TezosBeaconService>()
           .permissionResponse(null, beaconRequest.id, null, null);
     }
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
   }
 
   Future _approve({bool onBoarding = false}) async {
@@ -141,6 +142,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
 
+    UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
 
@@ -213,6 +215,8 @@ class _WCConnectPageState extends State<WCConnectPage>
         personaName: selectedPersona!.name,
         isBackHome: true);
     if (!mounted) return;
+    UIHelper.hideInfoDialog(context);
+
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
       Navigator.of(context).pop();
@@ -243,27 +247,54 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (notificationEnable) {
       if (widget.beaconRequest?.appName != null) {
         metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
+        if (!mounted) return;
         showInfoNotification(
           const Key("connected"),
-          "connected_to"
-              .tr(args: [widget.beaconRequest!.appName!]).toUpperCase(),
-          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+          "connected_to".tr(),
+          frontWidget: SvgPicture.asset(
+            "assets/images/checkbox_icon.svg",
+            width: 24,
+          ),
+          addOnTextSpan: [
+            TextSpan(
+              text: widget.beaconRequest!.appName!,
+              style: Theme.of(context).textTheme.ppMori400Green14,
+            )
+          ],
         );
       } else if (widget.wcConnectArgs?.peerMeta.name != null) {
         metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
+        if (!mounted) return;
         showInfoNotification(
           const Key("connected"),
-          "connected_to"
-              .tr(args: [widget.wcConnectArgs!.peerMeta.name]).toUpperCase(),
-          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+          "connected_to".tr(),
+          frontWidget: SvgPicture.asset(
+            "assets/images/checkbox_icon.svg",
+            width: 24,
+          ),
+          addOnTextSpan: [
+            TextSpan(
+              text: widget.beaconRequest!.appName!,
+              style: Theme.of(context).textTheme.ppMori400Green14,
+            )
+          ],
         );
       } else if (widget.wc2Proposal?.proposer.name != null) {
         metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
+        if (!mounted) return;
         showInfoNotification(
           const Key("connected"),
-          "connected_to"
-              .tr(args: [widget.wc2Proposal!.proposer.name]).toUpperCase(),
-          frontWidget: SvgPicture.asset("assets/images/checkbox_icon.svg"),
+          "connected_to".tr(),
+          frontWidget: SvgPicture.asset(
+            "assets/images/checkbox_icon.svg",
+            width: 24,
+          ),
+          addOnTextSpan: [
+            TextSpan(
+              text: widget.beaconRequest!.appName!,
+              style: Theme.of(context).textTheme.ppMori400Green14,
+            )
+          ],
         );
       }
     }
@@ -280,7 +311,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return WillPopScope(
       onWillPop: () async {
         metricClient.addEvent(MixpanelEvent.backConnectMarket);
@@ -290,34 +321,71 @@ class _WCConnectPageState extends State<WCConnectPage>
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () {
+          title: 'connect'.tr(),
+          onBack: () async {
             metricClient.addEvent(MixpanelEvent.backConnectMarket);
-            _reject();
+            await _reject();
+            if (!mounted) return;
+            Navigator.pop(context);
           },
         ),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton
+              .copyWith(left: 0, right: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "connect".tr(),
-                style: theme.textTheme.headline1,
-              ),
-              const SizedBox(height: 24.0),
-              _appInfo(),
-              const SizedBox(height: 24.0),
+              addTitleSpace(),
               Padding(
-                padding: const EdgeInsets.only(left: 10),
+                padding: padding,
+                child: _appInfo(),
+              ),
+              const SizedBox(height: 32),
+              addDivider(height: 52),
+              Padding(
+                padding: padding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ...grantPermissions
-                        .map(
-                          (permission) => Text("• $permission",
-                              style: theme.textTheme.bodyText1),
-                        )
-                        .toList(),
+                    Text(
+                      "you_have_permission".tr(),
+                      style: theme.textTheme.ppMori400Black16,
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColor.auGrey,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ...grantPermissions
+                                .map(
+                                  (permission) => Row(
+                                    children: [
+                                      const SizedBox(
+                                        width: 6,
+                                      ),
+                                      Text("•",
+                                          style:
+                                              theme.textTheme.ppMori400Black14),
+                                      const SizedBox(
+                                        width: 6,
+                                      ),
+                                      Text(permission,
+                                          style:
+                                              theme.textTheme.ppMori400Black14),
+                                    ],
+                                  ),
+                                )
+                                .toList(),
+                          ],
+                        )),
                   ],
                 ),
               ),
@@ -351,33 +419,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                   personas = statePersonas;
                 });
               }, builder: (context, state) {
-                final statePersonas = personas;
-                if (statePersonas == null) return const SizedBox();
-
-                if (statePersonas.isEmpty) {
-                  return Expanded(child: _createAccountAndConnect());
-                } else {}
-                if (widget.wc2Proposal != null) {
-                  return Expanded(
-                    child: Column(
-                      children: [
-                        const Expanded(child: SizedBox()),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: AuFilledButton(
-                                text: "connect".tr().toUpperCase(),
-                                onPress: () =>
-                                    withDebounce(() => _approveThenNotify()),
-                              ),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-                  );
-                }
-                return Expanded(child: _selectPersonaWidget(statePersonas));
+                return _selectAccount();
               }),
             ],
           ),
@@ -407,46 +449,70 @@ class _WCConnectPageState extends State<WCConnectPage>
     return const SizedBox();
   }
 
-  Widget _wcAppInfo(WCPeerMeta peerMeta) {
-    final theme = Theme.of(context);
+  Widget _selectAccount() {
+    final statePersonas = personas;
+    if (statePersonas == null) return const SizedBox();
 
-    return Column(
-      children: [
-        Row(
+    if (statePersonas.isEmpty) {
+      return Expanded(child: _createAccountAndConnect());
+    }
+    if (widget.wc2Proposal != null) {
+      return Expanded(
+        child: Column(
           children: [
-            if (peerMeta.icons.isNotEmpty) ...[
-              CachedNetworkImage(
-                imageUrl: peerMeta.icons.first,
-                width: 64.0,
-                height: 64.0,
-                errorWidget: (context, url, error) => SizedBox(
-                    width: 64,
-                    height: 64,
-                    child: Image.asset(
-                        "assets/images/walletconnect-alternative.png")),
-              ),
-            ] else ...[
-              SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: Image.asset(
-                      "assets/images/walletconnect-alternative.png")),
-            ],
-            const SizedBox(width: 16.0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(peerMeta.name, style: theme.textTheme.headline4),
-                  Text(
-                    "requests_permission_to".tr(),
-                    style: theme.textTheme.bodyText1,
+            const Expanded(child: SizedBox()),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: padding,
+                    child: AuPrimaryButton(
+                      text: "connect".tr(),
+                      onPressed: () => withDebounce(() => _approveThenNotify()),
+                    ),
                   ),
-                ],
-              ),
+                )
+              ],
             )
           ],
         ),
+      );
+    }
+    return Expanded(child: _selectPersonaWidget(statePersonas));
+  }
+
+  Widget _wcAppInfo(WCPeerMeta peerMeta) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        if (peerMeta.icons.isNotEmpty) ...[
+          CachedNetworkImage(
+            imageUrl: peerMeta.icons.first,
+            width: 64.0,
+            height: 64.0,
+            errorWidget: (context, url, error) => SizedBox(
+                width: 64,
+                height: 64,
+                child:
+                    Image.asset("assets/images/walletconnect-alternative.png")),
+          ),
+        ] else ...[
+          SizedBox(
+              width: 64,
+              height: 64,
+              child:
+                  Image.asset("assets/images/walletconnect-alternative.png")),
+        ],
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(peerMeta.name, style: theme.textTheme.ppMori700Black24),
+            ],
+          ),
+        )
       ],
     );
   }
@@ -454,41 +520,34 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget _tbAppInfo(BeaconRequest request) {
     final theme = Theme.of(context);
 
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            request.icon != null
-                ? CachedNetworkImage(
-                    imageUrl: request.icon!,
-                    width: 64.0,
-                    height: 64.0,
-                    errorWidget: (context, url, error) => SvgPicture.asset(
-                      "assets/images/tezos_social_icon.svg",
-                      width: 64.0,
-                      height: 64.0,
-                    ),
-                  )
-                : SvgPicture.asset(
-                    "assets/images/tezos_social_icon.svg",
-                    width: 64.0,
-                    height: 64.0,
-                  ),
-            const SizedBox(width: 16.0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(request.appName ?? "", style: theme.textTheme.headline4),
-                  Text(
-                    "requests_permission_to".tr(),
-                    style: theme.textTheme.bodyText1,
-                  ),
-                ],
+        request.icon != null
+            ? CachedNetworkImage(
+                imageUrl: request.icon!,
+                width: 64.0,
+                height: 64.0,
+                errorWidget: (context, url, error) => SvgPicture.asset(
+                  "assets/images/tezos_social_icon.svg",
+                  width: 64.0,
+                  height: 64.0,
+                ),
+              )
+            : SvgPicture.asset(
+                "assets/images/tezos_social_icon.svg",
+                width: 64.0,
+                height: 64.0,
               ),
-            )
-          ],
-        ),
+        const SizedBox(width: 24.0),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(request.appName ?? "",
+                  style: theme.textTheme.ppMori700Black24),
+            ],
+          ),
+        )
       ],
     );
   }
@@ -501,9 +560,12 @@ class _WCConnectPageState extends State<WCConnectPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "select_grand_access".tr(), //"Select an account to grant access:",
-          style: theme.textTheme.headline4,
+        Padding(
+          padding: padding,
+          child: Text(
+            "select_grand_access".tr(), //"Select an account to grant access:",
+            style: theme.textTheme.ppMori400Black16,
+          ),
         ),
         const SizedBox(height: 16.0),
         Expanded(
@@ -512,67 +574,68 @@ class _WCConnectPageState extends State<WCConnectPage>
               ...personas
                   .map((persona) => Column(
                         children: [
-                          GestureDetector(
-                            child: ListTile(
-                              title: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 30,
-                                    height: 32,
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: Image.asset(
-                                            "assets/images/moma_logo.png"),
+                          Padding(
+                            padding: ResponsiveLayout.pageEdgeInsets
+                                .copyWith(top: 0, bottom: 0),
+                            child: GestureDetector(
+                              child: ListTile(
+                                title: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 30,
+                                      height: 32,
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: Image.asset(
+                                              "assets/images/moma_logo.png"),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 16.0),
-                                  FutureBuilder<String>(
-                                    future: persona.wallet().getAccountDID(),
-                                    builder: (context, snapshot) {
-                                      final name = persona.name.isNotEmpty
-                                          ? persona.name
-                                          : snapshot.data ?? '';
-                                      return Expanded(
-                                        child: Text(
-                                          name.replaceFirst('did:key:', ''),
-                                          style: theme.textTheme.headline4,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                              trailing: (hasRadio
-                                  ? Transform.scale(
-                                      scale: 1.2,
-                                      child: Radio(
-                                        activeColor: theme.colorScheme.primary,
-                                        value: persona,
-                                        groupValue: selectedPersona,
-                                        onChanged: (Persona? value) {
+                                    const SizedBox(width: 32),
+                                    FutureBuilder<String>(
+                                      future: persona.wallet().getAccountDID(),
+                                      builder: (context, snapshot) {
+                                        final name = persona.name.isNotEmpty
+                                            ? persona.name
+                                            : snapshot.data ?? '';
+                                        return Expanded(
+                                          child: Text(
+                                            name.replaceFirst('did:key:', ''),
+                                            style: theme
+                                                .textTheme.ppMori400Black14,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                contentPadding: EdgeInsets.zero,
+                                trailing: (hasRadio
+                                    ? AuRadio(
+                                        onTap: (Persona? persona) {
                                           setState(() {
                                             selectedPersona = persona;
                                             _isAccountSelected = true;
                                           });
                                         },
-                                      ),
-                                    )
-                                  : null),
+                                        value: persona,
+                                        groupValue: selectedPersona,
+                                      )
+                                    : null),
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  selectedPersona = persona;
+                                  _isAccountSelected = true;
+                                });
+                              },
                             ),
-                            onTap: () {
-                              setState(() {
-                                selectedPersona = persona;
-                                _isAccountSelected = true;
-                              });
-                            },
                           ),
-                          const Divider(height: 16.0),
+                          addOnlyDivider(),
                         ],
                       ))
                   .toList(),
@@ -582,14 +645,17 @@ class _WCConnectPageState extends State<WCConnectPage>
         Row(
           children: [
             Expanded(
-              child: AuFilledButton(
-                text: "connect".tr().toUpperCase(),
-                onPress: _isAccountSelected
-                    ? () {
-                        metricClient.addEvent(MixpanelEvent.connectMarket);
-                        withDebounce(() => _approveThenNotify());
-                      }
-                    : null,
+              child: Padding(
+                padding: padding,
+                child: AuPrimaryButton(
+                  text: "connect".tr(),
+                  onPressed: _isAccountSelected
+                      ? () {
+                          metricClient.addEvent(MixpanelEvent.connectMarket);
+                          withDebounce(() => _approveThenNotify());
+                        }
+                      : null,
+                ),
               ),
             )
           ],
@@ -599,23 +665,26 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _createAccountAndConnect() {
-    return Column(
-      children: [
-        const Spacer(),
-        Row(
-          children: [
-            Expanded(
-              child: AuFilledButton(
-                text: "connect".tr().toUpperCase(),
-                onPress: () {
-                  metricClient.addEvent(MixpanelEvent.connectMarket);
-                  withDebounce(() => _createAccount());
-                },
-              ),
-            )
-          ],
-        ),
-      ],
+    return Padding(
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+      child: Column(
+        children: [
+          const Spacer(),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  text: "connect".tr(),
+                  onTap: () {
+                    metricClient.addEvent(MixpanelEvent.connectMarket);
+                    withDebounce(() => _createAccount());
+                  },
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
     );
   }
 

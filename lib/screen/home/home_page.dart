@@ -202,7 +202,16 @@ class HomePageState extends State<HomePage>
     final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
-            builder: (context, state) {
+            buildWhen: (previousState, currentState) {
+      final diffLength =
+          currentState.tokens.length - previousState.tokens.length;
+      if (diffLength > 0) {
+        _metricClient.addEvent(MixpanelEvent.addNFT, data: {
+          'number': diffLength,
+        });
+      }
+      return true;
+    }, builder: (context, state) {
       final hiddenTokens =
           injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
       final sentArtworks =
@@ -337,26 +346,36 @@ class HomePageState extends State<HomePage>
                 child: autonomyLogo,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: SizedBox(
-                height: 103,
-                child: ValueListenableBuilder(
-                  valueListenable: _playlists,
-                  builder: (context, value, child) => ListPlaylistWidget(
-                    playlists: _playlists.value,
-                    onUpdateList: () async {
-                      if (injector
-                          .get<ConfigurationService>()
-                          .isDemoArtworksMode()) return;
-                      await injector
-                          .get<ConfigurationService>()
-                          .setPlayList(_playlists.value, override: true);
-                      injector.get<SettingsDataService>().backup();
-                    },
+            FutureBuilder<bool>(
+              future: injector<IAPService>().isSubscribed(),
+              builder: (context, subscriptionSnapshot) {
+                final isSubscribed = subscriptionSnapshot.hasData &&
+                    subscriptionSnapshot.data == true;
+                return Visibility(
+                  visible: isSubscribed,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: SizedBox(
+                      height: 103,
+                      child: ValueListenableBuilder(
+                        valueListenable: _playlists,
+                        builder: (context, value, child) => ListPlaylistWidget(
+                          playlists: _playlists.value,
+                          onUpdateList: () async {
+                            if (injector
+                                .get<ConfigurationService>()
+                                .isDemoArtworksMode()) return;
+                            await injector
+                                .get<ConfigurationService>()
+                                .setPlayList(_playlists.value, override: true);
+                            injector.get<SettingsDataService>().backup();
+                          },
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             )
           ],
         ),
@@ -540,17 +559,19 @@ class HomePageState extends State<HomePage>
     log.info("[HomePage] Show subscription notification");
     await configService.setLastTimeAskForSubscription(DateTime.now());
     const key = Key("subscription");
-    showInfoNotification(
-      key,
-      "subscription_hint".tr(),
-      duration: const Duration(seconds: 5),
-      openHandler: () {
-        UpgradesView.showSubscriptionDialog(context, null, null, () {
-          hideOverlay(key);
-          context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-        });
-      },
-    );
+    if (!mounted) return;
+    showInfoNotification(key, "subscription_hint".tr(),
+        duration: const Duration(seconds: 5), openHandler: () {
+      UpgradesView.showSubscriptionDialog(context, null, null, () {
+        hideOverlay(key);
+        context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+      });
+    }, addOnTextSpan: [
+      TextSpan(
+        text: 'trial_today'.tr(),
+        style: Theme.of(context).textTheme.ppMori400Green14,
+      )
+    ]);
   }
 
   void _handleBackground() {

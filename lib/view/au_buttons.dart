@@ -39,9 +39,51 @@ class AuPrimaryButton extends StatelessWidget {
 class AuSecondaryButton extends StatelessWidget {
   final Function() onPressed;
   final String text;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? borderColor;
 
-  const AuSecondaryButton(
-      {Key? key, required this.onPressed, required this.text})
+  const AuSecondaryButton({
+    Key? key,
+    required this.onPressed,
+    required this.text,
+    this.backgroundColor,
+    this.textColor,
+    this.borderColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 43.0,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: borderColor ?? Colors.white),
+            borderRadius: BorderRadius.circular(32.0),
+          ),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: Theme.of(context)
+              .textTheme
+              .ppMori400White14
+              .copyWith(color: textColor),
+        ),
+      ),
+    );
+  }
+}
+
+class AuCustomButton extends StatelessWidget {
+  final Function()? onPressed;
+  final Widget? child;
+
+  const AuCustomButton({Key? key, required this.onPressed, required this.child})
       : super(key: key);
 
   @override
@@ -51,14 +93,16 @@ class AuSecondaryButton extends StatelessWidget {
       height: 43.0,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColor.white,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Colors.white),
             borderRadius: BorderRadius.circular(32.0),
           ),
+          side: const BorderSide(),
+          alignment: Alignment.center,
         ),
         onPressed: onPressed,
-        child: Text(text, style: Theme.of(context).textTheme.ppMori400White14),
+        child: child,
       ),
     );
   }

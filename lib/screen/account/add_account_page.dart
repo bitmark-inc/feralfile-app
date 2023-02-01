@@ -18,10 +18,11 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 class AddAccountPage extends StatefulWidget {
   const AddAccountPage({Key? key}) : super(key: key);
@@ -96,19 +97,26 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("show_token_debug_log".tr(),
-                        style: theme.textTheme.headline4),
-                    CupertinoSwitch(
+                        style: theme.textTheme.ppMori400Black14),
+                    FlutterSwitch(
+                      height: 25,
+                      width: 48,
+                      toggleSize: 19.2,
+                      padding: 2,
                       value:
                           injector<ConfigurationService>().showTokenDebugInfo(),
-                      onChanged: (isEnabled) async {
+                      onToggle: (isEnabled) async {
                         await injector<ConfigurationService>()
                             .setShowTokenDebugInfo(isEnabled);
                         setState(() {
                           _redrawObject = Object();
                         });
                       },
-                      activeColor: theme.colorScheme.primary,
-                    )
+                      activeColor: AppColor.auSuperTeal,
+                      inactiveColor: Colors.transparent,
+                      toggleColor: AppColor.primaryBlack,
+                      inactiveSwitchBorder: Border.all(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 40),

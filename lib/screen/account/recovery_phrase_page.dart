@@ -24,13 +24,15 @@ class RecoveryPhrasePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final itemsEachRow = words.length ~/ 2;
+    final roundNumber = words.length ~/ 2;
     final theme = Theme.of(context);
     final customLinkStyle =
-        theme.textTheme.linkStyle.copyWith(fontWeight: FontWeight.bold);
+        theme.textTheme.linkStyle14.copyWith(fontWeight: FontWeight.w400);
 
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "your_recovery_phrase".tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -45,14 +47,10 @@ class RecoveryPhrasePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "your_recovery_phrase".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
                     RichText(
                       text: TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.textTheme.ppMori400Black14,
                         children: <TextSpan>[
                           TextSpan(
                             text: 'yrp_we’ve_safely'.tr(),
@@ -93,19 +91,17 @@ class RecoveryPhrasePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(color: theme.colorScheme.primary)),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildRow(context, 0, itemsEachRow),
-                          _buildRow(context, itemsEachRow, itemsEachRow)
-                        ],
+                    Table(
+                      children: List.generate(
+                        roundNumber,
+                        (index) {
+                          return _tableRow(context, index, itemsEachRow);
+                        },
                       ),
-                    )
+                      border: TableBorder.all(
+                          color: AppColor.auLightGrey,
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
                   ],
                 ),
               ),
@@ -116,27 +112,32 @@ class RecoveryPhrasePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(BuildContext context, int offset, int itemsEachRow) {
+  Widget _rowItem(BuildContext context, int index) {
     final theme = Theme.of(context);
+    final word = words[index];
+    NumberFormat formatter = NumberFormat("00");
 
-    return Column(
-      children: List.generate(itemsEachRow, (index) {
-        final word = words[index + offset];
-        return SizedBox(
-          width: 140,
-          child: Column(children: [
-            Row(children: [
-              Container(
-                  width: 28,
-                  alignment: Alignment.centerRight,
-                  child: Text("${index + offset + 1}. ",
-                      style: theme.textTheme.headline4)),
-              Text(word, style: theme.textTheme.headline4),
-            ]),
-            const SizedBox(height: 4),
-          ]),
-        );
-      }),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            alignment: Alignment.centerRight,
+            child: Text(formatter.format(index + 1),
+                style: theme.textTheme.ppMori400Grey14),
+          ),
+          const SizedBox(width: 16),
+          Text(word, style: theme.textTheme.ppMori400Black14),
+        ],
+      ),
     );
+  }
+
+  TableRow _tableRow(BuildContext context, int index, int itemsEachCol) {
+    return TableRow(children: [
+      _rowItem(context, index),
+      _rowItem(context, index + itemsEachCol),
+    ]);
   }
 }

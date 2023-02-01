@@ -14,9 +14,9 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkManuallyPage extends StatefulWidget {
   final String type;
@@ -142,7 +142,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
     Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
       if (injector<ConfigurationService>().isDoneOnboarding()) {
         Navigator.of(context)
-            .popUntil((route) => route.settings.name == AppRouter.settingsPage);
+            .popUntil((route) => route.settings.name == AppRouter.walletPage);
       } else {
         doneOnboarding(context);
       }

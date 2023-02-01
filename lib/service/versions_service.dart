@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
-
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -41,16 +40,17 @@ class VersionService {
     String currentVersion = packageInfo.version;
 
     if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
+      await _configurationService.setLastestVersion(false);
       await showForceUpdateDialog(versionInfo.link);
     } else {
       // check to show Release Notes
-      await showReleaseNotes(onlyWhenUnread: true);
+      await showReleaseNotes(currentVersion: currentVersion);
+      await _configurationService.setLastestVersion(true);
     }
   }
 
-  Future showReleaseNotes({required bool onlyWhenUnread}) async {
-    String currentVersion = (await PackageInfo.fromPlatform()).version;
-    if (onlyWhenUnread) {
+  Future showReleaseNotes({String? currentVersion}) async {
+    if (currentVersion != null) {
       final readVersion = _configurationService.getReadReleaseNotesVersion();
       if (readVersion == null ||
           compareVersion(readVersion, currentVersion) >= 0) {
@@ -60,9 +60,12 @@ class VersionService {
     }
 
     final releaseNotes = await getReleaseNotes(currentVersion);
-    if (onlyWhenUnread && releaseNotes == "TBD") return;
+    if (releaseNotes == "TBD") return;
 
-    await showReleaseNodeDialog(releaseNotes, currentVersion);
+    if (currentVersion != null) {
+      await _configurationService.setReadReleaseNotesInVersion(currentVersion);
+    }
+    await showReleaseNodeDialog(releaseNotes);
   }
 
   Future<VersionInfo> getVersionInfo() async {
@@ -84,33 +87,17 @@ class VersionService {
     }
   }
 
-  Future<String> getReleaseNotes(String currentVersion) async {
+  Future<String> getReleaseNotes(String? currentVersion) async {
     var releaseNotes = "";
     try {
-      final version =
-          currentVersion.substring(0, currentVersion.lastIndexOf("."));
       final app = (await isAppCenterBuild()) ? 'dev' : 'production';
-      releaseNotes = await _pubdocAPI.getReleaseNotesContent(app, version);
+      releaseNotes = await _pubdocAPI.getReleaseNotesContent(app);
 
-      final textBegin = "## VERSION: $currentVersion";
-      const iOSTextBegin = "#### [iOS]\n";
-      const androidTextBegin = "#### [Android]\n";
-
-      if (releaseNotes.contains(textBegin)) {
-        releaseNotes = releaseNotes.split(textBegin)[1];
-        releaseNotes = releaseNotes.split("\n## VERSION")[0];
-
-        if (releaseNotes.contains(iOSTextBegin) ||
-            releaseNotes.contains(androidTextBegin)) {
-          if (Platform.isIOS) {
-            releaseNotes = releaseNotes.split(iOSTextBegin)[1];
-            releaseNotes = releaseNotes.split(androidTextBegin)[0];
-          } else {
-            releaseNotes = releaseNotes.split(androidTextBegin)[1];
-          }
+      if (currentVersion != null) {
+        final textBegin = "[#] $currentVersion";
+        if (!releaseNotes.startsWith(textBegin)) {
+          releaseNotes = "TBD";
         }
-      } else {
-        releaseNotes = "TBD";
       }
     } catch (_) {
       releaseNotes = "TBD";
@@ -156,18 +143,23 @@ class VersionService {
     );
   }
 
-  Future showReleaseNodeDialog(
-      String releaseNotes, String currentVersion) async {
+  Future showReleaseNodeDialog(String releaseNotes) async {
     var screenKey =
         "what_new".tr(); // avoid showing multiple what's new screens
     if (UIHelper.currentDialogTitle == screenKey) return;
 
-    releaseNotes = "[$currentVersion]$releaseNotes";
     UIHelper.currentDialogTitle = screenKey;
 
-    await _configurationService.setReadReleaseNotesInVersion(currentVersion);
     await _navigationService.navigateTo(AppRouter.releaseNotesPage,
         arguments: releaseNotes);
+  }
+
+  Future openLastestVersion() async {
+    final versionInfo = await getVersionInfo();
+    final uri = Uri.tryParse(versionInfo.link);
+    if (uri != null) {
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<List<PlayListModel>> getDemoAccountFromGithub() async {

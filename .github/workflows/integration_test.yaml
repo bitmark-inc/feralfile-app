@@ -109,11 +109,16 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE          
           flutter pub run test auto-test/mobile_external_webs/linkEthereumAccountWallet_test.dart
+      - name: Run Flutter Driver tests for Suite "Link Ethereum Wallet" without finishing Onboarding
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE          
+          flutter pub run test auto-test/mobile_external_webs/linkEthereumAccountWalletOnboarding_test.dart
       - name: Run auto tests for Suite "Purchase Feral File Ethereum NFT"
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE
-          flutter pub run test auto-test/mobile_external_webs/purchaseFeralfileEthereumToken_test.dart
+          flutter pub run test auto-test/mobile_external_webs/purchaseFeralFileEthereumToken_test.dart
       - name: Run auto tests for Suite "Purchase Tez NFT in outside exchanges"
         if: success() || failure()
         run: |

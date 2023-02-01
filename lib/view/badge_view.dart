@@ -16,20 +16,18 @@ class BadgeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-        width: 16,
-        height: 16,
+        width: 29,
+        height: 27,
         decoration: BoxDecoration(
-            color: theme.colorScheme.primary,
+            color: Colors.transparent,
             shape: BoxShape.circle,
-            border: Border.all(color: theme.colorScheme.secondary)),
+            border: Border.all(color: AppColor.auQuickSilver)),
         alignment: Alignment.center,
         child: Text(
           number > 9 ? '9+' : '$number',
           textAlign: TextAlign.center,
-          style: theme.textTheme.atlasWhite.copyWith(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            height: 1.33,
+          style: theme.textTheme.ppMori400White14.copyWith(
+            color: AppColor.auQuickSilver,
           ),
         ));
   }

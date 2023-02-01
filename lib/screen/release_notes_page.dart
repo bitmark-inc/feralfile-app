@@ -7,13 +7,16 @@
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/tag_markdown.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ReleaseNotesPage extends StatefulWidget {
   final String releaseNotes;
+
   const ReleaseNotesPage({required this.releaseNotes, Key? key})
       : super(key: key);
 
@@ -32,38 +35,41 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      color: theme.colorScheme.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 40),
-          Text("what_new".tr(), style: theme.primaryTextTheme.headline1),
-          const SizedBox(height: 40),
-          Expanded(
-            child: Markdown(
-              data: widget.releaseNotes,
-              softLineBreak: true,
-              padding: const EdgeInsets.only(bottom: 50),
-              styleSheet: markDownBlackStyle(context),
-            ),
-          ),
-          const SizedBox(height: 35),
-          Row(
-            children: [
-              Expanded(
-                child: AuFilledButton(
-                  text: "close".tr(),
-                  onPress: () => Navigator.of(context).pop(),
-                  color: theme.colorScheme.secondary,
-                  textStyle: theme.textTheme.button,
-                ),
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        title: "release_notes".tr(),
+        onBack: () => Navigator.of(context).pop(),
+      ),
+      body: Container(
+        color: theme.backgroundColor,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Markdown(
+                data: widget.releaseNotes,
+                softLineBreak: true,
+                padding: const EdgeInsets.only(bottom: 50, top: 32),
+                styleSheet: markDownChangeLogStyle(context),
+                builders: <String, MarkdownElementBuilder>{
+                  '#': TagBuilder(),
+                },
+                blockSyntaxes: [
+                  TagBlockSyntax(),
+                ],
+                onTapLink: (text, href, title) async {
+                  if (href == null) return;
+                  if (await canLaunchUrlString(href)) {
+                    launchUrlString(href);
+                  }
+                },
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

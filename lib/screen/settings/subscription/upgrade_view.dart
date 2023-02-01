@@ -13,10 +13,12 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
-import 'package:autonomy_theme/style/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +33,6 @@ class UpgradesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
-    final theme = Theme.of(context);
 
     return BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
       return Container(
@@ -39,12 +40,13 @@ class UpgradesView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "more_autonomy".tr(),
-                style: theme.textTheme.headline1,
+              const Center(
+                child: Icon(
+                  AuIcon.subscription,
+                  size: 63,
+                ),
               ),
-              const SizedBox(height: 24.0),
-              _subscribeView(context, state),
+              _statusSection(context, state),
             ],
           ));
     });
@@ -61,169 +63,6 @@ class UpgradesView extends StatelessWidget {
     }
   }
 
-  static Widget _subscribeView(BuildContext context, UpgradeState state) {
-    final theme = Theme.of(context);
-    final mixpanel = injector<MixPanelClientService>().mixpanel;
-    switch (state.status) {
-      case IAPProductStatus.completed:
-        mixpanel.getPeople().set("Subscription", "Subscried");
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("subscribed".tr(), style: theme.textTheme.headline4),
-            const SizedBox(height: 16.0),
-            Text("thank_support".tr(args: [_subscriptionsManagementLocation]),
-                //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
-                style: theme.textTheme.bodyText1),
-            const SizedBox(height: 10.0),
-            _benefit(context),
-          ],
-        );
-      case IAPProductStatus.trial:
-        mixpanel.getPeople().set("Subscription", "Trial");
-        final df = DateFormat("yyyy-MMM-dd");
-        final trialExpireDate = df.format(state.trialExpiredDate!);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
-                style: theme.textTheme.headline4),
-            const SizedBox(height: 16.0),
-            Text(
-                "you_will_be_charged".tr(namedArgs: {
-                  "price": state.productDetails?.price ?? "4.99usd".tr(),
-                  "date": trialExpireDate,
-                  "location": _subscriptionsManagementLocation
-                }),
-                //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
-                style: theme.textTheme.bodyText1),
-            const SizedBox(height: 10.0),
-            _benefit(context),
-          ],
-        );
-      case IAPProductStatus.loading:
-      case IAPProductStatus.pending:
-        return Container(
-          height: 80,
-          alignment: Alignment.center,
-          child: const CupertinoActivityIndicator(),
-        );
-      case IAPProductStatus.notPurchased:
-      case IAPProductStatus.expired:
-        mixpanel.getPeople().set("Subscription", "Free");
-        return GestureDetector(
-          onTap: (() => showSubscriptionDialog(
-                  context, state.productDetails?.price, null, (() {
-                context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-              }))),
-          child: Column(
-            children: [
-              Row(children: [
-                Text("h_subscribe".tr(), style: theme.textTheme.headline4),
-                if (injector<ConfigurationService>()
-                    .shouldShowSubscriptionHint()) ...[
-                  const SizedBox(
-                    width: 7,
-                  ),
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: AppColor.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ]),
-              const SizedBox(height: 16.0),
-              ...[
-                "view_collection_tv".tr(),
-                //"View your collection on TV and projectors.",
-              ]
-                  .map((item) => Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ' •  ',
-                              style: theme.textTheme.bodyText1,
-                              textAlign: TextAlign.start,
-                            ),
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: theme.textTheme.bodyText1,
-                              ),
-                            ),
-                          ]))
-                  .toList(),
-              const SizedBox(height: 16.0),
-              ...[
-                "organize_and_play".tr(),
-              ]
-                  .map((item) => Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ' •  ',
-                              style: theme.textTheme.bodyText1,
-                              textAlign: TextAlign.start,
-                            ),
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: theme.textTheme.bodyText1,
-                              ),
-                            ),
-                          ]))
-                  .toList(),
-            ],
-          ),
-        );
-      case IAPProductStatus.error:
-        return Text("error_loading_sub".tr(),
-            //"Error when loading your subscription.",
-            style: theme.textTheme.headline4);
-    }
-  }
-
-  static _benefitItem(BuildContext context, String text) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(width: 6),
-        Column(
-          children: [
-            const SizedBox(height: 6),
-            SvgPicture.asset("assets/images/icon_checkMark.svg"),
-          ],
-        ),
-        const SizedBox(width: 12.0),
-        Expanded(
-          child: Text(text, style: theme.textTheme.bodyText1),
-        ),
-      ],
-    );
-  }
-
-  static _benefit(BuildContext context) {
-    return Column(
-      children: [
-        _benefitItem(
-          context,
-          "view_collection_tv".tr(),
-        ),
-        const SizedBox(height: 15),
-        _benefitItem(
-          context,
-          "organize_and_play".tr(),
-        ),
-      ],
-    );
-  }
-
   static showSubscriptionDialog(BuildContext context, String? price,
       PremiumFeature? feature, Function()? onPressSubscribe,
       {Function? onCancel}) {
@@ -237,12 +76,17 @@ class UpgradesView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (feature != null) ...[
-            Text(feature.moreAutonomyDescription,
-                style: theme.primaryTextTheme.bodyText1),
+            Text(
+              feature.moreAutonomyDescription,
+              style: theme.textTheme.ppMori400White14,
+            ),
             const SizedBox(height: 16),
           ],
-          Text('upgrading_gives_you'.tr(),
-              style: theme.primaryTextTheme.bodyText1),
+          Text(
+            'upgrading_gives_you'.tr(),
+            style: theme.textTheme.ppMori400White14,
+          ),
+          const SizedBox(height: 16),
           SvgPicture.asset(
             'assets/images/premium_comparation.svg',
             height: 320,
@@ -277,5 +121,137 @@ class UpgradesView extends StatelessWidget {
       ),
     );
     injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
+  }
+
+  Widget _statusSection(
+    BuildContext context,
+    UpgradeState state,
+  ) {
+    final mixpanel = injector<MixPanelClientService>().mixpanel;
+    final theme = Theme.of(context);
+    IAPProductStatus status = IAPProductStatus.loading; //state.status;
+    switch (status) {
+      case IAPProductStatus.completed:
+        mixpanel.getPeople().set("Subscription", "Subscried");
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("subscribed".tr(), style: theme.textTheme.headline4),
+            const SizedBox(height: 16.0),
+            Text("thank_support".tr(args: [_subscriptionsManagementLocation]),
+                //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
+                style: theme.textTheme.bodyText1),
+            const SizedBox(height: 10.0),
+            _benefitImage(context),
+            AuPrimaryButton(onPressed: () {}, text: 'subscribed'.tr()),
+            Text(
+              "you_will_be_charged".tr(namedArgs: {
+                "price": state.productDetails?.price ?? "4.99usd".tr(),
+                "date": "",
+                "location": _subscriptionsManagementLocation
+              }),
+            ),
+          ],
+        );
+      case IAPProductStatus.trial:
+        mixpanel.getPeople().set("Subscription", "Trial");
+        final df = DateFormat("yyyy-MMM-dd");
+        final trialExpireDate =
+            df.format(state.trialExpiredDate ?? DateTime.now());
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
+                style: theme.textTheme.headline4),
+            const SizedBox(height: 16.0),
+            Text(
+                "to_cancel_your_subscription".tr(
+                    namedArgs: {"location": _subscriptionsManagementLocation}),
+                //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
+                style: theme.textTheme.bodyText1),
+            const SizedBox(height: 10.0),
+            _benefitImage(context),
+            const SizedBox(
+              height: 10,
+            ),
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                children: [
+                  AuPrimaryButton(
+                      onPressed: () {}, text: 'sub_then_price'.tr()),
+                  Text(
+                    'you_will_be_charged'.tr(
+                      namedArgs: {
+                        "price": state.productDetails?.price ?? "4.99usd".tr(),
+                        "date": trialExpireDate,
+                      },
+                    ),
+                    style: theme.textTheme.ppMori400Black12,
+                    textAlign: TextAlign.center,
+                  )
+                ],
+              ),
+            ),
+          ],
+        );
+      case IAPProductStatus.loading:
+      case IAPProductStatus.pending:
+        return Container(
+          height: 80,
+          alignment: Alignment.center,
+          child: const CupertinoActivityIndicator(),
+        );
+      case IAPProductStatus.expired:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'your_subscription_has_expired'.tr(),
+            )
+          ],
+        );
+      case IAPProductStatus.notPurchased:
+        return Column(
+          children: [
+            Text('upgrade_to_use'.tr()),
+            _benefitImage(context),
+            AuPrimaryButton(
+                onPressed: () {
+                  onPressSubscribe(context);
+                  Navigator.of(context).pop();
+                },
+                text: 'sub_then_price'.tr()),
+            Text('then_price'.tr(args: ["4.99usd".tr()])),
+          ],
+        );
+      case IAPProductStatus.error:
+      default:
+        return Text("error_loading_sub".tr(),
+            //"Error when loading your subscription.",
+            style: theme.textTheme.headline4);
+    }
+  }
+
+  static Widget _benefitImage(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Center(
+          child: SvgPicture.asset(
+            'assets/images/premium_comparation.svg',
+            height: 320,
+          ),
+        ),
+        Text(
+          'gg_tv_app'.tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+      ],
+    );
+  }
+
+  static void onPressSubscribe(BuildContext context) {
+    context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
   }
 }

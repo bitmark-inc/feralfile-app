@@ -19,10 +19,9 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:bubble/bubble.dart';
@@ -115,17 +114,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         metadata: const {"status": "resolved"},
       );
 
-  types.TextMessage get _askRatingMessenger => types.TextMessage(
+  types.CustomMessage get _askRatingMessenger => types.CustomMessage(
         author: _bitmark,
         id: _askRatingMessengerID,
-        text: "rate_issue".tr(),
+        metadata: const {"status": "rateIssue"},
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
-  types.TextMessage get _askReviewMessenger => types.TextMessage(
+  types.CustomMessage get _askReviewMessenger => types.CustomMessage(
         author: _bitmark,
         id: _askReviewMessengerID,
-        text: "care_to_share".tr(),
+        metadata: const {"status": "careToShare"},
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -207,20 +206,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("ask_attach_crash".tr(),
-              //"Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
-              style: theme.primaryTextTheme.bodyText1),
-          const SizedBox(height: 40),
-          AuFilledButton(
-            text: "attach_crash_logH".tr(),
-            color: theme.colorScheme.secondary,
-            textStyle: theme.textTheme.button,
-            onPress: () => onConfirm(true),
+          Text(
+            "ask_attach_crash".tr(),
+            //"Would you like to attach a crash log with your support request? The crash log is anonymous and will help our engineers identify the issue.",
+            style: theme.primaryTextTheme.ppMori400White14,
           ),
-          AuFilledButton(
+          const SizedBox(height: 40),
+          PrimaryButton(
+            text: "attach_crash_logH".tr(),
+            onTap: () => onConfirm(true),
+          ),
+          const SizedBox(height: 10),
+          OutlineButton(
             text: "conti_no_crash_log".tr(),
-            textStyle: theme.primaryTextTheme.button,
-            onPress: () => onConfirm(false),
+            onTap: () => onConfirm(false),
           ),
           const SizedBox(height: 40),
         ],
@@ -277,7 +276,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     return Scaffold(
         appBar: getBackAppBar(
           context,
-          title: ReportIssueType.toTitle(_reportIssueType).toUpperCase(),
+          title: ReportIssueType.toTitle(_reportIssueType),
           onBack: () => Navigator.of(context).pop(),
         ),
         body: Container(
@@ -292,7 +291,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               customMessageBuilder: _customMessageBuilder,
               emptyState: const CupertinoActivityIndicator(),
               messages: messages,
-              onAttachmentPressed: _handleAtachmentPressed,
+              onAttachmentPressed: _handleAttachmentPressed,
               onSendPressed: _handleSendPressed,
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
@@ -353,7 +352,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
       itemBuilder: (context, _) => const Icon(
         Icons.star,
-        color: AppColor.primaryBlack,
+        color: AppColor.white,
       ),
       unratedColor: AppColor.secondarySpanishGrey,
       ignoreGestures: true,
@@ -368,8 +367,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }) {
     final theme = Theme.of(context);
     var color = _user.id != message.author.id
-        ? AppColor.chatSecondaryColor
-        : AppColor.chatPrimaryColor;
+        ? AppColor.auSuperTeal
+        : AppColor.primaryBlack;
 
     if (message.type == types.MessageType.image) {
       color = Colors.transparent;
@@ -434,14 +433,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                       child: Bubble(
                         color: color,
                         borderColor: isError ? orangeRust : null,
-                        margin: nextMessageInGroup
-                            ? const BubbleEdges.symmetric(horizontal: 6)
-                            : null,
-                        nip: nextMessageInGroup
-                            ? BubbleNip.no
-                            : _user.id != message.author.id
-                                ? BubbleNip.leftBottom
-                                : BubbleNip.rightBottom,
+                        radius: const Radius.circular(10),
+                        nipWidth: 0.1,
+                        nipRadius: 0,
+                        nip: _user.id != message.author.id
+                            ? BubbleNip.leftBottom
+                            : BubbleNip.rightBottom,
                         child: child,
                       ),
                     ),
@@ -450,7 +447,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                 const SizedBox(height: 4),
                 Text(
                   "failed_to_send".tr(),
-                  style: theme.textTheme.atlasBlackNormal12
+                  style: theme.textTheme.ppMori400Black12
                       .copyWith(color: orangeRust),
                 ),
               ],
@@ -458,14 +455,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           )
         : Bubble(
             color: color,
-            margin: nextMessageInGroup
-                ? const BubbleEdges.symmetric(horizontal: 6)
-                : null,
-            nip: nextMessageInGroup
-                ? BubbleNip.no
-                : _user.id != message.author.id
-                    ? BubbleNip.leftBottom
-                    : BubbleNip.rightBottom,
+            radius: const Radius.circular(10),
+            nipWidth: 0.1,
+            nipRadius: 0,
+            nip: _user.id != message.author.id
+                ? BubbleNip.leftBottom
+                : BubbleNip.rightBottom,
             child: child,
           );
   }
@@ -477,30 +472,42 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       case "resolved":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.chatSecondaryColor,
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          color: AppColor.auSuperTeal,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-              "issue_resolved".tr(),
-              //"Issue resolved.\nOur team thanks you for helping us improve Autonomy.",
-              textAlign: TextAlign.center,
+              "issue_resolved_".tr(),
+              textAlign: TextAlign.start,
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasWhiteBold14
-                  : theme.textTheme.atlasWhiteBold16,
+                  ? theme.textTheme.ppMori700Black14
+                  : theme.textTheme.ppMori700Black16,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
+            Text(
+              "our_team_thank".tr(),
+              textAlign: TextAlign.start,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ppMori400Black14
+                  : theme.textTheme.ppMori400Black16,
+            ),
+            const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                setState(() {
-                  _status = "clickToReopen";
-                });
+                if (_status == "close") {
+                  setState(() {
+                    _status = "clickToReopen";
+                  });
+                }
               },
               style: theme.textButtonNoPadding,
               child: Text(
                 "still_problem".tr(),
                 //"Still experiencing the same problem?",
                 style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.whitelinkStyle
-                    : theme.textTheme.whitelinkStyle16,
+                    ? theme.textTheme.linkStyle14
+                        .copyWith(fontFamily: AppTheme.ppMori)
+                    : theme.textTheme.linkStyle16
+                        .copyWith(fontFamily: AppTheme.ppMori),
               ),
             ),
           ]),
@@ -508,8 +515,38 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       case "rating":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.chatPrimaryColor,
+          color: AppColor.primaryBlack,
           child: _ratingBar(message.metadata?["rating"]),
+        );
+      case "careToShare":
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          color: AppColor.auSuperTeal,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              "care_to_share".tr(),
+              textAlign: TextAlign.start,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ppMori700Black14
+                  : theme.textTheme.ppMori700Black16,
+            ),
+          ]),
+        );
+      case "rateIssue":
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          color: AppColor.auSuperTeal,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              "rate_issue".tr(),
+              textAlign: TextAlign.start,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ppMori700Black14
+                  : theme.textTheme.ppMori700Black16,
+            ),
+          ]),
         );
 
       default:
@@ -686,45 +723,33 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     Navigator.pop(context);
   }
 
-  void _handleAtachmentPressed() {
-    final theme = Theme.of(context);
-
+  void _handleAttachmentPressed() {
     UIHelper.showDialog(
       context,
       "attach_file".tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () {
+          PrimaryButton(
+            onTap: () {
               _handleImageSelection();
               Navigator.of(context).pop();
             },
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child:
-                  Text('photo'.tr(), style: theme.primaryTextTheme.headline4),
-            ),
+            text: 'photo'.tr(),
           ),
-          addDialogDivider(),
-          TextButton(
-            style: theme.textButtonNoPadding,
-            onPressed: () async {
+          const SizedBox(
+            height: 10,
+          ),
+          PrimaryButton(
+            onTap: () async {
               await _addAppLogs();
             },
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('debug_log'.tr(),
-                  style: theme.primaryTextTheme.headline4),
-            ),
+            text: 'debug_log'.tr(),
           ),
-          const SizedBox(height: 40),
-          Align(
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("cancel".tr(), style: theme.primaryTextTheme.button),
-            ),
+          const SizedBox(height: 10),
+          OutlineButton(
+            onTap: () => Navigator.of(context).pop(),
+            text: "cancel_dialog".tr(),
           ),
           const SizedBox(height: 15),
         ],
@@ -878,7 +903,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 40),
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,
-      inputTextStyle: theme.textTheme.bodyText1!,
+      inputTextStyle: theme.textTheme.ppMori400White14,
       inputTextColor: theme.colorScheme.secondary,
       attachmentButtonIcon: SvgPicture.asset(
         "assets/images/joinFile.svg",
@@ -889,8 +914,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         _sendIcon,
       ),
       inputTextCursorColor: theme.colorScheme.secondary,
-      emptyChatPlaceholderTextStyle: theme.textTheme.headline4!
-          .copyWith(color: AppColor.secondarySpanishGrey),
+      emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400White14
+          .copyWith(color: AppColor.auQuickSilver),
       dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
       dateDividerTextStyle: ResponsiveLayout.isMobile
           ? theme.textTheme.dateDividerTextStyle
@@ -903,10 +928,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       receivedMessageBodyTextStyle: ResponsiveLayout.isMobile
           ? theme.textTheme.receivedMessageBodyTextStyle
           : theme.textTheme.receivedMessageBodyTextStyle16,
-      receivedMessageDocumentIconColor: theme.colorScheme.secondary,
-      sentMessageDocumentIconColor: theme.colorScheme.secondary,
-      documentIcon: Image.asset(
-        "assets/images/chatFileIcon.png",
+      receivedMessageDocumentIconColor: Colors.transparent,
+      sentMessageDocumentIconColor: Colors.transparent,
+      documentIcon: SvgPicture.asset(
+        "assets/images/bug_icon.svg",
         width: 20,
       ),
       sentMessageCaptionTextStyle: ResponsiveLayout.isMobile

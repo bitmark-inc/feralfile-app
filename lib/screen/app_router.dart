@@ -10,11 +10,11 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/wc2_proposal.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
@@ -95,9 +95,14 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
@@ -106,6 +111,7 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.da
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
@@ -192,6 +198,11 @@ class AppRouter {
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
   static const articleDetailPage = 'article_detail_page';
+  static const preferencesPage = 'preferences_page';
+  static const walletPage = 'wallet_page';
+  static const subscriptionPage = 'subscription_page';
+  static const dataManagementPage = 'data_management_page';
+  static const helpUsPage = 'help_us_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector());
@@ -225,17 +236,28 @@ class AppRouter {
         );
       case onboardingPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => RouterBloc(
-                      injector(),
-                      injector(),
-                      injector(),
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: const OnboardingPage()));
+          settings: settings,
+          builder: (context) => MultiBlocProvider(providers: [
+            BlocProvider(
+              create: (_) => RouterBloc(
+                injector(),
+                injector(),
+                injector(),
+                injector<CloudDatabase>(),
+                injector(),
+                injector<AuditService>(),
+              ),
+            ),
+            BlocProvider(
+              create: (_) => PersonaBloc(
+                injector<CloudDatabase>(),
+                injector(),
+                injector(),
+                injector<AuditService>(),
+              ),
+            ),
+          ], child: const OnboardingPage()),
+        );
 
       case previewPrimerPage:
         return PageTransition(
@@ -651,6 +673,17 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(
                   providers: [
+                    BlocProvider.value(value: accountsBloc),
+                    BlocProvider.value(value: ethereumBloc),
+                    BlocProvider.value(value: tezosBloc),
+                    BlocProvider.value(value: usdcBloc),
+                    BlocProvider.value(
+                        value: ConnectionsBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector(),
+                    )),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
@@ -875,10 +908,15 @@ class AppRouter {
       case hiddenArtworksPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => HiddenArtworksBloc(
-                      injector<ConfigurationService>(),
-                      injector<NftCollectionBloc>().database.assetDao),
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => HiddenArtworksBloc(
+                          injector<ConfigurationService>(),
+                          injector<NftCollectionBloc>().database.assetDao),
+                    ),
+                    BlocProvider.value(value: nftCollectionBloc),
+                  ],
                   child: const HiddenArtworksPage(),
                 ));
 
@@ -1043,7 +1081,54 @@ class AppRouter {
               return ArticleDetailPage(
                   post: settings.arguments as EditorialPost);
             });
-
+      case walletPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                ],
+                child: const WalletPage(),
+              );
+            });
+      case preferencesPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return MultiBlocProvider(providers: [
+                BlocProvider(
+                  create: (_) => PreferencesBloc(injector()),
+                ),
+                BlocProvider.value(value: accountsBloc),
+              ], child: const PreferencePage());
+            });
+      case subscriptionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return MultiBlocProvider(providers: [
+                BlocProvider(
+                  create: (_) => UpgradesBloc(injector(), injector()),
+                ),
+              ], child: const SubscriptionPage());
+            });
+      case dataManagementPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return MultiBlocProvider(providers: [
+                BlocProvider(
+                    create: (_) =>
+                        IdentityBloc(injector<AppDatabase>(), injector())),
+              ], child: const DataManagementPage());
+            });
+      case helpUsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return const HelpUsPage();
+            });
       default:
         throw Exception('Invalid route: ${settings.name}');
     }
