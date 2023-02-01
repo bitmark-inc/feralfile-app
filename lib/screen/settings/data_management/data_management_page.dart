@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_view.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -21,6 +22,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 
 class DataManagementPage extends StatefulWidget {
@@ -31,6 +33,8 @@ class DataManagementPage extends StatefulWidget {
 }
 
 class _DataManagementPageState extends State<DataManagementPage> {
+  bool _allowContribution = injector<ConfigurationService>().allowContribution();
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +45,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return Scaffold(
-      appBar: getBackAppBar(context, title: "Data Management", onBack: () {
+      appBar: getBackAppBar(context, title: 'data_management'.tr(), onBack: () {
         Navigator.of(context).pop();
       }),
       body: SafeArea(
@@ -52,6 +56,49 @@ class _DataManagementPageState extends State<DataManagementPage> {
               children: [
                 Column(
                   children: [
+                    Padding(
+                      padding: padding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('nft_metadata_contribution'.tr(),
+                                      style: theme.textTheme.ppMori400Black16),
+                                ],
+                              ),
+                              FlutterSwitch(
+                                height: 25,
+                                width: 48,
+                                toggleSize: 19.2,
+                                padding: 2,
+                                value: _allowContribution,
+                                onToggle: (value) {
+                                  injector<ConfigurationService>().setAllowContribution(value);
+                                  setState(() {
+                                    _allowContribution = value;
+                                  });
+                                },
+                                activeColor: AppColor.auSuperTeal,
+                                inactiveColor: Colors.transparent,
+                                toggleColor: AppColor.primaryBlack,
+                                inactiveSwitchBorder: Border.all(),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            'allow_automatically_contributing_data'.tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    addDivider(height: 16),
                     Padding(
                       padding: padding,
                       child: TappableForwardRowWithContent(
