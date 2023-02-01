@@ -33,7 +33,8 @@ class DataManagementPage extends StatefulWidget {
 }
 
 class _DataManagementPageState extends State<DataManagementPage> {
-  bool _allowContribution = injector<ConfigurationService>().allowContribution();
+  bool _allowContribution =
+      injector<ConfigurationService>().allowContribution();
 
   @override
   void initState() {
@@ -77,7 +78,8 @@ class _DataManagementPageState extends State<DataManagementPage> {
                                 padding: 2,
                                 value: _allowContribution,
                                 onToggle: (value) {
-                                  injector<ConfigurationService>().setAllowContribution(value);
+                                  injector<ConfigurationService>()
+                                      .setAllowContribution(value);
                                   setState(() {
                                     _allowContribution = value;
                                   });
