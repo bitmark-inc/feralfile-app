@@ -121,7 +121,7 @@ class ParticipateUserTestPage extends StatelessWidget {
                     onPressed: () => launchUrl(
                         Uri.parse(USER_TEST_CALENDAR_LINK),
                         mode: LaunchMode.inAppWebView,
-                        webViewConfiguration: WebViewConfiguration(
+                        webViewConfiguration: const WebViewConfiguration(
                             headers: <String, String>{
                               'my_header_key': 'my_header_value'
                             })),

@@ -111,7 +111,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     injector<NavigationService>().setIsWCConnectInShow(false);
   }
 
-  void _reject() async {
+  Future<void> _reject() async {
     final wc2Proposal = widget.wc2Proposal;
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
@@ -133,9 +133,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       injector<TezosBeaconService>()
           .permissionResponse(null, beaconRequest.id, null, null);
     }
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
   }
 
   Future _approve({bool onBoarding = false}) async {
@@ -322,9 +319,11 @@ class _WCConnectPageState extends State<WCConnectPage>
         appBar: getBackAppBar(
           context,
           title: 'connect'.tr(),
-          onBack: () {
+          onBack: () async {
             metricClient.addEvent(MixpanelEvent.backConnectMarket);
-            _reject();
+            await _reject();
+            if (!mounted) return;
+            Navigator.pop(context);
           },
         ),
         body: Container(

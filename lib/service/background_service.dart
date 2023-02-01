@@ -93,11 +93,15 @@ class BackgroundService {
       final uri = Uri.tryParse(token.previewURL);
       if (uri == null) continue;
 
-      final res = await http.head(uri);
-      tokens.add({
-        "indexID": token.indexID,
-        "mimeType": res.headers["content-type"],
-      });
+      try {
+        final res = await http.head(uri);
+        tokens.add({
+          "indexID": token.indexID,
+          "mimeType": res.headers["content-type"],
+        });
+      } catch (e) {
+        log.info('[BackgroundService] error getting mimeType for $uri.');
+      }
     }
 
     await _crowdSourcingApi.sendTokenFeedback({
