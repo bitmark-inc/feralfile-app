@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -103,6 +104,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (link == null) return;
 
     log.info("[DeeplinkService] receive deeplink $link");
+
+    final metricClient = injector<MetricClientService>();
+    metricClient.addEvent(MixpanelEvent.scanQR, hashedData: {"link": link});
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();

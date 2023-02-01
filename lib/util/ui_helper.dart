@@ -9,9 +9,31 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
+import 'package:autonomy_flutter/screen/survey/survey.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
@@ -25,28 +47,6 @@ import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
-
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
-import 'package:autonomy_flutter/screen/survey/survey.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
-import 'package:autonomy_flutter/util/feralfile_extension.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -108,6 +108,7 @@ Future newAccountPageOrSkipInCondition(BuildContext context) async {
 
 class UIHelper {
   static String currentDialogTitle = '';
+  static final metricClient = injector.get<MetricClientService>();
 
   static Future<void> showDialog(
       BuildContext context, String title, Widget content,
@@ -511,6 +512,8 @@ class UIHelper {
   static Future showAirdropNotStarted(BuildContext context) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, "");
+    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {"message": error.dialogMessage});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -539,6 +542,8 @@ class UIHelper {
   static Future showAirdropExpired(BuildContext context) async {
     final theme = Theme.of(context);
     final error = FeralfileError(3007, "");
+    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {"message": error.dialogMessage});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -570,6 +575,8 @@ class UIHelper {
     required FFArtwork artwork,
   }) async {
     final error = FeralfileError(3009, "");
+    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {"message": error.dialogMessage});
     return showErrorDialog(
       context,
       error.getDialogTitle(artwork: artwork),
@@ -580,6 +587,8 @@ class UIHelper {
 
   static Future showOtpExpired(BuildContext context) async {
     final error = FeralfileError(3013, "");
+    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {"message": error.dialogMessage});
     return showErrorDialog(
       context,
       error.dialogTitle,
@@ -600,6 +609,9 @@ class UIHelper {
       final message = ffError != null
           ? ffError.getDialogMessage(artwork: artwork)
           : "${e.response?.data ?? e.message}";
+
+      metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+          data: {"message": message});
       await showErrorDialog(
         context,
         ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),

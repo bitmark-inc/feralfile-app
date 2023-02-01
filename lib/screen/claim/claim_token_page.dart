@@ -345,6 +345,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         address: receiveAddress,
         otp: widget.otp,
       );
+      metricClient.addEvent(
+        MixpanelEvent.acceptOwnershipSuccess,
+        data: {
+          "id": widget.artwork.id,
+        },
+      );
+
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
