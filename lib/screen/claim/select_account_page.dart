@@ -218,8 +218,14 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         address: address,
         otp: otp,
       );
+      final metricClient = injector.get<MetricClientService>();
+      metricClient.addEvent(
+        MixpanelEvent.acceptOwnershipSuccess,
+        data: {
+          "id": widget.artwork.id,
+        },
+      );
       memoryValues.airdropFFExhibitionId.value = null;
-      final metricClient = injector<MetricClientService>();
       metricClient
           .addEvent(MixpanelEvent.acceptGiftNFT, data: {'id': artworkId});
     } catch (e) {

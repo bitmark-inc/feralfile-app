@@ -325,4 +325,7 @@ class MixpanelEvent {
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
   static const acceptGiftNFT = 'accept_gift_NFT';
+  static const scanQR = 'scan_qr';
+  static const acceptOwnershipSuccess = 'accept_ownership_success';
+  static const acceptOwnershipFail = 'accept_ownership_fail';
 }
