@@ -37,7 +37,10 @@ class ExternalAppInfoView extends StatelessWidget {
           const Spacer(),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColor.auLightGrey,
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.transparent,
+              disabledBackgroundColor: Colors.transparent,
+              disabledForegroundColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 side: BorderSide(color: statusColor ?? AppColor.auQuickSilver),
                 borderRadius: BorderRadius.circular(32.0),
@@ -47,7 +50,7 @@ class ExternalAppInfoView extends StatelessWidget {
             child: Center(
               child: Text(
                 status,
-                style: theme.textTheme.ppMori400Black14
+                style: theme.textTheme.ppMori400Grey14
                     .copyWith(color: statusColor),
               ),
             ),
