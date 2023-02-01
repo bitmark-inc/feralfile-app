@@ -1343,30 +1343,33 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
-      return SectionExpandedWidget(
-        header: "rights".tr(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            state.markdownData == null
-                ? const SizedBox()
-                : Markdown(
-                    key: const Key("rightsSection"),
-                    data: state.markdownData!.replaceAll(".**", "**"),
-                    softLineBreak: true,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(0),
-                    styleSheet: markDownRightStyle(context),
-                    onTapLink: (text, href, title) async {
-                      if (href == null) return;
-                      launchUrl(Uri.parse(href),
-                          mode: LaunchMode.externalApplication);
-                    }),
-            const SizedBox(height: 23.0),
-          ],
-        ),
-      );
+      if (state.markdownData != null) {
+        return SectionExpandedWidget(
+          header: "rights".tr(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Markdown(
+                key: const Key("rightsSection"),
+                data: state.markdownData!.replaceAll(".**", "**"),
+                softLineBreak: true,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(0),
+                styleSheet: markDownRightStyle(context),
+                onTapLink: (text, href, title) async {
+                  if (href == null) return;
+                  launchUrl(Uri.parse(href),
+                      mode: LaunchMode.externalApplication);
+                },
+              ),
+              const SizedBox(height: 23.0),
+            ],
+          ),
+        );
+      } else {
+        return const SizedBox();
+      }
     });
   }
 }

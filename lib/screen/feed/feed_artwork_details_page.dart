@@ -220,13 +220,13 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                         token?.desc ?? "",
                         textStyle: theme.textTheme.ppMori400White12,
                       ),
-                      artworkDetailsRightSection(context, token!),
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(
                           context, token!, artistName),
                       (token?.provenances ?? []).isNotEmpty
                           ? _provenanceView(context, token!.provenances!)
                           : const SizedBox(),
+                      artworkDetailsRightSection(context, token!),
                       const SizedBox(height: 80.0),
                     ],
                   ),
