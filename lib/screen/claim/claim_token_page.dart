@@ -325,7 +325,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         address: receiveAddress,
         otp: widget.otp,
       );
-      final metricClient = injector<MetricClientService>();
       metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
