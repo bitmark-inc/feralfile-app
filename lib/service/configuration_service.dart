@@ -160,6 +160,10 @@ abstract class ConfigurationService {
 
   Future setShowTokenDebugInfo(bool show);
 
+  bool isLastestVersion();
+
+  Future setLastestVersion(bool value);
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -226,6 +230,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
+  static const String KEY_LASTEST_VERSION = "lastest_version";
 
   static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
@@ -755,6 +760,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool hasFeed() {
     return _preferences.getBool(HAVE_FEED) ?? false;
+  }
+
+  @override
+  Future<void> setLastestVersion(bool value) async {
+    await _preferences.setBool(KEY_LASTEST_VERSION, value);
+  }
+
+  @override
+  bool isLastestVersion() {
+    return _preferences.getBool(KEY_LASTEST_VERSION) ?? false;
   }
 
   @override

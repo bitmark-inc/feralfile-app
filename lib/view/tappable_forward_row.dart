@@ -77,12 +77,15 @@ class TappableForwardRowWithContent extends StatelessWidget {
   }
 
   Widget _content() {
-    return Column(
-      children: [
-        _contentRow(),
-        const SizedBox(height: 16),
-        Row(children: [Expanded(child: bottomWidget)]),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          _contentRow(),
+          const SizedBox(height: 16),
+          Row(children: [Expanded(child: bottomWidget)]),
+        ],
+      ),
     );
   }
 

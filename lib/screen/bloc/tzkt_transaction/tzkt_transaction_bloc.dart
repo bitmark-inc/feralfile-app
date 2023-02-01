@@ -22,12 +22,17 @@ class TZKTTransactionBloc
       tokenItems ??= await injector<TZKTApi>().getTokenTransfer(
         anyOf: event.address,
       );
+
       newTokenItems ??= tokenItems;
+      emit(TZKTTransactionState(newItems: [], isLastPage: true));
 
-      int lastOperationID = newOperationItems.last.getID();
+      int? tokenNum;
+      if (newOperationItems.isNotEmpty) {
+        int lastOperationID = newOperationItems.last.getID();
 
-      int? tokenNum = newTokenItems
-          ?.lastIndexWhere((element) => element.getID() >= lastOperationID);
+        tokenNum = newTokenItems
+            ?.lastIndexWhere((element) => element.getID() >= lastOperationID);
+      }
 
       final List<TZKTTransactionInterface> newItems;
 

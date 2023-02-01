@@ -15,6 +15,7 @@ AppBar getBackAppBar(BuildContext context,
     {String backTitle = "BACK",
     String title = "",
     required Function()? onBack,
+    Widget? icon,
     Function()? action}) {
   final theme = Theme.of(context);
 
@@ -56,10 +57,11 @@ AppBar getBackAppBar(BuildContext context,
             tooltip: "AppbarAction",
             constraints: const BoxConstraints(maxWidth: 36.0),
             onPressed: action,
-            icon: Icon(
-              Icons.more_horiz,
-              color: theme.colorScheme.primary,
-            ),
+            icon: icon ??
+                Icon(
+                  Icons.more_horiz,
+                  color: theme.colorScheme.primary,
+                ),
           ),
         )
     ],

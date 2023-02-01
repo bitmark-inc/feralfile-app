@@ -6,12 +6,13 @@
 //
 
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 import '../util/constants.dart';
 
@@ -23,62 +24,91 @@ class ParticipateUserTestPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () => Navigator.of(context).pop(),
-        ),
-        body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      appBar: getBackAppBar(
+        context,
+        title: 'user_test'.tr(),
+        onBack: () => Navigator.of(context).pop(),
+      ),
+      body: Container(
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "p_user_test".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
                     Text(
                       "like_to_test".tr(),
-                      /*"""
-Do you like to test new things?\n
-Help us verify new designs and features, and we will pay you \$50 in USDC for 30 minutes of your time. \n
-What to expect:
-""",*/
-                      style: theme.textTheme.bodyText1,
+                      style: theme.textTheme.ppMori700Black24,
                     ),
                     const SizedBox(
-                      height: 20,
+                      height: 32,
                     ),
-                    ...[
-                      "user_test_will_1"
-                          .tr(), //'The user test will be conducted via Zoom.',
-                      "user_test_will_2"
-                          .tr(), //'You should have a good Internet connection in a quiet area.',
-                      "user_test_will_3"
-                          .tr(), //'You will be asked questions in English or French.',
-                      "user_test_will_4"
-                          .tr(), //'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
-                      "user_test_will_5"
-                          .tr(), //'We may ask you to install a development build on your device.',
-                    ]
-                        .map((e) => Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    ' •  ',
-                                    style: theme.textTheme.bodyText1,
-                                    textAlign: TextAlign.start,
-                                  ),
-                                  Expanded(
-                                    child: Text(e,
-                                        style: theme.textTheme.bodyText1),
-                                  ),
-                                ]))
-                        .toList(),
+                    Text(
+                      "help_us_verify".tr(),
+                      style: theme.textTheme.ppMori400Black16,
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColor.auSuperTeal,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "what_to_expect".tr(),
+                            style: theme.textTheme.ppMori700Black14,
+                          ),
+                          const SizedBox(height: 12),
+                          ...[
+                            "user_test_will_1"
+                                .tr(), //'The user test will be conducted via Zoom.',
+                            "user_test_will_2"
+                                .tr(), //'You should have a good Internet connection in a quiet area.',
+                            "user_test_will_3"
+                                .tr(), //'You will be asked questions in English or French.',
+                            "user_test_will_4"
+                                .tr(), //'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
+                            "user_test_will_5"
+                                .tr(), //'We may ask you to install a development build on your device.',
+                          ]
+                              .map(
+                                (e) => Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
+                                    Text(
+                                      ' •  ',
+                                      style: ResponsiveLayout.isMobile
+                                          ? theme.textTheme.ppMori400Black14
+                                          : theme.textTheme.ppMori400Black16,
+                                      textAlign: TextAlign.start,
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        e,
+                                        style: ResponsiveLayout.isMobile
+                                            ? theme.textTheme.ppMori400Black14
+                                            : theme.textTheme.ppMori400Black16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .toList(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -86,15 +116,22 @@ What to expect:
             Row(
               children: [
                 Expanded(
-                  child: AuFilledButton(
-                    text: "schedule_test".tr().toUpperCase(),
-                    onPress: () => launchUrl(Uri.parse(USER_TEST_CALENDAR_LINK),
-                        mode: LaunchMode.inAppWebView),
+                  child: AuPrimaryButton(
+                    text: "schedule_test".tr(),
+                    onPressed: () => launchUrl(
+                        Uri.parse(USER_TEST_CALENDAR_LINK),
+                        mode: LaunchMode.inAppWebView,
+                        webViewConfiguration: const WebViewConfiguration(
+                            headers: <String, String>{
+                              'my_header_key': 'my_header_value'
+                            })),
                   ),
                 ),
               ],
             ),
-          ]),
-        ));
+          ],
+        ),
+      ),
+    );
   }
 }

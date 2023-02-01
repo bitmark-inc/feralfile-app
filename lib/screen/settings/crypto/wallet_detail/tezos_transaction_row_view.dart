@@ -6,9 +6,10 @@
 //
 
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/fiat_formater.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -31,49 +32,62 @@ class TezosTXRowView extends StatelessWidget {
     final theme = Theme.of(context);
     final DateFormat formatter;
     formatter = DateTime.now().year == tx.getTimeStamp().year
-        ? dateFormatterMDHM
-        : dateFormatterYMDHM;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        ? dateFormatterMD
+        : dateFormatterYMD;
+    return TappableForwardRow(
+      onTap: () => Navigator.of(context).pushNamed(
+        AppRouter.tezosTXDetailPage,
+        arguments: {
+          "current_address": currentAddress,
+          "tx": tx,
+        },
+      ),
+      leftWidget: Row(
         children: [
-          Text(
-            formatter.format(tx.getTimeStamp()).toUpperCase(),
-            style: ResponsiveLayout.isMobile
-                ? theme.textTheme.ibmBlackNormal14
-                : theme.textTheme.ibmBlackNormal16,
+          tx.transactionImage(currentAddress),
+          const SizedBox(
+            width: 12,
           ),
-          const SizedBox(height: 3),
-          Row(
-            children: [
-              tx.transactionImage(currentAddress),
-              const SizedBox(width: 13),
-              Text(tx.transactionTitle(currentAddress),
-                  style: theme.textTheme.headline4),
-              const Spacer(),
-              Text(
-                  "${tx.txAmountSign(currentAddress)}${tx.totalAmount(currentAddress)}",
-                  style: theme.textTheme.caption),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 43),
-              Text(tx.transactionStatus(), style: theme.textTheme.headline5),
-              const Spacer(),
-              Text(
-                tx is! TZKTTokenTransfer
-                    ? "${tx.txAmountSign(currentAddress)}${FiatFormatter((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).format()}  USD"
-                    : "",
-                style: theme.textTheme.headline5,
+              Text(tx.transactionTitle(currentAddress),
+                  style: theme.textTheme.ppMori700Black14),
+              Row(
+                children: [
+                  Text(
+                    formatter.format(tx.getTimeStamp()).toUpperCase(),
+                    style: ResponsiveLayout.isMobile
+                        ? theme.textTheme.ppMori400Grey14
+                        : theme.textTheme.ppMori400Grey16,
+                  ),
+                  const SizedBox(
+                    width: 6,
+                  ),
+                  Text(tx.transactionStatus(),
+                      style: theme.textTheme.ppMori400Grey14),
+                ],
               )
             ],
-          ),
+          )
         ],
+      ),
+      rightWidget: Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+                "${tx.txAmountSign(currentAddress)}${tx.totalAmount(currentAddress)}",
+                style: theme.textTheme.ppMori400Black14),
+            Text(
+              tx is! TZKTTokenTransfer
+                  ? "${tx.txAmountSign(currentAddress)}${((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).toStringAsPrecision(2)} USD"
+                  : "",
+              style: theme.textTheme.ppMori400Grey14,
+            )
+          ],
+        ),
       ),
     );
   }

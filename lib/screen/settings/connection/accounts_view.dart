@@ -47,6 +47,8 @@ class _AccountsViewState extends State<AccountsView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+
     return BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) {
       final accounts = state.accounts;
@@ -67,43 +69,42 @@ class _AccountsViewState extends State<AccountsView> {
       if (!widget.isInSettingsPage) {
         return _noEditAccountsListWidget(accounts);
       }
-      int index = 0;
       return SlidableAutoCloseBehavior(
         child: Column(
           children: [
             ...accounts.map(
               (account) {
-                index++;
                 return Column(
                   children: [
-                    Slidable(
-                      groupTag: 'accountsView',
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        dragDismissible: false,
-                        children: slidableActions(
-                            account, account.persona?.defaultAccount == 1),
-                      ),
-                      child: Column(
-                        children: [
-                          if (_editingAccountKey == null ||
-                              _editingAccountKey != account.key) ...[
-                            _viewAccountItem(account),
-                          ] else ...[
-                            _editAccountItem(account),
+                    Padding(
+                      padding: padding,
+                      child: Slidable(
+                        groupTag: 'accountsView',
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          dragDismissible: false,
+                          children: slidableActions(
+                              account, account.persona?.defaultAccount == 1),
+                        ),
+                        child: Column(
+                          children: [
+                            if (_editingAccountKey == null ||
+                                _editingAccountKey != account.key) ...[
+                              _viewAccountItem(account),
+                            ] else ...[
+                              _editAccountItem(account),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                    index < accounts.length
-                        ? Divider(
-                            height: 1.0,
-                            thickness: 1.0,
-                            color: (_editingAccountKey == null ||
-                                    _editingAccountKey != account.key)
-                                ? null
-                                : theme.colorScheme.primary)
-                        : const SizedBox(),
+                    Divider(
+                        height: 1.0,
+                        thickness: 1.0,
+                        color: (_editingAccountKey == null ||
+                                _editingAccountKey != account.key)
+                            ? null
+                            : theme.colorScheme.primary)
                   ],
                 );
               },

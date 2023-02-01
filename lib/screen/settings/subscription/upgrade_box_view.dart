@@ -1,20 +1,18 @@
 // ignore_for_file: unused_element
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
-
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class UpgradeBoxView {
   static Widget getMoreAutonomyWidget(ThemeData theme, PremiumFeature feature,
@@ -86,28 +84,8 @@ class _GetMoreAUWidgetState extends State<GetMoreAUWidget> {
                   style: theme.primaryTextTheme.ppMori400Green14,
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
-                      UpgradesView.showSubscriptionDialog(
-                          context, state.productDetails?.price, widget.feature,
-                          (() {
-                        context
-                            .read<UpgradesBloc>()
-                            .add(UpgradePurchaseEvent());
-                        if (widget.autoClose) {
-                          Navigator.of(context).pop();
-                        }
-                      }), onCancel: () {
-                        if (widget.peerMeta != null && widget.id != null) {
-                          //injector<WalletConnectService>()
-                          //  .rejectRequest(widget.peerMeta!, widget.id!);
-                          injector<ConfigurationService>()
-                              .deleteTVConnectData();
-                        }
-                        setState(
-                          () {
-                            _loading = false;
-                          },
-                        );
-                      });
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.subscriptionPage);
                       setState(() {
                         _loading = true;
                       });

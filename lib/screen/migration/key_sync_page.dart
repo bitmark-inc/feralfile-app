@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -70,21 +71,17 @@ class KeySyncPage extends StatelessWidget {
                             "device_keychain".tr(),
                             style: theme.textTheme.headline4,
                           ),
-                          trailing: Transform.scale(
-                            scale: 1.25,
-                            child: Radio(
-                              activeColor: theme.colorScheme.primary,
-                              value: true,
-                              groupValue: state.isLocalSelected,
-                              onChanged: (bool? value) {
-                                if (state.isProcessing == true) {
-                                  return;
-                                }
-                                context
-                                    .read<KeySyncBloc>()
-                                    .add(ToggleKeySyncEvent(value ?? true));
-                              },
-                            ),
+                          trailing: AuRadio(
+                            value: true,
+                            groupValue: state.isLocalSelected,
+                            onTap: (bool? value) {
+                              if (state.isProcessing == true) {
+                                return;
+                              }
+                              context
+                                  .read<KeySyncBloc>()
+                                  .add(ToggleKeySyncEvent(value ?? true));
+                            },
                           ),
                         ),
                         const Divider(height: 1),
@@ -94,21 +91,17 @@ class KeySyncPage extends StatelessWidget {
                             'cloud_keychain'.tr(),
                             style: theme.textTheme.headline4,
                           ),
-                          trailing: Transform.scale(
-                            scale: 1.25,
-                            child: Radio(
-                              activeColor: theme.colorScheme.primary,
-                              value: false,
-                              groupValue: state.isLocalSelected,
-                              onChanged: (bool? value) {
-                                if (state.isProcessing == true) {
-                                  return;
-                                }
-                                context
-                                    .read<KeySyncBloc>()
-                                    .add(ToggleKeySyncEvent(value ?? true));
-                              },
-                            ),
+                          trailing: AuRadio(
+                            value: false,
+                            groupValue: state.isLocalSelected,
+                            onTap: (bool? value) {
+                              if (state.isProcessing == true) {
+                                return;
+                              }
+                              context
+                                  .read<KeySyncBloc>()
+                                  .add(ToggleKeySyncEvent(value ?? true));
+                            },
                           ),
                         ),
                         const SizedBox(height: 40.0),

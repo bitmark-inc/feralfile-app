@@ -6,14 +6,14 @@
 //
 
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter/material.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 Widget _notificationToast(BuildContext context, OSNotification notification,
     {Function(OSNotification notification)? notificationOpenedHandler}) {
@@ -60,11 +60,11 @@ class _SimpleNotificationToast extends StatelessWidget {
           }
         },
         child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 60),
           decoration: BoxDecoration(
             color: theme.auGreyBackground,
             borderRadius: BorderRadius.circular(5),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 60),
           child: Center(
               child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

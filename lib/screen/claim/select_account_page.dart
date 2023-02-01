@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -140,22 +141,16 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   Widget _accountItem(BuildContext context, Account account) {
-    final theme = Theme.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       child: IgnorePointer(
         child: Row(
           children: [
             Expanded(child: accountItem(context, account)),
-            Transform.scale(
-              scale: 1.2,
-              child: Radio(
-                activeColor: theme.colorScheme.primary,
+            AuRadio(
+                onTap: (_) {},
                 value: account.key,
-                groupValue: _selectedAccount?.key,
-                onChanged: (_) {},
-              ),
-            )
+                groupValue: _selectedAccount?.key)
           ],
         ),
       ),

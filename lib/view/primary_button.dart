@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
   final Function()? onTap;
@@ -28,6 +28,7 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor:
               enabled ? color ?? theme.auSuperTeal : theme.auLightGrey,
+          shadowColor: Colors.transparent,
           disabledForegroundColor: theme.auLightGrey,
           disabledBackgroundColor: theme.auLightGrey,
           shape: RoundedRectangleBorder(
@@ -96,6 +97,7 @@ class OutlineButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? theme.auGreyBackground,
+          shadowColor: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: borderColor ?? Colors.white),
