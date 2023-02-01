@@ -150,36 +150,17 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
     return Scaffold(
-      appBar: getAppBar(context,
-          title: widget.payload.type.name,
-          leftWidget: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-            child: Row(
-              children: [
-                Row(
-                  children: [
-                    SvgPicture.asset('assets/images/icon_back.svg'),
-                    const Text(
-                      "BACK",
-                      style: TextStyle(color: Colors.transparent),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          rightWidget: Row(
-            children: [
-              const Text(
-                "BACK",
-                style: TextStyle(color: Colors.transparent),
-              ),
-              _connectionIcon(),
-            ],
-          )),
+      appBar: getBackAppBar(
+        context,
+        title: widget.payload.type.name,
+        icon: const Icon(
+          AuIcon.scan,
+        ),
+        action: _connectionIconTap,
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
       body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
           listener: (context, state) async {},
           builder: (context, state) {
@@ -263,29 +244,21 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     );
   }
 
-  Widget _connectionIcon() {
-    return GestureDetector(
-      child: const Icon(
-        AuIcon.scan,
-      ),
-      onTap: () {
-        late ScannerItem scanItem;
+  void _connectionIconTap() {
+    late ScannerItem scanItem;
 
-        switch (widget.payload.type) {
-          case CryptoType.ETH:
-            scanItem = ScannerItem.WALLET_CONNECT;
-            break;
-          case CryptoType.XTZ:
-            scanItem = ScannerItem.BEACON_CONNECT;
-            break;
-          default:
-            break;
-        }
+    switch (widget.payload.type) {
+      case CryptoType.ETH:
+        scanItem = ScannerItem.WALLET_CONNECT;
+        break;
+      case CryptoType.XTZ:
+        scanItem = ScannerItem.BEACON_CONNECT;
+        break;
+      default:
+        break;
+    }
 
-        Navigator.of(context)
-            .pushNamed(AppRouter.scanQRPage, arguments: scanItem);
-      },
-    );
+    Navigator.of(context).pushNamed(AppRouter.scanQRPage, arguments: scanItem);
   }
 
   Widget _balanceSection(String balance, String balanceInUSD) {

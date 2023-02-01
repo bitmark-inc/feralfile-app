@@ -142,6 +142,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
 
+    UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
 
@@ -214,6 +215,8 @@ class _WCConnectPageState extends State<WCConnectPage>
         personaName: selectedPersona!.name,
         isBackHome: true);
     if (!mounted) return;
+    UIHelper.hideInfoDialog(context);
+
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
       Navigator.of(context).pop();

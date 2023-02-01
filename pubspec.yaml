@@ -40,7 +40,7 @@ dependencies:
   flutter_blue:
     git:
       url: https://github.com/autonomy-system/flutter_blue.git
-      ref: 4f1f28c7bab5596afa6fa175f81c3a953f7c993f
+      ref: e36798db86cd283eb556d90475f874bbd0f28cb4
   flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4

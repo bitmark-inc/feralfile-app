@@ -15,6 +15,7 @@ AppBar getBackAppBar(BuildContext context,
     {String backTitle = "BACK",
     String title = "",
     required Function()? onBack,
+    Widget? icon,
     Function()? action}) {
   final theme = Theme.of(context);
 
@@ -24,60 +25,46 @@ AppBar getBackAppBar(BuildContext context,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: const SizedBox(),
-    leadingWidth: 0.0,
-    title: Stack(
-      alignment: Alignment.center,
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.ppMori400Black16,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onBack,
+    centerTitle: true,
+    leadingWidth: 26,
+    leading: onBack != null
+        ? GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: onBack,
+            child: Semantics(
+              label: "BACK",
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                child: Row(
-                  children: [
-                    if (onBack != null) ...[
-                      Row(
-                        children: [
-                          SvgPicture.asset('assets/images/icon_back.svg'),
-                          Text(
-                            backTitle,
-                            style: const TextStyle(color: Colors.transparent),
-                          ),
-                        ],
-                      ),
-                    ] else ...[
-                      const SizedBox(width: 60),
-                    ],
-                  ],
+                padding: const EdgeInsets.only(left: 15),
+                child: SvgPicture.asset(
+                  'assets/images/icon_back.svg',
                 ),
               ),
             ),
-            action != null
-                ? IconButton(
-                    tooltip: "AppbarAction",
-                    constraints: const BoxConstraints(maxWidth: 36.0),
-                    onPressed: action,
-                    icon: Icon(
-                      Icons.more_horiz,
-                      color: theme.colorScheme.primary,
-                    ))
-                : const SizedBox(width: 60),
-          ],
-        ),
-      ],
+          )
+        : const SizedBox(),
+    automaticallyImplyLeading: false,
+    title: Text(
+      title,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.ppMori400Black16,
+      textAlign: TextAlign.center,
     ),
+    actions: [
+      if (action != null)
+        Padding(
+          padding: const EdgeInsets.only(right: 15),
+          child: IconButton(
+            tooltip: "AppbarAction",
+            constraints: const BoxConstraints(maxWidth: 36.0),
+            onPressed: action,
+            icon: icon ??
+                Icon(
+                  Icons.more_horiz,
+                  color: theme.colorScheme.primary,
+                ),
+          ),
+        )
+    ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
@@ -89,10 +76,7 @@ AppBar getBackAppBar(BuildContext context,
 }
 
 AppBar getCloseAppBar(BuildContext context,
-    {String backTitle = "BACK",
-    String title = "",
-    required Function()? onBack,
-    Function()? action}) {
+    {String title = "", required Function()? onBack}) {
   final theme = Theme.of(context);
 
   return AppBar(
@@ -103,106 +87,32 @@ AppBar getCloseAppBar(BuildContext context,
     ),
     leading: const SizedBox(),
     leadingWidth: 0.0,
-    title: Stack(
-      alignment: Alignment.center,
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.ppMori400Black16,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: onBack,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                child: Row(
-                  children: [
-                    if (onBack != null) ...[
-                      Row(
-                        children: [
-                          SvgPicture.asset('assets/images/icon_back.svg'),
-                          Text(
-                            backTitle,
-                            style: const TextStyle(color: Colors.transparent),
-                          ),
-                        ],
-                      ),
-                    ] else ...[
-                      const SizedBox(width: 60),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            action != null
-                ? IconButton(
-                    tooltip: "AppbarAction",
-                    constraints: const BoxConstraints(maxWidth: 36.0),
-                    onPressed: action,
-                    icon: Icon(
-                      Icons.more_horiz,
-                      color: theme.colorScheme.primary,
-                    ))
-                : const SizedBox(width: 60),
-          ],
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: onBack,
+          child: onBack != null
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
+                  child: closeIcon(),
+                )
+              : const SizedBox(width: 60),
         ),
-      ],
-    ),
-    backgroundColor: Colors.transparent,
-    shadowColor: Colors.transparent,
-    elevation: 0,
-    bottom: PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(),
-    ),
-  );
-}
-
-AppBar getAppBar(BuildContext context,
-    {String title = "", required Widget leftWidget, required rightWidget}) {
-  final theme = Theme.of(context);
-
-  return AppBar(
-    systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: theme.colorScheme.secondary,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ),
-    leading: const SizedBox(),
-    leadingWidth: 0.0,
-    title: Stack(
-      alignment: Alignment.center,
-      children: [
         Expanded(
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.ppMori400Black16,
+            style: theme.textTheme.button,
             textAlign: TextAlign.center,
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            leftWidget,
-            rightWidget,
-          ],
-        ),
+        const SizedBox(width: 60),
       ],
     ),
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
-    bottom: PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(),
-    ),
   );
 }

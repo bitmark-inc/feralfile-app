@@ -17,6 +17,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -895,6 +896,19 @@ class UIHelper {
     );
   }
 
+  static showLoadingScreen(BuildContext context, {String text = ''}) {
+    final theme = Theme.of(context);
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => loadingScreen(
+          theme,
+          text,
+        ),
+      ),
+    );
+  }
+
   static showConnectionFaild(
     BuildContext context, {
     required Function() onClose,
@@ -1154,7 +1168,11 @@ Widget loadingScreen(ThemeData theme, String text) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset("assets/images/autonomy_loader.png"),
+          Image.asset(
+            "assets/images/loading.gif",
+            width: 52,
+            height: 52,
+          ),
           const SizedBox(height: 20),
           Text(
             text,
