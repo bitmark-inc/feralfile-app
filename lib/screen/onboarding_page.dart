@@ -227,9 +227,6 @@ class _OnboardingPageState extends State<OnboardingPage>
           }
         }
         await cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        configurationService.setDoneOnboarding(true);
-        injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition);
       }
     }
   }
@@ -238,6 +235,9 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final height = MediaQuery.of(context).size.height;
+    final paddingTop = (height - 640).clamp(0.0, 104).toDouble();
 
     return Scaffold(
         body: BlocConsumer<RouterBloc, RouterState>(
@@ -308,7 +308,7 @@ class _OnboardingPageState extends State<OnboardingPage>
             children: [
               const SizedBox(height: 40),
               _logo(maxWidthLogo: 50),
-              const SizedBox(height: 104),
+              SizedBox(height: paddingTop),
               addBoldDivider(),
               Text("collect".tr(), style: theme.textTheme.ppMori700Black36),
               const SizedBox(height: 20),
