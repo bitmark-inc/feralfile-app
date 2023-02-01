@@ -116,8 +116,6 @@ class BackupService {
   Future restoreCloudDatabase(WalletStorage account, String version,
       {String dbName = 'cloud_database.db'}) async {
     log.info("[BackupService] start database restore");
-    const filename = _dbFileName;
-
     String? deviceId = await getBackupId();
     final authToken = await getAuthToken(account);
 
@@ -149,22 +147,6 @@ class BackupService {
         return;
       }
     }
-
-    final response = await http.get(
-        Uri.parse(
-            "$endpoint/apis/v1/premium/profile-data?filename=$filename&appVersion=$version"),
-        headers: {"requester": deviceId, "Authorization": "Bearer $authToken"});
-
-    if (response.statusCode != 200) {
-      log.warning("[BackupService] failed database restore");
-      return;
-    }
-
-    final path = await sqfliteDatabaseFactory.getDatabasePath(dbName);
-    final file = File(path);
-
-    await file.writeAsBytes(response.bodyBytes, flush: true);
-
     log.info("[BackupService] done database restore");
   }
 
