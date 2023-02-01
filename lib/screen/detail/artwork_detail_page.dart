@@ -213,6 +213,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       padding: const EdgeInsets.only(
                           left: 16.0, right: 16.0, top: 40),
                       child: OutlineButton(
+                        color: Colors.transparent,
                         text: "web3_glossary".tr(),
                         onTap: () {
                           Navigator.pushNamed(
