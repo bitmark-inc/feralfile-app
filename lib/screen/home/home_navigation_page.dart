@@ -112,6 +112,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
   @override
   void initState() {
     super.initState();
+    if (memoryValues.homePageInitialTab != HomePageTab.HOME) {
+      _selectedIndex = 1;
+    } else {
+      _selectedIndex = 0;
+    }
     _pageController = PageController(initialPage: _selectedIndex);
     _pages = <Widget>[
       HomePage(key: _homePageKey),

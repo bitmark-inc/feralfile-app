@@ -182,6 +182,14 @@ class NavigationService {
         route.settings.name == AppRouter.homePageNoTransition);
   }
 
+  void restorablePushHomePage() {
+    navigatorKey.currentState?.restorablePushNamedAndRemoveUntil(
+        AppRouter.homePageNoTransition,
+        (route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+  }
+
   void setIsWCConnectInShow(bool appeared) {
     _isWCConnectInShow = appeared;
   }

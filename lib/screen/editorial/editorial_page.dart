@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
@@ -45,7 +46,12 @@ class _EditorialPageState extends State<EditorialPage>
     _tabController = TabController(
       length: widget.isShowDiscover ? 2 : 1,
       vsync: this,
+      initialIndex: widget.isShowDiscover &&
+              memoryValues.homePageInitialTab == HomePageTab.EDITORIAL
+          ? 1
+          : 0,
     );
+    memoryValues.homePageInitialTab = HomePageTab.HOME;
     _feedController = ScrollController();
     _editorialController = ScrollController();
     _feedController.addListener(_scrollListener);
