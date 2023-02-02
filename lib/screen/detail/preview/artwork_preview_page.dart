@@ -642,35 +642,30 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             bottom: false,
             left: !isFullScreen,
             right: !isFullScreen,
-            child: Stack(
+            child: Column(
               children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        child: PageView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          onPageChanged: (value) {
-                            _timer?.cancel();
-                            final currentId = tokens[value];
-                            _bloc.add(
-                                ArtworkPreviewGetAssetTokenEvent(currentId));
-                            _stopAllChromecastDevices();
-                            keyboardManagerKey.currentState?.hideKeyboard();
-                          },
-                          controller: controller,
-                          itemCount: tokens.length,
-                          itemBuilder: (context, index) => Center(
-                            child: ArtworkPreviewWidget(
-                              identity: tokens[index],
-                              onLoaded: setTimer,
-                              focusNode: _focusNode,
-                            ),
-                          ),
+                Expanded(
+                  child: GestureDetector(
+                    child: PageView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (value) {
+                        _timer?.cancel();
+                        final currentId = tokens[value];
+                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
+                        _stopAllChromecastDevices();
+                        keyboardManagerKey.currentState?.hideKeyboard();
+                      },
+                      controller: controller,
+                      itemCount: tokens.length,
+                      itemBuilder: (context, index) => Center(
+                        child: ArtworkPreviewWidget(
+                          identity: tokens[index],
+                          onLoaded: setTimer,
+                          focusNode: _focusNode,
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
                 Visibility(
                   visible: !isFullScreen,
