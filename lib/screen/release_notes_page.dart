@@ -69,7 +69,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                     injector<DeeplinkService>()
                         .handleDeeplink(href, delay: Duration.zero);
                   } else if (await canLaunchUrlString(href)) {
-                    launchUrlString(href);
+                    launchUrlString(href, mode: LaunchMode.externalApplication);
                   }
                 },
               ),

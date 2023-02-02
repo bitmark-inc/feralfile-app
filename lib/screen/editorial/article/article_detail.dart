@@ -101,7 +101,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               onTapLink: (text, href, title) async {
                                 if (href == null) return;
                                 if (await canLaunchUrlString(href)) {
-                                  launchUrlString(href);
+                                  launchUrlString(href,
+                                      mode: LaunchMode.externalApplication);
                                   metricClient.addEvent(
                                       MixpanelEvent.tabOnLinkInEditorial,
                                       data: {
