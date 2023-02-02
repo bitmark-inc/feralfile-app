@@ -305,7 +305,10 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   void _navigateHome() {
-    Navigator.of(context).pushReplacementNamed(AppRouter.homePage);
+    injector<NavigationService>().navigateUntil(
+      AppRouter.homePage,
+      (route) => false,
+    );
   }
 
   @override
@@ -689,7 +692,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future _createAccount() async {
-    UIHelper.showInfoDialog(context, "connecting...".tr(), "");
+    UIHelper.showLoadingScreen(context, text: "connecting".tr());
     final account = await injector<AccountService>().getDefaultAccount();
     final defaultName = await account.getAccountDID();
     var persona =

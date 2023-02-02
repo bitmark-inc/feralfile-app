@@ -54,17 +54,11 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
     final theme = Theme.of(context);
     return FutureBuilder<bool>(
       future: injector<LedgerHardwareService>().scanForLedgerWallet(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+      builder: (context, walletsnapshot) {
+        if (!walletsnapshot.hasData) {
           return loadingScreen(theme, "loading_wallet".tr());
         }
-        if (snapshot.data == false) {
-          return Text(
-            "your_bluetooth_device_na".tr(),
-            //"Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
-            style: theme.textTheme.headline4,
-          );
-        }
+
         return StreamBuilder<Iterable<LedgerHardwareWallet>>(
           stream: injector<LedgerHardwareService>().ledgerWallets(),
           builder: (context, snapshot) {
@@ -155,36 +149,46 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
                       ),
                     ),
                     const SizedBox(height: 60),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemBuilder: ((context, index) {
-                        return Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  ResponsiveLayout.pageHorizontalEdgeInsets,
-                              child: TappableForwardRow(
-                                leftWidget: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                        "assets/images/iconLedger.svg"),
-                                    const SizedBox(width: 35),
-                                    Text(
-                                      ledgerWallets[index].name,
-                                      style: theme.textTheme.ppMori400Black14,
-                                    ),
-                                  ],
+                    if (walletsnapshot.data == false)
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          "your_bluetooth_device_na".tr(),
+                          //"Your Bluetooth device is not available at the moment.\n Please make sure it's turned on in the iOS Settings.",
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemBuilder: ((context, index) {
+                          return Column(
+                            children: [
+                              Padding(
+                                padding:
+                                    ResponsiveLayout.pageHorizontalEdgeInsets,
+                                child: TappableForwardRow(
+                                  leftWidget: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                          "assets/images/iconLedger.svg"),
+                                      const SizedBox(width: 35),
+                                      Text(
+                                        ledgerWallets[index].name,
+                                        style: theme.textTheme.ppMori400Black14,
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () => _onDeviceTap(
+                                      context, ledgerWallets[index]),
                                 ),
-                                onTap: () =>
-                                    _onDeviceTap(context, ledgerWallets[index]),
                               ),
-                            ),
-                            addOnlyDivider(),
-                          ],
-                        );
-                      }),
-                      itemCount: ledgerWallets.length,
-                    )
+                              addOnlyDivider(),
+                            ],
+                          );
+                        }),
+                        itemCount: ledgerWallets.length,
+                      )
                   ],
                 ),
               ),
@@ -196,19 +200,7 @@ class _LinkLedgerPageState extends State<LinkLedgerPage> {
   }
 
   _onDeviceTap(BuildContext context, LedgerHardwareWallet ledger) async {
-    // UIHelper.showInfoDialog(context, ledger.name, "connecting".tr(),
-    //     feedback: null);
-    final theme = Theme.of(context);
-
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => loadingScreen(
-          theme,
-          "connecting".tr(),
-        ),
-      ),
-    );
+    UIHelper.showLoadingScreen(context, text: "connecting".tr());
 
     if (!ledger.isConnected) {
       final result = await injector<LedgerHardwareService>().connect(ledger);
