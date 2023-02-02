@@ -287,7 +287,7 @@ class MixpanelEvent {
   static const stayInArtworkDetail = 'stay_in_artwork_detail';
   static const clickArtworkInfo = 'click_artwork_info';
   static const acceptOwnership = 'accept_ownership';
-  static const declineOwnership = 'delice_ownership';
+  static const declineOwnership = 'decline_ownership';
   static const generateReport = 'generate_report';
   static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
   static const clickLoadIPFSAgain = 'click_load_IPFS_again';
