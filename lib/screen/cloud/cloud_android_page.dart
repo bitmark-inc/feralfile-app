@@ -163,7 +163,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                 child: PrimaryButton(
                   text: "open_device_setting".tr(),
                   onTap: () => isEncryptionAvailable == false
-                      ? OpenSettings.openBiometricEnrollSetting()
+                      ? OpenSettings.openMainSetting()
                       : OpenSettings.openAddAccountSetting(),
                 ),
               ),
