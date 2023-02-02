@@ -148,6 +148,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         .add(WalletDetailBalanceEvent(cryptoType, wallet));
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+    final showConnection = (widget.payload.type == CryptoType.ETH ||
+        widget.payload.type == CryptoType.XTZ);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -156,7 +158,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         icon: const Icon(
           AuIcon.scan,
         ),
-        action: _connectionIconTap,
+        action: showConnection ? _connectionIconTap : null,
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -200,11 +202,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       ),
                       const SizedBox(height: 24),
                       addDivider(),
-                      Padding(
-                        padding: padding,
-                        child: _connectionsSection(),
-                      ),
-                      addDivider(),
+                      if (showConnection) ...[
+                        Padding(
+                          padding: padding,
+                          child: _connectionsSection(),
+                        ),
+                        addDivider(),
+                      ],
                     ],
                   ),
                 ),
@@ -382,7 +386,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
   Widget _connectionsSection() {
     final theme = Theme.of(context);
-
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       BlocBuilder<ConnectionsBloc, ConnectionsState>(builder: (context, state) {
         final connectionItems = state.connectionItems;
