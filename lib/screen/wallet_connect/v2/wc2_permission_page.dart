@@ -648,7 +648,10 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                     widget.onSelectEth?.call(ethAddress);
                   },
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 40),
+                    padding: const EdgeInsets.only(
+                      left: 40,
+                      bottom: 10,
+                    ),
                     child: Row(
                       children: [
                         const LogoCrypto(
@@ -656,16 +659,12 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                         ),
                         Text(ethAddress.maskIfNeeded()),
                         const Spacer(),
-                        Transform.scale(
-                          scale: 1.2,
-                          child: Radio<String>(
-                            activeColor: theme.colorScheme.primary,
-                            value: ethAddress,
-                            groupValue: widget.ethSelectedAddress,
-                            onChanged: (value) {
-                              widget.onSelectEth?.call(ethAddress);
-                            },
-                          ),
+                        AuRadio(
+                          value: ethAddress,
+                          groupValue: widget.ethSelectedAddress,
+                          onTap: (value) {
+                            widget.onSelectEth?.call(ethAddress);
+                          },
                         )
                       ],
                     ),
@@ -687,7 +686,10 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                     widget.onSelectTez?.call(tezAddress);
                   },
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 40),
+                    padding: const EdgeInsets.only(
+                      left: 40,
+                      bottom: 10,
+                    ),
                     child: Row(
                       children: [
                         const LogoCrypto(
@@ -709,7 +711,7 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
               },
             ),
           ),
-          const Divider(height: 16.0),
+          const Divider(height: 8.0),
         ],
       ),
     );
