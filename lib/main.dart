@@ -189,6 +189,7 @@ class MemoryValues {
   ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
+  HomePageTab homePageInitialTab = HomePageTab.HOME;
 
   MemoryValues({
     this.scopedPersona,
@@ -209,6 +210,12 @@ class MemoryValues {
       deepLink: deepLink,
     );
   }
+}
+
+enum HomePageTab {
+  HOME,
+  DISCOVER,
+  EDITORIAL,
 }
 
 @pragma('vm:entry-point')
