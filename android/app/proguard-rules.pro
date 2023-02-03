@@ -46,3 +46,5 @@ com.bitmark.autonomy_flutter.**
 -keep class net.sqlcipher.** { *; }
 -keep class net.sqlcipher.database.** { *; }
 -keep class **BackgroundFetchHeadlessTask { *; }
+-keep class com.pauldemarco.flutter_blue.** { *; }
+-keep class com.google.protobuf.** { *; }
