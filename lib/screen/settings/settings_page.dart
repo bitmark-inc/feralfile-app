@@ -241,6 +241,14 @@ class _SettingsPageState extends State<SettingsPage>
             ),
             onTap: () async {
               injector<VersionService>().showReleaseNotes();
+            }),
+      const SizedBox(height: 10),
+      StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        final isLastestVersion =
+            injector<ConfigurationService>().isLastestVersion();
+        return GestureDetector(
+          onTap: () async {
+            if (isLastestVersion) {
               int now = DateTime.now().millisecondsSinceEpoch;
               if (now - _lastTap < 1000) {
                 _consecutiveTaps++;
@@ -259,15 +267,9 @@ class _SettingsPageState extends State<SettingsPage>
                 _consecutiveTaps = 0;
               }
               _lastTap = now;
-            }),
-      const SizedBox(height: 10),
-      StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLastestVersion =
-            injector<ConfigurationService>().isLastestVersion();
-        return GestureDetector(
-          onTap: () {
-            if (isLastestVersion) return;
-            injector<VersionService>().openLastestVersion();
+            } else {
+              injector<VersionService>().openLastestVersion();
+            }
           },
           child: isLastestVersion
               ? Text(
