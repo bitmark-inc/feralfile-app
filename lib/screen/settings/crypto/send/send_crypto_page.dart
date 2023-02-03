@@ -12,15 +12,17 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -79,6 +81,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: _titleText(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -96,11 +99,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _titleText(),
-                    style: theme.textTheme.headline1,
-                  ),
-                  const SizedBox(height: 40.0),
+                  addTitleSpace(),
                   if (type == CryptoType.USDC) ...[
                     Text("please_verify_usdc_erc20".tr(),
                         style: theme.textTheme.headline5),
@@ -112,9 +111,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                     isError: state.isAddressError,
                     controller: _addressController,
                     suffix: IconButton(
-                      icon: SvgPicture.asset(state.isScanQR
-                          ? "assets/images/iconQr.svg"
-                          : "assets/images/iconClose.svg"),
+                      icon: Icon(state.isScanQR ? AuIcon.scan : AuIcon.close),
                       onPressed: () async {
                         if (_addressController.text.isNotEmpty) {
                           _addressController.text = "";
@@ -221,9 +218,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: AuFilledButton(
+                        child: PrimaryButton(
                           text: "review".tr(),
-                          onPress: state.isValid
+                          onTap: state.isValid
                               ? () async {
                                   _unfocus();
                                   final payload = SendCryptoPayload(

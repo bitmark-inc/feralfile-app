@@ -279,7 +279,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
     h5Padding: EdgeInsets.zero,
     h6: textStyleGreen,
     h6Padding: EdgeInsets.zero,
-    em: textStyleGrey,
+    em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: textColor),
