@@ -669,52 +669,47 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 ),
                 Visibility(
                   visible: !isFullScreen,
-                  child: Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      color: theme.colorScheme.primary,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 15,
-                          bottom: 30,
-                          right: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Visibility(
-                              visible: (assetToken?.medium == 'software' ||
-                                  assetToken?.medium == 'other' ||
-                                  (assetToken?.medium?.isEmpty ?? true)),
-                              child: KeyboardManagerWidget(
-                                key: keyboardManagerKey,
-                                focusNode: _focusNode,
+                  child: Container(
+                    color: theme.colorScheme.primary,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 15,
+                        bottom: 30,
+                        right: 20,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Visibility(
+                            visible: (assetToken?.medium == 'software' ||
+                                assetToken?.medium == 'other' ||
+                                (assetToken?.medium?.isEmpty ?? true)),
+                            child: KeyboardManagerWidget(
+                              key: keyboardManagerKey,
+                              focusNode: _focusNode,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          CastButton(
+                            assetToken: assetToken,
+                            onCastTap: () => onCastTap(assetToken),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                            onTap: () => onClickFullScreen(assetToken),
+                            child: Semantics(
+                              label: "fullscreen_icon",
+                              child: SvgPicture.asset(
+                                'assets/images/fullscreen_icon.svg',
                               ),
                             ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            CastButton(
-                              assetToken: assetToken,
-                              onCastTap: () => onCastTap(assetToken),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            GestureDetector(
-                              onTap: () => onClickFullScreen(assetToken),
-                              child: Semantics(
-                                label: "fullscreen_icon",
-                                child: SvgPicture.asset(
-                                  'assets/images/fullscreen_icon.svg',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
