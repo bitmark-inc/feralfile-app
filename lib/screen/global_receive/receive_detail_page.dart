@@ -8,8 +8,8 @@
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -49,6 +49,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "receive".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -58,10 +59,6 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                "receive".tr(),
-                style: theme.textTheme.headline1,
-              ),
               addTitleSpace(),
               Center(
                 child: GestureDetector(
@@ -133,9 +130,9 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
         Container(
           padding: EdgeInsets.symmetric(
               horizontal: 16.0, vertical: safeAreaBottom > 0 ? 40 : 16),
-          child: AuFilledButton(
+          child: PrimaryButton(
               text: "share".tr(),
-              onPress: () => Share.share(_account.accountNumber,
+              onTap: () => Share.share(_account.accountNumber,
                   subject: "my_account_number".tr())),
         ),
       ]),

@@ -11,16 +11,18 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -158,6 +160,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "send_artwork".tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -194,11 +197,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "send_artwork".tr(),
-                            style: theme.textTheme.headline1,
-                          ),
-                          const SizedBox(height: 40.0),
+                          addTitleSpace(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -292,9 +291,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             controller: _addressController,
                             isError: state.isAddressError,
                             suffix: IconButton(
-                              icon: SvgPicture.asset(state.isScanQR
-                                  ? "assets/images/iconQr.svg"
-                                  : "assets/images/iconClose.svg"),
+                              icon: Icon(
+                                  state.isScanQR ? AuIcon.scan : AuIcon.close),
                               onPressed: () async {
                                 if (_addressController.text.isNotEmpty) {
                                   _addressController.text = "";
@@ -364,9 +362,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     return Row(
       children: [
         Expanded(
-          child: AuFilledButton(
+          child: PrimaryButton(
             text: "review".tr(),
-            onPress: state.isValid
+            onTap: state.isValid
                 ? () async {
                     final payload = await Navigator.of(context).pushNamed(
                         AppRouter.sendArtworkReviewPage,
