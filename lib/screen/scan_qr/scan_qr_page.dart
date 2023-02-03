@@ -149,7 +149,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 borderColor: isScanDataError
                     ? AppColor.red
                     : theme.colorScheme.secondary,
-                overlayColor: cameraPermission
+                overlayColor: (cameraPermission || Platform.isIOS)
                     ? const Color.fromRGBO(0, 0, 0, 80)
                     : const Color.fromRGBO(255, 255, 255, 60),
                 cutOutSize: qrSize,
