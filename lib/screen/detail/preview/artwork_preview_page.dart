@@ -605,11 +605,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               return Row(
                                 children: [
                                   const SizedBox(height: 4.0),
-                                  Text(
-                                    "by".tr(args: [artistName]),
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.ppMori400White12,
-                                  )
+                                  Expanded(
+                                    child: Text(
+                                      "by".tr(args: [artistName]),
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.ppMori400White12,
+                                    ),
+                                  ),
                                 ],
                               );
                             }
@@ -657,11 +659,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       },
                       controller: controller,
                       itemCount: tokens.length,
-                      itemBuilder: (context, index) => Center(
-                        child: ArtworkPreviewWidget(
-                          identity: tokens[index],
-                          onLoaded: setTimer,
-                          focusNode: _focusNode,
+                      itemBuilder: (context, index) => InteractiveViewer(
+                        minScale: 1,
+                        maxScale: 4,
+                        child: Center(
+                          child: ArtworkPreviewWidget(
+                            identity: tokens[index],
+                            onLoaded: setTimer,
+                            focusNode: _focusNode,
+                          ),
                         ),
                       ),
                     ),
@@ -918,6 +924,7 @@ class FullscreenIntroPopup extends StatelessWidget {
 
 class KeyboardManagerWidget extends StatefulWidget {
   final FocusNode? focusNode;
+
   const KeyboardManagerWidget({Key? key, this.focusNode}) : super(key: key);
 
   @override
