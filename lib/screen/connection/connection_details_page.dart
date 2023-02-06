@@ -59,7 +59,7 @@ class ConnectionDetailsPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(connection.appName,
-                                    style: theme.textTheme.headline2),
+                                    style: theme.textTheme.displayMedium),
                               ],
                             ),
                           )

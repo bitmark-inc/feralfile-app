@@ -133,7 +133,7 @@ class _TVConnectPageState extends State<TVConnectPage>
                           const SizedBox(width: 7),
                           Text(
                             "back".tr(),
-                            style: theme.primaryTextTheme.button,
+                            style: theme.primaryTextTheme.labelLarge,
                           ),
                         ],
                       ),
@@ -153,19 +153,19 @@ class _TVConnectPageState extends State<TVConnectPage>
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
               "connect_au_viewer".tr(),
-              style: theme.primaryTextTheme.headline1,
+              style: theme.primaryTextTheme.displayLarge,
             ),
             const SizedBox(height: 24),
             Text("set_up_gallery".tr(),
-                style: theme.primaryTextTheme.bodyText1),
+                style: theme.primaryTextTheme.bodyLarge),
             const SizedBox(
               height: 32,
             ),
             Text("viewer_request_to".tr(),
-                style: theme.primaryTextTheme.bodyText1),
+                style: theme.primaryTextTheme.bodyLarge),
             const SizedBox(height: 8),
             Text("view_collections".tr(),
-                style: theme.primaryTextTheme.bodyText1),
+                style: theme.primaryTextTheme.bodyLarge),
             const Expanded(child: SizedBox()),
             Row(
               children: [
@@ -174,7 +174,7 @@ class _TVConnectPageState extends State<TVConnectPage>
                     text: "Authorize".tr().toUpperCase(),
                     onPress: () => withDebounce(() => _approve()),
                     color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.button,
+                    textStyle: theme.textTheme.labelLarge,
                   ),
                 )
               ],

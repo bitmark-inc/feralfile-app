@@ -102,7 +102,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   addTitleSpace(),
                   if (type == CryptoType.USDC) ...[
                     Text("please_verify_usdc_erc20".tr(),
-                        style: theme.textTheme.headline5),
+                        style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 8),
                   ],
                   AuTextField(
@@ -257,11 +257,12 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 
   Widget gasFeeStatus(SendCryptoState state, ThemeData theme) {
     if (_initialChangeAddress && state.feeOptionValue == null) {
-      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+      return Text("gas_fee_calculating".tr(),
+          style: theme.textTheme.headlineSmall);
     }
     if (state.feeOptionValue != null) {
       if (!(state.amount != null && state.amount! > BigInt.zero)) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
       }
       bool isValid = state.isValid &&
           !(widget.data.type == CryptoType.USDC &&
@@ -269,10 +270,10 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
               state.ethBalance != null &&
               state.fee! > state.ethBalance!);
       if (isValid) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
       } else {
         return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headline5?.copyWith(
+            style: theme.textTheme.headlineSmall?.copyWith(
               color: AppColor.red,
             ));
       }

@@ -31,7 +31,7 @@ class UnsafeWebWalletPage extends StatelessWidget {
             children: [
               Text(
                 "extension_thread".tr(),
-                style: theme.textTheme.headline1,
+                style: theme.textTheme.displayLarge,
               ),
               addTitleSpace(),
               _contentWidget(context),
@@ -48,7 +48,7 @@ class UnsafeWebWalletPage extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: theme.textTheme.bodyText1,
+        style: theme.textTheme.bodyLarge,
         children: <TextSpan>[
           TextSpan(
             text: "web_wallet".tr(),

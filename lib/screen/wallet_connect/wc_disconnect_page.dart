@@ -53,17 +53,17 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
           children: [
             Text(
               peerData?.name ?? "",
-              style: theme.textTheme.headline1,
+              style: theme.textTheme.displayLarge,
             ),
             const SizedBox(height: 40.0),
             Text(
               "public_address".tr(),
-              style: theme.textTheme.headline4,
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 16.0),
             Text(
               address,
-              style: theme.textTheme.bodyText2,
+              style: theme.textTheme.bodyMedium,
             ),
             const Expanded(child: SizedBox()),
             Row(

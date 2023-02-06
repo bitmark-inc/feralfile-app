@@ -45,20 +45,21 @@ class MoreAutonomyPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("more_autonomy".tr(), style: theme.textTheme.headline1),
+                Text("more_autonomy".tr(), style: theme.textTheme.displayLarge),
                 const SizedBox(height: 40),
                 Expanded(
                   child: ListView(
                     children: [
                       Text('upgrading_gives_you'.tr(),
-                          style: theme.textTheme.bodyText1),
+                          style: theme.textTheme.bodyLarge),
                       FittedBox(
                         child: SvgPicture.asset(
                           'assets/images/premium_comparation_light.svg',
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text("gg_tv_app".tr(), style: theme.textTheme.headline5),
+                      Text("gg_tv_app".tr(),
+                          style: theme.textTheme.headlineSmall),
                     ],
                   ),
                 ),
@@ -75,7 +76,7 @@ class MoreAutonomyPage extends StatelessWidget {
                               .read<UpgradesBloc>()
                               .add(UpgradePurchaseEvent());
                         },
-                  textStyle: theme.primaryTextTheme.button,
+                  textStyle: theme.primaryTextTheme.labelLarge,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +85,7 @@ class MoreAutonomyPage extends StatelessWidget {
                       onPressed: () => newAccountPageOrSkipInCondition(context),
                       child: Text(
                         "not_now".tr(),
-                        style: theme.textTheme.button,
+                        style: theme.textTheme.labelLarge,
                       ),
                     ),
                   ],

@@ -39,7 +39,7 @@ Widget accountWithConnectionItem(
               children: [
                 Text(categorizedAccounts.category,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.headline4),
+                    style: theme.textTheme.headlineMedium),
                 const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
                     .map((a) => Container(
@@ -77,7 +77,7 @@ Widget accountWithConnectionItem(
                                 ? connection.name
                                 : "unnamed".tr(),
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.headline4),
+                            style: theme.textTheme.headlineMedium),
                       ),
                       linkedBox(context),
                     ]),

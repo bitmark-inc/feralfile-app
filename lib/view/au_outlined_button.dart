@@ -40,7 +40,7 @@ class AuOutlinedButton extends StatelessWidget {
                 onPressed: onPress,
                 child: Text(
                   text.toUpperCase(),
-                  style: theme.textTheme.button,
+                  style: theme.textTheme.labelLarge,
                 ),
               )),
         ),

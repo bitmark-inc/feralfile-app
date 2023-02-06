@@ -61,7 +61,7 @@ class _SurveyPageState extends State<SurveyPage> {
               _currentPage == 0
                   ? "how_did_hear".tr() //"How did you hear about Autonomy? "
                   : "which_nft".tr(), //"Which NFT marketplace? ",
-              style: theme.textTheme.headline1,
+              style: theme.textTheme.displayLarge,
             ),
             const SizedBox(height: 40.0),
             Expanded(
@@ -210,7 +210,7 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                       Expanded(
                           child: Text(
                         item,
-                        style: theme.textTheme.headline4,
+                        style: theme.textTheme.headlineMedium,
                         overflow: TextOverflow.ellipsis,
                       )),
                       SvgPicture.asset(selection == index
@@ -244,14 +244,14 @@ class _SurveyQuestionarePageState extends State<SurveyQuestionarePage> {
                 children: [
                   Expanded(
                     child: TextField(
-                      style: theme.textTheme.headline4,
+                      style: theme.textTheme.headlineMedium,
                       focusNode: focusNode,
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
                         hintText: "other".tr(),
                         hintMaxLines: 1,
-                        hintStyle: theme.textTheme.headline4?.copyWith(
+                        hintStyle: theme.textTheme.headlineMedium?.copyWith(
                             color: selection == widget.questionItems.length
                                 ? theme.colorScheme.surface
                                 : null),

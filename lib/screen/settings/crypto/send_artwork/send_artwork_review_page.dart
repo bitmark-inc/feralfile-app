@@ -237,7 +237,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                         children: [
                           Text(
                             "confirmation".tr(),
-                            style: theme.textTheme.headline1,
+                            style: theme.textTheme.displayLarge,
                           ),
                           const SizedBox(height: 40.0),
                           Row(
@@ -245,13 +245,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             children: [
                               Text(
                                 "title".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               Expanded(
                                 child: Text(
                                   asset.title,
                                   textAlign: TextAlign.right,
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ),
                             ],
@@ -262,11 +262,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             children: [
                               Text(
                                 "artist".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               Text(
                                 artistName ?? "",
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ],
                           ),
@@ -277,11 +277,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                               children: [
                                 Text(
                                   "owned_tokens".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Text(
                                   "${widget.payload.ownedTokens}",
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -291,11 +291,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                               children: [
                                 Text(
                                   "quantity_sent".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Text(
                                   "${widget.payload.quantity}",
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -305,11 +305,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                               children: [
                                 Text(
                                   "edition".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Text(
                                   asset.editionSlashMax,
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -317,12 +317,12 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           const Divider(height: 32),
                           Text(
                             "to".tr(),
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 16.0),
                           Text(
                             widget.payload.address,
-                            style: theme.textTheme.bodyText2,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           const Divider(height: 32),
                           Row(
@@ -330,13 +330,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                             children: [
                               Text(
                                 "gas_fee2".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               Text(
                                 widget.payload.asset.blockchain == "ethereum"
                                     ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
                                     : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)",
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ],
                           ),

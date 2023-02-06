@@ -303,7 +303,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                 }),
                           TextSpan(
                             text: ".",
-                            style: theme.primaryTextTheme.bodyText1
+                            style: theme.primaryTextTheme.bodyLarge
                                 ?.copyWith(fontSize: 14),
                           ),
                         ],

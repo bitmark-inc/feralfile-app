@@ -45,8 +45,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     super.initState();
 
     final to = EthereumAddress.fromHex(widget.args.transaction.to);
-    final EtherAmount amount = EtherAmount.fromUnitAndValue(
-        EtherUnit.wei, widget.args.transaction.value ?? 0);
+    final EtherAmount amount = EtherAmount.fromBase10String(
+        EtherUnit.wei, widget.args.transaction.value ?? '0');
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
         to, amount, widget.args.transaction.data, widget.args.uuid));
@@ -87,8 +87,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         ),
         body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(
           listener: (context, state) {
-            final EtherAmount amount = EtherAmount.fromUnitAndValue(
-                EtherUnit.wei, widget.args.transaction.value ?? 0);
+            final EtherAmount amount = EtherAmount.fromBase10String(
+                EtherUnit.wei, widget.args.transaction.value ?? '0');
             final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
             if (total != null &&
@@ -110,8 +110,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             }
           },
           builder: (context, state) {
-            final EtherAmount amount = EtherAmount.fromUnitAndValue(
-                EtherUnit.wei, widget.args.transaction.value ?? 0);
+            final EtherAmount amount = EtherAmount.fromBase10String(
+                EtherUnit.wei, widget.args.transaction.value ?? '0');
             final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
             return Stack(
@@ -133,37 +133,37 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               const SizedBox(height: 8.0),
                               Text(
                                 "h_confirm".tr(),
-                                style: theme.textTheme.headline1,
+                                style: theme.textTheme.displayLarge,
                               ),
                               const SizedBox(height: 40.0),
                               Text(
                                 "asset".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               const SizedBox(height: 16.0),
                               Text(
                                 "ethereum_eth".tr(),
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                               const Divider(height: 32),
                               Text(
                                 "from".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               const SizedBox(height: 16.0),
                               Text(
                                 widget.args.transaction.from,
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                               const Divider(height: 32),
                               Text(
                                 "connection".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               const SizedBox(height: 16.0),
                               Text(
                                 widget.args.peerMeta.name,
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                               const Divider(height: 32),
                               Row(
@@ -172,11 +172,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                 children: [
                                   Text(
                                     "send".tr(),
-                                    style: theme.textTheme.headline4,
+                                    style: theme.textTheme.headlineMedium,
                                   ),
                                   Text(
                                     "${EthAmountFormatter(amount.getInWei).format()} ETH",
-                                    style: theme.textTheme.bodyText2,
+                                    style: theme.textTheme.bodyMedium,
                                   ),
                                 ],
                               ),
@@ -187,11 +187,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                 children: [
                                   Text(
                                     "gas_fee2".tr(),
-                                    style: theme.textTheme.headline4,
+                                    style: theme.textTheme.headlineMedium,
                                   ),
                                   Text(
                                     "${state.fee != null ? EthAmountFormatter(state.fee!, digit: 8).format() : "-"} ETH",
-                                    style: theme.textTheme.bodyText2,
+                                    style: theme.textTheme.bodyMedium,
                                   ),
                                 ],
                               ),
@@ -202,11 +202,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                 children: [
                                   Text(
                                     "total_amount".tr(),
-                                    style: theme.textTheme.headline4,
+                                    style: theme.textTheme.headlineMedium,
                                   ),
                                   Text(
                                     "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
-                                    style: theme.textTheme.headline4,
+                                    style: theme.textTheme.headlineMedium,
                                   ),
                                 ],
                               ),
@@ -270,21 +270,22 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
   Widget gasFeeStatus(WCSendTransactionState state, ThemeData theme) {
     if (state.feeOptionValue == null) {
-      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+      return Text("gas_fee_calculating".tr(),
+          style: theme.textTheme.headlineSmall);
     }
     if (state.feeOptionValue != null) {
       if (state.balance == null) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
       }
       bool isValid = state.balance! >
           ((BigInt.parse(widget.args.transaction.value ?? "0")) +
               (state.fee ?? BigInt.zero) +
               BigInt.from(10));
       if (isValid) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
       } else {
         return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headline5?.copyWith(
+            style: theme.textTheme.headlineSmall?.copyWith(
               color: AppColor.red,
             ));
       }

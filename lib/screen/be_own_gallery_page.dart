@@ -38,18 +38,18 @@ class BeOwnGalleryPage extends StatelessWidget {
                   children: [
                     Text(
                       "own_gallery_tt".tr(),
-                      style: theme.textTheme.headline1,
+                      style: theme.textTheme.displayLarge,
                     ),
                     const SizedBox(height: 30),
                     Text(
                       "own_gallery_body".tr(),
-                      style: theme.textTheme.bodyText1,
+                      style: theme.textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 15),
                     Text(
                       "not_purchase".tr(),
                       //"It is not possible to purchase NFTs in this app.",
-                      style: theme.textTheme.headline4,
+                      style: theme.textTheme.headlineMedium,
                     ),
                   ],
                 ),

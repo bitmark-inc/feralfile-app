@@ -80,12 +80,12 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.headline1,
+                      style: theme.textTheme.displayLarge,
                     ),
                     addTitleSpace(),
                     Text(
                       description,
-                      style: theme.textTheme.bodyText1,
+                      style: theme.textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 40),
                     AuTextField(

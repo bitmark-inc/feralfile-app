@@ -121,7 +121,7 @@ class ForgetExistView extends StatelessWidget {
                     child: Text(
                   "i_understand".tr(),
                   //"I understand that this action cannot be undone.",
-                  style: theme.primaryTextTheme.headline5,
+                  style: theme.primaryTextTheme.headlineSmall,
                 )),
               ],
             ),

@@ -178,12 +178,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
                 addTitleSpace(),
                 Text(
                   "to".tr(),
-                  style: theme.textTheme.headline4,
+                  style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 16.0),
                 Text(
                   widget.payload.address,
-                  style: theme.textTheme.bodyText2,
+                  style: theme.textTheme.bodyMedium,
                 ),
                 const Divider(height: 32),
                 Row(
@@ -191,11 +191,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   children: [
                     Text(
                       "send".tr(),
-                      style: theme.textTheme.headline4,
+                      style: theme.textTheme.headlineMedium,
                     ),
                     Text(
                       _amountFormat(widget.payload.amount),
-                      style: theme.textTheme.bodyText2,
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ],
                 ),
@@ -205,11 +205,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   children: [
                     Text(
                       "gas_fee2".tr(),
-                      style: theme.textTheme.headline4,
+                      style: theme.textTheme.headlineMedium,
                     ),
                     Text(
                       _amountFormat(widget.payload.fee, isETH: true),
-                      style: theme.textTheme.bodyText2,
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ],
                 ),
@@ -219,11 +219,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   children: [
                     Text(
                       "total_amount".tr(),
-                      style: theme.textTheme.headline4,
+                      style: theme.textTheme.headlineMedium,
                     ),
                     Text(
                       _amountFormat(total),
-                      style: theme.textTheme.headline4,
+                      style: theme.textTheme.headlineMedium,
                     ),
                   ],
                 ),

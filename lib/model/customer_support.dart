@@ -26,7 +26,7 @@ class Issue {
   @JsonKey(name: 'last_message')
   Message? lastMessage;
   // only on local
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
 
   Issue({
@@ -57,10 +57,10 @@ class Issue {
 class SendAttachment {
   String data;
   String title;
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String path;
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String contentType;
 
   SendAttachment({

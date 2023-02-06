@@ -132,7 +132,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 width: 50,
               )
             ],
-            backgroundColor: theme.backgroundColor,
+            backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
             centerTitle: true,
             title: Text(

@@ -260,7 +260,7 @@ class HomePageState extends State<HomePage>
       child: PrimaryScrollController(
         controller: _controller,
         child: Scaffold(
-          backgroundColor: theme.backgroundColor,
+          backgroundColor: theme.colorScheme.background,
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.dark,
             child: contentWidget,
@@ -307,7 +307,7 @@ class HomePageState extends State<HomePage>
           child: Text(
             "collection_empty_now".tr(),
             //"Your collection is empty for now.",
-            style: theme.textTheme.bodyText1,
+            style: theme.textTheme.bodyLarge,
           ),
         ),
       ],

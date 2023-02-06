@@ -56,7 +56,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   children: [
                     Text(
                       "set_up_account".tr(),
-                      style: theme.textTheme.headline1,
+                      style: theme.textTheme.displayLarge,
                     ),
                     addTitleSpace(),
                     _linkAccountOption(context),
@@ -84,10 +84,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 addDivider(),
                 TappableForwardRowWithContent(
                   leftWidget: Text('debug_address'.tr(),
-                      style: theme.textTheme.headline4),
+                      style: theme.textTheme.headlineMedium),
                   bottomWidget: Text("da_manually_input_an".tr(),
                       //'Manually input an address for debugging purposes.',
-                      style: theme.textTheme.bodyText1),
+                      style: theme.textTheme.bodyLarge),
                   onTap: () => Navigator.of(context)
                       .pushNamed(AppRouter.linkManually, arguments: 'address'),
                 ),
@@ -135,10 +135,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
         addDivider(),
         TappableForwardRowWithContent(
           leftWidget: Text("debug_indexer_tokenId".tr(),
-              style: theme.textTheme.headline4),
+              style: theme.textTheme.headlineMedium),
           bottomWidget: Text("dit_manually_input_an".tr(),
               //'Manually input an indexer tokenID for debugging purposes',
-              style: theme.textTheme.bodyText1),
+              style: theme.textTheme.bodyLarge),
           onTap: () => Navigator.of(context)
               .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
         ),
@@ -155,10 +155,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
   Widget _linkAccountOption(BuildContext context) {
     final theme = Theme.of(context);
     return TappableForwardRowWithContent(
-      leftWidget: Text('add'.tr(), style: theme.textTheme.headline4),
+      leftWidget: Text('add'.tr(), style: theme.textTheme.headlineMedium),
       bottomWidget: Text("ad_i_already_have".tr(),
           //'I already have NFTs in other wallets that I want to view with Autonomy.',
-          style: theme.textTheme.bodyText1),
+          style: theme.textTheme.bodyLarge),
       onTap: () => Navigator.of(context).pushNamed(AppRouter.linkAccountpage),
     );
   }
@@ -186,10 +186,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
       },
       builder: (context, state) {
         return TappableForwardRowWithContent(
-          leftWidget: Text('new'.tr(), style: theme.textTheme.headline4),
+          leftWidget: Text('new'.tr(), style: theme.textTheme.headlineMedium),
           bottomWidget: Text("ne_make_a_new_account".tr(),
               //'Make a new account with addresses you can use to collect or receive NFTs on Ethereum, Feral File, and Tezos. ',
-              style: theme.textTheme.bodyText1),
+              style: theme.textTheme.bodyLarge),
           onTap: () {
             if (state.createAccountState == ActionState.loading) return;
             UIHelper.showInfoDialog(context, "generating".tr(), "",

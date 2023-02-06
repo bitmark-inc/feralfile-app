@@ -104,7 +104,7 @@ AppBar getCloseAppBar(BuildContext context,
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.button,
+            style: theme.textTheme.labelLarge,
             textAlign: TextAlign.center,
           ),
         ),

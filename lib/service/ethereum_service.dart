@@ -384,8 +384,8 @@ class EthereumServiceImpl extends EthereumService {
     final buffer = BigInt.from(baseFee / BigInt.from(10));
     return EthereumFee(
         maxPriorityFeePerGas:
-            EtherAmount.fromUnitAndValue(EtherUnit.wei, priorityFee),
-        maxFeePerGas: EtherAmount.fromUnitAndValue(
+            EtherAmount.fromBigInt(EtherUnit.wei, priorityFee),
+        maxFeePerGas: EtherAmount.fromBigInt(
             EtherUnit.wei, baseFee + priorityFee + buffer));
   }
 

@@ -50,7 +50,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
                   artwork.title,
-                  style: theme.primaryTextTheme.headline1,
+                  style: theme.primaryTextTheme.displayLarge,
                 ),
               ),
               const SizedBox(height: 8.0),
@@ -58,8 +58,8 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
                   "by".tr(args: [artist.getDisplayName()]).trim(),
-                  style:
-                      theme.primaryTextTheme.headline4?.copyWith(fontSize: 18),
+                  style: theme.primaryTextTheme.headlineMedium
+                      ?.copyWith(fontSize: 18),
                 ),
               ),
               const SizedBox(height: 15.0),
@@ -73,7 +73,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                 padding: ResponsiveLayout.getPadding,
                 child: HtmlWidget(
                   artwork.description,
-                  textStyle: theme.primaryTextTheme.bodyText1,
+                  textStyle: theme.primaryTextTheme.bodyLarge,
                 ),
               ),
               const SizedBox(height: 40.0),
@@ -135,7 +135,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                   const SizedBox(width: 7),
                   Text(
                     "BACK",
-                    style: theme.primaryTextTheme.button,
+                    style: theme.primaryTextTheme.labelLarge,
                   ),
                 ],
               ),

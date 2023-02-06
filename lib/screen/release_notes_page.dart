@@ -45,7 +45,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        color: theme.backgroundColor,
+        color: theme.colorScheme.background,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -129,27 +129,27 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                       const SizedBox(height: 8.0),
                       Text(
                         "signature_request".tr(),
-                        style: theme.textTheme.headline1,
+                        style: theme.textTheme.displayLarge,
                       ),
                       const SizedBox(height: 40.0),
                       Text(
                         "connection".tr(),
-                        style: theme.textTheme.headline4,
+                        style: theme.textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 16.0),
                       // Text(
                       //   widget.request.appName ?? "",
-                      //   style: theme.textTheme.bodyText2,
+                      //   style: theme.textTheme.bodyMedium,
                       // ),
                       const Divider(height: 32),
                       Text(
                         "message".tr(),
-                        style: theme.textTheme.headline4,
+                        style: theme.textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 16.0),
                       Text(
                         viewMessage,
-                        style: theme.textTheme.bodyText2,
+                        style: theme.textTheme.bodyMedium,
                       ),
                     ],
                   ),

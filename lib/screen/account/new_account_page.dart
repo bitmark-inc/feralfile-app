@@ -49,7 +49,7 @@ class NewAccountPage extends StatelessWidget {
                     Text(
                       "do_you_have_nfts".tr(),
                       //"Do you have NFTs you want to view with Autonomy?",
-                      style: theme.textTheme.headline1,
+                      style: theme.textTheme.displayLarge,
                     ),
                     const SizedBox(height: 30),
                     Wrap(
@@ -131,7 +131,7 @@ class NewAccountPage extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: theme.textTheme.headline4,
+                style: theme.textTheme.headlineMedium,
               ),
               SvgPicture.asset('assets/images/iconForward.svg'),
             ],
@@ -139,7 +139,7 @@ class NewAccountPage extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             description,
-            style: theme.textTheme.bodyText1,
+            style: theme.textTheme.bodyLarge,
           ),
         ],
       ),
