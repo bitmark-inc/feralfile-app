@@ -80,7 +80,7 @@ class _TVConnectPageState extends State<TVConnectPage>
 
     if (!mounted) return;
     if (!isApproveSuccess) {
-      await UIHelper.showConnectionFaild(
+      await UIHelper.showConnectionFailed(
         context,
         onClose: () {
           UIHelper.hideInfoDialog(context);

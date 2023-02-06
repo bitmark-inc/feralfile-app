@@ -55,6 +55,8 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
 ];
+const REMOVE_CUSTOMER_SUPPORT =
+    "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;

@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:bubble/bubble.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -99,6 +100,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _reportIssueType = '';
   String? _issueID;
 
+  bool isCustomerSupportAvailable = true;
   List<types.Message> _messages = [];
   List<types.Message> _draftMessages = [];
   final _user = const types.User(id: 'user');
@@ -151,8 +153,11 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   @override
   void initState() {
-    _customerSupportService.processMessages();
-    _customerSupportService.triggerReloadMessages
+    _fetchCustomerSupportAvailability();
+
+    injector<CustomerSupportService>().processMessages();
+    injector<CustomerSupportService>()
+        .triggerReloadMessages
         .addListener(_loadIssueDetails);
 
     _customerSupportService.customerSupportUpdate
@@ -205,6 +210,14 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     if (_issueID != null && !_issueID!.startsWith("TEMP")) {
       _loadIssueDetails();
     }
+  }
+
+  _fetchCustomerSupportAvailability() async {
+    final device = DeviceInfo.instance;
+    final isAvailable = await device.isSupportOS();
+    setState(() {
+      isCustomerSupportAvailable = isAvailable;
+    });
   }
 
   void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
@@ -342,13 +355,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     }
                   }),
               user: _user,
-              customBottomWidget: _isRated == false && _status == 'closed'
-                  ? MyRatingBar(
-                      submit:
-                          (String messageType, DraftCustomerSupportData data,
+              customBottomWidget: !isCustomerSupportAvailable
+                  ? const SizedBox()
+                  : _isRated == false && _status == 'closed'
+                      ? MyRatingBar(
+                          submit: (String messageType,
+                                  DraftCustomerSupportData data,
                                   {bool isRating = false}) =>
                               _submit(messageType, data, isRating: isRating))
-                  : null,
+                      : null,
             )));
   }
 

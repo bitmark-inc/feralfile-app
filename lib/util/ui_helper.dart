@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -923,7 +924,7 @@ class UIHelper {
     );
   }
 
-  static showConnectionFaild(
+  static showConnectionFailed(
     BuildContext context, {
     required Function() onClose,
   }) {
@@ -980,6 +981,72 @@ class UIHelper {
             arguments: connection);
       }
     });
+  }
+
+  static showCenterSheet(BuildContext context,
+      {required Widget content,
+      String? actionButton,
+      Function()? actionButtonOnTap,
+      String? exitButton,
+      Function()? exitButtonOnTap}) {
+    UIHelper.hideInfoDialog(context);
+    showCupertinoModalPopup(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.auSuperTeal,
+                  borderRadius: BorderRadiusGeometry.lerp(
+                      const BorderRadius.all(Radius.circular(5)),
+                      const BorderRadius.all(Radius.circular(5)),
+                      5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        content,
+                        const SizedBox(height: 30),
+                        if (actionButtonOnTap != null)
+                          Column(
+                            children: [
+                              AuSecondaryButton(
+                                text: actionButton ?? "",
+                                onPressed: actionButtonOnTap,
+                                borderColor: AppColor.primaryBlack,
+                                textColor: AppColor.primaryBlack,
+                                backgroundColor: AppColor.auSuperTeal,
+                              ),
+                              const SizedBox(
+                                height: 15,
+                              )
+                            ],
+                          ),
+                        AuSecondaryButton(
+                          text: exitButton ?? "close".tr(),
+                          onPressed: actionButtonOnTap ??
+                              () {
+                                Navigator.pop(context);
+                              },
+                          borderColor: AppColor.primaryBlack,
+                          textColor: AppColor.primaryBlack,
+                          backgroundColor: AppColor.auSuperTeal,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        });
   }
 
   static showAlreadyLinked(BuildContext context, Connection connection) {

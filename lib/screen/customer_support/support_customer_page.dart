@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,15 +32,26 @@ class SupportCustomerPage extends StatefulWidget {
 
 class _SupportCustomerPageState extends State<SupportCustomerPage>
     with RouteAware, WidgetsBindingObserver {
+  bool isCustomerSupportAvailable = true;
+
   @override
   void initState() {
     super.initState();
-    fetchAnnouncements();
+    _fetchCustomerSupportAvailability();
+    injector<CustomerSupportService>().getIssues();
   }
 
   Future<void> fetchAnnouncements() async {
     await injector<CustomerSupportService>().fetchAnnouncement();
     await injector<CustomerSupportService>().getIssuesAndAnnouncement();
+  }
+
+  _fetchCustomerSupportAvailability() async {
+    final device = DeviceInfo.instance;
+    final isAvailable = await device.isSupportOS();
+    setState(() {
+      isCustomerSupportAvailable = isAvailable;
+    });
   }
 
   @override
@@ -62,6 +74,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -72,7 +85,43 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            addTitleSpace(),
+            isCustomerSupportAvailable
+                ? addTitleSpace()
+                : Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 30),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColor.auSuperTeal,
+                            borderRadius: BorderRadiusGeometry.lerp(
+                                const BorderRadius.all(Radius.circular(5)),
+                                const BorderRadius.all(Radius.circular(5)),
+                                5),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'important'.tr(),
+                                  style: theme.textTheme.ppMori700Black14,
+                                ),
+                                const SizedBox(height: 15),
+                                Text(
+                                  'inform_remove_cs'.tr(),
+                                  style: theme.textTheme.ppMori400Black14,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: _reportItemsWidget(context),
