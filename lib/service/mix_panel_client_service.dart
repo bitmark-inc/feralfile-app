@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
@@ -35,10 +36,14 @@ class MixPanelClientService {
     mixpanel.setUseIpAddressForGeolocation(true);
 
     mixpanel.identify(hashedUserID);
-    mixpanel.getPeople().set("Address", hashedDefaultAddress);
-    mixpanel.getPeople().set("Subscription", "Free");
+    mixpanel.getPeople().set(MixpanelProp.address, hashedDefaultAddress);
+    mixpanel
+        .getPeople()
+        .set(MixpanelProp.subscription, SubscriptionStatus.free);
+    mixpanel.getPeople().set(MixpanelProp.enableNotification,
+        injector<ConfigurationService>().isNotificationEnabled() ?? false);
     mixpanel.registerSuperPropertiesOnce({
-      "client": "Autonomy Wallet",
+      MixpanelProp.client: "Autonomy Wallet",
     });
   }
 

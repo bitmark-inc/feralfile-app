@@ -329,3 +329,17 @@ class MixpanelEvent {
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
 }
+
+class MixpanelProp {
+  static const enableNotification = 'enableNotification';
+  static const client = 'client';
+  static const address = 'Address';
+  static const subscription = 'Subscription';
+}
+
+class SubscriptionStatus {
+  static const free = 'Free';
+  static const subscried = 'Subscried';
+  static const trial = 'Trial';
+  static const expired = 'Expired';
+}
