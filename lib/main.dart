@@ -151,12 +151,20 @@ class AutonomyApp extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         maxWidth = constraints.maxWidth;
+        const textSelectionTheme = TextSelectionThemeData(
+          cursorColor: AppColor.auQuickSilver,
+          selectionHandleColor: AppColor.auQuickSilver,
+          selectionColor: AppColor.auQuickSilver,
+        );
         return MaterialApp(
           title: 'Autonomy',
           theme: ResponsiveLayout.isMobile
-              ? AppTheme.lightTheme()
-              : AppTheme.tabletLightTheme(),
-          darkTheme: AppTheme.lightTheme(),
+              ? AppTheme.lightTheme().copyWith(
+              textSelectionTheme: textSelectionTheme)
+              : AppTheme.tabletLightTheme().copyWith(
+              textSelectionTheme: textSelectionTheme),
+          darkTheme: AppTheme.lightTheme().copyWith(
+              textSelectionTheme: textSelectionTheme),
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,
           locale: context.locale,
