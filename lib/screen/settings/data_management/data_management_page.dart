@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -22,7 +23,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 
 class DataManagementPage extends StatefulWidget {
@@ -71,11 +71,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
                                       style: theme.textTheme.ppMori400Black16),
                                 ],
                               ),
-                              FlutterSwitch(
-                                height: 25,
-                                width: 48,
-                                toggleSize: 19.2,
-                                padding: 2,
+                              AuToggle(
                                 value: _allowContribution,
                                 onToggle: (value) {
                                   injector<ConfigurationService>()
@@ -84,10 +80,6 @@ class _DataManagementPageState extends State<DataManagementPage> {
                                     _allowContribution = value;
                                   });
                                 },
-                                activeColor: AppColor.auSuperTeal,
-                                inactiveColor: Colors.transparent,
-                                toggleColor: AppColor.primaryBlack,
-                                inactiveSwitchBorder: Border.all(),
                               )
                             ],
                           ),

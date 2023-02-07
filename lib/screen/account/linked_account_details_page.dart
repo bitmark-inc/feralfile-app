@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -25,7 +26,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:nft_collection/nft_collection.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
@@ -295,11 +295,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
             children: [
               Text("hide_from_collection".tr(),
                   style: theme.textTheme.ppMori400Black16),
-              FlutterSwitch(
-                height: 25,
-                width: 48,
-                toggleSize: 19.2,
-                padding: 2,
+              AuToggle(
                 value: isHideGalleryEnabled,
                 onToggle: (value) async {
                   await injector<AccountService>()
@@ -314,10 +310,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                     isHideGalleryEnabled = value;
                   });
                 },
-                activeColor: AppColor.auSuperTeal,
-                inactiveColor: Colors.transparent,
-                toggleColor: AppColor.primaryBlack,
-                inactiveSwitchBorder: Border.all(),
               )
             ],
           ),
