@@ -13,12 +13,12 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 
 class PreferenceView extends StatelessWidget {
   const PreferenceView({Key? key}) : super(key: key);
@@ -160,18 +160,10 @@ class PreferenceView extends StatelessWidget {
                 ],
               ],
             ),
-            FlutterSwitch(
-              height: 25,
-              width: 48,
-              toggleSize: 19.2,
-              padding: 2,
+            AuToggle(
               value: isEnabled,
               onToggle: onChanged,
-              activeColor: AppColor.auSuperTeal,
-              inactiveColor: Colors.transparent,
-              toggleColor: AppColor.primaryBlack,
-              inactiveSwitchBorder: Border.all(),
-            )
+            ),
           ],
         ),
         const SizedBox(height: 7),
@@ -196,18 +188,7 @@ class PreferenceView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title, style: theme.textTheme.ppMori400Black16),
-            FlutterSwitch(
-              height: 25,
-              width: 48,
-              toggleSize: 19.2,
-              padding: 2,
-              value: isEnabled,
-              onToggle: onChanged ?? (bool p) {},
-              activeColor: AppColor.auSuperTeal,
-              inactiveColor: Colors.transparent,
-              toggleColor: AppColor.primaryBlack,
-              inactiveSwitchBorder: Border.all(),
-            )
+            AuToggle(value: isEnabled, onToggle: onChanged),
           ],
         ),
         const SizedBox(height: 7),
