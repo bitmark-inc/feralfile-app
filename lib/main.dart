@@ -159,12 +159,12 @@ class AutonomyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Autonomy',
           theme: ResponsiveLayout.isMobile
-              ? AppTheme.lightTheme().copyWith(
-              textSelectionTheme: textSelectionTheme)
-              : AppTheme.tabletLightTheme().copyWith(
-              textSelectionTheme: textSelectionTheme),
-          darkTheme: AppTheme.lightTheme().copyWith(
-              textSelectionTheme: textSelectionTheme),
+              ? AppTheme.lightTheme()
+                  .copyWith(textSelectionTheme: textSelectionTheme)
+              : AppTheme.tabletLightTheme()
+                  .copyWith(textSelectionTheme: textSelectionTheme),
+          darkTheme: AppTheme.lightTheme()
+              .copyWith(textSelectionTheme: textSelectionTheme),
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,
           locale: context.locale,
