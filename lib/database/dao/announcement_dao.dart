@@ -17,11 +17,11 @@ abstract class AnnouncementLocalDao {
   Future<void> insertAnnouncement(AnnouncementLocal announcementLocal);
 
   @Query(
-      'SELECT * FROM AnnouncementLocal WHERE announcementID = :announcementID')
+      'SELECT * FROM AnnouncementLocal WHERE announcementContextId = :announcementContextId')
   Future<AnnouncementLocal?> getAnnouncement(String announcementID);
 
   @Query(
-      'UPDATE AnnouncementLocal SET unread = :unread WHERE announcementID = :announcementID')
+      'UPDATE AnnouncementLocal SET unread = :unread WHERE announcementContextId = :announcementContextId')
   Future<void> updateRead(String announcementID, bool unread);
 
   @Query(

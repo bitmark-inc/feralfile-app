@@ -7,30 +7,32 @@ part of 'announcement.dart';
 // **************************************************************************
 
 Announcement _$AnnouncementFromJson(Map<String, dynamic> json) => Announcement(
-      announcementId: json['announcementId'] as String,
+      announcementContextId: json['announcement_context_id'] as String,
       title: json['title'] as String,
       body: json['body'] as String,
-      announceAt: json['announceAt'] as int,
+      announceAt: json['announce_at'] as int,
+      createdAt: json['created_at'] as int,
       type: json['type'] as String,
     );
 
 Map<String, dynamic> _$AnnouncementToJson(Announcement instance) =>
     <String, dynamic>{
-      'announcementId': instance.announcementId,
+      'announcement_context_id': instance.announcementContextId,
       'title': instance.title,
       'body': instance.body,
-      'announceAt': instance.announceAt,
+      'created_at': instance.createdAt,
+      'announce_at': instance.announceAt,
       'type': instance.type,
     };
 
 AnnouncementPostResponse _$AnnouncementPostResponseFromJson(
         Map<String, dynamic> json) =>
     AnnouncementPostResponse(
-      announcementID: json['announcementID'] as String,
+      ok: json['ok'] as int,
     );
 
 Map<String, dynamic> _$AnnouncementPostResponseToJson(
         AnnouncementPostResponse instance) =>
     <String, dynamic>{
-      'announcementID': instance.announcementID,
+      'ok': instance.ok,
     };

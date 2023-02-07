@@ -93,7 +93,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementID` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementID`))');
+            'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementContextId`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -332,9 +332,10 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
             database,
             'AnnouncementLocal',
             (AnnouncementLocal item) => <String, Object?>{
-                  'announcementID': item.announcementID,
+                  'announcementContextId': item.announcementContextId,
                   'title': item.title,
                   'body': item.body,
+                  'createdAt': item.createdAt,
                   'announceAt': item.announceAt,
                   'type': item.type,
                   'unread': item.unread ? 1 : 0
@@ -353,9 +354,10 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
     return _queryAdapter.queryList(
         'SELECT * FROM AnnouncementLocal ORDER BY announceAt DESC',
         mapper: (Map<String, Object?> row) => AnnouncementLocal(
-            announcementID: row['announcementID'] as String,
+            announcementContextId: row['announcementContextId'] as String,
             title: row['title'] as String,
             body: row['body'] as String,
+            createdAt: row['createdAt'] as int,
             announceAt: row['announceAt'] as int,
             type: row['type'] as String,
             unread: (row['unread'] as int) != 0));
@@ -364,11 +366,12 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
   @override
   Future<AnnouncementLocal?> getAnnouncement(String announcementID) async {
     return _queryAdapter.query(
-        'SELECT * FROM AnnouncementLocal WHERE announcementID = ?1',
+        'SELECT * FROM AnnouncementLocal WHERE announcementContextId = ?1',
         mapper: (Map<String, Object?> row) => AnnouncementLocal(
-            announcementID: row['announcementID'] as String,
+            announcementContextId: row['announcementContextId'] as String,
             title: row['title'] as String,
             body: row['body'] as String,
+            createdAt: row['createdAt'] as int,
             announceAt: row['announceAt'] as int,
             type: row['type'] as String,
             unread: (row['unread'] as int) != 0),
@@ -381,7 +384,7 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
     bool unread,
   ) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE AnnouncementLocal SET unread = ?2 WHERE announcementID = ?1',
+        'UPDATE AnnouncementLocal SET unread = ?2 WHERE announcementContextId = ?1',
         arguments: [announcementID, unread ? 1 : 0]);
   }
 
@@ -392,7 +395,7 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
   ) async {
     return _queryAdapter.queryList(
         'SELECT * FROM AnnouncementLocal WHERE category = (?1) AND action = (?2)',
-        mapper: (Map<String, Object?> row) => AnnouncementLocal(announcementID: row['announcementID'] as String, title: row['title'] as String, body: row['body'] as String, announceAt: row['announceAt'] as int, type: row['type'] as String, unread: (row['unread'] as int) != 0),
+        mapper: (Map<String, Object?> row) => AnnouncementLocal(announcementContextId: row['announcementContextId'] as String, title: row['title'] as String, body: row['body'] as String, createdAt: row['createdAt'] as int, announceAt: row['announceAt'] as int, type: row['type'] as String, unread: (row['unread'] as int) != 0),
         arguments: [category, action]);
   }
 

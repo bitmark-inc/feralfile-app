@@ -113,5 +113,5 @@ final migrateV13ToV14 = Migration(13, 14, (database) async {
 
 final migrateV14ToV15 = Migration(14, 15, (database) async {
   await database.execute(
-      'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementID` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL,  PRIMARY KEY (`announcementID`))');
+      'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL,  PRIMARY KEY (`announcementContextId`))');
 });

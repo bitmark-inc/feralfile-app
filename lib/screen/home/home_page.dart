@@ -544,7 +544,7 @@ class HomePageState extends State<HomePage>
         .refreshJWTToken(jwtToken)
         .then((value) => feedService.checkNewFeeds());
 
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();
   }
 

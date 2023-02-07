@@ -277,7 +277,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         final notificationIssueID =
             '${event.notification.additionalData?['issue_id']}';
         injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        injector<CustomerSupportService>().getIssues();
+        injector<CustomerSupportService>().getIssuesAndAnnouncement();
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
           event.complete(null);
           return;

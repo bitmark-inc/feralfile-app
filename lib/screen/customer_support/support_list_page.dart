@@ -289,7 +289,7 @@ class _SupportListPageState extends State<SupportListPage>
                 Text(
                   getVerboseDateTimeRepresentation(
                       DateTime.fromMillisecondsSinceEpoch(
-                          announcement.announceAt)),
+                          announcement.createdAt)),
                   style: theme.textTheme.ppMori400Black14
                       .copyWith(color: AppColor.auQuickSilver),
                 ),

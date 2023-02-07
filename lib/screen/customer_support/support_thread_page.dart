@@ -170,8 +170,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     final payload = widget.payload;
     if (payload.announcement != null && payload.announcement!.unread) {
-      _customerSupportService.markAnnouncementAsRead(
-          payload.announcement!.announcementID);
+      _customerSupportService
+          .markAnnouncementAsRead(payload.announcement!.announcementContextId);
       _callMixpanelReadAnnouncementEvent(payload.announcement!);
     }
     if (payload is NewIssuePayload) {
@@ -763,7 +763,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       CSMessageType.PostMessage.rawValue,
       DraftCustomerSupportData(
           text: message.text,
-          announcementId: widget.payload.announcement?.announcementID),
+          announcementId: widget.payload.announcement?.announcementContextId),
     );
   }
 
@@ -788,7 +788,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       CSMessageType.PostLogs.rawValue,
       DraftCustomerSupportData(
         attachments: [LocalAttachment(fileName: filename, path: localPath)],
-        announcementId: widget.payload.announcement?.announcementID,
+        announcementId: widget.payload.announcement?.announcementContextId,
       ),
     );
 
@@ -847,7 +847,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       CSMessageType.PostPhotos.rawValue,
       DraftCustomerSupportData(
         attachments: attachments,
-        announcementId: widget.payload.announcement?.announcementID,
+        announcementId: widget.payload.announcement?.announcementContextId,
       ),
     );
   }

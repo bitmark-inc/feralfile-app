@@ -4,18 +4,19 @@ part 'announcement.g.dart';
 
 @JsonSerializable()
 class Announcement {
-  final String announcementId;
+  final String announcementContextId;
   final String title;
   final String body;
+  final int createdAt;
   final int announceAt;
   final String type;
 
-  Announcement(
-      {required this.announcementId,
-      required this.title,
-      required this.body,
-      required this.announceAt,
-      required this.type});
+  Announcement({required this.announcementContextId,
+    required this.title,
+    required this.body,
+    required this.announceAt,
+    required this.createdAt,
+    required this.type});
 
   factory Announcement.fromJson(Map<String, dynamic> json) =>
       _$AnnouncementFromJson(json);
@@ -25,9 +26,9 @@ class Announcement {
 
 @JsonSerializable()
 class AnnouncementPostResponse {
-  final String announcementID;
+  final int ok;
 
-  AnnouncementPostResponse({required this.announcementID});
+  AnnouncementPostResponse({required this.ok});
 
   factory AnnouncementPostResponse.fromJson(Map<String, dynamic> json) =>
       _$AnnouncementPostResponseFromJson(json);

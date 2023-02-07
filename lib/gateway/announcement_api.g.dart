@@ -33,7 +33,7 @@ class _AnnouncementApi implements AnnouncementApi {
     )
             .compose(
               _dio.options,
-              '/announcements',
+              '/v1/announcements',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -56,7 +56,7 @@ class _AnnouncementApi implements AnnouncementApi {
     )
             .compose(
               _dio.options,
-              '/announcements',
+              '/v1/announcements',
               queryParameters: queryParameters,
               data: _data,
             )

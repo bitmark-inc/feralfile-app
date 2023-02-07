@@ -186,11 +186,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       }
     }
 
-    numberOfIssuesInfo.value = [
-      issues.length,
-      issues.where((element) => element.unread > 0).length,
-    ];
-
     return issues;
   }
 
@@ -540,7 +535,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     if (issues.isNotEmpty && announcements.isNotEmpty) {
       for (var issue in issues) {
         final announcement = announcements.firstWhereOrNull(
-            (element) => element.announcementID == issue.announcementID);
+            (element) => element.announcementContextId == issue.announcementID);
         if (announcement != null) {
           issue.announcement = announcement;
           announcements.remove(announcement);
@@ -549,6 +544,16 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     }
     result.addAll(issues);
     result.addAll(announcements);
+    numberOfIssuesInfo.value = [
+      result.length,
+      result
+          .where((element) => (element is Issue)
+              ? element.unread > 0
+              : (element is AnnouncementLocal)
+                  ? element.unread
+                  : false)
+          .length,
+    ];
     result.sort((a, b) {
       final aTimestamp = _getTimestamp(a);
       final bTimestamp = _getTimestamp(b);
@@ -561,9 +566,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     if (a is Issue) {
       final timestamp =
           a.draft?.createdAt ?? a.lastMessage?.timestamp ?? a.timestamp;
-      return timestamp.millisecondsSinceEpoch ~/ 1000;
+      return timestamp.millisecondsSinceEpoch;
     } else if (a is AnnouncementLocal) {
-      return a.announceAt;
+      return a.createdAt;
     } else {
       return 0;
     }
@@ -580,6 +585,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       data: {"number": announcements.length},
       hashedData: {},
     );
+    final pullTime = DateTime.now().millisecondsSinceEpoch;
+    _configurationService.setAnnouncementLastPullTime(pullTime);
     for (var announcement in announcements) {
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
@@ -593,12 +600,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   Future<void> createAnnouncement(String type) async {
-    final body = {"announcementContextID": type};
-    final announcementPostResponse =
-        await _announcementApi.callAnnouncement(body);
-    final announcementID = announcementPostResponse.announcementID;
+    final body = {"announcement_context_id": type};
+    await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
-    final announcement = await _announcementDao.getAnnouncement(announcementID);
+    final announcement = await _announcementDao.getAnnouncement(type);
     if (announcement != null) {
       showInfoNotification(
           const Key("Announcement"), "au_has_announcement".tr(),
@@ -611,11 +616,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
                     .textTheme
                     .ppMori400Green14),
           ], openHandler: () {
-        injector<NavigationService>().navigateUntil(
+        injector<NavigationService>().navigateTo(
           AppRouter.supportThreadPage,
-          ((route) =>
-              route.settings.name == AppRouter.homePage ||
-              route.settings.name == AppRouter.homePageNoTransition),
           arguments: NewIssuePayload(
             reportIssueType: ReportIssueType.Announcement,
             announcement: announcement,

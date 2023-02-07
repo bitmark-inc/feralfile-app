@@ -8,11 +8,11 @@ part 'announcement_api.g.dart';
 abstract class AnnouncementApi {
   factory AnnouncementApi(Dio dio, {String baseUrl}) = _AnnouncementApi;
 
-  @POST("/announcements")
+  @POST("/v1/announcements")
   Future<AnnouncementPostResponse> callAnnouncement(
       @Body() Map<String, dynamic> body);
 
-  @GET("/announcements")
+  @GET("/v1/announcements")
   Future<List<Announcement>> getAnnouncements({
     @Query("lastPullTime") required int lastPullTime,
   });
