@@ -577,7 +577,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(
       MixpanelEvent.receiveAnnouncement,
-      data: {"quantity": announcements.length},
+      data: {"number": announcements.length},
       hashedData: {},
     );
     for (var announcement in announcements) {
@@ -599,27 +599,30 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final announcementID = announcementPostResponse.announcementID;
     await fetchAnnouncement();
     final announcement = await _announcementDao.getAnnouncement(announcementID);
-    showInfoNotification(const Key("Announcement"), "au_has_announcement".tr(),
-        addOnTextSpan: [
-          TextSpan(
-              text: "tap_to_view".tr(),
-              style: Theme.of(injector<NavigationService>()
-                      .navigatorKey
-                      .currentContext!)
-                  .textTheme
-                  .ppMori400Green14),
-        ], openHandler: () {
-      injector<NavigationService>().navigateUntil(
-        AppRouter.supportThreadPage,
-        ((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition),
-        arguments: NewIssuePayload(
-          reportIssueType: ReportIssueType.Announcement,
-          announcement: announcement,
-        ),
-      );
-    });
+    if (announcement != null) {
+      showInfoNotification(
+          const Key("Announcement"), "au_has_announcement".tr(),
+          addOnTextSpan: [
+            TextSpan(
+                text: "tap_to_view".tr(),
+                style: Theme.of(injector<NavigationService>()
+                        .navigatorKey
+                        .currentContext!)
+                    .textTheme
+                    .ppMori400Green14),
+          ], openHandler: () {
+        injector<NavigationService>().navigateUntil(
+          AppRouter.supportThreadPage,
+          ((route) =>
+              route.settings.name == AppRouter.homePage ||
+              route.settings.name == AppRouter.homePageNoTransition),
+          arguments: NewIssuePayload(
+            reportIssueType: ReportIssueType.Announcement,
+            announcement: announcement,
+          ),
+        );
+      });
+    }
   }
 
   @override
