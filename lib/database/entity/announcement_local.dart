@@ -22,7 +22,7 @@ class AnnouncementLocal {
       {required this.announcementContextId,
       required this.title,
       required this.body,
-        required this.createdAt,
+      required this.createdAt,
       required this.announceAt,
       required this.type,
       required this.unread});

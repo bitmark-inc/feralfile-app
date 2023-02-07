@@ -11,12 +11,13 @@ class Announcement {
   final int announceAt;
   final String type;
 
-  Announcement({required this.announcementContextId,
-    required this.title,
-    required this.body,
-    required this.announceAt,
-    required this.createdAt,
-    required this.type});
+  Announcement(
+      {required this.announcementContextId,
+      required this.title,
+      required this.body,
+      required this.announceAt,
+      required this.createdAt,
+      required this.type});
 
   factory Announcement.fromJson(Map<String, dynamic> json) =>
       _$AnnouncementFromJson(json);
