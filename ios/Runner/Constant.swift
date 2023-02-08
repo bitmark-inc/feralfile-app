@@ -18,7 +18,7 @@ struct Constant {
 
     static var keychainGroup: String = {
         #if INHOUSE
-        return "A52M7AQ8B2.com.bitmark.autonomy.inhouse.keychain"
+        return "Z5CE7A3A7N.com.bitmark.autonomy-wallet.inhouse.keychain"
         #else
         return "Z5CE7A3A7N.com.bitmark.autonomywallet.keychain"
         #endif
