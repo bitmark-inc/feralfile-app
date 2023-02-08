@@ -479,6 +479,36 @@ Widget closeIcon({Color color = Colors.black}) {
   );
 }
 
+Widget redDotIcon({Color color = Colors.red}) {
+  return Container(
+    width: 10,
+    height: 10,
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+    ),
+  );
+}
+
+Widget iconWithRedDot(
+    {required Widget icon,
+    Color color = AppColor.red,
+    EdgeInsetsGeometry? padding,
+    bool withReddot = true}) {
+  return withReddot
+      ? Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Padding(
+              padding: padding ?? const EdgeInsets.only(right: 5),
+              child: icon,
+            ),
+            redDotIcon(color: color),
+          ],
+        )
+      : icon;
+}
+
 var grantPermissions = [
   "view_account".tr(),
   'request_approval'.tr(),
