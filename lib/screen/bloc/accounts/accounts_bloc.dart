@@ -41,30 +41,24 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<GetAccountsEvent>((event, emit) async {
+      final connectionsFuture =
+          _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       final personas = await _cloudDB.personaDao.getPersonas();
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
       List<Account> accounts = [];
-
+      List<Future<Account?>> personaAccountsFuture = [];
       for (var persona in personas) {
-        final ethAddress = await persona.wallet().getETHEip55Address();
-        if (ethAddress.isEmpty) continue;
-        var name = await persona.wallet().getName();
-
-        if (name.isEmpty) {
-          name = persona.name;
+        final accountFuture = getAccountPersona(persona);
+        personaAccountsFuture.add(accountFuture);
+      }
+      for (var accountFuture in personaAccountsFuture) {
+        final account = await accountFuture;
+        if (account != null) {
+          accounts.add(account);
         }
-
-        final account = Account(
-            key: persona.uuid,
-            persona: persona,
-            name: name,
-            accountNumber: ethAddress,
-            createdAt: persona.createdAt);
-        accounts.add(account);
       }
 
+      final connections = await connectionsFuture;
       for (var connection in connections) {
         switch (connection.connectionType) {
           case 'feralFileWeb3':
@@ -198,14 +192,14 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
             final data = connection.ledgerConnection;
             List<Account> accounts = [];
 
-            final etheremAddresses = data?.etheremAddress ?? [];
+            final ethereumAddresses = data?.etheremAddress ?? [];
             final tezosAddresses = data?.tezosAddress ?? [];
 
-            for (final etheremAddress in etheremAddresses) {
+            for (final ethereumAddress in ethereumAddresses) {
               accounts.add(Account(
-                key: connection.key + etheremAddress,
+                key: connection.key + ethereumAddress,
                 blockchain: "Ethereum",
-                accountNumber: etheremAddress,
+                accountNumber: ethereumAddress,
                 connections: [connection],
                 name: connection.name,
                 createdAt: connection.createdAt,
@@ -356,5 +350,24 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     if (existingConnections.isEmpty) return null;
 
     return existingConnections.first;
+  }
+
+  Future<Account?> getAccountPersona(Persona persona) async {
+    final nameFuture = persona.wallet().getName();
+    final ethAddress = await persona.wallet().getETHEip55Address();
+    if (ethAddress.isEmpty) return null;
+    var name = await nameFuture;
+
+    if (name.isEmpty) {
+      name = persona.name;
+    }
+
+    final account = Account(
+        key: persona.uuid,
+        persona: persona,
+        name: name,
+        accountNumber: ethAddress,
+        createdAt: persona.createdAt);
+    return account;
   }
 }
