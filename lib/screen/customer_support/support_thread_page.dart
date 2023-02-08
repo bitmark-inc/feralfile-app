@@ -685,8 +685,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = "TEMP-${const Uuid().v4()}";
 
       final payload = widget.payload;
-
-      if(payload.announcement != null) {
+      if (payload.announcement != null) {
         final metricClient = injector.get<MetricClientService>();
         metricClient.addEvent(
           MixpanelEvent.replyAnnouncement,
@@ -695,6 +694,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           },
           hashedData: {},
         );
+        data.announcementId = payload.announcement!.announcementContextId;
       }
 
       if (payload is ExceptionErrorPayload) {

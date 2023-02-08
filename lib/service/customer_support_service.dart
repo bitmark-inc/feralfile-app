@@ -406,7 +406,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'title': issueTitle,
       'message': submitMessage,
       'tags': tags,
-      'announcementID': announcementID ?? "",
+      'announcement_context_id': announcementID ?? "",
     };
 
     return await _customerSupportApi.createIssue(payload);
