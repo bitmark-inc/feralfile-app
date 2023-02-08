@@ -604,29 +604,27 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final body = {"announcement_context_id": type};
     await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
-    if (_configurationService.isNotificationEnabled() ?? false) {
-      final announcement = await _announcementDao.getAnnouncement(type);
-      if (announcement != null) {
-        showInfoNotification(
-            const Key("Announcement"), "au_has_announcement".tr(),
-            addOnTextSpan: [
-              TextSpan(
-                  text: "tap_to_view".tr(),
-                  style: Theme.of(injector<NavigationService>()
-                      .navigatorKey
-                      .currentContext!)
-                      .textTheme
-                      .ppMori400Green14),
-            ], openHandler: () {
-          injector<NavigationService>().navigateTo(
-            AppRouter.supportThreadPage,
-            arguments: NewIssuePayload(
-              reportIssueType: ReportIssueType.Announcement,
-              announcement: announcement,
-            ),
-          );
-        });
-      }
+    final announcement = await _announcementDao.getAnnouncement(type);
+    if (announcement != null) {
+      showInfoNotification(
+          const Key("Announcement"), "au_has_announcement".tr(),
+          addOnTextSpan: [
+            TextSpan(
+                text: "tap_to_view".tr(),
+                style: Theme.of(injector<NavigationService>()
+                        .navigatorKey
+                        .currentContext!)
+                    .textTheme
+                    .ppMori400Green14),
+          ], openHandler: () {
+        injector<NavigationService>().navigateTo(
+          AppRouter.supportThreadPage,
+          arguments: NewIssuePayload(
+            reportIssueType: ReportIssueType.Announcement,
+            announcement: announcement,
+          ),
+        );
+      });
     }
   }
 
