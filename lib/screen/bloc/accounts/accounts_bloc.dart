@@ -45,18 +45,10 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       final personas = await _cloudDB.personaDao.getPersonas();
 
-      List<Account> accounts = [];
-      List<Future<Account?>> personaAccountsFuture = [];
-      for (var persona in personas) {
-        final accountFuture = getAccountPersona(persona);
-        personaAccountsFuture.add(accountFuture);
-      }
-      for (var accountFuture in personaAccountsFuture) {
-        final account = await accountFuture;
-        if (account != null) {
-          accounts.add(account);
-        }
-      }
+      List<Account> accounts = (await Future.wait(
+              personas.map((persona) => getAccountPersona(persona))))
+          .whereNotNull()
+          .toList();
 
       final connections = await connectionsFuture;
       for (var connection in connections) {
