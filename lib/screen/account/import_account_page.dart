@@ -16,9 +16,9 @@ import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -58,18 +58,15 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final customLinkStyle =
-        theme.textTheme.linkStyle.copyWith(fontWeight: FontWeight.bold);
+    final customLinkStyle = theme.textTheme.ppMori400Black14
+        .copyWith(decoration: TextDecoration.underline);
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          metricClient.addEvent(MixpanelEvent.backImportAccount);
-          Navigator.of(context).pop();
-        },
-      ),
+      appBar: getBackAppBar(context, onBack: () {
+        metricClient.addEvent(MixpanelEvent.backImportAccount);
+        Navigator.of(context).pop();
+      }, title: "import_wallet".tr()),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -78,14 +75,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "import_account".tr(),
-                      style: theme.textTheme.headline1,
-                    ),
                     addTitleSpace(),
                     RichText(
                       text: TextSpan(
-                        style: theme.textTheme.bodyText1,
+                        style: theme.textTheme.ppMori400Black14,
                         children: <TextSpan>[
                           TextSpan(
                             text: "ia_importing_your_account_".tr(),
@@ -117,17 +110,20 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                                               "title": ""
                                             }),
                                 ),
+                          const TextSpan(
+                            text: ".",
+                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 15),
                     learnMoreAboutAutonomySecurityWidget(
                       context,
                       title: 'learn_why_this_is_safe...'.tr(),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 15),
                     SizedBox(
-                      height: 120,
+                      height: 160,
                       child: Column(
                         children: [
                           AuTextField(
@@ -160,7 +156,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       visible: isError,
                       child: Text(
                         'invalid_recovery_phrase'.tr(),
-                        style: theme.textTheme.atlasBlackNormal12.copyWith(
+                        style: theme.textTheme.ppMori400Black12.copyWith(
                           color: AppColor.red,
                         ),
                       ),
@@ -170,18 +166,12 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                 ),
               ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    enabled: _isSubmissionEnabled,
-                    text: "confirm".tr().toUpperCase(),
-                    onPress: () {
-                      if (_isSubmissionEnabled) _import();
-                    },
-                  ),
-                ),
-              ],
+            PrimaryButton(
+              enabled: _isSubmissionEnabled,
+              text: "h_confirm".tr(),
+              onTap: () {
+                if (_isSubmissionEnabled) _import();
+              },
             ),
           ],
         ),

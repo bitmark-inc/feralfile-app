@@ -62,7 +62,7 @@ Widget accountWithConnectionItem(
         children: [
           Container(
               alignment: Alignment.topCenter, child: _appLogo(connection)),
-          const SizedBox(width: 16),
+          const SizedBox(width: 24),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +112,7 @@ Widget accountItem(BuildContext context, Account account,
       leftWidget: Row(
         children: [
           accountLogo(context, account),
-          const SizedBox(width: 16),
+          const SizedBox(width: 32),
           FutureBuilder<String>(
             future: getDidKey,
             builder: (context, snapshot) {
@@ -122,22 +122,27 @@ Widget accountItem(BuildContext context, Account account,
                 child: Text(
                   name.replaceFirst('did:key:', ''),
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.headline4,
+                  style: theme.textTheme.ppMori400Black14,
                 ),
               );
             },
           ),
         ],
       ),
-      rightWidget: context.widget is AccountsView
-          ? Visibility(
-              visible: isHideGalleryEnabled,
-              child: Icon(
-                Icons.visibility_off_outlined,
-                color: theme.colorScheme.surface,
-              ),
-            )
-          : const SizedBox(),
+      rightWidget: Row(
+        children: [
+          context.widget is AccountsView
+              ? Visibility(
+                  visible: isHideGalleryEnabled,
+                  child: Icon(
+                    Icons.visibility_off_outlined,
+                    color: theme.colorScheme.surface,
+                  ),
+                )
+              : const SizedBox(),
+          const SizedBox(width: 8),
+        ],
+      ),
       onTap: onPersonaTap,
     );
   }
@@ -151,12 +156,15 @@ Widget accountItem(BuildContext context, Account account,
       leftWidget: Row(
         children: [
           accountLogo(context, account),
-          const SizedBox(width: 16),
-          Text(
-            connection.name.isNotEmpty
-                ? connection.name.maskIfNeeded()
-                : connection.accountNumber.mask(4),
-            style: theme.textTheme.headline4,
+          const SizedBox(width: 32),
+          Expanded(
+            child: Text(
+              connection.name.isNotEmpty
+                  ? connection.name.maskIfNeeded()
+                  : connection.accountNumber,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.ppMori400Black14,
+            ),
           ),
         ],
       ),
@@ -173,6 +181,7 @@ Widget accountItem(BuildContext context, Account account,
             width: 10,
           ),
           linkedBox(context),
+          const SizedBox(width: 8),
         ],
       ),
       onTap: onConnectionTap,
@@ -258,7 +267,7 @@ Widget accountLogo(BuildContext context, Account account) {
 
   final connection = account.connections?.first;
   if (connection != null) {
-    return _appLogo(connection);
+    return SizedBox(width: 29, height: 29, child: _appLogo(connection));
   }
 
   return const SizedBox(
@@ -323,9 +332,10 @@ Widget linkedBox(BuildContext context) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
     decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50),
         border: Border.all(
-      color: theme.colorScheme.surface,
-    )),
+          color: theme.colorScheme.surface,
+        )),
     child: Text(
       "linked".tr(),
       style: ResponsiveLayout.isMobile

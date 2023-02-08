@@ -24,7 +24,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -53,6 +53,8 @@ class _ScanQRPageState extends State<ScanQRPage>
   late QRViewController controller;
   var isScanDataError = false;
   var _isLoading = false;
+  bool cameraPermission = false;
+  String? currentCode;
   AnimationController? _controller;
 
   @override
@@ -77,9 +79,18 @@ class _ScanQRPageState extends State<ScanQRPage>
     await Permission.camera.request();
     final status = await Permission.camera.status;
 
-    if (status.isPermanentlyDenied) {
-      openAppSettings();
+    if (status.isPermanentlyDenied || status.isDenied) {
+      if (cameraPermission) {
+        setState(() {
+          cameraPermission = false;
+        });
+      }
     } else {
+      if (!cameraPermission) {
+        setState(() {
+          cameraPermission = true;
+        });
+      }
       if (Platform.isAndroid) {
         Future.delayed(const Duration(seconds: 1), () {
           controller.resumeCamera();
@@ -97,10 +108,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   @override
   Widget build(BuildContext context) {
     final size1 = MediaQuery.of(context).size.height / 2;
-    final size2 = MediaQuery.of(context).size.width - 130;
-    final qrSize = size1 < size2 ? size1 : size2;
+    final qrSize = size1 < 240.0 ? size1 : 240.0;
 
-    var cutPaddingTop = qrSize + 460 - MediaQuery.of(context).size.height;
+    var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
     final theme = Theme.of(context);
     return BlocListener<FeralfileBloc, FeralFileState>(
@@ -139,6 +149,9 @@ class _ScanQRPageState extends State<ScanQRPage>
                 borderColor: isScanDataError
                     ? AppColor.red
                     : theme.colorScheme.secondary,
+                overlayColor: (cameraPermission || Platform.isIOS)
+                    ? const Color.fromRGBO(0, 0, 0, 80)
+                    : const Color.fromRGBO(255, 255, 255, 60),
                 cutOutSize: qrSize,
                 borderWidth: 8,
                 borderRadius: 40,
@@ -146,6 +159,13 @@ class _ScanQRPageState extends State<ScanQRPage>
                 cutOutBottomOffset: 32 + cutPaddingTop,
               ),
               onQRViewCreated: _onQRViewCreated,
+              onPermissionSet: (ctrl, p) {
+                if (ctrl.hasPermissions) {
+                  setState(() {
+                    cameraPermission = true;
+                  });
+                }
+              },
             ),
             Positioned(
               right: 0,
@@ -160,76 +180,97 @@ class _ScanQRPageState extends State<ScanQRPage>
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  0,
-                  MediaQuery.of(context).size.height / 2 +
-                      qrSize / 2 -
-                      cutPaddingTop,
-                  0,
-                  0),
-              child: Center(child: _instructionView()),
-            ),
-            Positioned(
-                bottom: 30,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
-                    child: HorizontalSlidableButton(
-                      controller: _controller,
-                      width: MediaQuery.of(context).size.width,
-                      height: 50,
-                      buttonWidth: MediaQuery.of(context).size.width / 2,
-                      color: theme.auLightGrey,
-                      buttonColor: theme.auLightGrey,
-                      label: Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'scan_code'.tr(),
-                              style: theme.textTheme.ppMori400White14,
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Text(
-                              'scan_code'.tr(),
-                              style: theme.textTheme.ppMori400White14,
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                _controller?.forward();
-                                _navigateShowMyCode();
-                              },
-                              child: Text(
-                                'show_my_code'.tr(),
-                                style:
-                                    theme.textTheme.ppMori400White14.copyWith(
-                                  color: theme.disabledColor,
+                0,
+                MediaQuery.of(context).size.height / 2 +
+                    qrSize / 2 -
+                    cutPaddingTop,
+                0,
+                0,
+              ),
+              child: Center(
+                child: Column(
+                  children: [
+                    if (cameraPermission) ...[
+                      const Spacer(),
+                      _instructionView(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0.0),
+                        child: HorizontalSlidableButton(
+                          controller: _controller,
+                          width: MediaQuery.of(context).size.width,
+                          height: 50,
+                          buttonWidth: MediaQuery.of(context).size.width / 2,
+                          color: theme.auLightGrey,
+                          buttonColor: theme.auLightGrey,
+                          label: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'scan_code'.tr(),
+                                  style: theme.textTheme.ppMori400White14,
                                 ),
                               ),
                             ),
-                          ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  'scan_code'.tr(),
+                                  style: theme.textTheme.ppMori400White14,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    _controller?.forward();
+                                    _navigateShowMyCode();
+                                  },
+                                  child: Text(
+                                    'show_my_code'.tr(),
+                                    style: theme.textTheme.ppMori400White14
+                                        .copyWith(
+                                      color: theme.disabledColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          onChanged: (position) {
+                            if (position == SlidableButtonPosition.end) {
+                              _navigateShowMyCode();
+                            }
+                          },
                         ),
                       ),
-                      onChanged: (position) {
-                        if (position == SlidableButtonPosition.end) {
-                          _navigateShowMyCode();
-                        }
-                      },
-                    ),
-                  ),
-                )),
+                    ] else ...[
+                      _instructionViewNoPermission(),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: PrimaryButton(
+                          text: "open_setting".tr(
+                            namedArgs: {
+                              "device": Platform.isAndroid ? "Device" : "iOS",
+                            },
+                          ),
+                          onTap: () {
+                            openAppSettings();
+                          },
+                        ),
+                      )
+                    ],
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
             if (_isLoading) ...[
               Center(
                 child: CupertinoActivityIndicator(
@@ -244,6 +285,21 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
+  Widget _instructionViewNoPermission() {
+    final theme = Theme.of(context);
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final qrSize = size1 < 240.0 ? size1 : 240.0;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      width: qrSize,
+      child: Text(
+        'please_ensure'.tr(),
+        style: theme.textTheme.ppMori400White14,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   Widget _instructionView() {
     final theme = Theme.of(context);
 
@@ -252,46 +308,79 @@ class _ScanQRPageState extends State<ScanQRPage>
       case ScannerItem.BEACON_CONNECT:
       case ScannerItem.FERALFILE_TOKEN:
       case ScannerItem.GLOBAL:
-        return Column(
-          children: [
-            Text(
-              "scan_qr_to".tr(),
-              style: theme.textTheme.ppMori400White14,
+        return Padding(
+          padding: const EdgeInsets.all(15),
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(5),
             ),
-            const SizedBox(height: 24),
-            Text(
-              "apps".tr(),
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700White14
-                  : theme.textTheme.atlasWhiteBold14,
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "scan_qr_to".tr(),
+                  style: theme.textTheme.ppMori700White14,
+                ),
+                Divider(
+                  color: theme.colorScheme.secondary,
+                  height: 30,
+                ),
+                RichText(
+                  text: TextSpan(
+                    text: "apps".tr(),
+                    children: [
+                      TextSpan(
+                        text: ' ',
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                      TextSpan(
+                        text: "such_as_openSea".tr(),
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                    ],
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                RichText(
+                  text: TextSpan(
+                    text: "wallets".tr(),
+                    children: [
+                      TextSpan(
+                        text: ' ',
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                      TextSpan(
+                        text: 'such_as_metamask'.tr(),
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                    ],
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                RichText(
+                  text: TextSpan(
+                    text: "h_autonomy".tr(),
+                    children: [
+                      TextSpan(
+                        text: ' ',
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                      TextSpan(
+                        text: 'on_tv_or_desktop'.tr(),
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                    ],
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              "such_as_openSea".tr(),
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "wallets".tr(),
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700White14
-                  : theme.textTheme.atlasWhiteBold14,
-            ),
-            Text(
-              'such_as_metamask'.tr(),
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "h_autonomy".tr(),
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700White14
-                  : theme.textTheme.atlasWhiteBold14,
-            ),
-            Text(
-              'on_tv_or_desktop'.tr(),
-              style: theme.textTheme.ppMori400White14,
-            ),
-          ],
+          ),
         );
 
       case ScannerItem.ETH_ADDRESS:
@@ -308,7 +397,8 @@ class _ScanQRPageState extends State<ScanQRPage>
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
       if (scanData.code == null) return;
-
+      if (scanData.code == currentCode && isScanDataError) return;
+      currentCode = scanData.code;
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
@@ -391,6 +481,13 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _handleError(String data) {
     setState(() {
       isScanDataError = true;
+    });
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() {
+          isScanDataError = false;
+        });
+      }
     });
 
     log.info("[Scanner][start] scan ${widget.scannerItem}");

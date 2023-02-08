@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -39,8 +40,6 @@ abstract class TZKTTransactionInterface {
 
 @JsonSerializable()
 class TZKTOperation implements TZKTTransactionInterface {
-  static const _nanoTEZFactor = 1000000;
-
   String type;
   int id;
   int level;
@@ -135,7 +134,7 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   String totalAmount(String? currentAddress) {
-    return "${(getTotalAmount(currentAddress) / _nanoTEZFactor).toStringAsPrecision(3)} XTZ";
+    return "${XtzAmountFormatter(getTotalAmount(currentAddress)).format()} XTZ";
   }
 
   int getTotalAmount(String? currentAddress) {
@@ -151,19 +150,10 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   Widget transactionImage(String? currentAddress) {
-    if (isSendNFT(currentAddress)) {
-      return SvgPicture.asset("assets/images/tezos_tx_sent.svg");
-    }
-    if (isReceiveNFT(currentAddress)) {
-      return SvgPicture.asset("assets/images/tezos_tx_received.svg");
-    }
-    if (parameter != null || type == "reveal" || type == "origination") {
-      return SvgPicture.asset("assets/images/tezos_tx_smartcontract.svg");
-    } else {
-      return SvgPicture.asset(sender?.address == currentAddress
-          ? "assets/images/tezos_tx_sent.svg"
-          : "assets/images/tezos_tx_received.svg");
-    }
+    return SvgPicture.asset(
+      "assets/images/tez.svg",
+      width: 40,
+    );
   }
 
   @override
@@ -264,9 +254,7 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
 
   @override
   Widget transactionImage(String? currentAddress) {
-    return isSendNFT(currentAddress)
-        ? SvgPicture.asset("assets/images/tezos_tx_sent.svg")
-        : SvgPicture.asset("assets/images/tezos_tx_received.svg");
+    return SvgPicture.asset("assets/images/tez.svg", width: 40);
   }
 
   @override

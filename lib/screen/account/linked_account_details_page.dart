@@ -17,11 +17,12 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -169,26 +170,39 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         break;
     }
 
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: widget.connection.name.maskIfNeeded(),
+        title: widget.connection.name.isNotEmpty
+            ? widget.connection.name.maskIfNeeded()
+            : widget.connection.accountNumber,
         onBack: () => Navigator.of(context).pop(),
       ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _addressesSection(),
-              const SizedBox(height: 40),
-              _preferencesSection(),
-              const SizedBox(height: 40),
-              _backupSection(),
-              const SizedBox(height: 40),
-            ],
-          ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            Padding(
+              padding: padding,
+              child: _addressesSection(),
+            ),
+            addDivider(),
+            const SizedBox(height: 16),
+            Padding(
+              padding: padding,
+              child: _preferencesSection(),
+            ),
+            addDivider(),
+            const SizedBox(height: 16),
+            Padding(
+              padding: padding,
+              child: _backupSection(),
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
@@ -203,9 +217,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           contextedAddresses.length > 1
               ? "linked_addresses".tr()
               : "linked_address".tr(),
-          style: theme.textTheme.headline1,
+          style: theme.textTheme.ppMori400Black16,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 40),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -232,13 +246,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   Widget _addressRow(CryptoType type,
       {required String address, required balanceString}) {
     final theme = Theme.of(context);
-    final balanceStyle = theme.textTheme.subtitle1;
+    final balanceStyle = theme.textTheme.ppMori400Grey14;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(type.source, style: theme.textTheme.headline4),
+          Text(type.source, style: theme.textTheme.ppMori700Black14),
           Text(balanceString, style: balanceStyle),
         ],
       ),
@@ -254,7 +268,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               },
               child: Text(
                 address,
-                style: theme.textTheme.subtitle1,
+                style: theme.textTheme.ppMori400Black14,
               ),
             ),
           ),
@@ -268,10 +282,10 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
         "preferences".tr(),
-        style: theme.textTheme.headline1,
+        style: theme.textTheme.ppMori400Black16,
       ),
       const SizedBox(
-        height: 14,
+        height: 24,
       ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,10 +294,10 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("hide_from_collection".tr(),
-                  style: theme.textTheme.headline4),
-              CupertinoSwitch(
+                  style: theme.textTheme.ppMori400Black16),
+              AuToggle(
                 value: isHideGalleryEnabled,
-                onChanged: (value) async {
+                onToggle: (value) async {
                   await injector<AccountService>()
                       .setHideLinkedAccountInGallery(
                           widget.connection.hiddenGalleryKey, value);
@@ -296,7 +310,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                     isHideGalleryEnabled = value;
                   });
                 },
-                activeColor: theme.colorScheme.primary,
               )
             ],
           ),
@@ -304,7 +317,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Text(
             "do_not_show_nft".tr(),
             //"Do not show this account's NFTs in the collection view."
-            style: theme.textTheme.bodyText1,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ],
       ),
@@ -317,16 +330,16 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("backup".tr(), style: theme.textTheme.headline1),
+        Text("backup".tr(), style: theme.textTheme.ppMori400Black16),
         const SizedBox(height: 24),
         if (_source == 'FeralFile') ...[
           Text("ba_the_keys_for_thisFf".tr(),
               //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
-              style: theme.textTheme.bodyText1),
+              style: theme.textTheme.ppMori400Black14),
         ] else ...[
           Text("ba_the_keys_for_thisFf".tr(args: [_source]),
               //"The keys for this account are in $_source. You should manage your key backups there.",
-              style: theme.textTheme.bodyText1),
+              style: theme.textTheme.ppMori400Black14),
         ],
       ],
     );

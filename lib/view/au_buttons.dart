@@ -60,6 +60,7 @@ class AuSecondaryButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? Colors.transparent,
+          elevation: 0,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: borderColor ?? Colors.white),
             borderRadius: BorderRadius.circular(32.0),
@@ -73,6 +74,35 @@ class AuSecondaryButton extends StatelessWidget {
               .ppMori400White14
               .copyWith(color: textColor),
         ),
+      ),
+    );
+  }
+}
+
+class AuCustomButton extends StatelessWidget {
+  final Function()? onPressed;
+  final Widget? child;
+
+  const AuCustomButton({Key? key, required this.onPressed, required this.child})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 43.0,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColor.white,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32.0),
+          ),
+          side: const BorderSide(),
+          alignment: Alignment.center,
+        ),
+        onPressed: onPressed,
+        child: child,
       ),
     );
   }

@@ -205,13 +205,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   ),
                 ),
                 Visibility(
-                  visible: asset.assetURL == CHECK_WEB3_PRIMER_URL,
+                  visible: CHECK_WEB3_CONTRACT_ADDRESS
+                      .contains(asset.contractAddress),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
                       padding: const EdgeInsets.only(
                           left: 16.0, right: 16.0, top: 40),
                       child: OutlineButton(
+                        color: Colors.transparent,
                         text: "web3_glossary".tr(),
                         onTap: () {
                           Navigator.pushNamed(

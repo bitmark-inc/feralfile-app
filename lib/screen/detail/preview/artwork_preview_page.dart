@@ -332,7 +332,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         ),
                         OutlineButton(
                           onTap: () => Navigator.pop(context),
-                          text: "cancel".tr(),
+                          text: "cancel_dialog".tr(),
                         ),
                       ],
                     ),
@@ -589,7 +589,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       children: [
                         Text(
                           assetToken?.title ?? '',
-                          style: theme.textTheme.ppMori400White12,
+                          style: theme.textTheme.ppMori400White14,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -605,11 +605,13 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               return Row(
                                 children: [
                                   const SizedBox(height: 4.0),
-                                  Text(
-                                    "by".tr(args: [artistName]),
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.ppMori400White12,
-                                  )
+                                  Expanded(
+                                    child: Text(
+                                      "by".tr(args: [artistName]),
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.ppMori400White12,
+                                    ),
+                                  ),
                                 ],
                               );
                             }
@@ -622,9 +624,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   actions: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                      ),
                       icon: Icon(
                         AuIcon.close,
                         color: theme.colorScheme.secondary,
+                        size: 20,
                       ),
                       tooltip: 'close_icon',
                     )
@@ -637,84 +644,78 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             bottom: false,
             left: !isFullScreen,
             right: !isFullScreen,
-            child: Stack(
+            child: Column(
               children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        child: PageView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          onPageChanged: (value) {
-                            _timer?.cancel();
-                            final currentId = tokens[value];
-                            _bloc.add(
-                                ArtworkPreviewGetAssetTokenEvent(currentId));
-                            _stopAllChromecastDevices();
-                            keyboardManagerKey.currentState?.hideKeyboard();
-                          },
-                          controller: controller,
-                          itemCount: tokens.length,
-                          itemBuilder: (context, index) => Center(
-                            child: ArtworkPreviewWidget(
-                              identity: tokens[index],
-                              onLoaded: setTimer,
-                              focusNode: _focusNode,
-                            ),
+                Expanded(
+                  child: GestureDetector(
+                    child: PageView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (value) {
+                        _timer?.cancel();
+                        final currentId = tokens[value];
+                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
+                        _stopAllChromecastDevices();
+                        keyboardManagerKey.currentState?.hideKeyboard();
+                      },
+                      controller: controller,
+                      itemCount: tokens.length,
+                      itemBuilder: (context, index) => InteractiveViewer(
+                        minScale: 1,
+                        maxScale: 4,
+                        child: Center(
+                          child: ArtworkPreviewWidget(
+                            identity: tokens[index],
+                            onLoaded: setTimer,
+                            focusNode: _focusNode,
                           ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
                 Visibility(
                   visible: !isFullScreen,
-                  child: Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      color: theme.colorScheme.primary,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 15,
-                          bottom: 30,
-                          right: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Visibility(
-                              visible: (assetToken?.medium == 'software' ||
-                                  assetToken?.medium == 'other' ||
-                                  (assetToken?.medium?.isEmpty ?? true)),
-                              child: KeyboardManagerWidget(
-                                key: keyboardManagerKey,
-                                focusNode: _focusNode,
+                  child: Container(
+                    color: theme.colorScheme.primary,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 15,
+                        bottom: 30,
+                        right: 20,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Visibility(
+                            visible: (assetToken?.medium == 'software' ||
+                                assetToken?.medium == 'other' ||
+                                (assetToken?.medium?.isEmpty ?? true)),
+                            child: KeyboardManagerWidget(
+                              key: keyboardManagerKey,
+                              focusNode: _focusNode,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          CastButton(
+                            assetToken: assetToken,
+                            onCastTap: () => onCastTap(assetToken),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                            onTap: () => onClickFullScreen(assetToken),
+                            child: Semantics(
+                              label: "fullscreen_icon",
+                              child: SvgPicture.asset(
+                                'assets/images/fullscreen_icon.svg',
                               ),
                             ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            CastButton(
-                              assetToken: assetToken,
-                              onCastTap: () => onCastTap(assetToken),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            GestureDetector(
-                              onTap: () => onClickFullScreen(assetToken),
-                              child: Semantics(
-                                label: "fullscreen_icon",
-                                child: SvgPicture.asset(
-                                  'assets/images/fullscreen_icon.svg',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -923,6 +924,7 @@ class FullscreenIntroPopup extends StatelessWidget {
 
 class KeyboardManagerWidget extends StatefulWidget {
   final FocusNode? focusNode;
+
   const KeyboardManagerWidget({Key? key, this.focusNode}) : super(key: key);
 
   @override

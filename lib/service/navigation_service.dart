@@ -182,6 +182,14 @@ class NavigationService {
         route.settings.name == AppRouter.homePageNoTransition);
   }
 
+  void restorablePushHomePage() {
+    navigatorKey.currentState?.restorablePushNamedAndRemoveUntil(
+        AppRouter.homePageNoTransition,
+        (route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+  }
+
   void setIsWCConnectInShow(bool appeared) {
     _isWCConnectInShow = appeared;
   }
@@ -195,7 +203,7 @@ class NavigationService {
         navigatorKey.currentContext!,
         'contacting'.tr(),
         'contact_with_dapp'.tr(),
-        closeButton: "cancel".tr(),
+        closeButton: "cancel_dialog".tr(),
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {

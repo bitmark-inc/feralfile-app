@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
   final Function()? onTap;
@@ -28,6 +28,7 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor:
               enabled ? color ?? theme.auSuperTeal : theme.auLightGrey,
+          shadowColor: Colors.transparent,
           disabledForegroundColor: theme.auLightGrey,
           disabledBackgroundColor: theme.auLightGrey,
           shape: RoundedRectangleBorder(
@@ -73,6 +74,9 @@ class OutlineButton extends StatelessWidget {
   final double? width;
   final bool isProcessing;
   final bool enabled;
+  final Color? textColor;
+  final Color? borderColor;
+
   const OutlineButton({
     Key? key,
     this.onTap,
@@ -81,6 +85,8 @@ class OutlineButton extends StatelessWidget {
     this.width,
     this.enabled = true,
     this.isProcessing = false,
+    this.textColor,
+    this.borderColor,
   }) : super(key: key);
 
   @override
@@ -91,8 +97,10 @@ class OutlineButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? theme.auGreyBackground,
+          shadowColor: Colors.transparent,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Colors.white),
+            side: BorderSide(color: borderColor ?? Colors.white),
             borderRadius: BorderRadius.circular(32.0),
           ),
         ),
@@ -102,7 +110,8 @@ class OutlineButton extends StatelessWidget {
           child: Center(
             child: Text(
               text ?? '',
-              style: theme.textTheme.ppMori400White14,
+              style:
+                  theme.textTheme.ppMori400White14.copyWith(color: textColor),
             ),
           ),
         ),

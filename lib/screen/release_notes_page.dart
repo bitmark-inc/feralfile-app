@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -43,7 +46,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
       ),
       body: Container(
         color: theme.backgroundColor,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +55,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
               child: Markdown(
                 data: widget.releaseNotes,
                 softLineBreak: true,
-                padding: const EdgeInsets.only(bottom: 50),
+                padding: const EdgeInsets.only(bottom: 50, top: 32),
                 styleSheet: markDownChangeLogStyle(context),
                 builders: <String, MarkdownElementBuilder>{
                   '#': TagBuilder(),
@@ -62,8 +65,11 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                 ],
                 onTapLink: (text, href, title) async {
                   if (href == null) return;
-                  if (await canLaunchUrlString(href)) {
-                    launchUrlString(href);
+                  if (DEEP_LINKS.any((prefix) => href.startsWith(prefix))) {
+                    injector<DeeplinkService>()
+                        .handleDeeplink(href, delay: Duration.zero);
+                  } else if (await canLaunchUrlString(href)) {
+                    launchUrlString(href, mode: LaunchMode.externalApplication);
                   }
                 },
               ),

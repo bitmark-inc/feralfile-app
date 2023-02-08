@@ -97,9 +97,6 @@ class _SupportListPageState extends State<SupportListPage>
       SliverToBoxAdapter(
         child: addTitleSpace(),
       ),
-      const SliverToBoxAdapter(
-        child: SizedBox(height: 20),
-      ),
       SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -110,20 +107,16 @@ class _SupportListPageState extends State<SupportListPage>
                     lastMessage.contains(RATING_MESSAGE_START)) &&
                 issue.rating > 0;
             bool hasDivider = (index < issues.length - 1);
-            return Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveLayout.pageEdgeInsets.left),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                child: _contentRow(issue, hasDivider),
-                onTap: () => Navigator.of(context).pushNamed(
-                    AppRouter.supportThreadPage,
-                    arguments: DetailIssuePayload(
-                        reportIssueType: issue.reportIssueType,
-                        issueID: issue.issueID,
-                        status: status,
-                        isRated: isRated)),
-              ),
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              child: _contentRow(issue, hasDivider),
+              onTap: () => Navigator.of(context).pushNamed(
+                  AppRouter.supportThreadPage,
+                  arguments: DetailIssuePayload(
+                      reportIssueType: issue.reportIssueType,
+                      issueID: issue.issueID,
+                      status: status,
+                      isRated: isRated)),
             );
           },
           childCount: issues.length,
@@ -138,54 +131,54 @@ class _SupportListPageState extends State<SupportListPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  ReportIssueType.toTitle(issue.reportIssueType),
-                  style: theme.textTheme.ppMori400Black16,
-                ),
-                if (issue.unread > 0) ...[
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      width: 10,
-                      height: 10,
-                    ),
-                  ),
-                ]
-              ],
-            ),
-            Row(
-              children: [
-                Text(
-                  getVerboseDateTimeRepresentation(
-                      issue.lastMessage?.timestamp.toLocal() ??
-                          issue.timestamp.toLocal()),
-                  style: theme.textTheme.ppMori400Black14
-                      .copyWith(color: AppColor.auQuickSilver),
-                ),
-                const SizedBox(width: 14),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 17),
         Padding(
-          padding: const EdgeInsets.only(right: 14),
-          child: Text(
-            getPreviewMessage(issue),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.ppMori400Black14,
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        ReportIssueType.toTitle(issue.reportIssueType),
+                        style: theme.textTheme.ppMori400Black16,
+                      ),
+                      if (issue.unread > 0) ...[
+                        const SizedBox(width: 8),
+                        Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: redDotIcon()),
+                      ]
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        getVerboseDateTimeRepresentation(
+                            issue.lastMessage?.timestamp.toLocal() ??
+                                issue.timestamp.toLocal()),
+                        style: theme.textTheme.ppMori400Black14
+                            .copyWith(color: AppColor.auQuickSilver),
+                      ),
+                      const SizedBox(width: 14),
+                      SvgPicture.asset('assets/images/iconForward.svg'),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 17),
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: Text(
+                  getPreviewMessage(issue),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+              ),
+            ],
           ),
         ),
         hasDivider

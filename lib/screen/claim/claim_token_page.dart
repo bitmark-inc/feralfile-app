@@ -109,7 +109,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     direction: MarqueerDirection.ltr,
                                     pps: 30,
                                     child: Text(
-                                      'gift_edition'.tr(),
+                                      'gift_edition'.tr().toUpperCase(),
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                   ),
@@ -135,7 +135,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                   child: Marqueer(
                                     pps: 30,
                                     child: Text(
-                                      'gift_edition'.tr(),
+                                      'gift_edition'.tr().toUpperCase(),
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                   ),
@@ -224,7 +224,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     ),
                     PrimaryButton(
                       text: "accept_ownership".tr(),
-                      color: theme.colorScheme.secondary,
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
@@ -320,6 +319,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
             OutlineButton(
               text: "decline".tr(),
               enabled: !_processing,
+              color: theme.colorScheme.primary,
               onTap: () {
                 metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
@@ -345,6 +345,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         address: receiveAddress,
         otp: widget.otp,
       );
+      metricClient.addEvent(
+        MixpanelEvent.acceptOwnershipSuccess,
+        data: {
+          "id": widget.artwork.id,
+        },
+      );
+
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");

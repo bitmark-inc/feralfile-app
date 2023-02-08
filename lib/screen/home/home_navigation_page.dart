@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,8 @@ class HomeNavigationPage extends StatefulWidget {
   State<HomeNavigationPage> createState() => _HomeNavigationPageState();
 }
 
-class _HomeNavigationPageState extends State<HomeNavigationPage> {
+class _HomeNavigationPageState extends State<HomeNavigationPage>
+    with RouteAware, WidgetsBindingObserver {
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
@@ -58,10 +60,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
       } else {
+        final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
           feedBloc.add(OpenFeedEvent());
           feedBloc.add(GetFeedsEvent());
+          metricClient.addEvent(MixpanelEvent.viewDiscovery);
+        } else {
+          metricClient.addEvent(MixpanelEvent.viewEditorial);
         }
         context.read<EditorialBloc>().add(GetEditorialEvent());
       }
@@ -93,8 +99,20 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
               }),
           OptionItem(
               title: 'Help',
-              icon: const Icon(
-                AuIcon.help,
+              icon: ValueListenableBuilder<List<int>?>(
+                valueListenable:
+                    injector<CustomerSupportService>().numberOfIssuesInfo,
+                builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                    Widget? child) {
+                  return iconWithRedDot(
+                    icon: const Icon(
+                      AuIcon.help,
+                    ),
+                    padding: const EdgeInsets.only(right: 2, top: 2),
+                    withReddot: (numberOfIssuesInfo != null &&
+                        numberOfIssuesInfo[1] > 0),
+                  );
+                },
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -107,7 +125,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
 
   @override
   void initState() {
+    injector<CustomerSupportService>().getIssues();
     super.initState();
+    if (memoryValues.homePageInitialTab != HomePageTab.HOME) {
+      _selectedIndex = 1;
+    } else {
+      _selectedIndex = 0;
+    }
     _pageController = PageController(initialPage: _selectedIndex);
     _pages = <Widget>[
       HomePage(key: _homePageKey),
@@ -126,6 +150,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
         _handleNotificationClicked(openedResult.notification);
       });
     });
+  }
+
+  @override
+  void didPopNext() async {
+    super.didPopNext();
+    injector<CustomerSupportService>().getIssues();
   }
 
   @override
@@ -206,10 +236,24 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
                 }),
             label: '',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(
-              AuIcon.drawer,
-              size: 25,
+          BottomNavigationBarItem(
+            icon: iconWithRedDot(
+              icon: ValueListenableBuilder<List<int>?>(
+                valueListenable:
+                    injector<CustomerSupportService>().numberOfIssuesInfo,
+                builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                    Widget? child) {
+                  return iconWithRedDot(
+                    icon: const Icon(
+                      AuIcon.drawer,
+                      size: 25,
+                    ),
+                    padding: const EdgeInsets.only(right: 2, top: 2),
+                    withReddot: (numberOfIssuesInfo != null &&
+                        numberOfIssuesInfo[1] > 0),
+                  );
+                },
+              ),
             ),
             label: '',
           ),

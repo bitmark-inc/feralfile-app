@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:web3dart/web3dart.dart';
 
 class EthAmountFormatter {
@@ -17,13 +17,10 @@ class EthAmountFormatter {
     fromUnit = EtherUnit.wei,
     toUnit = EtherUnit.ether,
   }) {
-    if (amount == BigInt.zero) return "0.0";
+    final formater =
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
 
-    return EtherAmount.fromUnitAndValue(fromUnit, amount)
-        .getValueInUnit(toUnit)
-        .toStringAsFixed(digit)
-        .characters
-        .take(digit + 1)
-        .toString();
+    return formater.format(
+        EtherAmount.fromUnitAndValue(fromUnit, amount).getValueInUnit(toUnit));
   }
 }

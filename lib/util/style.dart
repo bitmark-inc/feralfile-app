@@ -279,12 +279,12 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
     h5Padding: EdgeInsets.zero,
     h6: textStyleGreen,
     h6Padding: EdgeInsets.zero,
-    em: textStyleGrey,
+    em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: textStyleWhite,
-    img: textStyleWhite,
+    img: textStyleGrey.copyWith(fontSize: 12),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
@@ -342,9 +342,9 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
     h1: theme.textTheme.ppMori700Black36.copyWith(fontSize: 24),
     h1Padding: const EdgeInsets.only(bottom: 24),
     h2: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
-    h2Padding: EdgeInsets.zero,
+    h2Padding: const EdgeInsets.symmetric(vertical: 15),
     h3: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
-    h3Padding: EdgeInsets.zero,
+    h3Padding: const EdgeInsets.symmetric(vertical: 15),
     h4: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
     h4Padding: EdgeInsets.zero,
     h5: theme.textTheme.ppMori700Black36.copyWith(fontSize: 20),
@@ -382,18 +382,38 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(2.0),
     ),
-    horizontalRuleDecoration: const BoxDecoration(
-      border: Border(
-        top: BorderSide(
-          color: AppColor.auSuperTeal,
-        ),
-      ),
+    horizontalRuleDecoration: CustomBoxDecoration(
+      color: AppColor.auSuperTeal,
     ),
   );
 }
 
+class CustomBoxDecoration extends ShapeDecoration {
+  CustomBoxDecoration({
+    color,
+  }) : super(
+          shape: const Border(),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.transparent,
+              color,
+              color,
+              Colors.transparent,
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.495, 0.495, 0.505, 0.505, 1.0],
+          ),
+        );
+
+  @override
+  EdgeInsetsGeometry get padding => const EdgeInsets.symmetric(vertical: 22.0);
+}
+
 SizedBox addTitleSpace() {
-  return const SizedBox(height: 40);
+  return const SizedBox(height: 60);
 }
 
 Divider addDivider({double height = 32}) {
@@ -407,6 +427,14 @@ Divider addOnlyDivider() {
   return const Divider(
     height: 1.0,
     thickness: 1.0,
+  );
+}
+
+Divider addBoldDivider() {
+  return const Divider(
+    height: 1.0,
+    thickness: 1.0,
+    color: Colors.black,
   );
 }
 
@@ -455,6 +483,36 @@ Widget closeIcon({Color color = Colors.black}) {
     width: 32,
     height: 32,
   );
+}
+
+Widget redDotIcon({Color color = Colors.red}) {
+  return Container(
+    width: 10,
+    height: 10,
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+    ),
+  );
+}
+
+Widget iconWithRedDot(
+    {required Widget icon,
+    Color color = AppColor.red,
+    EdgeInsetsGeometry? padding,
+    bool withReddot = true}) {
+  return withReddot
+      ? Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Padding(
+              padding: padding ?? const EdgeInsets.only(right: 5),
+              child: icon,
+            ),
+            redDotIcon(color: color),
+          ],
+        )
+      : icon;
 }
 
 var grantPermissions = [

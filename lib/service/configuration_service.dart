@@ -160,6 +160,10 @@ abstract class ConfigurationService {
 
   Future setShowTokenDebugInfo(bool show);
 
+  bool isLastestVersion();
+
+  Future setLastestVersion(bool value);
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -167,6 +171,10 @@ abstract class ConfigurationService {
   int? sentTezosArtworkMetricValue();
 
   Future setSentTezosArtworkMetric(int hashedAddresses);
+
+  bool allowContribution();
+
+  Future<void> setAllowContribution(bool value);
 
   // Reload
   Future<void> reload();
@@ -222,6 +230,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
+  static const String KEY_LASTEST_VERSION = "lastest_version";
+
+  static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -749,5 +760,25 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool hasFeed() {
     return _preferences.getBool(HAVE_FEED) ?? false;
+  }
+
+  @override
+  Future<void> setLastestVersion(bool value) async {
+    await _preferences.setBool(KEY_LASTEST_VERSION, value);
+  }
+
+  @override
+  bool isLastestVersion() {
+    return _preferences.getBool(KEY_LASTEST_VERSION) ?? false;
+  }
+
+  @override
+  bool allowContribution() {
+    return _preferences.getBool(ALLOW_CONTRIBUTION) ?? true;
+  }
+
+  @override
+  Future<void> setAllowContribution(bool value) async {
+    await _preferences.setBool(ALLOW_CONTRIBUTION, value);
   }
 }

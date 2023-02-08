@@ -5,14 +5,17 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:easy_localization/easy_localization.dart';
+
 class USDCAmountFormatter {
-  USDCAmountFormatter(this.amount);
+  USDCAmountFormatter(this.amount, {this.digit = 6});
 
   final BigInt amount;
+  final int digit;
 
   String format() {
-    if (amount == BigInt.zero) return "0.0";
-
-    return "${amount.toDouble() / 1000000}";
+    final formater =
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
+    return formater.format(amount.toDouble() / 1000000);
   }
 }

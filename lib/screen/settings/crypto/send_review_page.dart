@@ -15,12 +15,13 @@ import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -162,6 +163,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "confirmation".tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -173,11 +175,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "confirmation".tr(),
-                  style: theme.textTheme.headline1,
-                ),
-                const SizedBox(height: 40.0),
+                addTitleSpace(),
                 Text(
                   "to".tr(),
                   style: theme.textTheme.headline4,
@@ -233,12 +231,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: AuFilledButton(
+                      child: PrimaryButton(
                         text: _isSending
                             ? "sending".tr().toUpperCase()
                             : "sendH".tr(),
                         isProcessing: _isSending,
-                        onPress: _isSending ? null : _send,
+                        onTap: _isSending ? null : _send,
                       ),
                     ),
                   ],

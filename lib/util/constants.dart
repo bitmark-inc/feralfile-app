@@ -50,8 +50,11 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
 ];
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
-const CHECK_WEB3_PRIMER_URL =
-    'https://feralfile.com/artworks/memento-1-study-for-unsupervised';
+const CHECK_WEB3_CONTRACT_ADDRESS = [
+  "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
+  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
+];
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
@@ -284,7 +287,7 @@ class MixpanelEvent {
   static const stayInArtworkDetail = 'stay_in_artwork_detail';
   static const clickArtworkInfo = 'click_artwork_info';
   static const acceptOwnership = 'accept_ownership';
-  static const declineOwnership = 'delice_ownership';
+  static const declineOwnership = 'decline_ownership';
   static const generateReport = 'generate_report';
   static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
   static const clickLoadIPFSAgain = 'click_load_IPFS_again';
@@ -322,4 +325,7 @@ class MixpanelEvent {
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
   static const acceptGiftNFT = 'accept_gift_NFT';
+  static const scanQR = 'scan_qr';
+  static const acceptOwnershipSuccess = 'accept_ownership_success';
+  static const acceptOwnershipFail = 'accept_ownership_fail';
 }

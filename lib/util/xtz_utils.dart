@@ -8,17 +8,21 @@
 // ignore_for_file: implementation_imports
 
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class XtzAmountFormatter {
   final int amount;
+  final int digit;
 
-  XtzAmountFormatter(this.amount);
+  XtzAmountFormatter(this.amount, {this.digit = 6});
 
   String format() {
-    return "${amount / 1000000}";
+    final formater =
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
+    return formater.format(amount / 1000000);
   }
 }
 

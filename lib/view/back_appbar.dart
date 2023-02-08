@@ -15,6 +15,7 @@ AppBar getBackAppBar(BuildContext context,
     {String backTitle = "BACK",
     String title = "",
     required Function()? onBack,
+    Widget? icon,
     Function()? action}) {
   final theme = Theme.of(context);
 
@@ -24,55 +25,44 @@ AppBar getBackAppBar(BuildContext context,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: const SizedBox(),
-    leadingWidth: 0.0,
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: onBack,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-            child: Row(
-              children: [
-                if (onBack != null) ...[
-                  Row(
-                    children: [
-                      SvgPicture.asset('assets/images/icon_back.svg'),
-                      Text(
-                        backTitle,
-                        style: const TextStyle(color: Colors.transparent),
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  const SizedBox(width: 60),
-                ],
-              ],
+    centerTitle: true,
+    leadingWidth: 44,
+    leading: onBack != null
+        ? Semantics(
+            label: "BACK",
+            child: IconButton(
+              onPressed: onBack,
+              constraints: const BoxConstraints(maxWidth: 36.0),
+              icon: SvgPicture.asset(
+                'assets/images/icon_back.svg',
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            title,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.ppMori400Black16,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        action != null
-            ? IconButton(
-                tooltip: "AppbarAction",
-                constraints: const BoxConstraints(maxWidth: 36.0),
-                onPressed: action,
-                icon: Icon(
+          )
+        : const SizedBox(),
+    automaticallyImplyLeading: false,
+    title: Text(
+      title,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.ppMori400Black16,
+      textAlign: TextAlign.center,
+    ),
+    actions: [
+      if (action != null)
+        Padding(
+          padding: const EdgeInsets.only(right: 15),
+          child: IconButton(
+            tooltip: "AppbarAction",
+            constraints: const BoxConstraints(maxWidth: 36.0),
+            onPressed: action,
+            icon: icon ??
+                Icon(
                   Icons.more_horiz,
                   color: theme.colorScheme.primary,
-                ))
-            : const SizedBox(width: 60),
-      ],
-    ),
+                ),
+          ),
+        )
+    ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,

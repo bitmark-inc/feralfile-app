@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
@@ -45,11 +46,17 @@ class _EditorialPageState extends State<EditorialPage>
     _tabController = TabController(
       length: widget.isShowDiscover ? 2 : 1,
       vsync: this,
+      initialIndex: widget.isShowDiscover &&
+              memoryValues.homePageInitialTab == HomePageTab.EDITORIAL
+          ? 1
+          : 0,
     );
+    memoryValues.homePageInitialTab = HomePageTab.HOME;
     _feedController = ScrollController();
     _editorialController = ScrollController();
     _feedController.addListener(_scrollListener);
     _editorialController.addListener(_scrollListener);
+    _tabController.addListener(_handleTabChange);
     _tabController.addListener(_scrollListener);
     context.read<EditorialBloc>().add(GetEditorialEvent());
   }
@@ -66,6 +73,12 @@ class _EditorialPageState extends State<EditorialPage>
       setState(() {
         _showFullHeader = isShowFullHeader;
       });
+    }
+  }
+
+  void _handleTabChange() {
+    if (_tabController.index != _tabController.previousIndex) {
+      _trackEvent(_tabController.index);
     }
   }
 
@@ -196,9 +209,6 @@ class _EditorialPageState extends State<EditorialPage>
                                 style: const TextStyle(height: 0.8),
                               ),
                             ],
-                            onTap: (index) {
-                              _trackEvent(index);
-                            },
                           ),
                         ],
                       ),
