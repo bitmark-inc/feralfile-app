@@ -121,8 +121,18 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             children: [
               addOnlyDivider(),
               TappableForwardRow(
-                leftWidget: Text('support_history'.tr(),
-                    style: theme.textTheme.ppMori400Black14),
+                leftWidget: Row(
+                  children: [
+                    Text('support_history'.tr(),
+                        style: theme.textTheme.ppMori400Black14),
+                    if (numberOfIssuesInfo[1] > 0) ...[
+                      const SizedBox(
+                        width: 7,
+                      ),
+                      redDotIcon(),
+                    ]
+                  ],
+                ),
                 rightWidget: numberOfIssuesInfo[1] > 0
                     ? BadgeView(number: numberOfIssuesInfo[1])
                     : null,
