@@ -37,6 +37,7 @@ class AccountsView extends StatefulWidget {
 class _AccountsViewState extends State<AccountsView> {
   String? _editingAccountKey;
   final TextEditingController _nameController = TextEditingController();
+  final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
   @override
   void dispose() {
@@ -47,7 +48,6 @@ class _AccountsViewState extends State<AccountsView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
     return BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) {
@@ -156,7 +156,10 @@ class _AccountsViewState extends State<AccountsView> {
         ...accounts
             .map((account) => Column(
                   children: [
-                    _viewAccountItem(account),
+                    Padding(
+                      padding: padding,
+                      child: _viewAccountItem(account),
+                    ),
                     index < accounts.length
                         ? addOnlyDivider()
                         : const SizedBox(),
@@ -191,32 +194,36 @@ class _AccountsViewState extends State<AccountsView> {
           accountLogo(context, account),
           const SizedBox(width: 16),
           Expanded(
-            child: TextField(
-              autofocus: true,
-              decoration: const InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: theme.textTheme.headline4,
-              controller: _nameController,
-              onSubmitted: (String value) async {
-                if (value.isEmpty) return;
-                final persona = account.persona;
-                final connection = account.connections?.first;
-                if (persona != null) {
-                  await injector<AccountService>().namePersona(persona, value);
-                } else if (connection != null) {
-                  await injector<AccountService>()
-                      .nameLinkedAccount(connection, value);
-                }
+            child: Semantics(
+              label: '${account.name}_editing',
+              child: TextField(
+                autofocus: true,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: theme.textTheme.headline4,
+                controller: _nameController,
+                onSubmitted: (String value) async {
+                  if (value.isEmpty) return;
+                  final persona = account.persona;
+                  final connection = account.connections?.first;
+                  if (persona != null) {
+                    await injector<AccountService>()
+                        .namePersona(persona, value);
+                  } else if (connection != null) {
+                    await injector<AccountService>()
+                        .nameLinkedAccount(connection, value);
+                  }
 
-                setState(() {
-                  _editingAccountKey = null;
-                });
-                if (!mounted) return;
-                context.read<AccountsBloc>().add(GetAccountsEvent());
-              },
+                  setState(() {
+                    _editingAccountKey = null;
+                  });
+                  if (!mounted) return;
+                  context.read<AccountsBloc>().add(GetAccountsEvent());
+                },
+              ),
             ),
           ),
         ],

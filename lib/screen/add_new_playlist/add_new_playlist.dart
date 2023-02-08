@@ -262,7 +262,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                     .addEvent(MixpanelEvent.undoCreatePlaylist);
                               },
                               width: 170,
-                              text: tr('undo'),
+                              text: 'cancel'.tr(),
                               color: theme.auLightGrey,
                             ),
                             PrimaryButton(
