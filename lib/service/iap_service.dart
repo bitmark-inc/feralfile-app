@@ -226,7 +226,7 @@ class IAPServiceImpl implements IAPService {
             _configurationService.setIAPJWT(jwt);
             Future.delayed(const Duration(seconds: 2), () async {
               injector<CustomerSupportService>()
-                  .createAnnouncement("SeriousCollector");
+                  .createAnnouncement("subscription");
             });
             final status = subscriptionStatus!;
             if (status.isTrial == true) {

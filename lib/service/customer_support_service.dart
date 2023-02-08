@@ -170,6 +170,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         lastMessage: null,
         draft: draft,
         rating: draft.rating,
+        announcementID: draftData.announcementId,
       );
       issues.add(draftIssue);
     }
