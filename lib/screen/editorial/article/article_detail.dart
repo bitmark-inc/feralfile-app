@@ -20,7 +20,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final EditorialPost post;
@@ -168,9 +167,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                       },
                       future: _dio.get<String>(
                         widget.post.content["data"],
-                      )
-                      //'https://raw.githubusercontent.com/ppupha/Bitmark/main/README.md'),
-                      ),
+                      )),
                   const SizedBox(height: 64.0),
                 ],
               ),
