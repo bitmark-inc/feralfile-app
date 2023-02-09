@@ -237,23 +237,21 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: iconWithRedDot(
-              icon: ValueListenableBuilder<List<int>?>(
-                valueListenable:
-                    injector<CustomerSupportService>().numberOfIssuesInfo,
-                builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                    Widget? child) {
-                  return iconWithRedDot(
-                    icon: const Icon(
-                      AuIcon.drawer,
-                      size: 25,
-                    ),
-                    padding: const EdgeInsets.only(right: 2, top: 2),
-                    withReddot: (numberOfIssuesInfo != null &&
-                        numberOfIssuesInfo[1] > 0),
-                  );
-                },
-              ),
+            icon: ValueListenableBuilder<List<int>?>(
+              valueListenable:
+                  injector<CustomerSupportService>().numberOfIssuesInfo,
+              builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                  Widget? child) {
+                return iconWithRedDot(
+                  icon: const Icon(
+                    AuIcon.drawer,
+                    size: 25,
+                  ),
+                  padding: const EdgeInsets.only(right: 2, top: 2),
+                  withReddot:
+                      (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
+                );
+              },
             ),
             label: '',
           ),

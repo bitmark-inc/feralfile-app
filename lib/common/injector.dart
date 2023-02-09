@@ -180,7 +180,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
   injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
   injector.registerLazySingleton(() =>
       CrowdSourcingApi(authenticatedDio, baseUrl: Environment.indexerURL));
