@@ -6,12 +6,14 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 
@@ -67,6 +69,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           return;
         } else {
           await _configurationService.setDoneOnboarding(true);
+          injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
         }
@@ -98,6 +101,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } else {
         await _configurationService.setDoneOnboarding(true);
+        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
       await migrationUtil.migrateIfNeeded();

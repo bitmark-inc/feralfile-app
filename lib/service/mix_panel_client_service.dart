@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -17,26 +18,12 @@ class MixPanelClientService {
 
   late Mixpanel mixpanel;
   Future<void> initService() async {
-    final currentDefaultAccount =
-        await _accountService.getCurrentDefaultAccount();
-
-    final defaultDID =
-        await currentDefaultAccount?.getAccountDID() ?? 'unknown';
-    final hashedUserID = sha256.convert(utf8.encode(defaultDID)).toString();
-
-    final defaultAddress =
-        await currentDefaultAccount?.getETHAddress() ?? "unknown";
-
-    final hashedDefaultAddress =
-        sha256.convert(utf8.encode(defaultAddress)).toString();
-
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
+    await initIfDefaultAccount();
     mixpanel.setLoggingEnabled(true);
     mixpanel.setUseIpAddressForGeolocation(true);
 
-    mixpanel.identify(hashedUserID);
-    mixpanel.getPeople().set(MixpanelProp.address, hashedDefaultAddress);
     mixpanel
         .getPeople()
         .set(MixpanelProp.subscription, SubscriptionStatus.free);
@@ -45,6 +32,32 @@ class MixPanelClientService {
     mixpanel.registerSuperPropertiesOnce({
       MixpanelProp.client: "Autonomy Wallet",
     });
+  }
+
+  Future initIfDefaultAccount() async {
+    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+
+    if (defaultAccount == null) {
+      return;
+    }
+    final defaultDID = await defaultAccount.getAccountDID();
+    final hashedUserID =
+        '${sha256.convert(utf8.encode(defaultDID)).toString()}_test';
+    final distinctId = await mixpanel.getDistinctId();
+    if (hashedUserID != distinctId) {
+      mixpanel.alias(hashedUserID, distinctId);
+      final defaultAddress = await defaultAccount.getETHAddress();
+      final hashedDefaultAddress =
+          sha256.convert(utf8.encode(defaultAddress)).toString();
+
+      mixpanel.identify(hashedUserID);
+      mixpanel.getPeople().set(MixpanelProp.address, hashedDefaultAddress);
+    }
+  }
+
+  Future reset() async {
+    mixpanel.reset();
+    //await initWithDefaultAccount();
   }
 
   timerEvent(String name) {

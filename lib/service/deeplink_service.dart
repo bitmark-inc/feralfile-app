@@ -426,6 +426,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         await cloudDB.connectionDao.getUpdatedLinkedAccounts();
         configurationService.setDoneOnboarding(true);
+        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition);
       }
