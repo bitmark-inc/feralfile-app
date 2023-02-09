@@ -534,15 +534,15 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         await _announcementDao.getAnnouncements();
 
     if (issues.isNotEmpty && announcements.isNotEmpty) {
-      for (var issue in issues) {
-        final announcement = announcements.firstWhereOrNull(
-            (element) => element.announcementContextId == issue.announcementID);
-        if (announcement != null) {
-          issue.announcement = announcement;
-          announcements.remove(announcement);
-        }
-      }
+      announcements.removeWhere((element) => issues.any((i) {
+            if (i.announcementID == element.announcementContextId) {
+              i.announcement = element;
+              return true;
+            }
+            return false;
+          }));
     }
+
     result.addAll(issues);
     result.addAll(announcements);
     numberOfIssuesInfo.value = [
@@ -580,12 +580,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final lastPullTime = _configurationService.getAnnouncementLastPullTime();
     final announcements = await _announcementApi.getAnnouncements(
         lastPullTime: lastPullTime ?? 0);
-    final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(
-      MixpanelEvent.receiveAnnouncement,
-      data: {"number": announcements.length},
-      hashedData: {},
-    );
+    if (announcements.isNotEmpty) {
+      final metricClient = injector.get<MetricClientService>();
+      metricClient.addEvent(
+        MixpanelEvent.receiveAnnouncement,
+        data: {"number": announcements.length},
+        hashedData: {},
+      );
+    }
     final pullTime = DateTime.now().millisecondsSinceEpoch;
     _configurationService.setAnnouncementLastPullTime(pullTime);
     for (var announcement in announcements) {

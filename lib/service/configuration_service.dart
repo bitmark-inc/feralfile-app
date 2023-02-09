@@ -36,6 +36,10 @@ abstract class ConfigurationService {
 
   JWT? getIAPJWT();
 
+  Future<void> setPremium(bool value);
+
+  bool isPremium();
+
   Future<void> setTVConnectData(WCPeerMeta peerMeta, int id);
 
   Future<void> deleteTVConnectData();
@@ -196,6 +200,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
+  static const String IS_PREMIUM = "is_premium";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
@@ -821,5 +826,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setOldUser() async {
     await _preferences.setBool(OLD_USER, true);
+  }
+
+  @override
+  bool isPremium() {
+    return _preferences.getBool(IS_PREMIUM) ?? false;
+  }
+
+  @override
+  Future<void> setPremium(bool value) async {
+    await _preferences.setBool(IS_PREMIUM, value);
   }
 }

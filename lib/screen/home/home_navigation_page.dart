@@ -370,19 +370,22 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   _openAnnouncement(String announcementID) async {
+    log.info("Open announcement: id = $announcementID");
     await injector<CustomerSupportService>().fetchAnnouncement();
     final announcement = await injector<CustomerSupportService>()
         .findAnnouncement(announcementID);
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRouter.supportThreadPage,
-      ((route) =>
-          route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition),
-      arguments: NewIssuePayload(
-        reportIssueType: ReportIssueType.Announcement,
-        announcement: announcement,
-      ),
-    );
+    if (announcement != null) {
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.supportThreadPage,
+        ((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition),
+        arguments: NewIssuePayload(
+          reportIssueType: ReportIssueType.Announcement,
+          announcement: announcement,
+        ),
+      );
+    }
   }
 }
