@@ -455,10 +455,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        await injector<CustomerSupportService>()
+                        await _customerSupportService
                             .removeErrorMessage(uuid);
                         _loadDrafts();
-                        injector<CustomerSupportService>().processMessages();
+                        _customerSupportService.processMessages();
                         Future.delayed(const Duration(seconds: 5), () {
                           _loadDrafts();
                         });
@@ -475,7 +475,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        await injector<CustomerSupportService>()
+                        await _customerSupportService
                             .removeErrorMessage(uuid, isDelete: true);
                         await _loadDrafts();
                         if (_draftMessages.isEmpty && _messages.isEmpty) {
