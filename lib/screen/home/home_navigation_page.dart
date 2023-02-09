@@ -293,7 +293,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
-    if (data['notification_type'] == "announcement_pushed") {
+    if (data['notification_type'] == "customer_support_new_announcement") {
       showInfoNotification(
           const Key("Announcement"), "au_has_announcement".tr(),
           addOnTextSpan: [
@@ -301,7 +301,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 text: "tap_to_view".tr(),
                 style: Theme.of(context).textTheme.ppMori400Green14),
           ], openHandler: () async {
-        final announcementID = '${data["announcement_id"]}';
+        final announcementID = '${data["id"]}';
         _openAnnouncement(announcementID);
       });
     } else {
@@ -346,9 +346,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               announcement: announcement),
         );
         break;
-      case "announcement_pushed":
-        final announcementID =
-            '${notification.additionalData!["announcement_id"]}';
+      case "customer_support_new_announcement":
+        final announcementID = '${notification.additionalData!["id"]}';
         _openAnnouncement(announcementID);
         break;
 
