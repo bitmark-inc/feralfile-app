@@ -67,6 +67,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
   );
 
+  final metricClient = injector<MetricClientService>();
+
   @override
   Future setup() async {
     FlutterBranchSdk.initSession().listen((data) async {
@@ -105,7 +107,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    final metricClient = injector<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.scanQR, hashedData: {"link": link});
 
     Timer.periodic(delay, (timer) async {
@@ -124,12 +125,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
     const deeplink = "autonomy://";
 
     if (link.startsWith(deeplink)) {
+      final data = link.replacePrefix(deeplink, "");
+
+      metricClient.addEvent(MixpanelEvent.scanQR, data: {
+        "link": link,
+        'linkType': "localDeepLink",
+        "prefix": deeplink,
+        'data': data
+      });
+
       if (!_configurationService.isDoneOnboarding()) {
         // Local deeplink should only available after onboarding.
         return false;
       }
 
-      final data = link.replacePrefix(deeplink, "");
       switch (data) {
         case "home":
           _navigationService.restorablePushHomePage();
@@ -185,6 +194,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     // Check Universal Link
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
+
     if (callingWCPrefix != null) {
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);

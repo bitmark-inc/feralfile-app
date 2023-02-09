@@ -343,3 +343,10 @@ class SubscriptionStatus {
   static const trial = 'Trial';
   static const expired = 'Expired';
 }
+
+class DeepLinkType {
+  static const local = "localDeepLink";
+  static const dAppConnect = 'dAppConnectDeeplink';
+  static const feralFile = 'feralFileDeeplink';
+  static const branch = 'BranchDeeplink';
+}
