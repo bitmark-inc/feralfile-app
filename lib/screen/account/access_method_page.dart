@@ -172,7 +172,7 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("show_token_debug_log".tr(),
-                          style: theme.textTheme.headline4),
+                          style: theme.textTheme.headlineMedium),
                       FlutterSwitch(
                         height: 25,
                         width: 48,

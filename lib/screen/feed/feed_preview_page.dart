@@ -215,7 +215,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                   "discovery_keep_you_up".tr(),
                   //'Discovery keeps you up to date on what your favorite artists are creating and collecting.
                   // For now they haven’t created or collected anything new yet. Once they do, you can view it here. ',
-                  style: theme.primaryTextTheme.bodyText1,
+                  style: theme.primaryTextTheme.bodyLarge,
                   textAlign: TextAlign.justify,
                 ),
               )
@@ -452,7 +452,7 @@ class _ControlViewState extends State<ControlView> {
                 RichText(
                     overflow: TextOverflow.ellipsis,
                     text: TextSpan(
-                      style: theme.primaryTextTheme.headline5,
+                      style: theme.primaryTextTheme.headlineSmall,
                       children: <TextSpan>[
                         TextSpan(
                           text: 'nft_indexing'.tr(),
@@ -592,11 +592,11 @@ class _ControlViewState extends State<ControlView> {
                               },
                             ),
                             Text(" • ",
-                                style: theme.primaryTextTheme.headline5),
+                                style: theme.primaryTextTheme.headlineSmall),
                             Text(
                                 getDateTimeRepresentation(
                                     event.timestamp.toLocal()),
-                                style: theme.primaryTextTheme.headline5),
+                                style: theme.primaryTextTheme.headlineSmall),
                           ],
                         ),
                       ],

@@ -55,7 +55,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                   children: [
                     Text(
                       "accounts".tr(),
-                      style: theme.textTheme.headline1,
+                      style: theme.textTheme.displayLarge,
                     ),
                     const SizedBox(height: 24),
                     const AccountsView(isInSettingsPage: false),
@@ -94,7 +94,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                           .namePersona(persona!, defaultName);
                     }
                   },
-                  child: Text("done".tr(), style: theme.textTheme.button),
+                  child: Text("done".tr(), style: theme.textTheme.labelLarge),
                 ),
               ],
             ),

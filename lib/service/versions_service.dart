@@ -119,7 +119,7 @@ class VersionService {
           return false;
         },
         child: Column(children: [
-          Text("newer_version".tr(), style: theme.primaryTextTheme.bodyText1),
+          Text("newer_version".tr(), style: theme.primaryTextTheme.bodyLarge),
           const SizedBox(height: 35),
           Row(
             children: [
@@ -133,7 +133,7 @@ class VersionService {
                     }
                   },
                   color: theme.colorScheme.secondary,
-                  textStyle: theme.textTheme.button,
+                  textStyle: theme.textTheme.labelLarge,
                 ),
               ),
             ],

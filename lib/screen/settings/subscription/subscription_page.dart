@@ -250,7 +250,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       case IAPProductStatus.error:
         return Text("error_loading_sub".tr(),
             //"Error when loading your subscription.",
-            style: theme.textTheme.headline4);
+            style: theme.textTheme.headlineMedium);
     }
   }
 

@@ -63,7 +63,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
                 SliverToBoxAdapter(
                     child: Text(
                   title,
-                  style: theme.textTheme.headline1,
+                  style: theme.textTheme.displayLarge,
                 )),
                 const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
               ],
@@ -94,6 +94,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
               onTapLink: (text, href, title) async {
                 if (href == null) return;
                 if (!(await canLaunchUrlString(href))) {
+                  if (!mounted) return;
                   Navigator.of(context).pushNamed(AppRouter.githubDocPage,
                       arguments: {
                         "prefix": widget.payload["prefix"] ?? '',
@@ -110,7 +111,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
           child: Center(
               child: Text(
         "error_loading_content".tr(),
-        style: theme.textTheme.headline4,
+        style: theme.textTheme.headlineMedium,
       )));
     } else {
       return const SliverFillRemaining(

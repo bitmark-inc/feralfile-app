@@ -57,10 +57,10 @@ Of course all security ultimately rests on the code, and whether it makes the pr
             children: [
               Text(
                 "about_autonomy_security".tr(),
-                style: theme.textTheme.headline1,
+                style: theme.textTheme.displayLarge,
               ),
               addTitleSpace(),
-              Text(securityContent, style: theme.textTheme.bodyText1),
+              Text(securityContent, style: theme.textTheme.bodyLarge),
             ],
           ),
         ),

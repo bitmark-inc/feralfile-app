@@ -178,6 +178,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
     if (uri != null &&
         !await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication)) {
       _isPageInactive = true;
+      if (!mounted) return;
       Navigator.of(context)
           .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
     }

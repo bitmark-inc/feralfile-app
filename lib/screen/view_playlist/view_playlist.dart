@@ -133,7 +133,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               onTap: () => Navigator.of(context).pop(),
               child: const Icon(AuIcon.chevron),
             ),
-            backgroundColor: theme.backgroundColor,
+            backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
             centerTitle: true,
             title: isRename ?? false

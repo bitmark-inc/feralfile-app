@@ -387,7 +387,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       case ScannerItem.XTZ_ADDRESS:
         return Column(
           children: [
-            Text("scan_qr".tr(), style: theme.primaryTextTheme.button),
+            Text("scan_qr".tr(), style: theme.primaryTextTheme.labelLarge),
           ],
         );
     }

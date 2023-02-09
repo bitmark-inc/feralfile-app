@@ -21,6 +21,6 @@ class EthAmountFormatter {
         NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
 
     return formater.format(
-        EtherAmount.fromUnitAndValue(fromUnit, amount).getValueInUnit(toUnit));
+        EtherAmount.fromBigInt(fromUnit, amount).getValueInUnit(toUnit));
   }
 }

@@ -298,7 +298,7 @@ class UIHelper {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: theme.primaryTextTheme.headline4),
+              Text(title, style: theme.primaryTextTheme.headlineMedium),
               Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
             ],
           ),
@@ -322,7 +322,7 @@ class UIHelper {
                     },
                     child: Text(
                       "cancel".tr(),
-                      style: theme.primaryTextTheme.button,
+                      style: theme.primaryTextTheme.labelLarge,
                     ),
                   ),
         itemCount: (options?.length ?? 0) + 1,
@@ -410,15 +410,15 @@ class UIHelper {
           RichText(
             text: TextSpan(children: [
               TextSpan(
-                style: theme.primaryTextTheme.bodyText1,
+                style: theme.primaryTextTheme.bodyLarge,
                 text: "au_sent_survey".tr(),
               ),
               TextSpan(
-                style: theme.primaryTextTheme.headline4,
+                style: theme.primaryTextTheme.headlineMedium,
                 text: "feral_file".tr(),
               ),
               TextSpan(
-                style: theme.primaryTextTheme.bodyText1,
+                style: theme.primaryTextTheme.bodyLarge,
                 text: "in_your_mobile".tr(),
               ),
             ]),
@@ -552,7 +552,7 @@ class UIHelper {
         children: [
           Text(
             error.dialogMessage,
-            style: theme.primaryTextTheme.bodyText1,
+            style: theme.primaryTextTheme.bodyLarge,
           ),
           const SizedBox(
             height: 40,
@@ -562,7 +562,7 @@ class UIHelper {
             onPress: () {
               Navigator.of(context).pop();
             },
-            textStyle: theme.primaryTextTheme.button,
+            textStyle: theme.primaryTextTheme.labelLarge,
           ),
         ],
       ),
@@ -753,15 +753,16 @@ class UIHelper {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('multichain_generate'.tr(),
-                style: theme.primaryTextTheme.headline5),
+                style: theme.primaryTextTheme.headlineSmall),
             const SizedBox(height: 16),
             Text("bitmark_address".tr(),
-                style: theme.primaryTextTheme.headline4),
+                style: theme.primaryTextTheme.headlineMedium),
             const SizedBox(height: 16),
             Text("ethereum_address".tr(),
-                style: theme.primaryTextTheme.headline4),
+                style: theme.primaryTextTheme.headlineMedium),
             const SizedBox(height: 16),
-            Text("tezos_address".tr(), style: theme.primaryTextTheme.headline4),
+            Text("tezos_address".tr(),
+                style: theme.primaryTextTheme.headlineMedium),
             const SizedBox(height: 40),
             Row(
               children: [
@@ -770,7 +771,7 @@ class UIHelper {
                     text: "continue".tr().toUpperCase(),
                     onPress: () => onContinue(),
                     color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.button,
+                    textStyle: theme.textTheme.labelLarge,
                   ),
                 ),
               ],
@@ -832,18 +833,18 @@ class UIHelper {
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('alias'.tr(), style: theme.primaryTextTheme.headline5),
+            Text('alias'.tr(), style: theme.primaryTextTheme.headlineSmall),
             const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(
                   child: Text(
                 name,
-                style: theme.primaryTextTheme.headline4,
+                style: theme.primaryTextTheme.headlineMedium,
                 overflow: TextOverflow.ellipsis,
               )),
               GestureDetector(
-                child:
-                    Text("share".tr(), style: theme.primaryTextTheme.headline4),
+                child: Text("share".tr(),
+                    style: theme.primaryTextTheme.headlineMedium),
                 onTap: () => Share.share(address),
               )
             ]),
@@ -861,7 +862,7 @@ class UIHelper {
               },
               child: Text(
                 "close".tr(),
-                style: theme.primaryTextTheme.button,
+                style: theme.primaryTextTheme.labelLarge,
               ),
             ),
             const SizedBox(height: 15),
@@ -884,7 +885,7 @@ class UIHelper {
           children: [
             Text(
               'connect_TV_success_des'.tr(),
-              style: theme.primaryTextTheme.bodyText1,
+              style: theme.primaryTextTheme.bodyLarge,
             ),
             const SizedBox(
               height: 40,
@@ -896,7 +897,7 @@ class UIHelper {
                     text: "close".tr(),
                     onPress: onClose,
                     color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.button,
+                    textStyle: theme.textTheme.labelLarge,
                   ),
                 ),
               ],
@@ -936,7 +937,7 @@ class UIHelper {
           children: [
             Text(
               'expired_des'.tr(),
-              style: theme.primaryTextTheme.bodyText1,
+              style: theme.primaryTextTheme.bodyLarge,
             ),
             const SizedBox(
               height: 40,
@@ -1006,7 +1007,7 @@ class UIHelper {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("require_subs".tr(), style: theme.primaryTextTheme.bodyText1),
+          Text("require_subs".tr(), style: theme.primaryTextTheme.bodyLarge),
           const SizedBox(height: 40),
           UpgradeBoxView.getMoreAutonomyWidget(theme, feature,
               peerMeta: peerMeta, id: id),
@@ -1023,7 +1024,7 @@ class UIHelper {
                   },
                   child: Text(
                     "cancel".tr(),
-                    style: theme.primaryTextTheme.button,
+                    style: theme.primaryTextTheme.labelLarge,
                   ),
                 ),
               ),

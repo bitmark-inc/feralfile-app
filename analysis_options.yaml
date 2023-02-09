@@ -31,7 +31,7 @@ linter:
     unnecessary_brace_in_string_interps: true
     avoid_redundant_argument_values: true
     leading_newlines_in_multiline_strings: true
-    formatting: true
+    # formatting: true
     # lines_longer_than_80_chars: true
     curly_braces_in_flow_control_structures: true
     # doc comments

@@ -197,18 +197,18 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                       FittedBox(
                         child: Text(
                           "address_request".tr(),
-                          style: theme.textTheme.headline1,
+                          style: theme.textTheme.displayLarge,
                         ),
                       ),
                       const SizedBox(height: 24),
                       Text(
                         "connection".tr(),
-                        style: theme.textTheme.headline4,
+                        style: theme.textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 16.0),
                       Text(
                         widget.request.proposer?.name ?? "",
-                        style: theme.textTheme.bodyText2,
+                        style: theme.textTheme.bodyMedium,
                       ),
                       const Divider(height: 32),
                       Text(
@@ -219,7 +219,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                                 : _selectXTZAddress
                                     ? 'select_tezos_address'.tr(args: ['1'])
                                     : 'select_grand_access'.tr(),
-                        style: theme.textTheme.headline4,
+                        style: theme.textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 16.0),
                       BlocConsumer<AccountsBloc, AccountsState>(
@@ -487,7 +487,7 @@ class _LinkedAccountConnectItemState extends State<LinkedAccountConnectItem> {
                     connection.name.isNotEmpty
                         ? connection.name.maskIfNeeded()
                         : connection.accountNumber.mask(4),
-                    style: theme.textTheme.headline4,
+                    style: theme.textTheme.headlineMedium,
                   ),
                 ),
                 linkedBox(context),
@@ -624,7 +624,7 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                         },
                         child: Text(
                           name?.replaceFirst('did:key:', '') ?? '',
-                          style: theme.textTheme.headline4,
+                          style: theme.textTheme.headlineMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

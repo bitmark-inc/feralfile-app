@@ -205,7 +205,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             children: [
                               Text(
                                 "title".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               const SizedBox(
                                 width: 20,
@@ -214,7 +214,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 child: Text(
                                   asset.title,
                                   textAlign: TextAlign.right,
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ),
                             ],
@@ -226,11 +226,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               children: [
                                 Text(
                                   "artist".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Text(
                                   artistName ?? "",
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -242,11 +242,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               children: [
                                 Text(
                                   "owned_tokens".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Text(
                                   "$maxQuantity",
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -259,7 +259,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               children: [
                                 Text(
                                   "quantity_to_send".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Transform.translate(
                                   offset: const Offset(16, 0),
@@ -275,11 +275,11 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               children: [
                                 Text(
                                   "edition".tr(),
-                                  style: theme.textTheme.headline4,
+                                  style: theme.textTheme.headlineMedium,
                                 ),
                                 Text(
                                   asset.editionSlashMax,
-                                  style: theme.textTheme.bodyText2,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -394,16 +394,17 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
   Widget gasFeeStatus(SendArtworkState state, ThemeData theme) {
     if (_initialChangeAddress && state.feeOptionValue == null) {
-      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+      return Text("gas_fee_calculating".tr(),
+          style: theme.textTheme.headlineSmall);
     }
     if (state.feeOptionValue != null && state.balance != null) {
       bool isValid = state.balance! >
           state.feeOptionValue!.getFee(state.feeOption) + BigInt.from(10);
       if (isValid) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
       } else {
         return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headline5?.copyWith(
+            style: theme.textTheme.headlineSmall?.copyWith(
               color: AppColor.red,
             ));
       }

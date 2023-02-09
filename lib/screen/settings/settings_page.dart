@@ -186,14 +186,11 @@ class _SettingsPageState extends State<SettingsPage>
             final renderObject = currentContext.findRenderObject();
             if (renderObject == null) return false;
             final viewport = RenderAbstractViewport.of(renderObject);
-            if (viewport != null) {
-              final bottom =
-                  viewport.getOffsetToReveal(renderObject, 1.0).offset;
-              final top = viewport.getOffsetToReveal(renderObject, 0.0).offset;
-              final offset = notification.metrics.pixels;
-              if (offset > 2 * (top + (bottom - top) / 3)) {
-                _clearPendingSettings();
-              }
+            final bottom = viewport.getOffsetToReveal(renderObject, 1.0).offset;
+            final top = viewport.getOffsetToReveal(renderObject, 0.0).offset;
+            final offset = notification.metrics.pixels;
+            if (offset > 2 * (top + (bottom - top) / 3)) {
+              _clearPendingSettings();
             }
             return false;
           },

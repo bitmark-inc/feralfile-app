@@ -1543,7 +1543,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
       children: [
         Text(
           "metadata".tr(),
-          style: theme.textTheme.headline2,
+          style: theme.textTheme.displayMedium,
         ),
         const SizedBox(height: 23.0),
         _rowItem(context, "title".tr(), artwork.title),

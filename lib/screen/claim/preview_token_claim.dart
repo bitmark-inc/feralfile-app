@@ -119,8 +119,8 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                             artist.getDisplayName()
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
-                                          style:
-                                              theme.primaryTextTheme.headline5,
+                                          style: theme
+                                              .primaryTextTheme.headlineSmall,
                                         )
                                       ],
                                     ),

@@ -48,7 +48,7 @@ class _NotificationOnboardingPageState
           children: [
             Text(
               "notifications".tr(),
-              style: theme.textTheme.headline1,
+              style: theme.textTheme.displayLarge,
             ),
             const SizedBox(height: 30),
             Expanded(
@@ -114,7 +114,7 @@ class _NotificationOnboardingPageState
                   },
                   child: Text(
                     "not_now".tr(),
-                    style: theme.textTheme.button,
+                    style: theme.textTheme.labelLarge,
                   ),
                 )
               ],

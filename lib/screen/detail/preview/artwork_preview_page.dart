@@ -787,7 +787,7 @@ class ControlView extends StatelessWidget {
                                   Text(
                                     "by".tr(args: [artistName]),
                                     overflow: TextOverflow.ellipsis,
-                                    style: theme.primaryTextTheme.headline5,
+                                    style: theme.primaryTextTheme.headlineSmall,
                                   )
                                 ],
                               );
@@ -876,14 +876,14 @@ class FullscreenIntroPopup extends StatelessWidget {
           children: <Widget>[
             Text(
               "full_screen".tr(),
-              style: theme.primaryTextTheme.headline1,
+              style: theme.primaryTextTheme.displayLarge,
             ),
             const SizedBox(height: 40.0),
             Text(
               "shake_exit".tr(),
               //"Shake your phone to exit fullscreen mode.",
               textAlign: TextAlign.center,
-              style: theme.primaryTextTheme.bodyText1,
+              style: theme.primaryTextTheme.bodyLarge,
             ),
             const SizedBox(height: 40.0),
             Row(
@@ -892,7 +892,7 @@ class FullscreenIntroPopup extends StatelessWidget {
                   child: AuFilledButton(
                     text: "ok".tr(),
                     color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.button,
+                    textStyle: theme.textTheme.labelLarge,
                     onPress: () {
                       Navigator.of(context).pop();
                     },
@@ -906,7 +906,7 @@ class FullscreenIntroPopup extends StatelessWidget {
                 child: Text(
                   "dont_show_again".tr(),
                   textAlign: TextAlign.center,
-                  style: theme.primaryTextTheme.button,
+                  style: theme.primaryTextTheme.labelLarge,
                 ),
                 onTap: () {
                   injector<ConfigurationService>()

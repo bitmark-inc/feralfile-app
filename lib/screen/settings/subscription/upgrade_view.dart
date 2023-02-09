@@ -94,7 +94,7 @@ class UpgradesView extends StatelessWidget {
           const SizedBox(height: 16),
           Text("gg_tv_app".tr(),
               //"*Google TV app plus AirPlay & Chromecast streaming",
-              style: theme.primaryTextTheme.headline5),
+              style: theme.primaryTextTheme.headlineSmall),
           const SizedBox(height: 40),
           AuFilledButton(
             text: "sub_then_price".tr(args: [price ?? "4.99usd".tr()]),
@@ -105,7 +105,7 @@ class UpgradesView extends StatelessWidget {
               Navigator.of(context).pop();
             },
             color: theme.colorScheme.secondary,
-            textStyle: theme.textTheme.button,
+            textStyle: theme.textTheme.labelLarge,
           ),
           TextButton(
             onPressed: () {
@@ -114,7 +114,7 @@ class UpgradesView extends StatelessWidget {
             },
             child: Text(
               "not_now".tr(),
-              style: theme.primaryTextTheme.button,
+              style: theme.primaryTextTheme.labelLarge,
             ),
           ),
         ],
@@ -136,11 +136,11 @@ class UpgradesView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("subscribed".tr(), style: theme.textTheme.headline4),
+            Text("subscribed".tr(), style: theme.textTheme.headlineMedium),
             const SizedBox(height: 16.0),
             Text("thank_support".tr(args: [_subscriptionsManagementLocation]),
                 //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
-                style: theme.textTheme.bodyText1),
+                style: theme.textTheme.bodyLarge),
             const SizedBox(height: 10.0),
             _benefitImage(context),
             AuPrimaryButton(onPressed: () {}, text: 'subscribed'.tr()),
@@ -162,13 +162,13 @@ class UpgradesView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
-                style: theme.textTheme.headline4),
+                style: theme.textTheme.headlineMedium),
             const SizedBox(height: 16.0),
             Text(
                 "to_cancel_your_subscription".tr(
                     namedArgs: {"location": _subscriptionsManagementLocation}),
                 //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
-                style: theme.textTheme.bodyText1),
+                style: theme.textTheme.bodyLarge),
             const SizedBox(height: 10.0),
             _benefitImage(context),
             const SizedBox(
@@ -229,7 +229,7 @@ class UpgradesView extends StatelessWidget {
       default:
         return Text("error_loading_sub".tr(),
             //"Error when loading your subscription.",
-            style: theme.textTheme.headline4);
+            style: theme.textTheme.headlineMedium);
     }
   }
 

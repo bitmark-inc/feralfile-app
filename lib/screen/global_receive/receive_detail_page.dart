@@ -70,7 +70,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               ),
               const SizedBox(height: 48),
               Text((_blockchainNFTText(_account.blockchain)),
-                  style: theme.textTheme.headline4),
+                  style: theme.textTheme.headlineMedium),
               accountItem(context, _account),
               GestureDetector(
                   onTap: copy,
@@ -100,7 +100,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                               _account.accountNumber,
                               textAlign: TextAlign.start,
                               softWrap: true,
-                              style: theme.textTheme.subtitle2,
+                              style: theme.textTheme.titleSmall,
                             ),
                           ),
                         ]),

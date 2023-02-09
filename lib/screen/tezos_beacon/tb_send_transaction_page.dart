@@ -193,37 +193,37 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           const SizedBox(height: 8.0),
                           Text(
                             "h_confirm".tr(),
-                            style: theme.textTheme.headline1,
+                            style: theme.textTheme.displayLarge,
                           ),
                           const SizedBox(height: 40.0),
                           Text(
                             "asset".tr(),
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 16.0),
                           Text(
                             "tezos_xtz".tr(),
-                            style: theme.textTheme.bodyText2,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           const Divider(height: 32),
                           Text(
                             "from".tr(),
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 16.0),
                           Text(
                             widget.request.sourceAddress ?? "",
-                            style: theme.textTheme.bodyText2,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           const Divider(height: 32),
                           Text(
                             "connection".tr(),
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 16.0),
                           Text(
                             widget.request.appName ?? "",
-                            style: theme.textTheme.bodyText2,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           const Divider(height: 32),
                           Row(
@@ -231,11 +231,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                             children: [
                               Text(
                                 "send".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               Text(
                                 "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ",
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ],
                           ),
@@ -245,11 +245,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                             children: [
                               Text(
                                 "gas_fee2".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               Text(
                                 "${_fee != null ? XtzAmountFormatter(_fee!).format() : "-"} XTZ",
-                                style: theme.textTheme.bodyText2,
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ],
                           ),
@@ -259,11 +259,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                             children: [
                               Text(
                                 "total_amount".tr(),
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                               Text(
                                 "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ",
-                                style: theme.textTheme.headline4,
+                                style: theme.textTheme.headlineMedium,
                               ),
                             ],
                           ),
@@ -381,14 +381,15 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Widget gasFeeStatus(ThemeData theme) {
     if (feeOptionValue == null || balance == null) {
-      return Text("gas_fee_calculating".tr(), style: theme.textTheme.headline5);
+      return Text("gas_fee_calculating".tr(),
+          style: theme.textTheme.headlineSmall);
     }
     bool isValid = balance! > feeOptionValue!.getFee(feeOption).toInt() + 10;
     if (isValid) {
-      return Text("gas_fee".tr(), style: theme.textTheme.headline5);
+      return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
     } else {
       return Text("gas_fee_insufficient".tr(),
-          style: theme.textTheme.headline5?.copyWith(
+          style: theme.textTheme.headlineSmall?.copyWith(
             color: AppColor.red,
           ));
     }

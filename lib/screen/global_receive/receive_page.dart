@@ -53,13 +53,13 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
               const SizedBox(height: 16.0),
               Text(
                 "select_address_tt".tr(),
-                style: theme.textTheme.headline1,
+                style: theme.textTheme.displayLarge,
               ),
               const SizedBox(height: 40.0),
               Text(
                 "select_address".tr(),
                 //"Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
-                style: theme.textTheme.bodyText1,
+                style: theme.textTheme.bodyLarge,
               ),
               const SizedBox(height: 24),
               ListView.separated(

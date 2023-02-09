@@ -156,7 +156,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                 const SizedBox(width: 7),
                 Text(
                   "back".tr(),
-                  style: theme.textTheme.button,
+                  style: theme.textTheme.labelLarge,
                 ),
               ],
             ),
@@ -178,7 +178,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
             padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
             child: Text(
               "settings".tr().toUpperCase(),
-              style: theme.textTheme.button,
+              style: theme.textTheme.labelLarge,
             ),
           ),
         ),

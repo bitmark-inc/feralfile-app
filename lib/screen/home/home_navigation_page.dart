@@ -153,7 +153,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage> {
         currentIndex: _selectedIndex,
         unselectedItemColor: theme.disabledColor,
         selectedItemColor: theme.primaryColor,
-        backgroundColor: theme.backgroundColor.withOpacity(0.95),
+        backgroundColor: theme.colorScheme.background.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
         items: [

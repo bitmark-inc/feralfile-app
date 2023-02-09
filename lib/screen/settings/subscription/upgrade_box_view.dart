@@ -148,7 +148,7 @@ class _SubscribeViewState extends State<_SubscribeView> {
           onPressed: () {},
           child: Text(
             "subscribe".tr(),
-            style: theme.primaryTextTheme.subtitle2,
+            style: theme.primaryTextTheme.titleSmall,
           ),
         ),
       );

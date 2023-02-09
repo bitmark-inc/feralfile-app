@@ -51,25 +51,25 @@ class KeySyncPage extends StatelessWidget {
                       children: [
                         Text(
                           "conflict_detected".tr(),
-                          style: theme.textTheme.headline1,
+                          style: theme.textTheme.displayLarge,
                         ),
                         const SizedBox(height: 40),
                         Text(
                           "conflict_keychains".tr(),
                           //"We have detected a conflict of keychains.",
-                          style: theme.textTheme.headline4,
+                          style: theme.textTheme.headlineMedium,
                         ),
                         Text(
                           "this_might_occur".tr(),
                           //"This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
-                          style: theme.textTheme.bodyText1,
+                          style: theme.textTheme.bodyLarge,
                         ),
                         const SizedBox(height: 20),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             "device_keychain".tr(),
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           trailing: AuRadio(
                             value: true,
@@ -89,7 +89,7 @@ class KeySyncPage extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'cloud_keychain'.tr(),
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           trailing: AuRadio(
                             value: false,
