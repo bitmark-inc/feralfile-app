@@ -392,47 +392,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                            onTap: () async {
-                              await injector<CustomerSupportService>()
-                                  .removeErrorMessage(uuid);
-                              _loadDrafts();
-                              injector<CustomerSupportService>()
-                                  .processMessages();
-                              Future.delayed(const Duration(seconds: 5), () {
-                                _loadDrafts();
-                              });
-                            },
-                            child: Container(
-                                margin: const EdgeInsets.all(5),
-                                child: SvgPicture.asset(
-                                    "assets/images/retry_icon.svg"))),
-                        const SizedBox(height: 2),
-                        GestureDetector(
-                            onTap: () async {
-                              await injector<CustomerSupportService>()
-                                  .removeErrorMessage(uuid, isDelete: true);
-                              await _loadDrafts();
-                              if (_draftMessages.isEmpty && _messages.isEmpty) {
-                                if (!mounted) return;
-                                Navigator.of(context).pop();
-                              }
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.all(5),
-                              child: SvgPicture.asset(
-                                  "assets/images/cancel_icon.svg"),
-                            )),
-                      ],
-                    ),
-                    const SizedBox(width: 11),
                     Flexible(
                       child: Bubble(
                         color: color,
-                        borderColor: isError ? orangeRust : null,
                         radius: const Radius.circular(10),
                         nipWidth: 0.1,
                         nipRadius: 0,
@@ -445,10 +407,52 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  "failed_to_send".tr(),
-                  style: theme.textTheme.ppMori400Black12
-                      .copyWith(color: orangeRust),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        await injector<CustomerSupportService>()
+                            .removeErrorMessage(uuid);
+                        _loadDrafts();
+                        injector<CustomerSupportService>().processMessages();
+                        Future.delayed(const Duration(seconds: 5), () {
+                          _loadDrafts();
+                        });
+                      },
+                      child: Text(
+                        "retry".tr(),
+                        style: theme.textTheme.ppMori400Black12
+                            .copyWith(decoration: TextDecoration.underline),
+                      ),
+                    ),
+                    Text(
+                      "・",
+                      style: theme.textTheme.ppMori400Black12,
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        await injector<CustomerSupportService>()
+                            .removeErrorMessage(uuid, isDelete: true);
+                        await _loadDrafts();
+                        if (_draftMessages.isEmpty && _messages.isEmpty) {
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text(
+                        "delete".tr(),
+                        style: theme.textTheme.ppMori400Black12
+                            .copyWith(decoration: TextDecoration.underline),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "failed_to_send".tr(),
+                      style: theme.textTheme.ppMori400Black12
+                          .copyWith(color: orangeRust),
+                    ),
+                  ],
                 ),
               ],
             ),
