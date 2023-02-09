@@ -322,17 +322,7 @@ class _SupportListPageState extends State<SupportListPage>
     return Row(
       children: [
         const SizedBox(width: 8),
-        Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.circle,
-            ),
-            width: 10,
-            height: 10,
-          ),
-        )
+        Padding(padding: const EdgeInsets.only(top: 4), child: redDotIcon())
       ],
     );
   }
