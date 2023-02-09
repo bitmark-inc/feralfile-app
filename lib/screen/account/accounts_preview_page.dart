@@ -6,11 +6,12 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,8 @@ class AccountsPreviewPage extends StatefulWidget {
 }
 
 class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
+  final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+
   @override
   void initState() {
     super.initState();
@@ -37,14 +40,15 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "wallets".tr(),
         onBack: null,
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton
+            .copyWith(left: 0, right: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,11 +57,7 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "accounts".tr(),
-                      style: theme.textTheme.displayLarge,
-                    ),
-                    const SizedBox(height: 24),
+                    addTitleSpace(),
                     const AccountsView(isInSettingsPage: false),
                   ],
                 ),
@@ -65,36 +65,37 @@ class _AccountsPreviewPageState extends State<AccountsPreviewPage> {
             ),
             Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: AuFilledButton(
-                        text: "add_another_account".tr().toUpperCase(),
-                        onPress: () {
-                          Navigator.of(context)
-                              .pushNamed(AppRouter.accessMethodPage);
-                        },
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: padding,
+                  child: PrimaryButton(
+                    text: "add_another_account".tr(),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.accessMethodPage);
+                    },
+                  ),
                 ),
-                TextButton(
-                  onPressed: () async {
-                    doneOnboarding(context);
-                    final account =
-                        await injector<AccountService>().getDefaultAccount();
-                    final currentName = await account.getName();
-                    if (currentName == "" || currentName == "Default") {
-                      final defaultName = await account.getAccountDID();
-                      var persona = await injector<CloudDatabase>()
-                          .personaDao
-                          .findById(account.uuid);
-                      account.updateName(defaultName);
-                      injector<AccountService>()
-                          .namePersona(persona!, defaultName);
-                    }
-                  },
-                  child: Text("done".tr(), style: theme.textTheme.labelLarge),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: padding,
+                  child: PrimaryButton(
+                    onTap: () async {
+                      doneOnboarding(context);
+                      final account =
+                          await injector<AccountService>().getDefaultAccount();
+                      final currentName = await account.getName();
+                      if (currentName == "" || currentName == "Default") {
+                        final defaultName = await account.getAccountDID();
+                        var persona = await injector<CloudDatabase>()
+                            .personaDao
+                            .findById(account.uuid);
+                        account.updateName(defaultName);
+                        injector<AccountService>()
+                            .namePersona(persona!, defaultName);
+                      }
+                    },
+                    text: "done".tr(),
+                  ),
                 ),
               ],
             ),

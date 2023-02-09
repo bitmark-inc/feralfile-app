@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -30,7 +31,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -295,11 +295,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               children: [
                 Text('hide_from_collection'.tr(),
                     style: theme.textTheme.ppMori400Black16),
-                FlutterSwitch(
-                  height: 25,
-                  width: 48,
-                  toggleSize: 19.2,
-                  padding: 2,
+                AuToggle(
                   value: isHideGalleryEnabled,
                   onToggle: (value) async {
                     await injector<AccountService>()
@@ -313,11 +309,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                       isHideGalleryEnabled = value;
                     });
                   },
-                  activeColor: AppColor.auSuperTeal,
-                  inactiveColor: Colors.transparent,
-                  toggleColor: AppColor.primaryBlack,
-                  inactiveSwitchBorder: Border.all(),
-                )
+                ),
               ],
             ),
             const SizedBox(height: 14),

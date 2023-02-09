@@ -26,18 +26,16 @@ AppBar getBackAppBar(BuildContext context,
       statusBarBrightness: Brightness.light,
     ),
     centerTitle: true,
-    leadingWidth: 26,
+    leadingWidth: 44,
     leading: onBack != null
-        ? GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: onBack,
-            child: Semantics(
-              label: "BACK",
-              child: Padding(
-                padding: const EdgeInsets.only(left: 15),
-                child: SvgPicture.asset(
-                  'assets/images/icon_back.svg',
-                ),
+        ? Semantics(
+            label: "BACK",
+            child: IconButton(
+              onPressed: onBack,
+              constraints: const BoxConstraints(maxWidth: 36.0),
+              icon: SvgPicture.asset(
+                'assets/images/icon_back.svg',
+                color: theme.colorScheme.primary,
               ),
             ),
           )

@@ -153,6 +153,7 @@ class HomePageState extends State<HomePage>
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
     refreshTokens().then((value) => refreshFeeds());
+    refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
@@ -457,6 +458,10 @@ class HomePageState extends State<HomePage>
         curve: Curves.fastOutSlowIn);
   }
 
+  Future refreshNotification() async {
+    await injector<CustomerSupportService>().getIssues();
+  }
+
   Future refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
     _playlists.value = await getPlaylist();
@@ -523,6 +528,7 @@ class HomePageState extends State<HomePage>
 
     refreshFeeds();
     refreshTokens(checkPendingToken: true);
+    refreshNotification();
 
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
