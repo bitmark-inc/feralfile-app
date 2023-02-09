@@ -113,19 +113,22 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 30, maxWidth: 90),
           child: IntrinsicWidth(
-            child: TextField(
-              focusNode: _focusNode,
-              controller: _quantityController,
-              decoration: const InputDecoration(border: InputBorder.none),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: "IBMPlexMono",
-                  color: hasError ? const Color(0xFFa1200a) : Colors.black),
-              textAlignVertical: TextAlignVertical.center,
-              keyboardType: TextInputType.number,
-              onSubmitted: (value) => _onQuantityUpdated(),
+            child: Semantics(
+              label: "quantity_to_send_artwork",
+              child: TextField(
+                focusNode: _focusNode,
+                controller: _quantityController,
+                decoration: const InputDecoration(border: InputBorder.none),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: "IBMPlexMono",
+                    color: hasError ? const Color(0xFFa1200a) : Colors.black),
+                textAlignVertical: TextAlignVertical.center,
+                keyboardType: TextInputType.number,
+                onSubmitted: (value) => _onQuantityUpdated(),
+              ),
             ),
           ),
         ),
@@ -285,51 +288,56 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                             ),
                           ],
                           const SizedBox(height: 16.0),
-                          AuTextField(
-                            title: "to".tr(),
-                            placeholder: "paste_or_scan_address".tr(),
-                            controller: _addressController,
-                            isError: state.isAddressError,
-                            suffix: IconButton(
-                              icon: Icon(
-                                  state.isScanQR ? AuIcon.scan : AuIcon.close),
-                              onPressed: () async {
-                                if (_addressController.text.isNotEmpty) {
-                                  _addressController.text = "";
-                                  context
-                                      .read<SendArtworkBloc>()
-                                      .add(AddressChangedEvent(""));
-                                  _initialChangeAddress = true;
-                                } else {
-                                  dynamic address = await Navigator.of(context)
-                                      .pushNamed(ScanQRPage.tag,
-                                          arguments:
-                                              asset.blockchain == "ethereum"
-                                                  ? ScannerItem.ETH_ADDRESS
-                                                  : ScannerItem.XTZ_ADDRESS);
-                                  if (address != null && address is String) {
-                                    address =
-                                        address.replacePrefix("ethereum:", "");
-                                    _addressController.text = address;
-                                    if (!mounted) return;
+                          Semantics(
+                            label: "to_address_send_artwork",
+                            child: AuTextField(
+                              title: "to".tr(),
+                              placeholder: "paste_or_scan_address".tr(),
+                              controller: _addressController,
+                              isError: state.isAddressError,
+                              suffix: IconButton(
+                                icon: Icon(state.isScanQR
+                                    ? AuIcon.scan
+                                    : AuIcon.close),
+                                onPressed: () async {
+                                  if (_addressController.text.isNotEmpty) {
+                                    _addressController.text = "";
                                     context
                                         .read<SendArtworkBloc>()
-                                        .add(AddressChangedEvent(address));
+                                        .add(AddressChangedEvent(""));
                                     _initialChangeAddress = true;
+                                  } else {
+                                    dynamic address =
+                                        await Navigator.of(context).pushNamed(
+                                            ScanQRPage.tag,
+                                            arguments:
+                                                asset.blockchain == "ethereum"
+                                                    ? ScannerItem.ETH_ADDRESS
+                                                    : ScannerItem.XTZ_ADDRESS);
+                                    if (address != null && address is String) {
+                                      address = address.replacePrefix(
+                                          "ethereum:", "");
+                                      _addressController.text = address;
+                                      if (!mounted) return;
+                                      context
+                                          .read<SendArtworkBloc>()
+                                          .add(AddressChangedEvent(address));
+                                      _initialChangeAddress = true;
+                                    }
                                   }
+                                },
+                              ),
+                              onSubmit: (value) {
+                                if (value != state.address) {
+                                  context.read<SendArtworkBloc>().add(
+                                        AddressChangedEvent(
+                                          _addressController.text,
+                                        ),
+                                      );
+                                  _initialChangeAddress = true;
                                 }
                               },
                             ),
-                            onSubmit: (value) {
-                              if (value != state.address) {
-                                context.read<SendArtworkBloc>().add(
-                                      AddressChangedEvent(
-                                        _addressController.text,
-                                      ),
-                                    );
-                                _initialChangeAddress = true;
-                              }
-                            },
                           ),
                           const SizedBox(height: 16.0),
                           gasFeeStatus(state, theme),
