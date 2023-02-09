@@ -30,7 +30,7 @@ class Issue {
   @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
   String? announcementID;
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   AnnouncementLocal? announcement;
 
   Issue({
