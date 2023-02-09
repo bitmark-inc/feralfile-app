@@ -124,28 +124,25 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                     const SizedBox(height: 15),
                     SizedBox(
                       height: 160,
-                      child: Semantics(
-                        label: "enter_seed",
-                        child: AuTextField(
-                          title: "",
-                          placeholder: "enter_recovery_phrase".tr(),
-                          //"Enter recovery phrase with each word separated by a space",
-                          keyboardType: TextInputType.multiline,
-                          expanded: true,
-                          maxLines: null,
-                          hintMaxLines: 2,
-                          controller: _phraseTextController,
-                          isError: isError,
-                          onChanged: (value) {
-                            final numberOfWords =
-                                value.trim().split(' ').length;
-                            setState(() {
-                              _isSubmissionEnabled =
-                                  numberOfWords == 12 || numberOfWords == 24;
-                              isError = false;
-                            });
-                          },
-                        ),
+                      child: AuTextField(
+                        labelSemantics: "enter_seed",
+                        title: "",
+                        placeholder: "enter_recovery_phrase".tr(),
+                        //"Enter recovery phrase with each word separated by a space",
+                        keyboardType: TextInputType.multiline,
+                        expanded: true,
+                        maxLines: null,
+                        hintMaxLines: 2,
+                        controller: _phraseTextController,
+                        isError: isError,
+                        onChanged: (value) {
+                          final numberOfWords = value.trim().split(' ').length;
+                          setState(() {
+                            _isSubmissionEnabled =
+                                numberOfWords == 12 || numberOfWords == 24;
+                            isError = false;
+                          });
+                        },
                       ),
                     ),
                     const SizedBox(
