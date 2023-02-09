@@ -1538,10 +1538,10 @@ packages:
     dependency: "direct main"
     description:
       name: onesignal_flutter
-      sha256: "4b6d1be59783d028b9949fc4a417888fb202c405db47e9c26debb6c724a2c632"
+      sha256: "89aa9be814aaf0dcd11e0987d9b5f750fd98938d8680a8431ae53529e4020785"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.0"
+    version: "3.3.0"
   open_settings:
     dependency: "direct main"
     description:
