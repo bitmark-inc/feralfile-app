@@ -52,12 +52,12 @@ class MixPanelClientService {
 
       mixpanel.identify(hashedUserID);
       mixpanel.getPeople().set(MixpanelProp.address, hashedDefaultAddress);
+      mixpanel.getPeople().set(MixpanelProp.didKey, hashedUserID);
     }
   }
 
   Future reset() async {
     mixpanel.reset();
-    //await initWithDefaultAccount();
   }
 
   timerEvent(String name) {

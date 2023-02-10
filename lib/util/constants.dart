@@ -335,6 +335,7 @@ class MixpanelProp {
   static const client = 'client';
   static const address = 'Address';
   static const subscription = 'Subscription';
+  static const didKey = 'didKey';
 }
 
 class SubscriptionStatus {
@@ -344,9 +345,13 @@ class SubscriptionStatus {
   static const expired = 'Expired';
 }
 
-class DeepLinkType {
-  static const local = "localDeepLink";
-  static const dAppConnect = 'dAppConnectDeeplink';
-  static const feralFile = 'feralFileDeeplink';
-  static const branch = 'BranchDeeplink';
+class LinkType {
+  static const local = "Local Deep Link";
+  static const dAppConnect = 'Dapp Connect Deeplink';
+  static const feralFile = 'FeralFile Deeplink';
+  static const branch = 'Branch Deeplink';
+  static const autonomyConnect = 'Autonomy Connect';
+  static const beaconConnect = 'Beacon Connect';
+  static const feralFileToken = 'FeralFile Token';
+  static const walletConnect = 'Wallet Connect';
 }

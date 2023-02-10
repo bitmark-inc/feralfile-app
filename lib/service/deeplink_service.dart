@@ -73,7 +73,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future setup() async {
     FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
-
+      _addScanQREvent(link: "", linkType: "", prefix: "", addData: data);
       if (data["+clicked_branch_link"] == true) {
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
@@ -107,8 +107,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     log.info("[DeeplinkService] receive deeplink $link");
 
-    metricClient.addEvent(MixpanelEvent.scanQR, hashedData: {"link": link});
-
     Timer.periodic(delay, (timer) async {
       timer.cancel();
       _deepLinkHandleClock("Handle Deep Link Time Out", link);
@@ -120,6 +118,24 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
   }
 
+  Future _addScanQREvent(
+      {required String link,
+      required String linkType,
+      required String prefix,
+      Map<dynamic, dynamic> addData = const {}}) async {
+    final uri = Uri.parse(link);
+    final uriData = uri.queryParameters;
+    final data = {
+      "link": link,
+      'linkType': linkType,
+      "prefix": prefix,
+    };
+    data.addAll(uriData);
+    data.addAll(addData.map((key, value) => MapEntry(key, value.toString())));
+
+    metricClient.addEvent(MixpanelEvent.scanQR, data: data);
+  }
+
   Future<bool> _handleLocalDeeplink(String link) async {
     log.info("[DeeplinkService] _handleLocalDeeplink");
     const deeplink = "autonomy://";
@@ -129,7 +145,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       metricClient.addEvent(MixpanelEvent.scanQR, data: {
         "link": link,
-        'linkType': "localDeepLink",
+        'linkType': LinkType.local,
         "prefix": deeplink,
         'data': data
       });
@@ -196,6 +212,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
 
     if (callingWCPrefix != null) {
+      _addScanQREvent(
+          link: link, linkType: LinkType.dAppConnect, prefix: callingWCPrefix);
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
       if (decodedWcUri.isAutonomyConnectUri) {
@@ -209,6 +227,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingTBPrefix =
         tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBPrefix != null) {
+      _addScanQREvent(
+          link: link, linkType: LinkType.dAppConnect, prefix: callingTBPrefix);
       final tzUri = link.substring(callingTBPrefix.length);
       await _tezosBeaconService.addPeer(tzUri);
       return true;
@@ -217,6 +237,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
+      _addScanQREvent(
+          link: link,
+          linkType: LinkType.dAppConnect,
+          prefix: callingWCDeeplinkPrefix);
       if (link.isAutonomyConnectUri) {
         await _walletConnect2Service.connect(link);
       } else {
@@ -228,6 +252,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
+      _addScanQREvent(
+          link: link,
+          linkType: LinkType.dAppConnect,
+          prefix: callingTBDeeplinkPrefix);
       await _tezosBeaconService.addPeer(link);
       if (_configurationService.isDoneOnboarding()) {
         _navigationService.showContactingDialog();
@@ -242,6 +270,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info("[DeeplinkService] _handleFeralFileDeeplink");
 
     if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
+      _addScanQREvent(
+          link: link,
+          linkType: LinkType.feralFile,
+          prefix: FF_TOKEN_DEEPLINK_PREFIX);
       await _linkFeralFileToken(
           link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
       return true;
@@ -257,8 +289,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
       exhibitionId: '',
       artworkId: '',
     );
-    if (Constants.branchDeepLinks.any((prefix) => link.startsWith(prefix))) {
+    final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingBranchDeepLinkPrefix != null) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
+      _addScanQREvent(
+          link: link,
+          linkType: LinkType.branch,
+          prefix: callingBranchDeepLinkPrefix,
+          addData: response["data"]);
       _handleBranchDeeplinkData(response["data"]);
       return true;
     }
