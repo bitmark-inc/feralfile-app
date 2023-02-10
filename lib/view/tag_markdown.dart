@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/markdown_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -61,46 +59,5 @@ class TagBuilder extends MarkdownElementBuilder {
             )
           : Text(element.textContent, style: preferredStyle);
     });
-  }
-}
-
-class AuCaptionSyntax extends md.BlockSyntax {
-  static const String _pattern = r'<AuCaption>((.|\n)*)<\/AuCaption>';
-
-  @override
-  RegExp get pattern => RegExp(_pattern);
-
-  AuCaptionSyntax();
-
-  @override
-  md.Node parse(md.BlockParser parser) {
-    var childLines = parseChildLines(parser);
-
-    var content = childLines.join('\n');
-
-    final md.Element el = md.Element('p', [
-      md.Element('AuCaption', [
-        md.Text(content),
-      ]),
-    ]);
-
-    return el;
-  }
-}
-
-class AuCaptionBuilder extends MarkdownElementBuilder {
-  @override
-  Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    return Builder(
-      builder: (context) {
-        final theme = Theme.of(context);
-        final textStyleGrey = theme.textTheme.ppMori400Grey12;
-        return AuMarkdown(
-          data: element.textContent,
-          styleSheet: editorialMarkDownStyle(context,
-              preferredStyle: textStyleGrey.merge(preferredStyle)),
-        );
-      },
-    );
   }
 }

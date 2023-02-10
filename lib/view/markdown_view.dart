@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/view/tag_markdown.dart';
+import 'package:autonomy_flutter/view/caption_markdown.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -33,7 +33,7 @@ class AuMarkdown extends StatelessWidget {
       padding: EdgeInsets.zero,
       styleSheet: styleSheet,
       builders: <String, MarkdownElementBuilder>{
-        'AuCaption': AuCaptionBuilder(),
+        'Caption': CaptionBuilder(),
       },
       blockSyntaxes: [
         AuCaptionSyntax(),
