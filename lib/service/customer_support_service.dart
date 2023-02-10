@@ -580,17 +580,17 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final lastPullTime = _configurationService.getAnnouncementLastPullTime();
     final announcements = await _announcementApi.getAnnouncements(
         lastPullTime: lastPullTime ?? 0);
-    if (announcements.isNotEmpty) {
-      final metricClient = injector.get<MetricClientService>();
-      metricClient.addEvent(
-        MixpanelEvent.receiveAnnouncement,
-        data: {"number": announcements.length},
-        hashedData: {},
-      );
-    }
     final pullTime = DateTime.now().millisecondsSinceEpoch;
     _configurationService.setAnnouncementLastPullTime(pullTime);
+    final metricClient = injector.get<MetricClientService>();
     for (var announcement in announcements) {
+      metricClient.addEvent(
+        MixpanelEvent.receiveAnnouncement,
+        data: {
+          "id": announcement.announcementContextId,
+          "type": announcement.type
+        },
+      );
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
     }

@@ -211,8 +211,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(
       MixpanelEvent.readAnnouncement,
-      data: {"type": announcement.type},
-      hashedData: {},
+      data: {
+        "id": announcement.announcementContextId,
+        "type": announcement.type
+      },
     );
   }
 
@@ -676,8 +678,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         final metricClient = injector.get<MetricClientService>();
         metricClient.addEvent(
           MixpanelEvent.replyAnnouncement,
-          data: {"type": payload.announcement!.type},
-          hashedData: {},
+          data: {
+            "id": payload.announcement!.announcementContextId,
+            "type": payload.announcement!.type
+          },
         );
         data.announcementId = payload.announcement!.announcementContextId;
       }
