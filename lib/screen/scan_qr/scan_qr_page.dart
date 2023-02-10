@@ -485,7 +485,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       {required String link,
       required String linkType,
       required String prefix,
-      Map<String, String> addData = const {}}) async {
+      Map<dynamic, dynamic> addData = const {}}) async {
     final uri = Uri.parse(link);
     final uriData = uri.queryParameters;
     final data = {
@@ -494,7 +494,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       "prefix": prefix,
     };
     data.addAll(uriData);
-    data.addAll(addData);
+    data.addAll(addData.map((key, value) => MapEntry(key, value.toString())));
 
     metricClient.addEvent(MixpanelEvent.scanQR, data: data);
   }

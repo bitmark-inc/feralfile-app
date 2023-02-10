@@ -333,9 +333,9 @@ class MixpanelEvent {
 class MixpanelProp {
   static const enableNotification = 'enableNotification';
   static const client = 'client';
+  static const didKey = 'didKey';
   static const address = 'Address';
   static const subscription = 'Subscription';
-  static const didKey = 'didKey';
 }
 
 class SubscriptionStatus {
