@@ -11,9 +11,9 @@ import 'package:flutter/material.dart';
 
 class AuTextField extends StatelessWidget {
   final String title;
+  final String? labelSemantics;
   final String placeholder;
   final bool isError;
-  final bool expanded;
   final TextEditingController controller;
   final Widget? subTitleView;
   final Widget? suffix;
@@ -23,83 +23,84 @@ class AuTextField extends StatelessWidget {
   final int? maxLines;
   final int? hintMaxLines;
 
-  const AuTextField(
-      {Key? key,
-      required this.title,
-      this.placeholder = "",
-      this.isError = false,
-      this.expanded = false,
-      this.maxLines = 1,
-      this.hintMaxLines,
-      required this.controller,
-      this.subTitleView,
-      this.suffix,
-      this.keyboardType = TextInputType.text,
-      this.onChanged,
-      this.onSubmit})
-      : super(key: key);
+  const AuTextField({
+    Key? key,
+    required this.title,
+    this.placeholder = "",
+    this.isError = false,
+    this.maxLines = 1,
+    this.hintMaxLines,
+    required this.controller,
+    this.subTitleView,
+    this.suffix,
+    this.keyboardType = TextInputType.text,
+    this.onChanged,
+    this.onSubmit,
+    this.labelSemantics,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isEmpty = controller.text.isEmpty;
-    return Expanded(
-        flex: expanded ? 1 : 0,
-        child: Container(
-            padding: title.isNotEmpty
-                ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
-                : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
-            decoration: BoxDecoration(
-                border: Border.all(
-                    color: isEmpty
-                        ? AppColor.auLightGrey
-                        : isError
-                            ? AppColor.red
-                            : theme.colorScheme.primary),
-                borderRadius: BorderRadiusGeometry.lerp(
-                    const BorderRadius.all(Radius.circular(5)),
-                    const BorderRadius.all(Radius.circular(5)),
-                    5)),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (title.isNotEmpty) ...[
-                            Text(
-                              title,
-                              style: ResponsiveLayout.isMobile
-                                  ? theme.textTheme.atlasGreyBold12
-                                  : theme.textTheme.atlasGreyBold14,
-                            ),
-                          ],
-                          subTitleView != null
-                              ? Text(
-                                  " | ",
-                                  style: ResponsiveLayout.isMobile
-                                      ? theme.textTheme.atlasGreyNormal12
-                                      : theme.textTheme.atlasGreyNormal14,
-                                )
-                              : const SizedBox(),
-                          subTitleView ?? const SizedBox(),
+    return Semantics(
+      label: labelSemantics,
+      child: Container(
+          padding: title.isNotEmpty
+              ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
+              : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
+          decoration: BoxDecoration(
+              border: Border.all(
+                  color: isEmpty
+                      ? AppColor.auLightGrey
+                      : isError
+                          ? AppColor.red
+                          : theme.colorScheme.primary),
+              borderRadius: BorderRadiusGeometry.lerp(
+                  const BorderRadius.all(Radius.circular(5)),
+                  const BorderRadius.all(Radius.circular(5)),
+                  5)),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (title.isNotEmpty) ...[
+                          Text(
+                            title,
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.atlasGreyBold12
+                                : theme.textTheme.atlasGreyBold14,
+                          ),
                         ],
+                        subTitleView != null
+                            ? Text(
+                                " | ",
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.atlasGreyNormal12
+                                    : theme.textTheme.atlasGreyNormal14,
+                              )
+                            : const SizedBox(),
+                        subTitleView ?? const SizedBox(),
+                      ],
+                    ),
+                    if (maxLines == 1) ...[
+                      _textFieldWidget(context)
+                    ] else ...[
+                      Expanded(
+                        child: _textFieldWidget(context),
                       ),
-                      if (maxLines == 1) ...[
-                        _textFieldWidget(context)
-                      ] else ...[
-                        Expanded(
-                          child: _textFieldWidget(context),
-                        ),
-                      ]
-                    ],
-                  ),
+                    ]
+                  ],
                 ),
-                suffix ?? const SizedBox(),
-              ],
-            )));
+              ),
+              suffix ?? const SizedBox(),
+            ],
+          )),
+    );
   }
 
   Widget _textFieldWidget(BuildContext context) {

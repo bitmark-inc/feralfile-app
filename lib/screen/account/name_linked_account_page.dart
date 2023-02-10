@@ -81,19 +81,17 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                       style: theme.textTheme.ppMori400Black14,
                     ),
                     const SizedBox(height: 15),
-                    Semantics(
-                      label: "enter_alias_link",
-                      child: AuTextField(
-                          title: "",
-                          placeholder: "enter_alias".tr(),
-                          controller: _nameController,
-                          onChanged: (valueChanged) {
-                            if (_nameController.text.trim().isEmpty !=
-                                isSavingAliasDisabled) {
-                              saveAliasButtonChangedState();
-                            }
-                          }),
-                    ),
+                    AuTextField(
+                        labelSemantics: "enter_alias_link",
+                        title: "",
+                        placeholder: "enter_alias".tr(),
+                        controller: _nameController,
+                        onChanged: (valueChanged) {
+                          if (_nameController.text.trim().isEmpty !=
+                              isSavingAliasDisabled) {
+                            saveAliasButtonChangedState();
+                          }
+                        }),
                   ],
                 ),
               ),
