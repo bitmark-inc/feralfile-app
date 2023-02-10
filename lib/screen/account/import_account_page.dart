@@ -130,7 +130,6 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         placeholder: "enter_recovery_phrase".tr(),
                         //"Enter recovery phrase with each word separated by a space",
                         keyboardType: TextInputType.multiline,
-                        expanded: true,
                         maxLines: null,
                         hintMaxLines: 2,
                         controller: _phraseTextController,
