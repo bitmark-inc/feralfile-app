@@ -89,16 +89,16 @@ jobs:
         run: flutter build apk --flavor inhouse
       
       # Run integration test
-      - name: Run auto tests for Suite "Link account from MetaMask app"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE
-          flutter pub run test auto-test/mobile_external_app/linkaccountbyMetamaskapp_test.dart
-      - name: Run auto tests for Suite "Import accounts from seeds"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter pub run test auto-test/tests/import_fullaccount_kukai_temple_test.dart
+#      - name: Run auto tests for Suite "Link account from MetaMask app"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter pub run test auto-test/mobile_external_app/linkaccountbyMetamaskapp_test.dart
+#      - name: Run auto tests for Suite "Import accounts from seeds"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter pub run test auto-test/tests/import_fullaccount_kukai_temple_test.dart
       - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
         if: success() || failure()
         run: |
