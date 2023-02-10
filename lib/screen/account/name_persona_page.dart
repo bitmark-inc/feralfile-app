@@ -96,19 +96,16 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                         style: theme.textTheme.ppMori400Black14,
                       ),
                       const SizedBox(height: 40),
-                      Semantics(
-                        label: "enter_alias_full",
-                        child: AuTextField(
-                            title: "",
-                            placeholder: "enter_alias".tr(),
-                            controller: _nameController,
-                            onChanged: (valueChanged) {
-                              if (_nameController.text.trim().isEmpty !=
-                                  isSavingAliasDisabled) {
-                                saveAliasButtonChangedState();
-                              }
-                            }),
-                      ),
+                      AuTextField(
+                          title: "",
+                          placeholder: "enter_alias".tr(),
+                          controller: _nameController,
+                          onChanged: (valueChanged) {
+                            if (_nameController.text.trim().isEmpty !=
+                                isSavingAliasDisabled) {
+                              saveAliasButtonChangedState();
+                            }
+                          }),
                     ],
                   ),
                 ),
