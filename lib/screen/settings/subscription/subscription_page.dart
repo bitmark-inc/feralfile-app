@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -97,7 +98,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     IAPProductStatus status = state.status;
     switch (status) {
       case IAPProductStatus.completed:
-        mixpanel.getPeople().set("Subscription", "Subscried");
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.subscried);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -132,7 +135,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           ],
         );
       case IAPProductStatus.trial:
-        mixpanel.getPeople().set("Subscription", "Trial");
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.trial);
         final df = DateFormat("yyyy-MMM-dd");
         final trialExpireDate =
             df.format(state.trialExpiredDate ?? DateTime.now());
@@ -186,6 +191,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           child: const CupertinoActivityIndicator(),
         );
       case IAPProductStatus.expired:
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.expired);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -216,6 +224,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           ],
         );
       case IAPProductStatus.notPurchased:
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.free);
         return Column(
           children: [
             Text(

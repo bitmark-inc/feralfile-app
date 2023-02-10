@@ -700,6 +700,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     final namedPersona =
         await injector<AccountService>().namePersona(persona!, defaultName);
     injector<ConfigurationService>().setDoneOnboarding(true);
+    injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
     selectedPersona = namedPersona;
     _approveThenNotify(onBoarding: true);
   }

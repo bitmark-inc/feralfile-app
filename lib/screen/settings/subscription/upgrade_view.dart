@@ -132,7 +132,9 @@ class UpgradesView extends StatelessWidget {
     IAPProductStatus status = IAPProductStatus.loading; //state.status;
     switch (status) {
       case IAPProductStatus.completed:
-        mixpanel.getPeople().set("Subscription", "Subscried");
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.subscried);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -154,7 +156,9 @@ class UpgradesView extends StatelessWidget {
           ],
         );
       case IAPProductStatus.trial:
-        mixpanel.getPeople().set("Subscription", "Trial");
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.trial);
         final df = DateFormat("yyyy-MMM-dd");
         final trialExpireDate =
             df.format(state.trialExpiredDate ?? DateTime.now());
