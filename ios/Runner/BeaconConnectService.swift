@@ -27,7 +27,7 @@ class BeaconConnectService {
     
     let eventsSubject = PassthroughSubject<WalletConnectionEvent, Never>()
     
-    func startBeacon() {
+    func startBeacon(retryOnFailure: Bool = true) {
         guard beaconClient == nil else {
             listenForRequests()
             return
@@ -49,8 +49,19 @@ class BeaconConnectService {
                     self.listenForRequests()
 
                 case let .failure(error):
-                    logger.info("[TezosBeaconService] Could not create Beacon client")
-                    logger.error("Error: \(error)")
+                    if retryOnFailure && error.localizedDescription.contains("osStatus") {
+                        // cleanup keychain
+                        let passwordQuery: [AnyHashable:Any] = [
+                            kSecClass as String: kSecClassGenericPassword,
+                            kSecAttrAccount as String: "sdkSeed"
+                        ]
+                        SecItemDelete(passwordQuery as CFDictionary)
+                        
+                        self.startBeacon(retryOnFailure: false)
+                    } else {
+                        logger.info("[TezosBeaconService] Could not create Beacon client")
+                        logger.error("Error: \(error)")
+                    }
                 }
             }
         } catch {
