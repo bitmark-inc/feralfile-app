@@ -126,7 +126,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void initState() {
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
     if (memoryValues.homePageInitialTab != HomePageTab.HOME) {
       _selectedIndex = 1;
@@ -156,7 +156,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   void didPopNext() async {
     super.didPopNext();
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   @override

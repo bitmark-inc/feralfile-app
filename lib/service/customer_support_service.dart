@@ -608,6 +608,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     await fetchAnnouncement();
     final announcement = await _announcementDao.getAnnouncement(type);
     if (announcement != null) {
+      await getIssuesAndAnnouncement();
       showInfoNotification(
           const Key("Announcement"), "au_has_announcement".tr(),
           addOnTextSpan: [

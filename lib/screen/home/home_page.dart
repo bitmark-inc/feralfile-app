@@ -459,7 +459,7 @@ class HomePageState extends State<HomePage>
   }
 
   Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssues();
+    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   Future refreshTokens({checkPendingToken = false}) async {
