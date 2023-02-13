@@ -30,10 +30,10 @@ class EditorialPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _EditorialPageState();
+  State<StatefulWidget> createState() => EditorialPageState();
 }
 
-class _EditorialPageState extends State<EditorialPage>
+class EditorialPageState extends State<EditorialPage>
     with SingleTickerProviderStateMixin {
   bool _showFullHeader = true;
   late ScrollController _feedController;
@@ -97,6 +97,14 @@ class _EditorialPageState extends State<EditorialPage>
     _feedController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void scrollToTop() {
+    final controller =
+        _tabController.index == 0 ? _feedController : _editorialController;
+    controller.animateTo(0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.fastOutSlowIn);
   }
 
   @override
