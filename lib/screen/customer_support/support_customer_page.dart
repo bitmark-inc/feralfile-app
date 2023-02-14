@@ -33,8 +33,13 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
     with RouteAware, WidgetsBindingObserver {
   @override
   void initState() {
-    injector<CustomerSupportService>().getIssues();
     super.initState();
+    fetchAnnouncements();
+  }
+
+  Future<void> fetchAnnouncements() async {
+    await injector<CustomerSupportService>().fetchAnnouncement();
+    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   @override
@@ -45,7 +50,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   void didPopNext() {
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.didPopNext();
   }
 

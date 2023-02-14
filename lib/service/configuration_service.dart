@@ -7,10 +7,12 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +20,14 @@ import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
+  Future<void> setAnnouncementLastPullTime(int lastPullTime);
+
+  int? getAnnouncementLastPullTime();
+
+  Future<void> setOldUser();
+
+  bool getIsOldUser();
+
   Future<void> setIAPReceipt(String? value);
 
   String? getIAPReceipt();
@@ -25,6 +35,10 @@ abstract class ConfigurationService {
   Future<void> setIAPJWT(JWT? value);
 
   JWT? getIAPJWT();
+
+  Future<void> setPremium(bool value);
+
+  bool isPremium();
 
   Future<void> setTVConnectData(WCPeerMeta peerMeta, int id);
 
@@ -186,6 +200,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String KEY_WC_SESSIONS = "key_wc_sessions";
+  static const String IS_PREMIUM = "is_premium";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
@@ -209,6 +224,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
+
+  static const String ANNOUNCEMENT_LAST_PULL_TIME =
+      "announcement_last_pull_time";
+  static const String OLD_USER = "old_user";
 
   // keys for WalletConnect dapp side
   static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
@@ -372,7 +391,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDoneOnboarding(bool value) async {
     log.info("setDoneOnboarding: $value");
+    final currentValue = isDoneOnboarding();
     await _preferences.setBool(KEY_DONE_ONBOARING, value);
+    if (currentValue == false && value == true && getIsOldUser() == false) {
+      await setOldUser();
+      Future.delayed(const Duration(seconds: 2), () async {
+        injector<CustomerSupportService>().createAnnouncement("welcome");
+      });
+    }
   }
 
   @override
@@ -780,5 +806,35 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setAllowContribution(bool value) async {
     await _preferences.setBool(ALLOW_CONTRIBUTION, value);
+  }
+
+  @override
+  int? getAnnouncementLastPullTime() {
+    return _preferences.getInt(ANNOUNCEMENT_LAST_PULL_TIME);
+  }
+
+  @override
+  Future<void> setAnnouncementLastPullTime(int lastPullTime) async {
+    await _preferences.setInt(ANNOUNCEMENT_LAST_PULL_TIME, lastPullTime);
+  }
+
+  @override
+  bool getIsOldUser() {
+    return _preferences.getBool(OLD_USER) ?? false;
+  }
+
+  @override
+  Future<void> setOldUser() async {
+    await _preferences.setBool(OLD_USER, true);
+  }
+
+  @override
+  bool isPremium() {
+    return _preferences.getBool(IS_PREMIUM) ?? false;
+  }
+
+  @override
+  Future<void> setPremium(bool value) async {
+    await _preferences.setBool(IS_PREMIUM, value);
   }
 }

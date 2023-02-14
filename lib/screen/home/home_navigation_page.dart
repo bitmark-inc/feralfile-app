@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -125,7 +126,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void initState() {
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
     if (memoryValues.homePageInitialTab != HomePageTab.HOME) {
       _selectedIndex = 1;
@@ -155,7 +156,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   void didPopNext() async {
     super.didPopNext();
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   @override
@@ -276,7 +277,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         final notificationIssueID =
             '${event.notification.additionalData?['issue_id']}';
         injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        injector<CustomerSupportService>().getIssues();
+        injector<CustomerSupportService>().getIssuesAndAnnouncement();
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
           event.complete(null);
           return;
@@ -292,20 +293,32 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
-
-    showNotifications(context, event.notification,
-        notificationOpenedHandler: _handleNotificationClicked);
+    if (data['notification_type'] == "customer_support_new_announcement") {
+      showInfoNotification(
+          const Key("Announcement"), "au_has_announcement".tr(),
+          addOnTextSpan: [
+            TextSpan(
+                text: "tap_to_view".tr(),
+                style: Theme.of(context).textTheme.ppMori400Green14),
+          ], openHandler: () async {
+        final announcementID = '${data["id"]}';
+        _openAnnouncement(announcementID);
+      });
+    } else {
+      showNotifications(context, event.notification,
+          notificationOpenedHandler: _handleNotificationClicked);
+    }
     event.complete(null);
   }
 
-  void _handleNotificationClicked(OSNotification notification) {
+  void _handleNotificationClicked(OSNotification notification) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
       return;
     }
 
     log.info(
-        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+        "Tap to notification: ${notification.body ?? "empty"} \nAdditional data: ${notification.additionalData!}");
 
     final notificationType = notification.additionalData!["notification_type"];
     switch (notificationType) {
@@ -319,13 +332,23 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       case "customer_support_new_message":
       case "customer_support_close_issue":
         final issueID = '${notification.additionalData!["issue_id"]}';
+        final announcement = await injector<CustomerSupportService>()
+            .findAnnouncementFromIssueId(issueID);
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.supportThreadPage,
           ((route) =>
               route.settings.name == AppRouter.homePage ||
               route.settings.name == AppRouter.homePageNoTransition),
-          arguments: DetailIssuePayload(reportIssueType: "", issueID: issueID),
+          arguments: DetailIssuePayload(
+              reportIssueType: "",
+              issueID: issueID,
+              announcement: announcement),
         );
+        break;
+      case "customer_support_new_announcement":
+        final announcementID = '${notification.additionalData!["id"]}';
+        _openAnnouncement(announcementID);
         break;
 
       case "artwork_created":
@@ -343,6 +366,26 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       default:
         log.warning("unhandled notification type: $notificationType");
         break;
+    }
+  }
+
+  _openAnnouncement(String announcementID) async {
+    log.info("Open announcement: id = $announcementID");
+    await injector<CustomerSupportService>().fetchAnnouncement();
+    final announcement = await injector<CustomerSupportService>()
+        .findAnnouncement(announcementID);
+    if (announcement != null) {
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.supportThreadPage,
+        ((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition),
+        arguments: NewIssuePayload(
+          reportIssueType: ReportIssueType.Announcement,
+          announcement: announcement,
+        ),
+      );
     }
   }
 }

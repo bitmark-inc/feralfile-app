@@ -125,9 +125,10 @@ class ReportIssueType {
   static const Other = 'other';
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
+  static const Announcement = 'announcement';
 
   static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -143,6 +144,8 @@ class ReportIssueType {
         return 'Report a bug';
       case ReportNFTIssue:
         return 'Report NFT issue';
+      case Announcement:
+        return "Announcement";
       default:
         return 'Something else?';
     }
@@ -328,4 +331,7 @@ class MixpanelEvent {
   static const scanQR = 'scan_qr';
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
+  static const readAnnouncement = 'read_announcement';
+  static const replyAnnouncement = 'reply_announcement';
+  static const receiveAnnouncement = 'receive_announcement';
 }

@@ -459,7 +459,7 @@ class HomePageState extends State<HomePage>
   }
 
   Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssues();
+    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   Future refreshTokens({checkPendingToken = false}) async {
@@ -544,7 +544,7 @@ class HomePageState extends State<HomePage>
         .refreshJWTToken(jwtToken)
         .then((value) => feedService.checkNewFeeds());
 
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();
   }
 

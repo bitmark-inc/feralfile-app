@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
@@ -102,6 +103,7 @@ Future<void> setup() async {
     migrateV11ToV12,
     migrateV12ToV13,
     migrateV13ToV14,
+    migrateV14ToV15,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -232,6 +234,9 @@ Future<void> setup() async {
                 baseUrl: Environment.renderingReportURL),
             injector(),
             injector(),
+            mainnetDB.announcementDao,
+            AnnouncementApi(authenticatedDio,
+                baseUrl: Environment.customerSupportURL),
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);

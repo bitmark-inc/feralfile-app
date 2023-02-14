@@ -55,6 +55,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await Future.delayed(const Duration(seconds: 1));
 
       if (await hasAccounts()) {
+        _configurationService.setOldUser();
         final backupVersion = await _backupService
             .fetchBackupVersion(await _accountService.getDefaultAccount());
 
