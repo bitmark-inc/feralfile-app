@@ -63,7 +63,7 @@ class _SupportListPageState extends State<SupportListPage>
 
   void loadIssues() async {
     final issues =
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
+        await injector<CustomerSupportService>().getIssuesAndAnnouncement();
     if (mounted) {
       setState(() {
         _issues = issues;
@@ -97,7 +97,7 @@ class _SupportListPageState extends State<SupportListPage>
       ),
       SliverList(
         delegate: SliverChildBuilderDelegate(
-              (context, index) {
+          (context, index) {
             final chatThread = issues[index];
             switch (chatThread.runtimeType) {
               case Issue:
@@ -105,7 +105,7 @@ class _SupportListPageState extends State<SupportListPage>
                 final status = issue.status;
                 final lastMessage = getLastMessage(issue);
                 final isRated = (lastMessage.contains(STAR_RATING) ||
-                    lastMessage.contains(RATING_MESSAGE_START)) &&
+                        lastMessage.contains(RATING_MESSAGE_START)) &&
                     issue.rating > 0;
                 bool hasDivider = (index < issues.length - 1);
                 return Padding(
@@ -114,17 +114,16 @@ class _SupportListPageState extends State<SupportListPage>
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     child: _contentRow(issue, hasDivider),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(
-                          AppRouter.supportThreadPage,
-                          arguments: DetailIssuePayload(
-                            reportIssueType: issue.reportIssueType,
-                            issueID: issue.issueID,
-                            status: status,
-                            isRated: isRated,
-                            announcement: issue.announcement,
-                          ),
-                        ),
+                    onTap: () => Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments: DetailIssuePayload(
+                        reportIssueType: issue.reportIssueType,
+                        issueID: issue.issueID,
+                        status: status,
+                        isRated: isRated,
+                        announcement: issue.announcement,
+                      ),
+                    ),
                   ),
                 );
 
@@ -137,14 +136,13 @@ class _SupportListPageState extends State<SupportListPage>
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     child: _announcementRow(issue, hasDivider),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(
-                          AppRouter.supportThreadPage,
-                          arguments: NewIssuePayload(
-                            reportIssueType: ReportIssueType.Announcement,
-                            announcement: issue,
-                          ),
-                        ),
+                    onTap: () => Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments: NewIssuePayload(
+                        reportIssueType: ReportIssueType.Announcement,
+                        announcement: issue,
+                      ),
+                    ),
                   ),
                 );
               default:
@@ -205,8 +203,8 @@ class _SupportListPageState extends State<SupportListPage>
         hasDivider
             ? addDivider()
             : const SizedBox(
-          height: 32,
-        ),
+                height: 32,
+              ),
       ],
     );
   }
@@ -232,14 +230,13 @@ class _SupportListPageState extends State<SupportListPage>
       List<ReceiveAttachment> attachments = [];
       if (draftData.attachments != null) {
         final contentType =
-        draft.type == CSMessageType.PostPhotos.rawValue ? 'image' : 'logs';
+            draft.type == CSMessageType.PostPhotos.rawValue ? 'image' : 'logs';
         attachments = draftData.attachments!
-            .map((e) =>
-            ReceiveAttachment(
-              title: e.fileName,
-              name: '',
-              contentType: contentType,
-            ))
+            .map((e) => ReceiveAttachment(
+                  title: e.fileName,
+                  name: '',
+                  contentType: contentType,
+                ))
             .toList();
       }
 
@@ -261,7 +258,7 @@ class _SupportListPageState extends State<SupportListPage>
     if (lastMessage.attachments.isEmpty) return "";
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =
-    ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
+        ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {
       return "image_sent"
           .tr(args: [attachmentTitle]); //'Image sent: $attachmentTitle';
@@ -319,8 +316,8 @@ class _SupportListPageState extends State<SupportListPage>
         hasDivider
             ? addDivider()
             : const SizedBox(
-          height: 32,
-        ),
+                height: 32,
+              ),
       ],
     );
   }
