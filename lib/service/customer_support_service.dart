@@ -588,7 +588,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         MixpanelEvent.receiveAnnouncement,
         data: {
           "id": announcement.announcementContextId,
-          "type": announcement.type
+          "type": announcement.type,
+          "title": announcement.title,
         },
       );
       await _announcementDao

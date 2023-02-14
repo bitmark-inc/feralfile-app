@@ -213,7 +213,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       MixpanelEvent.readAnnouncement,
       data: {
         "id": announcement.announcementContextId,
-        "type": announcement.type
+        "type": announcement.type,
+        "title": announcement.title,
       },
     );
   }
@@ -680,7 +681,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           MixpanelEvent.replyAnnouncement,
           data: {
             "id": payload.announcement!.announcementContextId,
-            "type": payload.announcement!.type
+            "type": payload.announcement!.type,
+            "title": payload.announcement!.title,
           },
         );
         data.announcementId = payload.announcement!.announcementContextId;
