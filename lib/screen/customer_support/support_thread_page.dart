@@ -677,15 +677,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       final payload = widget.payload;
       if (payload.announcement != null) {
         final metricClient = injector.get<MetricClientService>();
+        final announcement = payload.announcement!;
         metricClient.addEvent(
           MixpanelEvent.replyAnnouncement,
           data: {
-            "id": payload.announcement!.announcementContextId,
-            "type": payload.announcement!.type,
-            "title": payload.announcement!.title,
+            "id": announcement.announcementContextId,
+            "type": announcement.type,
+            "title": announcement.title,
           },
         );
-        data.announcementId = payload.announcement!.announcementContextId;
+        data.announcementId = announcement.announcementContextId;
       }
 
       if (payload is ExceptionErrorPayload) {
