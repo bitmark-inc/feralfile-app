@@ -34,6 +34,7 @@ class WalletConnectService {
 
   final List<WCClient> wcClients = List.empty(growable: true);
   Map<WCPeerMeta, String> tmpUuids = {};
+  List<WCSendTransactionPageArgs> handlingEthSendTransactions = [];
 
   WalletConnectService(
     this._navigationService,
@@ -197,6 +198,7 @@ class WalletConnectService {
         log.info("WC failed to connect: $error");
       },
       onSessionRequest: (id, peerMeta) async {
+        log.info("[WalletConnectService]: onSessionRequest id = $id]");
         currentPeerMeta = peerMeta;
         if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
           final isSubscribed = await injector<IAPService>().isSubscribed();
@@ -219,6 +221,7 @@ class WalletConnectService {
         }
       },
       onEthSign: (id, message) {
+        log.info("[WalletConnectService]: onEthSign id = $id]");
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
         if (uuid == null ||
             !wcClients.any(
@@ -236,18 +239,30 @@ class WalletConnectService {
         });
       },
       onEthSendTransaction: (id, tx) {
+        log.info("[WalletConnectService]: onEthSendTransaction id = $id]");
         String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
         if (uuid == null ||
             !wcClients.any(
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
-
-        _navigationService.navigateTo(WCSendTransactionPage.tag,
-            arguments:
-                WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid));
+        final payload =
+            WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid);
+        handlingEthSendTransactions.add(payload);
+        if (handlingEthSendTransactions.length == 1) {
+          handleEthSendTransaction();
+        }
       },
       onEthSignTransaction: (id, tx) {
         // Respond to eth_signTransaction request callback
       },
     );
+  }
+
+  void handleEthSendTransaction({bool isRemove = false}) {
+    log.info("[WalletConnectService]: handle EthSendTransaction]");
+    if (isRemove) handlingEthSendTransactions.removeAt(0);
+    if (handlingEthSendTransactions.isEmpty) return;
+    final payload = handlingEthSendTransactions.first;
+    _navigationService.navigateTo(WCSendTransactionPage.tag,
+        arguments: payload);
   }
 }

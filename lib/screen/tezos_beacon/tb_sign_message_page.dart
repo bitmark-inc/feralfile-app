@@ -52,6 +52,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     fetchPersona();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    Future.delayed(const Duration(seconds: 2), () {
+      injector<TezosBeaconService>().handleNextRequest(isRemove: true);
+    });
+  }
+
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletStorage? currentWallet;
@@ -217,6 +225,15 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                         width: 24,
                                       ),
                                     );
+                                    Future.delayed(const Duration(seconds: 3),
+                                        () {
+                                      showInfoNotification(
+                                          const Key("switchBack"),
+                                          "Switch back to your browser to continue"
+                                              .tr(),
+                                          frontWidget: loadingIndicator(
+                                              valueColor: Colors.white));
+                                    });
                                   }
                                 })
                             : null,
