@@ -66,7 +66,7 @@ abstract class CustomerSupportService {
 
   Future<List<Issue>> getIssues();
 
-  Future<List<Object>> getIssuesAndAnnouncement();
+  Future<List<ChatThread>> getIssuesAndAnnouncement();
 
   Future draftMessage(DraftCustomerSupport draft);
 
@@ -527,8 +527,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<List<Object>> getIssuesAndAnnouncement() async {
-    List<Object> result = [];
+  Future<List<ChatThread>> getIssuesAndAnnouncement() async {
+    List<ChatThread> result = [];
     List<Issue> issues = await getIssues();
     List<AnnouncementLocal> announcements =
         await _announcementDao.getAnnouncements();

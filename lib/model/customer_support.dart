@@ -13,8 +13,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 
 part 'customer_support.g.dart';
 
+abstract class ChatThread {}
+
 @JsonSerializable()
-class Issue {
+class Issue implements ChatThread {
   @JsonKey(name: 'issue_id')
   String issueID;
   String status;

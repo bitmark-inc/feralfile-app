@@ -5,10 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 import 'package:autonomy_flutter/model/announcement.dart';
+import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:floor/floor.dart';
 
 @entity
-class AnnouncementLocal {
+class AnnouncementLocal implements ChatThread  {
   @primaryKey
   final String announcementContextId;
   final String title;
