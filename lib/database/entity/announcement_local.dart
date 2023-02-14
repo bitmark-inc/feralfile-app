@@ -9,7 +9,7 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:floor/floor.dart';
 
 @entity
-class AnnouncementLocal implements ChatThread  {
+class AnnouncementLocal implements ChatThread {
   @primaryKey
   final String announcementContextId;
   final String title;
