@@ -12,27 +12,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 
-class AuCaptionSyntax extends md.BlockSyntax {
+class CaptionInlineSyntax extends md.InlineSyntax {
   static const String _pattern = r'<caption>((.|\n)*)<\/caption>';
 
   @override
   RegExp get pattern => RegExp(_pattern);
 
-  AuCaptionSyntax();
+  CaptionInlineSyntax() : super(_pattern);
 
   @override
-  md.Node parse(md.BlockParser parser) {
-    var childLines = parseChildLines(parser);
+  bool onMatch(md.InlineParser parser, Match match) {
+    final caption = match[1]!;
+    final el = md.Element.text('Caption', caption);
+    parser.addNode(el);
 
-    var content = childLines.join('\n');
-
-    final md.Element el = md.Element('p', [
-      md.Element('Caption', [
-        md.Text(content),
-      ]),
-    ]);
-
-    return el;
+    return true;
   }
 }
 
@@ -43,10 +37,16 @@ class CaptionBuilder extends MarkdownElementBuilder {
       builder: (context) {
         final theme = Theme.of(context);
         final textStyleGrey = theme.textTheme.ppMori400Grey12;
-        return AuMarkdown(
-          data: element.textContent,
-          styleSheet: editorialMarkDownStyle(context,
-              preferredStyle: textStyleGrey.merge(preferredStyle)),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: AuMarkdown(
+            data: element.textContent,
+            styleSheet: editorialMarkDownStyle(
+              context,
+              preferredStyle: textStyleGrey.merge(preferredStyle),
+              pPadding: EdgeInsets.zero,
+            ),
+          ),
         );
       },
     );

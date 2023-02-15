@@ -246,7 +246,7 @@ MarkdownStyleSheet markDownDetailPageStyle(
 }
 
 MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
-    {TextStyle? preferredStyle}) {
+    {TextStyle? preferredStyle, EdgeInsets? pPadding}) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
   final textStyleWhite =
@@ -259,7 +259,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
       ),
     ),
     p: preferredStyle,
-    pPadding: const EdgeInsets.only(bottom: 16),
+    pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
     code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
     h1: preferredStyle.copyWith(fontSize: 24, fontWeight: FontWeight.w700),
     h1Padding: const EdgeInsets.only(bottom: 24),
