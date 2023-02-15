@@ -30,11 +30,11 @@ import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeNavigationPage extends StatefulWidget {
   const HomeNavigationPage({Key? key}) : super(key: key);
@@ -154,7 +154,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           }),
     ];
 
-    if (injector<ConfigurationService>().isNotificationEnabled() ?? false) {
+    final configService = injector<ConfigurationService>();
+    if ((configService.isNotificationEnabled() ?? false) &&
+        !configService.isReadRemoveSupport()) {
       _showRemoveCustomerSupport();
     }
     OneSignal.shared
@@ -182,23 +184,31 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ));
       final data = await dio.get<String>(REMOVE_CUSTOMER_SUPPORT);
       if (data.statusCode == 200) {
+        final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
         String? gitHubContent = data.data ?? "";
         Future.delayed(const Duration(seconds: 3), () {
           showInAppNotifications(
               context, "au_has_announcement".tr(), "remove_customer_support",
               notificationOpenedHandler: () {
-                UIHelper.showCenterSheet(context,
-                    content: Markdown(
-                      key: const Key("remove_customer_support"),
-                      data: gitHubContent,
-                      softLineBreak: true,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(0),
-                      styleSheet: markDownAnnouncementStyle(context),
-                    ),
-                    exitButton: "i_understand_".tr());
-              });
+            UIHelper.showCenterSheet(context,
+                content: Markdown(
+                  key: const Key("remove_customer_support"),
+                  data: gitHubContent,
+                  softLineBreak: true,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(0),
+                  styleSheet: markDownAnnouncementStyle(context),
+                ),
+                actionButton: "follow_github".tr(),
+                actionButtonOnTap: () =>
+                    launchUrl(uri, mode: LaunchMode.externalApplication),
+                exitButtonOnTap: () {
+                  injector<ConfigurationService>().readRemoveSupport(true);
+                  Navigator.of(context).pop();
+                },
+                exitButton: "i_understand_".tr());
+          });
         });
       }
     }

@@ -88,6 +88,10 @@ abstract class ConfigurationService {
 
   bool isFullscreenIntroEnabled();
 
+  Future<void> readRemoveSupport(bool value);
+
+  bool isReadRemoveSupport();
+
   Future<void> setHidePersonaInGallery(
       List<String> personaUUIDs, bool isEnabled,
       {bool override = false});
@@ -207,6 +211,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
   static const String KEY_PENDING_SETTINGS = "has_pending_settings";
+  static const String READ_REMOVE_SUPPORT = "read_remove_support";
   static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
       "should_show_subscription_hint";
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
@@ -836,5 +841,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setPremium(bool value) async {
     await _preferences.setBool(IS_PREMIUM, value);
+  }
+
+  @override
+  bool isReadRemoveSupport() {
+    return _preferences.getBool(READ_REMOVE_SUPPORT) ?? false;
+  }
+
+  @override
+  Future<void> readRemoveSupport(bool value) async {
+    await _preferences.setBool(READ_REMOVE_SUPPORT, value);
   }
 }

@@ -1031,7 +1031,7 @@ class UIHelper {
                           ),
                         AuSecondaryButton(
                           text: exitButton ?? "close".tr(),
-                          onPressed: actionButtonOnTap ??
+                          onPressed: exitButtonOnTap ??
                               () {
                                 Navigator.pop(context);
                               },
