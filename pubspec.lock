@@ -733,11 +733,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7092a0c3708be0f94d8abcf49ebf84f778c0ae26"
-      resolved-ref: "7092a0c3708be0f94d8abcf49ebf84f778c0ae26"
+      ref: "77fe59498333190976959001fe9960a1fb4d27e2"
+      resolved-ref: "77fe59498333190976959001fe9960a1fb4d27e2"
       url: "https://github.com/autonomy-system/flutter_downloader"
     source: git
-    version: "1.10.0"
+    version: "1.10.1+2"
   flutter_driver:
     dependency: transitive
     description: flutter
