@@ -142,101 +142,116 @@ class _WCConnectPageState extends State<WCConnectPage>
     final wcConnectArgs = widget.wcConnectArgs;
     final beaconRequest = widget.beaconRequest;
 
+    late String typeConnect;
+    if (wc2Proposal != null) {
+      typeConnect = 'wc2';
+    } else if (wcConnectArgs != null) {
+      typeConnect = 'wc';
+    } else if (beaconRequest != null) {
+      typeConnect = 'beacon';
+    } else {
+      return;
+    }
+
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
 
-    if (wc2Proposal != null) {
-      final accountDid = await selectedPersona!.wallet().getAccountDID();
-      await injector<Wc2Service>().approveSession(
-        wc2Proposal,
-        accountDid: accountDid.substring("did:key:".length),
-        personalUUID: selectedPersona!.uuid,
-      );
-      payloadType = CryptoType.ETH;
-      payloadAddress = await selectedPersona!.wallet().getETHEip55Address();
-    } else if (wcConnectArgs != null) {
-      final address = await injector<EthereumService>()
-          .getETHAddress(selectedPersona!.wallet());
-
-      final chainId = Environment.web3ChainId;
-
-      final approvedAddresses = [address];
-      log.info(
-          "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
-      await injector<WalletConnectService>().approveSession(
-          selectedPersona!.uuid,
-          wcConnectArgs.peerMeta,
-          approvedAddresses,
-          chainId);
-
-      payloadAddress = address;
-      payloadType = CryptoType.ETH;
-      if (onBoarding) {
-        _navigateHome();
-        return;
-      } else {
-        if (wcConnectArgs.peerMeta.url.contains("feralfile")) {
-          _navigateWhenConnectFeralFile();
-          return;
-        }
-      }
-
-      if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
-        metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
-      } else {
+    switch (typeConnect) {
+      case 'wc2':
+        final accountDid = await selectedPersona!.wallet().getAccountDID();
+        await injector<Wc2Service>().approveSession(
+          wc2Proposal!,
+          accountDid: accountDid.substring("did:key:".length),
+          personalUUID: selectedPersona!.uuid,
+        );
+        payloadType = CryptoType.ETH;
+        payloadAddress = await selectedPersona!.wallet().getETHEip55Address();
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
           data: {
-            "method": "wallet_connect",
-            "name": wcConnectArgs.peerMeta.name,
-            "url": wcConnectArgs.peerMeta.url,
+            "method": "autonomy_connect",
+            "name": wc2Proposal.proposer.name,
+            "url": wc2Proposal.proposer.url,
           },
         );
-      }
-    } else if (beaconRequest != null) {
-      final wallet = selectedPersona!.wallet();
-      final publicKey = await wallet.getTezosPublicKey();
-      final address = await wallet.getTezosAddress();
-      await injector<TezosBeaconService>().permissionResponse(
-        selectedPersona!.uuid,
-        beaconRequest.id,
-        publicKey,
-        address,
-      );
-      payloadAddress = address;
-      payloadType = CryptoType.XTZ;
+        break;
+      case 'wc':
+        final address = await injector<EthereumService>()
+            .getETHAddress(selectedPersona!.wallet());
+
+        final chainId = Environment.web3ChainId;
+
+        final approvedAddresses = [address];
+        log.info(
+            "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
+        await injector<WalletConnectService>().approveSession(
+          selectedPersona!.uuid,
+          wcConnectArgs!.peerMeta,
+          approvedAddresses,
+          chainId,
+        );
+
+        payloadAddress = address;
+        payloadType = CryptoType.ETH;
+
+        if (wcConnectArgs.peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+          metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
+        } else {
+          metricClient.addEvent(
+            MixpanelEvent.connectExternal,
+            data: {
+              "method": "wallet_connect",
+              "name": wcConnectArgs.peerMeta.name,
+              "url": wcConnectArgs.peerMeta.url,
+            },
+          );
+        }
+        break;
+      case 'beacon':
+        final wallet = selectedPersona!.wallet();
+        final publicKey = await wallet.getTezosPublicKey();
+        final address = await wallet.getTezosAddress();
+        await injector<TezosBeaconService>().permissionResponse(
+          selectedPersona!.uuid,
+          beaconRequest!.id,
+          publicKey,
+          address,
+        );
+        payloadAddress = address;
+        payloadType = CryptoType.XTZ;
+        metricClient.addEvent(
+          MixpanelEvent.connectExternal,
+          data: {
+            "method": "tezos_beacon",
+            "name": beaconRequest.appName ?? "unknown",
+            "url": beaconRequest.sourceAddress ?? "unknown",
+          },
+        );
+        break;
+      default:
     }
 
-    final payload = PersonaConnectionsPayload(
-        personaUUID: selectedPersona!.uuid,
-        address: payloadAddress,
-        type: payloadType,
-        personaName: selectedPersona!.name,
-        isBackHome: true);
     if (!mounted) return;
     UIHelper.hideInfoDialog(context);
 
     if (memoryValues.scopedPersona != null) {
       // from persona details flow
       Navigator.of(context).pop();
-    } else {
-      if (onBoarding) {
-        _navigateHome();
-      } else {
-        Navigator.of(context).pushReplacementNamed(
-            AppRouter.personaConnectionsPage,
-            arguments: payload);
-      }
+      return;
     }
 
-    metricClient.addEvent(
-      MixpanelEvent.connectExternal,
-      data: {
-        "method": "tezos_beacon",
-        "name": beaconRequest?.appName ?? "unknown",
-        "url": beaconRequest?.sourceAddress ?? "unknown",
-      },
+    final payload = PersonaConnectionsPayload(
+      personaUUID: selectedPersona!.uuid,
+      address: payloadAddress,
+      type: payloadType,
+      personaName: selectedPersona!.name,
+      isBackHome: onBoarding,
+    );
+
+    Navigator.of(context).pushReplacementNamed(
+      AppRouter.personaConnectionsPage,
+      arguments: payload,
     );
   }
 

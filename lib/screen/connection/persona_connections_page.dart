@@ -104,40 +104,45 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: 'connections_with_dapps'.tr(),
-        onBack: () {
-          if (widget.payload.isBackHome) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.homePage,
-              (route) => false,
-            );
-          } else {
-            Navigator.of(context).pop();
-          }
-        },
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            addTitleSpace(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (widget.payload.type == CryptoType.ETH ||
-                        widget.payload.type == CryptoType.XTZ) ...[
-                      _connectionsSection(),
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'connections_with_dapps'.tr(),
+          onBack: () {
+            if (widget.payload.isBackHome) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRouter.homePage,
+                (route) => false,
+              );
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              addTitleSpace(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (widget.payload.type == CryptoType.ETH ||
+                          widget.payload.type == CryptoType.XTZ) ...[
+                        _connectionsSection(),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
