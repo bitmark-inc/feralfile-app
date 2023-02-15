@@ -659,16 +659,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       },
                       controller: controller,
                       itemCount: tokens.length,
-                      itemBuilder: (context, index) => InteractiveViewer(
-                        minScale: 1,
-                        maxScale: 4,
-                        child: Center(
-                          child: ArtworkPreviewWidget(
-                            identity: tokens[index],
-                            onLoaded: setTimer,
-                            focusNode: _focusNode,
-                          ),
-                        ),
+                      itemBuilder: (context, index) => ArtworkPreviewWidget(
+                        identity: tokens[index],
+                        onLoaded: setTimer,
+                        focusNode: _focusNode,
                       ),
                     ),
                   ),
