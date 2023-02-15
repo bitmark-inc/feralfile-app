@@ -35,8 +35,8 @@ class AuMarkdown extends StatelessWidget {
       builders: <String, MarkdownElementBuilder>{
         'Caption': CaptionBuilder(),
       },
-      blockSyntaxes: [
-        AuCaptionSyntax(),
+      inlineSyntaxes: [
+        CaptionInlineSyntax(),
       ],
       onTapLink: onTapLink ??
           (text, href, title) async {
