@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
@@ -112,6 +111,7 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
@@ -122,7 +122,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -502,53 +501,28 @@ class AppRouter {
 
       case wcConnectPage:
         final argument = settings.arguments;
-        switch (argument.runtimeType) {
-          case WCConnectPageArgs:
-            return CupertinoPageRoute(
-                settings: settings,
-                builder: (context) => MultiBlocProvider(
-                        providers: [
-                          BlocProvider.value(value: accountsBloc),
-                          BlocProvider(
-                            create: (_) => PersonaBloc(
-                              injector<CloudDatabase>(),
-                              injector(),
-                              injector(),
-                              injector<AuditService>(),
-                            ),
-                          ),
-                        ],
-                        child: WCConnectPage(
-                          wcConnectArgs: argument as WCConnectPageArgs,
-                          beaconRequest: null,
-                          wc2Proposal: null,
-                        )));
-
-          case BeaconRequest:
-            return CupertinoPageRoute(
-              settings: settings,
-              builder: (context) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider.value(value: accountsBloc),
-                    BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
-                    ),
-                  ],
-                  child: WCConnectPage(
-                    wcConnectArgs: null,
-                    beaconRequest: argument as BeaconRequest?,
-                    wc2Proposal: null,
-                  )),
-            );
-
-          default:
-            throw Exception('Invalid route: ${settings.name}');
+        if (argument is ConnectionRequest) {
+          return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+                BlocProvider(
+                  create: (_) => PersonaBloc(
+                    injector<CloudDatabase>(),
+                    injector(),
+                    injector(),
+                    injector<AuditService>(),
+                  ),
+                ),
+              ],
+              child: WCConnectPage(
+                connectionRequest: argument,
+              ),
+            ),
+          );
         }
+        throw Exception('Invalid route: ${settings.name}');
 
       case WCDisconnectPage.tag:
         return CupertinoPageRoute(
@@ -1050,9 +1024,7 @@ class AppRouter {
               ),
             ],
             child: WCConnectPage(
-              wcConnectArgs: null,
-              beaconRequest: null,
-              wc2Proposal: settings.arguments as Wc2Proposal,
+              connectionRequest: settings.arguments as Wc2Proposal,
             ),
           ),
         );

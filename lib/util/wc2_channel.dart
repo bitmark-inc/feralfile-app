@@ -8,8 +8,8 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/wc2_pairing.dart';
-import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 
@@ -105,7 +105,10 @@ class Wc2Channel {
           final namespaces = requiredNamespaces
               .map((key, value) => MapEntry(key, Wc2Namespace.fromJson(value)));
           final request = Wc2Proposal(
-              proposer: proposer, requiredNamespaces: namespaces, id: id);
+            id,
+            proposer: proposer,
+            requiredNamespaces: namespaces,
+          );
           handler?.onSessionProposal(request);
           break;
         case "onSessionSettle":
