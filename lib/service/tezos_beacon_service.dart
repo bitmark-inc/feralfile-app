@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
