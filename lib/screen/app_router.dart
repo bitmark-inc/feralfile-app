@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
+import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
@@ -177,6 +178,7 @@ class AppRouter {
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
+  static const testArtwork = 'test_artwork';
   static const autonomySecurityPage = 'autonomy_security';
   static const unsafeWebWalletPage = 'unsafeWebWalletPage';
   static const releaseNotesPage = 'releaseNotesPage';
@@ -486,6 +488,11 @@ class AppRouter {
                   ),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
+      case AppRouter.testArtwork:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const TestArtworkScreen(),
+        );
 
       case AppRouter.nameLinkedAccountPage:
         return CupertinoPageRoute(

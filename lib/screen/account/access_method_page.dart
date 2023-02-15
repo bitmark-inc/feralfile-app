@@ -163,6 +163,16 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
                 addDivider(height: 48),
                 Padding(
                   padding: padding,
+                  child: _addWalletItem(
+                      context: context,
+                      title: 'test_artwork'.tr(),
+                      onTap: () => Navigator.of(context).pushNamed(
+                            AppRouter.testArtwork,
+                          )),
+                ),
+                addDivider(height: 48),
+                Padding(
+                  padding: padding,
                   child: _linkTokenIndexerIDWidget(context),
                 ),
                 addDivider(height: 48),
