@@ -315,17 +315,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
   }
 
-  void _navigateWhenConnectFeralFile() {
-    Navigator.of(context).pop();
-  }
-
-  void _navigateHome() {
-    injector<NavigationService>().navigateUntil(
-      AppRouter.homePage,
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
