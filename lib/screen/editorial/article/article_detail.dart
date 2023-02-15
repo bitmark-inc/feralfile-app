@@ -43,11 +43,12 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     super.initState();
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
-    _trackEvent();
+    metricClient.timerEvent(MixpanelEvent.editorialViewArticle);
   }
 
   @override
   void dispose() {
+    _trackEvent();
     _controller.dispose();
     super.dispose();
   }
