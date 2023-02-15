@@ -5,18 +5,99 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:tezart/tezart.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
-class Wc2Proposal {
-  Wc2Proposal({
+abstract class ConnectionRequest {
+  bool get isWCconnect => false;
+  bool get isWC2connect => false;
+  bool get isBeaconConnect => false;
+
+  get id;
+  String? get name;
+  String? get url;
+}
+
+class WCConnectPageArgs extends ConnectionRequest {
+  final int _id;
+  final WCPeerMeta peerMeta;
+
+  @override
+  bool get isWCconnect => true;
+
+  WCConnectPageArgs(this._id, this.peerMeta);
+
+  @override
+  get id => _id;
+
+  @override
+  String? get name => peerMeta.name;
+
+  @override
+  String? get url => peerMeta.url;
+}
+
+class BeaconRequest extends ConnectionRequest {
+  final String _id;
+  final String senderID;
+  final String version;
+  final String originID;
+  final String type;
+  final String? appName;
+  final String? icon;
+
+  List<Operation>? operations;
+  String? payload;
+  String? sourceAddress;
+
+  String? wc2Topic;
+
+  @override
+  bool get isBeaconConnect => true;
+
+  @override
+  get id => _id;
+
+  @override
+  String? get name => appName;
+
+  @override
+  String? get url => null;
+
+  BeaconRequest(
+    this._id,
+    this.senderID,
+    this.version,
+    this.originID,
+    this.type,
+    this.appName,
+    this.icon, {
+    this.wc2Topic,
+  });
+}
+
+class Wc2Proposal extends ConnectionRequest {
+  Wc2Proposal(
+    this._id, {
     required this.proposer,
     required this.requiredNamespaces,
-    required this.id,
   });
+
+  @override
+  bool get isWC2connect => true;
 
   AppMetadata proposer;
   Map<String, Wc2Namespace> requiredNamespaces;
-  String id;
+  final String _id;
+
+  @override
+  get id => _id;
+
+  @override
+  String? get name => proposer.name;
+
+  @override
+  String? get url => proposer.name;
 }
 
 class AppMetadata {

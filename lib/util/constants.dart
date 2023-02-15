@@ -335,3 +335,29 @@ class MixpanelEvent {
   static const replyAnnouncement = 'reply_announcement';
   static const receiveAnnouncement = 'receive_announcement';
 }
+
+class MixpanelProp {
+  static const enableNotification = 'enableNotification';
+  static const client = 'client';
+  static const didKey = 'didKey';
+  static const address = 'Address';
+  static const subscription = 'Subscription';
+}
+
+class SubscriptionStatus {
+  static const free = 'Free';
+  static const subscried = 'Subscried';
+  static const trial = 'Trial';
+  static const expired = 'Expired';
+}
+
+class LinkType {
+  static const local = "Local Deep Link";
+  static const dAppConnect = 'Dapp Connect Deeplink';
+  static const feralFile = 'FeralFile Deeplink';
+  static const branch = 'Branch Deeplink';
+  static const autonomyConnect = 'Autonomy Connect';
+  static const beaconConnect = 'Beacon Connect';
+  static const feralFileToken = 'FeralFile Token';
+  static const walletConnect = 'Wallet Connect';
+}

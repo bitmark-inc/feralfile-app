@@ -647,26 +647,29 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                   onTap: () {
                     widget.onSelectEth?.call(ethAddress);
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 40,
-                      bottom: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        const LogoCrypto(
-                          cryptoType: CryptoType.ETH,
-                        ),
-                        Text(ethAddress.maskIfNeeded()),
-                        const Spacer(),
-                        AuRadio(
-                          value: ethAddress,
-                          groupValue: widget.ethSelectedAddress,
-                          onTap: (value) {
-                            widget.onSelectEth?.call(ethAddress);
-                          },
-                        )
-                      ],
+                  child: Container(
+                    decoration: const BoxDecoration(color: Colors.transparent),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 40,
+                        bottom: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          const LogoCrypto(
+                            cryptoType: CryptoType.ETH,
+                          ),
+                          Text(ethAddress.maskIfNeeded()),
+                          const Spacer(),
+                          AuRadio(
+                            value: ethAddress,
+                            groupValue: widget.ethSelectedAddress,
+                            onTap: (value) {
+                              widget.onSelectEth?.call(ethAddress);
+                            },
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -685,26 +688,29 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                   onTap: () {
                     widget.onSelectTez?.call(tezAddress);
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 40,
-                      bottom: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        const LogoCrypto(
-                          cryptoType: CryptoType.XTZ,
-                        ),
-                        Text(tezAddress.maskIfNeeded()),
-                        const Spacer(),
-                        AuRadio(
-                          value: tezAddress,
-                          groupValue: widget.tezSelectedAddress,
-                          onTap: (value) {
-                            widget.onSelectTez?.call(tezAddress);
-                          },
-                        )
-                      ],
+                  child: Container(
+                    decoration: const BoxDecoration(color: Colors.transparent),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 40,
+                        bottom: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          const LogoCrypto(
+                            cryptoType: CryptoType.XTZ,
+                          ),
+                          Text(tezAddress.maskIfNeeded()),
+                          const Spacer(),
+                          AuRadio(
+                            value: tezAddress,
+                            groupValue: widget.tezSelectedAddress,
+                            onTap: (value) {
+                              widget.onSelectTez?.call(tezAddress);
+                            },
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 );

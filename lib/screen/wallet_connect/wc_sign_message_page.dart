@@ -96,7 +96,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
           title: "signature_request".tr(),
         ),
         body: Container(
-          margin: EdgeInsets.only(bottom: ResponsiveLayout.padding),
+          margin: const EdgeInsets.only(bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

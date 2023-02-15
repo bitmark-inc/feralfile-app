@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -24,7 +25,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ClaimTokenPageArgs {
   final FFArtwork artwork;
@@ -251,6 +251,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           final configService =
                               injector<ConfigurationService>();
                           await configService.setDoneOnboarding(true);
+                          injector<MetricClientService>()
+                              .mixPanelClient
+                              .initIfDefaultAccount();
                           await configService.setPendingSettings(true);
                           address = blockchain == "Tezos"
                               ? await defaultAccount.getTezosAddress()

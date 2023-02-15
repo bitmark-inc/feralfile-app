@@ -245,46 +245,40 @@ MarkdownStyleSheet markDownDetailPageStyle(
   );
 }
 
-MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
+MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
+    {TextStyle? preferredStyle, EdgeInsets? pPadding}) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
   final textStyleWhite =
       theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
-  final textStyleGreen =
-      theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
-  final textStyleGrey = theme.textTheme.ppMori400Grey12.copyWith(fontSize: 17);
+  preferredStyle = preferredStyle ?? textStyleWhite;
   return MarkdownStyleSheet(
-    a: const TextStyle(
-      fontFamily: AppTheme.ppMori,
-      color: Colors.transparent,
-      fontWeight: FontWeight.w500,
-      shadows: [Shadow(color: textColor, offset: Offset(0, -1))],
-      decoration: TextDecoration.underline,
-      decorationStyle: TextDecorationStyle.solid,
-      decorationColor: textColor,
-      decorationThickness: 1,
+    a: preferredStyle.merge(
+      const TextStyle(
+        color: AppColor.auSuperTeal,
+      ),
     ),
-    p: textStyleWhite,
-    pPadding: const EdgeInsets.only(bottom: 16),
+    p: preferredStyle,
+    pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
     code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.ppMori700White24,
+    h1: preferredStyle.copyWith(fontSize: 24, fontWeight: FontWeight.w700),
     h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: theme.textTheme.ppMori700White24.copyWith(fontSize: 20),
+    h2: preferredStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
     h2Padding: EdgeInsets.zero,
-    h3: textStyleGreen,
+    h3: preferredStyle,
     h3Padding: EdgeInsets.zero,
-    h4: textStyleGreen,
+    h4: preferredStyle,
     h4Padding: EdgeInsets.zero,
-    h5: textStyleGreen,
+    h5: preferredStyle,
     h5Padding: EdgeInsets.zero,
-    h6: textStyleGreen,
+    h6: preferredStyle,
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
-    strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
-    del: const TextStyle(
+    em: preferredStyle.copyWith(fontStyle: FontStyle.italic),
+    strong: preferredStyle.copyWith(fontWeight: FontWeight.bold),
+    del: preferredStyle.copyWith(
         decoration: TextDecoration.lineThrough, color: textColor),
-    blockquote: textStyleWhite,
-    img: textStyleGrey.copyWith(fontSize: 12),
+    blockquote: preferredStyle.copyWith(color: AppColor.white),
+    img: preferredStyle.copyWith(fontSize: 12, color: AppColor.disabledColor),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,

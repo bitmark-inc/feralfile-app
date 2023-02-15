@@ -45,11 +45,17 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late PageController _pageController;
   late List<Widget> _pages;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
+  final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
 
   void _onItemTapped(int index) {
     if (index != 2) {
-      if (_selectedIndex == index && index == 0) {
-        _homePageKey.currentState?.scrollToTop();
+      if (_selectedIndex == index) {
+        if (index == 0) {
+          _homePageKey.currentState?.scrollToTop();
+        }
+        if (index == 1) {
+          _editorialPageStateKey.currentState?.scrollToTop();
+        }
       }
       setState(() {
         _selectedIndex = index;
@@ -139,7 +145,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ValueListenableBuilder<bool>(
           valueListenable: injector<FeedService>().hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
-            return EditorialPage(isShowDiscover: isShowDiscover);
+            return EditorialPage(
+                key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
     ];
 

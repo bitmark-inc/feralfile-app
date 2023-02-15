@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:flutter/services.dart';
 import 'package:tezart/tezart.dart';
@@ -204,31 +205,4 @@ abstract class BeaconHandler {
   Future<void> onLinked(TezosConnection tezosConnection);
 
   void onAbort();
-}
-
-class BeaconRequest {
-  final String id;
-  final String senderID;
-  final String version;
-  final String originID;
-  final String type;
-  final String? appName;
-  final String? icon;
-
-  List<Operation>? operations;
-  String? payload;
-  String? sourceAddress;
-
-  String? wc2Topic;
-
-  BeaconRequest(
-    this.id,
-    this.senderID,
-    this.version,
-    this.originID,
-    this.type,
-    this.appName,
-    this.icon, {
-    this.wc2Topic,
-  });
 }

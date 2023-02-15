@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:tezart/tezart.dart';

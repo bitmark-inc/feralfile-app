@@ -10,13 +10,13 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
@@ -123,9 +123,24 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                       );
                     }
 
-                    return Container(
-                      child: _renderingWidget?.build(context),
-                    );
+                    switch (asset.getMimeType) {
+                      case RenderingType.image:
+                      case RenderingType.video:
+                      case RenderingType.gif:
+                      case RenderingType.pdf:
+                      case RenderingType.svg:
+                        return InteractiveViewer(
+                          minScale: 1,
+                          maxScale: 4,
+                          child: Center(
+                            child: _renderingWidget?.build(context),
+                          ),
+                        );
+                      default:
+                        return Center(
+                          child: _renderingWidget?.build(context),
+                        );
+                    }
                   },
                 ),
               );
