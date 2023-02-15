@@ -48,7 +48,7 @@ dependencies:
   flutter_downloader:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
-      ref: 7092a0c3708be0f94d8abcf49ebf84f778c0ae26
+      ref: 77fe59498333190976959001fe9960a1fb4d27e2
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
   flutter_markdown: ^0.6.9
