@@ -84,12 +84,12 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   String? swipeDirection;
 
   late FeedBloc _bloc;
-  final metricClient = injector<MetricClientService>();
+  final _metricClient = injector<MetricClientService>();
 
   @override
   void initState() {
     super.initState();
-    metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
+    _metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
     _bloc = context.read<FeedBloc>();
     _bloc.add(GetFeedsEvent());
   }
@@ -122,7 +122,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                 (state.feedEvents?.isEmpty ?? true)) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
-            metricClient.addEvent(MixpanelEvent.loadingDiscovery);
+            _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
             return Stack(children: [
               CustomScrollView(
                 controller: widget.controller,

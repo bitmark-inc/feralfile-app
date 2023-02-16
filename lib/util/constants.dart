@@ -297,6 +297,7 @@ class MixpanelEvent {
   static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
+  static const viewDiscoveryArtwork = 'view_discovery_artwork';
   static const timeViewDiscovery = 'time_view_discovery';
   static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
