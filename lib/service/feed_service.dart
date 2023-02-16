@@ -267,8 +267,15 @@ class FeedServiceImpl extends FeedService {
       _fetchFeedsCompleters.remove(result.uuid);
       //
     } else if (result is FetchFeedsFailure) {
-      _fetchFeedsCompleters[result.uuid]?.completeError(result.exception);
+      final exception = result.exception;
+      _fetchFeedsCompleters[result.uuid]?.completeError(exception);
       _fetchFeedsCompleters.remove(result.uuid);
+      if (exception is DioError && exception.response?.statusCode == 403) {
+        _isolateRetryParams = result.fetchParams;
+        injector<AuthService>().getAuthToken(forceRefresh: true);
+      } else {
+        Sentry.captureException(exception);
+      }
       //
     } else if (result is FetchTokensByIndexerIDSuccess) {
       _fetchTokensByIndexerIDCompleters[result.uuid]?.complete(result.tokens);
@@ -283,6 +290,7 @@ class FeedServiceImpl extends FeedService {
 
   // Isolate
   static late QuickAuthInterceptor _quickAuthInterceptor;
+  static List<dynamic>? _isolateRetryParams;
 
   static void _handleMessageInIsolate(dynamic message) {
     if (message is List<dynamic>) {
@@ -302,6 +310,11 @@ class FeedServiceImpl extends FeedService {
 
         case REFRESH_JWT_TOKEN:
           _quickAuthInterceptor.jwtToken = message[1];
+          if (_isolateRetryParams != null) {
+            List<dynamic> params = _isolateRetryParams!;
+            _isolateRetryParams = null;
+            _handleMessageInIsolate(params);
+          }
       }
     }
   }
@@ -419,7 +432,14 @@ class FeedServiceImpl extends FeedService {
             missingTokenIDs: missingTokenIDs),
       ));
     } catch (exception) {
-      _isolateSendPort?.send(FetchFeedsFailure(uuid, exception));
+      _isolateSendPort?.send(FetchFeedsFailure(uuid, exception, [
+        FETCH_FEEDS,
+        uuid,
+        isTestnet,
+        serial,
+        timestamp,
+        ignoredTokenIds,
+      ]));
     }
   }
 
@@ -473,8 +493,9 @@ class FetchFeedsSuccess extends FeedServiceResult {
 class FetchFeedsFailure extends FeedServiceResult {
   final String uuid;
   final Object exception;
+  final List<dynamic> fetchParams;
 
-  FetchFeedsFailure(this.uuid, this.exception);
+  FetchFeedsFailure(this.uuid, this.exception, this.fetchParams);
 }
 
 class FetchTokensByIndexerIDSuccess extends FeedServiceResult {
