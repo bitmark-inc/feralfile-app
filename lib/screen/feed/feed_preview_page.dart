@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -195,15 +194,20 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  loadingIndicator(valueColor: Colors.white),
+                  Image.asset(
+                    "assets/images/loading_white.gif",
+                    width: 52,
+                    height: 52,
+                  ),
+                  //loadingIndicator(valueColor: Colors.white),
                   const SizedBox(
                     height: 12,
                   ),
                   Text(
                     "loading...".tr(),
                     style: ResponsiveLayout.isMobile
-                        ? theme.textTheme.atlasGreyNormal12
-                        : theme.textTheme.atlasGreyNormal14,
+                        ? theme.textTheme.ppMori400White12
+                        : theme.textTheme.ppMori400White14,
                   ),
                 ],
               ),
