@@ -13,12 +13,13 @@ import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'article/article_view.dart';
 import 'feralfile/exhibition_view.dart';
@@ -111,29 +112,32 @@ class EditorialPageState extends State<EditorialPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(toolbarHeight: 0),
+      appBar: AppBar(
+        toolbarHeight: 0,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          // Status bar color
+          statusBarColor: Colors.transparent,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ),
+      ),
       backgroundColor: theme.primaryColor,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          headDivider(),
           Container(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
             child: AnimatedSize(
               duration: const Duration(milliseconds: 300),
               child: Padding(
-                padding: const EdgeInsets.only(top: 10.0),
+                padding: const EdgeInsets.only(top: 8.0),
                 child: Row(
                   mainAxisAlignment: _showFullHeader
                       ? MainAxisAlignment.spaceBetween
                       : MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    if (_showFullHeader)
-                      SvgPicture.asset(
-                        "assets/images/autonomy_icon_white.svg",
-                        width: 50,
-                        height: 50,
-                      ),
+                    if (_showFullHeader) autonomyWhiteLogo,
                     Hero(
                       tag: "discover_tab",
                       child: Stack(

@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -124,11 +125,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                               ),
                               Align(
                                 alignment: Alignment.centerLeft,
-                                child: SvgPicture.asset(
-                                  "assets/images/penrose_moma.svg",
-                                  color: theme.colorScheme.secondary,
-                                  width: 50,
-                                ),
+                                child: autonomyWhiteLogo,
                               ),
                               const SizedBox(
                                 height: 30,

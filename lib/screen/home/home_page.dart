@@ -277,13 +277,7 @@ class HomePageState extends State<HomePage>
     return Center(
         child: Column(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-            child: autonomyLogo,
-          ),
-        ),
+        header(paddingTop),
         loadingIndicator(),
       ],
     ));
@@ -296,13 +290,7 @@ class HomePageState extends State<HomePage>
     return ListView(
       padding: ResponsiveLayout.getPadding.copyWith(left: 0),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-            child: autonomyLogo,
-          ),
-        ),
+        header(paddingTop),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
@@ -340,13 +328,7 @@ class HomePageState extends State<HomePage>
       SliverToBoxAdapter(
         child: Column(
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-                child: autonomyLogo,
-              ),
-            ),
+            header(paddingTop),
             FutureBuilder<bool>(
               future: injector<IAPService>().isSubscribed(),
               builder: (context, subscriptionSnapshot) {
@@ -436,6 +418,25 @@ class HomePageState extends State<HomePage>
     final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
     await backup.backupCloudDatabase(await accountService.getDefaultAccount());
+  }
+
+  Widget header(double paddingTop) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
+        child: Column(
+          children: [
+            headDivider(),
+            const SizedBox(height: 7),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: autonomyLogo,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _checkForKeySync() async {
