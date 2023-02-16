@@ -249,7 +249,11 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
   @override
   String totalAmount(String? currentAddress) {
     if (amount == "1" || amount == "0") return "$amount Token";
-    return "$amount Tokens";
+    final amountInt = int.parse(amount!);
+    final amountStr = amountInt > 999999999
+        ? NumberFormat.compact().format(amountInt)
+        : amountInt.toString();
+    return "$amountStr Tokens";
   }
 
   @override
