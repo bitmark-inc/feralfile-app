@@ -19,7 +19,9 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -82,10 +84,12 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   String? swipeDirection;
 
   late FeedBloc _bloc;
+  final metricClient = injector<MetricClientService>();
 
   @override
   void initState() {
     super.initState();
+    metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
     _bloc = context.read<FeedBloc>();
     _bloc.add(GetFeedsEvent());
   }
@@ -118,6 +122,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                 (state.feedEvents?.isEmpty ?? true)) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
+            metricClient.addEvent(MixpanelEvent.loadingDiscovery);
             return Stack(children: [
               CustomScrollView(
                 controller: widget.controller,

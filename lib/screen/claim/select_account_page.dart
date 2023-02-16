@@ -221,8 +221,6 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         },
       );
       memoryValues.airdropFFExhibitionId.value = null;
-      metricClient
-          .addEvent(MixpanelEvent.acceptGiftNFT, data: {'id': artworkId});
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
       await UIHelper.showClaimTokenError(
