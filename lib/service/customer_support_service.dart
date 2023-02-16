@@ -581,17 +581,21 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final announcements = await _announcementApi.getAnnouncements(
         lastPullTime: lastPullTime ?? 0);
     final pullTime = DateTime.now().millisecondsSinceEpoch;
-    _configurationService.setAnnouncementLastPullTime(pullTime);
+    await _configurationService.setAnnouncementLastPullTime(pullTime);
     final metricClient = injector.get<MetricClientService>();
     for (var announcement in announcements) {
-      metricClient.addEvent(
-        MixpanelEvent.receiveAnnouncement,
-        data: {
-          "id": announcement.announcementContextId,
-          "type": announcement.type,
-          "title": announcement.title,
-        },
-      );
+      if (await _announcementDao
+              .getAnnouncement(announcement.announcementContextId) ==
+          null) {
+        metricClient.addEvent(
+          MixpanelEvent.receiveAnnouncement,
+          data: {
+            "id": announcement.announcementContextId,
+            "type": announcement.type,
+            "title": announcement.title,
+          },
+        );
+      }
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
     }
@@ -608,6 +612,17 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
     final announcement = await _announcementDao.getAnnouncement(type);
+    if (type == ANNOUNCEMENT_ID_SUBSCRIBE) {
+      int now = DateTime.now().millisecondsSinceEpoch;
+      _announcementDao.insertAnnouncement(AnnouncementLocal(
+          announcementContextId: ANNOUNCEMENT_ID_PRO_CHAT,
+          title: "",
+          body: "pro_chat_body".tr(),
+          createdAt: now,
+          announceAt: now,
+          type: type,
+          unread: true));
+    }
     if (announcement != null) {
       await getIssuesAndAnnouncement();
       showInfoNotification(

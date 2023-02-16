@@ -13,7 +13,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 
 part 'customer_support.g.dart';
 
-abstract class ChatThread {}
+abstract class ChatThread {
+  String getListTitle();
+}
 
 @JsonSerializable()
 class Issue implements ChatThread {
@@ -57,6 +59,11 @@ class Issue implements ChatThread {
     return ReportIssueType.getList
             .firstWhereOrNull((element) => tags.contains(element)) ??
         "";
+  }
+
+  @override
+  String getListTitle() {
+    return ReportIssueType.toTitle(reportIssueType);
   }
 }
 

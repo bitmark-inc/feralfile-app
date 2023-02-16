@@ -288,7 +288,7 @@ class HomePageState extends State<HomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
 
     return ListView(
-      padding: ResponsiveLayout.getPadding.copyWith(left: 0),
+      padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
         header(paddingTop),
         Padding(

@@ -58,6 +58,10 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
 ];
+
+const ANNOUNCEMENT_ID_WELCOME = "welcome";
+const ANNOUNCEMENT_ID_SUBSCRIBE = "subscription";
+const ANNOUNCEMENT_ID_PRO_CHAT = "proChat";
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
@@ -141,9 +145,10 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
+  static const ProChat = 'pro chat';
 
   static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement, ProChat];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -161,6 +166,8 @@ class ReportIssueType {
         return 'Report NFT issue';
       case Announcement:
         return "Announcement";
+      case ProChat:
+        return "PRO Chat";
       default:
         return 'Something else?';
     }
