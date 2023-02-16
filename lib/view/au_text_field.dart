@@ -46,7 +46,7 @@ class AuTextField extends StatelessWidget {
     return Semantics(
       label: labelSemantics,
       child: Container(
-          padding: title.isNotEmpty
+          padding: title.isNotEmpty || suffix != null
               ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
               : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
           decoration: BoxDecoration(
