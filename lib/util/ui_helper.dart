@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -510,11 +511,12 @@ class UIHelper {
     );
   }
 
-  static Future showAirdropNotStarted(BuildContext context) async {
+  static Future showAirdropNotStarted(
+      BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artworkId});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -540,11 +542,12 @@ class UIHelper {
     );
   }
 
-  static Future showAirdropExpired(BuildContext context) async {
+  static Future showAirdropExpired(
+      BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(3007, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artworkId});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -577,7 +580,7 @@ class UIHelper {
   }) async {
     final error = FeralfileError(3009, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artwork.id});
     return showErrorDialog(
       context,
       error.getDialogTitle(artwork: artwork),
@@ -586,10 +589,10 @@ class UIHelper {
     );
   }
 
-  static Future showOtpExpired(BuildContext context) async {
+  static Future showOtpExpired(BuildContext context, String? artworkId) async {
     final error = FeralfileError(3013, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artworkId});
     return showErrorDialog(
       context,
       error.dialogTitle,
@@ -604,7 +607,7 @@ class UIHelper {
     required FFArtwork artwork,
   }) async {
     if (e is AirdropExpired) {
-      await showAirdropExpired(context);
+      await showAirdropExpired(context, artwork.id);
     } else if (e is DioError) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
@@ -612,7 +615,7 @@ class UIHelper {
           : "${e.response?.data ?? e.message}";
 
       metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {"message": message});
+          data: {"message": message, "id": artwork.id});
       await showErrorDialog(
         context,
         ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),
