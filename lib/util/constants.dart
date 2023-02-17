@@ -40,6 +40,7 @@ const DEEP_LINKS = [
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
+const FF_EXHIBITION_PREFIX = "https://feralfile.com/exhibitions/";
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";

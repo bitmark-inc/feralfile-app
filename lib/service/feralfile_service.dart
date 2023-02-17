@@ -60,6 +60,8 @@ abstract class FeralFileService {
 
   Future<String?> getExhibitionIdFromTokenID(String tokenID);
 
+  Future<Exhibition?> getExhibitionFromToken(AssetToken token);
+
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
 
   Future<String?> getPartnerFullName(String exhibitionId);
@@ -337,5 +339,16 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
     return exhibition.result.partner?.fullName;
+  }
+
+  @override
+  Future<Exhibition?> getExhibitionFromToken(AssetToken token) async {
+    final editionID =
+        ((token.swapped ?? false) && token.originTokenInfoId != null)
+            ? token.originTokenInfoId
+            : token.id.split("-").last;
+    if (editionID == null || editionID.isEmpty) return null;
+    final artworkEditions = await _feralFileApi.getArtworkEditions(editionID);
+    return artworkEditions.result.artwork.exhibition;
   }
 }

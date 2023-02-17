@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -1025,6 +1026,29 @@ Widget artworkDetailsMetadataSection(
         Divider(
           height: 32.0,
           color: theme.auLightGrey,
+        ),
+        FutureBuilder<Exhibition?>(
+          future: injector<FeralFileService>().getExhibitionFromToken(asset),
+          builder: (context, snapshot) {
+            if (snapshot.data != null) {
+              return Column(
+                children: [
+                  MetaDataItem(
+                    title: "exhibition".tr(),
+                    value: snapshot.data!.title,
+                    tapLink: "$FF_EXHIBITION_PREFIX${snapshot.data!.slug}",
+                    forceSafariVC: true,
+                  ),
+                  Divider(
+                    height: 32.0,
+                    color: theme.auLightGrey,
+                  ),
+                ],
+              );
+            } else {
+              return const SizedBox();
+            }
+          },
         ),
         MetaDataItem(
           title: "contract".tr(),
