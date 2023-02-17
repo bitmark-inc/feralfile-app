@@ -71,7 +71,6 @@ String get usdcContractAddress => Environment.appTestnetConfig
 
 const publicTezosNodes = [
   "https://mainnet.api.tez.ie",
-  "https://mainnet.smartpy.io",
   "https://rpc.tzbeta.net",
   "https://mainnet.tezos.marigold.dev",
 ];
