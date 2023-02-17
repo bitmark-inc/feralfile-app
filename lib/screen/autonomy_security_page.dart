@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -47,20 +48,17 @@ Of course all security ultimately rests on the code, and whether it makes the pr
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "autonomy_security".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsets,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "about_autonomy_security".tr(),
-                style: theme.textTheme.displayLarge,
-              ),
               addTitleSpace(),
-              Text(securityContent, style: theme.textTheme.bodyLarge),
+              Text(securityContent, style: theme.textTheme.ppMori400Black14),
             ],
           ),
         ),
