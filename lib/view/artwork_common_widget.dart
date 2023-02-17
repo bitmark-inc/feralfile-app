@@ -970,7 +970,10 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken asset, String? artistName) {
   final theme = Theme.of(context);
-
+  final editionID =
+      ((asset.swapped ?? false) && asset.originTokenInfoId != null)
+          ? asset.originTokenInfoId ?? ""
+          : asset.id.split("-").last;
   return SectionExpandedWidget(
     header: "metadata".tr(),
     child: Column(
@@ -1027,29 +1030,32 @@ Widget artworkDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        FutureBuilder<Exhibition?>(
-          future: injector<FeralFileService>().getExhibitionFromToken(asset),
-          builder: (context, snapshot) {
-            if (snapshot.data != null) {
-              return Column(
-                children: [
-                  MetaDataItem(
-                    title: "exhibition".tr(),
-                    value: snapshot.data!.title,
-                    tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
-                    forceSafariVC: true,
-                  ),
-                  Divider(
-                    height: 32.0,
-                    color: theme.auLightGrey,
-                  ),
-                ],
-              );
-            } else {
-              return const SizedBox();
-            }
-          },
-        ),
+        editionID.isNotEmpty
+            ? FutureBuilder<Exhibition?>(
+                future: injector<FeralFileService>()
+                    .getExhibitionFromTokenID(editionID),
+                builder: (context, snapshot) {
+                  if (snapshot.data != null) {
+                    return Column(
+                      children: [
+                        MetaDataItem(
+                          title: "exhibition".tr(),
+                          value: snapshot.data!.title,
+                          tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
+                          forceSafariVC: true,
+                        ),
+                        Divider(
+                          height: 32.0,
+                          color: theme.auLightGrey,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+              )
+            : const SizedBox(),
         MetaDataItem(
           title: "contract".tr(),
           value: asset.blockchain.capitalize(),

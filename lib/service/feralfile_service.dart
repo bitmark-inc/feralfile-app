@@ -58,9 +58,7 @@ abstract class FeralFileService {
     Future<bool> Function(FFArtwork)? onConfirm,
   });
 
-  Future<String?> getExhibitionIdFromTokenID(String tokenID);
-
-  Future<Exhibition?> getExhibitionFromToken(AssetToken token);
+  Future<Exhibition?> getExhibitionFromTokenID(String editionID);
 
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
 
@@ -323,13 +321,6 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<String?> getExhibitionIdFromTokenID(String tokenID) async {
-    final artworkEditions = await _feralFileApi.getArtworkEditions(tokenID);
-    final String? exhibitionID = artworkEditions.result.artwork.exhibition?.id;
-    return exhibitionID;
-  }
-
-  @override
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID) async {
     final resaleInfo = await _feralFileApi.getResaleInfo(exhibitionID);
     return resaleInfo.result;
@@ -342,12 +333,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<Exhibition?> getExhibitionFromToken(AssetToken token) async {
-    final editionID =
-        ((token.swapped ?? false) && token.originTokenInfoId != null)
-            ? token.originTokenInfoId
-            : token.id.split("-").last;
-    if (editionID == null || editionID.isEmpty) return null;
+  Future<Exhibition?> getExhibitionFromTokenID(String editionID) async {
     final artworkEditions = await _feralFileApi.getArtworkEditions(editionID);
     return artworkEditions.result.artwork.exhibition;
   }
