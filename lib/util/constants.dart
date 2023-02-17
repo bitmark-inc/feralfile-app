@@ -147,8 +147,16 @@ class ReportIssueType {
   static const Announcement = 'announcement';
   static const ProChat = 'pro chat';
 
-  static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement, ProChat];
+  static List<String> get getList => [
+        Feature,
+        Bug,
+        Feedback,
+        Other,
+        Exception,
+        ReportNFTIssue,
+        Announcement,
+        ProChat
+      ];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
