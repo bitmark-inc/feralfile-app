@@ -532,7 +532,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     List<Issue> issues = await getIssues();
     List<AnnouncementLocal> announcements =
         await _announcementDao.getAnnouncements();
-
     if (issues.isNotEmpty && announcements.isNotEmpty) {
       announcements.removeWhere((element) => issues.any((i) {
             if (i.announcementID == element.announcementContextId) {
@@ -542,7 +541,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             return false;
           }));
     }
-
+    if (!_configurationService.isPremium()) {
+      issues.removeWhere(
+          (element) => element.reportIssueType == ReportIssueType.ProChat);
+      announcements.removeWhere((element) =>
+          element.announcementContextId == ANNOUNCEMENT_ID_PRO_CHAT);
+    }
     result.addAll(issues);
     result.addAll(announcements);
     numberOfIssuesInfo.value = [
