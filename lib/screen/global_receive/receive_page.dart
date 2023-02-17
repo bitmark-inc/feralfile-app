@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,6 +35,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        title: "select_address_tt".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
@@ -46,32 +48,31 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
         }
 
         return SingleChildScrollView(
-          padding: ResponsiveLayout.getPadding,
+          //padding: ResponsiveLayout.getPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16.0),
-              Text(
-                "select_address_tt".tr(),
-                style: theme.textTheme.displayLarge,
-              ),
-              const SizedBox(height: 40.0),
-              Text(
-                "select_address".tr(),
-                //"Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
-                style: theme.textTheme.bodyLarge,
+              addTitleSpace(),
+              Padding(
+                padding: ResponsiveLayout.pageEdgeInsets,
+                child: Text(
+                  "select_address".tr(),
+                  //"Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
+                  style: theme.textTheme.ppMori400Black14,
+                ),
               ),
               const SizedBox(height: 24),
               ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: ((context, index) => Container(
-                        padding: const EdgeInsets.only(top: 16, bottom: 16),
+                        padding: const EdgeInsets.only(top: 16),
                         child: accountWithConnectionItem(
                             context, categorizedAccounts[index]),
                       )),
-                  separatorBuilder: ((context, index) => addDivider(height: 0)),
-                  itemCount: categorizedAccounts.length)
+                  separatorBuilder: ((context, index) => addOnlyDivider()),
+                  itemCount: categorizedAccounts.length),
+              addOnlyDivider(),
             ],
           ),
         );
