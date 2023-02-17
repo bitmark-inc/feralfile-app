@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -25,6 +26,21 @@ Widget _notificationToast(BuildContext context, OSNotification notification,
         notificationOpenedHandler(notification);
       }
     },
+    addOnTextSpan: [
+      TextSpan(
+        text: ' ${'tap_to_view'.tr()}',
+        style: Theme.of(context).textTheme.ppMori400Green14,
+      )
+    ],
+  );
+}
+
+Widget _inAppNotificationToast(BuildContext context, String body, String key,
+    {Function()? notificationOpenedHandler}) {
+  return _SimpleNotificationToast(
+    notification: body,
+    key: Key(key),
+    notificationOpenedHandler: notificationOpenedHandler,
     addOnTextSpan: [
       TextSpan(
         text: ' ${'tap_to_view'.tr()}',
@@ -101,6 +117,20 @@ void showNotifications(BuildContext context, OSNotification notification,
     duration: const Duration(seconds: 3),
     elevation: 0,
     key: Key(notification.notificationId),
+    slideDismissDirection: DismissDirection.up,
+  );
+  Vibrate.feedback(FeedbackType.warning);
+}
+
+void showInAppNotifications(BuildContext context, String body, String key,
+    {Function()? notificationOpenedHandler}) {
+  showSimpleNotification(
+    _inAppNotificationToast(context, body, "",
+        notificationOpenedHandler: notificationOpenedHandler),
+    background: Colors.transparent,
+    duration: const Duration(seconds: 3),
+    elevation: 0,
+    key: Key(key),
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);
