@@ -250,13 +250,17 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
   String totalAmount(String? currentAddress) {
     if (amount == null) return "0 Token";
     if (amount == "1" || amount == "0") return "$amount Token";
-    final amountBigInt = BigInt.parse(amount!);
-    final amountStr = amountBigInt < BigInt.from(1000000000)
-        ? amount
-        : amountBigInt.isValidInt
-            ? NumberFormat.compact().format(int.parse(amount!))
-            : "${amount!.substring(0, amount!.length - 12)}T";
-    return "$amountStr Tokens";
+    try {
+      final amountBigInt = BigInt.parse(amount!);
+      final amountStr = amountBigInt < BigInt.from(1000000000)
+          ? amount
+          : amountBigInt.isValidInt
+          ? NumberFormat.compact().format(int.parse(amount!))
+          : "${amount!.substring(0, amount!.length - 12)}T";
+      return "$amountStr Tokens";
+    } catch (_) {
+      return "N/A Token";
+    }
   }
 
   @override
