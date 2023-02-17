@@ -25,6 +25,7 @@ import '../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+
   const AddNewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
@@ -103,12 +104,14 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
             .where(
                 (element) => state.selectedIDs?.contains(element.id) ?? false)
             .length;
-        final isSeletedAll = selectedCount == tokensPlaylist.length;
+        final isSelectedAll = selectedCount == tokensPlaylist.length;
+        final paddingTop = MediaQuery.of(context).viewPadding.top;
         return Scaffold(
           backgroundColor: theme.primaryColor,
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: SafeArea(
+              top: false,
               bottom: false,
               child: Stack(
                 children: [
@@ -116,20 +119,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
+                        header(paddingTop, isWhite: true),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Column(
                             children: [
-                              const SizedBox(
-                                height: 40,
-                              ),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: autonomyWhiteLogo,
-                              ),
-                              const SizedBox(
-                                height: 30,
-                              ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -185,7 +179,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                     const Spacer(),
                                     GestureDetector(
                                       onTap: () => bloc.add(SelectItemPlaylist(
-                                          isSelectAll: !isSeletedAll)),
+                                          isSelectAll: !isSelectedAll)),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 10,
@@ -199,7 +193,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                               BorderRadius.circular(64),
                                         ),
                                         child: Text(
-                                          isSeletedAll
+                                          isSelectedAll
                                               ? tr('unselect_all')
                                               : tr('select_all'),
                                           style:

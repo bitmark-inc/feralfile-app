@@ -296,7 +296,7 @@ class HomePageState extends State<HomePage>
           child: Text(
             "collection_empty_now".tr(),
             //"Your collection is empty for now.",
-            style: theme.textTheme.bodyLarge,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ),
       ],
@@ -418,25 +418,6 @@ class HomePageState extends State<HomePage>
     final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
     await backup.backupCloudDatabase(await accountService.getDefaultAccount());
-  }
-
-  Widget header(double paddingTop) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
-        child: Column(
-          children: [
-            headDivider(),
-            const SizedBox(height: 7),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: autonomyLogo,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _checkForKeySync() async {
