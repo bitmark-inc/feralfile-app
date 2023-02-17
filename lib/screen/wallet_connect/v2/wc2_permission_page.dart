@@ -258,51 +258,70 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               addDivider(height: 52),
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: Text(
-                          _selectETHAddress && _selectXTZAddress
-                              ? "select_tezo_and_eth_address"
-                                  .tr(args: ['1', '1'])
-                              : _selectETHAddress
-                                  ? 'select_eth_address'.tr(args: ['1'])
-                                  : _selectXTZAddress
-                                      ? 'select_tezos_address'.tr(args: ['1'])
-                                      : 'select_grand_access'.tr(),
-                          style: theme.textTheme.ppMori400Black16,
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      BlocConsumer<AccountsBloc, AccountsState>(
-                          listener: (context, state) async {
-                        var statePersonas = state.accounts;
-                        if (statePersonas == null) return;
-                        if (statePersonas.length == 1 &&
-                            statePersonas.first.persona != null) {
-                          selectedAddress['eip155:1'] =
-                              await statePersonas.first.getAddress('eip155:1');
-                          selectedAddress['tezos'] =
-                              await statePersonas.first.getAddress('tezos');
-                          setState(() {});
-                        }
-                      }, builder: (context, state) {
-                        final stateAccount = state.accounts;
-                        if (stateAccount == null) return const SizedBox();
-
-                        if (stateAccount.length == 1 &&
-                            stateAccount.first.persona != null) {
-                          return PersionalConnectItem(
-                            account: stateAccount.first,
+                  child: BlocConsumer<AccountsBloc, AccountsState>(
+                      listener: (context, state) async {
+                    var statePersonas = state.accounts;
+                    if (statePersonas == null) return;
+                    final personaAccount = statePersonas
+                        .where((element) => element.persona != null)
+                        .toList();
+                    if (personaAccount.length == 1 &&
+                        personaAccount.first.persona != null &&
+                        !_includeLinkedAccount) {
+                      selectedAddress['eip155:1'] =
+                          await personaAccount.first.getAddress('eip155:1');
+                      selectedAddress['tezos'] =
+                          await personaAccount.first.getAddress('tezos');
+                      setState(() {});
+                    }
+                  }, builder: (context, state) {
+                    final stateAccount = state.accounts;
+                    if (stateAccount == null) return const SizedBox();
+                    final personaAccount = stateAccount
+                        .where((element) => element.persona != null)
+                        .toList();
+                    if (personaAccount.length == 1 &&
+                        personaAccount.first.persona != null &&
+                        !_includeLinkedAccount) {
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                            child: Text(
+                              'Verify the addresses that will be accessed before confirming:',
+                              style: theme.textTheme.ppMori400Black16,
+                            ),
+                          ),
+                          const SizedBox(height: 16.0),
+                          PersionalConnectItem(
+                            account: personaAccount.first,
                             showETH: _selectETHAddress,
                             showXTZ: _selectXTZAddress,
                             isSingleMode: true,
-                          );
-                        }
+                            isExpand: true,
+                          ),
+                        ],
+                      );
+                    }
 
-                        return ListAccountConnect(
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                          child: Text(
+                            _selectETHAddress && _selectXTZAddress
+                                ? "select_tezo_and_eth_address"
+                                    .tr(args: ['1', '1'])
+                                : _selectETHAddress
+                                    ? 'select_eth_address'.tr(args: ['1'])
+                                    : _selectXTZAddress
+                                        ? 'select_tezos_address'.tr(args: ['1'])
+                                        : 'select_grand_access'.tr(),
+                            style: theme.textTheme.ppMori400Black16,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        ListAccountConnect(
                           includeLinkedAccount: _includeLinkedAccount,
                           accounts: stateAccount,
                           showETH: _selectETHAddress,
@@ -317,10 +336,10 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                               selectedAddress['tezos'] = value;
                             });
                           },
-                        );
-                      })
-                    ],
-                  ),
+                        ),
+                      ],
+                    );
+                  }),
                 ),
               ),
               Row(
@@ -666,10 +685,12 @@ class AddressItem extends StatelessWidget {
                 Text(
                   cryptoType == CryptoType.ETH
                       ? 'Ethereum'
-                      : cryptoType == CryptoType.ETH
+                      : cryptoType == CryptoType.XTZ
                           ? 'Tezos'
                           : '',
-                  style: theme.textTheme.ppMori700White14,
+                  style: isSingleMode
+                      ? theme.textTheme.ppMori700Black14
+                      : theme.textTheme.ppMori700White14,
                 ),
                 const Spacer(),
                 Visibility(
@@ -686,7 +707,9 @@ class AddressItem extends StatelessWidget {
             ),
             Text(
               address,
-              style: theme.textTheme.ibmWhiteNormal14,
+              style: isSingleMode
+                  ? theme.textTheme.ibmBlackNormal14
+                  : theme.textTheme.ibmWhiteNormal14,
             )
           ],
         ),
