@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -21,7 +22,6 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -463,6 +463,9 @@ class HomePageState extends State<HomePage>
   }
 
   Future refreshTokens({checkPendingToken = false}) async {
+    final nftBloc = context.read<NftCollectionBloc>();
+    nftBloc.add(RefreshNftCollection());
+
     final accountService = injector<AccountService>();
     _playlists.value = await getPlaylist();
     Future.wait([
@@ -476,7 +479,6 @@ class HomePageState extends State<HomePage>
       final activeAddresses = addresses
           .where((element) => !hiddenAddresses.contains(element))
           .toList();
-      final nftBloc = context.read<NftCollectionBloc>();
       final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
       if (isDemo) {
         _playlists.value?.forEach((element) {
