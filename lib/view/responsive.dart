@@ -95,4 +95,5 @@ class ResponsiveLayout extends StatelessWidget {
 
   static EdgeInsets get pageHorizontalEdgeInsets =>
       EdgeInsets.symmetric(horizontal: padding);
+  static EdgeInsets get paddingAll => EdgeInsets.all(padding);
 }
