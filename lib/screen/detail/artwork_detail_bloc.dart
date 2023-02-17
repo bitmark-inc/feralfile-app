@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/dao/provenance_dao.dart';
 import 'package:http/http.dart' as http;
@@ -27,9 +28,13 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       if (asset != null && (asset.mimeType?.isEmpty ?? true)) {
         final uri = Uri.tryParse(asset.previewURL ?? '');
         if (uri != null) {
-          final res = await http.head(uri);
-          asset.mimeType = res.headers["content-type"];
-          _assetTokenDao.updateAsset(asset);
+          try {
+            final res = await http.head(uri);
+            asset.mimeType = res.headers["content-type"];
+            _assetTokenDao.updateAsset(asset);
+          } catch (error) {
+            log.info("ArtworkDetailGetInfoEvent: preview url error", error);
+          }
         }
       }
       final provenances =
