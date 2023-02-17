@@ -1036,7 +1036,7 @@ Widget artworkDetailsMetadataSection(
                   MetaDataItem(
                     title: "exhibition".tr(),
                     value: snapshot.data!.title,
-                    tapLink: "$FF_EXHIBITION_PREFIX${snapshot.data!.slug}",
+                    tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
                     forceSafariVC: true,
                   ),
                   Divider(
