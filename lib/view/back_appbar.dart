@@ -74,7 +74,10 @@ AppBar getBackAppBar(BuildContext context,
 }
 
 AppBar getCloseAppBar(BuildContext context,
-    {String title = "", required Function()? onBack}) {
+    {String title = "",
+    required Function()? onClose,
+    Widget? icon,
+    Function()? action}) {
   final theme = Theme.of(context);
 
   return AppBar(
@@ -83,34 +86,28 @@ AppBar getCloseAppBar(BuildContext context,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
-    leading: const SizedBox(),
-    leadingWidth: 0.0,
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: onBack,
-          child: onBack != null
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                  child: closeIcon(),
-                )
-              : const SizedBox(width: 60),
-        ),
-        Expanded(
-          child: Text(
-            title,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelLarge,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(width: 60),
-      ],
+    centerTitle: true,
+    automaticallyImplyLeading: false,
+    title: Text(
+      title,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.ppMori400Black16,
+      textAlign: TextAlign.center,
     ),
+    actions: [
+      if (onClose != null)
+        IconButton(
+          tooltip: "CLOSE",
+          onPressed: onClose,
+          icon: icon ?? closeIcon(),
+        )
+    ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(1),
+      child: addOnlyDivider(),
+    ),
   );
 }

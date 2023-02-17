@@ -44,7 +44,7 @@ class _SurveyPageState extends State<SurveyPage> {
     return Scaffold(
       appBar: getCloseAppBar(
         context,
-        onBack: () {
+        onClose: () {
           if (_currentPage > 0) {
             _moveToPage(_currentPage - 1);
           } else {

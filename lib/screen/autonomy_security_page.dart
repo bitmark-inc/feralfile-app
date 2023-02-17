@@ -46,10 +46,11 @@ Of course all security ultimately rests on the code, and whether it makes the pr
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "autonomy_security".tr(),
-        onBack: () => Navigator.of(context).pop(),
+        onClose: () => Navigator.of(context).pop(),
+        action: () => Navigator.of(context).pop(),
       ),
       body: Container(
         margin: ResponsiveLayout.pageHorizontalEdgeInsets,
