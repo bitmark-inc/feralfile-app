@@ -39,6 +39,7 @@ class EditorialPageState extends State<EditorialPage>
   late ScrollController _feedController;
   late ScrollController _editorialController;
   late TabController _tabController;
+  final _metricClient = injector<MetricClientService>();
 
   @override
   void initState() {
@@ -77,22 +78,30 @@ class EditorialPageState extends State<EditorialPage>
   }
 
   void _handleTabChange() {
-    if (_tabController.index != _tabController.previousIndex) {
+    if (_tabController.indexIsChanging) {
       _trackEvent(_tabController.index);
     }
   }
 
   void _trackEvent(int index) {
-    final metricClient = injector<MetricClientService>();
     if (index == 0 && widget.isShowDiscover) {
-      metricClient.addEvent(MixpanelEvent.viewDiscovery);
+      _metricClient.addEvent(MixpanelEvent.timeViewEditorial);
+      _metricClient.addEvent(MixpanelEvent.viewDiscovery);
+      _metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
     } else {
-      metricClient.addEvent(MixpanelEvent.viewEditorial);
+      _metricClient.addEvent(MixpanelEvent.timeViewDiscovery);
+      _metricClient.addEvent(MixpanelEvent.viewEditorial);
+      _metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
     }
   }
 
   @override
   void dispose() {
+    if (widget.isShowDiscover && _tabController.index == 0) {
+      _metricClient.addEvent(MixpanelEvent.timeViewDiscovery);
+    } else {
+      _metricClient.addEvent(MixpanelEvent.timeViewEditorial);
+    }
     _editorialController.dispose();
     _feedController.dispose();
     _tabController.dispose();

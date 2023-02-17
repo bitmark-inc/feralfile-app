@@ -44,10 +44,15 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
     _trackEvent();
+    metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
   }
 
   @override
   void dispose() {
+    metricClient.addEvent(MixpanelEvent.editorialReadingArticle, data: {
+      "publisher": widget.post.publisher.name,
+      "title": widget.post.content["title"],
+    });
     _controller.dispose();
     super.dispose();
   }

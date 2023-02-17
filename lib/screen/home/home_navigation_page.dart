@@ -72,8 +72,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           feedBloc.add(OpenFeedEvent());
           feedBloc.add(GetFeedsEvent());
           metricClient.addEvent(MixpanelEvent.viewDiscovery);
+          metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
         } else {
           metricClient.addEvent(MixpanelEvent.viewEditorial);
+          metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
         }
         context.read<EditorialBloc>().add(GetEditorialEvent());
       }
