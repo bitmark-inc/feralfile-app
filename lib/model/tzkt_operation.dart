@@ -255,8 +255,8 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
       final amountStr = amountBigInt < BigInt.from(1000000000)
           ? amount
           : amountBigInt.isValidInt
-          ? NumberFormat.compact().format(int.parse(amount!))
-          : "${amount!.substring(0, amount!.length - 12)}T";
+              ? NumberFormat.compact().format(int.parse(amount!))
+              : "${amount!.substring(0, amount!.length - 12)}T";
       return "$amountStr Tokens";
     } catch (_) {
       return "N/A Token";
