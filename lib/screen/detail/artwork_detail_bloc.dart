@@ -32,8 +32,8 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
             final res = await http.head(uri);
             asset.mimeType = res.headers["content-type"];
             _assetTokenDao.updateAsset(asset);
-          } catch (_) {
-            log.info("ArtworkDetailGetInfoEvent: preview url error");
+          } catch (error) {
+            log.info("ArtworkDetailGetInfoEvent: preview url error", error);
           }
         }
       }
