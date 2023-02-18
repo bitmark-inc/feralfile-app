@@ -74,10 +74,7 @@ AppBar getBackAppBar(BuildContext context,
 }
 
 AppBar getCloseAppBar(BuildContext context,
-    {String title = "",
-    required Function()? onClose,
-    Widget? icon,
-    Function()? action}) {
+    {String title = "", required Function()? onClose, Widget? icon}) {
   final theme = Theme.of(context);
 
   return AppBar(

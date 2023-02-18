@@ -50,7 +50,6 @@ Of course all security ultimately rests on the code, and whether it makes the pr
         context,
         title: "autonomy_security".tr(),
         onClose: () => Navigator.of(context).pop(),
-        action: () => Navigator.of(context).pop(),
       ),
       body: Container(
         margin: ResponsiveLayout.pageHorizontalEdgeInsets,
