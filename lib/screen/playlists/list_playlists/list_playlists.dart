@@ -215,23 +215,19 @@ class _PlaylistItemState extends State<PlaylistItem> {
                 padding: const EdgeInsets.all(15),
                 width: double.infinity,
                 child: widget.thumbnailURL == null
-                    ? FittedBox(
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          color: theme.disableColor,
-                        ),
+                    ? Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        color: theme.disableColor,
                       )
                     : CachedNetworkImage(
                         imageUrl: widget.thumbnailURL ?? '',
                         fit: BoxFit.cover,
                         cacheManager: injector.get<CacheManager>(),
-                        errorWidget: (context, url, error) => FittedBox(
-                          child: Container(
-                            width: double.infinity,
-                            height: double.infinity,
-                            color: theme.disableColor,
-                          ),
+                        errorWidget: (context, url, error) => Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          color: theme.disableColor,
                         ),
                         memCacheHeight: 1000,
                         memCacheWidth: 1000,
@@ -256,52 +252,49 @@ class AddPlayListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(
-              color: theme.colorScheme.primary,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color: theme.colorScheme.primary,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'new_playlist'.tr(),
-                  style: theme.textTheme.ppMori400Black12,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: theme.auLightGrey,
-                      border: Border.all(color: theme.auLightGrey),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(1),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Icon(
-                          AuIcon.add,
-                          color: theme.colorScheme.primary,
-                        ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'new_playlist'.tr(),
+                style: theme.textTheme.ppMori400Black12,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: theme.auLightGrey,
+                    border: Border.all(color: theme.auLightGrey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(1),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: Icon(
+                        AuIcon.add,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
