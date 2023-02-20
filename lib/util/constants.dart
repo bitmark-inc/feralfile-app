@@ -8,7 +8,7 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -91,7 +91,7 @@ Future<bool> isAppCenterBuild() async {
 }
 
 Future<bool> isPremium() async {
-  return injector<ConfigurationService>().isPremium();
+  return injector<IAPService>().isSubscribed();
 }
 
 Future<Pair<bool, bool>> logoState() async {
