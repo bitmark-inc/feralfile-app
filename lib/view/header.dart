@@ -32,7 +32,9 @@ class HeaderView extends StatelessWidget {
             const SizedBox(height: 7),
             Padding(
               padding: const EdgeInsets.only(left: 15),
-              child: isWhite ? autonomyWhiteLogo : autonomyLogo,
+              child: AutonomyLogo(
+                isWhite: isWhite,
+              ),
             ),
           ],
         ),
@@ -41,82 +43,61 @@ class HeaderView extends StatelessWidget {
   }
 }
 
-Widget get autonomyLogo {
-  return FutureBuilder<Pair<bool, bool>>(
-      future: logoState(),
-      builder: (context, snapshot) {
-        if (snapshot.data == null) return const SizedBox(height: 50);
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SvgPicture.asset(
-              snapshot.data!.first == true
-                  ? "assets/images/logo_dev.svg"
-                  : "assets/images/penrose_moma.svg",
-              width: 50,
-            ),
-            const SizedBox(width: 15),
-            snapshot.data!.second
-                ? proLabel(Theme.of(context))
-                : const SizedBox(),
-          ],
-        );
-      });
-}
+class AutonomyLogo extends StatelessWidget {
+  final bool isWhite;
 
-class AuWhiteLogo extends StatelessWidget {
-  const AuWhiteLogo({Key? key}) : super(key: key);
+  const AutonomyLogo({Key? key, this.isWhite = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return autonomyWhiteLogo;
+    return FutureBuilder<Pair<bool, bool>>(
+        future: logoState(),
+        builder: (context, snapshot) {
+          if (snapshot.data == null) return const SizedBox(height: 50);
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SvgPicture.asset(
+                isWhite
+                    ? "assets/images/autonomy_icon_white.svg"
+                    : snapshot.data!.first == true
+                        ? "assets/images/logo_dev.svg"
+                        : "assets/images/penrose_moma.svg",
+                width: 50,
+                height: 50,
+              ),
+              const SizedBox(width: 15),
+              snapshot.data!.second
+                  ? proLabel(Theme.of(context), isWhite: isWhite)
+                  : const SizedBox(),
+            ],
+          );
+        });
   }
-}
 
-Widget get autonomyWhiteLogo {
-  return FutureBuilder<bool>(
-      future: isPremium(),
-      builder: (context, snapshot) {
-        if (snapshot.data == null) return const SizedBox(height: 50);
-        return Row(
+  Widget proLabel(ThemeData theme, {bool isWhite = false}) {
+    final color = isWhite ? AppColor.white : AppColor.primaryBlack;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(width: 2, color: color),
+        color: Colors.transparent,
+        borderRadius: BorderRadiusGeometry.lerp(
+            const BorderRadius.all(Radius.circular(25)),
+            const BorderRadius.all(Radius.circular(25)),
+            5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 8),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SvgPicture.asset(
-              "assets/images/autonomy_icon_white.svg",
-              width: 50,
-              height: 50,
+            Text(
+              "pro".tr().toUpperCase(),
+              style: theme.textTheme.ppMori700White12.copyWith(color: color),
             ),
-            const SizedBox(width: 15),
-            snapshot.data!
-                ? proLabel(Theme.of(context), isWhite: true)
-                : const SizedBox(),
           ],
-        );
-      });
-}
-
-Widget proLabel(ThemeData theme, {bool isWhite = false}) {
-  final color = isWhite ? AppColor.white : AppColor.primaryBlack;
-  return Container(
-    decoration: BoxDecoration(
-      border: Border.all(width: 2, color: color),
-      color: Colors.transparent,
-      borderRadius: BorderRadiusGeometry.lerp(
-          const BorderRadius.all(Radius.circular(25)),
-          const BorderRadius.all(Radius.circular(25)),
-          5),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "pro".tr().toUpperCase(),
-            style: theme.textTheme.ppMori700White12.copyWith(color: color),
-          ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

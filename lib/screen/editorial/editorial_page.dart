@@ -140,7 +140,7 @@ class EditorialPageState extends State<EditorialPage>
                         : MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (_showFullHeader) const AuWhiteLogo(),
+                      if (_showFullHeader) const AutonomyLogo(isWhite: true,),
                       Hero(
                         tag: "discover_tab",
                         child: Stack(
