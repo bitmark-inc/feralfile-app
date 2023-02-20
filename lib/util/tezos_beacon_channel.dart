@@ -25,6 +25,7 @@ class TezosBeaconChannel {
   BeaconHandler? handler;
 
   Future connect() async {
+    await Future.delayed(const Duration(seconds: 2));
     await _channel.invokeMethod('connect', {});
   }
 
