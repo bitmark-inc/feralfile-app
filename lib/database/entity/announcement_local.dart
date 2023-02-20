@@ -6,6 +6,7 @@
 //
 import 'package:autonomy_flutter/model/announcement.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:floor/floor.dart';
 
 @entity
@@ -37,4 +38,17 @@ class AnnouncementLocal implements ChatThread {
           announceAt: announcement.announceAt,
           type: announcement.type,
           unread: true);
+
+  @override
+  String getListTitle() {
+    if (announcementContextId == AnnouncementID.PRO_CHAT.value) {
+      return ReportIssueType.toTitle(ReportIssueType.ProChat);
+    } else {
+      return ReportIssueType.toTitle(ReportIssueType.Announcement);
+    }
+  }
+
+  bool isMetricAnnouncement() {
+    return announcementContextId != AnnouncementID.PRO_CHAT.value;
+  }
 }

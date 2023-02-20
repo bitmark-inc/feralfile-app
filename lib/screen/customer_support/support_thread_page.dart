@@ -221,15 +221,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
-    final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(
-      MixpanelEvent.readAnnouncement,
-      data: {
-        "id": announcement.announcementContextId,
-        "type": announcement.type,
-        "title": announcement.title,
-      },
-    );
+    if (widget.payload.announcement!.isMetricAnnouncement()) {
+      final metricClient = injector.get<MetricClientService>();
+      metricClient.addEvent(
+        MixpanelEvent.readAnnouncement,
+        data: {
+          "id": announcement.announcementContextId,
+          "type": announcement.type,
+          "title": announcement.title,
+        },
+      );
+    }
   }
 
   @override
@@ -592,14 +594,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           color: AppColor.auSuperTeal,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              widget.payload.announcement!.title,
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black16,
-            ),
-            const SizedBox(height: 20),
+            if (widget.payload.announcement!.title.isNotEmpty) ...[
+              Text(
+                widget.payload.announcement!.title,
+                textAlign: TextAlign.start,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black16,
+              ),
+              const SizedBox(height: 20),
+            ],
             Text(
               widget.payload.announcement!.body,
               textAlign: TextAlign.start,
@@ -690,7 +694,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = "TEMP-${const Uuid().v4()}";
 
       final payload = widget.payload;
-      if (payload.announcement != null) {
+      if (payload.announcement != null &&
+          payload.announcement!.isMetricAnnouncement()) {
         final metricClient = injector.get<MetricClientService>();
         final announcement = payload.announcement!;
         metricClient.addEvent(

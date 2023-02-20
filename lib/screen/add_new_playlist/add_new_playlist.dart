@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -24,6 +25,7 @@ import '../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+
   const AddNewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
@@ -102,12 +104,14 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
             .where(
                 (element) => state.selectedIDs?.contains(element.id) ?? false)
             .length;
-        final isSeletedAll = selectedCount == tokensPlaylist.length;
+        final isSelectedAll = selectedCount == tokensPlaylist.length;
+        final paddingTop = MediaQuery.of(context).viewPadding.top;
         return Scaffold(
           backgroundColor: theme.primaryColor,
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: SafeArea(
+              top: false,
               bottom: false,
               child: Stack(
                 children: [
@@ -115,24 +119,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
+                        HeaderView(paddingTop: paddingTop, isWhite: true),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Column(
                             children: [
-                              const SizedBox(
-                                height: 40,
-                              ),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: SvgPicture.asset(
-                                  "assets/images/penrose_moma.svg",
-                                  color: theme.colorScheme.secondary,
-                                  width: 50,
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 30,
-                              ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -188,7 +179,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                     const Spacer(),
                                     GestureDetector(
                                       onTap: () => bloc.add(SelectItemPlaylist(
-                                          isSelectAll: !isSeletedAll)),
+                                          isSelectAll: !isSelectedAll)),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 10,
@@ -202,7 +193,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                               BorderRadius.circular(64),
                                         ),
                                         child: Text(
-                                          isSeletedAll
+                                          isSelectedAll
                                               ? tr('unselect_all')
                                               : tr('select_all'),
                                           style:

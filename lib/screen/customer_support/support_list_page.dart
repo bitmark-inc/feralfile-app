@@ -129,6 +129,10 @@ class _SupportListPageState extends State<SupportListPage>
 
               case AnnouncementLocal:
                 final issue = chatThread as AnnouncementLocal;
+                final reportIssueType =
+                    issue.announcementContextId == AnnouncementID.PRO_CHAT.value
+                        ? ReportIssueType.ProChat
+                        : ReportIssueType.Announcement;
                 bool hasDivider = (index < issues.length - 1);
                 return Padding(
                   padding: EdgeInsets.symmetric(
@@ -139,7 +143,7 @@ class _SupportListPageState extends State<SupportListPage>
                     onTap: () => Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
                       arguments: NewIssuePayload(
-                        reportIssueType: ReportIssueType.Announcement,
+                        reportIssueType: reportIssueType,
                         announcement: issue,
                       ),
                     ),
@@ -157,7 +161,6 @@ class _SupportListPageState extends State<SupportListPage>
 
   Widget _contentRow(Issue issue, bool hasDivider) {
     final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -167,7 +170,7 @@ class _SupportListPageState extends State<SupportListPage>
             Row(
               children: [
                 Text(
-                  ReportIssueType.toTitle(issue.reportIssueType),
+                  issue.getListTitle(),
                   style: theme.textTheme.ppMori400Black16,
                 ),
                 if (issue.unread > 0) ...[
@@ -280,7 +283,7 @@ class _SupportListPageState extends State<SupportListPage>
             Row(
               children: [
                 Text(
-                  ReportIssueType.toTitle(ReportIssueType.Announcement),
+                  announcement.getListTitle(),
                   style: theme.textTheme.ppMori400Black16,
                 ),
                 if (announcement.unread) ...[
@@ -307,7 +310,9 @@ class _SupportListPageState extends State<SupportListPage>
         Padding(
           padding: const EdgeInsets.only(right: 14),
           child: Text(
-            announcement.title,
+            announcement.title.isNotEmpty
+                ? announcement.title
+                : announcement.body,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.ppMori400Black14,

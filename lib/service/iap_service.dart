@@ -228,7 +228,7 @@ class IAPServiceImpl implements IAPService {
             if (!_configurationService.isPremium()) {
               Future.delayed(const Duration(seconds: 2), () async {
                 injector<CustomerSupportService>()
-                    .createAnnouncement("subscription");
+                    .createAnnouncement(AnnouncementID.SUBSCRIBE);
               });
               _configurationService.setPremium(true);
             }

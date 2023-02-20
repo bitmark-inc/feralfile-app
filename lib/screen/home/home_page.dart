@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -277,12 +278,8 @@ class HomePageState extends State<HomePage>
     return Center(
         child: Column(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-            child: autonomyLogo,
-          ),
+        HeaderView(
+          paddingTop: paddingTop,
         ),
         loadingIndicator(),
       ],
@@ -294,21 +291,15 @@ class HomePageState extends State<HomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
 
     return ListView(
-      padding: ResponsiveLayout.getPadding.copyWith(left: 0),
+      padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-            child: autonomyLogo,
-          ),
-        ),
+        HeaderView(paddingTop: paddingTop),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
             "collection_empty_now".tr(),
             //"Your collection is empty for now.",
-            style: theme.textTheme.bodyLarge,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ),
       ],
@@ -340,13 +331,7 @@ class HomePageState extends State<HomePage>
       SliverToBoxAdapter(
         child: Column(
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-                child: autonomyLogo,
-              ),
-            ),
+            HeaderView(paddingTop: paddingTop),
             FutureBuilder<bool>(
               future: injector<IAPService>().isSubscribed(),
               builder: (context, subscriptionSnapshot) {

@@ -97,7 +97,7 @@ abstract class CustomerSupportService {
 
   Future<void> fetchAnnouncement();
 
-  Future<void> createAnnouncement(String type);
+  Future<void> createAnnouncement(AnnouncementID type);
 
   Future<AnnouncementLocal?> findAnnouncementFromIssueId(String issueId);
 
@@ -532,7 +532,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     List<Issue> issues = await getIssues();
     List<AnnouncementLocal> announcements =
         await _announcementDao.getAnnouncements();
-
     if (issues.isNotEmpty && announcements.isNotEmpty) {
       announcements.removeWhere((element) => issues.any((i) {
             if (i.announcementID == element.announcementContextId) {
@@ -542,7 +541,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             return false;
           }));
     }
-
+    if (!_configurationService.isPremium()) {
+      issues.removeWhere(
+          (element) => element.reportIssueType == ReportIssueType.ProChat);
+      announcements.removeWhere((element) =>
+          element.announcementContextId == AnnouncementID.PRO_CHAT.value);
+    }
     result.addAll(issues);
     result.addAll(announcements);
     numberOfIssuesInfo.value = [
@@ -581,17 +585,21 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final announcements = await _announcementApi.getAnnouncements(
         lastPullTime: lastPullTime ?? 0);
     final pullTime = DateTime.now().millisecondsSinceEpoch;
-    _configurationService.setAnnouncementLastPullTime(pullTime);
+    await _configurationService.setAnnouncementLastPullTime(pullTime);
     final metricClient = injector.get<MetricClientService>();
     for (var announcement in announcements) {
-      metricClient.addEvent(
-        MixpanelEvent.receiveAnnouncement,
-        data: {
-          "id": announcement.announcementContextId,
-          "type": announcement.type,
-          "title": announcement.title,
-        },
-      );
+      if (await _announcementDao
+              .getAnnouncement(announcement.announcementContextId) ==
+          null) {
+        metricClient.addEvent(
+          MixpanelEvent.receiveAnnouncement,
+          data: {
+            "id": announcement.announcementContextId,
+            "type": announcement.type,
+            "title": announcement.title,
+          },
+        );
+      }
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
     }
@@ -603,11 +611,22 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<void> createAnnouncement(String type) async {
-    final body = {"announcement_context_id": type};
+  Future<void> createAnnouncement(AnnouncementID type) async {
+    final body = {"announcement_context_id": type.value};
     await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
-    final announcement = await _announcementDao.getAnnouncement(type);
+    final announcement = await _announcementDao.getAnnouncement(type.value);
+    if (type == AnnouncementID.SUBSCRIBE) {
+      int now = DateTime.now().millisecondsSinceEpoch;
+      _announcementDao.insertAnnouncement(AnnouncementLocal(
+          announcementContextId: AnnouncementID.PRO_CHAT.value,
+          title: "",
+          body: "pro_chat_body".tr(),
+          createdAt: now,
+          announceAt: now,
+          type: type.value,
+          unread: true));
+    }
     if (announcement != null) {
       await getIssuesAndAnnouncement();
       showInfoNotification(

@@ -401,7 +401,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (currentValue == false && value == true && getIsOldUser() == false) {
       await setOldUser();
       Future.delayed(const Duration(seconds: 2), () async {
-        injector<CustomerSupportService>().createAnnouncement("welcome");
+        injector<CustomerSupportService>()
+            .createAnnouncement(AnnouncementID.WELCOME);
       });
     }
   }

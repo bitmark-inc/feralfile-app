@@ -6,6 +6,9 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -55,6 +58,7 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
 ];
+
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
@@ -80,6 +84,16 @@ const publicTezosNodes = [
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
+}
+
+Future<bool> isPremium() async {
+  return injector<IAPService>().isSubscribed();
+}
+
+Future<Pair<bool, bool>> logoState() async {
+  final isAppCenter = await isAppCenterBuild();
+  final isPro = await isPremium();
+  return Pair(isAppCenter, isPro);
 }
 
 Future<String> getDemoAccount() async {
@@ -127,9 +141,18 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
+  static const ProChat = 'pro chat';
 
-  static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
+  static List<String> get getList => [
+        Feature,
+        Bug,
+        Feedback,
+        Other,
+        Exception,
+        ReportNFTIssue,
+        Announcement,
+        ProChat
+      ];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -147,6 +170,8 @@ class ReportIssueType {
         return 'Report NFT issue';
       case Announcement:
         return "Announcement";
+      case ProChat:
+        return "PRO Chat";
       default:
         return 'Something else?';
     }
@@ -212,6 +237,15 @@ enum CryptoType {
   XTZ,
   USDC,
   UNKNOWN,
+}
+
+enum AnnouncementID {
+  WELCOME("welcome"),
+  SUBSCRIBE("subscription"),
+  PRO_CHAT("proChat");
+
+  const AnnouncementID(this.value);
+  final String value;
 }
 
 extension CryptoTypeHelpers on CryptoType {

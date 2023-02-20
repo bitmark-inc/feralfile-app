@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -483,6 +482,14 @@ Divider addDivider({double height = 32}) {
   );
 }
 
+Divider headDivider() {
+  return const Divider(
+    height: 30,
+    thickness: 3,
+    color: AppColor.auSuperTeal,
+  );
+}
+
 Divider addOnlyDivider() {
   return const Divider(
     height: 1.0,
@@ -504,19 +511,6 @@ Divider addDialogDivider({double height = 32}) {
     thickness: 1,
     color: Colors.white,
   );
-}
-
-Widget get autonomyLogo {
-  return FutureBuilder<bool>(
-      future: isAppCenterBuild(),
-      builder: (context, snapshot) {
-        return SvgPicture.asset(
-          snapshot.data == true
-              ? "assets/images/logo_dev.svg"
-              : "assets/images/penrose_moma.svg",
-          width: 50,
-        );
-      });
 }
 
 Widget loadingIndicator({
