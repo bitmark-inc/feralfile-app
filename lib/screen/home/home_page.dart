@@ -40,7 +40,6 @@ import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -49,16 +48,13 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -74,17 +70,11 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage>
-    with
-        RouteAware,
-        WidgetsBindingObserver,
-        AfterLayoutMixin<HomePage>,
-        AutomaticKeepAliveClientMixin {
+    with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<HomePage> {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
-
-  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier([]);
 
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
@@ -199,8 +189,6 @@ class HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
@@ -329,42 +317,7 @@ class HomePageState extends State<HomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     sources = [
       SliverToBoxAdapter(
-        child: Column(
-          children: [
-            HeaderView(paddingTop: paddingTop),
-            FutureBuilder<bool>(
-              future: injector<IAPService>().isSubscribed(),
-              builder: (context, subscriptionSnapshot) {
-                final isSubscribed = subscriptionSnapshot.hasData &&
-                    subscriptionSnapshot.data == true;
-                return Visibility(
-                  visible: isSubscribed,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: SizedBox(
-                      height: 103,
-                      child: ValueListenableBuilder(
-                        valueListenable: _playlists,
-                        builder: (context, value, child) => ListPlaylistWidget(
-                          playlists: _playlists.value,
-                          onUpdateList: () async {
-                            if (injector
-                                .get<ConfigurationService>()
-                                .isDemoArtworksMode()) return;
-                            await injector
-                                .get<ConfigurationService>()
-                                .setPlayList(_playlists.value, override: true);
-                            injector.get<SettingsDataService>().backup();
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
+        child: HeaderView(paddingTop: paddingTop),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -452,7 +405,6 @@ class HomePageState extends State<HomePage>
     nftBloc.add(RefreshNftCollection());
 
     final accountService = injector<AccountService>();
-    _playlists.value = await getPlaylist();
     Future.wait([
       getAddresses(),
       getManualTokenIds(),
@@ -464,12 +416,8 @@ class HomePageState extends State<HomePage>
       final activeAddresses = addresses
           .where((element) => !hiddenAddresses.contains(element))
           .toList();
-      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-      if (isDemo) {
-        _playlists.value?.forEach((element) {
-          indexerIds.addAll(element.tokenIDs ?? []);
-        });
-      }
+      final nftBloc = context.read<NftCollectionBloc>();
+
       nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
       nftBloc.add(RefreshTokenEvent(
           addresses: activeAddresses, debugTokens: indexerIds));
@@ -572,215 +520,5 @@ class HomePageState extends State<HomePage>
     _metricClient.sendAndClearMetrics();
     _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-}
-
-class ListPlaylistWidget extends StatefulWidget {
-  final Function onUpdateList;
-
-  const ListPlaylistWidget({
-    Key? key,
-    required this.playlists,
-    required this.onUpdateList,
-  }) : super(key: key);
-
-  final List<PlayListModel?>? playlists;
-
-  @override
-  State<ListPlaylistWidget> createState() => _ListPlaylistWidgetState();
-}
-
-class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ReorderableListView.builder(
-        onReorderStart: (index) {
-          Vibrate.feedback(FeedbackType.light);
-        },
-        proxyDecorator: (child, index, animation) {
-          return PlaylistItem(
-            name: widget.playlists?[index]?.name,
-            thumbnailURL: widget.playlists?[index]?.thumbnailURL,
-            onHold: true,
-          );
-        },
-        onReorder: (oldIndex, newIndex) {
-          setState(() {
-            if (oldIndex < newIndex) {
-              newIndex -= 1;
-            }
-            final element = widget.playlists?.removeAt(oldIndex);
-            if (element != null) widget.playlists?.insert(newIndex, element);
-            widget.playlists?.removeWhere((element) => element == null);
-            widget.onUpdateList.call();
-          });
-        },
-        scrollDirection: Axis.horizontal,
-        footer: injector.get<ConfigurationService>().isDemoArtworksMode()
-            ? null
-            : AddPlayListItem(
-                onTap: () {
-                  Navigator.of(context)
-                      .pushNamed(AppRouter.createPlayListPage)
-                      .then((value) {
-                    if (value != null && value is PlayListModel) {
-                      Navigator.pushNamed(context, AppRouter.viewPlayListPage,
-                          arguments: value);
-                    }
-                  });
-                },
-              ),
-        itemBuilder: (context, index) => PlaylistItem(
-          key: ValueKey(widget.playlists?[index]?.id ?? index),
-          name: widget.playlists?[index]?.name,
-          thumbnailURL: widget.playlists?[index]?.thumbnailURL,
-          onSelected: () => Navigator.pushNamed(
-            context,
-            AppRouter.viewPlayListPage,
-            arguments: widget.playlists?[index],
-          ),
-        ),
-        itemCount: widget.playlists?.length ?? 0,
-      ),
-    );
-  }
-}
-
-class PlaylistItem extends StatefulWidget {
-  final Function()? onSelected;
-  final String? name;
-  final String? thumbnailURL;
-  final bool onHold;
-
-  const PlaylistItem({
-    Key? key,
-    this.onSelected,
-    this.name,
-    this.thumbnailURL,
-    this.onHold = false,
-  }) : super(key: key);
-
-  @override
-  State<PlaylistItem> createState() => _PlaylistItemState();
-}
-
-class _PlaylistItemState extends State<PlaylistItem> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: GestureDetector(
-        onTap: widget.onSelected,
-        child: SizedBox(
-          width: 83,
-          child: Column(
-            children: [
-              Container(
-                width: 83,
-                height: 83,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(
-                    width: widget.onHold ? 3 : 0,
-                    color: theme.auLightGrey,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(1),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: widget.thumbnailURL == null
-                        ? Container(
-                            color: theme.disableColor,
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: widget.thumbnailURL ?? '',
-                            fit: BoxFit.cover,
-                            cacheManager: injector.get<CacheManager>(),
-                            errorWidget: (context, url, error) => Container(
-                              color: theme.disableColor,
-                            ),
-                            memCacheHeight: 1000,
-                            memCacheWidth: 1000,
-                            maxWidthDiskCache: 1000,
-                            maxHeightDiskCache: 1000,
-                            fadeInDuration: Duration.zero,
-                          ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  (widget.name?.isNotEmpty ?? false)
-                      ? widget.name!
-                      : 'Untitled',
-                  style: widget.onHold
-                      ? theme.textTheme.ppMori400Black12
-                          .copyWith(fontWeight: FontWeight.bold)
-                      : theme.textTheme.ppMori400Black12,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class AddPlayListItem extends StatelessWidget {
-  final Function()? onTap;
-
-  const AddPlayListItem({Key? key, this.onTap}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: SizedBox(
-          width: 83,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 83,
-                height: 83,
-                decoration: BoxDecoration(
-                    border: Border.all(color: theme.auLightGrey),
-                    borderRadius: BorderRadius.circular(5)),
-                child: Padding(
-                  padding: const EdgeInsets.all(1),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: Icon(
-                      AuIcon.add,
-                      color: theme.auLightGrey,
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'New Playlist',
-                style: theme.textTheme.ppMori400Grey12,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
