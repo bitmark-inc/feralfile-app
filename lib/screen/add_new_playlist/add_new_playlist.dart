@@ -7,8 +7,8 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -119,7 +119,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        header(paddingTop, isWhite: true),
+                        HeaderView(paddingTop: paddingTop, isWhite: true),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Column(

@@ -41,7 +41,7 @@ class AnnouncementLocal implements ChatThread {
 
   @override
   String getListTitle() {
-    if (announcementContextId == ANNOUNCEMENT_ID_PRO_CHAT) {
+    if (announcementContextId == AnnouncementID.PRO_CHAT.value) {
       return ReportIssueType.toTitle(ReportIssueType.ProChat);
     } else {
       return ReportIssueType.toTitle(ReportIssueType.Announcement);
@@ -49,6 +49,6 @@ class AnnouncementLocal implements ChatThread {
   }
 
   bool isMetricAnnouncement() {
-    return !(announcementContextId == ANNOUNCEMENT_ID_PRO_CHAT);
+    return announcementContextId != AnnouncementID.PRO_CHAT.value;
   }
 }

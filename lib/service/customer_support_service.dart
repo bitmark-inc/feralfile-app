@@ -97,7 +97,7 @@ abstract class CustomerSupportService {
 
   Future<void> fetchAnnouncement();
 
-  Future<void> createAnnouncement(String type);
+  Future<void> createAnnouncement(AnnouncementID type);
 
   Future<AnnouncementLocal?> findAnnouncementFromIssueId(String issueId);
 
@@ -545,7 +545,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       issues.removeWhere(
           (element) => element.reportIssueType == ReportIssueType.ProChat);
       announcements.removeWhere((element) =>
-          element.announcementContextId == ANNOUNCEMENT_ID_PRO_CHAT);
+          element.announcementContextId == AnnouncementID.PRO_CHAT.value);
     }
     result.addAll(issues);
     result.addAll(announcements);
@@ -611,20 +611,20 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<void> createAnnouncement(String type) async {
-    final body = {"announcement_context_id": type};
+  Future<void> createAnnouncement(AnnouncementID type) async {
+    final body = {"announcement_context_id": type.value};
     await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
-    final announcement = await _announcementDao.getAnnouncement(type);
-    if (type == ANNOUNCEMENT_ID_SUBSCRIBE) {
+    final announcement = await _announcementDao.getAnnouncement(type.value);
+    if (type == AnnouncementID.SUBSCRIBE) {
       int now = DateTime.now().millisecondsSinceEpoch;
       _announcementDao.insertAnnouncement(AnnouncementLocal(
-          announcementContextId: ANNOUNCEMENT_ID_PRO_CHAT,
+          announcementContextId: AnnouncementID.PRO_CHAT.value,
           title: "",
           body: "pro_chat_body".tr(),
           createdAt: now,
           announceAt: now,
-          type: type,
+          type: type.value,
           unread: true));
     }
     if (announcement != null) {

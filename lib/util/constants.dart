@@ -59,9 +59,6 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
 ];
 
-const ANNOUNCEMENT_ID_WELCOME = "welcome";
-const ANNOUNCEMENT_ID_SUBSCRIBE = "subscription";
-const ANNOUNCEMENT_ID_PRO_CHAT = "proChat";
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
@@ -241,6 +238,15 @@ enum CryptoType {
   XTZ,
   USDC,
   UNKNOWN,
+}
+
+enum AnnouncementID {
+  WELCOME("welcome"),
+  SUBSCRIBE("subscription"),
+  PRO_CHAT("proChat");
+
+  const AnnouncementID(this.value);
+  final String value;
 }
 
 extension CryptoTypeHelpers on CryptoType {

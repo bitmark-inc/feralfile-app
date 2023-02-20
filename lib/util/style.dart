@@ -560,25 +560,6 @@ Widget get autonomyWhiteLogo {
       });
 }
 
-Widget header(double paddingTop, {isWhite = false}) {
-  return Align(
-    alignment: Alignment.centerLeft,
-    child: Container(
-      padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
-      child: Column(
-        children: [
-          headDivider(),
-          const SizedBox(height: 7),
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: isWhite ? autonomyWhiteLogo : autonomyLogo,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
 Widget proLabel(ThemeData theme, {bool isWhite = false}) {
   final color = isWhite ? AppColor.white : AppColor.primaryBlack;
   return Container(

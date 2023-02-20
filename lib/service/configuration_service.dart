@@ -402,7 +402,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await setOldUser();
       Future.delayed(const Duration(seconds: 2), () async {
         injector<CustomerSupportService>()
-            .createAnnouncement(ANNOUNCEMENT_ID_WELCOME);
+            .createAnnouncement(AnnouncementID.WELCOME);
       });
     }
   }

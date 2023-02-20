@@ -130,7 +130,7 @@ class _SupportListPageState extends State<SupportListPage>
               case AnnouncementLocal:
                 final issue = chatThread as AnnouncementLocal;
                 final reportIssueType =
-                    issue.announcementContextId == ANNOUNCEMENT_ID_PRO_CHAT
+                    issue.announcementContextId == AnnouncementID.PRO_CHAT.value
                         ? ReportIssueType.ProChat
                         : ReportIssueType.Announcement;
                 bool hasDivider = (index < issues.length - 1);
