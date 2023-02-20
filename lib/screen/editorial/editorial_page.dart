@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -139,7 +140,7 @@ class EditorialPageState extends State<EditorialPage>
                         : MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (_showFullHeader) autonomyWhiteLogo,
+                      if (_showFullHeader) const AuWhiteLogo(),
                       Hero(
                         tag: "discover_tab",
                         child: Stack(
