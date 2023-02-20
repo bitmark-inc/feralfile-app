@@ -79,23 +79,23 @@ class NavigationService {
     return Navigator.of(navigatorKey.currentContext!);
   }
 
-  Future showAirdropNotStarted() async {
+  Future showAirdropNotStarted(String? artworkId) async {
     log.info("NavigationService.showAirdropNotStarted");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showAirdropNotStarted(
-        navigatorKey.currentContext!,
-      );
+          navigatorKey.currentContext!, artworkId);
     } else {
       Future.value(0);
     }
   }
 
-  Future showAirdropExpired() async {
+  Future showAirdropExpired(String? artworkId) async {
     log.info("NavigationService.showAirdropExpired");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      await UIHelper.showAirdropExpired(navigatorKey.currentContext!);
+      await UIHelper.showAirdropExpired(
+          navigatorKey.currentContext!, artworkId);
     } else {
       Future.value(0);
     }
@@ -116,11 +116,11 @@ class NavigationService {
     }
   }
 
-  Future showOtpExpired() async {
+  Future showOtpExpired(String? artworkId) async {
     log.info("NavigationService.showOtpExpired");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      await UIHelper.showOtpExpired(navigatorKey.currentContext!);
+      await UIHelper.showOtpExpired(navigatorKey.currentContext!, artworkId);
     } else {
       Future.value(0);
     }

@@ -324,7 +324,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
                 int.tryParse(expiredAt) ?? 0))) {
           log.info("[DeeplinkService] FeralFile Airdrop expired");
-          _navigationService.showAirdropExpired();
+          _navigationService.showAirdropExpired(artworkId);
           break;
         }
 
@@ -389,15 +389,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final endTime = artwork.airdropInfo?.endedAt;
         if (artwork.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
-          await _navigationService.showAirdropExpired();
+          await _navigationService.showAirdropExpired(artworkId);
         } else if (artwork.airdropInfo?.isAirdropStarted != true) {
-          await _navigationService.showAirdropNotStarted();
+          await _navigationService.showAirdropNotStarted(artworkId);
         } else if (artwork.airdropInfo?.remainAmount == 0) {
           await _navigationService.showNoRemainingToken(
             artwork: artwork,
           );
         } else if (otp?.isExpired == true) {
-          await _navigationService.showOtpExpired();
+          await _navigationService.showOtpExpired(artworkId);
         } else {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;
