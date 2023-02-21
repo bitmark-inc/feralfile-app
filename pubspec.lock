@@ -763,8 +763,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "1.0.0"
-      resolved-ref: "1890b61932da34fbf05f3615395af62df9224a5c"
+      ref: "1.0.1"
+      resolved-ref: "243bc696c8b8348db9730eed7b160d80c1e4af1c"
       url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
     source: git
     version: "0.0.4"
