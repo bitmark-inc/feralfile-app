@@ -1008,40 +1008,50 @@ class UIHelper {
                       5),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        content,
-                        const SizedBox(height: 30),
-                        if (actionButtonOnTap != null)
-                          Column(
-                            children: [
-                              AuSecondaryButton(
-                                text: actionButton ?? "",
-                                onPressed: actionButtonOnTap,
-                                borderColor: AppColor.primaryBlack,
-                                textColor: AppColor.primaryBlack,
-                                backgroundColor: AppColor.auSuperTeal,
+                  padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    trackVisibility: true,
+                    thickness: 5,
+                    radius: const Radius.circular(10),
+                    scrollbarOrientation: ScrollbarOrientation.right,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            content,
+                            const SizedBox(height: 30),
+                            if (actionButtonOnTap != null)
+                              Column(
+                                children: [
+                                  AuSecondaryButton(
+                                    text: actionButton ?? "",
+                                    onPressed: actionButtonOnTap,
+                                    borderColor: AppColor.primaryBlack,
+                                    textColor: AppColor.primaryBlack,
+                                    backgroundColor: AppColor.auSuperTeal,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  )
+                                ],
                               ),
-                              const SizedBox(
-                                height: 15,
-                              )
-                            ],
-                          ),
-                        AuSecondaryButton(
-                          text: exitButton ?? "close".tr(),
-                          onPressed: exitButtonOnTap ??
-                              () {
-                                Navigator.pop(context);
-                              },
-                          borderColor: AppColor.primaryBlack,
-                          textColor: AppColor.primaryBlack,
-                          backgroundColor: AppColor.auSuperTeal,
+                            AuSecondaryButton(
+                              text: exitButton ?? "close".tr(),
+                              onPressed: exitButtonOnTap ??
+                                  () {
+                                    Navigator.pop(context);
+                                  },
+                              borderColor: AppColor.primaryBlack,
+                              textColor: AppColor.primaryBlack,
+                              backgroundColor: AppColor.auSuperTeal,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
