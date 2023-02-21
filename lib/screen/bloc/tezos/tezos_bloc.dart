@@ -19,7 +19,7 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     on<GetTezosAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final address =
-          await Persona.newPersona(uuid: event.uuid).wallet().getTezosAddress();
+          await Persona.newPersona(uuid: event.uuid).wallet().getTezosAddress(index: 0);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
 

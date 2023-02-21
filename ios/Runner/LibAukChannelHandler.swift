@@ -163,6 +163,19 @@ class LibAukChannelHandler {
         ])
     }
     
+    func getETHAddressWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let index: Int = args["index"] as? Int ?? 0
+        
+        let address = LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getETHAddressWithIndex(index: index) ?? ""
+        
+        result([
+            "error": 0,
+            "data": address
+        ])
+    }
+    
     func signPersonalMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
@@ -170,6 +183,50 @@ class LibAukChannelHandler {
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .ethSign(message: [UInt8](message.data.personalSignedMessageData))
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (v, r, s) in
+                result([
+                    "error": 0,
+                    "data": "0x" + r.toHexString() + s.toHexString() + String(v + 27, radix: 16),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func signPersonalMessageWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let message = args["message"] as! FlutterStandardTypedData
+        let index: Int = args["index"] as? Int ?? 0
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .ethSignWithIndex(message: [UInt8](message.data.personalSignedMessageData), index: index)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (v, r, s) in
+                result([
+                    "error": 0,
+                    "data": "0x" + r.toHexString() + s.toHexString() + String(v + 27, radix: 16),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func signMessageWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let message = args["message"] as! FlutterStandardTypedData
+        let index: Int = args["index"] as? Int ?? 0
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .ethSignWithIndex(message: [UInt8](message.data), index: index)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -242,6 +299,44 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
+    func signTransactionWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let nonce: String = args["nonce"] as? String ?? "0"
+        let gasPrice: String = args["gasPrice"] as? String ?? "0"
+        let gasLimit: String = args["gasLimit"] as? String ?? "0"
+        let to: String = args["to"] as? String ?? ""
+        let value: String = args["value"] as? String ?? "0"
+        let data: String = args["data"] as? String ?? ""
+        let chainId: Int = args["chainId"] as? Int ?? 0
+        let index: Int = args["index"] as? Int ?? 0
+        
+        let transaction = EthereumTransaction(
+            nonce: EthereumQuantity(quantity: BigUInt(nonce, radix: 10) ?? BigUInt.zero),
+            gasPrice: EthereumQuantity(quantity: BigUInt(gasPrice, radix: 10) ?? BigUInt.zero),
+            gasLimit: EthereumQuantity(quantity: BigUInt(gasLimit, radix: 10) ?? BigUInt.zero),
+            from: nil,
+            to: try! EthereumAddress.init(hex: to, eip55: false),
+            value: EthereumQuantity(quantity: BigUInt(value, radix: 10) ?? BigUInt.zero),
+            data: try! EthereumData.string(data))
+        
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .ethSignTransactionWithIndex(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)), index: index)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { signedTx in
+                let bytes: [UInt8] = try! RLPEncoder().encode(signedTx.rlp())
+                result([
+                    "error": 0,
+                    "data": Data(bytes),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
     func signTransaction1559(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
@@ -269,6 +364,47 @@ class LibAukChannelHandler {
         
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .ethSignTransaction(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)))
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { signedTx in
+                result([
+                    "error": 0,
+                    "data": try! signedTx.rawTransaction().bytes.data,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func signTransaction1559WithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let nonce: String = args["nonce"] as? String ?? "0"
+        let gasLimit: String = args["gasLimit"] as? String ?? "0"
+        let maxPriorityFeePerGas: String = args["maxPriorityFeePerGas"] as? String ?? "0"
+        let maxFeePerGas: String = args["maxFeePerGas"] as? String ?? "0"
+        let to: String = args["to"] as? String ?? ""
+        let value: String = args["value"] as? String ?? "0"
+        let data: String = args["data"] as? String ?? ""
+        let chainId: Int = args["chainId"] as? Int ?? 0
+        let index: Int = args["index"] as? Int ?? 0
+        
+        let transaction = EthereumTransaction(
+            nonce: EthereumQuantity(quantity: BigUInt(nonce, radix: 10) ?? BigUInt.zero),
+            maxFeePerGas: EthereumQuantity(quantity: BigUInt(maxFeePerGas, radix: 10) ?? BigUInt.zero),
+            maxPriorityFeePerGas: EthereumQuantity(quantity: BigUInt(maxPriorityFeePerGas, radix: 10) ?? BigUInt.zero),
+            gasLimit: EthereumQuantity(quantity: BigUInt(gasLimit, radix: 10) ?? BigUInt.zero),
+            from: nil,
+            to: try! EthereumAddress.init(hex: to, eip55: false),
+            value: EthereumQuantity(quantity: BigUInt(value, radix: 10) ?? BigUInt.zero),
+            data: try! EthereumData.string(data),
+            transactionType: .eip1559
+        )
+        
+        
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .ethSignTransactionWithIndex(transaction: transaction, chainId: EthereumQuantity(quantity: BigUInt(chainId)), index: index)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -318,6 +454,25 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
+    func getTezosPublicKeyWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let index: Int = args["index"] as? Int ?? 0
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosPublicKeyWithIndex(index: index)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { publicKey in
+                result([
+                    "error": 0,
+                    "data": publicKey,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
     func tezosSign(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
@@ -339,6 +494,28 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
+    func tezosSignWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let message = args["message"] as! FlutterStandardTypedData
+        let index: Int = args["index"] as? Int ?? 0
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .tezosSignWithIndex(message: message.data, index: index)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { bytes in
+                result([
+                    "error": 0,
+                    "data": FlutterStandardTypedData(bytes: Data(bytes)),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
     func tezosSignTransaction(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
@@ -346,6 +523,28 @@ class LibAukChannelHandler {
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
             .tezosSignTransaction(forgedHex: forgedHex)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { bytes in
+                result([
+                    "error": 0,
+                    "data": FlutterStandardTypedData(bytes: Data(bytes)),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func tezosSignTransactionWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+        let forgedHex = args["forgedHex"] as! String
+        let index: Int = args["index"] as? Int ?? 0
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
+            .tezosSignTransactionWithIndex(forgedHex: forgedHex, index: index)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
