@@ -328,7 +328,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               final payload = await Navigator.of(context).popAndPushNamed(
                   AppRouter.sendArtworkPage,
                   arguments: SendArtworkPayload(asset, ownerWallet,
-                      await ownerWallet.getOwnedQuantity(asset))) as Map?;
+                      ownerWallet.getOwnedQuantity(asset))) as Map?;
               if (payload == null) {
                 return;
               }
