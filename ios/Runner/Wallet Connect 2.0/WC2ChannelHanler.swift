@@ -72,7 +72,7 @@ class WC2ChannelHandler: NSObject {
             result(ErrorHandler.flutterError(error: error, "getPairings error"))
         }
     }
-
+    
     @MainActor
     func activate(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
@@ -206,8 +206,12 @@ extension WC2ChannelHandler: FlutterStreamHandler {
             .sink { [weak self] sessionRequest in
                 print("[RESPONDER] WC: Did receive session request")
                 self?.pendingRequests.append(sessionRequest)
-
-                guard let data = try? JSONEncoder().encode(sessionRequest) else { return }
+                let sessions = Sign.instance.getSessions();
+                let session = sessions.first{ $0.topic == sessionRequest.topic }
+                
+                let request = CustomRequest(id: sessionRequest.id, topic: sessionRequest.topic, method: sessionRequest.method, params: sessionRequest.params, chainId: sessionRequest.chainId, proposer: session?.peer)
+                guard let data = try? JSONEncoder().encode(request) else { return }
+                
                 events([
                     "eventName": "onSessionRequest",
                     "params": String(data: data, encoding: .utf8),
@@ -241,5 +245,23 @@ struct Wc2Pairing : Codable {
         self.topic = topic
         self.expiryDate = expiryDate
         self.peer = peer
+    }
+}
+
+struct CustomRequest: Codable, Equatable {
+    public let id: RPCID
+    public let topic: String
+    public let method: String
+    public let params: AnyCodable
+    public let chainId: Blockchain
+    public let proposer: AppMetadata?
+
+    init(id: RPCID, topic: String, method: String, params: AnyCodable, chainId: Blockchain, proposer: AppMetadata?) {
+        self.id = id
+        self.topic = topic
+        self.method = method
+        self.params = params
+        self.chainId = chainId
+        self.proposer = proposer
     }
 }
