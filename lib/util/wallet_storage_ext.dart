@@ -44,15 +44,7 @@ extension StringHelper on String {
 
 extension WalletStorageExtension on WalletStorage {
   Future getOwnedQuantity(AssetToken token) async {
-    final addresses = [
-      await getETHEip55Address(),
-      await getTezosAddress(),
-    ];
-    if (token.fungible == true && token.owners.isNotEmpty) {
-      return addresses.map((e) => token.owners[e] ?? 0).sum;
-    } else {
-      return addresses.contains(token.ownerAddress) ? 1 : 0;
-    }
+    return token.balance;
   }
 
   Future getTezosAddress() async {
