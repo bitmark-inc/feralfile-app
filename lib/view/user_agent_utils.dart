@@ -101,7 +101,7 @@ class _MobileInfo extends IDeviceInfo {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
       final version = androidInfo.version.release;
-      return version == null || int.parse(version.split(".")[0]) > 9;
+      return version == null || int.parse(version.split(".")[0]) > 8;
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
       final version = iOSInfo.systemVersion;
