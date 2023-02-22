@@ -34,7 +34,7 @@ class WalletConnectService {
 
   final List<WCClient> wcClients = List.empty(growable: true);
   Map<WCPeerMeta, String> tmpUuids = {};
-  List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
+  final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
 
   WalletConnectService(
     this._navigationService,
