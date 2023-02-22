@@ -10,16 +10,15 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:roundcheckbox/roundcheckbox.dart';
 
 import '../../../util/token_ext.dart';
 
@@ -388,26 +387,8 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             right: 10,
             child: Visibility(
               visible: widget.showSelect,
-              child: RoundCheckBox(
-                border: Border.all(
-                  color: theme.colorScheme.secondary,
-                  width: 1.5,
-                ),
-                uncheckedColor: theme.colorScheme.primary,
-                uncheckedWidget: Container(
-                  padding: const EdgeInsets.all(4),
-                ),
-                checkedColor: theme.colorScheme.primary,
-                checkedWidget: Container(
-                  padding: const EdgeInsets.all(4),
-                  child: SvgPicture.asset(
-                    'assets/images/check-icon.svg',
-                    color: theme.colorScheme.secondary,
-                  ),
-                ),
-                animationDuration: const Duration(milliseconds: 100),
+              child: RadioCheckBox(
                 isChecked: isSelected,
-                size: 24,
                 onTap: onChanged,
               ),
             ),

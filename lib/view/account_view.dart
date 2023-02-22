@@ -249,11 +249,11 @@ String _blockchainName(String? blockchain) {
   }
 }
 
-Widget accountLogo(BuildContext context, Account account) {
+Widget accountLogo(BuildContext context, Account account, {double size = 29}) {
   if (account.persona != null) {
     return SizedBox(
-      width: 29,
-      height: 29,
+      width: size,
+      height: size,
       child: Stack(
         children: [
           Container(
