@@ -20,6 +20,8 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -32,7 +34,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class HomeNavigationPage extends StatefulWidget {
-  const HomeNavigationPage({Key? key}) : super(key: key);
+  final bool fromOnboarding;
+
+  const HomeNavigationPage({Key? key, this.fromOnboarding = false})
+      : super(key: key);
 
   @override
   State<HomeNavigationPage> createState() => _HomeNavigationPageState();
@@ -159,6 +164,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+
+    if (!widget.fromOnboarding) {
+      injector<TezosBeaconService>().cleanup();
+      injector<Wc2Service>().cleanup();
+    }
   }
 
   @override
