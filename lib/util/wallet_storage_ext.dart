@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
-import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/credentials.dart';
@@ -43,16 +42,8 @@ extension StringHelper on String {
 }
 
 extension WalletStorageExtension on WalletStorage {
-  Future getOwnedQuantity(AssetToken token) async {
-    final addresses = [
-      await getETHEip55Address(),
-      await getTezosAddress(),
-    ];
-    if (token.fungible == true && token.owners.isNotEmpty) {
-      return addresses.map((e) => token.owners[e] ?? 0).sum;
-    } else {
-      return addresses.contains(token.ownerAddress) ? 1 : 0;
-    }
+  int getOwnedQuantity(AssetToken token) {
+    return token.balance ?? 0;
   }
 
   Future getTezosAddress() async {

@@ -114,6 +114,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 EtherUnit.wei, widget.args.transaction.value ?? '0');
             final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
+            final balance = state.balance;
+            final canSend = total != null && balance != null && total < balance;
             return Stack(
               children: [
                 Container(
@@ -224,8 +226,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         children: [
                           Expanded(
                             child: AuFilledButton(
+                              enabled: canSend,
                               text: "send".tr().toUpperCase(),
-                              onPress: (state.fee != null && !state.isSending)
+                              onPress: (state.fee != null &&
+                                      !state.isSending &&
+                                      canSend)
                                   ? () async {
                                       metricClient.addEvent(
                                           MixpanelEvent.confirmTransaction);

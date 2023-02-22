@@ -305,7 +305,7 @@ class AppRouter {
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                   ],
-                  child: const HomeNavigationPage(),
+                  child: const HomeNavigationPage(fromOnboarding: true),
                 ),
             transitionDuration: const Duration());
 
