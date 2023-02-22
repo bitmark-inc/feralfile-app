@@ -27,29 +27,39 @@ class Persona {
   String name;
   DateTime createdAt;
   int? defaultAccount;
+  int? ethereumIndex;
+  int? tezosIndex;
 
   Persona(
       {required this.uuid,
       required this.name,
       required this.createdAt,
-      this.defaultAccount});
+      this.defaultAccount,
+      this.ethereumIndex,
+      this.tezosIndex});
 
   Persona.newPersona(
       {required this.uuid,
       this.name = "",
       this.defaultAccount,
-      DateTime? createdAt})
+      DateTime? createdAt,
+      this.ethereumIndex,
+      this.tezosIndex})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
     String? name,
     DateTime? createdAt,
+    int? ethereumIndex,
+    int? tezosIndex,
   }) {
     return Persona(
         uuid: uuid,
         name: name ?? this.name,
         defaultAccount: defaultAccount,
-        createdAt: createdAt ?? this.createdAt);
+        createdAt: createdAt ?? this.createdAt,
+        ethereumIndex: ethereumIndex,
+        tezosIndex: tezosIndex);
   }
 
   WalletStorage wallet() {
@@ -65,7 +75,9 @@ class Persona {
     return other.uuid == uuid &&
         other.name == name &&
         other.createdAt == createdAt &&
-        other.defaultAccount == defaultAccount;
+        other.defaultAccount == defaultAccount &&
+        other.ethereumIndex == ethereumIndex &&
+        other.tezosIndex == tezosIndex;
   }
 
   @override
@@ -73,6 +85,8 @@ class Persona {
     return uuid.hashCode ^
         name.hashCode ^
         createdAt.hashCode ^
-        defaultAccount.hashCode;
+        defaultAccount.hashCode ^
+        ethereumIndex.hashCode ^
+        tezosIndex.hashCode;
   }
 }

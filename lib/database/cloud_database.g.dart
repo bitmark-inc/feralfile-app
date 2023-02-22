@@ -86,7 +86,7 @@ class _$CloudDatabase extends CloudDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, PRIMARY KEY (`uuid`))');
+            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER, `tezosIndex` INTEGER, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
@@ -124,7 +124,9 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount
+                  'defaultAccount': item.defaultAccount,
+                  'ethereumIndex': item.ethereumIndex,
+                  'tezosIndex': item.tezosIndex
                 }),
         _personaUpdateAdapter = UpdateAdapter(
             database,
@@ -134,7 +136,9 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount
+                  'defaultAccount': item.defaultAccount,
+                  'ethereumIndex': item.ethereumIndex,
+                  'tezosIndex': item.tezosIndex
                 }),
         _personaDeletionAdapter = DeletionAdapter(
             database,
@@ -144,7 +148,9 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount
+                  'defaultAccount': item.defaultAccount,
+                  'ethereumIndex': item.ethereumIndex,
+                  'tezosIndex': item.tezosIndex
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -161,12 +167,14 @@ class _$PersonaDao extends PersonaDao {
 
   @override
   Future<List<Persona>> getPersonas() async {
-    return _queryAdapter.queryList("SELECT * FROM Persona",
+    return _queryAdapter.queryList('SELECT * FROM Persona',
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?));
+            defaultAccount: row['defaultAccount'] as int?,
+            ethereumIndex: row['ethereumIndex'] as int?,
+            tezosIndex: row['tezosIndex'] as int?));
   }
 
   @override
@@ -177,12 +185,15 @@ class _$PersonaDao extends PersonaDao {
             uuid: row['uuid'] as String,
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?));
+            defaultAccount: row['defaultAccount'] as int?,
+            ethereumIndex: row['ethereumIndex'] as int?,
+            tezosIndex: row['tezosIndex'] as int?));
   }
 
   @override
   Future<int?> getPersonasCount() async {
-    await _queryAdapter.queryNoReturn('SELECT COUNT(*) FROM Persona');
+    return _queryAdapter.query('SELECT COUNT(*) FROM Persona',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
@@ -192,7 +203,9 @@ class _$PersonaDao extends PersonaDao {
             uuid: row['uuid'] as String,
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?),
+            defaultAccount: row['defaultAccount'] as int?,
+            ethereumIndex: row['ethereumIndex'] as int?,
+            tezosIndex: row['tezosIndex'] as int?),
         arguments: [uuid]);
   }
 
