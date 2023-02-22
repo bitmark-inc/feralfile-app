@@ -64,7 +64,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   @override
   void dispose() {
     super.dispose();
-    Future.delayed(const Duration(seconds: 2), (){
+    Future.delayed(const Duration(seconds: 2), () {
       injector<TezosBeaconService>().handleNextRequest(isRemove: true);
     });
   }
