@@ -229,10 +229,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                         () {
                                       showInfoNotification(
                                           const Key("switchBack"),
-                                          "Switch back to your browser to continue"
-                                              .tr(),
-                                          frontWidget: loadingIndicator(
-                                              valueColor: Colors.white));
+                                          "you_all_set".tr());
                                     });
                                   }
                                 })

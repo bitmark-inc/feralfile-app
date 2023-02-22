@@ -317,12 +317,9 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                       width: 24,
                     ),
                   );
-                  Future.delayed(const Duration(seconds: 3), (){
+                  Future.delayed(const Duration(seconds: 3), () {
                     showInfoNotification(
-                      const Key("switchBack"),
-                      "Switch back to your browser to continue".tr(),
-                      frontWidget: loadingIndicator(valueColor: Colors.white)
-                    );
+                        const Key("switchBack"), "you_all_set".tr());
                   });
                 }
               }),
