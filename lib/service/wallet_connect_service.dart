@@ -34,7 +34,7 @@ class WalletConnectService {
 
   final List<WCClient> wcClients = List.empty(growable: true);
   Map<WCPeerMeta, String> tmpUuids = {};
-  List<WCSendTransactionPageArgs> handlingEthSendTransactions = [];
+  List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
 
   WalletConnectService(
     this._navigationService,
@@ -246,8 +246,8 @@ class WalletConnectService {
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
         final payload =
             WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid);
-        handlingEthSendTransactions.add(payload);
-        if (handlingEthSendTransactions.length == 1) {
+        _handlingEthSendTransactions.add(payload);
+        if (_handlingEthSendTransactions.length == 1) {
           handleEthSendTransaction();
         }
       },
@@ -257,11 +257,13 @@ class WalletConnectService {
     );
   }
 
-  void handleEthSendTransaction({bool isRemove = false}) {
+  void handleEthSendTransaction({bool isRemoved = false}) {
     log.info("[WalletConnectService]: handle EthSendTransaction]");
-    if (isRemove) handlingEthSendTransactions.removeAt(0);
-    if (handlingEthSendTransactions.isEmpty) return;
-    final payload = handlingEthSendTransactions.first;
+    if (isRemoved && _handlingEthSendTransactions.isNotEmpty) {
+      _handlingEthSendTransactions.removeAt(0);
+    }
+    if (_handlingEthSendTransactions.isEmpty) return;
+    final payload = _handlingEthSendTransactions.first;
     _navigationService.navigateTo(WCSendTransactionPage.tag,
         arguments: payload);
   }

@@ -107,7 +107,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     routeObserver.unsubscribe(this);
     injector<NavigationService>().setIsWCConnectInShow(false);
     Future.delayed(const Duration(seconds: 2), () {
-      injector<TezosBeaconService>().handleNextRequest(isRemove: true);
+      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
     });
   }
 

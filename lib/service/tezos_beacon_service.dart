@@ -129,9 +129,11 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  void handleNextRequest({bool isRemove = false}) {
+  void handleNextRequest({bool isRemoved = false}) {
     log.info("TezosBeaconService: handleRequest");
-    if (isRemove) _handlingRequests.removeAt(0);
+    if (isRemoved && _handlingRequests.isNotEmpty) {
+      _handlingRequests.removeAt(0);
+    }
     if (_handlingRequests.isEmpty) return;
     final request = _handlingRequests.first;
     if (request.type == "permission") {

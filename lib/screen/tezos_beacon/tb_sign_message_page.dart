@@ -56,7 +56,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   void dispose() {
     super.dispose();
     Future.delayed(const Duration(seconds: 2), () {
-      injector<TezosBeaconService>().handleNextRequest(isRemove: true);
+      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
     });
   }
 

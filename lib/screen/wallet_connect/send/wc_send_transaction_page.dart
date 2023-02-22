@@ -57,7 +57,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   void dispose() {
     super.dispose();
     Future.delayed(const Duration(seconds: 2), () {
-      injector<WalletConnectService>().handleEthSendTransaction(isRemove: true);
+      injector<WalletConnectService>().handleEthSendTransaction(isRemoved: true);
     });
   }
 
