@@ -168,12 +168,18 @@ class LibAukChannelHandler {
         let uuid: String = args["uuid"] as! String
         let index: Int = args["index"] as? Int ?? 0
         
-        let address = LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getETHAddressWithIndex(index: index) ?? ""
-        
-        result([
-            "error": 0,
-            "data": address
-        ])
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getETHAddressWithIndex(index: index)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { address in
+                result([
+                    "error": 0,
+                    "data":address,
+                ])
+            })
+            .store(in: &cancelBag)
     }
     
     func signPersonalMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {

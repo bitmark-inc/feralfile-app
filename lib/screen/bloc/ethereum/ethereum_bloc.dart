@@ -21,7 +21,7 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
       if (state.personaAddresses?[event.uuid] != null) return;
       final address = await Persona.newPersona(uuid: event.uuid)
           .wallet()
-          .getETHEip55Address();
+          .getETHEip55Address(index: 0);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
 
