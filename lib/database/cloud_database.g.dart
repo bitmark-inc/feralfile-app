@@ -70,7 +70,7 @@ class _$CloudDatabase extends CloudDatabase {
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 3,
+      version: 4,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -86,7 +86,7 @@ class _$CloudDatabase extends CloudDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER, `tezosIndex` INTEGER, PRIMARY KEY (`uuid`))');
+            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER NOT NULL, `tezosIndex` INTEGER NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
@@ -115,8 +115,10 @@ class _$CloudDatabase extends CloudDatabase {
 }
 
 class _$PersonaDao extends PersonaDao {
-  _$PersonaDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$PersonaDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _personaInsertionAdapter = InsertionAdapter(
             database,
             'Persona',
@@ -173,8 +175,8 @@ class _$PersonaDao extends PersonaDao {
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             defaultAccount: row['defaultAccount'] as int?,
-            ethereumIndex: row['ethereumIndex'] as int?,
-            tezosIndex: row['tezosIndex'] as int?));
+            ethereumIndex: row['ethereumIndex'] as int,
+            tezosIndex: row['tezosIndex'] as int));
   }
 
   @override
@@ -186,8 +188,8 @@ class _$PersonaDao extends PersonaDao {
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             defaultAccount: row['defaultAccount'] as int?,
-            ethereumIndex: row['ethereumIndex'] as int?,
-            tezosIndex: row['tezosIndex'] as int?));
+            ethereumIndex: row['ethereumIndex'] as int,
+            tezosIndex: row['tezosIndex'] as int));
   }
 
   @override
@@ -204,8 +206,8 @@ class _$PersonaDao extends PersonaDao {
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             defaultAccount: row['defaultAccount'] as int?,
-            ethereumIndex: row['ethereumIndex'] as int?,
-            tezosIndex: row['tezosIndex'] as int?),
+            ethereumIndex: row['ethereumIndex'] as int,
+            tezosIndex: row['tezosIndex'] as int),
         arguments: [uuid]);
   }
 

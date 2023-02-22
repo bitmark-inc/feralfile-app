@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
@@ -27,31 +28,31 @@ class Persona {
   String name;
   DateTime createdAt;
   int? defaultAccount;
-  int? ethereumIndex;
-  int? tezosIndex;
+  int ethereumIndex;
+  int tezosIndex;
 
   Persona(
       {required this.uuid,
       required this.name,
       required this.createdAt,
       this.defaultAccount,
-      this.ethereumIndex,
-      this.tezosIndex});
+      this.ethereumIndex = 1,
+      this.tezosIndex = 1});
 
   Persona.newPersona(
       {required this.uuid,
       this.name = "",
       this.defaultAccount,
       DateTime? createdAt,
-      this.ethereumIndex,
-      this.tezosIndex})
+      this.ethereumIndex = 1,
+      this.tezosIndex = 1})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
     String? name,
     DateTime? createdAt,
-    int? ethereumIndex,
-    int? tezosIndex,
+    int ethereumIndex = 1,
+    int tezosIndex = 1,
   }) {
     return Persona(
         uuid: uuid,
@@ -67,6 +68,17 @@ class Persona {
   }
 
   bool isDefault() => defaultAccount == 1;
+
+  Future<List<String>> getAddresses() async {
+    final List<String> addresses = [];
+    for (int i = 0; i < ethereumIndex; i++) {
+      addresses.add(await wallet().getETHAddress(index: i));
+    }
+    for (int i = 0; i < tezosIndex; i++) {
+      addresses.add(await wallet().getTezosAddress(index: i));
+    }
+    return addresses;
+  }
 
   @override
   bool operator ==(covariant Persona other) {

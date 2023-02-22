@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
@@ -62,7 +63,8 @@ abstract class AccountService {
 
   Future<Persona> createPersona({String name = ""});
 
-  Future<Persona> importPersona(String words);
+  Future<Persona> importPersona(String words,
+      {WalletType walletType = WalletType.Autonomy});
 
   Future<Persona> namePersona(Persona persona, String name);
 
@@ -150,7 +152,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> importPersona(String words) async {
+  Future<Persona> importPersona(String words,
+      {WalletType walletType = WalletType.Autonomy}) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
       final mnemonic = await persona.wallet().exportMnemonicWords();
@@ -164,13 +167,29 @@ class AccountServiceImpl extends AccountService {
     await walletStorage.importKey(
         words, "", DateTime.now().microsecondsSinceEpoch);
 
-    final persona = Persona.newPersona(uuid: uuid);
+    int tezosIndex = 1;
+    int ethereumIndex = 1;
+    switch (walletType) {
+      case WalletType.Ethereum:
+        tezosIndex = 0;
+        break;
+      case WalletType.Tezos:
+        ethereumIndex = 0;
+        break;
+      default:
+        break;
+    }
+    final persona = Persona.newPersona(
+        uuid: uuid, ethereumIndex: ethereumIndex, tezosIndex: tezosIndex);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient
-        .addEvent(MixpanelEvent.importFullAccount, hashedData: {"id": uuid});
+    metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
+      "id": uuid,
+      "tezosIndex": tezosIndex,
+      "ethereumIndex": ethereumIndex
+    });
     _autonomyService.postLinkedAddresses();
 
     return persona;

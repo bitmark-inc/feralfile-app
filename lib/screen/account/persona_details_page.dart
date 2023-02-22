@@ -157,6 +157,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   Widget _addressesSection(String uuid) {
     final theme = Theme.of(context);
+    print("-------");
+    print(widget.persona.ethereumIndex);
+    print(widget.persona.tezosIndex);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

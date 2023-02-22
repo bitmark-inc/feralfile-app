@@ -11,11 +11,13 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -40,7 +42,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   bool _isSubmissionEnabled = false;
 
   bool isError = false;
-
+  WalletType _walletType = WalletType.Autonomy;
+  WalletType _walletTypeSelecting = WalletType.Autonomy;
   final metricClient = injector.get<MetricClientService>();
 
   @override
@@ -122,6 +125,83 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       title: 'learn_why_this_is_safe...'.tr(),
                     ),
                     const SizedBox(height: 15),
+                    Text("1. ${"select_wallet_type".tr()}.",
+                        style: theme.textTheme.ppMori400Black14),
+                    const SizedBox(height: 15),
+                    Container(
+                        decoration: BoxDecoration(
+                            border:
+                                Border.all(color: theme.colorScheme.primary),
+                            borderRadius: BorderRadiusGeometry.lerp(
+                                const BorderRadius.all(Radius.circular(5)),
+                                const BorderRadius.all(Radius.circular(5)),
+                                5)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              UIHelper.showDialog(context, "select_your_wallet",
+                                  StatefulBuilder(builder:
+                                      (BuildContext context,
+                                          StateSetter dialogState) {
+                                return Column(
+                                  children: [
+                                    _walletTypeOption(theme,
+                                        WalletType.Autonomy, dialogState),
+                                    addDivider(
+                                        height: 40, color: AppColor.white),
+                                    _walletTypeOption(theme,
+                                        WalletType.Ethereum, dialogState),
+                                    addDivider(
+                                        height: 40, color: AppColor.white),
+                                    _walletTypeOption(
+                                        theme, WalletType.Tezos, dialogState),
+                                    const SizedBox(height: 40),
+                                    PrimaryButton(
+                                      text: "select".tr(),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        setState(() {
+                                          _walletType = _walletTypeSelecting;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 10),
+                                    OutlineButton(
+                                      onTap: () => Navigator.of(context).pop(),
+                                      text: "cancel".tr(),
+                                    )
+                                  ],
+                                );
+                              }), isDismissible: true);
+                            },
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                  color: Colors.transparent),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    _walletType.getString(),
+                                    style: theme.textTheme.ppMori400Black14,
+                                  ),
+                                  const Spacer(),
+                                  RotatedBox(
+                                    quarterTurns: 1,
+                                    child: Icon(
+                                      AuIcon.chevron_Sm,
+                                      size: 12,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                    const SizedBox(height: 15),
+                    Text("2. ${"enter_your_seed".tr()}.",
+                        style: theme.textTheme.ppMori400Black14),
+                    const SizedBox(height: 15),
                     SizedBox(
                       height: 160,
                       child: AuTextField(
@@ -174,19 +254,48 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
     );
   }
 
+  Widget _walletTypeOption(
+      ThemeData theme, WalletType walletType, StateSetter dialogState) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _walletTypeSelecting = walletType;
+        });
+        dialogState(() {});
+      },
+      child: Container(
+        decoration: const BoxDecoration(color: Colors.transparent),
+        child: Row(
+          children: [
+            Text(
+              walletType.getString(),
+              style: theme.textTheme.ppMori400White14,
+            ),
+            const Spacer(),
+            AuRadio<WalletType>(
+              onTap: (value) {},
+              value: _walletTypeSelecting,
+              groupValue: walletType,
+              color: AppColor.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future _import() async {
     try {
       setState(() {
         isError = false;
       });
 
-      final persona = await injector<AccountService>()
-          .importPersona(_phraseTextController.text.trim());
+      final persona = await injector<AccountService>().importPersona(
+          _phraseTextController.text.trim(),
+          walletType: _walletType);
       // SideEffect: pre-fetch tokens
-      injector<TokensService>().fetchTokensForAddresses([
-        (await persona.wallet().getETHEip55Address()),
-        (await persona.wallet().getTezosAddress()),
-      ]);
+      final addresses = await persona.getAddresses();
+      injector<TokensService>().fetchTokensForAddresses(addresses);
 
       if (!mounted) return;
 

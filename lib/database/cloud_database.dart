@@ -46,7 +46,9 @@ final migrateCloudV2ToV3 = Migration(2, 3, (database) async {
 
 final migrateCloudV3ToV4 = Migration(3, 4, (database) async {
   await database.execute("""
-      ALTER TABLE Persona ADD COLUMN ethereumIndex int DEFAULT(0);
-      ALTER TABLE Persona ADD COLUMN tezosIndex int DEFAULT(0);
+      ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);
+      """);
+  await database.execute("""
+      ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);
       """);
 });
