@@ -14,11 +14,13 @@ import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -48,16 +50,19 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
+  late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
   final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
 
+  bool _currentIsSubscribed = false;
+
   void _onItemTapped(int index) {
-    if (index != 2) {
+    if (index != _pages.length) {
       if (_selectedIndex == index) {
         if (index == 0) {
           _homePageKey.currentState?.scrollToTop();
         }
-        if (index == 1) {
+        if (index == _pages.length - 1) {
           _editorialPageStateKey.currentState?.scrollToTop();
         }
       }
@@ -70,7 +75,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _homePageKey.currentState
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
-      } else {
+      } else if (index == _pages.length - 1) {
         final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
@@ -155,6 +160,88 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
     ];
+    _bottomItems = [
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.collection,
+          size: 25,
+        ),
+        label: '',
+      ),
+      BottomNavigationBarItem(
+        icon: ValueListenableBuilder<int>(
+            valueListenable: injector<FeedService>().unviewedCount,
+            builder: (BuildContext context, int unreadCount, Widget? child) {
+              if (unreadCount > 0) {
+                context.read<FeedBloc>().add(GetFeedsEvent());
+              }
+              return Stack(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Icon(
+                      AuIcon.discover,
+                      size: 25,
+                    ),
+                  ),
+                  if (unreadCount > 0) ...[
+                    Positioned(
+                      left: 28,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.only(
+                          left: 3,
+                          right: 3,
+                        ),
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        constraints: const BoxConstraints(minWidth: 11),
+                        child: Center(
+                          child: Text(
+                            "$unreadCount",
+                            style: Theme.of(context)
+                                .textTheme
+                                .ppMori700White12
+                                .copyWith(
+                                  fontSize: 8,
+                                ),
+                            overflow: TextOverflow.visible,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
+              );
+            }),
+        label: '',
+      ),
+      BottomNavigationBarItem(
+        icon: ValueListenableBuilder<List<int>?>(
+          valueListenable:
+              injector<CustomerSupportService>().numberOfIssuesInfo,
+          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+              Widget? child) {
+            return iconWithRedDot(
+              icon: const Icon(
+                AuIcon.drawer,
+                size: 25,
+              ),
+              padding: const EdgeInsets.only(right: 2, top: 2),
+              withReddot:
+                  (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
+            );
+          },
+        ),
+        label: '',
+      ),
+    ];
+    _checkisSubscribed();
+    injector.get<IAPService>().purchases.addListener(_checkisSubscribed);
 
     final configService = injector<ConfigurationService>();
     if ((configService.isNotificationEnabled() ?? false) &&
@@ -169,6 +256,113 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+  }
+
+  _checkisSubscribed() async {
+    if (_currentIsSubscribed) return;
+    final isSubscribed = await injector.get<IAPService>().isSubscribed();
+    if (isSubscribed) {
+      _pages = <Widget>[
+        HomePage(key: _homePageKey),
+        const ListPlaylistsScreen(),
+        ValueListenableBuilder<bool>(
+            valueListenable: injector<FeedService>().hasFeed,
+            builder:
+                (BuildContext context, bool isShowDiscover, Widget? child) {
+              return EditorialPage(
+                  key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
+            }),
+      ];
+      _bottomItems = [
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.collection,
+            size: 25,
+          ),
+          label: '',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.playlists,
+            size: 25,
+          ),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: ValueListenableBuilder<int>(
+              valueListenable: injector<FeedService>().unviewedCount,
+              builder: (BuildContext context, int unreadCount, Widget? child) {
+                if (unreadCount > 0) {
+                  context.read<FeedBloc>().add(GetFeedsEvent());
+                }
+                return Stack(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15.0),
+                      child: Icon(
+                        AuIcon.discover,
+                        size: 25,
+                      ),
+                    ),
+                    if (unreadCount > 0) ...[
+                      Positioned(
+                        left: 28,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.only(
+                            left: 3,
+                            right: 3,
+                          ),
+                          height: 11,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          constraints: const BoxConstraints(minWidth: 11),
+                          child: Center(
+                            child: Text(
+                              "$unreadCount",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .ppMori700White12
+                                  .copyWith(
+                                    fontSize: 8,
+                                  ),
+                              overflow: TextOverflow.visible,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ]
+                  ],
+                );
+              }),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: ValueListenableBuilder<List<int>?>(
+            valueListenable:
+                injector<CustomerSupportService>().numberOfIssuesInfo,
+            builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                Widget? child) {
+              return iconWithRedDot(
+                icon: const Icon(
+                  AuIcon.drawer,
+                  size: 25,
+                ),
+                padding: const EdgeInsets.only(right: 2, top: 2),
+                withReddot:
+                    (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
+              );
+            },
+          ),
+          label: '',
+        ),
+      ];
+      _currentIsSubscribed = isSubscribed;
+      setState(() {});
+    }
   }
 
   @override
@@ -235,85 +429,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         backgroundColor: theme.colorScheme.background.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(
-              AuIcon.collection,
-              size: 25,
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: ValueListenableBuilder<int>(
-                valueListenable: injector<FeedService>().unviewedCount,
-                builder:
-                    (BuildContext context, int unreadCount, Widget? child) {
-                  if (unreadCount > 0) {
-                    context.read<FeedBloc>().add(GetFeedsEvent());
-                  }
-                  return Stack(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15.0),
-                        child: Icon(
-                          AuIcon.discover,
-                          size: 25,
-                        ),
-                      ),
-                      if (unreadCount > 0) ...[
-                        Positioned(
-                          left: 28,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.only(
-                              left: 3,
-                              right: 3,
-                            ),
-                            height: 11,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            constraints: const BoxConstraints(minWidth: 11),
-                            child: Center(
-                              child: Text(
-                                "$unreadCount",
-                                style:
-                                    theme.textTheme.ppMori700White12.copyWith(
-                                  fontSize: 8,
-                                ),
-                                overflow: TextOverflow.visible,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]
-                    ],
-                  );
-                }),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: ValueListenableBuilder<List<int>?>(
-              valueListenable:
-                  injector<CustomerSupportService>().numberOfIssuesInfo,
-              builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                  Widget? child) {
-                return iconWithRedDot(
-                  icon: const Icon(
-                    AuIcon.drawer,
-                    size: 25,
-                  ),
-                  padding: const EdgeInsets.only(right: 2, top: 2),
-                  withReddot:
-                      (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
-                );
-              },
-            ),
-            label: '',
-          ),
-        ],
+        items: _bottomItems,
       ),
       body: PageView(
         controller: _pageController,

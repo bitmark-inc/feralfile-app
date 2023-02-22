@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist_state.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

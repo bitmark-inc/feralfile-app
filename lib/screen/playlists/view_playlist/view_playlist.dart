@@ -3,9 +3,9 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/edit_playlist/widgets/text_name_playlist.dart';
-import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -24,7 +24,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import '../../util/iterable_ext.dart';
+import '../../../util/iterable_ext.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {

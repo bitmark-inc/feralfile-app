@@ -16,8 +16,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 class HeaderView extends StatelessWidget {
   final double paddingTop;
   final bool isWhite;
+  final Widget? action;
 
-  const HeaderView({Key? key, required this.paddingTop, this.isWhite = false})
+  const HeaderView(
+      {Key? key, required this.paddingTop, this.isWhite = false, this.action})
       : super(key: key);
 
   @override
@@ -30,11 +32,17 @@ class HeaderView extends StatelessWidget {
           children: [
             headDivider(),
             const SizedBox(height: 7),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: AutonomyLogo(
-                isWhite: isWhite,
-              ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 15),
+                  child: AutonomyLogo(
+                    isWhite: isWhite,
+                  ),
+                ),
+                const Spacer(),
+                action ?? const SizedBox()
+              ],
             ),
           ],
         ),
