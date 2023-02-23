@@ -46,7 +46,7 @@ samples, guidance on mobile development, and a full API reference.
 We welcome contributions of any kind including new features, bug fixes, and documentation improvements. Please first open an issue describing what you want to build if it is a major change so that we can discuss how to move forward. Otherwise, go ahead and open a pull request for minor changes such as typo fixes and one liners.
 
 ### Discussions:
-Join us on [Discord](https://discord.com/invite/Wm2ZvGSxqg) to give feedback and help us shape new features.
+Join us on [Discord](https://discord.gg/3BBkrjS4n7) to give feedback and help us shape new features.
 
 ## License
 ```
