@@ -129,10 +129,6 @@ class _SupportListPageState extends State<SupportListPage>
 
               case AnnouncementLocal:
                 final issue = chatThread as AnnouncementLocal;
-                final reportIssueType =
-                    issue.announcementContextId == AnnouncementID.PRO_CHAT.value
-                        ? ReportIssueType.ProChat
-                        : ReportIssueType.Announcement;
                 bool hasDivider = (index < issues.length - 1);
                 return Padding(
                   padding: EdgeInsets.symmetric(
@@ -143,7 +139,7 @@ class _SupportListPageState extends State<SupportListPage>
                     onTap: () => Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
                       arguments: NewIssuePayload(
-                        reportIssueType: reportIssueType,
+                        reportIssueType: ReportIssueType.Announcement,
                         announcement: issue,
                       ),
                     ),

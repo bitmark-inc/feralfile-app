@@ -141,7 +141,6 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
-  static const ProChat = 'pro chat';
 
   static List<String> get getList => [
         Feature,
@@ -150,8 +149,7 @@ class ReportIssueType {
         Other,
         Exception,
         ReportNFTIssue,
-        Announcement,
-        ProChat
+        Announcement
       ];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
@@ -170,8 +168,6 @@ class ReportIssueType {
         return 'Report NFT issue';
       case Announcement:
         return "Announcement";
-      case ProChat:
-        return "PRO Chat";
       default:
         return 'Something else?';
     }
@@ -241,8 +237,7 @@ enum CryptoType {
 
 enum AnnouncementID {
   WELCOME("welcome"),
-  SUBSCRIBE("subscription"),
-  PRO_CHAT("proChat");
+  SUBSCRIBE("subscription"),;
 
   const AnnouncementID(this.value);
   final String value;
