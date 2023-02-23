@@ -142,15 +142,8 @@ class ReportIssueType {
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
 
-  static List<String> get getList => [
-        Feature,
-        Bug,
-        Feedback,
-        Other,
-        Exception,
-        ReportNFTIssue,
-        Announcement
-      ];
+  static List<String> get getList =>
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -237,9 +230,11 @@ enum CryptoType {
 
 enum AnnouncementID {
   WELCOME("welcome"),
-  SUBSCRIBE("subscription"),;
+  SUBSCRIBE("subscription"),
+  ;
 
   const AnnouncementID(this.value);
+
   final String value;
 }
 
