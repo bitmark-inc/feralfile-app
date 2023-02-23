@@ -541,12 +541,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             return false;
           }));
     }
-    if (!_configurationService.isPremium()) {
-      issues.removeWhere(
-          (element) => element.reportIssueType == ReportIssueType.ProChat);
-      announcements.removeWhere((element) =>
-          element.announcementContextId == AnnouncementID.PRO_CHAT.value);
-    }
     result.addAll(issues);
     result.addAll(announcements);
     numberOfIssuesInfo.value = [
@@ -616,17 +610,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
     final announcement = await _announcementDao.getAnnouncement(type.value);
-    if (type == AnnouncementID.SUBSCRIBE) {
-      int now = DateTime.now().millisecondsSinceEpoch;
-      _announcementDao.insertAnnouncement(AnnouncementLocal(
-          announcementContextId: AnnouncementID.PRO_CHAT.value,
-          title: "",
-          body: "pro_chat_body".tr(),
-          createdAt: now,
-          announceAt: now,
-          type: type.value,
-          unread: true));
-    }
     if (announcement != null) {
       await getIssuesAndAnnouncement();
       showInfoNotification(

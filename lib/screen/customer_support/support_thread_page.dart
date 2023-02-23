@@ -221,17 +221,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
-    if (widget.payload.announcement!.isMetricAnnouncement()) {
-      final metricClient = injector.get<MetricClientService>();
-      metricClient.addEvent(
-        MixpanelEvent.readAnnouncement,
-        data: {
-          "id": announcement.announcementContextId,
-          "type": announcement.type,
-          "title": announcement.title,
-        },
-      );
-    }
+    final metricClient = injector.get<MetricClientService>();
+    metricClient.addEvent(
+      MixpanelEvent.readAnnouncement,
+      data: {
+        "id": announcement.announcementContextId,
+        "type": announcement.type,
+        "title": announcement.title,
+      },
+    );
   }
 
   @override
@@ -694,8 +692,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = "TEMP-${const Uuid().v4()}";
 
       final payload = widget.payload;
-      if (payload.announcement != null &&
-          payload.announcement!.isMetricAnnouncement()) {
+      if (payload.announcement != null) {
         final metricClient = injector.get<MetricClientService>();
         final announcement = payload.announcement!;
         metricClient.addEvent(
