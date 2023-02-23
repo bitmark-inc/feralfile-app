@@ -142,13 +142,21 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             children: [
               AuSecondaryButton(
                 text: ReportIssueType.toTitle(item),
-                onPressed: () => Navigator.of(context).pushNamed(
-                  AppRouter.supportThreadPage,
-                  arguments: NewIssuePayload(reportIssueType: item),
-                ),
+                onPressed: () {
+                  if (isCustomerSupportAvailable) {
+                    Navigator.of(context).pushNamed(
+                      AppRouter.supportThreadPage,
+                      arguments: NewIssuePayload(reportIssueType: item),
+                    );
+                  }
+                },
                 backgroundColor: Colors.white,
-                borderColor: Colors.black,
-                textColor: Colors.black,
+                borderColor: isCustomerSupportAvailable
+                    ? AppColor.primaryBlack
+                    : AppColor.auGrey,
+                textColor: isCustomerSupportAvailable
+                    ? AppColor.primaryBlack
+                    : AppColor.auGrey,
               ),
               const SizedBox(height: 10),
             ],
