@@ -62,6 +62,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   late CurrencyExchangeRate exchangeRate;
 
   @override
+  void dispose() {
+    super.dispose();
+    Future.delayed(const Duration(seconds: 2), () {
+      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
+    });
+  }
+
+  @override
   void initState() {
     _wc2Service = injector<Wc2Service>();
     super.initState();
