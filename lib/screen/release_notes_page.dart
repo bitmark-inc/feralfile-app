@@ -12,9 +12,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tag_markdown.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class ReleaseNotesPage extends StatefulWidget {
@@ -52,26 +54,65 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Markdown(
-                data: widget.releaseNotes,
-                softLineBreak: true,
-                padding: const EdgeInsets.only(bottom: 50, top: 32),
-                styleSheet: markDownChangeLogStyle(context),
-                builders: <String, MarkdownElementBuilder>{
-                  '#': TagBuilder(),
-                },
-                blockSyntaxes: [
-                  TagBlockSyntax(),
-                ],
-                onTapLink: (text, href, title) async {
-                  if (href == null) return;
-                  if (DEEP_LINKS.any((prefix) => href.startsWith(prefix))) {
-                    injector<DeeplinkService>()
-                        .handleDeeplink(href, delay: Duration.zero);
-                  } else if (await canLaunchUrlString(href)) {
-                    launchUrlString(href, mode: LaunchMode.externalApplication);
-                  }
-                },
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 60.0),
+                    Text(
+                      "believe_transparency".tr(),
+                      style: theme.textTheme.ppMori700Black16,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "autonomy_is_".tr(),
+                          style: theme.textTheme.ppMori400Black16,
+                        ),
+                        GestureDetector(
+                          child: Text(
+                            "open_source".tr(),
+                            style: theme.textTheme.ppMori400Black16
+                                .copyWith(decoration: TextDecoration.underline),
+                          ),
+                          onTap: () => launchUrl(
+                              Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK),
+                              mode: LaunchMode.externalApplication),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30.0),
+                    Divider(
+                      color: theme.auSuperTeal,
+                      thickness: 1,
+                    ),
+                    Markdown(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      data: widget.releaseNotes,
+                      softLineBreak: true,
+                      padding: const EdgeInsets.only(bottom: 32, top: 32),
+                      styleSheet: markDownChangeLogStyle(context),
+                      builders: <String, MarkdownElementBuilder>{
+                        '#': TagBuilder(),
+                      },
+                      blockSyntaxes: [
+                        TagBlockSyntax(),
+                      ],
+                      onTapLink: (text, href, title) async {
+                        if (href == null) return;
+                        if (DEEP_LINKS
+                            .any((prefix) => href.startsWith(prefix))) {
+                          injector<DeeplinkService>()
+                              .handleDeeplink(href, delay: Duration.zero);
+                        } else if (await canLaunchUrlString(href)) {
+                          launchUrlString(href,
+                              mode: LaunchMode.externalApplication);
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

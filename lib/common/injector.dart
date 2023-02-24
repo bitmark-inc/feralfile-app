@@ -115,10 +115,16 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => cloudDB);
 
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: 10000,
+    receiveTimeout: 10000,
+  );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
+  dio.options = dioOptions;
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
@@ -138,7 +144,7 @@ Future<void> setup() async {
     ],
   ));
   authenticatedDio.addSentry(captureFailedRequests: true);
-  authenticatedDio.options = BaseOptions(followRedirects: true);
+  authenticatedDio.options = dioOptions;
 
   // Services
   final auditService = AuditServiceImpl(cloudDB);
@@ -251,8 +257,9 @@ Future<void> setup() async {
       ? Environment.tezosNodeClientTestnetURL
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
   injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
-  injector.registerLazySingleton<FeralFileApi>(() =>
-      FeralFileApi(_feralFileDio(), baseUrl: Environment.feralFileAPIURL));
+  injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
+      _feralFileDio(dioOptions),
+      baseUrl: Environment.feralFileAPIURL));
   injector.registerLazySingleton<BitmarkApi>(
       () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
@@ -298,7 +305,7 @@ Future<void> setup() async {
           PlayControlService(timer: 0, isLoop: false, isShuffle: false)));
 }
 
-Dio _feralFileDio() {
+Dio _feralFileDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(FeralfileAuthInterceptor());
@@ -316,6 +323,7 @@ Dio _feralFileDio() {
   ));
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
+  dio.options = options;
   return dio;
 }
 

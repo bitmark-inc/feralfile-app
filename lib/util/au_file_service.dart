@@ -128,8 +128,6 @@ class AuFileService extends FileService {
             await FlutterImageCompress.compressAndGetFile(
               originalFile,
               compressedFile,
-              minWidth: 400,
-              minHeight: 400,
               quality: 90,
             );
             if (await File(compressedFile).exists()) {

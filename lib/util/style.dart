@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -38,9 +37,7 @@ MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
 
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
-  final bodyText2 = ResponsiveLayout.isMobile
-      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
-      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
+  final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
@@ -52,20 +49,20 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
       decorationColor: textColor,
       decorationThickness: 1,
     ),
-    p: theme.textTheme.bodyLarge?.copyWith(color: textColor),
+    p: bodyText2,
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.displayLarge?.copyWith(color: textColor),
+    h1: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h1Padding: const EdgeInsets.only(bottom: 40),
-    h2: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h2: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.displaySmall?.copyWith(color: textColor),
+    h3: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h4: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.titleSmall?.copyWith(color: textColor),
+    h5: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.titleLarge?.copyWith(color: textColor),
+    h6: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h6Padding: EdgeInsets.zero,
     em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -242,9 +239,7 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
 MarkdownStyleSheet markDownDetailPageStyle(
     BuildContext context, Color textColor) {
   final theme = Theme.of(context);
-  final bodyText2 = ResponsiveLayout.isMobile
-      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
-      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
+  final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
@@ -256,20 +251,20 @@ MarkdownStyleSheet markDownDetailPageStyle(
       decorationColor: textColor,
       decorationThickness: 1,
     ),
-    p: theme.textTheme.bodyLarge?.copyWith(color: textColor),
+    p: bodyText2,
     pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.displayLarge?.copyWith(color: textColor),
+    h1: theme.textTheme.ppMori700Black16,
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h2: theme.textTheme.ppMori700Black16,
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.displaySmall?.copyWith(color: textColor),
+    h3: theme.textTheme.ppMori700Black16,
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h4: theme.textTheme.ppMori700Black16,
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.titleSmall?.copyWith(color: textColor),
+    h5: theme.textTheme.ppMori700Black16,
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.titleLarge?.copyWith(color: textColor),
+    h6: theme.textTheme.ppMori700Black16,
     h6Padding: EdgeInsets.zero,
     em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
