@@ -249,8 +249,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     injector.get<IAPService>().purchases.addListener(_checkisSubscribed);
 
     final configService = injector<ConfigurationService>();
-    if ((configService.isNotificationEnabled() ?? false) &&
-        !configService.isReadRemoveSupport()) {
+    if (!configService.isReadRemoveSupport()) {
       _showRemoveCustomerSupport();
     }
     OneSignal.shared
