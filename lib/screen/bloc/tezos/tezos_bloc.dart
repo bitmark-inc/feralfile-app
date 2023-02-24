@@ -6,46 +6,42 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
 part 'tezos_state.dart';
 
 class TezosBloc extends AuBloc<TezosEvent, TezosState> {
   final TezosService _tezosService;
+  final CloudDatabase _cloudDB;
 
-  TezosBloc(this._tezosService) : super(TezosState(null, {})) {
+  TezosBloc(this._tezosService, this._cloudDB) : super(TezosState(null, {})) {
     on<GetTezosAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
-      final address = await Persona.newPersona(uuid: event.uuid)
-          .wallet()
-          .getTezosAddress(index: 0);
+      final persona = await _cloudDB.personaDao.findById(event.uuid);
+      if (persona == null || persona.tezosIndex < 1) return;
+      final addresses = await persona.getTezosAddresses();
       var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] = address;
+      personaAddresses[event.uuid] = addresses;
 
       emit(state.copyWith(personaAddresses: personaAddresses));
     });
 
     on<GetTezosBalanceWithAddressEvent>((event, emit) async {
-      final balance = await _tezosService.getBalance(event.address);
-
-      var balances = state.balances;
-      balances[event.address] = balance;
-
-      emit(state.copyWith(balances: balances));
+      var tezosBalances = state.balances;
+      for (var address in event.addresses) {
+        final tezosBalance = await _tezosService.getBalance(address);
+        tezosBalances[address] = tezosBalance;
+      }
+      emit(state.copyWith(balances: tezosBalances));
     });
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
-      final address =
-          await Persona.newPersona(uuid: event.uuid).wallet().getTezosAddress();
+      final persona = await _cloudDB.personaDao.findById(event.uuid);
+      if (persona == null || persona.tezosIndex < 1) return;
+      final addresses = await persona.getTezosAddresses();
 
-      final balance = await _tezosService.getBalance(address);
-
-      var balances = state.balances;
-      balances[address] = balance;
-
-      emit(state.copyWith(balances: balances));
+      add(GetTezosBalanceWithAddressEvent(addresses));
     });
   }
 }

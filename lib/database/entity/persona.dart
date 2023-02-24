@@ -51,16 +51,16 @@ class Persona {
   Persona copyWith({
     String? name,
     DateTime? createdAt,
-    int ethereumIndex = 1,
-    int tezosIndex = 1,
+    int? ethereumIndex,
+    int? tezosIndex,
   }) {
     return Persona(
         uuid: uuid,
         name: name ?? this.name,
         defaultAccount: defaultAccount,
         createdAt: createdAt ?? this.createdAt,
-        ethereumIndex: ethereumIndex,
-        tezosIndex: tezosIndex);
+        ethereumIndex: ethereumIndex ?? this.ethereumIndex,
+        tezosIndex: tezosIndex ?? this.tezosIndex);
   }
 
   WalletStorage wallet() {
@@ -71,9 +71,21 @@ class Persona {
 
   Future<List<String>> getAddresses() async {
     final List<String> addresses = [];
+    addresses.addAll(await getEthAddresses());
+    addresses.addAll(await getTezosAddresses());
+    return addresses;
+  }
+
+  Future<List<String>> getEthAddresses() async {
+    final List<String> addresses = [];
     for (int i = 0; i < ethereumIndex; i++) {
       addresses.add(await wallet().getETHAddress(index: i));
     }
+    return addresses;
+  }
+
+  Future<List<String>> getTezosAddresses() async {
+    final List<String> addresses = [];
     for (int i = 0; i < tezosIndex; i++) {
       addresses.add(await wallet().getTezosAddress(index: i));
     }

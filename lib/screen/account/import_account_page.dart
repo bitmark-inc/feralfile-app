@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -141,9 +142,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                           child: GestureDetector(
                             onTap: () {
                               UIHelper.showDialog(context, "select_your_wallet",
-                                  StatefulBuilder(builder:
-                                      (BuildContext context,
-                                          StateSetter dialogState) {
+                                  StatefulBuilder(builder: (
+                                BuildContext context,
+                                StateSetter dialogState,
+                              ) {
                                 return Column(
                                   children: [
                                     _walletTypeOption(theme,
@@ -173,7 +175,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                                     )
                                   ],
                                 );
-                              }), isDismissible: true);
+                              }),
+                                  isDismissible: true,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 32));
                             },
                             child: Container(
                               decoration: const BoxDecoration(
@@ -256,29 +261,32 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
   Widget _walletTypeOption(
       ThemeData theme, WalletType walletType, StateSetter dialogState) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _walletTypeSelecting = walletType;
-        });
-        dialogState(() {});
-      },
-      child: Container(
-        decoration: const BoxDecoration(color: Colors.transparent),
-        child: Row(
-          children: [
-            Text(
-              walletType.getString(),
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const Spacer(),
-            AuRadio<WalletType>(
-              onTap: (value) {},
-              value: _walletTypeSelecting,
-              groupValue: walletType,
-              color: AppColor.white,
-            ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _walletTypeSelecting = walletType;
+          });
+          dialogState(() {});
+        },
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              Text(
+                walletType.getString(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              const Spacer(),
+              AuRadio<WalletType>(
+                onTap: (value) {},
+                value: _walletTypeSelecting,
+                groupValue: walletType,
+                color: AppColor.white,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -293,6 +301,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       final persona = await injector<AccountService>().importPersona(
           _phraseTextController.text.trim(),
           walletType: _walletType);
+      log.info("Import wallet: ${_walletType.getString()}");
       // SideEffect: pre-fetch tokens
       final addresses = await persona.getAddresses();
       injector<TokensService>().fetchTokensForAddresses(addresses);

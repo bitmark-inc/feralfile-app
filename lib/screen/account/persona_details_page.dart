@@ -157,9 +157,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   Widget _addressesSection(String uuid) {
     final theme = Theme.of(context);
-    print("-------");
-    print(widget.persona.ethereumIndex);
-    print(widget.persona.tezosIndex);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,17 +170,26 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         ),
         const SizedBox(height: 40),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
-          final ethAddress = state.personaAddresses?[uuid];
-          final ethBalance = state.ethBalances[ethAddress];
-          final balance = ethBalance == null
-              ? "-- ETH"
-              : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
-          return _addressRow(
-              address: state.personaAddresses?[uuid] ?? "",
-              type: CryptoType.ETH,
-              balance: balance);
+          final ethAddresses = state.personaAddresses?[uuid];
+          if (ethAddresses == null || ethAddresses.isEmpty) {
+            return const SizedBox();
+          }
+          return Column(
+            children: ethAddresses
+                .map((address) => Column(
+                      children: [
+                        _addressRow(
+                            address: address,
+                            type: CryptoType.ETH,
+                            balance: state.ethBalances[address] == null
+                                ? "-- ETH"
+                                : "${EthAmountFormatter(state.ethBalances[address]!.getInWei).format()} ETH"),
+                        addDivider(),
+                      ],
+                    ))
+                .toList(),
+          );
         }),
-        addDivider(),
         BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
           final usdcAddress = state.personaAddresses?[uuid];
           final usdcBalance = state.usdcBalances[usdcAddress];
@@ -198,14 +204,24 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         addDivider(),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
           final tezosAddress = state.personaAddresses?[uuid];
-          final xtzBalance = state.balances[tezosAddress];
-          final balance = xtzBalance == null
-              ? "-- XTZ"
-              : "${XtzAmountFormatter(xtzBalance).format()} XTZ";
-          return _addressRow(
-            address: state.personaAddresses?[uuid] ?? "",
-            type: CryptoType.XTZ,
-            balance: balance,
+          if (tezosAddress == null || tezosAddress.isEmpty) {
+            return const SizedBox();
+          }
+          return Column(
+            children: tezosAddress
+                .map((address) => Column(
+                      children: [
+                        _addressRow(
+                          address: address,
+                          type: CryptoType.XTZ,
+                          balance: state.balances[address] == null
+                              ? "-- XTZ"
+                              : "${XtzAmountFormatter(state.balances[address]!).format()} XTZ",
+                        ),
+                        addDivider(),
+                      ],
+                    ))
+                .toList(),
           );
         }),
         addDivider(),

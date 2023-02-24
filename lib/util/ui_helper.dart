@@ -114,12 +114,17 @@ class UIHelper {
   static final metricClient = injector.get<MetricClientService>();
 
   static Future<void> showDialog(
-      BuildContext context, String title, Widget content,
-      {bool isDismissible = false,
-      isRoundCorner = true,
-      Color? backgroundColor,
-      int autoDismissAfter = 0,
-      FeedbackType? feedback = FeedbackType.selection}) async {
+    BuildContext context,
+    String title,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+    EdgeInsets? padding,
+    EdgeInsets? paddingTitle,
+  }) async {
     log.info("[UIHelper] showInfoDialog: $title");
     currentDialogTitle = title;
     final theme = Theme.of(context);
@@ -158,13 +163,18 @@ class UIHelper {
                       )
                     : null,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              padding: padding ??
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.primaryTextTheme.ppMori700White24),
+                    Padding(
+                      padding: paddingTitle ?? const EdgeInsets.all(0),
+                      child: Text(title,
+                          style: theme.primaryTextTheme.ppMori700White24),
+                    ),
                     const SizedBox(height: 40),
                     content,
                   ],

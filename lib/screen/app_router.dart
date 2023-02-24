@@ -206,8 +206,8 @@ class AppRouter {
   static const helpUsPage = 'help_us_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final ethereumBloc = EthereumBloc(injector());
-    final tezosBloc = TezosBloc(injector());
+    final ethereumBloc = EthereumBloc(injector(), injector());
+    final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
