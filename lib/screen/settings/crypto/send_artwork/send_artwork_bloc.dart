@@ -147,7 +147,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       switch (type) {
         case CryptoType.ETH:
           final wallet = state.wallet;
-          if (wallet == null) return;
+          final index = state.index;
+          if (wallet == null || index == null) return;
 
           final contractAddress =
               EthereumAddress.fromHex(event.contractAddress);
@@ -164,12 +165,13 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                   feeOption: state.feeOption);
 
           feeOptionValue = await _ethereumService.estimateFee(
-              wallet, contractAddress, EtherAmount.zero(), data);
+              wallet, index, contractAddress, EtherAmount.zero(), data);
           fee = feeOptionValue.getFee(state.feeOption);
           break;
         case CryptoType.XTZ:
           final wallet = state.wallet;
-          if (wallet == null) return;
+          final index = state.index;
+          if (wallet == null || index == null) return;
           try {
             final operation = await _tezosService.getFa2TransferOperation(
                 event.contractAddress,
@@ -178,7 +180,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 event.tokenId,
                 event.quantity);
             final tezosFee = await _tezosService.estimateOperationFee(
-                await wallet.getTezosPublicKey(), [operation],
+                await wallet.getTezosPublicKey(index: index), [operation],
                 baseOperationCustomFee:
                     state.feeOption.tezosBaseOperationCustomFee);
             fee = BigInt.from(tezosFee);

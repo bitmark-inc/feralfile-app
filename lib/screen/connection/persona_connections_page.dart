@@ -241,13 +241,11 @@ class PersonaConnectionsPayload {
   final String personaUUID;
   final String address;
   final CryptoType type;
-  final String personaName;
   final bool isBackHome;
 
   PersonaConnectionsPayload(
       {required this.personaUUID,
       required this.address,
       required this.type,
-      required this.personaName,
       this.isBackHome = false});
 }

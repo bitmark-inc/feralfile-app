@@ -70,7 +70,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                 feeOption: widget.payload.feeOption);
 
         final txHash = await ethereumService.sendTransaction(
-            widget.payload.wallet, contractAddress, BigInt.zero, data,
+            widget.payload.wallet,
+            widget.payload.index,
+            contractAddress,
+            BigInt.zero,
+            data,
             feeOption: widget.payload.feeOption);
 
         //post pending token to indexer
@@ -78,6 +82,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
           final signature = await ethereumService.signPersonalMessage(
               widget.payload.wallet,
+              widget.payload.index,
               Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
             blockchain: asset.blockchain,
@@ -103,7 +108,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         final tokenId = asset.tokenId!;
 
         final wallet = widget.payload.wallet;
-        final address = await wallet.getTezosAddress();
+        final index = widget.payload.index;
+        final address = await wallet.getTezosAddress(index: index);
         final operation = await tezosService.getFa2TransferOperation(
           widget.payload.asset.contractAddress!,
           address,
@@ -112,7 +118,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           widget.payload.quantity,
         );
         final opHash = await tezosService.sendOperationTransaction(
-            wallet, [operation],
+            wallet, index, [operation],
             baseOperationCustomFee:
                 widget.payload.feeOption.tezosBaseOperationCustomFee);
         final exchangeRateXTZ =
@@ -121,10 +127,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         //post pending token to indexer
         if (opHash != null) {
           final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-          final publicKey = await widget.payload.wallet.getTezosPublicKey();
+          final publicKey = await wallet.getTezosPublicKey(index: index);
           final signature = await tezosService.signMessage(
-              widget.payload.wallet,
-              Uint8List.fromList(utf8.encode(timestamp)));
+              wallet, index, Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
             blockchain: asset.blockchain,
             id: asset.tokenId ?? "",
@@ -371,6 +376,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 class SendArtworkReviewPayload {
   final AssetToken asset;
   final WalletStorage wallet;
+  final int index;
   final String address;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
@@ -382,6 +388,7 @@ class SendArtworkReviewPayload {
   SendArtworkReviewPayload(
       this.asset,
       this.wallet,
+      this.index,
       this.address,
       this.fee,
       this.exchangeRate,

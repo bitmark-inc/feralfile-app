@@ -22,24 +22,18 @@ import 'package:share/share.dart';
 class GlobalReceiveDetailPage extends StatefulWidget {
   static const tag = "global_receive_detail";
 
-  final Object? payload;
+  final GlobalReceivePayload payload;
 
   const GlobalReceiveDetailPage({Key? key, required this.payload})
       : super(key: key);
+
   @override
   State<GlobalReceiveDetailPage> createState() =>
       _GlobalReceiveDetailPageState();
 }
 
 class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
-  late Account _account;
   bool _copied = false;
-
-  @override
-  void initState() {
-    _account = widget.payload as Account;
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +58,14 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                 child: GestureDetector(
                     onTap: copy,
                     child: QrImage(
-                      data: _account.accountNumber,
+                      data: widget.payload.address,
                       size: 180.0,
                     )),
               ),
               const SizedBox(height: 48),
-              Text((_blockchainNFTText(_account.blockchain)),
+              Text((_blockchainNFTText(widget.payload.blockchain)),
                   style: theme.textTheme.headlineMedium),
-              accountItem(context, _account),
+              accountItem(context, widget.payload.account),
               GestureDetector(
                   onTap: copy,
                   child: Container(
@@ -97,7 +91,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                           Padding(
                             padding: const EdgeInsets.only(left: 8),
                             child: Text(
-                              _account.accountNumber,
+                              widget.payload.address,
                               textAlign: TextAlign.start,
                               softWrap: true,
                               style: theme.textTheme.titleSmall,
@@ -119,7 +113,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                           : const SizedBox())),
               const SizedBox(height: 4),
               Text(
-                _blockchainWarningText(_account.blockchain),
+                _blockchainWarningText(widget.payload.blockchain),
                 style: ResponsiveLayout.isMobile
                     ? theme.textTheme.atlasGreyNormal12
                     : theme.textTheme.atlasGreyNormal14,
@@ -132,7 +126,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               horizontal: 16.0, vertical: safeAreaBottom > 0 ? 40 : 16),
           child: PrimaryButton(
               text: "share".tr(),
-              onTap: () => Share.share(_account.accountNumber,
+              onTap: () => Share.share(widget.payload.address,
                   subject: "my_account_number".tr())),
         ),
       ]),
@@ -141,7 +135,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 
   copy() {
     Vibrate.feedback(FeedbackType.light);
-    Clipboard.setData(ClipboardData(text: _account.accountNumber));
+    Clipboard.setData(ClipboardData(text: widget.payload.address));
     setState(() {
       _copied = true;
     });
@@ -177,4 +171,12 @@ String _blockchainWarningText(String? blockchain) {
     default:
       return "";
   }
+}
+
+class GlobalReceivePayload {
+  String address;
+  String blockchain;
+  Account account;
+
+  GlobalReceivePayload({required this.address, required this.blockchain, required this.account});
 }

@@ -44,11 +44,12 @@ class PersonaState {
   Persona? persona;
   List<Persona>? personas;
 
-  PersonaState(
-      {this.createAccountState = ActionState.notRequested,
-      this.namePersonaState = ActionState.notRequested,
-      this.persona,
-      this.personas});
+  PersonaState({
+    this.createAccountState = ActionState.notRequested,
+    this.namePersonaState = ActionState.notRequested,
+    this.persona,
+    this.personas,
+  });
 
   PersonaState copyWith({
     ActionState? createAccountState,

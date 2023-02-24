@@ -50,7 +50,19 @@ extension WalletStorageExtension on WalletStorage {
     final publicKey = await getTezosPublicKey(index: index);
     return crypto.addressFromPublicKey(publicKey);
   }
+  getTezosAddressFromPubKey(String publicKey) {
+    return crypto.addressFromPublicKey(publicKey);
+  }
+}
 
+class WalletIndex {
+  final WalletStorage wallet;
+  final int index;
+
+  WalletIndex(this.wallet, this.index);
+}
+
+extension WalletIndexExtension on WalletIndex {
   Future<String> signMessage({
     required String chain,
     required String message,
@@ -58,11 +70,12 @@ extension WalletStorageExtension on WalletStorage {
     var msg = Uint8List.fromList(utf8.encode(message));
     switch (chain.caip2Namespace) {
       case Wc2Chain.ethereum:
-        return await injector<EthereumService>().signPersonalMessage(this, msg);
+        return await injector<EthereumService>()
+            .signPersonalMessage(wallet, index, msg);
       case Wc2Chain.tezos:
-        return await injector<TezosService>().signMessage(this, msg);
+        return await injector<TezosService>().signMessage(wallet, index, msg);
       case Wc2Chain.autonomy:
-        return await getAccountDIDSignature(message);
+        return await wallet.getAccountDIDSignature(message);
     }
     throw Exception("Unsupported chain $chain");
   }
@@ -73,18 +86,18 @@ extension WalletStorageExtension on WalletStorage {
   }) async {
     switch (chain.caip2Namespace) {
       case "eip155":
-        final ethAddress = await getETHEip55Address();
+        final ethAddress = await wallet.getETHEip55Address(index: index);
         return Wc2Chain(
           chain: chain,
           address: ethAddress,
           signature: await signMessage(chain: chain, message: message),
         );
       case "tezos":
-        final tezosAddress = await getTezosAddress();
+        final tezosAddress = await wallet.getTezosAddress(index: index);
         return Wc2Chain(
           chain: chain,
           address: tezosAddress,
-          publicKey: await getTezosPublicKey(),
+          publicKey: await wallet.getTezosPublicKey(index: index),
           signature: await signMessage(chain: chain, message: message),
         );
     }

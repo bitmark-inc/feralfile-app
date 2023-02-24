@@ -48,7 +48,7 @@ abstract class AccountService {
 
   Future<WalletStorage?> getAccount(String did);
 
-  Future<WalletStorage> getAccountByAddress({
+  Future<WalletIndex> getAccountByAddress({
     required String chain,
     required String address,
   });
@@ -238,27 +238,29 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage> getAccountByAddress({
+  Future<WalletIndex> getAccountByAddress({
     required String chain,
     required String address,
   }) async {
     var personas = await _cloudDB.personaDao.getPersonas();
     for (Persona p in personas) {
-      final wallet = p.wallet();
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
-          if ((await wallet.getETHEip55Address()) == address) {
-            return wallet;
+          final addresses = await p.getEthAddresses();
+          if (addresses.contains(address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(address));
           }
           break;
         case Wc2Chain.tezos:
-          if ((await wallet.getTezosAddress()) == address) {
-            return wallet;
+          final addresses = await p.getTezosAddresses();
+          if (addresses.contains(address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(address));
           }
           break;
         case Wc2Chain.autonomy:
+          final wallet = p.wallet();
           if (await wallet.getAccountDID() == address) {
-            return wallet;
+            return WalletIndex(wallet, -1);
           }
       }
     }

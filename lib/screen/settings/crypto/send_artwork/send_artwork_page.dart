@@ -59,7 +59,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   void initState() {
     super.initState();
 
-    context.read<SendArtworkBloc>().add(GetBalanceEvent(widget.payload.wallet));
+    context
+        .read<SendArtworkBloc>()
+        .add(GetBalanceEvent(widget.payload.wallet, widget.payload.index));
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: 1, maxQuantity: widget.payload.ownedQuantity));
     if (widget.payload.asset.artistName != null) {
@@ -375,6 +377,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                         arguments: SendArtworkReviewPayload(
                             asset,
                             widget.payload.wallet,
+                            widget.payload.index ,
                             state.address!,
                             state.fee!,
                             state.exchangeRate,
@@ -499,7 +502,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 class SendArtworkPayload {
   final AssetToken asset;
   final WalletStorage wallet;
+  final int index;
   final int ownedQuantity;
 
-  SendArtworkPayload(this.asset, this.wallet, this.ownedQuantity);
+  SendArtworkPayload(this.asset, this.wallet, this.index, this.ownedQuantity);
 }

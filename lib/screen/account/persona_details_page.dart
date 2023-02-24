@@ -180,6 +180,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                       children: [
                         _addressRow(
                             address: address,
+                            index: ethAddresses.indexOf(address),
                             type: CryptoType.ETH,
                             balance: state.ethBalances[address] == null
                                 ? "-- ETH"
@@ -198,6 +199,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               : "${USDCAmountFormatter(usdcBalance).format()} USDC";
           return _addressRow(
               address: state.personaAddresses?[uuid] ?? "",
+              index: 0,
               type: CryptoType.USDC,
               balance: balance);
         }),
@@ -213,6 +215,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                       children: [
                         _addressRow(
                           address: address,
+                          index: tezosAddress.indexOf(address),
                           type: CryptoType.XTZ,
                           balance: state.balances[address] == null
                               ? "-- XTZ"
@@ -224,7 +227,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 .toList(),
           );
         }),
-        addDivider(),
       ],
     );
   }
@@ -232,6 +234,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   Widget _addressRow(
       {required String address,
       required CryptoType type,
+      required int index,
       String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.ppMori400Black14;
@@ -286,6 +289,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           type: type,
           wallet: LibAukDart.getWallet(widget.persona.uuid),
           personaName: widget.persona.name,
+          index: index,
           //personaName: widget.persona.name,
         );
         Navigator.of(context)

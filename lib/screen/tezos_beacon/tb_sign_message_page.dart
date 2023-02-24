@@ -30,7 +30,6 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 
 class TBSignMessagePage extends StatefulWidget {
@@ -44,7 +43,7 @@ class TBSignMessagePage extends StatefulWidget {
 }
 
 class _TBSignMessagePageState extends State<TBSignMessagePage> {
-  WalletStorage? _currentPersona;
+  WalletIndex? _currentPersona;
 
   @override
   void initState() {
@@ -62,12 +61,15 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    WalletStorage? currentWallet;
-    for (final persona in personas) {
-      final address = await persona.wallet().getTezosAddress();
-      if (address == widget.request.sourceAddress) {
-        currentWallet = persona.wallet();
-        break;
+    WalletIndex? currentWallet;
+    if (widget.request.sourceAddress != null) {
+      for (final persona in personas) {
+        final addresses = await persona.getTezosAddresses();
+        if (addresses.contains(widget.request.sourceAddress)) {
+          currentWallet = WalletIndex(persona.wallet(),
+              addresses.indexOf(widget.request.sourceAddress!));
+          break;
+        }
       }
     }
 
@@ -199,8 +201,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                             ? () => withDebounce(() async {
                                   final signature =
                                       await injector<TezosService>()
-                                          .signMessage(
-                                              _currentPersona!, message);
+                                          .signMessage(_currentPersona!.wallet,
+                                              _currentPersona!.index, message);
                                   await _approveRequest(signature: signature);
                                   if (!mounted) return;
 

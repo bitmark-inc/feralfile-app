@@ -77,7 +77,7 @@ class _TVConnectPageState extends State<TVConnectPage>
     final chainId = Environment.web3ChainId;
 
     final isApproveSuccess = await injector<WalletConnectService>()
-        .approveSession(const Uuid().v4(), widget.wcConnectArgs.peerMeta,
+        .approveSession(const Uuid().v4(),0, widget.wcConnectArgs.peerMeta,
             [authorizedKeypair], chainId);
 
     if (!mounted) return;

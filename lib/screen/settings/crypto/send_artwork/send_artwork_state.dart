@@ -14,8 +14,9 @@ abstract class SendArtworkEvent {}
 
 class GetBalanceEvent extends SendArtworkEvent {
   final WalletStorage wallet;
+  final int index;
 
-  GetBalanceEvent(this.wallet);
+  GetBalanceEvent(this.wallet, this.index);
 }
 
 class AddressChangedEvent extends SendArtworkEvent {
@@ -81,6 +82,7 @@ class FeeOptionChangedEvent extends SendArtworkEvent {
 
 class SendArtworkState {
   WalletStorage? wallet;
+  int? index;
 
   bool isScanQR;
   bool isAddressError;
@@ -102,6 +104,7 @@ class SendArtworkState {
 
   SendArtworkState(
       {this.wallet,
+        this.index,
       this.isScanQR = true,
       this.isAddressError = false,
       this.isQuantityError = false,
@@ -117,6 +120,7 @@ class SendArtworkState {
 
   SendArtworkState clone() => SendArtworkState(
         wallet: wallet,
+        index: index,
         isScanQR: isScanQR,
         isAddressError: isAddressError,
         isQuantityError: isQuantityError,
@@ -134,6 +138,7 @@ class SendArtworkState {
   SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
     return SendArtworkState(
       wallet: wallet,
+      index: index,
       isScanQR: isScanQR,
       isAddressError: isAddressError,
       isQuantityError: isQuantityError,
@@ -153,6 +158,7 @@ class SendArtworkState {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SendArtworkState &&
+          index == other.index &&
           runtimeType == other.runtimeType &&
           isScanQR == other.isScanQR &&
           isAddressError == other.isAddressError &&
@@ -170,6 +176,7 @@ class SendArtworkState {
   @override
   int get hashCode =>
       isScanQR.hashCode ^
+      index.hashCode ^
       isAddressError.hashCode ^
       isQuantityError.hashCode ^
       isValid.hashCode ^

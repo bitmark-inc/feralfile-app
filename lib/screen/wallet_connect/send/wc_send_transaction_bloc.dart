@@ -45,7 +45,7 @@ class WCSendTransactionBloc
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
       newState.feeOptionValue = await _ethereumService.estimateFee(
-          persona, event.address, event.amount, event.data);
+          persona,event.index, event.address, event.amount, event.data);
       newState.fee = newState.feeOptionValue!.getFee(state.feeOption);
 
       final balance =
@@ -74,11 +74,12 @@ class WCSendTransactionBloc
       }
 
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
+      final index = event.index;
       final balance =
-          await _ethereumService.getBalance(await persona.getETHAddress());
+          await _ethereumService.getBalance(await persona.getETHAddress(index: index));
       try {
         final txHash = await _ethereumService.sendTransaction(
-            persona, event.to, event.value, event.data,
+            persona,index, event.to, event.value, event.data,
             feeOption: state.feeOption);
         if (event.isWalletConnect2) {
           await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
@@ -88,7 +89,7 @@ class WCSendTransactionBloc
         }
         injector<PendingTokenService>()
             .checkPendingEthereumTokens(
-                await persona.getETHEip55Address(), txHash)
+                await persona.getETHEip55Address(index: index), txHash)
             .then((hasPendingTokens) {
           if (hasPendingTokens) {
             injector<NftCollectionBloc>().add(RefreshNftCollection());

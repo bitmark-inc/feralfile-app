@@ -832,7 +832,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GlobalReceiveDetailPage(
-                  payload: settings.arguments,
+                  payload: settings.arguments as GlobalReceivePayload,
                 ));
 
       case autonomySecurityPage:

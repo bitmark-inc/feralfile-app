@@ -12,29 +12,25 @@ abstract class WalletDetailEvent {}
 
 class WalletDetailBalanceEvent extends WalletDetailEvent {
   CryptoType type;
-  WalletStorage wallet;
+  String address;
 
-  WalletDetailBalanceEvent(this.type, this.wallet);
+  WalletDetailBalanceEvent(this.type, this.address);
 }
 
 class WalletDetailState {
-  String address = "";
   String balance = "";
   String balanceInUSD = "";
 
   WalletDetailState({
-    this.address = "",
     this.balance = "",
     this.balanceInUSD = "",
   });
 
   WalletDetailState copyWith({
-    String? address,
     String? balance,
     String? balanceInUSD,
   }) {
     return WalletDetailState(
-      address: address ?? this.address,
       balance: balance ?? this.balance,
       balanceInUSD: balanceInUSD ?? this.balanceInUSD,
     );

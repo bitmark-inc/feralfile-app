@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fiat_formater.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 
 class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
@@ -32,11 +31,7 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
 
       switch (event.type) {
         case CryptoType.ETH:
-          final address = await event.wallet.getETHEip55Address();
-          emit(state.copyWith(address: address));
-          final balance = await _ethereumService.getBalance(address);
-
-          newState.address = address;
+          final balance = await _ethereumService.getBalance(event.address);
           newState.balance =
               "${EthAmountFormatter(balance.getInWei).format()} ETH";
           final balanceInUSD =
@@ -44,12 +39,7 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
           newState.balanceInUSD = balanceInUSD;
           break;
         case CryptoType.XTZ:
-          final address = await event.wallet.getTezosAddress();
-          emit(state.copyWith(address: address));
-
-          final balance = await _tezosService.getBalance(address);
-
-          newState.address = address;
+          final balance = await _tezosService.getBalance(event.address);
           newState.balance = "${XtzAmountFormatter(balance).format()} XTZ";
           final balanceInUSD =
               "${FiatFormatter((balance / pow(10, 6) / double.parse(exchangeRate.xtz))).format()} USD";

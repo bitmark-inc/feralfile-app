@@ -104,10 +104,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   void didPopNext() {
     final cryptoType = widget.payload.type;
-    final wallet = widget.payload.wallet;
+    final address = widget.payload.address;
     context
         .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, wallet));
+        .add(WalletDetailBalanceEvent(cryptoType, address));
     _callFetchConnections();
   }
 
@@ -142,10 +142,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   Widget build(BuildContext context) {
     final cryptoType = widget.payload.type;
-    final wallet = widget.payload.wallet;
+    final address = widget.payload.address;
     context
         .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, wallet));
+        .add(WalletDetailBalanceEvent(cryptoType, address));
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final showConnection = (widget.payload.type == CryptoType.ETH ||
@@ -215,14 +215,15 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 Expanded(
                   child: widget.payload.type == CryptoType.XTZ
                       ? TezosTXListView(
-                          address: state.address,
+                          address: widget.payload.address,
                           controller: controller,
                         )
                       : Container(),
                 ),
                 widget.payload.type == CryptoType.XTZ
                     ? GestureDetector(
-                        onTap: () => launchUrlString(_txURL(state.address)),
+                        onTap: () =>
+                            launchUrlString(_txURL(widget.payload.address)),
                         child: Container(
                           alignment: Alignment.bottomCenter,
                           padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
@@ -415,7 +416,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               personaUUID: widget.payload.personaUUID,
               address: widget.payload.address,
               type: widget.payload.type,
-              personaName: widget.payload.personaName,
             );
             Navigator.of(context).pushNamed(AppRouter.personaConnectionsPage,
                 arguments: payload);
@@ -460,7 +460,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     arguments: SendData(
                         LibAukDart.getWallet(widget.payload.personaUUID),
                         widget.payload.type,
-                        null)) as Map?;
+                        null,
+                        widget.payload.index)) as Map?;
                 if (payload == null || !payload["isTezos"]) {
                   return;
                 }
@@ -521,7 +522,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     if (account != null && account.accountNumber.isNotEmpty) {
                       Navigator.of(context).pushNamed(
                           GlobalReceiveDetailPage.tag,
-                          arguments: account);
+                          arguments: GlobalReceivePayload(
+                              address: widget.payload.address,
+                              blockchain: widget.payload.type.source,
+                              account: account));
                     }
                   },
                 );
@@ -543,6 +547,7 @@ class WalletDetailsPayload {
   final String personaUUID;
   final String address;
   final String personaName;
+  final int index;
 
   WalletDetailsPayload({
     required this.type,
@@ -550,5 +555,6 @@ class WalletDetailsPayload {
     required this.personaUUID,
     required this.address,
     required this.personaName,
+    required this.index,
   });
 }
