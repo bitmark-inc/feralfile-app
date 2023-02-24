@@ -74,12 +74,6 @@ class AddNewPlaylistBloc
             usingThumbnailID: false,
           );
 
-      state.selectedIDs = state.tokens
-          ?.map((e) => e.id)
-          .toSet()
-          .intersection(state.selectedIDs?.toSet() ?? {})
-          .toList();
-
       playListModel?.tokenIDs = state.selectedIDs?.toSet().toList();
 
       if (playListModel?.id == null) {
