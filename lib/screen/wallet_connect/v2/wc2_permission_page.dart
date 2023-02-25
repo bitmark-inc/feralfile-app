@@ -78,7 +78,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
           GetCategorizedAccountsEvent(
             includeLinkedAccount: _includeLinkedAccount,
             getEth: _selectETHAddress,
-            getTezo: _selectXTZAddress,
+            getTezos: _selectXTZAddress,
           ),
         );
     injector<NavigationService>().setIsWCConnectInShow(true);
@@ -248,30 +248,30 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                 child: SingleChildScrollView(
                   child: BlocConsumer<AccountsBloc, AccountsState>(
                       listener: (context, state) async {
-                    final categoryAccounts = state.categorizedAccounts ?? [];
+                    final categorizedAccounts = state.categorizedAccounts ?? [];
 
-                    final selectManual = categoryAccounts.length > 1 ||
+                    final selectManual = categorizedAccounts.length > 1 ||
                         (_selectETHAddress &&
-                            categoryAccounts.first.ethAccounts.length > 1) ||
+                            categorizedAccounts.first.ethAccounts.length > 1) ||
                         (_selectXTZAddress &&
-                            categoryAccounts.first.xtzAccounts.length > 1);
+                            categorizedAccounts.first.xtzAccounts.length > 1);
 
                     if (!selectManual) {
-                      selectedAddress['eip155:1'] = categoryAccounts
+                      selectedAddress['eip155:1'] = categorizedAccounts
                           .first.ethAccounts.first.accountNumber;
-                      selectedAddress['tezos'] = categoryAccounts
+                      selectedAddress['tezos'] = categorizedAccounts
                           .first.xtzAccounts.first.accountNumber;
                       setState(() {});
                     }
                   }, builder: (context, state) {
-                    final categoryAccounts = state.categorizedAccounts ?? [];
-                    if (categoryAccounts.isEmpty) return const SizedBox();
+                    final categorizedAccounts = state.categorizedAccounts ?? [];
+                    if (categorizedAccounts.isEmpty) return const SizedBox();
 
-                    final selectManual = categoryAccounts.length > 1 ||
+                    final selectManual = categorizedAccounts.length > 1 ||
                         (_selectETHAddress &&
-                            categoryAccounts.first.ethAccounts.length > 1) ||
+                            categorizedAccounts.first.ethAccounts.length > 1) ||
                         (_selectXTZAddress &&
-                            categoryAccounts.first.xtzAccounts.length > 1);
+                            categorizedAccounts.first.xtzAccounts.length > 1);
 
                     if (!selectManual) {
                       return Column(
@@ -285,7 +285,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                           ),
                           const SizedBox(height: 16.0),
                           PersionalConnectItem(
-                            categorizedAccount: categoryAccounts.first,
+                            categorizedAccount: categorizedAccounts.first,
                             isAutoSelect: true,
                             isExpand: true,
                           ),
@@ -311,7 +311,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         ),
                         const SizedBox(height: 16.0),
                         ListAccountConnect(
-                          categorizedAccounts: categoryAccounts,
+                          categorizedAccounts: categorizedAccounts,
                           onSelectEth: (value) {
                             setState(() {
                               selectedAddress['eip155:1'] = value;
@@ -437,6 +437,7 @@ class AddressItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        color: Colors.transparent,
         padding: ResponsiveLayout.paddingAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

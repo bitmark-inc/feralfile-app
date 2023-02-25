@@ -15,12 +15,12 @@ class GetAccountsEvent extends AccountsEvent {}
 
 class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool includeLinkedAccount;
-  final bool getTezo;
+  final bool getTezos;
   final bool getEth;
 
   GetCategorizedAccountsEvent({
     this.includeLinkedAccount = true,
-    this.getTezo = true,
+    this.getTezos = true,
     this.getEth = true,
   });
 }

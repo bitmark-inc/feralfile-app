@@ -148,7 +148,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           accounts.add(ethAccount);
         }
 
-        if (event.getTezo) {
+        if (event.getTezos) {
           accounts.add(xtzAccount);
         }
         if (accounts.isNotEmpty) {
@@ -187,7 +187,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
               }
               break;
             case "walletBeacon":
-              if (event.getTezo) {
+              if (event.getTezos) {
                 categorizedAccounts.add(
                   CategorizedAccounts(
                     connection.name,
@@ -230,7 +230,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
               }
 
               for (final tezosAddress in tezosAddresses) {
-                if (event.getTezo) {
+                if (event.getTezos) {
                   accounts.add(
                     Account(
                       key: connection.key + tezosAddress,
