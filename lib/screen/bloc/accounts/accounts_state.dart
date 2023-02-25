@@ -13,7 +13,17 @@ class ResetEventEvent extends AccountsEvent {}
 
 class GetAccountsEvent extends AccountsEvent {}
 
-class GetCategorizedAccountsEvent extends AccountsEvent {}
+class GetCategorizedAccountsEvent extends AccountsEvent {
+  final bool includeLinkedAccount;
+  final bool getTezo;
+  final bool getEth;
+
+  GetCategorizedAccountsEvent({
+    this.includeLinkedAccount = true,
+    this.getTezo = true,
+    this.getEth = true,
+  });
+}
 
 class LinkLedgerWalletEvent extends AccountsEvent {
   final String address;
@@ -54,6 +64,9 @@ class Account {
   String? blockchain;
   String accountNumber;
   DateTime createdAt;
+
+  bool get isTez => blockchain == "Tezos";
+  bool get isEth => blockchain == "Ethereum";
 
   Account({
     required this.key,
@@ -96,6 +109,11 @@ class CategorizedAccounts {
   String className;
 
   CategorizedAccounts(this.category, this.accounts, this.className);
+  List<Account> get ethAccounts =>
+      accounts.where((element) => element.isEth).toList();
+
+  List<Account> get xtzAccounts =>
+      accounts.where((element) => element.isTez).toList();
 }
 
 class AccountsState {

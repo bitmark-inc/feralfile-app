@@ -121,6 +121,13 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           name = persona.name;
         }
 
+        if (name.isEmpty) {
+          name = (await persona.wallet().getAccountDID())
+              .replaceFirst('did:key:', '');
+        }
+
+        List<Account> accounts = [];
+
         final ethAccount = Account(
             key: persona.uuid,
             persona: persona,
@@ -137,89 +144,118 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
             accountNumber: xtzAddress,
             createdAt: persona.createdAt);
 
-        categorizedAccounts.add(CategorizedAccounts(
-          name,
-          [ethAccount, xtzAccount],
-          'Persona',
-        ));
+        if (event.getEth) {
+          accounts.add(ethAccount);
+        }
+
+        if (event.getTezo) {
+          accounts.add(xtzAccount);
+        }
+        if (accounts.isNotEmpty) {
+          categorizedAccounts.add(
+            CategorizedAccounts(
+              name,
+              accounts,
+              'Persona',
+            ),
+          );
+        }
       }
 
-      for (var connection in connections) {
-        switch (connection.connectionType) {
-          case "walletConnect":
-          case "walletBrowserConnect":
-            categorizedAccounts.add(CategorizedAccounts(
-              connection.name,
-              [
-                Account(
-                  key: connection.key,
-                  blockchain: "Ethereum",
-                  accountNumber: connection.accountNumber,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                )
-              ],
-              'Connection',
-            ));
-            break;
-          case "walletBeacon":
-            categorizedAccounts.add(CategorizedAccounts(
-              connection.name,
-              [
-                Account(
-                  key: connection.key,
-                  blockchain: "Tezos",
-                  accountNumber: connection.accountNumber,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                )
-              ],
-              'Connection',
-            ));
-            break;
+      if (event.includeLinkedAccount) {
+        for (var connection in connections) {
+          switch (connection.connectionType) {
+            case "walletConnect":
+            case "walletBrowserConnect":
+              if (event.getEth) {
+                categorizedAccounts.add(
+                  CategorizedAccounts(
+                    connection.name,
+                    [
+                      Account(
+                        key: connection.key,
+                        blockchain: "Ethereum",
+                        accountNumber: connection.accountNumber,
+                        connections: [connection],
+                        name: connection.name,
+                        createdAt: connection.createdAt,
+                      )
+                    ],
+                    'Connection',
+                  ),
+                );
+              }
+              break;
+            case "walletBeacon":
+              if (event.getTezo) {
+                categorizedAccounts.add(
+                  CategorizedAccounts(
+                    connection.name,
+                    [
+                      Account(
+                        key: connection.key,
+                        blockchain: "Tezos",
+                        accountNumber: connection.accountNumber,
+                        connections: [connection],
+                        name: connection.name,
+                        createdAt: connection.createdAt,
+                      )
+                    ],
+                    'Connection',
+                  ),
+                );
+              }
+              break;
 
-          case 'ledger':
-            final data = connection.ledgerConnection;
-            List<Account> accounts = [];
+            case 'ledger':
+              final data = connection.ledgerConnection;
+              List<Account> accounts = [];
 
-            final ethereumAddresses = data?.etheremAddress ?? [];
-            final tezosAddresses = data?.tezosAddress ?? [];
+              final ethereumAddresses = data?.etheremAddress ?? [];
+              final tezosAddresses = data?.tezosAddress ?? [];
 
-            for (final ethereumAddress in ethereumAddresses) {
-              accounts.add(Account(
-                key: connection.key + ethereumAddress,
-                blockchain: "Ethereum",
-                accountNumber: ethereumAddress,
-                connections: [connection],
-                name: connection.name,
-                createdAt: connection.createdAt,
-              ));
-            }
+              for (final ethereumAddress in ethereumAddresses) {
+                if (event.getEth) {
+                  accounts.add(
+                    Account(
+                      key: connection.key + ethereumAddress,
+                      blockchain: "Ethereum",
+                      accountNumber: ethereumAddress,
+                      connections: [connection],
+                      name: connection.name,
+                      createdAt: connection.createdAt,
+                    ),
+                  );
+                }
+              }
 
-            for (final tezosAddress in tezosAddresses) {
-              accounts.add(Account(
-                key: connection.key + tezosAddress,
-                blockchain: "Tezos",
-                accountNumber: tezosAddress,
-                connections: [connection],
-                name: connection.name,
-                createdAt: connection.createdAt,
-              ));
-            }
+              for (final tezosAddress in tezosAddresses) {
+                if (event.getTezo) {
+                  accounts.add(
+                    Account(
+                      key: connection.key + tezosAddress,
+                      blockchain: "Tezos",
+                      accountNumber: tezosAddress,
+                      connections: [connection],
+                      name: connection.name,
+                      createdAt: connection.createdAt,
+                    ),
+                  );
+                }
+              }
 
-            if (accounts.isNotEmpty) {
-              categorizedAccounts.add(CategorizedAccounts(
-                connection.name,
-                accounts,
-                'Connection',
-              ));
-            }
-            break;
+              if (accounts.isNotEmpty) {
+                categorizedAccounts.add(CategorizedAccounts(
+                  connection.name,
+                  accounts,
+                  'Connection',
+                ));
+              }
+              break;
 
-          default:
-            break;
+            default:
+              break;
+          }
         }
       }
 
