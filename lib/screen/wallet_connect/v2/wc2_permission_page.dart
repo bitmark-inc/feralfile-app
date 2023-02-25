@@ -543,6 +543,9 @@ class _PersionalConnectItemState extends State<PersionalConnectItem> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                Visibility(
+                    visible: !widget.categorizedAccount.isPersona,
+                    child: linkedBox(context)),
                 AnimatedRotation(
                   duration: const Duration(milliseconds: 300),
                   turns: _showDetail ? 0.75 : 0.5,

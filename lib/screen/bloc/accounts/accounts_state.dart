@@ -114,6 +114,8 @@ class CategorizedAccounts {
 
   List<Account> get xtzAccounts =>
       accounts.where((element) => element.isTez).toList();
+
+  bool get isPersona => className == 'Persona';
 }
 
 class AccountsState {
