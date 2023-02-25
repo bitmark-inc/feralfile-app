@@ -387,7 +387,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             right: 10,
             child: Visibility(
               visible: widget.showSelect,
-              child: RadioCheckBox(
+              child: RadioSelectAddress(
                 isChecked: isSelected,
                 onTap: onChanged,
               ),
