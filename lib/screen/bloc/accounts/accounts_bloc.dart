@@ -118,8 +118,12 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
-          name = persona.name;
+          name = persona.name.isNotEmpty
+              ? persona.name
+              : (await persona.wallet().getAccountDID())
+                  .replaceFirst('did:key:', '');
         }
+
         final List<Account> accounts = [];
         final List<Account> ethAccounts = [];
         final List<Account> xtzAccounts = [];
@@ -133,7 +137,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
               createdAt: persona.createdAt);
           ethAccounts.add(ethAccount);
         }
-        for(var address in xtzAddresses) {
+        for (var address in xtzAddresses) {
           final xtzAccount = Account(
               key: persona.uuid,
               persona: persona,
@@ -143,11 +147,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
               createdAt: persona.createdAt);
           xtzAccounts.add(xtzAccount);
         }
-        if (event.getEth) {
+        if (event.getEth && ethAccounts.isNotEmpty) {
           accounts.addAll(ethAccounts);
         }
 
-        if (event.getTezos) {
+        if (event.getTezos && xtzAccounts.isNotEmpty) {
           accounts.addAll(xtzAccounts);
         }
         if (accounts.isNotEmpty) {

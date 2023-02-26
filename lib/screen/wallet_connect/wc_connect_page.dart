@@ -8,11 +8,9 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
@@ -67,21 +65,20 @@ class WCConnectPage extends StatefulWidget {
 class _WCConnectPageState extends State<WCConnectPage>
     with RouteAware, WidgetsBindingObserver {
   WalletIndex? selectedPersona;
-  List<Persona>? personas;
-  List<Account>? accounts;
+  List<CategorizedAccounts>? categorizedAccounts;
   bool createPersona = false;
   final metricClient = injector.get<MetricClientService>();
-  bool _isAccountSelected = false;
+  bool isAccountSelected = false;
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
   late ConnectionRequest connectionRequest;
+  String? ethSelectedAddress;
+  String? tezSelectedAddress;
 
   @override
   void initState() {
     super.initState();
     connectionRequest = widget.connectionRequest;
-    context
-        .read<PersonaBloc>()
-        .add(GetListPersonaEvent(useDidKeyForAlias: true));
+    callAccountBloc();
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
     metricClient.timerEvent(MixpanelEvent.backConnectMarket);
@@ -97,9 +94,17 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    context
-        .read<PersonaBloc>()
-        .add(GetListPersonaEvent(useDidKeyForAlias: true));
+    callAccountBloc();
+  }
+
+  void callAccountBloc() {
+    if (widget.connectionRequest.isWCconnect) {
+      context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+          includeLinkedAccount: false, getTezos: false));
+    } else if (widget.connectionRequest.isBeaconConnect) {
+      context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+          includeLinkedAccount: false, getEth: false));
+    }
   }
 
   @override
@@ -239,6 +244,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     final payload = PersonaConnectionsPayload(
       personaUUID: selectedPersona!.wallet.uuid,
+      index: selectedPersona!.index,
       address: payloadAddress,
       type: payloadType,
       isBackHome: onBoarding,
@@ -363,21 +369,23 @@ class _WCConnectPageState extends State<WCConnectPage>
                         ),
                       ),
                       const SizedBox(height: 40),
-                      BlocConsumer<PersonaBloc, PersonaState>(
+                      BlocConsumer<AccountsBloc, AccountsState>(
                           listener: (context, state) {
-                        var statePersonas = state.personas;
+                        var stateCategorizedAccounts =
+                            state.categorizedAccounts;
                         print("------------1");
-                        print(state.personas?.length);
-                        if (statePersonas == null) return;
+                        print(state.categorizedAccounts?.length);
+                        if (stateCategorizedAccounts == null ||
+                            stateCategorizedAccounts.isEmpty) return;
 
+/*
                         final scopedPersonaUUID = memoryValues.scopedPersona;
                         if (scopedPersonaUUID != null) {
                           print("scopedPersona");
-                          final scopedPersona = statePersonas.firstWhere(
-                              (element) => element.uuid == scopedPersonaUUID);
-                          statePersonas = [scopedPersona];
+                          final scopedPersona = state.accounts?.firstWhere(
+                              (element) => element.persona?.uuid == scopedPersonaUUID);
+                          statePersonas = [scopedPersona.persona];
                         }
-/*
                         if (statePersonas.length == 1) {
                           setState(() {
                             selectedPersona = statePersonas?.first;
@@ -391,21 +399,15 @@ class _WCConnectPageState extends State<WCConnectPage>
                           });
                         }
  */
-                        if (statePersonas.isEmpty) {
+                        setState(() {
+                          categorizedAccounts = stateCategorizedAccounts;
+                        });
+                        if (categorizedAccounts != null &&
+                            categorizedAccounts!.isEmpty) {
                           setState(() {
                             createPersona = true;
                           });
                         }
-                        final stateAccount = statePersonas
-                            .map((persona) => Account(
-                                key: persona.uuid,
-                                createdAt: persona.createdAt,
-                                persona: persona))
-                            .toList();
-                        setState(() {
-                          personas = statePersonas;
-                          accounts = stateAccount;
-                        });
                       }, builder: (context, state) {
                         return _selectAccount();
                       }),
@@ -444,17 +446,16 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _selectAccount() {
-    final statePersonas = personas;
-    final stateAccounts = accounts;
-    if (statePersonas == null) return const SizedBox();
+    final stateCategorizedAccounts = categorizedAccounts;
+    if (stateCategorizedAccounts == null) return const SizedBox();
 
-    if (statePersonas.isEmpty) {
+    if (stateCategorizedAccounts.isEmpty) {
       return Expanded(child: _createAccountAndConnect());
     }
     if (connectionRequest.isWC2connect) {
       return const SizedBox();
     }
-    return _selectPersonaWidget(stateAccounts!);
+    return _selectPersonaWidget(stateCategorizedAccounts);
   }
 
   Widget wc2Connect() {
@@ -487,7 +488,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               padding: padding,
               child: AuPrimaryButton(
                 text: "connect".tr(),
-                onPressed: _isAccountSelected
+                onPressed: selectedPersona != null
                     ? () {
                         metricClient.addEvent(MixpanelEvent.connectMarket);
                         withDebounce(() => _approveThenNotify());
@@ -572,7 +573,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _selectPersonaWidget(List<Account> accounts) {
+  Widget _selectPersonaWidget(List<CategorizedAccounts> accounts) {
     final theme = Theme.of(context);
 
     return Column(
@@ -590,15 +591,28 @@ class _WCConnectPageState extends State<WCConnectPage>
           children: [
             ...accounts
                 .map((account) => PersionalConnectItem(
-                      account: account,
-                      ethSelectedAddress: "ethSelectedAddress",
-                      tezSelectedAddress: "tezSelectedAddress",
-                      showETH: !widget.connectionRequest.isBeaconConnect,
-                      showXTZ: !widget.connectionRequest.isWCconnect,
-                      isSingleMode: true,
+                      categorizedAccount: account,
+                      ethSelectedAddress: ethSelectedAddress,
+                      tezSelectedAddress: tezSelectedAddress,
                       isExpand: true,
-                      onSelectEth: (value) {},
-                      onSelectTez: (value) {},
+                      onSelectEth: (value) {
+                        int index = account.ethAccounts
+                            .indexWhere((e) => e.accountNumber == value);
+                        setState(() {
+                          ethSelectedAddress = value;
+                          selectedPersona =
+                              WalletIndex(account.persona!.wallet(), index);
+                        });
+                      },
+                      onSelectTez: (value) {
+                        int index = account.xtzAccounts
+                            .indexWhere((e) => e.accountNumber == value);
+                        setState(() {
+                          tezSelectedAddress = value;
+                          selectedPersona =
+                              WalletIndex(account.persona!.wallet(), index);
+                        });
+                      },
                     ))
                 .toList(),
           ],

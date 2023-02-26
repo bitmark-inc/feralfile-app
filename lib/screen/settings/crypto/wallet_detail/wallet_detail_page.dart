@@ -128,10 +128,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(personUUID));
+        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(personUUID, widget.payload.index));
         break;
       case CryptoType.XTZ:
-        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID));
+        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
         break;
       default:
         // do nothing
@@ -414,6 +414,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           onTap: () {
             final payload = PersonaConnectionsPayload(
               personaUUID: widget.payload.personaUUID,
+              index: widget.payload.index,
               address: widget.payload.address,
               type: widget.payload.type,
             );
