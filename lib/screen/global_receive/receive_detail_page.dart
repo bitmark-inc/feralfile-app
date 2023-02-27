@@ -95,8 +95,6 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Text((_blockchainNFTText(_account.blockchain)),
-              //     style: theme.textTheme.headlineMedium),
               Container(
                 decoration: BoxDecoration(
                   color: AppColor.auLightGrey,

@@ -11,8 +11,9 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -38,52 +39,38 @@ Widget accountWithConnectionItem(
                 child: Image.asset("assets/images/moma_logo.png"),
               ),
               const SizedBox(width: 32),
-              Text(categorizedAccounts.category.replaceFirst('did:key:', ''),
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.headlineMedium),
+              Expanded(
+                child: Text(
+                    categorizedAccounts.category.replaceFirst('did:key:', ''),
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.headlineMedium),
+              ),
             ],
           ),
         ),
         child: Column(
           children: [
             ...categorizedAccounts.accounts
-                .map((a) => Container(
-                    padding: const EdgeInsets.only(bottom: 1),
-                    child: _blockchainAddressView(context, a,
-                        onTap: () => Navigator.of(context).pushNamed(
-                            GlobalReceiveDetailPage.tag,
-                            arguments: a))))
+                .map(
+                  (a) => Column(
+                    children: [
+                      addOnlyDivider(),
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 1),
+                        child: _blockchainAddressView(
+                          context,
+                          a,
+                          onTap: () => Navigator.of(context).pushNamed(
+                              GlobalReceiveDetailPage.tag,
+                              arguments: a),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
                 .toList(),
           ],
         ),
-      );
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-              width: 24,
-              height: 24,
-              child: Image.asset("assets/images/moma_logo.png")),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(categorizedAccounts.category,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.headlineMedium),
-                const SizedBox(height: 8),
-                ...categorizedAccounts.accounts
-                    .map((a) => Container(
-                        child: _blockchainAddressView(context, a,
-                            onTap: () => Navigator.of(context).pushNamed(
-                                GlobalReceiveDetailPage.tag,
-                                arguments: a))))
-                    .toList(),
-              ],
-            ),
-          ),
-        ],
       );
     case 'Connection':
       final connection = categorizedAccounts.accounts.first.connections?.first;
@@ -91,148 +78,46 @@ Widget accountWithConnectionItem(
       return ExpandedWidget(
         header: Padding(
           padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
-          child: Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: _appLogo(connection),
-                ),
-                const SizedBox(width: 32),
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                            connection.name.isNotEmpty
-                                ? connection.name
-                                : "unnamed".tr(),
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.headlineMedium),
-                        linkedBox(context),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: _appLogo(connection),
+              ),
+              const SizedBox(width: 32),
+              Expanded(
+                child: Text(
+                    connection.name.isNotEmpty
+                        ? connection.name
+                        : "unnamed".tr(),
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.headlineMedium),
+              ),
+              linkedBox(context),
+            ],
           ),
         ),
         child: Column(
           children: [
             ...categorizedAccounts.accounts
-                .map((a) => Container(
-                    child: _blockchainAddressView(context, a,
-                        onTap: () => Navigator.of(context).pushNamed(
-                            GlobalReceiveDetailPage.tag,
-                            arguments: a))))
+                .map((a) => Column(
+                      children: [
+                        addOnlyDivider(),
+                        Container(
+                            child: _blockchainAddressView(context, a,
+                                onTap: () => Navigator.of(context).pushNamed(
+                                    GlobalReceiveDetailPage.tag,
+                                    arguments: a))),
+                      ],
+                    ))
                 .toList(),
           ],
         ),
       );
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-              alignment: Alignment.topCenter, child: _appLogo(connection)),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                            connection.name.isNotEmpty
-                                ? connection.name
-                                : "unnamed".tr(),
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.headlineMedium),
-                      ),
-                      linkedBox(context),
-                    ]),
-                const SizedBox(height: 8),
-                ...categorizedAccounts.accounts
-                    .map((a) => Container(
-                        child: _blockchainAddressView(context, a,
-                            onTap: () => Navigator.of(context).pushNamed(
-                                GlobalReceiveDetailPage.tag,
-                                arguments: a))))
-                    .toList(),
-              ],
-            ),
-          ),
-        ],
-      );
 
     default:
       return const SizedBox();
-  }
-}
-
-class ExpandedWidget extends StatefulWidget {
-  final Widget? header;
-  final Widget? child;
-
-  const ExpandedWidget({Key? key, this.header, this.child}) : super(key: key);
-
-  @override
-  State<ExpandedWidget> createState() => _ExpandedWidgetState();
-}
-
-class _ExpandedWidgetState extends State<ExpandedWidget> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Row(
-                  children: [
-                    widget.header ?? const SizedBox(),
-                    const Spacer(),
-                    Padding(
-                      padding: EdgeInsets.only(right: 12),
-                      child: RotatedBox(
-                        quarterTurns: _isExpanded ? -1 : 1,
-                        child: Icon(
-                          AuIcon.chevron_Sm,
-                          size: 12,
-                          color: AppColor.primaryBlack,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 23.0),
-        Visibility(
-          visible: _isExpanded,
-          child: widget.child ?? const SizedBox(),
-        )
-      ],
-    );
   }
 }
 
@@ -334,7 +219,6 @@ Widget _blockchainAddressView(
 }) {
   final theme = Theme.of(context);
   return Container(
-    color: AppColor.primaryBlack,
     padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
     child: TappableForwardRowWithContent(
       //padding: const EdgeInsets.symmetric(vertical: 7),
@@ -344,7 +228,7 @@ Widget _blockchainAddressView(
           const SizedBox(width: 32),
           Text(
             _blockchainName(account.blockchain),
-            style: theme.textTheme.ppMori700White14,
+            style: theme.textTheme.ppMori700Black14,
           ),
           const SizedBox(width: 8),
         ],
@@ -353,8 +237,8 @@ Widget _blockchainAddressView(
       bottomWidget: Text(
         account.accountNumber,
         style: ResponsiveLayout.isMobile
-            ? theme.textTheme.ibmWhiteNormal14
-            : theme.textTheme.ibmWhiteNormal16,
+            ? theme.textTheme.ppMori400Black14
+            : theme.textTheme.ppMori400Black16,
       ),
     ),
   );
@@ -367,7 +251,9 @@ Widget _blockchainLogo(String? blockchain) {
     case "Ethereum":
     case "walletConnect":
     case "walletBrowserConnect":
-      return SvgPicture.asset('assets/images/ether.svg');
+      return SvgPicture.asset(
+        'assets/images/ether.svg',
+      );
     case "Tezos":
     case "walletBeacon":
       return SvgPicture.asset('assets/images/tez.svg');

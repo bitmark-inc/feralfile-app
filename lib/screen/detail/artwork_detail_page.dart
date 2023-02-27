@@ -372,7 +372,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   );
                 },
                 actionButton: 'see_transaction_detail'.tr(),
-                closeButton: "close".tr().toUpperCase(),
+                closeButton: "close".tr(),
                 onClose: () => isSentAll
                     ? Navigator.of(context).popAndPushNamed(
                         AppRouter.homePage,

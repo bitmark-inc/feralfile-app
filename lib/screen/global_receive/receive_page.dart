@@ -48,7 +48,6 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
         }
 
         return SingleChildScrollView(
-          //padding: ResponsiveLayout.getPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,7 +56,6 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                 padding: ResponsiveLayout.pageEdgeInsets,
                 child: Text(
                   "select_address".tr(),
-                  //"Select an address on the appropriate blockchain where you want to receive your NFT or cryptocurrency:",
                   style: theme.textTheme.ppMori400Black14,
                 ),
               ),

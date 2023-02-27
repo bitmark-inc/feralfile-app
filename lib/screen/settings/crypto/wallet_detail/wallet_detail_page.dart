@@ -482,8 +482,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       },
                     );
                   },
-                  actionButton: 'see_transaction_detail'.tr().toUpperCase(),
-                  closeButton: "close".tr().toUpperCase(),
+                  actionButton: 'see_transaction_detail'.tr(),
+                  closeButton: "close".tr(),
                 );
               },
             ),

@@ -47,7 +47,6 @@ class SendCryptoPage extends StatefulWidget {
 class _SendCryptoPageState extends State<SendCryptoPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  bool _showAllFeeOption = false;
   bool _initialChangeAddress = false;
   late FeeOption _selectedPriority;
 
@@ -168,9 +167,18 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                           ),
                           if (state.maxAllow != null) ...[
                             GestureDetector(
-                              child: Text(
-                                _maxAmountText(state),
-                                style: theme.textTheme.ppMori400Grey14,
+                              child: RichText(
+                                text: TextSpan(children: [
+                                  TextSpan(
+                                      text: "max".tr(),
+                                      style: theme.textTheme.ppMori400Grey14),
+                                  TextSpan(
+                                      text: _maxAmountText(state),
+                                      style: theme.textTheme.ppMori400Grey14
+                                          .copyWith(
+                                              decoration:
+                                                  TextDecoration.underline))
+                                ]),
                               ),
                               onTap: () {
                                 String amountInStr = _maxAmount(state);
@@ -236,7 +244,6 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                               _amountController.text.replaceAll(",", ".")));
                         },
                       ),
-                      const SizedBox(height: 16.0),
                       gasFeeStatus(state, theme),
                       const SizedBox(height: 8.0),
                       if (state.feeOptionValue != null)
@@ -285,65 +292,59 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
 
   Widget gasFeeStatus(SendCryptoState state, ThemeData theme) {
     if (_initialChangeAddress && state.feeOptionValue == null) {
-      return Text("gas_fee_calculating".tr(),
-          style: theme.textTheme.headlineSmall);
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text("gas_fee_calculating".tr(),
+            style: theme.textTheme.headlineSmall),
+      );
     }
     if (state.feeOptionValue != null) {
       if (!(state.amount != null && state.amount! > BigInt.zero)) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
+        return const SizedBox();
       }
       bool isValid = state.isValid &&
           !(widget.data.type == CryptoType.USDC &&
               state.fee != null &&
               state.ethBalance != null &&
               state.fee! > state.ethBalance!);
-      if (isValid) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
-      } else {
-        return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: AppColor.red,
-            ));
+      if (!isValid) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text("gas_fee_insufficient".tr(),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: AppColor.red,
+              )),
+        );
       }
     }
     return const SizedBox();
   }
 
-  Widget _editPriorityView(SendCryptoState state, BuildContext context) {
+  Widget _editPriorityView(SendCryptoState state, BuildContext context,
+      {required Function() onSave}) {
     final theme = Theme.of(context);
     return StatefulBuilder(builder: (context, setState) {
       return Column(
         children: [
-          getFeeRow(FeeOption.LOW, state, theme, () {
-            setState(() {
-              _selectedPriority = FeeOption.LOW;
-            });
-          }),
-          const SizedBox(height: 8),
-          getFeeRow(FeeOption.MEDIUM, state, theme, () {
-            setState(() {
-              _selectedPriority = FeeOption.MEDIUM;
-            });
-          }),
-          const SizedBox(height: 8),
-          getFeeRow(FeeOption.HIGH, state, theme, () {
-            setState(() {
-              _selectedPriority = FeeOption.HIGH;
-            });
-          }),
-          const SizedBox(
-            height: 20,
-          ),
+          getFeeRow(FeeOption.LOW, state, theme, setState),
+          addDivider(color: AppColor.white),
+          getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          addDivider(color: AppColor.white),
+          getFeeRow(FeeOption.HIGH, state, theme, setState),
+          addDivider(color: AppColor.white),
+          const SizedBox(height: 12),
           PrimaryButton(
             text: "save_priority".tr(),
             onTap: () {
-              context.read<SendCryptoBloc>().add(FeeOptionChangedEvent(
-                  _selectedPriority, state.address ?? ""));
+              onSave();
+              Navigator.of(context).pop();
             },
           ),
+          const SizedBox(height: 8),
           OutlineButton(
             text: "cancel".tr(),
             onTap: () {
+              _selectedPriority = state.feeOption;
               Navigator.of(context).pop();
             },
           )
@@ -355,54 +356,65 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   Widget feeTable(SendCryptoState state, BuildContext context) {
     final theme = Theme.of(context);
     final feeOption = state.feeOption;
-    if (!_showAllFeeOption) {
-      return Row(
-        children: [
-          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
-          const Spacer(),
-          Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(
-            width: 56,
-            height: 24,
-          ),
-          GestureDetector(
-            onTap: () {
-              UIHelper.showDialog(context, "edit_priority".tr(),
-                  _editPriorityView(state, context),
-                  backgroundColor: AppColor.disabledColor);
-              _unfocus();
-            },
-            child: Text("edit_priority".tr(),
-                style: theme.textTheme.linkStyle
-                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
-          ),
-        ],
-      );
-    }
-    return const SizedBox();
+    return Row(
+      children: [
+        Text("gas_fee".tr(), style: theme.textTheme.ppMori400Black12),
+        const SizedBox(width: 8),
+        Text(feeOption.name, style: theme.textTheme.ppMori400Black12),
+        const Spacer(),
+        Text(_gasFee(state), style: theme.textTheme.ppMori400Black12),
+        const SizedBox(
+          width: 24,
+        ),
+        GestureDetector(
+          onTap: () {
+            UIHelper.showDialog(
+                context,
+                "edit_priority".tr(),
+                _editPriorityView(state, context, onSave: () {
+                  context.read<SendCryptoBloc>().add(FeeOptionChangedEvent(
+                      _selectedPriority, state.address ?? ""));
+                }),
+                backgroundColor: AppColor.auGreyBackground);
+            _unfocus();
+          },
+          child: Text("edit_priority".tr(),
+              style: theme.textTheme.linkStyle
+                  .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
+        ),
+      ],
+    );
   }
 
   Widget getFeeRow(FeeOption feeOption, SendCryptoState state, ThemeData theme,
-      Function()? onTap) {
-    final isSelected = feeOption == state.feeOption;
-    final textStyle = isSelected
-        ? theme.textTheme.atlasBlackBold12
-        : theme.textTheme.atlasBlackNormal12;
+      StateSetter setState) {
+    final textStyle = theme.textTheme.ppMori400White14;
     return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Text(feeOption.name, style: textStyle),
-          const Spacer(),
-          Text(_gasFee(state, feeOption: feeOption), style: textStyle),
-          const SizedBox(width: 56),
-          AuRadio(
+      onTap: () {
+        setState(() {
+          _selectedPriority = feeOption;
+        });
+      },
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            Text(feeOption.name, style: textStyle),
+            const Spacer(),
+            Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+            const SizedBox(width: 56),
+            AuRadio(
               onTap: (FeeOption value) {
-                _selectedPriority = value;
+                setState(() {
+                  _selectedPriority = feeOption;
+                });
               },
               value: feeOption,
-              groupValue: _selectedPriority),
-        ],
+              groupValue: _selectedPriority,
+              color: AppColor.white,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -435,21 +447,21 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.maxAllow == null) return "";
     final max = state.maxAllow!;
 
-    String text = "max".tr();
+    String text = "";
 
     switch (widget.data.type) {
       case CryptoType.ETH:
-        text += state.isCrypto
+        text = state.isCrypto
             ? "${EthAmountFormatter(max).format()} ETH"
             : "${state.exchangeRate.ethToUsd(max)} USD";
         break;
       case CryptoType.XTZ:
-        text += state.isCrypto
+        text = state.isCrypto
             ? "${XtzAmountFormatter(max.toInt()).format()} XTZ"
             : "${state.exchangeRate.xtzToUsd(max.toInt())} USD";
         break;
       case CryptoType.USDC:
-        text += "${USDCAmountFormatter(max).format()} USDC";
+        text = "${USDCAmountFormatter(max).format()} USDC";
         break;
       default:
         break;
@@ -517,51 +529,3 @@ class SendCryptoPayload {
   SendCryptoPayload(this.type, this.wallet, this.address, this.amount, this.fee,
       this.exchangeRate, this.feeOption);
 }
-
-// class EditPriorityView extends StatefulWidget {
-//   @override
-//   State<EditPriorityView> createState() => EditPriorityViewState();
-// }
-//
-// class EditPriorityViewState extends State<EditPriorityView> {
-//   Widget getFeeRow(
-//       FeeOption feeOption, SendCryptoState state, ThemeData theme) {
-//     final isSelected = feeOption == state.feeOption;
-//     final textStyle = isSelected
-//         ? theme.textTheme.atlasBlackBold12
-//         : theme.textTheme.atlasBlackNormal12;
-//     return GestureDetector(
-//       onTap: () {
-//         // _unfocus();
-//
-//         context
-//             .read<SendCryptoBloc>()
-//             .add(FeeOptionChangedEvent(feeOption, state.address ?? ""));
-//       },
-//       child: Row(
-//         children: [
-//           Text(feeOption.name, style: textStyle),
-//           const Spacer(),
-//           Text(_gasFee(state, feeOption: feeOption), style: textStyle),
-//           const SizedBox(width: 56),
-//           SvgPicture.asset(isSelected
-//               ? "assets/images/radio_btn_selected.svg"
-//               : "assets/images/radio_btn_not_selected.svg"),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         getFeeRow(FeeOption.LOW, state, theme),
-//         const SizedBox(height: 8),
-//         getFeeRow(FeeOption.MEDIUM, state, theme),
-//         const SizedBox(height: 8),
-//         getFeeRow(FeeOption.HIGH, state, theme),
-//       ],
-//     );
-//   }
-// }

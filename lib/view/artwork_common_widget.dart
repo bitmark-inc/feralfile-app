@@ -1630,3 +1630,62 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
     );
   }
 }
+
+class ExpandedWidget extends StatefulWidget {
+  final Widget? header;
+  final Widget? child;
+
+  const ExpandedWidget({Key? key, this.header, this.child}) : super(key: key);
+
+  @override
+  State<ExpandedWidget> createState() => _ExpandedWidgetState();
+}
+
+class _ExpandedWidgetState extends State<ExpandedWidget> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: Row(
+                  children: [
+                    Expanded(child: widget.header ?? const SizedBox()),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: RotatedBox(
+                        quarterTurns: _isExpanded ? 1 : 0,
+                        child: const Icon(
+                          AuIcon.chevron_Sm,
+                          size: 12,
+                          color: AppColor.primaryBlack,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 23.0),
+        Visibility(
+          visible: _isExpanded,
+          child: widget.child ?? const SizedBox(),
+        )
+      ],
+    );
+  }
+}
