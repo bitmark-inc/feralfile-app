@@ -421,11 +421,13 @@ class HomePageState extends State<HomePage>
       nftBloc.add(RequestIndexEvent(activeAddresses));
       if (checkPendingToken) {
         final pendingTokenService = injector<PendingTokenService>();
-        activeAddresses
+        final pendingResults = await Future.wait(activeAddresses
             .where((address) => address.startsWith("tz"))
-            .forEach((address) {
-          pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
-        });
+            .map((address) => pendingTokenService
+                .checkPendingTezosTokens(address, maxRetries: 1)));
+        if (pendingResults.any((e) => e)) {
+          nftBloc.add(RefreshNftCollection());
+        }
       }
     });
   }
