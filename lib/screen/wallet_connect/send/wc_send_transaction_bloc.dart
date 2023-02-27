@@ -47,6 +47,10 @@ class WCSendTransactionBloc
       newState.feeOptionValue = await _ethereumService.estimateFee(
           persona, event.address, event.amount, event.data);
       newState.fee = newState.feeOptionValue!.getFee(state.feeOption);
+
+      final balance =
+          await _ethereumService.getBalance(await persona.getETHAddress());
+      newState.balance = balance.getInWei;
       emit(newState);
     });
 
