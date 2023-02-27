@@ -224,8 +224,10 @@ class PendingTokenService {
         anyOf: owner,
         sort: "timestamp",
         limit: 5,
-        lastTime:
-            DateTime.now().subtract(const Duration(hours: 4)).toIso8601String(),
+        lastTime: DateTime.now()
+            .toUtc()
+            .subtract(const Duration(hours: 4))
+            .toIso8601String(),
       );
       final transfers = <TZKTTokenTransfer>[];
       for (final operation in operations.reversed) {
