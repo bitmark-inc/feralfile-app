@@ -205,22 +205,31 @@ class NavigationService {
       Future.delayed(const Duration(seconds: 4), () async {
         hideInfoDialog();
         if (willShowContacting) {
-          await UIHelper.showInfoDialog(
-            navigatorKey.currentContext!,
-            'contacting'.tr(),
-            'contact_with_dapp'.tr(),
-            closeButton: "cancel_dialog".tr(),
-            isDismissible: true,
-            autoDismissAfter: 20,
-            onClose: () {
-              metricClient.addEvent(MixpanelEvent.cancelContact);
-              hideInfoDialog();
-            },
-          );
+          await _contactDialog();
         }
       });
 
       metricClient.addEvent(MixpanelEvent.connectContactSuccess);
+    }
+  }
+
+  Future<void> _contactDialog() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState!.mounted == true) {
+      await UIHelper.showInfoDialog(
+        navigatorKey.currentContext!,
+        'contacting'.tr(),
+        'contact_with_dapp'.tr(),
+        closeButton: "cancel_dialog".tr(),
+        isDismissible: true,
+        autoDismissAfter: 20,
+        onClose: () {
+          injector
+              .get<MetricClientService>()
+              .addEvent(MixpanelEvent.cancelContact);
+          hideInfoDialog();
+        },
+      );
     }
   }
 }
