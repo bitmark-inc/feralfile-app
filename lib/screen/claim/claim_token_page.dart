@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -24,7 +26,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class ClaimTokenPageArgs {
   final FFArtwork artwork;
@@ -338,9 +339,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   Future _claimToken(BuildContext context, String receiveAddress) async {
+    ArtworkIdentity? artworkIdentity;
     final ffService = injector<FeralFileService>();
     try {
-      await ffService.claimToken(
+      artworkIdentity = await ffService.claimToken(
         artworkId: widget.artwork.id,
         address: receiveAddress,
         otp: widget.otp,
@@ -370,6 +372,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         AppRouter.homePage,
         (route) => false,
       );
+      if (artworkIdentity != null) {
+        Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+            arguments: ArtworkDetailPayload([artworkIdentity], 0));
+      }
     }
   }
 

@@ -41,6 +41,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:social_share/social_share.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -56,6 +57,8 @@ class ArtworkDetailPage extends StatefulWidget {
 class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
+  late bool withSharing;
+
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
@@ -68,6 +71,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    withSharing = true;
   }
 
   @override
@@ -85,6 +89,53 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
+  }
+
+  void _shareTwitter(AssetToken token) {
+    final url = 'https://viewer.test.autonomy.io/token/${token.id}';
+    final artistName = token.artistName;
+    final caption =
+        '${token.title} by @$artistName offered by @MuseumModernArt, made it possible by @AutonomyWallet';
+    final hashtags = ['digitalartwallet', 'NFT'];
+    SocialShare.shareTwitter(caption, hashtags: hashtags, url: url);
+  }
+
+  Future<void> _socialShare(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    final tags = [
+      'refikanadol',
+      'MoMA',
+      'autonomy',
+      'digitalartwallet',
+      'NFT',
+    ];
+    final tagsText = tags.map((e) => '#$e').join(" ");
+    Widget content = Column(
+      children: [
+        Text(
+          "congratulations_new_NFT".tr(),
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 12),
+        Text(tagsText, style: theme.textTheme.ppMori400Grey14),
+        const SizedBox(height: 24),
+        PrimaryButton(
+          text: "share_on_".tr(),
+          onTap: () {
+            _shareTwitter(asset);
+            Navigator.of(context).pop();
+          },
+        ),
+        const SizedBox(height: 8),
+        OutlineButton(
+          text: "close".tr(),
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+    return UIHelper.showDialog(context, "share_the_new".tr(), content);
   }
 
   @override
@@ -117,7 +168,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       setState(() {
         currentAsset = state.asset;
       });
-
+      if (withSharing == true && state.asset != null) {
+        _socialShare(context, state.asset!);
+        setState(() {
+          withSharing = false;
+        });
+      }
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.asset != null) {

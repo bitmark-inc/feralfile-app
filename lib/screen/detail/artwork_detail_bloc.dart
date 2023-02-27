@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/dao/provenance_dao.dart';
-import 'package:http/http.dart' as http;
 
 class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   final FeralFileService _feralFileService;
@@ -24,14 +23,14 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
       final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(
           event.identity.id, event.identity.owner);
-      if (asset != null && (asset.mimeType?.isEmpty ?? true)) {
-        final uri = Uri.tryParse(asset.previewURL ?? '');
-        if (uri != null) {
-          final res = await http.head(uri);
-          asset.mimeType = res.headers["content-type"];
-          _assetTokenDao.updateAsset(asset);
-        }
-      }
+      // if (asset != null && (asset.mimeType?.isEmpty ?? true)) {
+      //   final uri = Uri.tryParse(asset.previewURL ?? '');
+      //   if (uri != null) {
+      //     final res = await http.head(uri);
+      //     asset.mimeType = res.headers["content-type"];
+      //     _assetTokenDao.updateAsset(asset);
+      //   }
+      // }
       final provenances =
           await _provenanceDao.findProvenanceByTokenID(event.identity.id);
 

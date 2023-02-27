@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
@@ -204,11 +205,12 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     String artworkId, {
     Otp? otp,
   }) async {
+    ArtworkIdentity? artworkIdentity;
     try {
       _setProcessingState(true);
       final ffService = injector<FeralFileService>();
       final address = await account.getAddress(widget.blockchain ?? "tezos");
-      await ffService.claimToken(
+      artworkIdentity = await ffService.claimToken(
         artworkId: artworkId,
         address: address,
         otp: otp,
@@ -240,5 +242,9 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       AppRouter.homePage,
       (route) => false,
     );
+    if (artworkIdentity != null) {
+      Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+          arguments: ArtworkDetailPayload([artworkIdentity], 0));
+    }
   }
 }
