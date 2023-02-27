@@ -98,10 +98,12 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   void callAccountBloc() {
-    if (widget.connectionRequest.isWCconnect) {
+    if (widget.connectionRequest.isWCconnect ||
+        widget.connectionRequest.isWC2connect) {
       context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
           includeLinkedAccount: false, getTezos: false));
-    } else if (widget.connectionRequest.isBeaconConnect) {
+    } else if (widget.connectionRequest.isBeaconConnect ||
+        widget.connectionRequest.isWC2connect) {
       context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
           includeLinkedAccount: false, getEth: false));
     }
@@ -150,20 +152,21 @@ class _WCConnectPageState extends State<WCConnectPage>
     print("1------");
     if (selectedPersona == null) return;
 
-    UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
+    //UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
         print("--------Wc2Proposal");
-        final accountDid = await selectedPersona!.wallet.getAccountDID();
+        final account = await injector<AccountService>().getDefaultAccount();
+        final accountDid = await account.getAccountDID();
         await injector<Wc2Service>().approveSession(
           connectionRequest as Wc2Proposal,
           accountDid: accountDid.substring("did:key:".length),
-          personalUUID: selectedPersona!.wallet.uuid,
+          personalUUID: account.uuid,
         );
         payloadType = CryptoType.ETH;
-        payloadAddress = await selectedPersona!.wallet
+        payloadAddress = await account
             .getETHEip55Address(index: selectedPersona!.index);
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
@@ -400,14 +403,10 @@ class _WCConnectPageState extends State<WCConnectPage>
 
  */
                         if (connectionRequest.isWC2connect) {
-                          final defaultPersona = categorizedAccounts
-                              ?.firstWhere(
-                                  (e) => e.persona?.isDefault() ?? false)
-                              .persona;
-                          if (defaultPersona != null) {
-                            setState(() {
+                          if (stateCategorizedAccounts.isNotEmpty) {
+                            setState(() async {
                               selectedPersona =
-                                  WalletIndex(defaultPersona.wallet(), 0);
+                                  WalletIndex((await injector<AccountService>().getDefaultAccount()), 0);
                             });
                           }
                         }
@@ -427,7 +426,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                   ),
                 ),
               ),
-              wc2Connect()
+              connect()
             ],
           ),
         ),
@@ -470,7 +469,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     return _selectPersonaWidget(stateCategorizedAccounts);
   }
 
-  Widget wc2Connect() {
+  Widget connect() {
     if (connectionRequest.isWC2connect) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -481,7 +480,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 child: Padding(
                   padding: padding,
                   child: AuPrimaryButton(
-                    text: "connect".tr(),
+                    text: "connect2".tr(),
                     onPressed: () => withDebounce(() => _approveThenNotify()),
                   ),
                 ),

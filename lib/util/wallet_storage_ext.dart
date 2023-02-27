@@ -21,7 +21,7 @@ import 'package:web3dart/credentials.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 extension StringExtension on WalletStorage {
-  Future<String> getETHEip55Address({int? index}) async {
+  Future<String> getETHEip55Address({int index = 0}) async {
     String address = await getETHAddress(index: index);
     if (address.isNotEmpty) {
       return EthereumAddress.fromHex(address).hexEip55;
@@ -46,7 +46,7 @@ extension WalletStorageExtension on WalletStorage {
     return token.balance ?? 0;
   }
 
-  Future getTezosAddress({int? index}) async {
+  Future getTezosAddress({int index = 0}) async {
     final publicKey = await getTezosPublicKey(index: index);
     return crypto.addressFromPublicKey(publicKey);
   }

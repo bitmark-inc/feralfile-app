@@ -153,6 +153,7 @@ class Wc2Service extends Wc2Handler {
   //#region Events handling
   @override
   void onSessionProposal(Wc2Proposal proposal) async {
+    log.info("[WC2Service] onSessionProposal: id = ${proposal.id}");
     final unsupportedChains =
         proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
     if (unsupportedChains.isNotEmpty) {
