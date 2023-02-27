@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -1057,6 +1058,19 @@ class UIHelper {
                 ),
               ),
             ),
+          );
+        });
+  }
+
+  static showLoadingIndicator(
+    BuildContext context,
+  ) {
+    UIHelper.hideInfoDialog(context);
+    showCupertinoModalPopup(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: loadingIndicator(),
           );
         });
   }
