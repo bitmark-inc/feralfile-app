@@ -215,7 +215,7 @@ class NavigationService {
 
   Future<void> _contactDialog() async {
     if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState!.mounted == true) {
+        navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),
