@@ -317,7 +317,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Text(
             "do_not_show_nft".tr(),
             //"Do not show this account's NFTs in the collection view."
-            style: theme.textTheme.ppMori400Black14,
+            style: theme.textTheme.ppMori400Black12,
           ),
         ],
       ),
@@ -335,11 +335,11 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         if (_source == 'FeralFile') ...[
           Text("ba_the_keys_for_thisFf".tr(),
               //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
-              style: theme.textTheme.ppMori400Black14),
+              style: theme.textTheme.ppMori400Black12),
         ] else ...[
-          Text("ba_the_keys_for_thisFf".tr(args: [_source]),
+          Text("ba_the_keys_for_this".tr(args: [_source]),
               //"The keys for this account are in $_source. You should manage your key backups there.",
-              style: theme.textTheme.ppMori400Black14),
+              style: theme.textTheme.ppMori400Black12),
         ],
       ],
     );
