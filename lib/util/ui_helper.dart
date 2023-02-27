@@ -1052,7 +1052,7 @@ class UIHelper {
                       AuSecondaryButton(
                         text: exitButton ?? "close".tr(),
                         onPressed: exitButtonOnTap ??
-                                () {
+                            () {
                               Navigator.pop(context);
                             },
                         borderColor: AppColor.primaryBlack,
