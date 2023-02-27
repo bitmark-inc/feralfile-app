@@ -147,14 +147,15 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future _approve({bool onBoarding = false}) async {
+    print("1------");
     if (selectedPersona == null) return;
 
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
-
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
+        print("--------Wc2Proposal");
         final accountDid = await selectedPersona!.wallet.getAccountDID();
         await injector<Wc2Service>().approveSession(
           connectionRequest as Wc2Proposal,
@@ -373,8 +374,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                           listener: (context, state) {
                         var stateCategorizedAccounts =
                             state.categorizedAccounts;
-                        print("------------1");
-                        print(state.categorizedAccounts?.length);
                         if (stateCategorizedAccounts == null ||
                             stateCategorizedAccounts.isEmpty) return;
 
@@ -398,7 +397,20 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 ?.firstWhereOrNull((e) => e.defaultAccount == 1);
                           });
                         }
+
  */
+                        if (connectionRequest.isWC2connect) {
+                          final defaultPersona = categorizedAccounts
+                              ?.firstWhere(
+                                  (e) => e.persona?.isDefault() ?? false)
+                              .persona;
+                          if (defaultPersona != null) {
+                            setState(() {
+                              selectedPersona =
+                                  WalletIndex(defaultPersona.wallet(), 0);
+                            });
+                          }
+                        }
                         setState(() {
                           categorizedAccounts = stateCategorizedAccounts;
                         });
@@ -450,7 +462,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (stateCategorizedAccounts == null) return const SizedBox();
 
     if (stateCategorizedAccounts.isEmpty) {
-      return Expanded(child: _createAccountAndConnect());
+      return const SizedBox(); // Expanded(child: _createAccountAndConnect());
     }
     if (connectionRequest.isWC2connect) {
       return const SizedBox();
@@ -590,7 +602,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         Column(
           children: [
             ...accounts
-                .map((account) => PersionalConnectItem(
+                .map((account) => PersonalConnectItem(
                       categorizedAccount: account,
                       ethSelectedAddress: ethSelectedAddress,
                       tezSelectedAddress: tezSelectedAddress,

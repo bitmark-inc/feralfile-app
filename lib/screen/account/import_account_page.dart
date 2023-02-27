@@ -85,7 +85,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         style: theme.textTheme.ppMori400Black14,
                         children: <TextSpan>[
                           TextSpan(
-                            text: "ia_importing_your_account_".tr(),
+                            text: "autonomy_will_import".tr(),
                           ),
                           Platform.isIOS
                               ? TextSpan(
@@ -141,7 +141,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                           padding: const EdgeInsets.all(20.0),
                           child: GestureDetector(
                             onTap: () {
-                              UIHelper.showDialog(context, "select_your_wallet",
+                              UIHelper.showDialog(
+                                  context, "select_wallet_type".tr(),
                                   StatefulBuilder(builder: (
                                 BuildContext context,
                                 StateSetter dialogState,
@@ -159,26 +160,38 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                                     _walletTypeOption(
                                         theme, WalletType.Tezos, dialogState),
                                     const SizedBox(height: 40),
-                                    PrimaryButton(
-                                      text: "select".tr(),
-                                      onTap: () {
-                                        Navigator.of(context).pop();
-                                        setState(() {
-                                          _walletType = _walletTypeSelecting;
-                                        });
-                                      },
-                                    ),
-                                    const SizedBox(height: 10),
-                                    OutlineButton(
-                                      onTap: () => Navigator.of(context).pop(),
-                                      text: "cancel".tr(),
+                                    Padding(
+                                      padding: ResponsiveLayout
+                                          .pageHorizontalEdgeInsets,
+                                      child: Column(
+                                        children: [
+                                          PrimaryButton(
+                                            text: "select".tr(),
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                              setState(() {
+                                                _walletType =
+                                                    _walletTypeSelecting;
+                                              });
+                                            },
+                                          ),
+                                          const SizedBox(height: 10),
+                                          OutlineButton(
+                                            onTap: () =>
+                                                Navigator.of(context).pop(),
+                                            text: "cancel".tr(),
+                                          ),
+                                        ],
+                                      ),
                                     )
                                   ],
                                 );
                               }),
                                   isDismissible: true,
                                   padding:
-                                      const EdgeInsets.symmetric(vertical: 32));
+                                      const EdgeInsets.symmetric(vertical: 32),
+                                  paddingTitle: ResponsiveLayout
+                                      .pageHorizontalEdgeInsets);
                             },
                             child: Container(
                               decoration: const BoxDecoration(
@@ -280,7 +293,12 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
               ),
               const Spacer(),
               AuRadio<WalletType>(
-                onTap: (value) {},
+                onTap: (value) {
+                  setState(() {
+                    _walletTypeSelecting = walletType;
+                  });
+                  dialogState(() {});
+                },
                 value: _walletTypeSelecting,
                 groupValue: walletType,
                 color: AppColor.white,

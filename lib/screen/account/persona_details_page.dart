@@ -20,10 +20,14 @@ import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -48,7 +52,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     with RouteAware {
   bool isHideGalleryEnabled = false;
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-
+  WalletType _walletTypeSelecting = WalletType.Ethereum;
   String? title;
 
   @override
@@ -191,19 +195,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 .toList(),
           );
         }),
-        BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
-          final usdcAddress = state.personaAddresses?[uuid];
-          final usdcBalance = state.usdcBalances[usdcAddress];
-          final balance = usdcBalance == null
-              ? "-- USDC"
-              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-          return _addressRow(
-              address: state.personaAddresses?[uuid] ?? "",
-              index: 0,
-              type: CryptoType.USDC,
-              balance: balance);
-        }),
-        addDivider(),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
           final tezosAddress = state.personaAddresses?[uuid];
           if (tezosAddress == null || tezosAddress.isEmpty) {
@@ -221,13 +212,116 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                               ? "-- XTZ"
                               : "${XtzAmountFormatter(state.balances[address]!).format()} XTZ",
                         ),
-                        addDivider(),
+                        if (address != tezosAddress.last) addDivider(),
                       ],
                     ))
                 .toList(),
           );
         }),
+        const SizedBox(height: 30),
+        Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: padding,
+                child: AuPrimaryButton(
+                  text: "add_address_to_wallet".tr(),
+                  onPressed: () {
+                    UIHelper.showDialog(context, "add_address_to_wallet".tr(),
+                        StatefulBuilder(builder: (
+                      BuildContext context,
+                      StateSetter dialogState,
+                    ) {
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                            child: Text(
+                              "must_select_chain".tr(),
+                              style: theme.textTheme.ppMori400White14,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          _walletTypeOption(
+                              theme, WalletType.Ethereum, dialogState),
+                          addDivider(height: 40, color: AppColor.white),
+                          _walletTypeOption(
+                              theme, WalletType.Tezos, dialogState),
+                          const SizedBox(height: 40),
+                          Padding(
+                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                            child: Column(
+                              children: [
+                                AuPrimaryButton(
+                                  text: "add_address".tr(),
+                                  onPressed: () async {
+                                    final persona = await injector<AccountService>()
+                                        .addAddressPersona(
+                                            widget.persona, _walletTypeSelecting);
+                                    if (!mounted) return;
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).popAndPushNamed(
+                                      AppRouter.personaDetailsPage,
+                                      arguments: persona,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 10),
+                                OutlineButton(
+                                  onTap: () => Navigator.of(context).pop(),
+                                  text: "cancel".tr(),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      );
+                    }),
+                        isDismissible: true,
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
+                  },
+                ),
+              ),
+            )
+          ],
+        ),
+        const SizedBox(height: 14),
+        addDivider(),
       ],
+    );
+  }
+
+  Widget _walletTypeOption(
+      ThemeData theme, WalletType walletType, StateSetter dialogState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _walletTypeSelecting = walletType;
+          });
+          dialogState(() {});
+        },
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              Text(
+                walletType.getString(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              const Spacer(),
+              AuRadio<WalletType>(
+                onTap: (value) {},
+                value: _walletTypeSelecting,
+                groupValue: walletType,
+                color: AppColor.white,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

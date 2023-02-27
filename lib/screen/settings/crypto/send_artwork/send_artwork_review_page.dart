@@ -57,8 +57,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
         final contractAddress = EthereumAddress.fromHex(asset.contractAddress!);
         final to = EthereumAddress.fromHex(widget.payload.address);
-        final from = EthereumAddress.fromHex(
-            await widget.payload.wallet.getETHAddress());
+        final from = EthereumAddress.fromHex(await widget.payload.wallet
+            .getETHAddress(index: widget.payload.index));
         final tokenId = asset.tokenId!;
 
         final data = widget.payload.asset.contractType == "erc1155"

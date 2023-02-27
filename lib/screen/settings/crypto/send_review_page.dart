@@ -80,6 +80,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
           Navigator.of(context).pop(payload);
           break;
         case CryptoType.XTZ:
+
           final opHash = await injector<TezosService>().sendTransaction(
               widget.payload.wallet,
               widget.payload.index,

@@ -101,6 +101,8 @@ abstract class AccountService {
   Future<List<String>> getShowedAddresses();
 
   Future<String> authorizeToViewer();
+
+  Future<Persona> addAddressPersona(Persona newPersona, WalletType walletType);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -593,14 +595,7 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
 
     for (var persona in personas) {
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-
-      addresses.add(ethAddress);
-      addresses.add(await personaWallet.getTezosAddress());
+      addresses.addAll(await persona.getAddresses());
     }
 
     final linkedAccounts =
@@ -734,6 +729,21 @@ class AccountServiceImpl extends AccountService {
     });
 
     return "keypair_$base58PublicKey||${privateKey.toHex()}";
+  }
+
+  @override
+  Future<Persona> addAddressPersona(Persona newPersona, WalletType walletType) async {
+    switch (walletType) {
+      case WalletType.Ethereum:
+        newPersona.ethereumIndex += 1;
+        break;
+      case WalletType.Tezos:
+        newPersona.tezosIndex += 1;
+        break;
+      default:
+    }
+    await _cloudDB.personaDao.updatePersona(newPersona);
+    return newPersona;
   }
 }
 

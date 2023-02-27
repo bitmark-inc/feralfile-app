@@ -52,14 +52,16 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
 
       switch (type) {
         case CryptoType.ETH:
-          final ownerAddress = await event.wallet.getETHEip55Address();
+          final ownerAddress =
+              await event.wallet.getETHEip55Address(index: event.index);
           final balance = await _ethereumService.getBalance(ownerAddress);
 
           newState.balance = balance.getInWei;
           newState.isValid = _isValid(newState);
           break;
         case CryptoType.XTZ:
-          final address = await event.wallet.getTezosAddress();
+          final address =
+              await event.wallet.getTezosAddress(index: event.index);
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -84,7 +86,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       newState.isValid = _isValid(newState);
       emit(newState);
       if (cachedAddress != null && !newState.isQuantityError) {
-        add(AddressChangedEvent(cachedAddress!));
+        add(AddressChangedEvent(cachedAddress!, event.index));
       }
     }, transformer: (events, mapper) {
       return events
@@ -109,8 +111,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               newState.address = address.hexEip55;
               newState.isAddressError = false;
 
-              add(EstimateFeeEvent(address.hexEip55, _asset.contractAddress!,
-                  _asset.tokenId!, state.quantity));
+              add(EstimateFeeEvent(address.hexEip55, event.index,
+                  _asset.contractAddress!, _asset.tokenId!, state.quantity));
             } catch (err) {
               newState.isAddressError = true;
             }
@@ -120,8 +122,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               newState.address = event.address;
               newState.isAddressError = false;
 
-              add(EstimateFeeEvent(event.address, _asset.contractAddress!,
-                  _asset.tokenId!, state.quantity));
+              add(EstimateFeeEvent(event.address, event.index,
+                  _asset.contractAddress!, _asset.tokenId!, state.quantity));
             } else {
               newState.isAddressError = true;
             }
@@ -147,8 +149,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
       switch (type) {
         case CryptoType.ETH:
           final wallet = state.wallet;
-          final index = state.index;
-          if (wallet == null || index == null) return;
+          final index = event.index;
+          if (wallet == null) return;
 
           final contractAddress =
               EthereumAddress.fromHex(event.contractAddress);
@@ -170,12 +172,12 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           break;
         case CryptoType.XTZ:
           final wallet = state.wallet;
-          final index = state.index;
-          if (wallet == null || index == null) return;
+          final index = event.index;
+          if (wallet == null) return;
           try {
             final operation = await _tezosService.getFa2TransferOperation(
                 event.contractAddress,
-                await wallet.getTezosAddress(),
+                await wallet.getTezosAddress(index: index),
                 event.address,
                 event.tokenId,
                 event.quantity);

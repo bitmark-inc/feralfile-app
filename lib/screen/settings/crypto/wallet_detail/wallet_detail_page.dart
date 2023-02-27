@@ -70,14 +70,18 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         context
             .read<EthereumBloc>()
             .add(GetEthereumBalanceWithUUIDEvent(personUUID));
+        context
+            .read<USDCBloc>()
+            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
         break;
       case CryptoType.XTZ:
         context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(personUUID));
         context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
         break;
       case CryptoType.USDC:
-        context.read<USDCBloc>().add(GetAddressEvent(personUUID));
-        context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(personUUID));
+        context
+            .read<USDCBloc>()
+            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
         break;
       case CryptoType.UNKNOWN:
         // do nothing
@@ -108,6 +112,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     context
         .read<WalletDetailBloc>()
         .add(WalletDetailBalanceEvent(cryptoType, address));
+    if (cryptoType == CryptoType.ETH) {
+      context
+          .read<USDCBloc>()
+          .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
+    }
     _callFetchConnections();
   }
 
@@ -128,10 +137,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(personUUID, widget.payload.index));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
         break;
       case CryptoType.XTZ:
-        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
         break;
       default:
         // do nothing
@@ -201,6 +214,20 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                         child: _sendReceiveSection(),
                       ),
                       const SizedBox(height: 24),
+                      if (widget.payload.type == CryptoType.ETH) ...[
+                        BlocBuilder<USDCBloc, USDCState>(
+                            builder: (context, state) {
+                          final address = widget.payload.address;
+                          final usdcBalance = state.usdcBalances[address];
+                          final balance = usdcBalance == null
+                              ? "-- USDC"
+                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                          return Padding(
+                            padding: padding,
+                            child: _usdcBalance(balance),
+                          );
+                        })
+                      ],
                       addDivider(),
                       if (showConnection) ...[
                         Padding(
@@ -264,6 +291,57 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     }
 
     Navigator.of(context).pushNamed(AppRouter.scanQRPage, arguments: scanItem);
+  }
+
+  Widget _usdcBalance(String balance) {
+    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.ppMori400White14
+        .copyWith(color: AppColor.auQuickSilver);
+    return TappableForwardRow(
+        padding: EdgeInsets.zero,
+        leftWidget: Container(
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/images/usdc.svg',
+                width: 24,
+                height: 24,
+              ),
+              const SizedBox(width: 35),
+              Text(
+                "USDC",
+                style: theme.textTheme.ppMori700Black14,
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    side: const BorderSide(
+                      color: AppColor.auQuickSilver,
+                    ),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 15)),
+                onPressed: () {},
+                child: Text('ERC20', style: theme.textTheme.ppMori400Grey14),
+              )
+            ],
+          ),
+        ),
+        rightWidget: Text(
+          balance,
+          style: balanceStyle,
+        ),
+        onTap: () {
+          var payload = widget.payload;
+          payload.type = CryptoType.USDC;
+          Navigator.of(context)
+              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
+        });
   }
 
   Widget _balanceSection(String balance, String balanceInUSD) {
@@ -543,7 +621,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 }
 
 class WalletDetailsPayload {
-  final CryptoType type;
+  CryptoType type;
   final WalletStorage wallet;
   final String personaUUID;
   final String address;

@@ -371,6 +371,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
+    print("---------");
+    print(addressIndex);
+    print(await ownerWallet!.getTezosAddress(index: 0));
+    print(await ownerWallet!.getTezosAddress(index: 1));
 
     if (!mounted) return;
     final isHidden = _isHidden(asset);
