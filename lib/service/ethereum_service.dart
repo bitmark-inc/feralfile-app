@@ -138,7 +138,9 @@ class EthereumServiceImpl extends EthereumService {
     log.info("[EthereumService] sendTransaction - to: $to - amount $value");
 
     final sender = EthereumAddress.fromHex(await wallet.getETHAddress());
-    final nonce = await _web3Client.getTransactionCount(sender);
+    final nonce = await _web3Client.getTransactionCount(sender,
+        atBlock: const BlockNum.pending());
+
     var gasLimit =
         (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
@@ -147,24 +149,26 @@ class EthereumServiceImpl extends EthereumService {
       final fee = await getEthereumFee(feeOption);
 
       signedTransaction = await wallet.ethSignTransaction1559(
-          nonce: nonce,
-          gasLimit: gasLimit,
-          maxFeePerGas: fee.maxFeePerGas.getInWei,
-          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.getInWei,
-          to: to.hexEip55,
-          value: value,
-          data: data ?? "",
-          chainId: chainId);
+        nonce: nonce,
+        gasLimit: gasLimit,
+        maxFeePerGas: fee.maxFeePerGas.getInWei,
+        maxPriorityFeePerGas: fee.maxPriorityFeePerGas.getInWei,
+        to: to.hexEip55,
+        value: value,
+        data: data ?? "",
+        chainId: chainId,
+      );
     } else {
       final gasPrice = await _getGasPrice();
       signedTransaction = await wallet.ethSignTransaction(
-          nonce: nonce,
-          gasPrice: gasPrice.getInWei,
-          gasLimit: gasLimit,
-          to: to.hexEip55,
-          value: value,
-          data: data ?? "",
-          chainId: chainId);
+        nonce: nonce,
+        gasPrice: gasPrice.getInWei,
+        gasLimit: gasLimit,
+        to: to.hexEip55,
+        value: value,
+        data: data ?? "",
+        chainId: chainId,
+      );
     }
 
     return _web3Client.sendRawTransaction(signedTransaction);
@@ -182,7 +186,8 @@ class EthereumServiceImpl extends EthereumService {
         ContractAbi.fromJson(contractJson, "ERC721"), contractAddress);
     ContractFunction transferFrom() => contract.function("safeTransferFrom");
 
-    final nonce = await _web3Client.getTransactionCount(from);
+    final nonce = await _web3Client.getTransactionCount(from,
+        atBlock: const BlockNum.pending());
     Transaction transaction;
     if (feeOption != null) {
       final fee = await getEthereumFee(feeOption);
@@ -224,7 +229,8 @@ class EthereumServiceImpl extends EthereumService {
     ContractFunction transferFrom() =>
         contract.function("safeBatchTransferFrom");
 
-    final nonce = await _web3Client.getTransactionCount(from);
+    final nonce = await _web3Client.getTransactionCount(from,
+        atBlock: const BlockNum.pending());
 
     Transaction transaction;
     if (feeOption != null) {
@@ -294,7 +300,9 @@ class EthereumServiceImpl extends EthereumService {
         ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
     ContractFunction transferFrom() => contract.function("transfer");
 
-    final nonce = await _web3Client.getTransactionCount(from);
+    final nonce = await _web3Client.getTransactionCount(from,
+        atBlock: const BlockNum.pending());
+
     Transaction transaction;
     if (feeOption != null) {
       final fee = await getEthereumFee(feeOption);
