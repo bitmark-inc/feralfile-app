@@ -536,6 +536,8 @@ class _ControlViewState extends State<ControlView> {
                           .toIdentityOrMask(identityState.identityMap) ??
                       event.recipient)
                   .toList();
+              final followingTime =
+                  getDateTimeRepresentation(events.first.timestamp.toLocal());
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -615,8 +617,10 @@ class _ControlViewState extends State<ControlView> {
                                 .flattened,
                             Text(" • ", style: theme.textTheme.ppMori400Grey12),
                             Text(
-                                getDateTimeRepresentation(
-                                    events.first.timestamp.toLocal()),
+                                events.length > 1
+                                    ? "last_time_format"
+                                        .tr(args: [followingTime])
+                                    : followingTime,
                                 style: theme.textTheme.ppMori400Grey12),
                           ],
                         ),
