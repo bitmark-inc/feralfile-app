@@ -140,6 +140,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                         padding: padding.copyWith(top: 0, bottom: 0),
                         child: _defaultAccount(context),
                       ),
+                      if (injector<ConfigurationService>()
+                          .getShowAuChainInfo()) ...[
+                        const SizedBox(height: 30),
+                        _importInfo(context),
+                      ],
                     ],
                   )
                 : const SizedBox(
@@ -154,6 +159,52 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             _backupSection(),
             const SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _importInfo(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColor.auSuperTeal,
+          borderRadius: BorderRadiusGeometry.lerp(
+              const BorderRadius.all(Radius.circular(5)),
+              const BorderRadius.all(Radius.circular(5)),
+              5),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "info".tr(),
+                    style: theme.textTheme.ppMori700Black14,
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    child: closeIcon(),
+                    onTap: () async {
+                      await injector<ConfigurationService>()
+                          .setShowAuChainInfo(false);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "generate_support_au".tr(),
+                style: theme.textTheme.ppMori400Black14,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -255,9 +306,10 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                                 AuPrimaryButton(
                                   text: "add_address".tr(),
                                   onPressed: () async {
-                                    final persona = await injector<AccountService>()
-                                        .addAddressPersona(
-                                            widget.persona, _walletTypeSelecting);
+                                    final persona =
+                                        await injector<AccountService>()
+                                            .addAddressPersona(widget.persona,
+                                                _walletTypeSelecting);
                                     if (!mounted) return;
                                     Navigator.of(context).pop();
                                     Navigator.of(context).popAndPushNamed(
@@ -279,7 +331,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     }),
                         isDismissible: true,
                         padding: const EdgeInsets.symmetric(vertical: 32),
-                        paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
+                        paddingTitle:
+                            ResponsiveLayout.pageHorizontalEdgeInsets);
                   },
                 ),
               ),

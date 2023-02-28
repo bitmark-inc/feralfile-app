@@ -8,8 +8,10 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -41,6 +43,7 @@ class ImportAccountPage extends StatefulWidget {
 class _ImportAccountPageState extends State<ImportAccountPage> {
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
+  bool _isDefaultAccountCreated = false;
 
   bool isError = false;
   WalletType _walletType = WalletType.Autonomy;
@@ -49,8 +52,17 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
   @override
   void initState() {
+    fetchDefaultAccount();
     metricClient.timerEvent(MixpanelEvent.backImportAccount);
     super.initState();
+  }
+
+  Future<void> fetchDefaultAccount() async {
+    final isCreated =
+        (await injector<CloudDatabase>().personaDao.getPersonas()).isNotEmpty;
+    setState(() {
+      _isDefaultAccountCreated = isCreated;
+    });
   }
 
   @override
@@ -153,12 +165,14 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                                         WalletType.Autonomy, dialogState),
                                     addDivider(
                                         height: 40, color: AppColor.white),
-                                    _walletTypeOption(theme,
-                                        WalletType.Ethereum, dialogState),
+                                    _walletTypeOption(
+                                        theme, WalletType.Ethereum, dialogState,
+                                        isEnable: _isDefaultAccountCreated),
                                     addDivider(
                                         height: 40, color: AppColor.white),
                                     _walletTypeOption(
-                                        theme, WalletType.Tezos, dialogState),
+                                        theme, WalletType.Tezos, dialogState,
+                                        isEnable: _isDefaultAccountCreated),
                                     const SizedBox(height: 40),
                                     Padding(
                                       padding: ResponsiveLayout
@@ -273,35 +287,42 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   }
 
   Widget _walletTypeOption(
-      ThemeData theme, WalletType walletType, StateSetter dialogState) {
+      ThemeData theme, WalletType walletType, StateSetter dialogState,
+      {bool isEnable = true}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _walletTypeSelecting = walletType;
-          });
-          dialogState(() {});
-        },
+        onTap: isEnable
+            ? () {
+                setState(() {
+                  _walletTypeSelecting = walletType;
+                });
+                dialogState(() {});
+              }
+            : null,
         child: Container(
           decoration: const BoxDecoration(color: Colors.transparent),
           child: Row(
             children: [
               Text(
                 walletType.getString(),
-                style: theme.textTheme.ppMori400White14,
+                style: isEnable
+                    ? theme.textTheme.ppMori400White14
+                    : theme.textTheme.ppMori400Grey14,
               ),
               const Spacer(),
               AuRadio<WalletType>(
                 onTap: (value) {
-                  setState(() {
-                    _walletTypeSelecting = walletType;
-                  });
-                  dialogState(() {});
+                  if (isEnable) {
+                    setState(() {
+                      _walletTypeSelecting = walletType;
+                    });
+                    dialogState(() {});
+                  }
                 },
                 value: _walletTypeSelecting,
                 groupValue: walletType,
-                color: AppColor.white,
+                color: isEnable ? AppColor.white : AppColor.disabledColor,
               ),
             ],
           ),
@@ -325,9 +346,13 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       injector<TokensService>().fetchTokensForAddresses(addresses);
 
       if (!mounted) return;
-
-      Navigator.of(context)
-          .popAndPushNamed(AppRouter.namePersonaPage, arguments: persona.uuid);
+      UIHelper.showImportedPersonaDialog(context,
+          onContinue: () => Navigator.of(context).popAndPushNamed(
+              AppRouter.namePersonaPage,
+              arguments: persona.uuid));
+      if (!_isDefaultAccountCreated) {
+        injector<ConfigurationService>().setShowAuChainInfo(true);
+      }
     } on AccountImportedException catch (e) {
       showErrorDiablog(
           context,

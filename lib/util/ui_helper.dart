@@ -767,26 +767,15 @@ class UIHelper {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('multichain_generate'.tr(),
-                style: theme.primaryTextTheme.headlineSmall),
-            const SizedBox(height: 16),
-            Text("bitmark_address".tr(),
-                style: theme.primaryTextTheme.headlineMedium),
-            const SizedBox(height: 16),
-            Text("ethereum_address".tr(),
-                style: theme.primaryTextTheme.headlineMedium),
-            const SizedBox(height: 16),
-            Text("tezos_address".tr(),
-                style: theme.primaryTextTheme.headlineMedium),
+            Text("imported_success".tr(),
+                style: theme.textTheme.ppMori400White14),
             const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
-                  child: AuFilledButton(
-                    text: "continue".tr().toUpperCase(),
-                    onPress: () => onContinue(),
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.labelLarge,
+                  child: AuPrimaryButton(
+                    text: "continue".tr(),
+                    onPressed: () => onContinue(),
                   ),
                 ),
               ],
