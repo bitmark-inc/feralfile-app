@@ -19,8 +19,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-Widget accountWithConnectionItem(BuildContext context,
-    CategorizedAccounts categorizedAccounts) {
+Widget accountWithConnectionItem(
+    BuildContext context, CategorizedAccounts categorizedAccounts) {
   final theme = Theme.of(context);
 
   switch (categorizedAccounts.className) {
@@ -42,18 +42,19 @@ Widget accountWithConnectionItem(BuildContext context,
                     style: theme.textTheme.headlineMedium),
                 const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
-                    .map((a) =>
-                    Container(
-                        child: _blockchainAddressView(context,
-                            GlobalReceivePayload(address: a.accountNumber,
+                    .map((a) => Container(
+                        child: _blockchainAddressView(
+                            context,
+                            GlobalReceivePayload(
+                                address: a.accountNumber,
                                 blockchain: a.blockchain!,
                                 account: a),
-                            onTap: () =>
-                                Navigator.of(context).pushNamed(
-                                    GlobalReceiveDetailPage.tag,
-                                    arguments: GlobalReceivePayload(address: a
-                                        .accountNumber, blockchain: a
-                                        .blockchain!, account: a)))))
+                            onTap: () => Navigator.of(context).pushNamed(
+                                GlobalReceiveDetailPage.tag,
+                                arguments: GlobalReceivePayload(
+                                    address: a.accountNumber,
+                                    blockchain: a.blockchain!,
+                                    account: a)))))
                     .toList(),
               ],
             ),
@@ -90,13 +91,19 @@ Widget accountWithConnectionItem(BuildContext context,
                     ]),
                 const SizedBox(height: 8),
                 ...categorizedAccounts.accounts
-                    .map((a) =>
-                    Container(
-                        child: _blockchainAddressView(context, GlobalReceivePayload(address: a.accountNumber, blockchain: a.blockchain!, account: a),
-                            onTap: () =>
-                                Navigator.of(context).pushNamed(
-                                    GlobalReceiveDetailPage.tag,
-                                    arguments: GlobalReceivePayload(address: a.accountNumber, blockchain: a.blockchain!, account: a)))))
+                    .map((a) => Container(
+                        child: _blockchainAddressView(
+                            context,
+                            GlobalReceivePayload(
+                                address: a.accountNumber,
+                                blockchain: a.blockchain!,
+                                account: a),
+                            onTap: () => Navigator.of(context).pushNamed(
+                                GlobalReceiveDetailPage.tag,
+                                arguments: GlobalReceivePayload(
+                                    address: a.accountNumber,
+                                    blockchain: a.blockchain!,
+                                    account: a)))))
                     .toList(),
               ],
             ),
@@ -116,7 +123,7 @@ Widget accountItem(BuildContext context, Account account,
   if (persona != null) {
     final getDidKey = persona.wallet().getAccountDID();
     final isHideGalleryEnabled =
-    injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
+        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
     return TappableForwardRow(
       leftWidget: Row(
         children: [
@@ -126,7 +133,7 @@ Widget accountItem(BuildContext context, Account account,
             future: getDidKey,
             builder: (context, snapshot) {
               final name =
-              account.name.isNotEmpty ? account.name : snapshot.data ?? '';
+                  account.name.isNotEmpty ? account.name : snapshot.data ?? '';
               return Expanded(
                 child: Text(
                   name.replaceFirst('did:key:', ''),
@@ -142,12 +149,12 @@ Widget accountItem(BuildContext context, Account account,
         children: [
           context.widget is AccountsView
               ? Visibility(
-            visible: isHideGalleryEnabled,
-            child: Icon(
-              Icons.visibility_off_outlined,
-              color: theme.colorScheme.surface,
-            ),
-          )
+                  visible: isHideGalleryEnabled,
+                  child: Icon(
+                    Icons.visibility_off_outlined,
+                    color: theme.colorScheme.surface,
+                  ),
+                )
               : const SizedBox(),
           const SizedBox(width: 8),
         ],
@@ -200,10 +207,11 @@ Widget accountItem(BuildContext context, Account account,
   return const SizedBox();
 }
 
-Widget _blockchainAddressView(BuildContext context,
-    GlobalReceivePayload receiver, {
-      Function()? onTap,
-    }) {
+Widget _blockchainAddressView(
+  BuildContext context,
+  GlobalReceivePayload receiver, {
+  Function()? onTap,
+}) {
   final theme = Theme.of(context);
   return TappableForwardRow(
     padding: const EdgeInsets.symmetric(vertical: 7),
