@@ -89,8 +89,6 @@ class WCSendTransactionState {
   WCSendTransactionState clone() => WCSendTransactionState(
         fee: fee,
         balance: balance,
-        isSending: isSending,
-        isError: isError,
         feeOption: feeOption,
         feeOptionValue: feeOptionValue,
         exchangeRate: exchangeRate,
