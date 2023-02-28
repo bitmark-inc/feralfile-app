@@ -149,15 +149,13 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future _approve({bool onBoarding = false}) async {
-    print("1------");
     if (selectedPersona == null) return;
 
-    //UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
+    UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
-        print("--------Wc2Proposal");
         final account = await injector<AccountService>().getDefaultAccount();
         final accountDid = await account.getAccountDID();
         await injector<Wc2Service>().approveSession(
@@ -166,8 +164,8 @@ class _WCConnectPageState extends State<WCConnectPage>
           personalUUID: account.uuid,
         );
         payloadType = CryptoType.ETH;
-        payloadAddress = await account
-            .getETHEip55Address(index: selectedPersona!.index);
+        payloadAddress =
+            await account.getETHEip55Address(index: selectedPersona!.index);
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
           data: {
@@ -405,8 +403,10 @@ class _WCConnectPageState extends State<WCConnectPage>
                         if (connectionRequest.isWC2connect) {
                           if (stateCategorizedAccounts.isNotEmpty) {
                             setState(() async {
-                              selectedPersona =
-                                  WalletIndex((await injector<AccountService>().getDefaultAccount()), 0);
+                              selectedPersona = WalletIndex(
+                                  (await injector<AccountService>()
+                                      .getDefaultAccount()),
+                                  0);
                             });
                           }
                         }
@@ -480,7 +480,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 child: Padding(
                   padding: padding,
                   child: AuPrimaryButton(
-                    text: "connect2".tr(),
+                    text: "connect".tr(),
                     onPressed: () => withDebounce(() => _approveThenNotify()),
                   ),
                 ),
@@ -586,6 +586,12 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   Widget _selectPersonaWidget(List<CategorizedAccounts> accounts) {
     final theme = Theme.of(context);
+    String select = "";
+    if (widget.connectionRequest.isBeaconConnect) {
+      select = "select_tezos".tr(args: ["1"]);
+    } else if (widget.connectionRequest.isWCconnect) {
+      select = "select_ethereum".tr(args: ["1"]);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -593,7 +599,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         Padding(
           padding: padding,
           child: Text(
-            "select_grand_access".tr(), //"Select an account to grant access:",
+            select,
             style: theme.textTheme.ppMori400Black16,
           ),
         ),

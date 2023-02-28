@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 
 abstract class WalletDetailEvent {}
 

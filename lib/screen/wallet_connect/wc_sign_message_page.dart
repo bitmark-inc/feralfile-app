@@ -252,13 +252,15 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     signature,
                   );
                 } else {
-                  wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),widget.args.index) ;
+                  wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),
+                      widget.args.index);
                   final String signature;
 
                   switch (widget.args.type) {
                     case WCSignType.PERSONAL_MESSAGE:
                       signature = await injector<EthereumService>()
-                          .signPersonalMessage(wallet.wallet, wallet.index, message);
+                          .signPersonalMessage(
+                              wallet.wallet, wallet.index, message);
                       break;
                     case WCSignType.MESSAGE:
                     case WCSignType.TYPED_MESSAGE:

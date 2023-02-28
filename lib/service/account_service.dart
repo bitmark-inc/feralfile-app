@@ -245,18 +245,19 @@ class AccountServiceImpl extends AccountService {
     required String address,
   }) async {
     var personas = await _cloudDB.personaDao.getPersonas();
+    final lowCaseAddress = address.toLowerCase();
     for (Persona p in personas) {
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
           final addresses = await p.getEthAddresses();
-          if (addresses.contains(address)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(address));
+          if (addresses.contains(lowCaseAddress)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
           }
           break;
         case Wc2Chain.tezos:
           final addresses = await p.getTezosAddresses();
-          if (addresses.contains(address)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(address));
+          if (addresses.contains(lowCaseAddress)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
           }
           break;
         case Wc2Chain.autonomy:
@@ -732,7 +733,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> addAddressPersona(Persona newPersona, WalletType walletType) async {
+  Future<Persona> addAddressPersona(
+      Persona newPersona, WalletType walletType) async {
     switch (walletType) {
       case WalletType.Ethereum:
         newPersona.ethereumIndex += 1;

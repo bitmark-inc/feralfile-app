@@ -371,10 +371,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
-    print("---------");
-    print(addressIndex);
-    print(await ownerWallet!.getTezosAddress(index: 0));
-    print(await ownerWallet!.getTezosAddress(index: 1));
 
     if (!mounted) return;
     final isHidden = _isHidden(asset);
@@ -407,7 +403,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             onTap: () async {
               final payload = await Navigator.of(context).popAndPushNamed(
                   AppRouter.sendArtworkPage,
-                  arguments: SendArtworkPayload(asset, ownerWallet, addressIndex!,
+                  arguments: SendArtworkPayload(
+                      asset,
+                      ownerWallet,
+                      addressIndex!,
                       ownerWallet.getOwnedQuantity(asset))) as Map?;
               if (payload == null) {
                 return;
