@@ -220,18 +220,40 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _versionSection() {
     final theme = Theme.of(context);
     return Column(children: [
-      GestureDetector(
-        child: Text(
-          "privacy_policy".tr(),
-          style: theme.textTheme.ppMori400Grey12
-              .copyWith(decoration: TextDecoration.underline),
-        ),
-        onTap: () => Navigator.of(context)
-            .pushNamed(AppRouter.githubDocPage, arguments: {
-          "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-          "document": "privacy.md",
-          "title": "privacy_policy".tr(),
-        }),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            child: Text(
+              "eula".tr(),
+              style: theme.textTheme.ppMori400Grey12
+                  .copyWith(decoration: TextDecoration.underline),
+            ),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.githubDocPage, arguments: {
+              "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
+              "document": "eula.md",
+              "title": "eula".tr(),
+            }),
+          ),
+          Text(
+            "_and".tr(),
+            style: theme.textTheme.ppMori400Grey12,
+          ),
+          GestureDetector(
+            child: Text(
+              "privacy_policy".tr(),
+              style: theme.textTheme.ppMori400Grey12
+                  .copyWith(decoration: TextDecoration.underline),
+            ),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.githubDocPage, arguments: {
+              "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
+              "document": "privacy.md",
+              "title": "privacy_policy".tr(),
+            }),
+          ),
+        ],
       ),
       const SizedBox(height: 24),
       if (_packageInfo != null)
