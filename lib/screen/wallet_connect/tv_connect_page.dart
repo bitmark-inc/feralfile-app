@@ -188,18 +188,6 @@ class _TVConnectPageState extends State<TVConnectPage>
                 ),
               ),
               const Expanded(child: SizedBox()),
-              // Row(
-              //   children: [
-              //     Expanded(
-              //       child: AuFilledButton(
-              //         text: "Authorize".tr().toUpperCase(),
-              //         onPress: () => withDebounce(() => _approve()),
-              //         color: theme.colorScheme.secondary,
-              //         textStyle: theme.textTheme.labelLarge,
-              //       ),
-              //     )
-              //   ],
-              // )
               PrimaryButton(
                 text: 'connect'.tr(),
                 onTap: () => withDebounce(() => _approve()),
