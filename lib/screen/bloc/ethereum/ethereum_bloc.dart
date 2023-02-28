@@ -16,7 +16,8 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
   final EthereumService _ethereumService;
   final CloudDatabase _cloudDB;
 
-  EthereumBloc(this._ethereumService, this._cloudDB) : super(EthereumState(null, {})) {
+  EthereumBloc(this._ethereumService, this._cloudDB)
+      : super(EthereumState(null, {})) {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);

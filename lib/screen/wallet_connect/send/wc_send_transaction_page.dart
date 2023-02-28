@@ -50,7 +50,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         EtherUnit.wei, widget.args.transaction.value ?? '0');
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
-        to, amount, widget.args.transaction.data, widget.args.uuid, widget.args.index));
+        to,
+        amount,
+        widget.args.transaction.data,
+        widget.args.uuid,
+        widget.args.index));
   }
 
   @override

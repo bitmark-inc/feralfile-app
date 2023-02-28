@@ -51,7 +51,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
       switch (_type) {
         case CryptoType.ETH:
-          final ownerAddress = await event.wallet.getETHEip55Address(index: event.index);
+          final ownerAddress =
+              await event.wallet.getETHEip55Address(index: event.index);
           final balance = await _ethereumService.getBalance(ownerAddress);
 
           newState.balance = balance.getInWei;
@@ -64,7 +65,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           }
           break;
         case CryptoType.XTZ:
-          final address = await event.wallet.getTezosAddress(index: event.index);
+          final address =
+              await event.wallet.getTezosAddress(index: event.index);
           final balance = await _tezosService.getBalance(address);
 
           newState.balance = BigInt.from(balance);
@@ -76,7 +78,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           }
           break;
         case CryptoType.USDC:
-          final address = await event.wallet.getETHEip55Address(index: event.index);
+          final address =
+              await event.wallet.getETHEip55Address(index: event.index);
           final ownerAddress = EthereumAddress.fromHex(address);
           final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
 
@@ -193,7 +196,6 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       BigInt fee;
       FeeOptionValue feeOptionValue;
 
-
       switch (_type) {
         case CryptoType.ETH:
           final address = EthereumAddress.fromHex(event.address);
@@ -257,7 +259,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
               contractAddress, ownerAddress, toAddress, event.amount);
 
           feeOptionValue = await _ethereumService.estimateFee(
-              wallet,index, contractAddress, EtherAmount.zero(), data);
+              wallet, index, contractAddress, EtherAmount.zero(), data);
           fee = feeOptionValue.getFee(state.feeOption);
           break;
         default:

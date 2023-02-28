@@ -50,6 +50,7 @@ extension WalletStorageExtension on WalletStorage {
     final publicKey = await getTezosPublicKey(index: index);
     return crypto.addressFromPublicKey(publicKey);
   }
+
   getTezosAddressFromPubKey(String publicKey) {
     return crypto.addressFromPublicKey(publicKey);
   }

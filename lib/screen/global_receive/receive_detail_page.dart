@@ -178,5 +178,6 @@ class GlobalReceivePayload {
   String blockchain;
   Account account;
 
-  GlobalReceivePayload({required this.address, required this.blockchain, required this.account});
+  GlobalReceivePayload(
+      {required this.address, required this.blockchain, required this.account});
 }

@@ -91,10 +91,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(personUUID, widget.payload.index));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
         break;
       case CryptoType.XTZ:
-        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
         break;
       default:
         // do nothing
@@ -246,7 +250,7 @@ class PersonaConnectionsPayload {
 
   PersonaConnectionsPayload(
       {required this.personaUUID,
-        required this.index,
+      required this.index,
       required this.address,
       required this.type,
       this.isBackHome = false});

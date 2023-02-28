@@ -223,9 +223,11 @@ class WalletConnectService {
       },
       onEthSign: (id, message) {
         log.info("[WalletConnectService]: onEthSign id = $id]");
-        String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
+        String? uuid =
+            wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
         int? index = wcConnection?.index ?? tmpUuids[currentPeerMeta!]?.second;
-        if (uuid == null || index == null ||
+        if (uuid == null ||
+            index == null ||
             !wcClients.any(
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
@@ -242,9 +244,11 @@ class WalletConnectService {
       },
       onEthSendTransaction: (id, tx) {
         log.info("[WalletConnectService]: onEthSendTransaction id = $id]");
-        String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
+        String? uuid =
+            wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
         int? index = wcConnection?.index ?? tmpUuids[currentPeerMeta!]?.second;
-        if (uuid == null || index == null ||
+        if (uuid == null ||
+            index == null ||
             !wcClients.any(
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
         final payload =

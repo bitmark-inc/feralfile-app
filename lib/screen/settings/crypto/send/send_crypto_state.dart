@@ -78,7 +78,7 @@ class SendCryptoState {
 
   SendCryptoState(
       {this.wallet,
-       this.index,
+      this.index,
       this.isScanQR = true,
       this.isCrypto = true,
       this.isAddressError = false,

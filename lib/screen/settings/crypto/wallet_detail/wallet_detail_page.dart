@@ -84,7 +84,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
         break;
       case CryptoType.UNKNOWN:
-      // do nothing
+        // do nothing
         break;
     }
     controller = ScrollController();
@@ -113,9 +113,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         .read<WalletDetailBloc>()
         .add(WalletDetailBalanceEvent(cryptoType, address));
     if (cryptoType == CryptoType.ETH) {
-      context
-          .read<USDCBloc>()
-          .add(GetUSDCBalanceWithAddressEvent(address));
+      context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
     }
     _callFetchConnections();
   }
@@ -147,7 +145,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
         break;
       default:
-      // do nothing
+        // do nothing
         break;
     }
   }
@@ -217,17 +215,16 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       if (widget.payload.type == CryptoType.ETH) ...[
                         BlocBuilder<USDCBloc, USDCState>(
                             builder: (context, state) {
-                              final address = widget.payload.address;
-                              final usdcBalance = state.usdcBalances[address];
-                              final balance = usdcBalance == null
-                                  ? "-- USDC"
-                                  : "${USDCAmountFormatter(usdcBalance)
-                                  .format()} USDC";
-                              return Padding(
-                                padding: padding,
-                                child: _usdcBalance(balance),
-                              );
-                            })
+                          final address = widget.payload.address;
+                          final usdcBalance = state.usdcBalances[address];
+                          final balance = usdcBalance == null
+                              ? "-- USDC"
+                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                          return Padding(
+                            padding: padding,
+                            child: _usdcBalance(balance),
+                          );
+                        })
                       ],
                       addDivider(),
                       if (showConnection) ...[
@@ -243,33 +240,33 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 Expanded(
                   child: widget.payload.type == CryptoType.XTZ
                       ? TezosTXListView(
-                    address: widget.payload.address,
-                    controller: controller,
-                  )
+                          address: widget.payload.address,
+                          controller: controller,
+                        )
                       : Container(),
                 ),
                 widget.payload.type == CryptoType.XTZ
                     ? GestureDetector(
-                  onTap: () =>
-                      launchUrlString(_txURL(widget.payload.address)),
-                  child: Container(
-                    alignment: Alignment.bottomCenter,
-                    padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
-                    color: AppColor.secondaryDimGreyBackground,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("powered_by_tzkt".tr(),
-                            style: theme.textTheme.ppMori400Black14),
-                        const SizedBox(
-                          width: 8,
+                        onTap: () =>
+                            launchUrlString(_txURL(widget.payload.address)),
+                        child: Container(
+                          alignment: Alignment.bottomCenter,
+                          padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
+                          color: AppColor.secondaryDimGreyBackground,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("powered_by_tzkt".tr(),
+                                  style: theme.textTheme.ppMori400Black14),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              SvgPicture.asset(
+                                  "assets/images/external_link.svg"),
+                            ],
+                          ),
                         ),
-                        SvgPicture.asset(
-                            "assets/images/external_link.svg"),
-                      ],
-                    ),
-                  ),
-                )
+                      )
                     : Container(),
               ],
             );
@@ -338,7 +335,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           style: balanceStyle,
         ),
         onTap: () {
-          final payload = WalletDetailsPayload(type: CryptoType.USDC,
+          final payload = WalletDetailsPayload(
+              type: CryptoType.USDC,
               wallet: widget.payload.wallet,
               personaUUID: widget.payload.personaUUID,
               address: widget.payload.address,
@@ -377,7 +375,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
       return BlocBuilder<USDCBloc, USDCState>(
         builder: (context, state) {
           final usdcAddress =
-          state.personaAddresses?[widget.payload.personaUUID];
+              state.personaAddresses?[widget.payload.personaUUID];
           final usdcBalance = state.usdcBalances[usdcAddress];
           final balance = usdcBalance == null
               ? "-- USDC"
@@ -454,11 +452,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       },
                       child: isCopied
                           ? Text(
-                        'Copied',
-                        style: theme.textTheme.ppMori400Black14,
-                      )
+                              'Copied',
+                              style: theme.textTheme.ppMori400Black14,
+                            )
                           : Text('Copy',
-                          style: theme.textTheme.ppMori400Grey14),
+                              style: theme.textTheme.ppMori400Grey14),
                     ),
                   ));
             }),
@@ -581,7 +579,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               listener: (context, accountState) async {},
               builder: (context, accountState) {
                 final account = accountState.accounts?.firstWhere((element) =>
-                element.blockchain == widget.payload.type.source);
+                    element.blockchain == widget.payload.type.source);
                 return AuCustomButton(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

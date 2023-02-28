@@ -69,7 +69,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
         case CryptoType.ETH:
           final address = EthereumAddress.fromHex(widget.payload.address);
           final txHash = await injector<EthereumService>().sendTransaction(
-              widget.payload.wallet, widget.payload.index,  address, widget.payload.amount, null,
+              widget.payload.wallet,
+              widget.payload.index,
+              address,
+              widget.payload.amount,
+              null,
               feeOption: widget.payload.feeOption);
 
           if (!mounted) return;
@@ -80,7 +84,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
           Navigator.of(context).pop(payload);
           break;
         case CryptoType.XTZ:
-
           final opHash = await injector<TezosService>().sendTransaction(
               widget.payload.wallet,
               widget.payload.index,
@@ -118,7 +121,8 @@ class _SendReviewPageState extends State<SendReviewPage> {
           Navigator.of(context).pop(payload);
           break;
         case CryptoType.USDC:
-          final address = await widget.payload.wallet.getETHEip55Address(index: widget.payload.index);
+          final address = await widget.payload.wallet
+              .getETHEip55Address(index: widget.payload.index);
           final ownerAddress = EthereumAddress.fromHex(address);
           final toAddress = EthereumAddress.fromHex(widget.payload.address);
           final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
@@ -129,7 +133,11 @@ class _SendReviewPageState extends State<SendReviewPage> {
                   feeOption: widget.payload.feeOption);
 
           final txHash = await injector<EthereumService>().sendTransaction(
-              widget.payload.wallet,widget.payload.index, contractAddress, BigInt.zero, data,
+              widget.payload.wallet,
+              widget.payload.index,
+              contractAddress,
+              BigInt.zero,
+              data,
               feeOption: widget.payload.feeOption);
 
           if (!mounted) return;

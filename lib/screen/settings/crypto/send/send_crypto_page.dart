@@ -56,7 +56,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       _addressController.text = widget.data.address!;
     }
 
-    context.read<SendCryptoBloc>().add(GetBalanceEvent(widget.data.wallet, widget.data.index));
+    context
+        .read<SendCryptoBloc>()
+        .add(GetBalanceEvent(widget.data.wallet, widget.data.index));
   }
 
   @override
@@ -461,6 +463,6 @@ class SendCryptoPayload {
   final CurrencyExchangeRate exchangeRate;
   final FeeOption feeOption;
 
-  SendCryptoPayload(this.type, this.wallet, this.index, this.address, this.amount, this.fee,
-      this.exchangeRate, this.feeOption);
+  SendCryptoPayload(this.type, this.wallet, this.index, this.address,
+      this.amount, this.fee, this.exchangeRate, this.feeOption);
 }

@@ -19,6 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ConnectionDetailsPage extends StatelessWidget {
   final ConnectionItem connectionItem;
+
   const ConnectionDetailsPage({Key? key, required this.connectionItem})
       : super(key: key);
 

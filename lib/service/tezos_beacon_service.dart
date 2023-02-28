@@ -84,14 +84,14 @@ class TezosBeaconService implements BeaconHandler {
     await _beaconChannel.removePeer(peer);
   }
 
-  Future permissionResponse(
-      String? uuid, int? index, String id, String? publicKey, String? address) async {
+  Future permissionResponse(String? uuid, int? index, String id,
+      String? publicKey, String? address) async {
     await _beaconChannel.permissionResponse(id, publicKey, address);
 
     if (_currentPeer != null && uuid != null && index != null) {
       final peer = _currentPeer!;
       final bcConnection =
-          BeaconConnectConnection(personaUuid: uuid,index: index, peer: peer);
+          BeaconConnectConnection(personaUuid: uuid, index: index, peer: peer);
 
       final connection = Connection(
         key: peer.id,

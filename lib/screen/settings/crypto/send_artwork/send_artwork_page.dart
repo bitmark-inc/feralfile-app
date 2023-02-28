@@ -60,7 +60,6 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   void initState() {
     super.initState();
     index = widget.payload.index;
-    print("index- $index");
     context
         .read<SendArtworkBloc>()
         .add(GetBalanceEvent(widget.payload.wallet, index));

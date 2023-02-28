@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -76,7 +75,8 @@ extension AssetTokenExtension on AssetToken {
         addresses = await persona.getTezosAddresses();
       }
       if (addresses.contains(ownerAddress)) {
-        result = Pair<WalletStorage, int>(persona.wallet(), addresses.indexOf(ownerAddress));
+        result = Pair<WalletStorage, int>(
+            persona.wallet(), addresses.indexOf(ownerAddress));
         break;
       }
     }
