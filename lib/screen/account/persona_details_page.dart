@@ -366,7 +366,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               ),
               const Spacer(),
               AuRadio<WalletType>(
-                onTap: (value) {},
+                onTap: (value) {
+                  setState(() {
+                    _walletTypeSelecting = walletType;
+                  });
+                  dialogState(() {});
+                },
                 value: _walletTypeSelecting,
                 groupValue: walletType,
                 color: AppColor.white,

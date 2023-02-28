@@ -376,30 +376,13 @@ class _WCConnectPageState extends State<WCConnectPage>
                         var stateCategorizedAccounts =
                             state.categorizedAccounts;
                         if (stateCategorizedAccounts == null ||
-                            stateCategorizedAccounts.isEmpty) return;
-
-/*
-                        final scopedPersonaUUID = memoryValues.scopedPersona;
-                        if (scopedPersonaUUID != null) {
-                          print("scopedPersona");
-                          final scopedPersona = state.accounts?.firstWhere(
-                              (element) => element.persona?.uuid == scopedPersonaUUID);
-                          statePersonas = [scopedPersona.persona];
-                        }
-                        if (statePersonas.length == 1) {
+                            stateCategorizedAccounts.isEmpty) {
                           setState(() {
-                            selectedPersona = statePersonas?.first;
+                            createPersona = true;
                           });
+                          return;
                         }
 
-                        if (connectionRequest.isWC2connect) {
-                          setState(() {
-                            selectedPersona = statePersonas
-                                ?.firstWhereOrNull((e) => e.defaultAccount == 1);
-                          });
-                        }
-
- */
                         if (connectionRequest.isWC2connect) {
                           if (stateCategorizedAccounts.isNotEmpty) {
                             setState(() async {
@@ -413,12 +396,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                         setState(() {
                           categorizedAccounts = stateCategorizedAccounts;
                         });
-                        if (categorizedAccounts != null &&
-                            categorizedAccounts!.isEmpty) {
-                          setState(() {
-                            createPersona = true;
-                          });
-                        }
                       }, builder: (context, state) {
                         return _selectAccount();
                       }),

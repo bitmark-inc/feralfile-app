@@ -109,6 +109,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
+      if (personas.isEmpty &&
+          ((event.includeLinkedAccount && connections.isEmpty) ||
+              !event.includeLinkedAccount)) {
+        emit(state.copyWith(categorizedAccounts: []));
+      }
       List<CategorizedAccounts> categorizedAccounts = [];
 
       for (var persona in personas) {
