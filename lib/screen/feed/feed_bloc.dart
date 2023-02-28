@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -42,16 +41,22 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
         final appFeedData =
             state.appFeedData?.insert(newAppFeedData) ?? newAppFeedData;
 
-        final List<AssetToken?> feedTokens = appFeedData.events
-            .map((e) => appFeedData.findTokenRelatedTo(e))
-            .toList();
+        final Map<AssetToken, List<FeedEvent>> tokenEventMap = {};
+        for (FeedEvent event in appFeedData.events) {
+          final token = appFeedData.findTokenRelatedTo(event);
+          if (token == null) continue;
+
+          if (tokenEventMap[token] != null) {
+            tokenEventMap[token]!.add(event);
+          } else {
+            tokenEventMap[token] = [event];
+          }
+        }
 
         emit(
           state.copyWith(
             appFeedData: appFeedData,
-            feedTokens: feedTokens,
-            viewingIndex: state.viewingIndex ?? 0,
-            feedEvents: appFeedData.events,
+            feedTokenEventsMap: tokenEventMap,
           ),
         );
       },
@@ -77,12 +82,6 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
       log.info(
           '[FeedBloc][Start] RetryMissingTokenInFeedsEvent: has ${tokens.length} tokens ${tokens.map((e) => e.id)}');
       final insertedAppFeedData = state.appFeedData!.insertTokens(tokens);
-
-      // Reload viewingToken if empty
-      final currentIndex = state.viewingIndex ?? 0;
-      var viewingToken = state.feedTokens?[currentIndex];
-      viewingToken ??= insertedAppFeedData.tokens.firstWhereOrNull(
-          (element) => element.id == state.feedEvents?[currentIndex].indexerID);
 
       emit(
         state.copyWith(

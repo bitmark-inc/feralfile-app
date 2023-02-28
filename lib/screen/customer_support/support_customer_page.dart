@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/badge_view.dart';
+import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -74,7 +75,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -92,32 +92,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                     child: Column(
                       children: [
                         const SizedBox(height: 30),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppColor.auSuperTeal,
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'important'.tr(),
-                                  style: theme.textTheme.ppMori700Black14,
-                                ),
-                                const SizedBox(height: 15),
-                                Text(
-                                  'inform_remove_cs'.tr(),
-                                  style: theme.textTheme.ppMori400Black14,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        ImportantNoteView(note: 'inform_remove_cs'.tr()),
                         const SizedBox(height: 30),
                       ],
                     ),

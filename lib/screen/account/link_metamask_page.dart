@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -88,6 +89,9 @@ class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
                       stepWidget(context, '2', "lte_when_prompted_by".tr()),
                       //'When prompted by MetaMask, approve Autonomy’s permissions requests.'),
                       const SizedBox(height: 30),
+                      ImportantNoteView(
+                        note: "please_note_link_only_desktop".tr(),
+                      ),
                     ],
                   ),
                 ),
