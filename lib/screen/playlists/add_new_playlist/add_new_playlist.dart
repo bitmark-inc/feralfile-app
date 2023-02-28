@@ -389,6 +389,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
               visible: widget.showSelect,
               child: RadioSelectAddress(
                 isChecked: isSelected,
+                borderColor: theme.colorScheme.secondary,
                 onTap: onChanged,
               ),
             ),

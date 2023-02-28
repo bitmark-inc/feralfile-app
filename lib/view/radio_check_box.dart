@@ -4,28 +4,37 @@ import 'package:roundcheckbox/roundcheckbox.dart';
 
 class RadioSelectAddress extends StatelessWidget {
   final bool? isChecked;
+  final Color? checkColor;
+  final Color? uncheckColor;
+  final Color? borderColor;
   final Function(bool?)? onTap;
-  const RadioSelectAddress({Key? key, this.isChecked, this.onTap})
-      : super(key: key);
+  const RadioSelectAddress({
+    Key? key,
+    this.isChecked,
+    this.onTap,
+    this.checkColor,
+    this.uncheckColor,
+    this.borderColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return RoundCheckBox(
       border: Border.all(
-        color: theme.colorScheme.primary,
+        color: borderColor ?? theme.colorScheme.primary,
         width: 1.5,
       ),
-      uncheckedColor: theme.colorScheme.primary,
+      uncheckedColor: uncheckColor ?? theme.colorScheme.primary,
       uncheckedWidget: Container(
         padding: const EdgeInsets.all(4),
       ),
-      checkedColor: theme.colorScheme.primary,
+      checkedColor: checkColor ?? theme.colorScheme.primary,
       checkedWidget: Container(
         padding: const EdgeInsets.all(4),
         child: SvgPicture.asset(
           'assets/images/check-icon.svg',
-          color: theme.colorScheme.primary,
+          color: borderColor ?? theme.colorScheme.primary,
         ),
       ),
       animationDuration: const Duration(milliseconds: 100),
