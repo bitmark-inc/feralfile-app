@@ -143,7 +143,8 @@ class EthereumServiceImpl extends EthereumService {
 
     final sender =
         EthereumAddress.fromHex(await wallet.getETHAddress(index: index));
-    final nonce = await _web3Client.getTransactionCount(sender, atBlock: const BlockNum.pending());
+    final nonce = await _web3Client.getTransactionCount(sender,
+        atBlock: const BlockNum.pending());
     var gasLimit =
         (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
     final chainId = Environment.web3ChainId;
