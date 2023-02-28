@@ -879,37 +879,11 @@ class UIHelper {
     BuildContext context, {
     required Function() onClose,
   }) {
-    final theme = Theme.of(context);
-
     showDialog(
       context,
       'connected'.tr(),
-      Flexible(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'connect_TV_success_des'.tr(),
-              style: theme.primaryTextTheme.bodyLarge,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "close".tr(),
-                    onPress: onClose,
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.labelLarge,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-          ],
-        ),
+      ConnectedTV(
+        onTap: onClose,
       ),
     );
   }
@@ -947,15 +921,9 @@ class UIHelper {
             const SizedBox(
               height: 40,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "close".tr(),
-                    onPress: onClose,
-                  ),
-                ),
-              ],
+            AuSecondaryButton(
+              onPressed: onClose,
+              text: 'close'.tr(),
             ),
             const SizedBox(height: 15),
           ],
@@ -1207,6 +1175,70 @@ class UIHelper {
             ),
           );
         });
+  }
+}
+
+class ConnectedTV extends StatefulWidget {
+  final Function() onTap;
+  const ConnectedTV({
+    super.key,
+    required this.onTap,
+  });
+
+  @override
+  State<ConnectedTV> createState() => _ConnectedTVState();
+}
+
+class _ConnectedTVState extends State<ConnectedTV> {
+  late Timer _timer;
+  int _countdown = 5;
+  @override
+  void initState() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown != 0) {
+        setState(() {
+          _countdown--;
+        });
+      } else {
+        widget.onTap.call();
+        _timer.cancel();
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (_timer.isActive) {
+      _timer.cancel();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Flexible(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'connect_TV_success_des'.tr(),
+            style: theme.primaryTextTheme.bodyLarge,
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          PrimaryButton(
+            onTap: widget.onTap,
+            text: _countdown != 0
+                ? 'close_seconds'.tr(args: [_countdown.toString()])
+                : 'close'.tr(),
+          ),
+          const SizedBox(height: 15),
+        ],
+      ),
+    );
   }
 }
 
