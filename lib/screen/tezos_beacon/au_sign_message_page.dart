@@ -132,7 +132,6 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       addTitleSpace(),
-                      const SizedBox(height: 40.0),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: _wc2AppInfo(widget.request.proposer),
