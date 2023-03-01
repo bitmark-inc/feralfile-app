@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
@@ -41,6 +42,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:social_share/social_share.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -56,6 +58,8 @@ class ArtworkDetailPage extends StatefulWidget {
 class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
+  late bool withSharing;
+
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
@@ -68,6 +72,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
+    withSharing = widget.payload.twitterCaption != null;
   }
 
   @override
@@ -76,6 +81,56 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
+  }
+
+  void _shareTwitter(AssetToken token) {
+    final prefix = Environment.tokenWebviewPrefix;
+    final url = '$prefix/token/${token.id}';
+    final caption = widget.payload.twitterCaption;
+    final hashtags = ['digitalartwallet', 'NFT'];
+    SocialShare.shareTwitter(caption!, hashtags: hashtags, url: url);
+    metricClient.addEvent(MixpanelEvent.share, data: {
+      "id": token.id,
+      "to": "Twitter",
+      "caption": caption,
+    });
+  }
+
+  Future<void> _socialShare(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    final tags = [
+      'autonomy',
+      'digitalartwallet',
+      'NFT',
+    ];
+    final tagsText = tags.map((e) => '#$e').join(" ");
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "congratulations_new_NFT".tr(),
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 12),
+        Text(tagsText, style: theme.textTheme.ppMori400Grey14),
+        const SizedBox(height: 24),
+        PrimaryButton(
+          text: "share_on_".tr(),
+          onTap: () {
+            _shareTwitter(asset);
+            Navigator.of(context).pop();
+          },
+        ),
+        const SizedBox(height: 8),
+        OutlineButton(
+          text: "close".tr(),
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+    return UIHelper.showDialog(context, "share_the_new".tr(), content);
   }
 
   @override
@@ -108,7 +163,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       setState(() {
         currentAsset = state.asset;
       });
-
+      if (withSharing && state.asset != null) {
+        _socialShare(context, state.asset!);
+        setState(() {
+          withSharing = false;
+        });
+      }
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.asset != null) {
@@ -468,15 +528,20 @@ class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
   final bool isPlaylist;
+  final String? twitterCaption;
 
   ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.isPlaylist = false});
+      {this.twitterCaption, this.isPlaylist = false});
 
   ArtworkDetailPayload copyWith(
-      {List<ArtworkIdentity>? ids, int? currentIndex, bool? isPlaylist}) {
+      {List<ArtworkIdentity>? ids,
+      int? currentIndex,
+      bool? isPlaylist,
+      String? twitterCaption}) {
     return ArtworkDetailPayload(
       ids ?? identities,
       currentIndex ?? this.currentIndex,
+      twitterCaption: twitterCaption ?? this.twitterCaption,
       isPlaylist: isPlaylist ?? this.isPlaylist,
     );
   }

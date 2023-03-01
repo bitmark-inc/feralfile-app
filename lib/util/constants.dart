@@ -360,6 +360,7 @@ class MixpanelEvent {
   static const scanQR = 'scan_qr';
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
+  static const share = "share";
   static const readAnnouncement = 'read_announcement';
   static const replyAnnouncement = 'reply_announcement';
   static const receiveAnnouncement = 'receive_announcement';

@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -50,7 +51,7 @@ abstract class FeralFileService {
 
   Future<FFArtwork> getArtwork(String id);
 
-  Future<bool> claimToken({
+  Future<ClaimRespone?> claimToken({
     required String artworkId,
     String? address,
     Otp? otp,
@@ -219,7 +220,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<bool> claimToken(
+  Future<ClaimRespone?> claimToken(
       {required String artworkId,
       String? address,
       Otp? otp,
@@ -232,7 +233,7 @@ class FeralFileServiceImpl extends FeralFileService {
         artworkId: artworkId,
         otp: otp,
       );
-      return false;
+      return null;
     }
 
     final artwork = await getArtwork(artworkId);
@@ -246,7 +247,7 @@ class FeralFileServiceImpl extends FeralFileService {
       final accepted = await onConfirm?.call(artwork) ?? true;
       if (!accepted) {
         log.info("[FeralFileService] User refused claim token");
-        return false;
+        return null;
       }
       final wallet = await _accountService.getDefaultAccount();
       final message =
@@ -267,24 +268,24 @@ class FeralFileServiceImpl extends FeralFileService {
 
       final indexerId =
           artwork.airdropInfo!.getTokenIndexerId(response.result.editionID);
-      final tokens = await _fetchTokens(
+      List<AssetToken> tokens = await _fetchTokens(
         indexerId: indexerId,
         receiver: receiver,
       );
       if (tokens.isNotEmpty) {
         await indexer.setCustomTokens(tokens);
       } else {
-        await indexer.setCustomTokens(
-          [
-            createPendingAssetToken(
-              artwork: artwork,
-              owner: receiver,
-              tokenId: response.result.editionID,
-            )
-          ],
-        );
+        tokens = [
+          createPendingAssetToken(
+            artwork: artwork,
+            owner: receiver,
+            tokenId: response.result.editionID,
+          )
+        ];
+        await indexer.setCustomTokens(tokens);
       }
-      return true;
+      return ClaimRespone(
+          token: tokens.first, airdropInfo: artwork.airdropInfo!);
     } else {
       throw NoRemainingToken();
     }

@@ -188,20 +188,18 @@ Map<String, dynamic> _$FFContractToJson(FFContract instance) =>
     };
 
 AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
-      json['contractAddress'] as String,
-      json['blockchain'] as String,
-      json['remainAmount'] as int,
-      json['artworkId'] as String?,
-      json['artworkTitle'] as String?,
-      json['artist'] as String?,
-      json['gifter'] as String?,
-      json['startedAt'] == null
-          ? null
-          : DateTime.parse(json['startedAt'] as String),
-      json['endedAt'] == null
-          ? null
-          : DateTime.parse(json['endedAt'] as String),
-    );
+    json['contractAddress'] as String,
+    json['blockchain'] as String,
+    json['remainAmount'] as int,
+    json['artworkId'] as String?,
+    json['artworkTitle'] as String?,
+    json['artist'] as String?,
+    json['gifter'] as String?,
+    json['startedAt'] == null
+        ? null
+        : DateTime.parse(json['startedAt'] as String),
+    json['endedAt'] == null ? null : DateTime.parse(json['endedAt'] as String),
+    json["twitterCaption"] as String?);
 
 Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
     <String, dynamic>{
@@ -214,6 +212,7 @@ Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
       'gifter': instance.gifter,
       'startedAt': instance.startedAt?.toIso8601String(),
       'endedAt': instance.endedAt?.toIso8601String(),
+      'twitterCaption': instance.twitterCaption,
     };
 
 TokenClaimResponse _$TokenClaimResponseFromJson(Map<String, dynamic> json) =>

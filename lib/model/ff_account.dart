@@ -265,6 +265,7 @@ class AirdropInfo {
   final String? gifter;
   final DateTime? startedAt;
   final DateTime? endedAt;
+  final String? twitterCaption;
 
   AirdropInfo(
     this.contractAddress,
@@ -276,6 +277,7 @@ class AirdropInfo {
     this.gifter,
     this.startedAt,
     this.endedAt,
+    this.twitterCaption,
   );
 
   factory AirdropInfo.fromJson(Map<String, dynamic> json) =>
