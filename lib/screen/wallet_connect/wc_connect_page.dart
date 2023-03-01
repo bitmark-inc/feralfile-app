@@ -149,7 +149,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future _approve({bool onBoarding = false}) async {
-    if (selectedPersona == null) return;
+    if (selectedPersona == null && !connectionRequest.isWC2connect) return;
 
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
@@ -239,7 +239,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     UIHelper.hideInfoDialog(context);
 
     if (memoryValues.scopedPersona != null) {
-      // from persona details flow
       Navigator.of(context).pop();
       return;
     }
