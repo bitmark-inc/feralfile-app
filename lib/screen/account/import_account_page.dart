@@ -142,91 +142,84 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 15),
                     Container(
+                        padding: const EdgeInsets.all(20.0),
                         decoration: BoxDecoration(
                             border:
                                 Border.all(color: theme.colorScheme.primary),
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: GestureDetector(
-                            onTap: () {
-                              UIHelper.showDialog(
-                                  context, "select_wallet_type".tr(),
-                                  StatefulBuilder(builder: (
-                                BuildContext context,
-                                StateSetter dialogState,
-                              ) {
-                                return Column(
-                                  children: [
-                                    _walletTypeOption(theme,
-                                        WalletType.Autonomy, dialogState),
-                                    addDivider(
-                                        height: 40, color: AppColor.white),
-                                    _walletTypeOption(
-                                        theme, WalletType.Ethereum, dialogState,
-                                        isEnable: _isDefaultAccountCreated),
-                                    addDivider(
-                                        height: 40, color: AppColor.white),
-                                    _walletTypeOption(
-                                        theme, WalletType.Tezos, dialogState,
-                                        isEnable: _isDefaultAccountCreated),
-                                    const SizedBox(height: 40),
-                                    Padding(
-                                      padding: ResponsiveLayout
-                                          .pageHorizontalEdgeInsets,
-                                      child: Column(
-                                        children: [
-                                          PrimaryButton(
-                                            text: "select".tr(),
-                                            onTap: () {
-                                              Navigator.of(context).pop();
-                                              setState(() {
-                                                _walletType =
-                                                    _walletTypeSelecting;
-                                              });
-                                            },
-                                          ),
-                                          const SizedBox(height: 10),
-                                          OutlineButton(
-                                            onTap: () =>
-                                                Navigator.of(context).pop(),
-                                            text: "cancel".tr(),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                );
-                              }),
-                                  isDismissible: true,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 32),
-                                  paddingTitle: ResponsiveLayout
-                                      .pageHorizontalEdgeInsets);
-                            },
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                  color: Colors.transparent),
-                              child: Row(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(5.0))),
+                        child: GestureDetector(
+                          onTap: () {
+                            UIHelper.showDialog(
+                                context, "select_wallet_type".tr(),
+                                StatefulBuilder(builder: (
+                              BuildContext context,
+                              StateSetter dialogState,
+                            ) {
+                              return Column(
                                 children: [
-                                  Text(
-                                    _walletType.getString(),
-                                    style: theme.textTheme.ppMori400Black14,
-                                  ),
-                                  const Spacer(),
-                                  RotatedBox(
-                                    quarterTurns: 1,
-                                    child: Icon(
-                                      AuIcon.chevron_Sm,
-                                      size: 12,
-                                      color: theme.colorScheme.primary,
+                                  _walletTypeOption(
+                                      theme, WalletType.Autonomy, dialogState),
+                                  addDivider(height: 40, color: AppColor.white),
+                                  _walletTypeOption(
+                                      theme, WalletType.Ethereum, dialogState,
+                                      isEnabled: _isDefaultAccountCreated),
+                                  addDivider(height: 40, color: AppColor.white),
+                                  _walletTypeOption(
+                                      theme, WalletType.Tezos, dialogState,
+                                      isEnabled: _isDefaultAccountCreated),
+                                  const SizedBox(height: 40),
+                                  Padding(
+                                    padding: ResponsiveLayout
+                                        .pageHorizontalEdgeInsets,
+                                    child: Column(
+                                      children: [
+                                        PrimaryButton(
+                                          text: "select".tr(),
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                            setState(() {
+                                              _walletType =
+                                                  _walletTypeSelecting;
+                                            });
+                                          },
+                                        ),
+                                        const SizedBox(height: 10),
+                                        OutlineButton(
+                                          onTap: () =>
+                                              Navigator.of(context).pop(),
+                                          text: "cancel".tr(),
+                                        ),
+                                      ],
                                     ),
                                   )
                                 ],
-                              ),
+                              );
+                            }),
+                                isDismissible: true,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 32),
+                                paddingTitle:
+                                    ResponsiveLayout.pageHorizontalEdgeInsets);
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                Text(
+                                  _walletType.getString(),
+                                  style: theme.textTheme.ppMori400Black14,
+                                ),
+                                const Spacer(),
+                                RotatedBox(
+                                  quarterTurns: 1,
+                                  child: Icon(
+                                    AuIcon.chevron_Sm,
+                                    size: 12,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                )
+                              ],
                             ),
                           ),
                         )),
@@ -288,11 +281,11 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
   Widget _walletTypeOption(
       ThemeData theme, WalletType walletType, StateSetter dialogState,
-      {bool isEnable = true}) {
+      {bool isEnabled = true}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: GestureDetector(
-        onTap: isEnable
+        onTap: isEnabled
             ? () {
                 setState(() {
                   _walletTypeSelecting = walletType;
@@ -306,14 +299,14 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
             children: [
               Text(
                 walletType.getString(),
-                style: isEnable
+                style: isEnabled
                     ? theme.textTheme.ppMori400White14
                     : theme.textTheme.ppMori400Grey14,
               ),
               const Spacer(),
               AuRadio<WalletType>(
                 onTap: (value) {
-                  if (isEnable) {
+                  if (isEnabled) {
                     setState(() {
                       _walletTypeSelecting = walletType;
                     });
@@ -322,7 +315,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                 },
                 value: _walletTypeSelecting,
                 groupValue: walletType,
-                color: isEnable ? AppColor.white : AppColor.disabledColor,
+                color: isEnabled ? AppColor.white : AppColor.disabledColor,
               ),
             ],
           ),

@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -166,46 +167,39 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   Widget _importInfo(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColor.auSuperTeal,
-          borderRadius: BorderRadiusGeometry.lerp(
-              const BorderRadius.all(Radius.circular(5)),
-              const BorderRadius.all(Radius.circular(5)),
-              5),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: ResponsiveLayout.pageHorizontalEdgeInsets,
+      padding: const EdgeInsets.all(15.0),
+      decoration: const BoxDecoration(
+        color: AppColor.auSuperTeal,
+        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    "info".tr(),
-                    style: theme.textTheme.ppMori700Black14,
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    child: closeIcon(),
-                    onTap: () async {
-                      await injector<ConfigurationService>()
-                          .setShowAuChainInfo(false);
-                      setState(() {});
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
               Text(
-                "generate_support_au".tr(),
-                style: theme.textTheme.ppMori400Black14,
+                "info".tr(),
+                style: theme.textTheme.ppMori700Black14,
+              ),
+              const Spacer(),
+              GestureDetector(
+                child: closeIcon(),
+                onTap: () async {
+                  await injector<ConfigurationService>()
+                      .setShowAuChainInfo(false);
+                  setState(() {});
+                },
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 15),
+          Text(
+            "generate_support_au".tr(),
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ],
       ),
     );
   }
@@ -230,9 +224,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             return const SizedBox();
           }
           return Column(
-            children: ethAddresses
-                .map((address) => Column(
-                      children: [
+              children: ethAddresses
+                  .map((address) => [
                         _addressRow(
                             address: address,
                             index: ethAddresses.indexOf(address),
@@ -241,10 +234,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                                 ? "-- ETH"
                                 : "${EthAmountFormatter(state.ethBalances[address]!.getInWei).format()} ETH"),
                         addDivider(),
-                      ],
-                    ))
-                .toList(),
-          );
+                      ])
+                  .flattened
+                  .toList());
         }),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
           final tezosAddress = state.personaAddresses?[uuid];
@@ -252,9 +244,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             return const SizedBox();
           }
           return Column(
-            children: tezosAddress
-                .map((address) => Column(
-                      children: [
+              children: tezosAddress
+                  .map((address) => [
                         _addressRow(
                           address: address,
                           index: tezosAddress.indexOf(address),
@@ -264,10 +255,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                               : "${XtzAmountFormatter(state.balances[address]!).format()} XTZ",
                         ),
                         if (address != tezosAddress.last) addDivider(),
-                      ],
-                    ))
-                .toList(),
-          );
+                      ])
+                  .flattened
+                  .toList());
         }),
         const SizedBox(height: 30),
         Row(
