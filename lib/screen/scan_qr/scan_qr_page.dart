@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -56,6 +57,8 @@ class _ScanQRPageState extends State<ScanQRPage>
   bool cameraPermission = false;
   String? currentCode;
   AnimationController? _controller;
+
+  final metricClient = injector<MetricClientService>();
 
   @override
   void initState() {
@@ -478,6 +481,24 @@ class _ScanQRPageState extends State<ScanQRPage>
     });
   }
 
+  Future _addScanQREvent(
+      {required String link,
+      required String linkType,
+      required String prefix,
+      Map<dynamic, dynamic> addData = const {}}) async {
+    final uri = Uri.parse(link);
+    final uriData = uri.queryParameters;
+    final data = {
+      "link": link,
+      'linkType': linkType,
+      "prefix": prefix,
+    };
+    data.addAll(uriData);
+    data.addAll(addData.map((key, value) => MapEntry(key, value.toString())));
+
+    metricClient.addEvent(MixpanelEvent.scanQR, data: data);
+  }
+
   void _handleError(String data) {
     setState(() {
       isScanDataError = true;
@@ -497,6 +518,8 @@ class _ScanQRPageState extends State<ScanQRPage>
 
   void _handleAutonomyConnect(String code) {
     controller.dispose();
+    _addScanQREvent(
+        link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
     injector<Wc2Service>().connect(code);
     Navigator.of(context).pop();
   }
@@ -504,11 +527,15 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _handleWalletConnect(String code) {
     controller.dispose();
     injector<WalletConnectService>().connect(code);
+    _addScanQREvent(
+        link: code, linkType: LinkType.walletConnect, prefix: "wc:");
     Navigator.of(context).pop();
   }
 
   void _handleBeaconConnect(String code) {
     controller.dispose();
+    _addScanQREvent(
+        link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
     injector<TezosBeaconService>().addPeer(code);
     Navigator.of(context).pop();
     injector<NavigationService>().showContactingDialog();
@@ -520,6 +547,10 @@ class _ScanQRPageState extends State<ScanQRPage>
     });
     controller.pauseCamera();
     try {
+      _addScanQREvent(
+          link: code,
+          linkType: LinkType.feralFileToken,
+          prefix: FF_TOKEN_DEEPLINK_PREFIX);
       final connection = await injector<FeralFileService>().linkFF(
           code.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
           delayLink: false);

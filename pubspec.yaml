@@ -15,10 +15,10 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.26.0+20
+version: 0.37.0+121
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   after_layout: ^1.2.0
@@ -48,7 +48,7 @@ dependencies:
   flutter_downloader:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
-      ref: 7092a0c3708be0f94d8abcf49ebf84f778c0ae26
+      ref: 77fe59498333190976959001fe9960a1fb4d27e2
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
   flutter_markdown: ^0.6.9
@@ -83,7 +83,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: v1.0.22
+      ref: v1.0.24
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -124,6 +124,7 @@ dependencies:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
       ref: 1.1.1
   marqueer: ^1.2.0
+  markdown: ^6.0.1
   easy_localization: ^3.0.1
   rxdart: ^0.26.0
   in_app_review: ^2.0.4

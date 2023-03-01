@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -34,6 +35,7 @@ import '../main.dart';
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
   final CloudDatabase _cloudDB;
+  final List<BeaconRequest> _handlingRequests = [];
 
   late TezosBeaconChannel _beaconChannel;
   P2PPeer? _currentPeer;
@@ -120,8 +122,23 @@ class TezosBeaconService implements BeaconHandler {
 
   @override
   void onRequest(BeaconRequest request) {
+    log.info("TezosBeaconService: onRequest");
+    _handlingRequests.add(request);
+    if (_handlingRequests.length == 1) {
+      handleNextRequest();
+    }
+  }
+
+  void handleNextRequest({bool isRemoved = false}) {
+    log.info("TezosBeaconService: handleRequest");
+    if (isRemoved && _handlingRequests.isNotEmpty) {
+      _handlingRequests.removeAt(0);
+    }
+    if (_handlingRequests.isEmpty) return;
+    final request = _handlingRequests.first;
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
+      _navigationService.willShowContacting = false;
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);

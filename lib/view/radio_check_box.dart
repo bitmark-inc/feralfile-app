@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:roundcheckbox/roundcheckbox.dart';
+
+class RadioSelectAddress extends StatelessWidget {
+  final bool? isChecked;
+  final Color? checkColor;
+  final Color? uncheckColor;
+  final Color? borderColor;
+  final Function(bool?)? onTap;
+  const RadioSelectAddress({
+    Key? key,
+    this.isChecked,
+    this.onTap,
+    this.checkColor,
+    this.uncheckColor,
+    this.borderColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return RoundCheckBox(
+      border: Border.all(
+        color: borderColor ?? theme.colorScheme.primary,
+        width: 1.5,
+      ),
+      uncheckedColor: uncheckColor ?? theme.colorScheme.primary,
+      uncheckedWidget: Container(
+        padding: const EdgeInsets.all(4),
+      ),
+      checkedColor: checkColor ?? theme.colorScheme.primary,
+      checkedWidget: Container(
+        padding: const EdgeInsets.all(4),
+        child: SvgPicture.asset(
+          'assets/images/check-icon.svg',
+          color: borderColor ?? theme.colorScheme.primary,
+        ),
+      ),
+      animationDuration: const Duration(milliseconds: 100),
+      isChecked: isChecked,
+      disabledColor: Colors.transparent,
+      size: 24,
+      onTap: onTap,
+    );
+  }
+}

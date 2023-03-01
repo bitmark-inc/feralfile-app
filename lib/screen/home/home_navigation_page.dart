@@ -14,25 +14,37 @@ import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeNavigationPage extends StatefulWidget {
-  const HomeNavigationPage({Key? key}) : super(key: key);
+  final bool fromOnboarding;
+
+  const HomeNavigationPage({Key? key, this.fromOnboarding = false})
+      : super(key: key);
 
   @override
   State<HomeNavigationPage> createState() => _HomeNavigationPageState();
@@ -43,12 +55,21 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
+  late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
+  final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
+
+  bool _currentIsSubscribed = false;
 
   void _onItemTapped(int index) {
-    if (index != 2) {
-      if (_selectedIndex == index && index == 0) {
-        _homePageKey.currentState?.scrollToTop();
+    if (index != _pages.length) {
+      if (_selectedIndex == index) {
+        if (index == 0) {
+          _homePageKey.currentState?.scrollToTop();
+        }
+        if (index == _pages.length - 1) {
+          _editorialPageStateKey.currentState?.scrollToTop();
+        }
       }
       setState(() {
         _selectedIndex = index;
@@ -59,15 +80,17 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _homePageKey.currentState
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
-      } else {
+      } else if (index == _pages.length - 1) {
         final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
           feedBloc.add(OpenFeedEvent());
           feedBloc.add(GetFeedsEvent());
           metricClient.addEvent(MixpanelEvent.viewDiscovery);
+          metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
         } else {
           metricClient.addEvent(MixpanelEvent.viewEditorial);
+          metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
         }
         context.read<EditorialBloc>().add(GetEditorialEvent());
       }
@@ -125,7 +148,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void initState() {
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
     if (memoryValues.homePageInitialTab != HomePageTab.HOME) {
       _selectedIndex = 1;
@@ -138,10 +161,97 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ValueListenableBuilder<bool>(
           valueListenable: injector<FeedService>().hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
-            return EditorialPage(isShowDiscover: isShowDiscover);
+            return EditorialPage(
+                key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
     ];
+    _bottomItems = [
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.collection,
+          size: 25,
+        ),
+        label: '',
+      ),
+      BottomNavigationBarItem(
+        icon: ValueListenableBuilder<int>(
+            valueListenable: injector<FeedService>().unviewedCount,
+            builder: (BuildContext context, int unreadCount, Widget? child) {
+              if (unreadCount > 0) {
+                context.read<FeedBloc>().add(GetFeedsEvent());
+              }
+              return Stack(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Icon(
+                      AuIcon.discover,
+                      size: 25,
+                    ),
+                  ),
+                  if (unreadCount > 0) ...[
+                    Positioned(
+                      left: 28,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.only(
+                          left: 3,
+                          right: 3,
+                        ),
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        constraints: const BoxConstraints(minWidth: 11),
+                        child: Center(
+                          child: Text(
+                            "$unreadCount",
+                            style: Theme.of(context)
+                                .textTheme
+                                .ppMori700White12
+                                .copyWith(
+                                  fontSize: 8,
+                                ),
+                            overflow: TextOverflow.visible,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
+              );
+            }),
+        label: '',
+      ),
+      BottomNavigationBarItem(
+        icon: ValueListenableBuilder<List<int>?>(
+          valueListenable:
+              injector<CustomerSupportService>().numberOfIssuesInfo,
+          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+              Widget? child) {
+            return iconWithRedDot(
+              icon: const Icon(
+                AuIcon.drawer,
+                size: 25,
+              ),
+              padding: const EdgeInsets.only(right: 2, top: 2),
+              withReddot:
+                  (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
+            );
+          },
+        ),
+        label: '',
+      ),
+    ];
+    _checkisSubscribed();
+    injector.get<IAPService>().purchases.addListener(_checkisSubscribed);
 
+    final configService = injector<ConfigurationService>();
+    if (!configService.isReadRemoveSupport()) {
+      _showRemoveCustomerSupport();
+    }
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();
@@ -150,12 +260,163 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _handleNotificationClicked(openedResult.notification);
       });
     });
+
+    if (!widget.fromOnboarding) {
+      injector<TezosBeaconService>().cleanup();
+      injector<Wc2Service>().cleanup();
+    }
+  }
+
+  _checkisSubscribed() async {
+    if (_currentIsSubscribed) return;
+    final isSubscribed = await injector.get<IAPService>().isSubscribed();
+    if (isSubscribed) {
+      _pages = <Widget>[
+        HomePage(key: _homePageKey),
+        const ListPlaylistsScreen(),
+        ValueListenableBuilder<bool>(
+            valueListenable: injector<FeedService>().hasFeed,
+            builder:
+                (BuildContext context, bool isShowDiscover, Widget? child) {
+              return EditorialPage(
+                  key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
+            }),
+      ];
+      _bottomItems = [
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.collection,
+            size: 25,
+          ),
+          label: '',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.playlists,
+            size: 25,
+          ),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: ValueListenableBuilder<int>(
+              valueListenable: injector<FeedService>().unviewedCount,
+              builder: (BuildContext context, int unreadCount, Widget? child) {
+                if (unreadCount > 0) {
+                  context.read<FeedBloc>().add(GetFeedsEvent());
+                }
+                return Stack(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15.0),
+                      child: Icon(
+                        AuIcon.discover,
+                        size: 25,
+                      ),
+                    ),
+                    if (unreadCount > 0) ...[
+                      Positioned(
+                        left: 28,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.only(
+                            left: 3,
+                            right: 3,
+                          ),
+                          height: 11,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          constraints: const BoxConstraints(minWidth: 11),
+                          child: Center(
+                            child: Text(
+                              "$unreadCount",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .ppMori700White12
+                                  .copyWith(
+                                    fontSize: 8,
+                                  ),
+                              overflow: TextOverflow.visible,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ]
+                  ],
+                );
+              }),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: ValueListenableBuilder<List<int>?>(
+            valueListenable:
+                injector<CustomerSupportService>().numberOfIssuesInfo,
+            builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                Widget? child) {
+              return iconWithRedDot(
+                icon: const Icon(
+                  AuIcon.drawer,
+                  size: 25,
+                ),
+                padding: const EdgeInsets.only(right: 2, top: 2),
+                withReddot:
+                    (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
+              );
+            },
+          ),
+          label: '',
+        ),
+      ];
+      _currentIsSubscribed = isSubscribed;
+      setState(() {});
+    }
   }
 
   @override
   void didPopNext() async {
     super.didPopNext();
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
+  }
+
+  _showRemoveCustomerSupport() async {
+    final device = DeviceInfo.instance;
+    if (!(await device.isSupportOS())) {
+      final dio = Dio(BaseOptions(
+        baseUrl: "https://raw.githubusercontent.com",
+        connectTimeout: 2000,
+      ));
+      final data = await dio.get<String>(REMOVE_CUSTOMER_SUPPORT);
+      if (data.statusCode == 200) {
+        final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
+        String? gitHubContent = data.data ?? "";
+        Future.delayed(const Duration(seconds: 3), () {
+          showInAppNotifications(
+              context, "au_has_announcement".tr(), "remove_customer_support",
+              notificationOpenedHandler: () {
+            UIHelper.showCenterSheet(context,
+                content: Markdown(
+                  key: const Key("remove_customer_support"),
+                  data: gitHubContent,
+                  softLineBreak: true,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(0),
+                  styleSheet: markDownAnnouncementStyle(context),
+                ),
+                actionButton: "follow_github".tr(),
+                actionButtonOnTap: () =>
+                    launchUrl(uri, mode: LaunchMode.externalApplication),
+                exitButtonOnTap: () {
+                  injector<ConfigurationService>().readRemoveSupport(true);
+                  Navigator.of(context).pop();
+                },
+                exitButton: "i_understand_".tr());
+          });
+        });
+      }
+    }
   }
 
   @override
@@ -177,85 +438,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         backgroundColor: theme.colorScheme.background.withOpacity(0.95),
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(
-              AuIcon.collection,
-              size: 25,
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: ValueListenableBuilder<int>(
-                valueListenable: injector<FeedService>().unviewedCount,
-                builder:
-                    (BuildContext context, int unreadCount, Widget? child) {
-                  if (unreadCount > 0) {
-                    context.read<FeedBloc>().add(GetFeedsEvent());
-                  }
-                  return Stack(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15.0),
-                        child: Icon(
-                          AuIcon.discover,
-                          size: 25,
-                        ),
-                      ),
-                      if (unreadCount > 0) ...[
-                        Positioned(
-                          left: 28,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.only(
-                              left: 3,
-                              right: 3,
-                            ),
-                            height: 11,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            constraints: const BoxConstraints(minWidth: 11),
-                            child: Center(
-                              child: Text(
-                                "$unreadCount",
-                                style:
-                                    theme.textTheme.ppMori700White12.copyWith(
-                                  fontSize: 8,
-                                ),
-                                overflow: TextOverflow.visible,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]
-                    ],
-                  );
-                }),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: ValueListenableBuilder<List<int>?>(
-              valueListenable:
-                  injector<CustomerSupportService>().numberOfIssuesInfo,
-              builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                  Widget? child) {
-                return iconWithRedDot(
-                  icon: const Icon(
-                    AuIcon.drawer,
-                    size: 25,
-                  ),
-                  padding: const EdgeInsets.only(right: 2, top: 2),
-                  withReddot:
-                      (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
-                );
-              },
-            ),
-            label: '',
-          ),
-        ],
+        items: _bottomItems,
       ),
       body: PageView(
         controller: _pageController,
@@ -276,7 +459,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         final notificationIssueID =
             '${event.notification.additionalData?['issue_id']}';
         injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        injector<CustomerSupportService>().getIssues();
+        injector<CustomerSupportService>().getIssuesAndAnnouncement();
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
           event.complete(null);
           return;
@@ -292,20 +475,32 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
-
-    showNotifications(context, event.notification,
-        notificationOpenedHandler: _handleNotificationClicked);
+    if (data['notification_type'] == "customer_support_new_announcement") {
+      showInfoNotification(
+          const Key("Announcement"), "au_has_announcement".tr(),
+          addOnTextSpan: [
+            TextSpan(
+                text: "tap_to_view".tr(),
+                style: Theme.of(context).textTheme.ppMori400Green14),
+          ], openHandler: () async {
+        final announcementID = '${data["id"]}';
+        _openAnnouncement(announcementID);
+      });
+    } else {
+      showNotifications(context, event.notification,
+          notificationOpenedHandler: _handleNotificationClicked);
+    }
     event.complete(null);
   }
 
-  void _handleNotificationClicked(OSNotification notification) {
+  void _handleNotificationClicked(OSNotification notification) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
       return;
     }
 
     log.info(
-        "Tap to notification: ${notification.body ?? "empty"} \nAddtional data: ${notification.additionalData!}");
+        "Tap to notification: ${notification.body ?? "empty"} \nAdditional data: ${notification.additionalData!}");
 
     final notificationType = notification.additionalData!["notification_type"];
     switch (notificationType) {
@@ -319,13 +514,23 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       case "customer_support_new_message":
       case "customer_support_close_issue":
         final issueID = '${notification.additionalData!["issue_id"]}';
+        final announcement = await injector<CustomerSupportService>()
+            .findAnnouncementFromIssueId(issueID);
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.supportThreadPage,
           ((route) =>
               route.settings.name == AppRouter.homePage ||
               route.settings.name == AppRouter.homePageNoTransition),
-          arguments: DetailIssuePayload(reportIssueType: "", issueID: issueID),
+          arguments: DetailIssuePayload(
+              reportIssueType: "",
+              issueID: issueID,
+              announcement: announcement),
         );
+        break;
+      case "customer_support_new_announcement":
+        final announcementID = '${notification.additionalData!["id"]}';
+        _openAnnouncement(announcementID);
         break;
 
       case "artwork_created":
@@ -343,6 +548,26 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       default:
         log.warning("unhandled notification type: $notificationType");
         break;
+    }
+  }
+
+  _openAnnouncement(String announcementID) async {
+    log.info("Open announcement: id = $announcementID");
+    await injector<CustomerSupportService>().fetchAnnouncement();
+    final announcement = await injector<CustomerSupportService>()
+        .findAnnouncement(announcementID);
+    if (announcement != null) {
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.supportThreadPage,
+        ((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition),
+        arguments: NewIssuePayload(
+          reportIssueType: ReportIssueType.Announcement,
+          announcement: announcement,
+        ),
+      );
     }
   }
 }

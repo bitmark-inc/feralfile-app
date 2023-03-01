@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -20,7 +21,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -60,6 +60,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? balance;
   final metricClient = injector.get<MetricClientService>();
   late CurrencyExchangeRate exchangeRate;
+
+  @override
+  void dispose() {
+    super.dispose();
+    Future.delayed(const Duration(seconds: 2), () {
+      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
+    });
+  }
 
   @override
   void initState() {

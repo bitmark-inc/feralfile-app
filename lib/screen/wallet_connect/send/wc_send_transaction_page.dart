@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -50,6 +51,15 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
         to, amount, widget.args.transaction.data, widget.args.uuid));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Future.delayed(const Duration(seconds: 2), () {
+      injector<WalletConnectService>()
+          .handleEthSendTransaction(isRemoved: true);
+    });
   }
 
   @override
@@ -114,6 +124,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 EtherUnit.wei, widget.args.transaction.value ?? '0');
             final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
+            final balance = state.balance;
+            final canSend = total != null && balance != null && total < balance;
             return Stack(
               children: [
                 Container(
@@ -224,8 +236,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                         children: [
                           Expanded(
                             child: AuFilledButton(
+                              enabled: canSend,
                               text: "send".tr().toUpperCase(),
-                              onPress: (state.fee != null && !state.isSending)
+                              onPress: (state.fee != null &&
+                                      !state.isSending &&
+                                      canSend)
                                   ? () async {
                                       metricClient.addEvent(
                                           MixpanelEvent.confirmTransaction);

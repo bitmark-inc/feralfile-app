@@ -149,7 +149,9 @@ class _OnboardingPageState extends State<OnboardingPage>
                   .getAirdropArtworkFromExhibitionId(data!.exhibitionId!);
 
           if (artwork.airdropInfo?.isAirdropStarted != true) {
-            await injector.get<NavigationService>().showAirdropNotStarted();
+            await injector
+                .get<NavigationService>()
+                .showAirdropNotStarted(artwork.id);
             updateDeepLinkState();
             return;
           }
@@ -158,7 +160,9 @@ class _OnboardingPageState extends State<OnboardingPage>
 
           if (artwork.airdropInfo == null ||
               (endTime != null && endTime.isBefore(DateTime.now()))) {
-            await injector.get<NavigationService>().showAirdropExpired();
+            await injector
+                .get<NavigationService>()
+                .showAirdropExpired(artwork.id);
             updateDeepLinkState();
             return;
           }
@@ -173,7 +177,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
           final otp = memoryValues.airdropFFExhibitionId.value?.otp;
           if (otp?.isExpired == true) {
-            await injector.get<NavigationService>().showOtpExpired();
+            await injector.get<NavigationService>().showOtpExpired(artwork.id);
             updateDeepLinkState();
             return;
           }
@@ -216,6 +220,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     final personas = await cloudDB.personaDao.getPersonas();
     final connections = await cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
+      configurationService.setOldUser();
       final defaultAccount = await accountService.getDefaultAccount();
       final backupVersion =
           await backupService.fetchBackupVersion(defaultAccount);

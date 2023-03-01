@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -12,8 +13,12 @@ import 'package:autonomy_flutter/util/constants.dart';
 
 part 'customer_support.g.dart';
 
+abstract class ChatThread {
+  String getListTitle();
+}
+
 @JsonSerializable()
-class Issue {
+class Issue implements ChatThread {
   @JsonKey(name: 'issue_id')
   String issueID;
   String status;
@@ -28,6 +33,9 @@ class Issue {
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
+  String? announcementID;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  AnnouncementLocal? announcement;
 
   Issue({
     required this.issueID,
@@ -40,6 +48,7 @@ class Issue {
     required this.lastMessage,
     this.draft,
     required this.rating,
+    this.announcementID,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);
@@ -50,6 +59,11 @@ class Issue {
     return ReportIssueType.getList
             .firstWhereOrNull((element) => tags.contains(element)) ??
         "";
+  }
+
+  @override
+  String getListTitle() {
+    return ReportIssueType.toTitle(reportIssueType);
   }
 }
 

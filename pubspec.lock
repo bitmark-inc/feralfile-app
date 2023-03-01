@@ -733,11 +733,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7092a0c3708be0f94d8abcf49ebf84f778c0ae26"
-      resolved-ref: "7092a0c3708be0f94d8abcf49ebf84f778c0ae26"
+      ref: "77fe59498333190976959001fe9960a1fb4d27e2"
+      resolved-ref: "77fe59498333190976959001fe9960a1fb4d27e2"
       url: "https://github.com/autonomy-system/flutter_downloader"
     source: git
-    version: "1.10.0"
+    version: "1.10.1+2"
   flutter_driver:
     dependency: transitive
     description: flutter
@@ -763,8 +763,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "1.0.0"
-      resolved-ref: "1890b61932da34fbf05f3615395af62df9224a5c"
+      ref: "1.0.1"
+      resolved-ref: "243bc696c8b8348db9730eed7b160d80c1e4af1c"
       url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
     source: git
     version: "0.0.4"
@@ -1388,7 +1388,7 @@ packages:
     source: hosted
     version: "1.1.1"
   markdown:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: markdown
       sha256: c2b81e184067b41d0264d514f7cdaa2c02d38511e39d6521a1ccc238f6d7b3f2
@@ -1505,8 +1505,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.22"
-      resolved-ref: bfcefa61c15a1b93c081c06d4faf9b0084b2a4d0
+      ref: "v1.0.24"
+      resolved-ref: c63c9fa7d240401b1364d91cdf42ea384b53887a
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"

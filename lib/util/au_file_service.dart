@@ -100,7 +100,7 @@ class AuFileService extends FileService {
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) async {
       String id = data[0];
-      DownloadTaskStatus status = data[1];
+      DownloadTaskStatus status = DownloadTaskStatus(data[1]);
       int progress = data[2];
       await _downloadCallback(id, status, progress);
     });
@@ -128,8 +128,6 @@ class AuFileService extends FileService {
             await FlutterImageCompress.compressAndGetFile(
               originalFile,
               compressedFile,
-              minWidth: 400,
-              minHeight: 400,
               quality: 90,
             );
             if (await File(compressedFile).exists()) {

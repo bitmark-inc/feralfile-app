@@ -26,6 +26,7 @@ class NavigationService {
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+  bool willShowContacting = false;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info("NavigationService.navigateTo: $routeName");
@@ -79,23 +80,23 @@ class NavigationService {
     return Navigator.of(navigatorKey.currentContext!);
   }
 
-  Future showAirdropNotStarted() async {
+  Future showAirdropNotStarted(String? artworkId) async {
     log.info("NavigationService.showAirdropNotStarted");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showAirdropNotStarted(
-        navigatorKey.currentContext!,
-      );
+          navigatorKey.currentContext!, artworkId);
     } else {
       Future.value(0);
     }
   }
 
-  Future showAirdropExpired() async {
+  Future showAirdropExpired(String? artworkId) async {
     log.info("NavigationService.showAirdropExpired");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      await UIHelper.showAirdropExpired(navigatorKey.currentContext!);
+      await UIHelper.showAirdropExpired(
+          navigatorKey.currentContext!, artworkId);
     } else {
       Future.value(0);
     }
@@ -116,11 +117,11 @@ class NavigationService {
     }
   }
 
-  Future showOtpExpired() async {
+  Future showOtpExpired(String? artworkId) async {
     log.info("NavigationService.showOtpExpired");
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      await UIHelper.showOtpExpired(navigatorKey.currentContext!);
+      await UIHelper.showOtpExpired(navigatorKey.currentContext!, artworkId);
     } else {
       Future.value(0);
     }
@@ -199,6 +200,22 @@ class NavigationService {
         navigatorKey.currentContext != null) {
       final metricClient = injector.get<MetricClientService>();
       metricClient.timerEvent(MixpanelEvent.cancelContact);
+      willShowContacting = true;
+      await UIHelper.showLoadingIndicator(navigatorKey.currentContext!);
+      Future.delayed(const Duration(seconds: 4), () async {
+        hideInfoDialog();
+        if (willShowContacting) {
+          await _contactDialog();
+        }
+      });
+
+      metricClient.addEvent(MixpanelEvent.connectContactSuccess);
+    }
+  }
+
+  Future<void> _contactDialog() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
         'contacting'.tr(),
@@ -207,11 +224,12 @@ class NavigationService {
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
-          metricClient.addEvent(MixpanelEvent.cancelContact);
+          injector
+              .get<MetricClientService>()
+              .addEvent(MixpanelEvent.cancelContact);
           hideInfoDialog();
         },
       );
-      metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 }

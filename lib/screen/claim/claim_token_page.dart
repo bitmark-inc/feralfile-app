@@ -253,6 +253,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           final configService =
                               injector<ConfigurationService>();
                           await configService.setDoneOnboarding(true);
+                          injector<MetricClientService>()
+                              .mixPanelClient
+                              .initIfDefaultAccount();
                           await configService.setPendingSettings(true);
                           address = blockchain == "Tezos"
                               ? await defaultAccount.getTezosAddress()

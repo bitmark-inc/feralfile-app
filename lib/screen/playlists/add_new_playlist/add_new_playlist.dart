@@ -1,29 +1,30 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
-import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_state.dart';
+import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:roundcheckbox/roundcheckbox.dart';
 
-import '../../util/token_ext.dart';
+import '../../../util/token_ext.dart';
 
 class AddNewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+
   const AddNewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
@@ -102,12 +103,14 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
             .where(
                 (element) => state.selectedIDs?.contains(element.id) ?? false)
             .length;
-        final isSeletedAll = selectedCount == tokensPlaylist.length;
+        final isSelectedAll = selectedCount == tokensPlaylist.length;
+        final paddingTop = MediaQuery.of(context).viewPadding.top;
         return Scaffold(
           backgroundColor: theme.primaryColor,
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: SafeArea(
+              top: false,
               bottom: false,
               child: Stack(
                 children: [
@@ -115,24 +118,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
+                        HeaderView(paddingTop: paddingTop, isWhite: true),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Column(
                             children: [
-                              const SizedBox(
-                                height: 40,
-                              ),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: SvgPicture.asset(
-                                  "assets/images/penrose_moma.svg",
-                                  color: theme.colorScheme.secondary,
-                                  width: 50,
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 30,
-                              ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -188,7 +178,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                     const Spacer(),
                                     GestureDetector(
                                       onTap: () => bloc.add(SelectItemPlaylist(
-                                          isSelectAll: !isSeletedAll)),
+                                          isSelectAll: !isSelectedAll)),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 10,
@@ -202,7 +192,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                                               BorderRadius.circular(64),
                                         ),
                                         child: Text(
-                                          isSeletedAll
+                                          isSelectedAll
                                               ? tr('unselect_all')
                                               : tr('select_all'),
                                           style:
@@ -397,26 +387,9 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             right: 10,
             child: Visibility(
               visible: widget.showSelect,
-              child: RoundCheckBox(
-                border: Border.all(
-                  color: theme.colorScheme.secondary,
-                  width: 1.5,
-                ),
-                uncheckedColor: theme.colorScheme.primary,
-                uncheckedWidget: Container(
-                  padding: const EdgeInsets.all(4),
-                ),
-                checkedColor: theme.colorScheme.primary,
-                checkedWidget: Container(
-                  padding: const EdgeInsets.all(4),
-                  child: SvgPicture.asset(
-                    'assets/images/check-icon.svg',
-                    color: theme.colorScheme.secondary,
-                  ),
-                ),
-                animationDuration: const Duration(milliseconds: 100),
+              child: RadioSelectAddress(
                 isChecked: isSelected,
-                size: 24,
+                borderColor: theme.colorScheme.secondary,
                 onTap: onChanged,
               ),
             ),

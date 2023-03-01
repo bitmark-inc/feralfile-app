@@ -12,8 +12,8 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
@@ -30,7 +30,9 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -57,6 +59,7 @@ void doneOnboarding(BuildContext context) async {
   injector<IAPService>().restore();
   await injector<ConfigurationService>().setPendingSettings(true);
   await injector<ConfigurationService>().setDoneOnboarding(true);
+  injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
   injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
 
@@ -509,11 +512,12 @@ class UIHelper {
     );
   }
 
-  static Future showAirdropNotStarted(BuildContext context) async {
+  static Future showAirdropNotStarted(
+      BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artworkId});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -539,11 +543,12 @@ class UIHelper {
     );
   }
 
-  static Future showAirdropExpired(BuildContext context) async {
+  static Future showAirdropExpired(
+      BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(3007, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artworkId});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -576,7 +581,7 @@ class UIHelper {
   }) async {
     final error = FeralfileError(3009, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artwork.id});
     return showErrorDialog(
       context,
       error.getDialogTitle(artwork: artwork),
@@ -585,10 +590,10 @@ class UIHelper {
     );
   }
 
-  static Future showOtpExpired(BuildContext context) async {
+  static Future showOtpExpired(BuildContext context, String? artworkId) async {
     final error = FeralfileError(3013, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage});
+        data: {"message": error.dialogMessage, "id": artworkId});
     return showErrorDialog(
       context,
       error.dialogTitle,
@@ -603,7 +608,7 @@ class UIHelper {
     required FFArtwork artwork,
   }) async {
     if (e is AirdropExpired) {
-      await showAirdropExpired(context);
+      await showAirdropExpired(context, artwork.id);
     } else if (e is DioError) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
@@ -611,7 +616,7 @@ class UIHelper {
           : "${e.response?.data ?? e.message}";
 
       metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {"message": message});
+          data: {"message": message, "id": artwork.id});
       await showErrorDialog(
         context,
         ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),
@@ -874,37 +879,11 @@ class UIHelper {
     BuildContext context, {
     required Function() onClose,
   }) {
-    final theme = Theme.of(context);
-
     showDialog(
       context,
       'connected'.tr(),
-      Flexible(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'connect_TV_success_des'.tr(),
-              style: theme.primaryTextTheme.bodyLarge,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "close".tr(),
-                    onPress: onClose,
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.labelLarge,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-          ],
-        ),
+      ConnectedTV(
+        onTap: onClose,
       ),
     );
   }
@@ -922,7 +901,7 @@ class UIHelper {
     );
   }
 
-  static showConnectionFaild(
+  static showConnectionFailed(
     BuildContext context, {
     required Function() onClose,
   }) {
@@ -942,15 +921,9 @@ class UIHelper {
             const SizedBox(
               height: 40,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "close".tr(),
-                    onPress: onClose,
-                  ),
-                ),
-              ],
+            AuSecondaryButton(
+              onPressed: onClose,
+              text: 'close'.tr(),
             ),
             const SizedBox(height: 15),
           ],
@@ -979,6 +952,101 @@ class UIHelper {
             arguments: connection);
       }
     });
+  }
+
+  static showCenterSheet(BuildContext context,
+      {required Widget content,
+      String? actionButton,
+      Function()? actionButtonOnTap,
+      String? exitButton,
+      Function()? exitButtonOnTap}) {
+    UIHelper.hideInfoDialog(context);
+    showCupertinoModalPopup(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.auSuperTeal,
+                  borderRadius: BorderRadiusGeometry.lerp(
+                      const BorderRadius.all(Radius.circular(5)),
+                      const BorderRadius.all(Radius.circular(5)),
+                      5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          trackVisibility: true,
+                          thickness: 5,
+                          radius: const Radius.circular(10),
+                          scrollbarOrientation: ScrollbarOrientation.right,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  content,
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (actionButtonOnTap != null)
+                        Column(
+                          children: [
+                            AuSecondaryButton(
+                              text: actionButton ?? "",
+                              onPressed: actionButtonOnTap,
+                              borderColor: AppColor.primaryBlack,
+                              textColor: AppColor.primaryBlack,
+                              backgroundColor: AppColor.auSuperTeal,
+                            ),
+                            const SizedBox(
+                              height: 15,
+                            )
+                          ],
+                        ),
+                      AuSecondaryButton(
+                        text: exitButton ?? "close".tr(),
+                        onPressed: exitButtonOnTap ??
+                            () {
+                              Navigator.pop(context);
+                            },
+                        borderColor: AppColor.primaryBlack,
+                        textColor: AppColor.primaryBlack,
+                        backgroundColor: AppColor.auSuperTeal,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  static showLoadingIndicator(
+    BuildContext context,
+  ) {
+    UIHelper.hideInfoDialog(context);
+    showCupertinoModalPopup(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: loadingIndicator(),
+          );
+        });
   }
 
   static showAlreadyLinked(BuildContext context, Connection connection) {
@@ -1107,6 +1175,70 @@ class UIHelper {
             ),
           );
         });
+  }
+}
+
+class ConnectedTV extends StatefulWidget {
+  final Function() onTap;
+  const ConnectedTV({
+    super.key,
+    required this.onTap,
+  });
+
+  @override
+  State<ConnectedTV> createState() => _ConnectedTVState();
+}
+
+class _ConnectedTVState extends State<ConnectedTV> {
+  late Timer _timer;
+  int _countdown = 5;
+  @override
+  void initState() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown != 0) {
+        setState(() {
+          _countdown--;
+        });
+      } else {
+        widget.onTap.call();
+        _timer.cancel();
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (_timer.isActive) {
+      _timer.cancel();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Flexible(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'connect_TV_success_des'.tr(),
+            style: theme.primaryTextTheme.bodyLarge,
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          PrimaryButton(
+            onTap: widget.onTap,
+            text: _countdown != 0
+                ? 'close_seconds'.tr(args: [_countdown.toString()])
+                : 'close'.tr(),
+          ),
+          const SizedBox(height: 15),
+        ],
+      ),
+    );
   }
 }
 

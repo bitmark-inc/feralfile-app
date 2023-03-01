@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -53,23 +54,35 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         child:
             BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              addTitleSpace(),
-              Center(
-                child: SvgPicture.asset(
-                  'assets/images/subscription.svg',
-                  height: 80,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Center(
+                        child: SvgPicture.asset(
+                          'assets/images/subscription.svg',
+                          height: 80,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 18,
+                      ),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: _statusSection(context, state),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(
-                height: 18,
+              Padding(
+                padding:
+                    ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+                child: _actionSection(context, state),
               ),
-              Expanded(
-                  child: Padding(
-                padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-                child: _statusSection(context, state),
-              )),
             ],
           );
         }),
@@ -97,7 +110,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     IAPProductStatus status = state.status;
     switch (status) {
       case IAPProductStatus.completed:
-        mixpanel.getPeople().set("Subscription", "Subscried");
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.subscried);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -108,7 +123,83 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 style: theme.textTheme.ppMori400Black14),
             const SizedBox(height: 10.0),
             _benefitImage(context),
-            const Spacer(),
+            const SizedBox(height: 30.0),
+          ],
+        );
+      case IAPProductStatus.trial:
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.trial);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
+                style: theme.textTheme.ppMori400Black16),
+            const SizedBox(height: 16.0),
+            Text(
+                "to_cancel_your_subscription".tr(
+                    namedArgs: {"location": _subscriptionsManagementLocation}),
+                //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
+                style: theme.textTheme.ppMori400Black14),
+            const SizedBox(height: 10.0),
+            _benefitImage(context),
+            const SizedBox(height: 30),
+          ],
+        );
+      case IAPProductStatus.loading:
+      case IAPProductStatus.pending:
+        return Container(
+          height: 80,
+          alignment: Alignment.topCenter,
+          child: const CupertinoActivityIndicator(),
+        );
+      case IAPProductStatus.expired:
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.expired);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'your_subscription_has_expired'.tr(),
+              style: theme.textTheme.ppMori400Black14,
+            ),
+            _benefitImage(context),
+            const SizedBox(height: 30.0),
+          ],
+        );
+      case IAPProductStatus.notPurchased:
+        mixpanel
+            .getPeople()
+            .set(MixpanelProp.subscription, SubscriptionStatus.free);
+        return Column(
+          children: [
+            Text(
+              'upgrade_to_use'.tr(),
+              style: theme.textTheme.ppMori400Black14,
+            ),
+            _benefitImage(context),
+            const SizedBox(height: 30.0),
+          ],
+        );
+      case IAPProductStatus.error:
+        return Text("error_loading_sub".tr(),
+            //"Error when loading your subscription.",
+            style: theme.textTheme.ppMori400Black12);
+    }
+  }
+
+  Widget _actionSection(
+    BuildContext context,
+    UpgradeState state,
+  ) {
+    final theme = Theme.of(context);
+    IAPProductStatus status = state.status;
+    switch (status) {
+      case IAPProductStatus.completed:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Container(
                 alignment: Alignment.bottomCenter,
                 child: Column(
@@ -132,27 +223,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           ],
         );
       case IAPProductStatus.trial:
-        mixpanel.getPeople().set("Subscription", "Trial");
         final df = DateFormat("yyyy-MMM-dd");
         final trialExpireDate =
             df.format(state.trialExpiredDate ?? DateTime.now());
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
-                style: theme.textTheme.ppMori400Black16),
-            const SizedBox(height: 16.0),
-            Text(
-                "to_cancel_your_subscription".tr(
-                    namedArgs: {"location": _subscriptionsManagementLocation}),
-                //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
-                style: theme.textTheme.ppMori400Black14),
-            const SizedBox(height: 10.0),
-            _benefitImage(context),
-            const SizedBox(
-              height: 10,
-            ),
-            const Spacer(),
             Container(
               alignment: Alignment.bottomCenter,
               child: Column(
@@ -180,21 +256,11 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         );
       case IAPProductStatus.loading:
       case IAPProductStatus.pending:
-        return Container(
-          height: 80,
-          alignment: Alignment.topCenter,
-          child: const CupertinoActivityIndicator(),
-        );
+        return const SizedBox();
       case IAPProductStatus.expired:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'your_subscription_has_expired'.tr(),
-              style: theme.textTheme.ppMori400Black14,
-            ),
-            _benefitImage(context),
-            const Spacer(),
             Container(
               alignment: Alignment.bottomCenter,
               child: Column(
@@ -218,12 +284,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       case IAPProductStatus.notPurchased:
         return Column(
           children: [
-            Text(
-              'upgrade_to_use'.tr(),
-              style: theme.textTheme.ppMori400Black14,
-            ),
-            _benefitImage(context),
-            const Spacer(),
             Container(
               alignment: Alignment.bottomCenter,
               child: Column(

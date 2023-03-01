@@ -102,7 +102,6 @@ class _PubdocAPI implements PubdocAPI {
           data: _data,
         )
         .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-
     final value = _result.data!;
     return value;
   }

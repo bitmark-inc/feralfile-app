@@ -186,6 +186,21 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<WalletStorage?> getCurrentDefaultAccount() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
+
+    if (personas.isEmpty) {
+      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
+              _auditService, _backupService)
+          .migrationFromKeychain();
+      await androidRestoreKeys();
+
+      await Future.delayed(const Duration(seconds: 1));
+      personas = await _cloudDB.personaDao.getDefaultPersonas();
+    }
+
+    if (personas.isEmpty) {
+      personas = await _cloudDB.personaDao.getPersonas();
+    }
+
     if (personas.isEmpty) return null;
     final defaultWallet = personas.first.wallet();
 

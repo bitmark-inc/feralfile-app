@@ -8,7 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/model/wc2_proposal.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'wc2_request.g.dart';

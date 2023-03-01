@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
@@ -23,9 +24,9 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
-import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist_bloc.dart';
-import 'package:autonomy_flutter/screen/view_playlist/view_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -102,6 +103,7 @@ Future<void> setup() async {
     migrateV11ToV12,
     migrateV12ToV13,
     migrateV13ToV14,
+    migrateV14ToV15,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -113,10 +115,16 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => cloudDB);
 
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: 10000,
+    receiveTimeout: 10000,
+  );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
+  dio.options = dioOptions;
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
@@ -136,7 +144,7 @@ Future<void> setup() async {
     ],
   ));
   authenticatedDio.addSentry(captureFailedRequests: true);
-  authenticatedDio.options = BaseOptions(followRedirects: true);
+  authenticatedDio.options = dioOptions;
 
   // Services
   final auditService = AuditServiceImpl(cloudDB);
@@ -232,6 +240,9 @@ Future<void> setup() async {
                 baseUrl: Environment.renderingReportURL),
             injector(),
             injector(),
+            mainnetDB.announcementDao,
+            AnnouncementApi(authenticatedDio,
+                baseUrl: Environment.customerSupportURL),
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);
@@ -246,8 +257,9 @@ Future<void> setup() async {
       ? Environment.tezosNodeClientTestnetURL
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
   injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
-  injector.registerLazySingleton<FeralFileApi>(() =>
-      FeralFileApi(_feralFileDio(), baseUrl: Environment.feralFileAPIURL));
+  injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
+      _feralFileDio(dioOptions),
+      baseUrl: Environment.feralFileAPIURL));
   injector.registerLazySingleton<BitmarkApi>(
       () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
@@ -293,7 +305,7 @@ Future<void> setup() async {
           PlayControlService(timer: 0, isLoop: false, isShuffle: false)));
 }
 
-Dio _feralFileDio() {
+Dio _feralFileDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(FeralfileAuthInterceptor());
@@ -311,6 +323,7 @@ Dio _feralFileDio() {
   ));
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
+  dio.options = options;
   return dio;
 }
 

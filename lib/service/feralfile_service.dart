@@ -59,7 +59,7 @@ abstract class FeralFileService {
     Future<bool> Function(FFArtwork)? onConfirm,
   });
 
-  Future<String?> getExhibitionIdFromTokenID(String tokenID);
+  Future<Exhibition?> getExhibitionFromTokenID(String editionID);
 
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
 
@@ -322,13 +322,6 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<String?> getExhibitionIdFromTokenID(String tokenID) async {
-    final artworkEditions = await _feralFileApi.getArtworkEditions(tokenID);
-    final String? exhibitionID = artworkEditions.result.artwork.exhibition?.id;
-    return exhibitionID;
-  }
-
-  @override
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID) async {
     final resaleInfo = await _feralFileApi.getResaleInfo(exhibitionID);
     return resaleInfo.result;
@@ -338,5 +331,11 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
     return exhibition.result.partner?.fullName;
+  }
+
+  @override
+  Future<Exhibition?> getExhibitionFromTokenID(String editionID) async {
+    final artworkEditions = await _feralFileApi.getArtworkEditions(editionID);
+    return artworkEditions.result.artwork.exhibition;
   }
 }

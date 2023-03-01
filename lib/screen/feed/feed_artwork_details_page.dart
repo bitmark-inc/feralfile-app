@@ -7,13 +7,16 @@
 
 import 'dart:collection';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -45,6 +48,12 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   @override
   void initState() {
     _scrollController = ScrollController();
+    injector<MetricClientService>()
+        .addEvent(MixpanelEvent.viewDiscoveryArtwork, data: {
+      "id": widget.payload.feedToken?.id,
+      "eventId": widget.payload.feedEvent?.id,
+      "action": widget.payload.feedEvent?.action
+    });
     fetchIdentities();
     super.initState();
   }

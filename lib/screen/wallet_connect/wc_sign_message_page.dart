@@ -96,7 +96,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
           title: "signature_request".tr(),
         ),
         body: Container(
-          margin: EdgeInsets.only(bottom: ResponsiveLayout.padding),
+          margin: const EdgeInsets.only(bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -317,6 +317,10 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                       width: 24,
                     ),
                   );
+                  Future.delayed(const Duration(seconds: 3), () {
+                    showInfoNotification(
+                        const Key("switchBack"), "you_all_set".tr());
+                  });
                 }
               }),
             ),

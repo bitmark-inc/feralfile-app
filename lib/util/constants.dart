@@ -6,6 +6,9 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -55,6 +58,9 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
 ];
+
+const REMOVE_CUSTOMER_SUPPORT =
+    "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
@@ -71,7 +77,6 @@ String get usdcContractAddress => Environment.appTestnetConfig
 
 const publicTezosNodes = [
   "https://mainnet.api.tez.ie",
-  "https://mainnet.smartpy.io",
   "https://rpc.tzbeta.net",
   "https://mainnet.tezos.marigold.dev",
 ];
@@ -79,6 +84,16 @@ const publicTezosNodes = [
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
+}
+
+Future<bool> isPremium() async {
+  return injector<IAPService>().isSubscribed();
+}
+
+Future<Pair<bool, bool>> logoState() async {
+  final isAppCenter = await isAppCenterBuild();
+  final isPro = await isPremium();
+  return Pair(isAppCenter, isPro);
 }
 
 Future<String> getDemoAccount() async {
@@ -125,9 +140,10 @@ class ReportIssueType {
   static const Other = 'other';
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
+  static const Announcement = 'announcement';
 
   static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -143,6 +159,8 @@ class ReportIssueType {
         return 'Report a bug';
       case ReportNFTIssue:
         return 'Report NFT issue';
+      case Announcement:
+        return "Announcement";
       default:
         return 'Something else?';
     }
@@ -208,6 +226,16 @@ enum CryptoType {
   XTZ,
   USDC,
   UNKNOWN,
+}
+
+enum AnnouncementID {
+  WELCOME("welcome"),
+  SUBSCRIBE("subscription"),
+  ;
+
+  const AnnouncementID(this.value);
+
+  final String value;
 }
 
 extension CryptoTypeHelpers on CryptoType {
@@ -297,6 +325,9 @@ class MixpanelEvent {
   static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
+  static const viewDiscoveryArtwork = 'view_discovery_artwork';
+  static const timeViewDiscovery = 'time_view_discovery';
+  static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
   static const unhandledError = 'unhandled_error';
   static const signIn = 'Sign In';
@@ -314,19 +345,49 @@ class MixpanelEvent {
   static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
   static const editorialViewArticle = 'editorial_view_article';
+  static const editorialReadingArticle = 'editorial_reading_article';
   static const addNFT = 'add_NFT';
   static const enableNotification = 'enable_notification';
   static const tabNotification = 'tab_notification';
   static const viewEditorial = 'view_editorial';
+  static const timeViewEditorial = 'time_view_editorial';
   static const finishArticles = 'finish_articles';
   static const visitExhibition = 'visit_exhibition';
   static const visitExhibitionArtwork = 'visit_exhibition_artwork';
   static const tabOnLinkInEditorial = 'tab_on_link_in_editorial';
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
-  static const acceptGiftNFT = 'accept_gift_NFT';
   static const scanQR = 'scan_qr';
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
   static const share = "share";
+  static const readAnnouncement = 'read_announcement';
+  static const replyAnnouncement = 'reply_announcement';
+  static const receiveAnnouncement = 'receive_announcement';
+}
+
+class MixpanelProp {
+  static const enableNotification = 'enableNotification';
+  static const client = 'client';
+  static const didKey = 'didKey';
+  static const address = 'Address';
+  static const subscription = 'Subscription';
+}
+
+class SubscriptionStatus {
+  static const free = 'Free';
+  static const subscried = 'Subscried';
+  static const trial = 'Trial';
+  static const expired = 'Expired';
+}
+
+class LinkType {
+  static const local = "Local Deep Link";
+  static const dAppConnect = 'Dapp Connect Deeplink';
+  static const feralFile = 'FeralFile Deeplink';
+  static const branch = 'Branch Deeplink';
+  static const autonomyConnect = 'Autonomy Connect';
+  static const beaconConnect = 'Beacon Connect';
+  static const feralFileToken = 'FeralFile Token';
+  static const walletConnect = 'Wallet Connect';
 }

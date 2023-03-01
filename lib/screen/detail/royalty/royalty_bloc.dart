@@ -36,8 +36,9 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
     on<GetRoyaltyInfoEvent>((event, emit) async {
       try {
         final String? exhibitionID = event.exhibitionID ??
-            await _feralFileService
-                .getExhibitionIdFromTokenID(event.editionID ?? "");
+            (await _feralFileService
+                    .getExhibitionFromTokenID(event.editionID ?? ""))
+                ?.id;
         if (exhibitionID != null) {
           if (MOMA_MEMENTO_EXHIBITION_IDS.contains(exhibitionID)) {
             final data = await dio.get<String>(COLLECTOR_RIGHTS_MEMENTO_DOCS);

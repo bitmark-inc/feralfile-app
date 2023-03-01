@@ -10,12 +10,14 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -23,6 +25,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:bubble/bubble.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -37,13 +40,18 @@ import 'package:uuid/uuid.dart';
 
 import '../../util/datetime_ext.dart';
 
-abstract class SupportThreadPayload {}
+abstract class SupportThreadPayload {
+  AnnouncementLocal? get announcement;
+}
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
+  @override
+  final AnnouncementLocal? announcement;
 
   NewIssuePayload({
     required this.reportIssueType,
+    this.announcement,
   });
 }
 
@@ -52,21 +60,27 @@ class DetailIssuePayload extends SupportThreadPayload {
   final String issueID;
   final String status;
   final bool isRated;
+  @override
+  final AnnouncementLocal? announcement;
 
   DetailIssuePayload(
       {required this.reportIssueType,
       required this.issueID,
       this.status = "",
-      this.isRated = false});
+      this.isRated = false,
+      this.announcement});
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
   final String metadata;
+  @override
+  final AnnouncementLocal? announcement;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
+    this.announcement,
   });
 }
 
@@ -86,6 +100,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _reportIssueType = '';
   String? _issueID;
 
+  bool isCustomerSupportAvailable = true;
   List<types.Message> _messages = [];
   List<types.Message> _draftMessages = [];
   final _user = const types.User(id: 'user');
@@ -100,6 +115,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _resolvedMessengerID = const Uuid().v4();
   final _askRatingMessengerID = const Uuid().v4();
   final _askReviewMessengerID = const Uuid().v4();
+  final _announcementMessengerID = const Uuid().v4();
+  final _customerSupportService = injector<CustomerSupportService>();
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
@@ -117,29 +134,41 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   types.CustomMessage get _askRatingMessenger => types.CustomMessage(
         author: _bitmark,
         id: _askRatingMessengerID,
-        metadata: const {"status": "rateIssue"},
+        metadata: {"status": "rateIssue", "content": "rate_issue".tr()},
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
   types.CustomMessage get _askReviewMessenger => types.CustomMessage(
         author: _bitmark,
         id: _askReviewMessengerID,
-        metadata: const {"status": "careToShare"},
+        metadata: {"status": "careToShare", "content": "care_to_share".tr()},
         createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
+  types.CustomMessage get _announcementMessenger => types.CustomMessage(
+        id: _announcementMessengerID,
+        author: _bitmark,
+        metadata: const {"status": "announcement"},
       );
 
   @override
   void initState() {
+    _fetchCustomerSupportAvailability();
+
     injector<CustomerSupportService>().processMessages();
     injector<CustomerSupportService>()
         .triggerReloadMessages
         .addListener(_loadIssueDetails);
 
-    injector<CustomerSupportService>()
-        .customerSupportUpdate
+    _customerSupportService.customerSupportUpdate
         .addListener(_loadCustomerSupportUpdates);
 
     final payload = widget.payload;
+    if (payload.announcement != null && payload.announcement!.unread) {
+      _customerSupportService
+          .markAnnouncementAsRead(payload.announcement!.announcementContextId);
+      _callMixpanelReadAnnouncementEvent(payload.announcement!);
+    }
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       if (_reportIssueType == ReportIssueType.Bug) {
@@ -157,9 +186,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _reportIssueType = payload.reportIssueType;
       _status = payload.status;
       _isRated = payload.isRated;
-      _issueID =
-          injector<CustomerSupportService>().tempIssueIDMap[payload.issueID] ??
-              payload.issueID;
+      _issueID = _customerSupportService.tempIssueIDMap[payload.issueID] ??
+          payload.issueID;
     } else if (payload is ExceptionErrorPayload) {
       _reportIssueType = ReportIssueType.Exception;
       Future.delayed(const Duration(milliseconds: 300), () {
@@ -184,13 +212,31 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
+  _fetchCustomerSupportAvailability() async {
+    final device = DeviceInfo.instance;
+    final isAvailable = await device.isSupportOS();
+    setState(() {
+      isCustomerSupportAvailable = isAvailable;
+    });
+  }
+
+  void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
+    final metricClient = injector.get<MetricClientService>();
+    metricClient.addEvent(
+      MixpanelEvent.readAnnouncement,
+      data: {
+        "id": announcement.announcementContextId,
+        "type": announcement.type,
+        "title": announcement.title,
+      },
+    );
+  }
+
   @override
   void dispose() {
-    injector<CustomerSupportService>()
-        .triggerReloadMessages
+    _customerSupportService.triggerReloadMessages
         .removeListener(_loadIssueDetails);
-    injector<CustomerSupportService>()
-        .customerSupportUpdate
+    _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
 
     memoryValues.viewingSupportThreadIssueID = null;
@@ -268,8 +314,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         }
       }
     }
-
-    if (_issueID == null || messages.isNotEmpty) {
+    if (widget.payload.announcement != null) {
+      messages.add(_announcementMessenger);
+    } else if (_issueID == null || messages.isNotEmpty) {
       messages.add(_introMessenger);
     }
 
@@ -308,13 +355,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     }
                   }),
               user: _user,
-              customBottomWidget: _isRated == false && _status == 'closed'
-                  ? MyRatingBar(
-                      submit:
-                          (String messageType, DraftCustomerSupportData data,
+              customBottomWidget: !isCustomerSupportAvailable
+                  ? const SizedBox()
+                  : _isRated == false && _status == 'closed'
+                      ? MyRatingBar(
+                          submit: (String messageType,
+                                  DraftCustomerSupportData data,
                                   {bool isRating = false}) =>
                               _submit(messageType, data, isRating: isRating))
-                  : null,
+                      : null,
             )));
   }
 
@@ -412,10 +461,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        await injector<CustomerSupportService>()
-                            .removeErrorMessage(uuid);
+                        await _customerSupportService.removeErrorMessage(uuid);
                         _loadDrafts();
-                        injector<CustomerSupportService>().processMessages();
+                        _customerSupportService.processMessages();
                         Future.delayed(const Duration(seconds: 5), () {
                           _loadDrafts();
                         });
@@ -432,8 +480,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        await injector<CustomerSupportService>()
-                            .removeErrorMessage(uuid, isDelete: true);
+                        await _customerSupportService.removeErrorMessage(uuid,
+                            isDelete: true);
                         await _loadDrafts();
                         if (_draftMessages.isEmpty && _messages.isEmpty) {
                           if (!mounted) return;
@@ -523,20 +571,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           child: _ratingBar(message.metadata?["rating"]),
         );
       case "careToShare":
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.auSuperTeal,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              "care_to_share".tr(),
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black16,
-            ),
-          ]),
-        );
       case "rateIssue":
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -544,7 +578,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-              "rate_issue".tr(),
+              message.metadata?["content"],
               textAlign: TextAlign.start,
               style: ResponsiveLayout.isMobile
                   ? theme.textTheme.ppMori700Black14
@@ -552,7 +586,31 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             ),
           ]),
         );
-
+      case "announcement":
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          color: AppColor.auSuperTeal,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (widget.payload.announcement!.title.isNotEmpty) ...[
+              Text(
+                widget.payload.announcement!.title,
+                textAlign: TextAlign.start,
+                style: ResponsiveLayout.isMobile
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black16,
+              ),
+              const SizedBox(height: 20),
+            ],
+            Text(
+              widget.payload.announcement!.body,
+              textAlign: TextAlign.start,
+              style: ResponsiveLayout.isMobile
+                  ? theme.textTheme.ppMori400Black14
+                  : theme.textTheme.ppMori400Black16,
+            ),
+          ]),
+        );
       default:
         return const SizedBox();
     }
@@ -560,8 +618,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   void _loadIssueDetails() async {
     if (_issueID == null) return;
-    final issueDetails =
-        await injector<CustomerSupportService>().getDetails(_issueID!);
+    final issueDetails = await _customerSupportService.getDetails(_issueID!);
+    if (widget.payload.announcement != null && issueDetails.issue.unread > 0) {
+      _callMixpanelReadAnnouncementEvent(widget.payload.announcement!);
+    }
 
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
@@ -594,8 +654,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   Future _loadDrafts() async {
     if (_issueID == null) return;
-    final drafts =
-        await injector<CustomerSupportService>().getDrafts(_issueID!);
+    final drafts = await _customerSupportService.getDrafts(_issueID!);
     final draftMessages =
         (await Future.wait(drafts.map((e) => _convertChatMessage(e, null))))
             .expand((i) => i)
@@ -608,8 +667,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _loadCustomerSupportUpdates() async {
-    final update =
-        injector<CustomerSupportService>().customerSupportUpdate.value;
+    final update = _customerSupportService.customerSupportUpdate.value;
     if (update == null) return;
     if (update.draft.issueID != _issueID) return;
 
@@ -634,6 +692,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       _issueID = "TEMP-${const Uuid().v4()}";
 
       final payload = widget.payload;
+      if (payload.announcement != null) {
+        final metricClient = injector.get<MetricClientService>();
+        final announcement = payload.announcement!;
+        metricClient.addEvent(
+          MixpanelEvent.replyAnnouncement,
+          data: {
+            "id": announcement.announcementContextId,
+            "type": announcement.type,
+            "title": announcement.title,
+          },
+        );
+        data.announcementId = announcement.announcementContextId;
+      }
+
       if (payload is ExceptionErrorPayload) {
         final sentryID = payload.sentryID;
         if (sentryID.isNotEmpty) {
@@ -672,16 +744,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       setState(() {
         _status = "reopening";
       });
-      await injector<CustomerSupportService>().reopen(_issueID!);
+      await _customerSupportService.reopen(_issueID!);
       _status = "open";
       _isRated = false;
     }
 
-    await injector<CustomerSupportService>().draftMessage(draft);
+    await _customerSupportService.draftMessage(draft);
     if (isRating) {
       final rating = getRating(data.text ?? "");
       if (rating > 0) {
-        await injector<CustomerSupportService>().rateIssue(_issueID!, rating);
+        await _customerSupportService.rateIssue(_issueID!, rating);
       }
     }
     setState(() {
@@ -698,7 +770,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   void _handleSendPressed(types.PartialText message) async {
     _submit(
       CSMessageType.PostMessage.rawValue,
-      DraftCustomerSupportData(text: message.text),
+      DraftCustomerSupportData(
+          text: message.text,
+          announcementId: widget.payload.announcement?.announcementContextId),
     );
   }
 
@@ -714,14 +788,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final filename =
         "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
 
-    final localPath = await injector<CustomerSupportService>()
-        .storeFile(filename, combinedBytes);
+    final localPath =
+        await _customerSupportService.storeFile(filename, combinedBytes);
 
     await _submit(
-        CSMessageType.PostLogs.rawValue,
-        DraftCustomerSupportData(
-          attachments: [LocalAttachment(fileName: filename, path: localPath)],
-        ));
+      CSMessageType.PostLogs.rawValue,
+      DraftCustomerSupportData(
+        attachments: [LocalAttachment(fileName: filename, path: localPath)],
+        announcementId: widget.payload.announcement?.announcementContextId,
+      ),
+    );
 
     if (!mounted) return;
     Navigator.pop(context);
@@ -770,15 +846,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       final bytes = await element.readAsBytes();
       final fileName = "${bytes.length}_${element.name}";
       final localPath =
-          await injector<CustomerSupportService>().storeFile(fileName, bytes);
+          await _customerSupportService.storeFile(fileName, bytes);
       return LocalAttachment(path: localPath, fileName: fileName);
     }));
 
     await _submit(
-        CSMessageType.PostPhotos.rawValue,
-        DraftCustomerSupportData(
-          attachments: attachments,
-        ));
+      CSMessageType.PostPhotos.rawValue,
+      DraftCustomerSupportData(
+        attachments: attachments,
+        announcementId: widget.payload.announcement?.announcementContextId,
+      ),
+    );
   }
 
   Future<List<types.Message>> _convertChatMessage(
@@ -804,7 +882,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     } else if (message is DraftCustomerSupport) {
       id = message.uuid;
       author = _user;
-      final errorMessages = injector<CustomerSupportService>().errorMessages;
+      final errorMessages = _customerSupportService.errorMessages;
       status = (errorMessages != null && errorMessages.contains(id))
           ? types.Status.error
           : types.Status.sending;
@@ -834,8 +912,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       ));
     }
 
-    final storedDirectory =
-        await injector<CustomerSupportService>().getStoredDirectory();
+    final storedDirectory = await _customerSupportService.getStoredDirectory();
     List<String> titles = [];
     List<String> uris = [];
     List<String> contentTypes = [];

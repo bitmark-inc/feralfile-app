@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -97,6 +98,9 @@ class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
                       const SizedBox(height: 15),
                       stepWidget(context, '2', "ltt_when_prompted_by".tr()),
                       const SizedBox(height: 30),
+                      ImportantNoteView(
+                        note: "please_note_link_only_desktop".tr(),
+                      ),
                     ],
                   ),
                 ),

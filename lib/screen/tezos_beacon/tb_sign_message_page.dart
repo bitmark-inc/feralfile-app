@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -19,7 +20,6 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -50,6 +50,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   void initState() {
     super.initState();
     fetchPersona();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Future.delayed(const Duration(seconds: 2), () {
+      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
+    });
   }
 
   Future fetchPersona() async {
@@ -217,6 +225,12 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                         width: 24,
                                       ),
                                     );
+                                    Future.delayed(const Duration(seconds: 3),
+                                        () {
+                                      showInfoNotification(
+                                          const Key("switchBack"),
+                                          "you_all_set".tr());
+                                    });
                                   }
                                 })
                             : null,

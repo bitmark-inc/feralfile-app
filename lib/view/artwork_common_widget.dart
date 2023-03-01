@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_ren
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -969,7 +970,10 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken asset, String? artistName) {
   final theme = Theme.of(context);
-
+  final editionID =
+      ((asset.swapped ?? false) && asset.originTokenInfoId != null)
+          ? asset.originTokenInfoId ?? ""
+          : asset.id.split("-").last;
   return SectionExpandedWidget(
     header: "metadata".tr(),
     child: Column(
@@ -1026,6 +1030,32 @@ Widget artworkDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
+        editionID.isNotEmpty
+            ? FutureBuilder<Exhibition?>(
+                future: injector<FeralFileService>()
+                    .getExhibitionFromTokenID(editionID),
+                builder: (context, snapshot) {
+                  if (snapshot.data != null) {
+                    return Column(
+                      children: [
+                        MetaDataItem(
+                          title: "exhibition".tr(),
+                          value: snapshot.data!.title,
+                          tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
+                          forceSafariVC: true,
+                        ),
+                        Divider(
+                          height: 32.0,
+                          color: theme.auLightGrey,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+              )
+            : const SizedBox(),
         MetaDataItem(
           title: "contract".tr(),
           value: asset.blockchain.capitalize(),

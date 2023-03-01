@@ -76,16 +76,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    final artworkId =
-        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     final metricClient = injector.get<MetricClientService>();
-
-    metricClient.addEvent(
-      MixpanelEvent.viewArtwork,
-      data: {
-        "id": artworkId,
-      },
-    );
     metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
@@ -395,7 +386,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               final payload = await Navigator.of(context).popAndPushNamed(
                   AppRouter.sendArtworkPage,
                   arguments: SendArtworkPayload(asset, ownerWallet,
-                      await ownerWallet.getOwnedQuantity(asset))) as Map?;
+                      ownerWallet.getOwnedQuantity(asset))) as Map?;
               if (payload == null) {
                 return;
               }

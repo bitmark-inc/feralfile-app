@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/wc2_proposal.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
@@ -34,7 +33,8 @@ import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
-import 'package:autonomy_flutter/screen/add_new_playlist/add_new_playlist.dart';
+import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
+import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -64,7 +64,7 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
-import 'package:autonomy_flutter/screen/edit_playlist/edit_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
@@ -110,8 +110,9 @@ import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
-import 'package:autonomy_flutter/screen/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
@@ -122,7 +123,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -177,6 +177,7 @@ class AppRouter {
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
+  static const testArtwork = 'test_artwork';
   static const autonomySecurityPage = 'autonomy_security';
   static const unsafeWebWalletPage = 'unsafeWebWalletPage';
   static const releaseNotesPage = 'releaseNotesPage';
@@ -304,7 +305,7 @@ class AppRouter {
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                   ],
-                  child: const HomeNavigationPage(),
+                  child: const HomeNavigationPage(fromOnboarding: true),
                 ),
             transitionDuration: const Duration());
 
@@ -486,6 +487,11 @@ class AppRouter {
                   ),
                   child: NamePersonaPage(uuid: settings.arguments as String),
                 ));
+      case AppRouter.testArtwork:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const TestArtworkScreen(),
+        );
 
       case AppRouter.nameLinkedAccountPage:
         return CupertinoPageRoute(
@@ -502,53 +508,28 @@ class AppRouter {
 
       case wcConnectPage:
         final argument = settings.arguments;
-        switch (argument.runtimeType) {
-          case WCConnectPageArgs:
-            return CupertinoPageRoute(
-                settings: settings,
-                builder: (context) => MultiBlocProvider(
-                        providers: [
-                          BlocProvider.value(value: accountsBloc),
-                          BlocProvider(
-                            create: (_) => PersonaBloc(
-                              injector<CloudDatabase>(),
-                              injector(),
-                              injector(),
-                              injector<AuditService>(),
-                            ),
-                          ),
-                        ],
-                        child: WCConnectPage(
-                          wcConnectArgs: argument as WCConnectPageArgs,
-                          beaconRequest: null,
-                          wc2Proposal: null,
-                        )));
-
-          case BeaconRequest:
-            return CupertinoPageRoute(
-              settings: settings,
-              builder: (context) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider.value(value: accountsBloc),
-                    BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
-                    ),
-                  ],
-                  child: WCConnectPage(
-                    wcConnectArgs: null,
-                    beaconRequest: argument as BeaconRequest?,
-                    wc2Proposal: null,
-                  )),
-            );
-
-          default:
-            throw Exception('Invalid route: ${settings.name}');
+        if (argument is ConnectionRequest) {
+          return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+                BlocProvider(
+                  create: (_) => PersonaBloc(
+                    injector<CloudDatabase>(),
+                    injector(),
+                    injector(),
+                    injector<AuditService>(),
+                  ),
+                ),
+              ],
+              child: WCConnectPage(
+                connectionRequest: argument,
+              ),
+            ),
+          );
         }
+        throw Exception('Invalid route: ${settings.name}');
 
       case WCDisconnectPage.tag:
         return CupertinoPageRoute(
@@ -1050,9 +1031,7 @@ class AppRouter {
               ),
             ],
             child: WCConnectPage(
-              wcConnectArgs: null,
-              beaconRequest: null,
-              wc2Proposal: settings.arguments as Wc2Proposal,
+              connectionRequest: settings.arguments as Wc2Proposal,
             ),
           ),
         );
