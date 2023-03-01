@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -14,8 +16,6 @@ import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'dart:convert';
-
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -45,7 +45,8 @@ class LoggingInterceptor extends Interceptor {
 
     if (shortCurlLog) {
       final request = response.requestOptions;
-      apiLog.info("API Request: ${request.method} ${request.uri.toString()}");
+      apiLog.info(
+          "API Request: ${request.method} ${request.uri.toString()} ${request.data}");
     } else {
       final curl = cURLRepresentation(response.requestOptions);
       apiLog.info("API Request: $curl");
