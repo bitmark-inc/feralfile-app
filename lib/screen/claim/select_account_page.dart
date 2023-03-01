@@ -243,11 +243,14 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     );
     final token = claimRespone?.token;
     final caption = claimRespone?.airdropInfo.twitterCaption;
-    if (token == null || caption == null) {
+    if (token == null) {
       return;
     }
-    Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-        arguments: ArtworkDetailPayload(
-            [ArtworkIdentity(token.id, token.ownerAddress)], 0));
+    Navigator.of(context).pushNamed(
+      AppRouter.artworkDetailsPage,
+      arguments: ArtworkDetailPayload(
+          [ArtworkIdentity(token.id, token.ownerAddress)], 0,
+          twitterCaption: caption ?? ""),
+    );
   }
 }

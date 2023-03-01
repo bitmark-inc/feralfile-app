@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
@@ -71,7 +72,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    withSharing = widget.payload.twitterCaption.isNotEmpty;
+    withSharing = widget.payload.twitterCaption != null;
   }
 
   @override
@@ -83,10 +84,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   void _shareTwitter(AssetToken token) {
-    final url = 'https://viewer.test.autonomy.io/token/${token.id}';
+    final prefix = Environment.tokenWebviewPrefix;
+    final url = '$prefix/token/${token.id}';
     final caption = widget.payload.twitterCaption;
     final hashtags = ['digitalartwallet', 'NFT'];
-    SocialShare.shareTwitter(caption, hashtags: hashtags, url: url);
+    SocialShare.shareTwitter(caption!, hashtags: hashtags, url: url);
     metricClient.addEvent(MixpanelEvent.share, data: {
       "id": token.id,
       "to": "Twitter",
@@ -161,7 +163,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       setState(() {
         currentAsset = state.asset;
       });
-      if (withSharing == true && state.asset != null) {
+      if (withSharing && state.asset != null) {
         _socialShare(context, state.asset!);
         setState(() {
           withSharing = false;
@@ -526,10 +528,10 @@ class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
   final bool isPlaylist;
-  final String twitterCaption;
+  final String? twitterCaption;
 
   ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.twitterCaption = "", this.isPlaylist = false});
+      {this.twitterCaption, this.isPlaylist = false});
 
   ArtworkDetailPayload copyWith(
       {List<ArtworkIdentity>? ids,
