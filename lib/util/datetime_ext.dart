@@ -19,7 +19,6 @@ String localTimeString(DateTime date) {
 }
 
 String localTimeStringFromISO8601(String str) {
-  return '2022-NOV-08 08:23';
   final date = DateTime.parse(str);
   return localTimeString(date);
 }
