@@ -608,6 +608,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   Expanded(
                                     child: Text(
                                       "by".tr(args: [artistName]),
+                                      maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.ppMori400White12,
                                     ),
