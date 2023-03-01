@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -70,69 +71,42 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                     )),
               ),
               const SizedBox(height: 48),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadiusGeometry.lerp(
-                      const BorderRadius.all(Radius.circular(5)),
-                      const BorderRadius.all(Radius.circular(5)),
-                      5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'important'.tr(),
-                        style: theme.textTheme.ppMori700Black14,
-                      ),
-                      const SizedBox(height: 15),
-                      Text(_blockchainWarningText(_account.blockchain),
-                          style: theme.textTheme.ppMori400Black14),
-                    ],
-                  ),
-                ),
-              ),
+              ImportantNoteView(
+                  note: _blockchainWarningText(_account.blockchain)),
               const SizedBox(height: 16),
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColor.auLightGrey,
-                  borderRadius: BorderRadiusGeometry.lerp(
-                      const BorderRadius.all(Radius.circular(5)),
-                      const BorderRadius.all(Radius.circular(5)),
-                      5),
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
-                  child: Column(
-                    children: [
-                      accountItem(context, _account),
-                      GestureDetector(
-                          onTap: copy,
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  "your_blockchain_address".tr(namedArgs: {
-                                    'blockChain': _account.blockchain!
-                                  }),
-                                  textAlign: TextAlign.left,
-                                  style: ResponsiveLayout.isMobile
-                                      ? theme.textTheme.ppMori400Black12
-                                      : theme.textTheme.ppMori400Black14,
-                                ),
-                                const SizedBox(height: 4.0),
-                                Text(
-                                  _account.accountNumber,
-                                  textAlign: TextAlign.start,
-                                  softWrap: true,
-                                  style: theme.textTheme.ppMori400Black14,
-                                ),
-                              ])),
-                      const SizedBox(height: 4),
-                    ],
-                  ),
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+                child: Column(
+                  children: [
+                    accountItem(context, _account),
+                    GestureDetector(
+                        onTap: copy,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "your_blockchain_address".tr(namedArgs: {
+                                  'blockChain': _account.blockchain!
+                                }),
+                                textAlign: TextAlign.left,
+                                style: ResponsiveLayout.isMobile
+                                    ? theme.textTheme.ppMori400Black12
+                                    : theme.textTheme.ppMori400Black14,
+                              ),
+                              const SizedBox(height: 4.0),
+                              Text(
+                                _account.accountNumber,
+                                textAlign: TextAlign.start,
+                                softWrap: true,
+                                style: theme.textTheme.ppMori400Black14,
+                              ),
+                            ])),
+                    const SizedBox(height: 4),
+                  ],
                 ),
               ),
             ],

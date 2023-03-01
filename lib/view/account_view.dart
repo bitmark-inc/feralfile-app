@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -49,27 +50,20 @@ Widget accountWithConnectionItem(
           ),
         ),
         child: Column(
-          children: [
-            ...categorizedAccounts.accounts
-                .map(
-                  (a) => Column(
-                    children: [
-                      addOnlyDivider(),
-                      Container(
-                        padding: const EdgeInsets.only(bottom: 1),
-                        child: _blockchainAddressView(
-                          context,
-                          a,
-                          onTap: () => Navigator.of(context).pushNamed(
-                              GlobalReceiveDetailPage.tag,
-                              arguments: a),
-                        ),
-                      ),
-                    ],
+          children: categorizedAccounts.accounts
+              .map(
+                (a) => [
+                  addOnlyDivider(),
+                  _blockchainAddressView(
+                    context,
+                    a,
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(GlobalReceiveDetailPage.tag, arguments: a),
                   ),
-                )
-                .toList(),
-          ],
+                ],
+              )
+              .flattened
+              .toList(),
         ),
       );
     case 'Connection':
@@ -99,20 +93,17 @@ Widget accountWithConnectionItem(
           ),
         ),
         child: Column(
-          children: [
-            ...categorizedAccounts.accounts
-                .map((a) => Column(
-                      children: [
-                        addOnlyDivider(),
-                        Container(
-                            child: _blockchainAddressView(context, a,
-                                onTap: () => Navigator.of(context).pushNamed(
-                                    GlobalReceiveDetailPage.tag,
-                                    arguments: a))),
-                      ],
-                    ))
-                .toList(),
-          ],
+          children: categorizedAccounts.accounts
+              .map((a) => [
+                    addOnlyDivider(),
+                    Container(
+                        child: _blockchainAddressView(context, a,
+                            onTap: () => Navigator.of(context).pushNamed(
+                                GlobalReceiveDetailPage.tag,
+                                arguments: a))),
+                  ])
+              .flattened
+              .toList(),
         ),
       );
 
@@ -221,7 +212,6 @@ Widget _blockchainAddressView(
   return Container(
     padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
     child: TappableForwardRowWithContent(
-      //padding: const EdgeInsets.symmetric(vertical: 7),
       leftWidget: Row(
         children: [
           _blockchainLogo(account.blockchain),
