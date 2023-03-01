@@ -10,6 +10,7 @@ import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
@@ -280,7 +281,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                   final createdPersona = personaState.persona;
                   if (createdPersona != null) {
                     Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                        arguments: createdPersona.uuid);
+                        arguments:
+                            NamePersonaPayload(uuid: createdPersona.uuid));
                   }
                   Future.delayed(const Duration(seconds: 1), () {
                     setState(() {

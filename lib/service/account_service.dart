@@ -61,7 +61,7 @@ abstract class AccountService {
 
   Future<List<Persona>> getPersonas();
 
-  Future<Persona> createPersona({String name = ""});
+  Future<Persona> createPersona({String name = "", bool isDefault = false});
 
   Future<Persona> importPersona(String words,
       {WalletType walletType = WalletType.Autonomy});

@@ -24,9 +24,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NamePersonaPage extends StatefulWidget {
-  final String uuid;
+  final NamePersonaPayload payload;
 
-  const NamePersonaPage({Key? key, required this.uuid}) : super(key: key);
+  const NamePersonaPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<NamePersonaPage> createState() => _NamePersonaPageState();
@@ -47,7 +47,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final uuid = widget.uuid;
+    final uuid = widget.payload.uuid;
     context.read<PersonaBloc>().add(GetInfoPersonaEvent(uuid));
   }
 
@@ -60,7 +60,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    print("--------");
+    print(widget.payload.isForceAlias);
     return Scaffold(
       appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
       body: BlocListener<PersonaBloc, PersonaState>(
@@ -130,7 +131,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  !injector<ConfigurationService>().isDoneOnboarding()
+                  !injector<ConfigurationService>().isDoneOnboarding() &&
+                          !widget.payload.isForceAlias
                       ? OutlineButton(
                           onTap: () async {
                             //_doneNaming();
@@ -184,4 +186,11 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
       }
     }
   }
+}
+
+class NamePersonaPayload {
+  final String uuid;
+  final bool isForceAlias;
+
+  NamePersonaPayload({required this.uuid, this.isForceAlias = false});
 }

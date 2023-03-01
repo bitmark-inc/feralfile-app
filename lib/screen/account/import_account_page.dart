@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -162,12 +163,10 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                                       theme, WalletType.Autonomy, dialogState),
                                   addDivider(height: 40, color: AppColor.white),
                                   _walletTypeOption(
-                                      theme, WalletType.Ethereum, dialogState,
-                                      isEnabled: _isDefaultAccountCreated),
+                                      theme, WalletType.Ethereum, dialogState),
                                   addDivider(height: 40, color: AppColor.white),
                                   _walletTypeOption(
-                                      theme, WalletType.Tezos, dialogState,
-                                      isEnabled: _isDefaultAccountCreated),
+                                      theme, WalletType.Tezos, dialogState),
                                   const SizedBox(height: 40),
                                   Padding(
                                     padding: ResponsiveLayout
@@ -280,42 +279,33 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   }
 
   Widget _walletTypeOption(
-      ThemeData theme, WalletType walletType, StateSetter dialogState,
-      {bool isEnabled = true}) {
+      ThemeData theme, WalletType walletType, StateSetter dialogState) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: GestureDetector(
-        onTap: isEnabled
-            ? () {
-                setState(() {
-                  _walletTypeSelecting = walletType;
-                });
-                dialogState(() {});
-              }
-            : null,
+        onTap: () {
+          setState(() {
+            _walletTypeSelecting = walletType;
+          });
+          dialogState(() {});
+        },
         child: Container(
           decoration: const BoxDecoration(color: Colors.transparent),
           child: Row(
             children: [
-              Text(
-                walletType.getString(),
-                style: isEnabled
-                    ? theme.textTheme.ppMori400White14
-                    : theme.textTheme.ppMori400Grey14,
-              ),
+              Text(walletType.getString(),
+                  style: theme.textTheme.ppMori400White14),
               const Spacer(),
               AuRadio<WalletType>(
                 onTap: (value) {
-                  if (isEnabled) {
-                    setState(() {
-                      _walletTypeSelecting = walletType;
-                    });
-                    dialogState(() {});
-                  }
+                  setState(() {
+                    _walletTypeSelecting = walletType;
+                  });
+                  dialogState(() {});
                 },
                 value: _walletTypeSelecting,
                 groupValue: walletType,
-                color: isEnabled ? AppColor.white : AppColor.disabledColor,
+                color: AppColor.white,
               ),
             ],
           ),
@@ -329,8 +319,14 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       setState(() {
         isError = false;
       });
+      final bool createBaseWallet =
+          !_isDefaultAccountCreated && _walletType != WalletType.Autonomy;
+      final accountService = injector<AccountService>();
+      if (createBaseWallet) {
+        await accountService.createPersona(isDefault: true);
+      }
 
-      final persona = await injector<AccountService>().importPersona(
+      final persona = await accountService.importPersona(
           _phraseTextController.text.trim(),
           walletType: _walletType);
       log.info("Import wallet: ${_walletType.getString()}");
@@ -342,8 +338,9 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       UIHelper.showImportedPersonaDialog(context,
           onContinue: () => Navigator.of(context).popAndPushNamed(
               AppRouter.namePersonaPage,
-              arguments: persona.uuid));
-      if (!_isDefaultAccountCreated) {
+              arguments: NamePersonaPayload(
+                  uuid: persona.uuid, isForceAlias: createBaseWallet)));
+      if (createBaseWallet) {
         injector<ConfigurationService>().setShowAuChainInfo(true);
       }
     } on AccountImportedException catch (e) {

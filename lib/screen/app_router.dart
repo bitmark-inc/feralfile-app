@@ -485,7 +485,8 @@ class AppRouter {
                     injector(),
                     injector<AuditService>(),
                   ),
-                  child: NamePersonaPage(uuid: settings.arguments as String),
+                  child: NamePersonaPage(
+                      payload: settings.arguments as NamePersonaPayload),
                 ));
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
