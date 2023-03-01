@@ -7,16 +7,20 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -115,9 +119,10 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
             _rejectRequest(reason: "User reject");
             Navigator.of(context).pop();
           },
+          title: "signature_request".tr(),
         ),
         body: Container(
-          margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          margin: const EdgeInsets.only(bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -126,69 +131,121 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 8.0),
-                      Text(
-                        "signature_request".tr(),
-                        style: theme.textTheme.displayLarge,
-                      ),
+                      addTitleSpace(),
                       const SizedBox(height: 40.0),
-                      Text(
-                        "connection".tr(),
-                        style: theme.textTheme.headlineMedium,
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: _wc2AppInfo(widget.request.proposer),
                       ),
-                      const SizedBox(height: 16.0),
-                      // Text(
-                      //   widget.request.appName ?? "",
-                      //   style: theme.textTheme.bodyMedium,
-                      // ),
-                      const Divider(height: 32),
-                      Text(
-                        "message".tr(),
-                        style: theme.textTheme.headlineMedium,
+                      const SizedBox(height: 60.0),
+                      addOnlyDivider(),
+                      const SizedBox(height: 30.0),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          "message".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
                       ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        viewMessage,
-                        style: theme.textTheme.bodyMedium,
+                      const SizedBox(height: 4.0),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 20, horizontal: 22),
+                          decoration: BoxDecoration(
+                            color: AppColor.auLightGrey,
+                            borderRadius: BorderRadiusGeometry.lerp(
+                                const BorderRadius.all(Radius.circular(5)),
+                                const BorderRadius.all(Radius.circular(5)),
+                                5),
+                          ),
+                          child: Text(
+                            viewMessage,
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuFilledButton(
-                      text: "sign".tr().toUpperCase(),
-                      onPress: _currentPersona != null
-                          ? () => withDebounce(() async {
-                                _handleAuSignRequest(request: widget.request);
-                                if (!mounted) return;
-                                Navigator.of(context).pop();
-                                final notificationEnable =
-                                    injector<ConfigurationService>()
-                                            .isNotificationEnabled() ??
-                                        false;
-                                if (notificationEnable) {
-                                  showInfoNotification(
-                                    const Key("signed"),
-                                    "signed".tr(),
-                                    frontWidget: SvgPicture.asset(
-                                      "assets/images/checkbox_icon.svg",
-                                      width: 24,
-                                    ),
-                                  );
-                                }
-                              })
-                          : null,
-                    ),
-                  )
-                ],
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButton(
+                        text: "sign".tr(),
+                        onTap: _currentPersona != null
+                            ? () => withDebounce(() async {
+                                  _handleAuSignRequest(request: widget.request);
+                                  if (!mounted) return;
+                                  Navigator.of(context).pop();
+                                  final notificationEnable =
+                                      injector<ConfigurationService>()
+                                              .isNotificationEnabled() ??
+                                          false;
+                                  if (notificationEnable) {
+                                    showInfoNotification(
+                                      const Key("signed"),
+                                      "signed".tr(),
+                                      frontWidget: SvgPicture.asset(
+                                        "assets/images/checkbox_icon.svg",
+                                        width: 24,
+                                      ),
+                                    );
+                                  }
+                                })
+                            : null,
+                      ),
+                    )
+                  ],
+                ),
               )
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _wc2AppInfo(AppMetadata? proposer) {
+    final theme = Theme.of(context);
+
+    return proposer != null
+        ? Row(
+            children: [
+              if (proposer.icons.isNotEmpty) ...[
+                CachedNetworkImage(
+                  imageUrl: proposer.icons.first,
+                  width: 64.0,
+                  height: 64.0,
+                  errorWidget: (context, url, error) => SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: SvgPicture.asset(
+                          "assets/images/feralfileAppIcon.svg")),
+                ),
+              ] else ...[
+                SizedBox(
+                    width: 64,
+                    height: 64,
+                    child:
+                        SvgPicture.asset("assets/images/feralfileAppIcon.svg")),
+              ],
+              const SizedBox(width: 16.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(proposer.name,
+                        style: theme.textTheme.ppMori700Black24),
+                  ],
+                ),
+              )
+            ],
+          )
+        : const SizedBox();
   }
 }
