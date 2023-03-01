@@ -328,4 +328,5 @@ class MixpanelEvent {
   static const scanQR = 'scan_qr';
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
+  static const share = "share";
 }

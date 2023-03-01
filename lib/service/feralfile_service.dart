@@ -18,7 +18,7 @@ import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -51,7 +51,7 @@ abstract class FeralFileService {
 
   Future<FFArtwork> getArtwork(String id);
 
-  Future<ArtworkIdentity?> claimToken({
+  Future<ClaimRespone?> claimToken({
     required String artworkId,
     String? address,
     Otp? otp,
@@ -220,7 +220,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<ArtworkIdentity?> claimToken(
+  Future<ClaimRespone?> claimToken(
       {required String artworkId,
       String? address,
       Otp? otp,
@@ -284,7 +284,8 @@ class FeralFileServiceImpl extends FeralFileService {
         ];
         await indexer.setCustomTokens(tokens);
       }
-      return ArtworkIdentity(tokens.first.id, tokens.first.ownerAddress);
+      return ClaimRespone(
+          token: tokens.first, airdropInfo: artwork.airdropInfo!);
     } else {
       throw NoRemainingToken();
     }

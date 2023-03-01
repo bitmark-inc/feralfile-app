@@ -71,7 +71,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    withSharing = true;
+    withSharing = widget.payload.twitterCaption.isNotEmpty;
   }
 
   @override
@@ -93,24 +93,26 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   void _shareTwitter(AssetToken token) {
     final url = 'https://viewer.test.autonomy.io/token/${token.id}';
-    final artistName = token.artistName;
-    final caption =
-        '${token.title} by @$artistName offered by @MuseumModernArt, made it possible by @AutonomyWallet';
+    final caption = widget.payload.twitterCaption;
     final hashtags = ['digitalartwallet', 'NFT'];
     SocialShare.shareTwitter(caption, hashtags: hashtags, url: url);
+    metricClient.addEvent(MixpanelEvent.share, data: {
+      "id": token.id,
+      "to": "Twitter",
+      "caption": caption,
+    });
   }
 
   Future<void> _socialShare(BuildContext context, AssetToken asset) {
     final theme = Theme.of(context);
     final tags = [
-      'refikanadol',
-      'MoMA',
       'autonomy',
       'digitalartwallet',
       'NFT',
     ];
     final tagsText = tags.map((e) => '#$e').join(" ");
     Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "congratulations_new_NFT".tr(),
@@ -533,15 +535,20 @@ class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
   final bool isPlaylist;
+  final String twitterCaption;
 
   ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.isPlaylist = false});
+      {this.twitterCaption = "", this.isPlaylist = false});
 
   ArtworkDetailPayload copyWith(
-      {List<ArtworkIdentity>? ids, int? currentIndex, bool? isPlaylist}) {
+      {List<ArtworkIdentity>? ids,
+      int? currentIndex,
+      bool? isPlaylist,
+      String? twitterCaption}) {
     return ArtworkDetailPayload(
       ids ?? identities,
       currentIndex ?? this.currentIndex,
+      twitterCaption: twitterCaption ?? this.twitterCaption,
       isPlaylist: isPlaylist ?? this.isPlaylist,
     );
   }
