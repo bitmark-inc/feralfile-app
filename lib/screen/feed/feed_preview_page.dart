@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -118,8 +119,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       body: BlocConsumer<FeedBloc, FeedState>(
           listener: (context, state) {},
           builder: (context, state) {
-            if ((state.feedTokens?.isEmpty ?? true) ||
-                (state.feedEvents?.isEmpty ?? true)) {
+            if (state.feedTokenEventsMap?.isEmpty ?? true) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
             _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
@@ -133,8 +133,8 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => _listItem(
-                          state.feedEvents![index], state.feedTokens![index]),
-                      childCount: state.feedTokens?.length ?? 0,
+                          state.feedTokenEventsMap!.entries.elementAt(index)),
+                      childCount: state.feedTokenEventsMap?.length ?? 0,
                     ),
                   )
                 ],
@@ -144,20 +144,17 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     );
   }
 
-  Widget _listItem(FeedEvent event, AssetToken? asset) {
+  Widget _listItem(MapEntry<AssetToken, List<FeedEvent>> entry) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        if (asset == null) {
-          return;
-        }
-        _moveToInfo(asset, event);
+        _moveToInfo(entry.key, entry.value.first);
       },
       child: Column(children: [
         Center(
           child: IgnorePointer(
             child: FeedArtwork(
-              assetToken: asset,
+              assetToken: entry.key,
             ),
           ),
         ),
@@ -168,7 +165,8 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
           create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
           child: Align(
               alignment: Alignment.topCenter,
-              child: ControlView(feedEvent: event, feedToken: asset)),
+              child:
+                  ControlView(feedEvents: entry.value, feedToken: entry.key)),
         ),
         const SizedBox(
           height: 60,
@@ -401,10 +399,10 @@ class FeedDetailPayload {
 }
 
 class ControlView extends StatefulWidget {
-  final FeedEvent feedEvent;
+  final List<FeedEvent> feedEvents;
   final AssetToken? feedToken;
 
-  const ControlView({Key? key, required this.feedEvent, this.feedToken})
+  const ControlView({Key? key, required this.feedEvents, this.feedToken})
       : super(key: key);
 
   @override
@@ -425,11 +423,11 @@ class _ControlViewState extends State<ControlView> {
 
   void fetchIdentities() {
     final currentToken = widget.feedToken;
-    final currentFeedEvent = widget.feedEvent;
+    final currentFeedEvents = widget.feedEvents;
 
     final neededIdentities = [
       currentToken?.artistName ?? '',
-      currentFeedEvent.recipient
+      ...currentFeedEvents.map((e) => e.recipient),
     ];
     neededIdentities.removeWhere((element) => element == '');
 
@@ -507,11 +505,14 @@ class _ControlViewState extends State<ControlView> {
   @override
   Widget build(BuildContext context) {
     final asset = widget.feedToken;
-    final event = widget.feedEvent;
+    final events = widget.feedEvents;
     if (asset == null) {
-      return _controlViewWhenNoAsset(event);
+      return _controlViewWhenNoAsset(events.first);
     }
-    final neededIdentities = [asset.artistName ?? '', event.recipient];
+    final neededIdentities = [
+      asset.artistName ?? '',
+      ...events.map((e) => e.recipient)
+    ];
     neededIdentities.removeWhere((element) => element == '');
     if (neededIdentities.isNotEmpty) {
       context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
@@ -529,9 +530,14 @@ class _ControlViewState extends State<ControlView> {
                 builder: (context, identityState) {
               final artistName =
                   asset.artistName?.toIdentityOrMask(identityState.identityMap);
-              final followingName =
-                  event.recipient.toIdentityOrMask(identityState.identityMap) ??
-                      event.recipient;
+              final followingNames = events
+                  .map((event) =>
+                      event.recipient
+                          .toIdentityOrMask(identityState.identityMap) ??
+                      event.recipient)
+                  .toList();
+              final followingTime =
+                  getDateTimeRepresentation(events.first.timestamp.toLocal());
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,7 +567,8 @@ class _ControlViewState extends State<ControlView> {
                         const SizedBox(
                           height: 3,
                         ),
-                        Row(
+                        Wrap(
+                          runSpacing: 4.0,
                           children: [
                             Flexible(
                               child: RichText(
@@ -571,37 +578,50 @@ class _ControlViewState extends State<ControlView> {
                                       : theme.textTheme.ppMori400White14,
                                   children: [
                                     TextSpan(
-                                      text: "_by".tr(
-                                          args: [event.actionRepresentation]),
+                                      text: "_by".tr(args: [
+                                        events.first.actionRepresentation
+                                      ]),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            GestureDetector(
-                              child: Text(
-                                followingName,
-                                style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.ppMori400White12
-                                        .copyWith(color: AppColor.auSuperTeal)
-                                    : theme.textTheme.ppMori400White14,
-                              ),
-                              onTap: () {
-                                Navigator.of(context).pushNamed(
-                                  AppRouter.galleryPage,
-                                  arguments: GalleryPagePayload(
-                                    address: event.recipient,
-                                    artistName: followingName,
-                                  ),
-                                );
-                              },
-                            ),
-                            Text(" • ",
-                                style: theme.primaryTextTheme.headlineSmall),
+                            ...events
+                                .mapIndexed((i, event) => [
+                                      GestureDetector(
+                                        child: Text(
+                                          followingNames[i],
+                                          style: ResponsiveLayout.isMobile
+                                              ? theme.textTheme.ppMori400White12
+                                                  .copyWith(
+                                                      color:
+                                                          AppColor.auSuperTeal)
+                                              : theme
+                                                  .textTheme.ppMori400White14,
+                                        ),
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed(
+                                            AppRouter.galleryPage,
+                                            arguments: GalleryPagePayload(
+                                              address: event.recipient,
+                                              artistName: followingNames[i],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      if (i < events.length - 1)
+                                        Text(", ",
+                                            style: theme
+                                                .textTheme.ppMori400White12)
+                                    ])
+                                .flattened,
+                            Text(" • ", style: theme.textTheme.ppMori400Grey12),
                             Text(
-                                getDateTimeRepresentation(
-                                    event.timestamp.toLocal()),
-                                style: theme.primaryTextTheme.headlineSmall),
+                                events.length > 1
+                                    ? "last_time_format"
+                                        .tr(args: [followingTime])
+                                    : followingTime,
+                                style: theme.textTheme.ppMori400Grey12),
                           ],
                         ),
                       ],
