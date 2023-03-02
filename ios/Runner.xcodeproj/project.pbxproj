@@ -2029,7 +2029,7 @@
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
 				kind = revision;
-				revision = 04f21de7011c87dc3475faa01e039420f44cd584;
+				revision = ce7375515c0c9f316e6261be1868a6122d65275a;
 			};
 		};
 		63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream" */ = {
