@@ -43,6 +43,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:social_share/social_share.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -83,12 +84,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
+  void _manualShare(String caption, String url) async {
+    final twitterUrl = "${SocialApp.twitterPrefix}?url=$url&text=$caption";
+    final twitterUri = Uri.parse(twitterUrl);
+    if (await canLaunchUrl(twitterUri)) {
+      launchUrl(twitterUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   void _shareTwitter(AssetToken token) {
     final prefix = Environment.tokenWebviewPrefix;
     final url = '$prefix/token/${token.id}';
-    final caption = widget.payload.twitterCaption;
-    final hashtags = ['digitalartwallet', 'NFT'];
-    SocialShare.shareTwitter(caption!, hashtags: hashtags, url: url);
+    final caption = widget.payload.twitterCaption ?? "";
+    SocialShare.checkInstalledAppsForShare().then((data) {
+      if (data?[SocialApp.twitter]) {
+        SocialShare.shareTwitter(caption, url: url);
+      } else {
+        _manualShare(caption, url);
+      }
+    });
     metricClient.addEvent(MixpanelEvent.share, data: {
       "id": token.id,
       "to": "Twitter",
