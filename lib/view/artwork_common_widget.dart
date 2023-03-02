@@ -940,7 +940,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                   children: [
                     Text(
                       widget.header ?? '',
-                      style: theme.textTheme.ppMori400White14,
+                      style: theme.textTheme.ppMori400White16,
                     ),
                     const Spacer(),
                     RotatedBox(
@@ -1188,7 +1188,7 @@ class MetaDataItem extends StatelessWidget {
           flex: 2,
           child: Text(
             title,
-            style: theme.textTheme.ppMori400Grey12,
+            style: theme.textTheme.ppMori400Grey14,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -1202,8 +1202,8 @@ class MetaDataItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               style: onValueTap != null
-                  ? theme.textTheme.ppMori400SupperTeal12
-                  : theme.textTheme.ppMori400White12,
+                  ? theme.textTheme.ppMori400Green14
+                  : theme.textTheme.ppMori400White14,
             ),
           ),
         ),
@@ -1251,7 +1251,7 @@ class ProvenanceItem extends StatelessWidget {
             onTap: onNameTap,
             child: Text(
               title,
-              style: theme.textTheme.ppMori400White12,
+              style: theme.textTheme.ppMori400White14,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ),
@@ -1263,7 +1263,7 @@ class ProvenanceItem extends StatelessWidget {
             value,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            style: theme.textTheme.ppMori400White12,
+            style: theme.textTheme.ppMori400White14,
           ),
         ),
         Expanded(
@@ -1284,7 +1284,7 @@ class ProvenanceItem extends StatelessWidget {
                   child: Text(
                     'view'.tr(),
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.ppMori400Green12,
+                    style: theme.textTheme.ppMori400Green14,
                   ),
                 ),
               ),

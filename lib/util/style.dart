@@ -106,28 +106,28 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
 
 MarkdownStyleSheet markDownRightStyle(BuildContext context) {
   final theme = Theme.of(context);
-  final bodyText2 = theme.textTheme.ppMori400White12;
+  final bodyText2 = theme.textTheme.ppMori400White14;
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.ppMori,
       color: theme.auSuperTeal,
       fontWeight: FontWeight.w400,
-      fontSize: 12,
+      fontSize: 14,
     ),
-    p: theme.textTheme.ppMori400White12,
+    p: theme.textTheme.ppMori400White14,
     pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.ppMori400White14,
+    h1: theme.textTheme.ppMori400White16,
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.ppMori400White14,
+    h2: theme.textTheme.ppMori400White16,
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.ppMori400White14,
+    h3: theme.textTheme.ppMori400White16,
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.ppMori400White14,
+    h4: theme.textTheme.ppMori400White16,
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.ppMori400White14,
+    h5: theme.textTheme.ppMori400White16,
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.ppMori400White14,
+    h6: theme.textTheme.ppMori400White16,
     h6Padding: EdgeInsets.zero,
     em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.white),
     strong: theme.textTheme.ppMori400White14,
