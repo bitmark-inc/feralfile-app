@@ -60,8 +60,6 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    print("--------");
-    print(widget.payload.isForceAlias);
     return Scaffold(
       appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
       body: BlocListener<PersonaBloc, PersonaState>(
