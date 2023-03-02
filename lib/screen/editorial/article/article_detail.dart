@@ -93,7 +93,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Originally published at ",
+                            "originally_published_at".tr(),
                             style: theme.textTheme.ppMori400Grey12,
                           ),
                           GestureDetector(
