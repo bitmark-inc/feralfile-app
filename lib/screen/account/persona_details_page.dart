@@ -275,14 +275,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     ) {
                       return Column(
                         children: [
-                          Padding(
-                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                            child: Text(
-                              "must_select_chain".tr(),
-                              style: theme.textTheme.ppMori400White14,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
                           _walletTypeOption(
                               theme, WalletType.Ethereum, dialogState),
                           addDivider(height: 40, color: AppColor.white),
