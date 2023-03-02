@@ -22,7 +22,7 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
       if (state.personaAddresses?[event.uuid] != null) return;
       final address = await Persona.newPersona(uuid: event.uuid)
           .wallet()
-          .getETHEip55Address();
+          .getETHEip55Address(index: event.index);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
 
@@ -45,7 +45,7 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
     on<GetUSDCBalanceWithUUIDEvent>((event, emit) async {
       final address = await Persona.newPersona(uuid: event.uuid)
           .wallet()
-          .getETHEip55Address();
+          .getETHEip55Address(index: event.index);
 
       final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
       final owner = EthereumAddress.fromHex(address);

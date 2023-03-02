@@ -17,14 +17,16 @@ class GetUSDCBalanceWithAddressEvent extends USDCEvent {
 
 class GetUSDCBalanceWithUUIDEvent extends USDCEvent {
   final String uuid;
+  final int index;
 
-  GetUSDCBalanceWithUUIDEvent(this.uuid);
+  GetUSDCBalanceWithUUIDEvent(this.uuid, this.index);
 }
 
 class GetAddressEvent extends USDCEvent {
   final String uuid;
+  final int index;
 
-  GetAddressEvent(this.uuid);
+  GetAddressEvent(this.uuid, this.index);
 }
 
 class USDCState {

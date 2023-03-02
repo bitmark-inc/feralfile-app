@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -55,43 +54,34 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
   WalletType _walletTypeSelecting = WalletType.Ethereum;
   String? title;
+  Persona? persona;
 
   @override
   void initState() {
     super.initState();
+    persona = widget.persona;
+    _callBloc(persona!);
 
-    context
-        .read<EthereumBloc>()
-        .add(GetEthereumAddressEvent(widget.persona.uuid));
+    isHideGalleryEnabled =
+        injector<AccountService>().isPersonaHiddenInGallery(persona!.uuid);
 
-    context.read<TezosBloc>().add(GetTezosAddressEvent(widget.persona.uuid));
-
-    context.read<USDCBloc>().add(GetAddressEvent(widget.persona.uuid));
-
-    context
-        .read<EthereumBloc>()
-        .add(GetEthereumBalanceWithUUIDEvent(widget.persona.uuid));
-
-    context
-        .read<TezosBloc>()
-        .add(GetTezosBalanceWithUUIDEvent(widget.persona.uuid));
-
-    context
-        .read<USDCBloc>()
-        .add(GetUSDCBalanceWithUUIDEvent(widget.persona.uuid));
-
-    isHideGalleryEnabled = injector<AccountService>()
-        .isPersonaHiddenInGallery(widget.persona.uuid);
-
-    if (widget.persona.name.isNotEmpty) {
-      title = widget.persona.name;
+    if (persona!.name.isNotEmpty) {
+      title = persona!.name;
     } else {
       _getDidKey();
     }
   }
 
+  _callBloc(Persona persona) {
+    context
+        .read<EthereumBloc>()
+        .add(GetEthereumBalanceWithUUIDEvent(persona.uuid));
+
+    context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(persona.uuid));
+  }
+
   _getDidKey() async {
-    final didKey = await widget.persona.wallet().getAccountDID();
+    final didKey = await persona!.wallet().getAccountDID();
     setState(() {
       title = didKey;
     });
@@ -111,17 +101,16 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   @override
   void didPopNext() {
-    final uuid = widget.persona.uuid;
+    final uuid = persona!.uuid;
     context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
     context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
-    context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(uuid));
     super.didPopNext();
   }
 
   @override
   Widget build(BuildContext context) {
-    final uuid = widget.persona.uuid;
-    final isDefaultAccount = widget.persona.defaultAccount == 1;
+    final uuid = persona!.uuid;
+    final isDefaultAccount = persona!.defaultAccount == 1;
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -288,16 +277,19 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                                 AuPrimaryButton(
                                   text: "add_address".tr(),
                                   onPressed: () async {
-                                    final persona =
+                                    final newPersona =
                                         await injector<AccountService>()
-                                            .addAddressPersona(widget.persona,
-                                                _walletTypeSelecting);
+                                            .addAddressPersona(
+                                                persona!, _walletTypeSelecting);
                                     if (!mounted) return;
                                     Navigator.of(context).pop();
-                                    Navigator.of(context).popAndPushNamed(
-                                      AppRouter.personaDetailsPage,
-                                      arguments: persona,
-                                    );
+                                    Future.delayed(const Duration(seconds: 1),
+                                        () {
+                                      setState(() {
+                                        persona = newPersona;
+                                        initState();
+                                      });
+                                    });
                                   },
                                 ),
                                 const SizedBox(height: 10),
@@ -418,11 +410,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       ),
       onTap: () {
         final payload = WalletDetailsPayload(
-          personaUUID: widget.persona.uuid,
+          personaUUID: persona!.uuid,
           address: address,
           type: type,
-          wallet: LibAukDart.getWallet(widget.persona.uuid),
-          personaName: widget.persona.name,
+          wallet: LibAukDart.getWallet(persona!.uuid),
+          personaName: persona!.name,
           index: index,
           //personaName: widget.persona.name,
         );
@@ -456,7 +448,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                   value: isHideGalleryEnabled,
                   onToggle: (value) async {
                     await injector<AccountService>()
-                        .setHidePersonaInGallery(widget.persona.uuid, value);
+                        .setHidePersonaInGallery(persona!.uuid, value);
                     final hiddenAddress =
                         await injector<AccountService>().getHiddenAddresses();
                     if (!mounted) return;
@@ -515,7 +507,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 }
               }
 
-              final words = await widget.persona.wallet().exportMnemonicWords();
+              final words = await persona!.wallet().exportMnemonicWords();
 
               if (!mounted) return;
 

@@ -29,10 +29,10 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
 
     on<GetTezosBalanceWithAddressEvent>((event, emit) async {
       var tezosBalances = state.balances;
-      for (var address in event.addresses) {
-        final tezosBalance = await _tezosService.getBalance(address);
-        tezosBalances[address] = tezosBalance;
-      }
+      await Future.wait(event.addresses.map((address) async {
+        tezosBalances[address] = await _tezosService.getBalance(address);
+      }).toList());
+
       emit(state.copyWith(balances: tezosBalances));
     });
 
@@ -40,7 +40,9 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
       if (persona == null || persona.tezosIndex < 1) return;
       final addresses = await persona.getTezosAddresses();
-
+      var listAddresses = state.personaAddresses ?? {};
+      listAddresses[event.uuid] = addresses;
+      emit(state.copyWith(personaAddresses: listAddresses));
       add(GetTezosBalanceWithAddressEvent(addresses));
     });
   }

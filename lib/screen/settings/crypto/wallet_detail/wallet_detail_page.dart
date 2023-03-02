@@ -66,17 +66,17 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<EthereumBloc>().add(GetEthereumAddressEvent(personUUID));
         context
             .read<EthereumBloc>()
-            .add(GetEthereumBalanceWithUUIDEvent(personUUID));
+            .add(GetEthereumBalanceWithAddressEvent([widget.payload.address]));
         context
             .read<USDCBloc>()
             .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
         break;
       case CryptoType.XTZ:
-        context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(personUUID));
-        context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
+        context
+            .read<TezosBloc>()
+            .add(GetTezosBalanceWithAddressEvent([widget.payload.address]));
         break;
       case CryptoType.USDC:
         context
@@ -374,9 +374,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     if (widget.payload.type == CryptoType.USDC) {
       return BlocBuilder<USDCBloc, USDCState>(
         builder: (context, state) {
-          final usdcAddress =
-              state.personaAddresses?[widget.payload.personaUUID];
-          final usdcBalance = state.usdcBalances[usdcAddress];
+          final usdcBalance = state.usdcBalances[widget.payload.address];
           final balance = usdcBalance == null
               ? "-- USDC"
               : "${USDCAmountFormatter(usdcBalance).format()} USDC";

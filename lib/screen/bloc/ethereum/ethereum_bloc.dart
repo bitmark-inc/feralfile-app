@@ -31,10 +31,9 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
 
     on<GetEthereumBalanceWithAddressEvent>((event, emit) async {
       var ethBalances = state.ethBalances;
-      for (var address in event.addresses) {
-        final ethBalance = await _ethereumService.getBalance(address);
-        ethBalances[address] = ethBalance;
-      }
+      await Future.wait((event.addresses.map((address) async {
+        ethBalances[address] = await _ethereumService.getBalance(address);
+      })).toList());
       emit(state.copyWith(ethBalances: ethBalances));
     });
 
@@ -42,7 +41,9 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
       if (persona == null || persona.ethereumIndex < 1) return;
       final addresses = await persona.getEthAddresses();
-
+      var listAddresses = state.personaAddresses ?? {};
+      listAddresses[event.uuid] = addresses;
+      emit(state.copyWith(personaAddresses: listAddresses));
       add(GetEthereumBalanceWithAddressEvent(addresses));
     });
   }

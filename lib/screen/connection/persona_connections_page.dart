@@ -41,6 +41,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   void initState() {
     super.initState();
     final personUUID = widget.payload.personaUUID;
+    final index = widget.payload.index;
     context.read<AccountsBloc>().add(
         FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
@@ -55,8 +56,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
         break;
       case CryptoType.USDC:
-        context.read<USDCBloc>().add(GetAddressEvent(personUUID));
-        context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(personUUID));
+        context.read<USDCBloc>().add(GetAddressEvent(personUUID, index));
+        context
+            .read<USDCBloc>()
+            .add(GetUSDCBalanceWithUUIDEvent(personUUID, index));
         break;
       case CryptoType.UNKNOWN:
         // do nothing
