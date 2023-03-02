@@ -204,23 +204,25 @@ class NavigationService {
       metricClient.timerEvent(MixpanelEvent.cancelContact);
 
       showInfoNotificationWithLink(
-          const Key("contacting"), "establishing_contact".tr(),
-          frontWidget: loadingIndicator(valueColor: AppColor.white),
-          bottomRightWidget: GestureDetector(
-            onTap: () {
-              waitTooLongDialog();
-            },
-            child: Text(
-              "taking_too_long".tr(),
-              style: Theme.of(navigatorKey.currentContext!)
-                  .textTheme
-                  .ppMori400White12
-                  .copyWith(
-                      color: AppColor.auQuickSilver,
-                      decoration: TextDecoration.underline),
-            ),
-          ));
-
+        const Key("tezos_beacon_contacting"),
+        "establishing_contact".tr(),
+        frontWidget: loadingIndicator(valueColor: AppColor.white),
+        bottomRightWidget: GestureDetector(
+          onTap: () {
+            waitTooLongDialog();
+          },
+          child: Text(
+            "taking_too_long".tr(),
+            style: Theme.of(navigatorKey.currentContext!)
+                .textTheme
+                .ppMori400White12
+                .copyWith(
+                    color: AppColor.auQuickSilver,
+                    decoration: TextDecoration.underline),
+          ),
+        ),
+        duration: const Duration(seconds: 15),
+      );
       metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
