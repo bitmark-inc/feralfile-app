@@ -36,6 +36,10 @@ extension StringExtension on String {
         : maskIfNeeded();
   }
 
+  bool isValidUrl() {
+    return Uri.tryParse(this) != null;
+  }
+
   String replacePrefix(String from, String to) {
     if (startsWith(from)) {
       return replaceRange(0, from.length, to);
