@@ -391,3 +391,8 @@ class LinkType {
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';
 }
+
+class SocialApp {
+  static String twitter = "twitter";
+  static String twitterPrefix = "https://twitter.com/intent/tweet";
+}
