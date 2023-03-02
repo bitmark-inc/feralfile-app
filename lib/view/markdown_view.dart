@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/caption_markdown.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -43,15 +44,13 @@ class AuMarkdown extends StatelessWidget {
       ],
       onTapLink: onTapLink ??
           (text, href, title) async {
-            if (href == null) return;
-            if (await canLaunchUrlString(href)) {
-              final metricClient = injector<MetricClientService>();
-              metricClient.addEvent(MixpanelEvent.tabOnLinkInEditorial, data: {
-                'name': "Link From Contain",
-                'link': href,
-              });
-              launchUrlString(href, mode: LaunchMode.externalApplication);
-            }
+            if (href == null || !href.isValidUrl()) return;
+            final metricClient = injector<MetricClientService>();
+            metricClient.addEvent(MixpanelEvent.tabOnLinkInEditorial, data: {
+              'name': "Link From Contain",
+              'link': href,
+            });
+            launchUrlString(href, mode: LaunchMode.externalApplication);
           },
     );
   }
