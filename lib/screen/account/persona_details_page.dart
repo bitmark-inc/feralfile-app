@@ -283,12 +283,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                                                 persona!, _walletTypeSelecting);
                                     if (!mounted) return;
                                     Navigator.of(context).pop();
-                                    Future.delayed(const Duration(seconds: 1),
-                                        () {
-                                      setState(() {
-                                        persona = newPersona;
-                                        initState();
-                                      });
+                                    setState(() {
+                                      persona = newPersona;
+                                      _callBloc(newPersona);
                                     });
                                   },
                                 ),
