@@ -15,8 +15,11 @@ import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -26,7 +29,6 @@ class NavigationService {
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
-  bool willShowContacting = false;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info("NavigationService.navigateTo: $routeName");
@@ -200,27 +202,37 @@ class NavigationService {
         navigatorKey.currentContext != null) {
       final metricClient = injector.get<MetricClientService>();
       metricClient.timerEvent(MixpanelEvent.cancelContact);
-      willShowContacting = true;
-      await UIHelper.showLoadingIndicator(navigatorKey.currentContext!);
-      Future.delayed(const Duration(seconds: 4), () async {
-        hideInfoDialog();
-        if (willShowContacting) {
-          await _contactDialog();
-        }
-      });
+
+      showInfoNotificationWithLink(
+          const Key("contacting"), "establishing_contact".tr(),
+          frontWidget: loadingIndicator(valueColor: AppColor.white),
+          bottomRightWidget: GestureDetector(
+            onTap: () {
+              waitTooLongDialog();
+            },
+            child: Text(
+              "taking_too_long".tr(),
+              style: Theme.of(navigatorKey.currentContext!)
+                  .textTheme
+                  .ppMori400White12
+                  .copyWith(
+                      color: AppColor.auQuickSilver,
+                      decoration: TextDecoration.underline),
+            ),
+          ));
 
       metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 
-  Future<void> _contactDialog() async {
+  Future<void> waitTooLongDialog() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
-        'contacting'.tr(),
-        'contact_with_dapp'.tr(),
-        closeButton: "cancel_dialog".tr(),
+        "taking_too_long".tr(),
+        'if_take_too_long'.tr(),
+        closeButton: "cancel".tr(),
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {

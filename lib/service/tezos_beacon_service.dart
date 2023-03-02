@@ -138,7 +138,6 @@ class TezosBeaconService implements BeaconHandler {
     final request = _handlingRequests.first;
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
-      _navigationService.willShowContacting = false;
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);

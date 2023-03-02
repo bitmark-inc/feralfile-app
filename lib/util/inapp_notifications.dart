@@ -108,6 +108,77 @@ class _SimpleNotificationToast extends StatelessWidget {
   }
 }
 
+class _NotificationToastWithLink extends StatelessWidget {
+  const _NotificationToastWithLink({
+    required Key key,
+    required this.notification,
+    this.notificationOpenedHandler,
+    this.frontWidget,
+    this.bottomRightWidget,
+    this.addOnTextSpan,
+  }) : super(key: key);
+  final String notification;
+  final Function()? notificationOpenedHandler;
+  final Widget? frontWidget;
+  final Widget? bottomRightWidget;
+  final List<InlineSpan>? addOnTextSpan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 68),
+      child: GestureDetector(
+        onTap: () {
+          hideOverlay(key!);
+          if (notificationOpenedHandler != null) {
+            notificationOpenedHandler?.call();
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(15, 40, 15, 10),
+          decoration: BoxDecoration(
+            color: theme.auGreyBackground,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  frontWidget ?? const SizedBox(),
+                  SizedBox(
+                    width: frontWidget != null ? 8 : 0,
+                  ),
+                  Flexible(
+                    child: RichText(
+                      text: TextSpan(
+                        text: notification,
+                        style: theme.textTheme.ppMori400White14,
+                        children: addOnTextSpan,
+                      ),
+                      overflow: TextOverflow.visible,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 13),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  bottomRightWidget ?? const SizedBox(),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 void showNotifications(BuildContext context, OSNotification notification,
     {Function(OSNotification notification)? notificationOpenedHandler}) {
   showSimpleNotification(
@@ -150,6 +221,33 @@ void showInfoNotification(
         notification: info,
         notificationOpenedHandler: openHandler,
         frontWidget: frontWidget,
+        addOnTextSpan: addOnTextSpan,
+      ),
+      key: key,
+      background: Colors.transparent,
+      duration: duration ?? const Duration(seconds: 3),
+      elevation: 0,
+      slideDismissDirection: DismissDirection.up);
+
+  Vibrate.feedback(FeedbackType.light);
+}
+
+void showInfoNotificationWithLink(
+  Key key,
+  String info, {
+  Duration? duration,
+  Widget? frontWidget,
+  Widget? bottomRightWidget,
+  dynamic Function()? openHandler,
+  List<InlineSpan>? addOnTextSpan,
+}) {
+  showSimpleNotification(
+      _NotificationToastWithLink(
+        key: key,
+        notification: info,
+        notificationOpenedHandler: openHandler,
+        frontWidget: frontWidget,
+        bottomRightWidget: bottomRightWidget,
         addOnTextSpan: addOnTextSpan,
       ),
       key: key,
