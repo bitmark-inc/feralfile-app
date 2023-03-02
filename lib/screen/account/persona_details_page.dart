@@ -54,19 +54,19 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
   WalletType _walletTypeSelecting = WalletType.Ethereum;
   String? title;
-  Persona? persona;
+  late Persona persona;
 
   @override
   void initState() {
     super.initState();
     persona = widget.persona;
-    _callBloc(persona!);
+    _callBloc(persona);
 
     isHideGalleryEnabled =
-        injector<AccountService>().isPersonaHiddenInGallery(persona!.uuid);
+        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
 
-    if (persona!.name.isNotEmpty) {
-      title = persona!.name;
+    if (persona.name.isNotEmpty) {
+      title = persona.name;
     } else {
       _getDidKey();
     }
@@ -81,7 +81,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   }
 
   _getDidKey() async {
-    final didKey = await persona!.wallet().getAccountDID();
+    final didKey = await persona.wallet().getAccountDID();
     setState(() {
       title = didKey;
     });
@@ -101,7 +101,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   @override
   void didPopNext() {
-    final uuid = persona!.uuid;
+    final uuid = persona.uuid;
     context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
     context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
     super.didPopNext();
@@ -109,8 +109,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   @override
   Widget build(BuildContext context) {
-    final uuid = persona!.uuid;
-    final isDefaultAccount = persona!.defaultAccount == 1;
+    final uuid = persona.uuid;
+    final isDefaultAccount = persona.defaultAccount == 1;
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -280,7 +280,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                                     final newPersona =
                                         await injector<AccountService>()
                                             .addAddressPersona(
-                                                persona!, _walletTypeSelecting);
+                                                persona, _walletTypeSelecting);
                                     if (!mounted) return;
                                     Navigator.of(context).pop();
                                     setState(() {
@@ -407,11 +407,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       ),
       onTap: () {
         final payload = WalletDetailsPayload(
-          personaUUID: persona!.uuid,
+          personaUUID: persona.uuid,
           address: address,
           type: type,
-          wallet: LibAukDart.getWallet(persona!.uuid),
-          personaName: persona!.name,
+          wallet: LibAukDart.getWallet(persona.uuid),
+          personaName: persona.name,
           index: index,
           //personaName: widget.persona.name,
         );
@@ -445,7 +445,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                   value: isHideGalleryEnabled,
                   onToggle: (value) async {
                     await injector<AccountService>()
-                        .setHidePersonaInGallery(persona!.uuid, value);
+                        .setHidePersonaInGallery(persona.uuid, value);
                     final hiddenAddress =
                         await injector<AccountService>().getHiddenAddresses();
                     if (!mounted) return;
@@ -504,7 +504,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 }
               }
 
-              final words = await persona!.wallet().exportMnemonicWords();
+              final words = await persona.wallet().exportMnemonicWords();
 
               if (!mounted) return;
 
