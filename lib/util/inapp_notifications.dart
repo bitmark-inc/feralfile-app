@@ -147,10 +147,10 @@ class _NotificationToastWithLink extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  frontWidget ?? const SizedBox(),
-                  SizedBox(
-                    width: frontWidget != null ? 8 : 0,
-                  ),
+                  if (frontWidget != null) ...[
+                    frontWidget!,
+                    const SizedBox(width: 8),
+                  ],
                   Flexible(
                     child: RichText(
                       text: TextSpan(
