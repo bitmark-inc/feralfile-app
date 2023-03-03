@@ -104,7 +104,8 @@ Widget accountWithConnectionItem(
               .map((a) => [
                     addOnlyDivider(),
                     Container(
-                        child: _blockchainAddressView(context,
+                        child: _blockchainAddressView(
+                            context,
                             GlobalReceivePayload(
                                 address: a.accountNumber,
                                 blockchain: a.blockchain!,
