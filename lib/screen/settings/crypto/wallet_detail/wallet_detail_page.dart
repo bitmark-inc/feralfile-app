@@ -201,7 +201,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                   height: hideConnection ? 0 : null,
                   child: Column(
                     children: [
-                      const SizedBox(height: 52),
+                      cryptoType == CryptoType.USDC
+                          ? Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 26, 0, 12),
+                              child: _erc20Tag(),
+                            )
+                          : const SizedBox(height: 52),
                       Padding(
                         padding: padding,
                         child: _addressSection(),
@@ -312,21 +317,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 style: theme.textTheme.ppMori700Black14,
               ),
               const SizedBox(width: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    side: const BorderSide(
-                      color: AppColor.auQuickSilver,
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 15)),
-                onPressed: () {},
-                child: Text('ERC20', style: theme.textTheme.ppMori400Grey14),
-              )
+              _erc20Tag()
             ],
           ),
         ),
@@ -345,6 +336,25 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           Navigator.of(context)
               .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
         });
+  }
+
+  Widget _erc20Tag() {
+    final theme = Theme.of(context);
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          side: const BorderSide(
+            color: AppColor.auQuickSilver,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 15)),
+      onPressed: () {},
+      child: Text('ERC-20', style: theme.textTheme.ppMori400Grey14),
+    );
   }
 
   Widget _balanceSection(String balance, String balanceInUSD) {
