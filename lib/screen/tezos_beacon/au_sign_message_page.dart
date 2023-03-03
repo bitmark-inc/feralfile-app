@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -181,20 +180,18 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                                   _handleAuSignRequest(request: widget.request);
                                   if (!mounted) return;
                                   Navigator.of(context).pop();
-                                  final notificationEnable =
-                                      injector<ConfigurationService>()
-                                              .isNotificationEnabled() ??
-                                          false;
-                                  if (notificationEnable) {
+                                  showInfoNotification(
+                                    const Key("signed"),
+                                    "signed".tr(),
+                                    frontWidget: SvgPicture.asset(
+                                      "assets/images/checkbox_icon.svg",
+                                      width: 24,
+                                    ),
+                                  );
+                                  Future.delayed(const Duration(seconds: 3), () {
                                     showInfoNotification(
-                                      const Key("signed"),
-                                      "signed".tr(),
-                                      frontWidget: SvgPicture.asset(
-                                        "assets/images/checkbox_icon.svg",
-                                        width: 24,
-                                      ),
-                                    );
-                                  }
+                                        const Key("switchBack"), "you_all_set".tr());
+                                  });
                                 })
                             : null,
                       ),

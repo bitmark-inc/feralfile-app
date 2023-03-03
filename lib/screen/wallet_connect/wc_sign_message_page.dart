@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -305,23 +304,18 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 } else {
                   Navigator.of(context).pop();
                 }
-                final notificationEnable =
-                    injector<ConfigurationService>().isNotificationEnabled() ??
-                        false;
-                if (notificationEnable) {
+                showInfoNotification(
+                  const Key("signed"),
+                  "signed".tr(),
+                  frontWidget: SvgPicture.asset(
+                    "assets/images/checkbox_icon.svg",
+                    width: 24,
+                  ),
+                );
+                Future.delayed(const Duration(seconds: 3), () {
                   showInfoNotification(
-                    const Key("signed"),
-                    "signed".tr(),
-                    frontWidget: SvgPicture.asset(
-                      "assets/images/checkbox_icon.svg",
-                      width: 24,
-                    ),
-                  );
-                  Future.delayed(const Duration(seconds: 3), () {
-                    showInfoNotification(
-                        const Key("switchBack"), "you_all_set".tr());
-                  });
-                }
+                      const Key("switchBack"), "you_all_set".tr());
+                });
               }),
             ),
           )
