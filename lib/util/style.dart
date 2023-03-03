@@ -470,10 +470,11 @@ SizedBox addTitleSpace() {
   return const SizedBox(height: 60);
 }
 
-Divider addDivider({double height = 32}) {
+Divider addDivider({double height = 32, Color? color}) {
   return Divider(
     height: height,
     thickness: 1.0,
+    color: color,
   );
 }
 

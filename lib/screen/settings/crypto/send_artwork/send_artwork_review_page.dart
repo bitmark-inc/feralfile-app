@@ -15,14 +15,18 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,6 +34,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/pending_tx_params.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendArtworkReviewPage extends StatefulWidget {
@@ -209,12 +214,14 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
     final identityState = context.watch<IdentityBloc>().state;
     final artistName =
         asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+    final divider = addDivider(height: 20);
     return AbsorbPointer(
       absorbing: _isSending,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          title: "confirmation".tr(),
           onBack: () {
             Navigator.of(context).pop();
           },
@@ -223,9 +230,6 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           children: [
             Container(
               margin: EdgeInsets.only(
-                  top: 16.0,
-                  left: 16.0,
-                  right: 16.0,
                   bottom: MediaQuery.of(context).padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,127 +239,129 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "confirmation".tr(),
-                            style: theme.textTheme.displayLarge,
+                          addTitleSpace(),
+                          Padding(
+                            padding: padding,
+                            child: Text(
+                              "send_artwork".tr(),
+                              style: theme.textTheme.ppMori400Black16,
+                            ),
                           ),
                           const SizedBox(height: 40.0),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "title".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  asset.title,
-                                  textAlign: TextAlign.right,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "artist".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              Text(
-                                artistName ?? "",
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 32),
-                          if (widget.payload.asset.fungible == true) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          divider,
+                          Padding(
+                            padding: padding,
+                            child: Column(
                               children: [
-                                Text(
-                                  "owned_tokens".tr(),
-                                  style: theme.textTheme.headlineMedium,
+                                _item(
+                                  context: context,
+                                  title: "title".tr(),
+                                  content: asset.title,
                                 ),
-                                Text(
-                                  "${widget.payload.ownedTokens}",
-                                  style: theme.textTheme.bodyMedium,
+                                divider,
+                                _item(
+                                    context: context,
+                                    title: "artist".tr(),
+                                    content: artistName ?? "",
+                                    tapLink: asset.artistURL),
+                                divider,
+                                if (!(widget.payload.asset.fungible ==
+                                    true)) ...[
+                                  _item(
+                                      context: context,
+                                      title: "edition".tr(),
+                                      content: asset.editionSlashMax),
+                                  divider,
+                                ],
+                                _item(
+                                    context: context,
+                                    title: "token".tr(),
+                                    content: polishSource(asset.source ?? ""),
+                                    tapLink: asset.assetURL),
+                                divider,
+                                _item(
+                                  context: context,
+                                  title: "contract".tr(),
+                                  content: asset.blockchain.capitalize(),
+                                  tapLink: asset.getBlockchainUrl(),
+                                ),
+                                divider,
+                                _item(
+                                    context: context,
+                                    title: "minted".tr(),
+                                    content: asset.mintedAt != null
+                                        ? localTimeStringFromISO8601(
+                                            asset.mintedAt!)
+                                        : ''),
+                                divider,
+                                if (widget.payload.asset.fungible == true) ...[
+                                  _item(
+                                      context: context,
+                                      title: "owned_tokens".tr(),
+                                      content: "${widget.payload.ownedTokens}"),
+                                  divider,
+                                  _item(
+                                      context: context,
+                                      title: "quantity_sent".tr(),
+                                      content: "${widget.payload.quantity}"),
+                                  divider,
+                                ],
+                                const SizedBox(height: 16),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      color: AppColor.primaryBlack),
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "to".tr(),
+                                        style: theme.textTheme.ppMori400Grey14,
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        widget.payload.address,
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
+                                      addDivider(color: AppColor.white),
+                                      Text(
+                                        "gas_fee2".tr(),
+                                        style: theme.textTheme.ppMori400Grey14,
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        _amountFormat(
+                                          fee,
+                                          isETH:
+                                              widget.payload.asset.blockchain ==
+                                                  "ethereum",
+                                        ),
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                            const Divider(height: 32),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "quantity_sent".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  "${widget.payload.quantity}",
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ] else ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "edition".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  asset.editionSlashMax,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ],
-                          const Divider(height: 32),
-                          Text(
-                            "to".tr(),
-                            style: theme.textTheme.headlineMedium,
                           ),
-                          const SizedBox(height: 16.0),
-                          Text(
-                            widget.payload.address,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          const Divider(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "gas_fee2".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              Text(
-                                widget.payload.asset.blockchain == "ethereum"
-                                    ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
-                                    : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)",
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24.0),
                         ],
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AuFilledButton(
-                            text: _isSending
-                                ? "sending".tr().toUpperCase()
-                                : "sendH".tr(),
-                            isProcessing: _isSending,
-                            onPress: _isSending ? null : _sendArtwork),
-                      ),
-                    ],
+                  Padding(
+                    padding: padding,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                              text: _isSending ? "sending".tr() : "sendH".tr(),
+                              isProcessing: _isSending,
+                              onTap: _isSending ? null : _sendArtwork),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16.0),
                 ],
@@ -365,6 +371,53 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         ),
       ),
     );
+  }
+
+  Widget _item({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String? tapLink,
+    double width = 120,
+    bool forceSafariVC = true,
+  }) {
+    final theme = Theme.of(context);
+    Function()? onValueTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    return Row(
+      children: [
+        SizedBox(
+          width: width,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        GestureDetector(
+          onTap: onValueTap,
+          child: Text(
+            content,
+            style: theme.textTheme.ppMori400Black14.copyWith(
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null),
+          ),
+        )
+      ],
+    );
+  }
+
+  String _amountFormat(BigInt fee, {required bool isETH}) {
+    return isETH
+        ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
+        : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)";
   }
 }
 
