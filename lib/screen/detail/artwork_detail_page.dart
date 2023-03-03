@@ -214,13 +214,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               children: [
                 Text(
                   asset.title,
-                  style: theme.textTheme.ppMori400White14,
+                  style: theme.textTheme.ppMori400White16,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subTitle,
-                  style: theme.textTheme.ppMori400White12,
+                  style: theme.textTheme.ppMori400White14,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -302,7 +302,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     padding: ResponsiveLayout.getPadding,
                     child: Text(
                       editionSubTitle,
-                      style: theme.textTheme.ppMori400Grey12,
+                      style: theme.textTheme.ppMori400Grey14,
                     ),
                   ),
                 ),
@@ -317,7 +317,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                         label: 'Desc',
                         child: HtmlWidget(
                           asset.desc ?? "",
-                          textStyle: theme.textTheme.ppMori400White12,
+                          textStyle: theme.textTheme.ppMori400White14,
                         ),
                       ),
                       const SizedBox(height: 40.0),
