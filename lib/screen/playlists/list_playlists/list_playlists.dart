@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -21,12 +22,14 @@ class ListPlaylistsScreen extends StatefulWidget {
   State<ListPlaylistsScreen> createState() => _ListPlaylistsScreenState();
 }
 
-class _ListPlaylistsScreenState extends State<ListPlaylistsScreen> {
-  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier([]);
+class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
+    with RouteAware, WidgetsBindingObserver {
+  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier(null);
+  final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
 
   Future<List<PlayListModel>?> _getPlaylist() async {
     final configurationService = injector.get<ConfigurationService>();
-    if (configurationService.isDemoArtworksMode()) {
+    if (isDemo) {
       return injector<VersionService>().getDemoAccountFromGithub();
     }
     return configurationService.getPlayList();
@@ -40,12 +43,25 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen> {
   void initState() {
     super.initState();
     _initPlayList();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    super.dispose();
   }
 
   _gotoCreatePlaylist() {
     Navigator.of(context).pushNamed(AppRouter.createPlayListPage).then((value) {
       if (value != null && value is PlayListModel) {
-        _initPlayList();
         Navigator.pushNamed(
           context,
           AppRouter.viewPlayListPage,
@@ -56,11 +72,17 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen> {
   }
 
   _onUpdatePlaylists() async {
-    if (injector.get<ConfigurationService>().isDemoArtworksMode()) return;
+    if (isDemo) return;
     await injector
         .get<ConfigurationService>()
         .setPlayList(_playlists.value, override: true);
     injector.get<SettingsDataService>().backup();
+  }
+
+  @override
+  void didPopNext() {
+    _initPlayList();
+    super.didPopNext();
   }
 
   @override
@@ -111,15 +133,13 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen> {
                     _onUpdatePlaylists();
                   });
                 },
-                header:
-                    injector.get<ConfigurationService>().isDemoArtworksMode() ||
-                            (_playlists.value?.isNotEmpty ?? false)
-                        ? null
-                        : [
-                            AddPlayListItem(
-                              onTap: _gotoCreatePlaylist,
-                            )
-                          ],
+                header: isDemo || (_playlists.value?.isNotEmpty ?? true)
+                    ? null
+                    : [
+                        AddPlayListItem(
+                          onTap: _gotoCreatePlaylist,
+                        )
+                      ],
                 crossAxisCount: 2,
                 mainAxisSpacing: 15,
                 crossAxisSpacing: 15,
@@ -150,9 +170,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen> {
                               context,
                               AppRouter.viewPlayListPage,
                               arguments: e,
-                            ).then((value) {
-                              _initPlayList();
-                            }),
+                            ),
                           ),
                         )
                         .toList() ??
