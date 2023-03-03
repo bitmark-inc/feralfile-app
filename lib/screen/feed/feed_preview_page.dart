@@ -199,7 +199,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                     width: 52,
                     height: 52,
                   ),
-                  //loadingIndicator(valueColor: Colors.white),
                   const SizedBox(
                     height: 12,
                   ),
