@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -94,7 +95,7 @@ class NewAccountPage extends StatelessWidget {
               if (createdPersona != null) {
                 Navigator.of(context).pushNamedAndRemoveUntil(
                     AppRouter.namePersonaPage, (route) => false,
-                    arguments: createdPersona.uuid);
+                    arguments: NamePersonaPayload(uuid: createdPersona.uuid));
               }
             });
             break;

@@ -109,47 +109,55 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
+      if (personas.isEmpty &&
+          ((event.includeLinkedAccount && connections.isEmpty) ||
+              !event.includeLinkedAccount)) {
+        emit(state.copyWith(categorizedAccounts: []));
+      }
       List<CategorizedAccounts> categorizedAccounts = [];
 
       for (var persona in personas) {
         if (!await persona.wallet().isWalletCreated()) continue;
-        final ethAddress = await persona.wallet().getETHEip55Address();
-        final xtzAddress = (await persona.wallet().getTezosAddress());
+        final ethAddresses = await persona.getEthAddresses();
+        final xtzAddresses = await persona.getTezosAddresses();
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
-          name = persona.name;
+          name = persona.name.isNotEmpty
+              ? persona.name
+              : (await persona.wallet().getAccountDID())
+                  .replaceFirst('did:key:', '');
         }
 
-        if (name.isEmpty) {
-          name = (await persona.wallet().getAccountDID())
-              .replaceFirst('did:key:', '');
+        final List<Account> accounts = [];
+        final List<Account> ethAccounts = [];
+        final List<Account> xtzAccounts = [];
+        for (var address in ethAddresses) {
+          final ethAccount = Account(
+              key: persona.uuid,
+              persona: persona,
+              name: name,
+              blockchain: "Ethereum",
+              accountNumber: address,
+              createdAt: persona.createdAt);
+          ethAccounts.add(ethAccount);
+        }
+        for (var address in xtzAddresses) {
+          final xtzAccount = Account(
+              key: persona.uuid,
+              persona: persona,
+              name: name,
+              blockchain: "Tezos",
+              accountNumber: address,
+              createdAt: persona.createdAt);
+          xtzAccounts.add(xtzAccount);
+        }
+        if (event.getEth && ethAccounts.isNotEmpty) {
+          accounts.addAll(ethAccounts);
         }
 
-        List<Account> accounts = [];
-
-        final ethAccount = Account(
-            key: persona.uuid,
-            persona: persona,
-            name: name,
-            blockchain: "Ethereum",
-            accountNumber: ethAddress,
-            createdAt: persona.createdAt);
-
-        final xtzAccount = Account(
-            key: persona.uuid,
-            persona: persona,
-            name: name,
-            blockchain: "Tezos",
-            accountNumber: xtzAddress,
-            createdAt: persona.createdAt);
-
-        if (event.getEth) {
-          accounts.add(ethAccount);
-        }
-
-        if (event.getTezos) {
-          accounts.add(xtzAccount);
+        if (event.getTezos && xtzAccounts.isNotEmpty) {
+          accounts.addAll(xtzAccounts);
         }
         if (accounts.isNotEmpty) {
           categorizedAccounts.add(

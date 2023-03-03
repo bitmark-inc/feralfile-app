@@ -54,7 +54,7 @@ class TBSendTransactionPage extends StatefulWidget {
 
 class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? _fee;
-  WalletStorage? _currentWallet;
+  WalletIndex? _currentWallet;
   bool _isSending = false;
   late Wc2Service _wc2Service;
   late FeeOption feeOption;
@@ -83,12 +83,15 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Future fetchPersona() async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    WalletStorage? currentWallet;
-    for (final persona in personas) {
-      final address = await persona.wallet().getTezosAddress();
-      if (address == widget.request.sourceAddress) {
-        currentWallet = persona.wallet();
-        break;
+    WalletIndex? currentWallet;
+    if (widget.request.sourceAddress != null) {
+      for (final persona in personas) {
+        final addresses = await persona.getTezosAddresses();
+        if (addresses.contains(widget.request.sourceAddress)) {
+          currentWallet = WalletIndex(persona.wallet(),
+              addresses.indexOf(widget.request.sourceAddress!));
+          break;
+        }
       }
     }
 
@@ -107,18 +110,19 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       return;
     }
 
-    _estimateFee(currentWallet);
+    _estimateFee(currentWallet.wallet, currentWallet.index);
 
     setState(() {
       _currentWallet = currentWallet;
     });
   }
 
-  Future _estimateFee(WalletStorage wallet) async {
+  Future _estimateFee(WalletStorage wallet, int index) async {
     try {
       exchangeRate = await injector<CurrencyService>().getExchangeRates();
       final fee = await injector<TezosService>().estimateOperationFee(
-          await wallet.getTezosPublicKey(), widget.request.operations!,
+          await wallet.getTezosPublicKey(index: index),
+          widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
       feeOptionValue = FeeOptionValue(
           BigInt.from(fee -
@@ -131,7 +135,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
               feeOption.tezosBaseOperationCustomFee +
               baseOperationCustomFeeHigh));
       balance = await injector<TezosService>()
-          .getBalance(await wallet.getTezosAddress());
+          .getBalance(await wallet.getTezosAddress(index: index));
       setState(() {
         _fee = fee;
       });
@@ -322,7 +326,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                       final txHash = await injector<
                                               TezosService>()
                                           .sendOperationTransaction(
-                                              _currentWallet!,
+                                              _currentWallet!.wallet,
+                                              _currentWallet!.index,
                                               widget.request.operations!,
                                               baseOperationCustomFee: feeOption
                                                   .tezosBaseOperationCustomFee);

@@ -18,9 +18,10 @@ class WCSendTransactionEstimateEvent extends WCSendTransactionEvent {
   final EtherAmount amount;
   final String data;
   final String uuid;
+  final int index;
 
   WCSendTransactionEstimateEvent(
-      this.address, this.amount, this.data, this.uuid);
+      this.address, this.amount, this.data, this.uuid, this.index);
 }
 
 class WCSendTransactionSendEvent extends WCSendTransactionEvent {
@@ -31,6 +32,7 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
   final BigInt? gas;
   final String? data;
   final String uuid;
+  final int index;
   final bool isWalletConnect2;
   final String? topic;
 
@@ -41,7 +43,8 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
     this.value,
     this.gas,
     this.data,
-    this.uuid, {
+    this.uuid,
+    this.index, {
     required this.isWalletConnect2,
     this.topic,
   });

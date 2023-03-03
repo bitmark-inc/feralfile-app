@@ -8,14 +8,20 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -38,15 +44,26 @@ class ImportAccountPage extends StatefulWidget {
 class _ImportAccountPageState extends State<ImportAccountPage> {
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
+  bool _isDefaultAccountCreated = false;
 
   bool isError = false;
-
+  WalletType _walletType = WalletType.Autonomy;
+  WalletType _walletTypeSelecting = WalletType.Autonomy;
   final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
+    fetchDefaultAccount();
     metricClient.timerEvent(MixpanelEvent.backImportAccount);
     super.initState();
+  }
+
+  Future<void> fetchDefaultAccount() async {
+    final isCreated =
+        (await injector<CloudDatabase>().personaDao.getPersonas()).isNotEmpty;
+    setState(() {
+      _isDefaultAccountCreated = isCreated;
+    });
   }
 
   @override
@@ -81,7 +98,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         style: theme.textTheme.ppMori400Black14,
                         children: <TextSpan>[
                           TextSpan(
-                            text: "ia_importing_your_account_".tr(),
+                            text: "autonomy_will_import".tr(),
                           ),
                           Platform.isIOS
                               ? TextSpan(
@@ -121,6 +138,93 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                       context,
                       title: 'learn_why_this_is_safe...'.tr(),
                     ),
+                    const SizedBox(height: 15),
+                    Text("1. ${"select_wallet_type".tr()}.",
+                        style: theme.textTheme.ppMori400Black14),
+                    const SizedBox(height: 15),
+                    Container(
+                        padding: const EdgeInsets.all(20.0),
+                        decoration: BoxDecoration(
+                            border:
+                                Border.all(color: theme.colorScheme.primary),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(5.0))),
+                        child: GestureDetector(
+                          onTap: () {
+                            UIHelper.showDialog(
+                                context, "select_wallet_type".tr(),
+                                StatefulBuilder(builder: (
+                              BuildContext context,
+                              StateSetter dialogState,
+                            ) {
+                              return Column(
+                                children: [
+                                  _walletTypeOption(
+                                      theme, WalletType.Autonomy, dialogState),
+                                  addDivider(height: 40, color: AppColor.white),
+                                  _walletTypeOption(
+                                      theme, WalletType.Ethereum, dialogState),
+                                  addDivider(height: 40, color: AppColor.white),
+                                  _walletTypeOption(
+                                      theme, WalletType.Tezos, dialogState),
+                                  const SizedBox(height: 40),
+                                  Padding(
+                                    padding: ResponsiveLayout
+                                        .pageHorizontalEdgeInsets,
+                                    child: Column(
+                                      children: [
+                                        PrimaryButton(
+                                          text: "select".tr(),
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                            setState(() {
+                                              _walletType =
+                                                  _walletTypeSelecting;
+                                            });
+                                          },
+                                        ),
+                                        const SizedBox(height: 10),
+                                        OutlineButton(
+                                          onTap: () =>
+                                              Navigator.of(context).pop(),
+                                          text: "cancel".tr(),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              );
+                            }),
+                                isDismissible: true,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 32),
+                                paddingTitle:
+                                    ResponsiveLayout.pageHorizontalEdgeInsets);
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                Text(
+                                  _walletType.getString(),
+                                  style: theme.textTheme.ppMori400Black14,
+                                ),
+                                const Spacer(),
+                                RotatedBox(
+                                  quarterTurns: 1,
+                                  child: Icon(
+                                    AuIcon.chevron_Sm,
+                                    size: 12,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        )),
+                    const SizedBox(height: 15),
+                    Text("2. ${"enter_your_seed".tr()}.",
+                        style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 15),
                     SizedBox(
                       height: 160,
@@ -174,24 +278,71 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
     );
   }
 
+  Widget _walletTypeOption(
+      ThemeData theme, WalletType walletType, StateSetter dialogState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _walletTypeSelecting = walletType;
+          });
+          dialogState(() {});
+        },
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              Text(walletType.getString(),
+                  style: theme.textTheme.ppMori400White14),
+              const Spacer(),
+              AuRadio<WalletType>(
+                onTap: (value) {
+                  setState(() {
+                    _walletTypeSelecting = walletType;
+                  });
+                  dialogState(() {});
+                },
+                value: _walletTypeSelecting,
+                groupValue: walletType,
+                color: AppColor.white,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future _import() async {
     try {
       setState(() {
         isError = false;
       });
+      final bool createBaseWallet =
+          !_isDefaultAccountCreated && _walletType != WalletType.Autonomy;
+      final accountService = injector<AccountService>();
+      if (createBaseWallet) {
+        await accountService.createPersona(isDefault: true);
+      }
 
-      final persona = await injector<AccountService>()
-          .importPersona(_phraseTextController.text.trim());
+      final persona = await accountService.importPersona(
+          _phraseTextController.text.trim(),
+          walletType: _walletType);
+      log.info("Import wallet: ${_walletType.getString()}");
       // SideEffect: pre-fetch tokens
-      injector<TokensService>().fetchTokensForAddresses([
-        (await persona.wallet().getETHEip55Address()),
-        (await persona.wallet().getTezosAddress()),
-      ]);
+      final addresses = await persona.getAddresses();
+      injector<TokensService>().fetchTokensForAddresses(addresses);
 
       if (!mounted) return;
-
-      Navigator.of(context)
-          .popAndPushNamed(AppRouter.namePersonaPage, arguments: persona.uuid);
+      UIHelper.showImportedPersonaDialog(context,
+          onContinue: () => Navigator.of(context).popAndPushNamed(
+              AppRouter.namePersonaPage,
+              arguments: NamePersonaPayload(
+                  uuid: persona.uuid, isForceAlias: createBaseWallet)));
+      if (createBaseWallet) {
+        injector<ConfigurationService>().setShowAuChainInfo(true);
+      }
     } on AccountImportedException catch (e) {
       showErrorDiablog(
           context,

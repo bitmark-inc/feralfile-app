@@ -66,18 +66,22 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<EthereumBloc>().add(GetEthereumAddressEvent(personUUID));
         context
             .read<EthereumBloc>()
-            .add(GetEthereumBalanceWithUUIDEvent(personUUID));
+            .add(GetEthereumBalanceWithAddressEvent([widget.payload.address]));
+        context
+            .read<USDCBloc>()
+            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
         break;
       case CryptoType.XTZ:
-        context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(personUUID));
-        context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
+        context
+            .read<TezosBloc>()
+            .add(GetTezosBalanceWithAddressEvent([widget.payload.address]));
         break;
       case CryptoType.USDC:
-        context.read<USDCBloc>().add(GetAddressEvent(personUUID));
-        context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(personUUID));
+        context
+            .read<USDCBloc>()
+            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
         break;
       case CryptoType.UNKNOWN:
         // do nothing
@@ -104,10 +108,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   void didPopNext() {
     final cryptoType = widget.payload.type;
-    final wallet = widget.payload.wallet;
+    final address = widget.payload.address;
     context
         .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, wallet));
+        .add(WalletDetailBalanceEvent(cryptoType, address));
+    if (cryptoType == CryptoType.ETH) {
+      context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
+    }
     _callFetchConnections();
   }
 
@@ -128,10 +135,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(personUUID));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
         break;
       case CryptoType.XTZ:
-        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
         break;
       default:
         // do nothing
@@ -142,10 +153,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   Widget build(BuildContext context) {
     final cryptoType = widget.payload.type;
-    final wallet = widget.payload.wallet;
+    final address = widget.payload.address;
     context
         .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, wallet));
+        .add(WalletDetailBalanceEvent(cryptoType, address));
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final showConnection = (widget.payload.type == CryptoType.ETH ||
@@ -201,6 +212,20 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                         child: _sendReceiveSection(),
                       ),
                       const SizedBox(height: 24),
+                      if (widget.payload.type == CryptoType.ETH) ...[
+                        BlocBuilder<USDCBloc, USDCState>(
+                            builder: (context, state) {
+                          final address = widget.payload.address;
+                          final usdcBalance = state.usdcBalances[address];
+                          final balance = usdcBalance == null
+                              ? "-- USDC"
+                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                          return Padding(
+                            padding: padding,
+                            child: _usdcBalance(balance),
+                          );
+                        })
+                      ],
                       addDivider(),
                       if (showConnection) ...[
                         Padding(
@@ -215,14 +240,15 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 Expanded(
                   child: widget.payload.type == CryptoType.XTZ
                       ? TezosTXListView(
-                          address: state.address,
+                          address: widget.payload.address,
                           controller: controller,
                         )
                       : Container(),
                 ),
                 widget.payload.type == CryptoType.XTZ
                     ? GestureDetector(
-                        onTap: () => launchUrlString(_txURL(state.address)),
+                        onTap: () =>
+                            launchUrlString(_txURL(widget.payload.address)),
                         child: Container(
                           alignment: Alignment.bottomCenter,
                           padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
@@ -265,6 +291,62 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     Navigator.of(context).pushNamed(AppRouter.scanQRPage, arguments: scanItem);
   }
 
+  Widget _usdcBalance(String balance) {
+    final theme = Theme.of(context);
+    final balanceStyle = theme.textTheme.ppMori400White14
+        .copyWith(color: AppColor.auQuickSilver);
+    return TappableForwardRow(
+        padding: EdgeInsets.zero,
+        leftWidget: Container(
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/images/usdc.svg',
+                width: 24,
+                height: 24,
+              ),
+              const SizedBox(width: 35),
+              Text(
+                "USDC",
+                style: theme.textTheme.ppMori700Black14,
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    side: const BorderSide(
+                      color: AppColor.auQuickSilver,
+                    ),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 15)),
+                onPressed: () {},
+                child: Text('ERC20', style: theme.textTheme.ppMori400Grey14),
+              )
+            ],
+          ),
+        ),
+        rightWidget: Text(
+          balance,
+          style: balanceStyle,
+        ),
+        onTap: () {
+          final payload = WalletDetailsPayload(
+              type: CryptoType.USDC,
+              wallet: widget.payload.wallet,
+              personaUUID: widget.payload.personaUUID,
+              address: widget.payload.address,
+              personaName: widget.payload.personaName,
+              index: widget.payload.index);
+          Navigator.of(context)
+              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
+        });
+  }
+
   Widget _balanceSection(String balance, String balanceInUSD) {
     final theme = Theme.of(context);
     if (widget.payload.type == CryptoType.ETH ||
@@ -292,9 +374,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     if (widget.payload.type == CryptoType.USDC) {
       return BlocBuilder<USDCBloc, USDCState>(
         builder: (context, state) {
-          final usdcAddress =
-              state.personaAddresses?[widget.payload.personaUUID];
-          final usdcBalance = state.usdcBalances[usdcAddress];
+          final usdcBalance = state.usdcBalances[widget.payload.address];
           final balance = usdcBalance == null
               ? "-- USDC"
               : "${USDCAmountFormatter(usdcBalance).format()} USDC";
@@ -413,9 +493,9 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           onTap: () {
             final payload = PersonaConnectionsPayload(
               personaUUID: widget.payload.personaUUID,
+              index: widget.payload.index,
               address: widget.payload.address,
               type: widget.payload.type,
-              personaName: widget.payload.personaName,
             );
             Navigator.of(context).pushNamed(AppRouter.personaConnectionsPage,
                 arguments: payload);
@@ -460,7 +540,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     arguments: SendData(
                         LibAukDart.getWallet(widget.payload.personaUUID),
                         widget.payload.type,
-                        null)) as Map?;
+                        null,
+                        widget.payload.index)) as Map?;
                 if (payload == null || !payload["isTezos"]) {
                   return;
                 }
@@ -521,7 +602,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     if (account != null && account.accountNumber.isNotEmpty) {
                       Navigator.of(context).pushNamed(
                           GlobalReceiveDetailPage.tag,
-                          arguments: account);
+                          arguments: GlobalReceivePayload(
+                              address: widget.payload.address,
+                              blockchain: widget.payload.type.source,
+                              account: account));
                     }
                   },
                 );
@@ -543,6 +627,7 @@ class WalletDetailsPayload {
   final String personaUUID;
   final String address;
   final String personaName;
+  final int index;
 
   WalletDetailsPayload({
     required this.type,
@@ -550,5 +635,6 @@ class WalletDetailsPayload {
     required this.personaUUID,
     required this.address,
     required this.personaName,
+    required this.index,
   });
 }

@@ -84,21 +84,21 @@ class TezosBeaconService implements BeaconHandler {
     await _beaconChannel.removePeer(peer);
   }
 
-  Future permissionResponse(
-      String? uuid, String id, String? publicKey, String? address) async {
+  Future permissionResponse(String? uuid, int? index, String id,
+      String? publicKey, String? address) async {
     await _beaconChannel.permissionResponse(id, publicKey, address);
 
-    if (_currentPeer != null && uuid != null) {
+    if (_currentPeer != null && uuid != null && index != null) {
       final peer = _currentPeer!;
       final bcConnection =
-          BeaconConnectConnection(personaUuid: uuid, peer: peer);
+          BeaconConnectConnection(personaUuid: uuid, index: index, peer: peer);
 
       final connection = Connection(
         key: peer.id,
         name: peer.name,
         data: json.encode(bcConnection),
         connectionType: ConnectionType.beaconP2PPeer.rawValue,
-        accountNumber: "",
+        accountNumber: address ?? "",
         createdAt: DateTime.now(),
       );
       _cloudDB.connectionDao.insertConnection(connection);

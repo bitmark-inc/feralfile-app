@@ -14,8 +14,9 @@ abstract class SendCryptoEvent {}
 
 class GetBalanceEvent extends SendCryptoEvent {
   final WalletStorage wallet;
+  final int index;
 
-  GetBalanceEvent(this.wallet);
+  GetBalanceEvent(this.wallet, this.index);
 }
 
 class AmountChangedEvent extends SendCryptoEvent {
@@ -53,6 +54,7 @@ class EstimateFeeEvent extends SendCryptoEvent {
 
 class SendCryptoState {
   WalletStorage? wallet;
+  int? index;
 
   bool isScanQR;
   bool isCrypto;
@@ -76,6 +78,7 @@ class SendCryptoState {
 
   SendCryptoState(
       {this.wallet,
+      this.index,
       this.isScanQR = true,
       this.isCrypto = true,
       this.isAddressError = false,
@@ -93,6 +96,7 @@ class SendCryptoState {
 
   SendCryptoState clone() => SendCryptoState(
         wallet: wallet,
+        index: index,
         isScanQR: isScanQR,
         isCrypto: isCrypto,
         isAddressError: isAddressError,

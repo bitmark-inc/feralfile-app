@@ -372,7 +372,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future _showArtworkOptionsDialog(AssetToken asset) async {
-    final ownerWallet = await asset.getOwnerWallet();
+    final owner = await asset.getOwnerWallet();
+    final ownerWallet = owner?.first;
+    final addressIndex = owner?.second;
 
     if (!mounted) return;
     final isHidden = _isHidden(asset);
@@ -405,7 +407,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             onTap: () async {
               final payload = await Navigator.of(context).popAndPushNamed(
                   AppRouter.sendArtworkPage,
-                  arguments: SendArtworkPayload(asset, ownerWallet,
+                  arguments: SendArtworkPayload(
+                      asset,
+                      ownerWallet,
+                      addressIndex!,
                       ownerWallet.getOwnedQuantity(asset))) as Map?;
               if (payload == null) {
                 return;

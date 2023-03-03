@@ -24,6 +24,10 @@ abstract class ConfigurationService {
 
   int? getAnnouncementLastPullTime();
 
+  Future<void> setShowAuChainInfo(bool value);
+
+  bool getShowAuChainInfo();
+
   Future<void> setOldUser();
 
   bool getIsOldUser();
@@ -257,6 +261,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_LASTEST_VERSION = "lastest_version";
 
   static const String ALLOW_CONTRIBUTION = "allow_contribution";
+
+  static const String SHOW_AU_CHAIN_INFO = "show_au_chain_info";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -852,5 +858,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> readRemoveSupport(bool value) async {
     await _preferences.setBool(READ_REMOVE_SUPPORT, value);
+  }
+
+  @override
+  bool getShowAuChainInfo() {
+    return _preferences.getBool(SHOW_AU_CHAIN_INFO) ?? false;
+  }
+
+  @override
+  Future<void> setShowAuChainInfo(bool value) async {
+    await _preferences.setBool(SHOW_AU_CHAIN_INFO, value);
   }
 }

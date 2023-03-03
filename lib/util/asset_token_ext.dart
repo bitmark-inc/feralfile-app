@@ -2,12 +2,12 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -56,7 +56,7 @@ extension AssetTokenExtension on AssetToken {
     return "$editionStr$maxEditionStr";
   }
 
-  Future<WalletStorage?> getOwnerWallet() async {
+  Future<Pair<WalletStorage, int>?> getOwnerWallet() async {
     if (contractAddress == null || tokenId == null) return null;
     if (!(blockchain == "ethereum" &&
             (contractType == "erc721" || contractType == "erc1155")) &&
@@ -65,20 +65,21 @@ extension AssetTokenExtension on AssetToken {
     //check asset is able to send
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
 
-    WalletStorage? wallet;
+    Pair<WalletStorage, int>? result;
     for (final persona in personas) {
-      final String address;
+      final List<String> addresses;
       if (blockchain == "ethereum") {
-        address = await persona.wallet().getETHEip55Address();
+        addresses = await persona.getEthAddresses();
       } else {
-        address = (await persona.wallet().getTezosAddress());
+        addresses = await persona.getTezosAddresses();
       }
-      if (ownerAddress == address) {
-        wallet = persona.wallet();
+      if (addresses.contains(ownerAddress)) {
+        result = Pair<WalletStorage, int>(
+            persona.wallet(), addresses.indexOf(ownerAddress));
         break;
       }
     }
-    return wallet;
+    return result;
   }
 
   String _intToHex(String intValue) {

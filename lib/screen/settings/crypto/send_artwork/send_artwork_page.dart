@@ -50,6 +50,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _quantityController = TextEditingController();
   final feeWidgetKey = GlobalKey();
 
+  late int index;
   bool _initialChangeAddress = false;
   final _focusNode = FocusNode();
   late FeeOption _selectedPriority;
@@ -57,11 +58,14 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   @override
   void initState() {
     super.initState();
+    index = widget.payload.index;
+    context
+        .read<SendArtworkBloc>()
+        .add(GetBalanceEvent(widget.payload.wallet, index));
     _selectedPriority = context.read<SendArtworkBloc>().state.feeOption;
 
-    context.read<SendArtworkBloc>().add(GetBalanceEvent(widget.payload.wallet));
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
-        quantity: 1, maxQuantity: widget.payload.ownedQuantity));
+        quantity: 1, maxQuantity: widget.payload.ownedQuantity, index: index));
     if (widget.payload.asset.artistName != null) {
       context
           .read<IdentityBloc>()
@@ -81,7 +85,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
   void _onQuantityUpdated() {
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
-        quantity: _quantity, maxQuantity: widget.payload.ownedQuantity));
+        quantity: _quantity,
+        maxQuantity: widget.payload.ownedQuantity,
+        index: index));
   }
 
   Widget _quantityInputField(
@@ -234,7 +240,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                   _addressController.text = "";
                                   context
                                       .read<SendArtworkBloc>()
-                                      .add(AddressChangedEvent(""));
+                                      .add(AddressChangedEvent("", index));
                                   _initialChangeAddress = true;
                                 } else {
                                   dynamic address = await Navigator.of(context)
@@ -248,9 +254,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                         address.replacePrefix("ethereum:", "");
                                     _addressController.text = address;
                                     if (!mounted) return;
-                                    context
-                                        .read<SendArtworkBloc>()
-                                        .add(AddressChangedEvent(address));
+                                    context.read<SendArtworkBloc>().add(
+                                        AddressChangedEvent(address, index));
                                     _initialChangeAddress = true;
                                   }
                                 }
@@ -260,8 +265,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               if (value != state.address) {
                                 context.read<SendArtworkBloc>().add(
                                       AddressChangedEvent(
-                                        _addressController.text,
-                                      ),
+                                          _addressController.text, index),
                                     );
                                 _initialChangeAddress = true;
                               }
@@ -315,6 +319,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                         arguments: SendArtworkReviewPayload(
                             asset,
                             widget.payload.wallet,
+                            widget.payload.index,
                             state.address!,
                             state.fee!,
                             state.exchangeRate,
@@ -564,7 +569,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 class SendArtworkPayload {
   final AssetToken asset;
   final WalletStorage wallet;
+  final int index;
   final int ownedQuantity;
 
-  SendArtworkPayload(this.asset, this.wallet, this.ownedQuantity);
+  SendArtworkPayload(this.asset, this.wallet, this.index, this.ownedQuantity);
 }

@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
@@ -47,7 +48,7 @@ abstract class AccountService {
 
   Future<WalletStorage?> getAccount(String did);
 
-  Future<WalletStorage> getAccountByAddress({
+  Future<WalletIndex> getAccountByAddress({
     required String chain,
     required String address,
   });
@@ -60,9 +61,10 @@ abstract class AccountService {
 
   Future<List<Persona>> getPersonas();
 
-  Future<Persona> createPersona({String name = ""});
+  Future<Persona> createPersona({String name = "", bool isDefault = false});
 
-  Future<Persona> importPersona(String words);
+  Future<Persona> importPersona(String words,
+      {WalletType walletType = WalletType.Autonomy});
 
   Future<Persona> namePersona(Persona persona, String name);
 
@@ -99,6 +101,8 @@ abstract class AccountService {
   Future<List<String>> getShowedAddresses();
 
   Future<String> authorizeToViewer();
+
+  Future<Persona> addAddressPersona(Persona newPersona, WalletType walletType);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -150,7 +154,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> importPersona(String words) async {
+  Future<Persona> importPersona(String words,
+      {WalletType walletType = WalletType.Autonomy}) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
       final mnemonic = await persona.wallet().exportMnemonicWords();
@@ -164,13 +169,29 @@ class AccountServiceImpl extends AccountService {
     await walletStorage.importKey(
         words, "", DateTime.now().microsecondsSinceEpoch);
 
-    final persona = Persona.newPersona(uuid: uuid);
+    int tezosIndex = 1;
+    int ethereumIndex = 1;
+    switch (walletType) {
+      case WalletType.Ethereum:
+        tezosIndex = 0;
+        break;
+      case WalletType.Tezos:
+        ethereumIndex = 0;
+        break;
+      default:
+        break;
+    }
+    final persona = Persona.newPersona(
+        uuid: uuid, ethereumIndex: ethereumIndex, tezosIndex: tezosIndex);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient
-        .addEvent(MixpanelEvent.importFullAccount, hashedData: {"id": uuid});
+    metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
+      "id": uuid,
+      "tezosIndex": tezosIndex,
+      "ethereumIndex": ethereumIndex
+    });
     _autonomyService.postLinkedAddresses();
 
     return persona;
@@ -219,27 +240,30 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage> getAccountByAddress({
+  Future<WalletIndex> getAccountByAddress({
     required String chain,
     required String address,
   }) async {
     var personas = await _cloudDB.personaDao.getPersonas();
+    final lowCaseAddress = address.toLowerCase();
     for (Persona p in personas) {
-      final wallet = p.wallet();
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
-          if ((await wallet.getETHEip55Address()) == address) {
-            return wallet;
+          final addresses = await p.getEthAddresses();
+          if (addresses.contains(lowCaseAddress)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
           }
           break;
         case Wc2Chain.tezos:
-          if ((await wallet.getTezosAddress()) == address) {
-            return wallet;
+          final addresses = await p.getTezosAddresses();
+          if (addresses.contains(lowCaseAddress)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
           }
           break;
         case Wc2Chain.autonomy:
+          final wallet = p.wallet();
           if (await wallet.getAccountDID() == address) {
-            return wallet;
+            return WalletIndex(wallet, -1);
           }
       }
     }
@@ -572,14 +596,7 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
 
     for (var persona in personas) {
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-
-      addresses.add(ethAddress);
-      addresses.add(await personaWallet.getTezosAddress());
+      addresses.addAll(await persona.getAddresses());
     }
 
     final linkedAccounts =
@@ -713,6 +730,22 @@ class AccountServiceImpl extends AccountService {
     });
 
     return "keypair_$base58PublicKey||${privateKey.toHex()}";
+  }
+
+  @override
+  Future<Persona> addAddressPersona(
+      Persona newPersona, WalletType walletType) async {
+    switch (walletType) {
+      case WalletType.Ethereum:
+        newPersona.ethereumIndex += 1;
+        break;
+      case WalletType.Tezos:
+        newPersona.tezosIndex += 1;
+        break;
+      default:
+    }
+    await _cloudDB.personaDao.updatePersona(newPersona);
+    return newPersona;
   }
 }
 

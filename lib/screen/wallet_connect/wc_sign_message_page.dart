@@ -236,7 +236,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               onTap: () => withDebounce(() async {
                 final args = widget.args;
                 final wc2Params = args.wc2Params;
-                final WalletStorage wallet;
+                final WalletIndex wallet;
                 if (wc2Params != null) {
                   final accountService = injector<AccountService>();
                   wallet = await accountService.getAccountByAddress(
@@ -252,18 +252,20 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     signature,
                   );
                 } else {
-                  wallet = LibAukDart.getWallet(widget.args.uuid);
+                  wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),
+                      widget.args.index);
                   final String signature;
 
                   switch (widget.args.type) {
                     case WCSignType.PERSONAL_MESSAGE:
                       signature = await injector<EthereumService>()
-                          .signPersonalMessage(wallet, message);
+                          .signPersonalMessage(
+                              wallet.wallet, wallet.index, message);
                       break;
                     case WCSignType.MESSAGE:
                     case WCSignType.TYPED_MESSAGE:
                       signature = await injector<EthereumService>()
-                          .signMessage(wallet, message);
+                          .signMessage(wallet.wallet, wallet.index, message);
                       break;
                   }
 
@@ -278,13 +280,13 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
-                        wallet,
+                        wallet.wallet,
                         true));
                   } else if (messageInUtf8.contains("ff_request_auth".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
-                        wallet,
+                        wallet.wallet,
                         false));
                   } else if (messageInUtf8
                       .contains("ff_request_auth_dis".tr())) {
@@ -338,6 +340,7 @@ class WCSignMessagePageArgs {
   final String message;
   final WCSignType type;
   final String uuid;
+  final int index;
   final Wc2SignRequestParams? wc2Params;
 
   WCSignMessagePageArgs(
@@ -346,7 +349,8 @@ class WCSignMessagePageArgs {
     this.peerMeta,
     this.message,
     this.type,
-    this.uuid, {
+    this.uuid,
+    this.index, {
     this.wc2Params,
   });
 }
