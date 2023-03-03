@@ -59,7 +59,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       _addressController.text = widget.data.address!;
     }
 
-    context.read<SendCryptoBloc>().add(GetBalanceEvent(widget.data.wallet));
+    context
+        .read<SendCryptoBloc>()
+        .add(GetBalanceEvent(widget.data.wallet, widget.data.index));
   }
 
   @override
@@ -101,154 +103,158 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      if (type == CryptoType.USDC) ...[
-                        Text("please_verify_usdc_erc20".tr(),
-                            style: theme.textTheme.headlineSmall),
-                        const SizedBox(height: 8),
-                      ],
-                      Text(
-                        "to".tr(),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                      const SizedBox(height: 4),
-                      AuTextField(
-                        labelSemantics: "address_send_${widget.data.type.code}",
-                        title: "",
-                        placeholder: "paste_or_scan_address".tr(),
-                        isError: state.isAddressError,
-                        controller: _addressController,
-                        suffix: IconButton(
-                          icon:
-                              Icon(state.isScanQR ? AuIcon.scan : AuIcon.close),
-                          onPressed: () async {
-                            if (_addressController.text.isNotEmpty) {
-                              _addressController.text = "";
-                              _initialChangeAddress = true;
-                              context
-                                  .read<SendCryptoBloc>()
-                                  .add(AddressChangedEvent(""));
-                            } else {
-                              dynamic address = await Navigator.of(context)
-                                  .pushNamed(ScanQRPage.tag,
-                                      arguments: type == CryptoType.XTZ
-                                          ? ScannerItem.XTZ_ADDRESS
-                                          : ScannerItem.ETH_ADDRESS);
-                              if (address != null && address is String) {
-                                address =
-                                    address.replacePrefix("ethereum:", "");
-                                _addressController.text = address;
-                                if (!mounted) return;
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        addTitleSpace(),
+                        if (type == CryptoType.USDC) ...[
+                          Text("please_verify_usdc_erc20".tr(),
+                              style: theme.textTheme.headlineSmall),
+                          const SizedBox(height: 8),
+                        ],
+                        Text(
+                          "to".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                        const SizedBox(height: 4),
+                        AuTextField(
+                          labelSemantics:
+                              "address_send_${widget.data.type.code}",
+                          title: "",
+                          placeholder: "paste_or_scan_address".tr(),
+                          isError: state.isAddressError,
+                          controller: _addressController,
+                          suffix: IconButton(
+                            icon: Icon(
+                                state.isScanQR ? AuIcon.scan : AuIcon.close),
+                            onPressed: () async {
+                              if (_addressController.text.isNotEmpty) {
+                                _addressController.text = "";
                                 _initialChangeAddress = true;
                                 context
                                     .read<SendCryptoBloc>()
-                                    .add(AddressChangedEvent(address));
-                              }
-                            }
-                          },
-                        ),
-                        onChanged: (value) {
-                          _initialChangeAddress = true;
-                          context.read<SendCryptoBloc>().add(
-                              AddressChangedEvent(_addressController.text));
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "amount".tr(),
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                          if (state.maxAllow != null) ...[
-                            GestureDetector(
-                              child: RichText(
-                                text: TextSpan(children: [
-                                  TextSpan(
-                                      text: "max".tr(),
-                                      style: theme.textTheme.ppMori400Grey14),
-                                  TextSpan(
-                                      text: _maxAmountText(state),
-                                      style: theme.textTheme.ppMori400Grey14
-                                          .copyWith(
-                                              decoration:
-                                                  TextDecoration.underline))
-                                ]),
-                              ),
-                              onTap: () {
-                                String amountInStr = _maxAmount(state);
-                                _amountController.text = amountInStr;
-                                context
-                                    .read<SendCryptoBloc>()
-                                    .add(AmountChangedEvent(amountInStr));
-                              },
-                            )
-                          ]
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      AuTextField(
-                        labelSemantics: "amount_send_${widget.data.type.code}",
-                        title: "",
-                        placeholder: "0.00 ${widget.data.type.code}",
-                        isError: state.isAmountError,
-                        controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        suffix: IconButton(
-                          icon: SvgPicture.asset(state.isCrypto
-                              ? _cryptoIconAsset()
-                              : "assets/images/iconUsd.svg"),
-                          onPressed: () {
-                            if (type == CryptoType.USDC) return;
-
-                            double amount = double.tryParse(_amountController
-                                    .text
-                                    .replaceAll(",", ".")) ??
-                                0;
-                            if (state.isCrypto) {
-                              if (type == CryptoType.ETH) {
-                                _amountController.text = state.exchangeRate
-                                    .ethToUsd(
-                                        BigInt.from(amount * pow(10, 18)));
-                              } else if (type == CryptoType.XTZ) {
-                                _amountController.text = state.exchangeRate
-                                    .xtzToUsd((amount * pow(10, 6)).toInt());
-                              }
-                            } else {
-                              if (type == CryptoType.ETH) {
-                                _amountController.text =
-                                    (double.parse(state.exchangeRate.eth) *
-                                            amount)
-                                        .toStringAsFixed(5);
+                                    .add(AddressChangedEvent(""));
                               } else {
-                                _amountController.text =
-                                    (double.parse(state.exchangeRate.xtz) *
-                                            amount)
-                                        .toStringAsFixed(6);
+                                dynamic address = await Navigator.of(context)
+                                    .pushNamed(ScanQRPage.tag,
+                                        arguments: type == CryptoType.XTZ
+                                            ? ScannerItem.XTZ_ADDRESS
+                                            : ScannerItem.ETH_ADDRESS);
+                                if (address != null && address is String) {
+                                  address =
+                                      address.replacePrefix("ethereum:", "");
+                                  _addressController.text = address;
+                                  if (!mounted) return;
+                                  _initialChangeAddress = true;
+                                  context
+                                      .read<SendCryptoBloc>()
+                                      .add(AddressChangedEvent(address));
+                                }
                               }
-                            }
-
-                            context
-                                .read<SendCryptoBloc>()
-                                .add(CurrencyTypeChangedEvent(!state.isCrypto));
+                            },
+                          ),
+                          onChanged: (value) {
+                            _initialChangeAddress = true;
+                            context.read<SendCryptoBloc>().add(
+                                AddressChangedEvent(_addressController.text));
                           },
                         ),
-                        onChanged: (value) {
-                          context.read<SendCryptoBloc>().add(AmountChangedEvent(
-                              _amountController.text.replaceAll(",", ".")));
-                        },
-                      ),
-                      gasFeeStatus(state, theme),
-                      const SizedBox(height: 8.0),
-                      if (state.feeOptionValue != null)
-                        feeTable(state, context),
-                    ],
+                        const SizedBox(height: 16.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "amount".tr(),
+                              style: theme.textTheme.ppMori400Black14,
+                            ),
+                            if (state.maxAllow != null) ...[
+                              GestureDetector(
+                                child: RichText(
+                                  text: TextSpan(children: [
+                                    TextSpan(
+                                        text: "max".tr(),
+                                        style: theme.textTheme.ppMori400Grey14),
+                                    TextSpan(
+                                        text: _maxAmountText(state),
+                                        style: theme.textTheme.ppMori400Grey14
+                                            .copyWith(
+                                                decoration:
+                                                    TextDecoration.underline))
+                                  ]),
+                                ),
+                                onTap: () {
+                                  String amountInStr = _maxAmount(state);
+                                  _amountController.text = amountInStr;
+                                  context
+                                      .read<SendCryptoBloc>()
+                                      .add(AmountChangedEvent(amountInStr));
+                                },
+                              )
+                            ]
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        AuTextField(
+                          labelSemantics:
+                              "amount_send_${widget.data.type.code}",
+                          title: "",
+                          placeholder: "0.00 ${widget.data.type.code}",
+                          isError: state.isAmountError,
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          suffix: IconButton(
+                            icon: SvgPicture.asset(state.isCrypto
+                                ? _cryptoIconAsset()
+                                : "assets/images/iconUsd.svg"),
+                            onPressed: () {
+                              if (type == CryptoType.USDC) return;
+
+                              double amount = double.tryParse(_amountController
+                                      .text
+                                      .replaceAll(",", ".")) ??
+                                  0;
+                              if (state.isCrypto) {
+                                if (type == CryptoType.ETH) {
+                                  _amountController.text = state.exchangeRate
+                                      .ethToUsd(
+                                          BigInt.from(amount * pow(10, 18)));
+                                } else if (type == CryptoType.XTZ) {
+                                  _amountController.text = state.exchangeRate
+                                      .xtzToUsd((amount * pow(10, 6)).toInt());
+                                }
+                              } else {
+                                if (type == CryptoType.ETH) {
+                                  _amountController.text =
+                                      (double.parse(state.exchangeRate.eth) *
+                                              amount)
+                                          .toStringAsFixed(5);
+                                } else {
+                                  _amountController.text =
+                                      (double.parse(state.exchangeRate.xtz) *
+                                              amount)
+                                          .toStringAsFixed(6);
+                                }
+                              }
+
+                              context.read<SendCryptoBloc>().add(
+                                  CurrencyTypeChangedEvent(!state.isCrypto));
+                            },
+                          ),
+                          onChanged: (value) {
+                            context.read<SendCryptoBloc>().add(
+                                AmountChangedEvent(_amountController.text
+                                    .replaceAll(",", ".")));
+                          },
+                        ),
+                        gasFeeStatus(state, theme),
+                        const SizedBox(height: 8.0),
+                        if (state.feeOptionValue != null)
+                          feeTable(state, context),
+                      ],
+                    ),
                   ),
                 ),
                 Row(
@@ -262,6 +268,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 final payload = SendCryptoPayload(
                                     type,
                                     state.wallet!,
+                                    state.index!,
                                     state.address!,
                                     state.amount!,
                                     state.fee!,
@@ -513,19 +520,21 @@ class SendData {
   final WalletStorage wallet;
   final CryptoType type;
   final String? address;
+  final int index;
 
-  SendData(this.wallet, this.type, this.address);
+  SendData(this.wallet, this.type, this.address, this.index);
 }
 
 class SendCryptoPayload {
   final CryptoType type;
   final WalletStorage wallet;
+  final int index;
   final String address;
   final BigInt amount;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
   final FeeOption feeOption;
 
-  SendCryptoPayload(this.type, this.wallet, this.address, this.amount, this.fee,
-      this.exchangeRate, this.feeOption);
+  SendCryptoPayload(this.type, this.wallet, this.index, this.address,
+      this.amount, this.fee, this.exchangeRate, this.feeOption);
 }

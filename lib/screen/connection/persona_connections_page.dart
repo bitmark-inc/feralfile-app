@@ -41,6 +41,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   void initState() {
     super.initState();
     final personUUID = widget.payload.personaUUID;
+    final index = widget.payload.index;
     context.read<AccountsBloc>().add(
         FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
@@ -55,8 +56,10 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
         break;
       case CryptoType.USDC:
-        context.read<USDCBloc>().add(GetAddressEvent(personUUID));
-        context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(personUUID));
+        context.read<USDCBloc>().add(GetAddressEvent(personUUID, index));
+        context
+            .read<USDCBloc>()
+            .add(GetUSDCBalanceWithUUIDEvent(personUUID, index));
         break;
       case CryptoType.UNKNOWN:
         // do nothing
@@ -91,10 +94,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(personUUID));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
         break;
       case CryptoType.XTZ:
-        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(personUUID));
+        context
+            .read<ConnectionsBloc>()
+            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
         break;
       default:
         // do nothing
@@ -239,16 +246,16 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
 class PersonaConnectionsPayload {
   final String personaUUID;
+  final int index;
   final String address;
   final CryptoType type;
-  final String personaName;
   final bool isBackHome;
 
   PersonaConnectionsPayload({
     required this.personaUUID,
+    required this.index,
     required this.address,
     required this.type,
-    required this.personaName,
     this.isBackHome = false,
   });
 }

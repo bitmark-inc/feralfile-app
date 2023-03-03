@@ -7,6 +7,7 @@
 
 // ignore_for_file: unused_field
 
+import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -107,7 +108,7 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
               final createdPersona = state.persona;
               if (createdPersona != null) {
                 Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: createdPersona.uuid);
+                    arguments: NamePersonaPayload(uuid: createdPersona.uuid));
               }
             });
             break;

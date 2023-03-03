@@ -54,7 +54,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         EtherUnit.wei, widget.args.transaction.value ?? '0');
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
-        to, amount, widget.args.transaction.data, widget.args.uuid));
+        to,
+        amount,
+        widget.args.transaction.data,
+        widget.args.uuid,
+        widget.args.index));
     _selectedPriority = context.read<WCSendTransactionBloc>().state.feeOption;
   }
 
@@ -256,6 +260,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                                 state.fee!,
                                                 widget.args.transaction.data,
                                                 widget.args.uuid,
+                                                widget.args.index,
                                                 isWalletConnect2: widget
                                                     .args.isWalletConnect2,
                                                 topic: widget.args
@@ -450,6 +455,7 @@ class WCSendTransactionPageArgs {
   final WCPeerMeta peerMeta;
   final WCEthereumTransaction transaction;
   final String uuid;
+  final int index;
   final String? topic; // For Wallet Connect 2.0
   final bool isWalletConnect2;
 
@@ -457,7 +463,8 @@ class WCSendTransactionPageArgs {
     this.id,
     this.peerMeta,
     this.transaction,
-    this.uuid, {
+    this.uuid,
+    this.index, {
     this.topic,
     this.isWalletConnect2 = false,
   });

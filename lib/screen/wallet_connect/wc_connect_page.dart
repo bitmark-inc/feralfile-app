@@ -8,12 +8,12 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -29,13 +29,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
-import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,21 +64,21 @@ class WCConnectPage extends StatefulWidget {
 
 class _WCConnectPageState extends State<WCConnectPage>
     with RouteAware, WidgetsBindingObserver {
-  Persona? selectedPersona;
-  List<Persona>? personas;
-  bool generatedPersona = false;
+  WalletIndex? selectedPersona;
+  List<CategorizedAccounts>? categorizedAccounts;
+  bool createPersona = false;
   final metricClient = injector.get<MetricClientService>();
-  bool _isAccountSelected = false;
+  bool isAccountSelected = false;
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
   late ConnectionRequest connectionRequest;
+  String? ethSelectedAddress;
+  String? tezSelectedAddress;
 
   @override
   void initState() {
     super.initState();
     connectionRequest = widget.connectionRequest;
-    context
-        .read<PersonaBloc>()
-        .add(GetListPersonaEvent(useDidKeyForAlias: true));
+    callAccountBloc();
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
     metricClient.timerEvent(MixpanelEvent.backConnectMarket);
@@ -96,9 +94,14 @@ class _WCConnectPageState extends State<WCConnectPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    context
-        .read<PersonaBloc>()
-        .add(GetListPersonaEvent(useDidKeyForAlias: true));
+    callAccountBloc();
+  }
+
+  void callAccountBloc() {
+    context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+        includeLinkedAccount: false,
+        getTezos: !widget.connectionRequest.isWCconnect,
+        getEth: !widget.connectionRequest.isBeaconConnect));
   }
 
   @override
@@ -136,26 +139,28 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     if (connectionRequest.isBeaconConnect) {
       injector<TezosBeaconService>()
-          .permissionResponse(null, connectionRequest.id, null, null);
+          .permissionResponse(null, null, connectionRequest.id, null, null);
     }
   }
 
   Future _approve({bool onBoarding = false}) async {
-    if (selectedPersona == null) return;
+    if (selectedPersona == null && !connectionRequest.isWC2connect) return;
 
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
-        final accountDid = await selectedPersona!.wallet().getAccountDID();
+        final account = await injector<AccountService>().getDefaultAccount();
+        final accountDid = await account.getAccountDID();
         await injector<Wc2Service>().approveSession(
           connectionRequest as Wc2Proposal,
           accountDid: accountDid.substring("did:key:".length),
-          personalUUID: selectedPersona!.uuid,
+          personalUUID: account.uuid,
         );
         payloadType = CryptoType.ETH;
-        payloadAddress = await selectedPersona!.wallet().getETHEip55Address();
+        payloadAddress =
+            await account.getETHEip55Address(index: selectedPersona!.index);
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
           data: {
@@ -167,7 +172,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         break;
       case WCConnectPageArgs:
         final address = await injector<EthereumService>()
-            .getETHAddress(selectedPersona!.wallet());
+            .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
 
         final chainId = Environment.web3ChainId;
 
@@ -175,7 +180,8 @@ class _WCConnectPageState extends State<WCConnectPage>
         log.info(
             "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
         final result = await injector<WalletConnectService>().approveSession(
-          selectedPersona!.uuid,
+          selectedPersona!.wallet.uuid,
+          selectedPersona!.index,
           (connectionRequest as WCConnectPageArgs).peerMeta,
           approvedAddresses,
           chainId,
@@ -201,12 +207,14 @@ class _WCConnectPageState extends State<WCConnectPage>
         }
         break;
       case BeaconRequest:
-        final wallet = selectedPersona!.wallet();
-        final publicKey = await wallet.getTezosPublicKey();
-        final address = await wallet.getTezosAddress();
+        final wallet = selectedPersona!.wallet;
+        final index = selectedPersona!.index;
+        final publicKey = await wallet.getTezosPublicKey(index: index);
+        final address = wallet.getTezosAddressFromPubKey(publicKey);
         final tezosService = injector<TezosBeaconService>();
         await tezosService.permissionResponse(
-          selectedPersona!.uuid,
+          wallet.uuid,
+          index,
           (connectionRequest as BeaconRequest).id,
           publicKey,
           address,
@@ -231,16 +239,15 @@ class _WCConnectPageState extends State<WCConnectPage>
     UIHelper.hideInfoDialog(context);
 
     if (memoryValues.scopedPersona != null) {
-      // from persona details flow
       Navigator.of(context).pop();
       return;
     }
 
     final payload = PersonaConnectionsPayload(
-      personaUUID: selectedPersona!.uuid,
+      personaUUID: selectedPersona!.wallet.uuid,
+      index: selectedPersona!.index,
       address: payloadAddress,
       type: payloadType,
-      personaName: selectedPersona!.name,
       isBackHome: onBoarding,
     );
 
@@ -296,94 +303,98 @@ class _WCConnectPageState extends State<WCConnectPage>
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton
               .copyWith(left: 0, right: 0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              addTitleSpace(),
-              Padding(
-                padding: padding,
-                child: _appInfo(),
-              ),
-              const SizedBox(height: 32),
-              addDivider(height: 52),
-              Padding(
-                padding: padding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "you_have_permission".tr(),
-                      style: theme.textTheme.ppMori400Black16,
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColor.auGrey,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Padding(
+                        padding: padding,
+                        child: _appInfo(),
+                      ),
+                      const SizedBox(height: 32),
+                      addDivider(height: 52),
+                      Padding(
+                        padding: padding,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ...grantPermissions
-                                .map(
-                                  (permission) => Row(
-                                    children: [
-                                      const SizedBox(
-                                        width: 6,
+                            Text(
+                              "you_have_permission".tr(),
+                              style: theme.textTheme.ppMori400Black16,
+                            ),
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColor.auGrey,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ...grantPermissions.map(
+                                      (permission) => Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 6,
+                                          ),
+                                          Text("•",
+                                              style: theme
+                                                  .textTheme.ppMori400Black14),
+                                          const SizedBox(
+                                            width: 6,
+                                          ),
+                                          Text(permission,
+                                              style: theme
+                                                  .textTheme.ppMori400Black14),
+                                        ],
                                       ),
-                                      Text("•",
-                                          style:
-                                              theme.textTheme.ppMori400Black14),
-                                      const SizedBox(
-                                        width: 6,
-                                      ),
-                                      Text(permission,
-                                          style:
-                                              theme.textTheme.ppMori400Black14),
-                                    ],
-                                  ),
-                                )
-                                .toList(),
+                                    ),
+                                  ],
+                                )),
                           ],
-                        )),
-                  ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      BlocConsumer<AccountsBloc, AccountsState>(
+                          listener: (context, state) {
+                        var stateCategorizedAccounts =
+                            state.categorizedAccounts;
+                        if (stateCategorizedAccounts == null ||
+                            stateCategorizedAccounts.isEmpty) {
+                          setState(() {
+                            createPersona = true;
+                          });
+                          return;
+                        }
+
+                        if (connectionRequest.isWC2connect) {
+                          if (stateCategorizedAccounts.isNotEmpty) {
+                            setState(() async {
+                              selectedPersona = WalletIndex(
+                                  (await injector<AccountService>()
+                                      .getDefaultAccount()),
+                                  0);
+                            });
+                          }
+                        }
+                        setState(() {
+                          categorizedAccounts = stateCategorizedAccounts;
+                        });
+                      }, builder: (context, state) {
+                        return _selectAccount();
+                      }),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 40),
-              BlocConsumer<PersonaBloc, PersonaState>(
-                  listener: (context, state) {
-                var statePersonas = state.personas;
-                if (statePersonas == null) return;
-
-                final scopedPersonaUUID = memoryValues.scopedPersona;
-                if (scopedPersonaUUID != null) {
-                  final scopedPersona = statePersonas.firstWhere(
-                      (element) => element.uuid == scopedPersonaUUID);
-                  statePersonas = [scopedPersona];
-                }
-
-                if (statePersonas.length == 1) {
-                  setState(() {
-                    selectedPersona = statePersonas?.first;
-                  });
-                }
-
-                if (connectionRequest.isWC2connect) {
-                  setState(() {
-                    selectedPersona = statePersonas
-                        ?.firstWhereOrNull((e) => e.defaultAccount == 1);
-                  });
-                }
-
-                setState(() {
-                  personas = statePersonas;
-                });
-              }, builder: (context, state) {
-                return _selectAccount();
-              }),
+              connect()
             ],
           ),
         ),
@@ -414,35 +425,60 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _selectAccount() {
-    final statePersonas = personas;
-    if (statePersonas == null) return const SizedBox();
+    final stateCategorizedAccounts = categorizedAccounts;
+    if (stateCategorizedAccounts == null) return const SizedBox();
 
-    if (statePersonas.isEmpty) {
-      return Expanded(child: _createAccountAndConnect());
+    if (stateCategorizedAccounts.isEmpty) {
+      return const SizedBox(); // Expanded(child: _createAccountAndConnect());
     }
     if (connectionRequest.isWC2connect) {
-      return Expanded(
-        child: Column(
-          children: [
-            const Expanded(child: SizedBox()),
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: padding,
-                    child: AuPrimaryButton(
-                      text: "connect".tr(),
-                      onPressed: () => withDebounce(() => _approveThenNotify()),
-                    ),
+      return const SizedBox();
+    }
+    return _selectPersonaWidget(stateCategorizedAccounts);
+  }
+
+  Widget connect() {
+    if (connectionRequest.isWC2connect) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: padding,
+                  child: AuPrimaryButton(
+                    text: "connect".tr(),
+                    onPressed: () => withDebounce(() => _approveThenNotify()),
                   ),
-                )
-              ],
-            )
-          ],
-        ),
+                ),
+              )
+            ],
+          )
+        ],
+      );
+    } else if (createPersona == true) {
+      return _createAccountAndConnect();
+    } else {
+      return Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: padding,
+              child: AuPrimaryButton(
+                text: "connect".tr(),
+                onPressed: selectedPersona != null
+                    ? () {
+                        metricClient.addEvent(MixpanelEvent.connectMarket);
+                        withDebounce(() => _approveThenNotify());
+                      }
+                    : null,
+              ),
+            ),
+          )
+        ],
       );
     }
-    return Expanded(child: _selectPersonaWidget(statePersonas));
   }
 
   Widget _wcAppInfo(WCPeerMeta peerMeta) {
@@ -516,10 +552,14 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _selectPersonaWidget(List<Persona> personas) {
-    bool hasRadio = personas.length > 1;
+  Widget _selectPersonaWidget(List<CategorizedAccounts> accounts) {
     final theme = Theme.of(context);
-    if (!hasRadio) _isAccountSelected = true;
+    String select = "";
+    if (widget.connectionRequest.isBeaconConnect) {
+      select = "select_tezos".tr(args: ["1"]);
+    } else if (widget.connectionRequest.isWCconnect) {
+      select = "select_ethereum".tr(args: ["1"]);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,103 +567,41 @@ class _WCConnectPageState extends State<WCConnectPage>
         Padding(
           padding: padding,
           child: Text(
-            "select_grand_access".tr(), //"Select an account to grant access:",
+            select,
             style: theme.textTheme.ppMori400Black16,
           ),
         ),
         const SizedBox(height: 16.0),
-        Expanded(
-          child: ListView(
-            children: <Widget>[
-              ...personas
-                  .map((persona) => Column(
-                        children: [
-                          Padding(
-                            padding: ResponsiveLayout.pageEdgeInsets
-                                .copyWith(top: 0, bottom: 0),
-                            child: GestureDetector(
-                              child: ListTile(
-                                title: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 30,
-                                      height: 32,
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: Image.asset(
-                                              "assets/images/moma_logo.png"),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 32),
-                                    FutureBuilder<String>(
-                                      future: persona.wallet().getAccountDID(),
-                                      builder: (context, snapshot) {
-                                        final name = persona.name.isNotEmpty
-                                            ? persona.name
-                                            : snapshot.data ?? '';
-                                        return Expanded(
-                                          child: Text(
-                                            name.replaceFirst('did:key:', ''),
-                                            style: theme
-                                                .textTheme.ppMori400Black14,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                contentPadding: EdgeInsets.zero,
-                                trailing: (hasRadio
-                                    ? AuRadio(
-                                        onTap: (Persona? persona) {
-                                          setState(() {
-                                            selectedPersona = persona;
-                                            _isAccountSelected = true;
-                                          });
-                                        },
-                                        value: persona,
-                                        groupValue: selectedPersona,
-                                      )
-                                    : null),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  selectedPersona = persona;
-                                  _isAccountSelected = true;
-                                });
-                              },
-                            ),
-                          ),
-                          addOnlyDivider(),
-                        ],
-                      ))
-                  .toList(),
-            ],
-          ),
-        ),
-        Row(
+        Column(
           children: [
-            Expanded(
-              child: Padding(
-                padding: padding,
-                child: AuPrimaryButton(
-                  text: "connect".tr(),
-                  onPressed: _isAccountSelected
-                      ? () {
-                          metricClient.addEvent(MixpanelEvent.connectMarket);
-                          withDebounce(() => _approveThenNotify());
-                        }
-                      : null,
-                ),
+            ...accounts.map(
+              (account) => PersonalConnectItem(
+                categorizedAccount: account,
+                ethSelectedAddress: ethSelectedAddress,
+                tezSelectedAddress: tezSelectedAddress,
+                isExpand: true,
+                onSelectEth: (value) {
+                  int index = account.ethAccounts
+                      .indexWhere((e) => e.accountNumber == value);
+                  setState(() {
+                    ethSelectedAddress = value;
+                    selectedPersona =
+                        WalletIndex(account.persona!.wallet(), index);
+                  });
+                },
+                onSelectTez: (value) {
+                  int index = account.xtzAccounts
+                      .indexWhere((e) => e.accountNumber == value);
+                  setState(() {
+                    tezSelectedAddress = value;
+                    selectedPersona =
+                        WalletIndex(account.persona!.wallet(), index);
+                  });
+                },
               ),
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -633,7 +611,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       padding: ResponsiveLayout.pageHorizontalEdgeInsets,
       child: Column(
         children: [
-          const Spacer(),
           Row(
             children: [
               Expanded(
@@ -658,11 +635,17 @@ class _WCConnectPageState extends State<WCConnectPage>
     final defaultName = await account.getAccountDID();
     var persona =
         await injector<CloudDatabase>().personaDao.findById(account.uuid);
+    if (persona == null) {
+      log.info("[wc_connect_page] could not find default account");
+      return;
+    }
+    persona.ethereumIndex = 1;
+    persona.tezosIndex = 1;
     final namedPersona =
-        await injector<AccountService>().namePersona(persona!, defaultName);
+        await injector<AccountService>().namePersona(persona, defaultName);
     injector<ConfigurationService>().setDoneOnboarding(true);
     injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-    selectedPersona = namedPersona;
+    selectedPersona = WalletIndex(namedPersona.wallet(), 0);
     _approveThenNotify(onBoarding: true);
   }
 }

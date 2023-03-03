@@ -24,10 +24,11 @@ import 'package:share/share.dart';
 class GlobalReceiveDetailPage extends StatefulWidget {
   static const tag = "global_receive_detail";
 
-  final Object? payload;
+  final GlobalReceivePayload payload;
 
   const GlobalReceiveDetailPage({Key? key, required this.payload})
       : super(key: key);
+
   @override
   State<GlobalReceiveDetailPage> createState() =>
       _GlobalReceiveDetailPageState();
@@ -38,7 +39,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
 
   @override
   void initState() {
-    _account = widget.payload as Account;
+    _account = widget.payload.account;
     super.initState();
   }
 
@@ -66,13 +67,15 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                 child: GestureDetector(
                     onTap: copy,
                     child: QrImage(
-                      data: _account.accountNumber,
+                      data: widget.payload.address,
                       size: 180.0,
                     )),
               ),
               const SizedBox(height: 48),
-              ImportantNoteView(
-                  note: _blockchainWarningText(_account.blockchain)),
+              _account.blockchain != "USDC"
+                  ? ImportantNoteView(
+                      note: _blockchainWarningText(_account.blockchain))
+                  : const SizedBox(),
               const SizedBox(height: 16),
               Container(
                 decoration: const BoxDecoration(
@@ -120,7 +123,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               textColor: AppColor.primaryBlack,
               borderColor: AppColor.primaryBlack,
               text: "share".tr(),
-              onTap: () => Share.share(_account.accountNumber,
+              onTap: () => Share.share(widget.payload.address,
                   subject: "my_account_number".tr())),
         ),
       ]),
@@ -131,7 +134,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
     showInfoNotification(
         const Key("address"), "address_copied_to_clipboard".tr());
     Vibrate.feedback(FeedbackType.light);
-    Clipboard.setData(ClipboardData(text: _account.accountNumber));
+    Clipboard.setData(ClipboardData(text: widget.payload.address));
   }
 }
 
@@ -149,4 +152,13 @@ String _blockchainWarningText(String? blockchain) {
     default:
       return "";
   }
+}
+
+class GlobalReceivePayload {
+  String address;
+  String blockchain;
+  Account account;
+
+  GlobalReceivePayload(
+      {required this.address, required this.blockchain, required this.account});
 }

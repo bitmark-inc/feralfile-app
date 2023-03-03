@@ -297,7 +297,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                             ),
                           ),
                           const SizedBox(height: 16.0),
-                          PersionalConnectItem(
+                          PersonalConnectItem(
                             categorizedAccount: categorizedAccounts.first,
                             isAutoSelect: true,
                             isExpand: true,
@@ -400,7 +400,7 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
         ...categorizedAccounts
             .map((categorizedAccount) => Column(
                   children: [
-                    PersionalConnectItem(
+                    PersonalConnectItem(
                       categorizedAccount: categorizedAccount,
                       ethSelectedAddress: ethSelectedAddress,
                       tezSelectedAddress: tezSelectedAddress,
@@ -496,7 +496,7 @@ class AddressItem extends StatelessWidget {
   }
 }
 
-class PersionalConnectItem extends StatefulWidget {
+class PersonalConnectItem extends StatefulWidget {
   final CategorizedAccounts categorizedAccount;
   final String? tezSelectedAddress;
   final String? ethSelectedAddress;
@@ -507,7 +507,7 @@ class PersionalConnectItem extends StatefulWidget {
   final bool isAutoSelect;
   final bool isExpand;
 
-  const PersionalConnectItem({
+  const PersonalConnectItem({
     Key? key,
     required this.categorizedAccount,
     this.tezSelectedAddress,
@@ -519,10 +519,10 @@ class PersionalConnectItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<PersionalConnectItem> createState() => _PersionalConnectItemState();
+  State<PersonalConnectItem> createState() => _PersonalConnectItemState();
 }
 
-class _PersionalConnectItemState extends State<PersionalConnectItem> {
+class _PersonalConnectItemState extends State<PersonalConnectItem> {
   bool _showDetail = false;
 
   @override

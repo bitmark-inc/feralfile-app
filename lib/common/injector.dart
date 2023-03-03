@@ -111,6 +111,7 @@ Future<void> setup() async {
       .addMigrations([
     migrateCloudV1ToV2,
     migrateCloudV2ToV3,
+    migrateCloudV3ToV4,
   ]).build();
 
   injector.registerLazySingleton(() => cloudDB);

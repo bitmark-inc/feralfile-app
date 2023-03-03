@@ -10,9 +10,9 @@ part of 'tezos_bloc.dart';
 abstract class TezosEvent {}
 
 class GetTezosBalanceWithAddressEvent extends TezosEvent {
-  final String address;
+  final List<String> addresses;
 
-  GetTezosBalanceWithAddressEvent(this.address);
+  GetTezosBalanceWithAddressEvent(this.addresses);
 }
 
 class GetTezosBalanceWithUUIDEvent extends TezosEvent {
@@ -28,13 +28,13 @@ class GetTezosAddressEvent extends TezosEvent {
 }
 
 class TezosState {
-  Map<String, String>? personaAddresses;
+  Map<String, List<String>>? personaAddresses;
   Map<String, int> balances;
 
   TezosState(this.personaAddresses, this.balances);
 
   TezosState copyWith({
-    Map<String, String>? personaAddresses,
+    Map<String, List<String>>? personaAddresses,
     Map<String, int>? balances,
   }) {
     return TezosState(

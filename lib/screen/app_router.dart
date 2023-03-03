@@ -206,8 +206,8 @@ class AppRouter {
   static const helpUsPage = 'help_us_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final ethereumBloc = EthereumBloc(injector());
-    final tezosBloc = TezosBloc(injector());
+    final ethereumBloc = EthereumBloc(injector(), injector());
+    final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
@@ -485,7 +485,8 @@ class AppRouter {
                     injector(),
                     injector<AuditService>(),
                   ),
-                  child: NamePersonaPage(uuid: settings.arguments as String),
+                  child: NamePersonaPage(
+                      payload: settings.arguments as NamePersonaPayload),
                 ));
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
@@ -514,14 +515,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
               providers: [
                 BlocProvider.value(value: accountsBloc),
-                BlocProvider(
-                  create: (_) => PersonaBloc(
-                    injector<CloudDatabase>(),
-                    injector(),
-                    injector(),
-                    injector<AuditService>(),
-                  ),
-                ),
               ],
               child: WCConnectPage(
                 connectionRequest: argument,
@@ -832,7 +825,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GlobalReceiveDetailPage(
-                  payload: settings.arguments,
+                  payload: settings.arguments as GlobalReceivePayload,
                 ));
 
       case autonomySecurityPage:
@@ -931,14 +924,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                        create: (_) => PersonaBloc(
-                          injector<CloudDatabase>(),
-                          injector(),
-                          injector(),
-                          injector<AuditService>(),
-                        ),
-                      ),
                     ],
                     child: TVConnectPage(
                         wcConnectArgs:

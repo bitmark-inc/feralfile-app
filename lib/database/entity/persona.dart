@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
@@ -27,29 +28,39 @@ class Persona {
   String name;
   DateTime createdAt;
   int? defaultAccount;
+  int ethereumIndex;
+  int tezosIndex;
 
   Persona(
       {required this.uuid,
       required this.name,
       required this.createdAt,
-      this.defaultAccount});
+      this.defaultAccount,
+      this.ethereumIndex = 1,
+      this.tezosIndex = 1});
 
   Persona.newPersona(
       {required this.uuid,
       this.name = "",
       this.defaultAccount,
-      DateTime? createdAt})
+      DateTime? createdAt,
+      this.ethereumIndex = 1,
+      this.tezosIndex = 1})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
     String? name,
     DateTime? createdAt,
+    int? ethereumIndex,
+    int? tezosIndex,
   }) {
     return Persona(
         uuid: uuid,
         name: name ?? this.name,
         defaultAccount: defaultAccount,
-        createdAt: createdAt ?? this.createdAt);
+        createdAt: createdAt ?? this.createdAt,
+        ethereumIndex: ethereumIndex ?? this.ethereumIndex,
+        tezosIndex: tezosIndex ?? this.tezosIndex);
   }
 
   WalletStorage wallet() {
@@ -58,6 +69,23 @@ class Persona {
 
   bool isDefault() => defaultAccount == 1;
 
+  Future<List<String>> getAddresses() async {
+    final List<String> addresses = [];
+    addresses.addAll(await getEthAddresses());
+    addresses.addAll(await getTezosAddresses());
+    return addresses;
+  }
+
+  Future<List<String>> getEthAddresses() async {
+    return await Future.wait(Iterable.generate(
+        ethereumIndex, (i) => wallet().getETHAddress(index: i)));
+  }
+
+  Future<List<String>> getTezosAddresses() async {
+    return await Future.wait(Iterable.generate(
+        tezosIndex, (i) => wallet().getTezosAddress(index: i)));
+  }
+
   @override
   bool operator ==(covariant Persona other) {
     if (identical(this, other)) return true;
@@ -65,7 +93,9 @@ class Persona {
     return other.uuid == uuid &&
         other.name == name &&
         other.createdAt == createdAt &&
-        other.defaultAccount == defaultAccount;
+        other.defaultAccount == defaultAccount &&
+        other.ethereumIndex == ethereumIndex &&
+        other.tezosIndex == tezosIndex;
   }
 
   @override
@@ -73,6 +103,8 @@ class Persona {
     return uuid.hashCode ^
         name.hashCode ^
         createdAt.hashCode ^
-        defaultAccount.hashCode;
+        defaultAccount.hashCode ^
+        ethereumIndex.hashCode ^
+        tezosIndex.hashCode;
   }
 }

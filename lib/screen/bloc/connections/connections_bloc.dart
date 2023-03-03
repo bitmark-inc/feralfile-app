@@ -58,6 +58,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
         final wcConnection = connection.wcConnection;
         if (wcConnection == null) continue;
         if (wcConnection.personaUuid == personaUUID &&
+            wcConnection.index == event.index &&
             wcConnection.sessionStore.remotePeerMeta.name !=
                 AUTONOMY_TV_PEER_NAME) {
           personaConnections.add(connection);
@@ -85,7 +86,8 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
       List<Connection> personaConnections = [];
       for (var connection in connections) {
-        if (connection.beaconConnectConnection?.personaUuid == personaUUID) {
+        if (connection.beaconConnectConnection?.personaUuid == personaUUID &&
+            connection.beaconConnectConnection?.index == event.index) {
           personaConnections.add(connection);
         }
       }

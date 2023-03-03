@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -20,13 +19,18 @@ import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,45 +52,36 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     with RouteAware {
   bool isHideGalleryEnabled = false;
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-
+  WalletType _walletTypeSelecting = WalletType.Ethereum;
   String? title;
+  late Persona persona;
 
   @override
   void initState() {
     super.initState();
+    persona = widget.persona;
+    _callBloc(persona);
 
-    context
-        .read<EthereumBloc>()
-        .add(GetEthereumAddressEvent(widget.persona.uuid));
+    isHideGalleryEnabled =
+        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
 
-    context.read<TezosBloc>().add(GetTezosAddressEvent(widget.persona.uuid));
-
-    context.read<USDCBloc>().add(GetAddressEvent(widget.persona.uuid));
-
-    context
-        .read<EthereumBloc>()
-        .add(GetEthereumBalanceWithUUIDEvent(widget.persona.uuid));
-
-    context
-        .read<TezosBloc>()
-        .add(GetTezosBalanceWithUUIDEvent(widget.persona.uuid));
-
-    context
-        .read<USDCBloc>()
-        .add(GetUSDCBalanceWithUUIDEvent(widget.persona.uuid));
-
-    isHideGalleryEnabled = injector<AccountService>()
-        .isPersonaHiddenInGallery(widget.persona.uuid);
-
-    if (widget.persona.name.isNotEmpty) {
-      title = widget.persona.name;
+    if (persona.name.isNotEmpty) {
+      title = persona.name;
     } else {
       _getDidKey();
     }
   }
 
+  _callBloc(Persona persona) {
+    context
+        .read<EthereumBloc>()
+        .add(GetEthereumBalanceWithUUIDEvent(persona.uuid));
+
+    context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(persona.uuid));
+  }
+
   _getDidKey() async {
-    final didKey = await widget.persona.wallet().getAccountDID();
+    final didKey = await persona.wallet().getAccountDID();
     setState(() {
       title = didKey;
     });
@@ -106,17 +101,16 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   @override
   void didPopNext() {
-    final uuid = widget.persona.uuid;
+    final uuid = persona.uuid;
     context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
     context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
-    context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(uuid));
     super.didPopNext();
   }
 
   @override
   Widget build(BuildContext context) {
-    final uuid = widget.persona.uuid;
-    final isDefaultAccount = widget.persona.defaultAccount == 1;
+    final uuid = persona.uuid;
+    final isDefaultAccount = persona.defaultAccount == 1;
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -136,6 +130,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                         padding: padding.copyWith(top: 0, bottom: 0),
                         child: _defaultAccount(context),
                       ),
+                      if (injector<ConfigurationService>()
+                          .getShowAuChainInfo()) ...[
+                        const SizedBox(height: 30),
+                        _importInfo(context),
+                      ],
                     ],
                   )
                 : const SizedBox(
@@ -155,6 +154,45 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
+  Widget _importInfo(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: ResponsiveLayout.pageHorizontalEdgeInsets,
+      padding: const EdgeInsets.all(15.0),
+      decoration: const BoxDecoration(
+        color: AppColor.auSuperTeal,
+        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                "info".tr(),
+                style: theme.textTheme.ppMori700Black14,
+              ),
+              const Spacer(),
+              GestureDetector(
+                child: closeIcon(),
+                onTap: () async {
+                  await injector<ConfigurationService>()
+                      .setShowAuChainInfo(false);
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Text(
+            "generate_support_au".tr(),
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _addressesSection(String uuid) {
     final theme = Theme.of(context);
 
@@ -170,49 +208,156 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         ),
         const SizedBox(height: 40),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
-          final ethAddress = state.personaAddresses?[uuid];
-          final ethBalance = state.ethBalances[ethAddress];
-          final balance = ethBalance == null
-              ? "-- ETH"
-              : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
-          return _addressRow(
-              address: state.personaAddresses?[uuid] ?? "",
-              type: CryptoType.ETH,
-              balance: balance);
+          final ethAddresses = state.personaAddresses?[uuid];
+          if (ethAddresses == null || ethAddresses.isEmpty) {
+            return const SizedBox();
+          }
+          return Column(
+              children: ethAddresses
+                  .map((address) => [
+                        _addressRow(
+                            address: address,
+                            index: ethAddresses.indexOf(address),
+                            type: CryptoType.ETH,
+                            balance: state.ethBalances[address] == null
+                                ? "-- ETH"
+                                : "${EthAmountFormatter(state.ethBalances[address]!.getInWei).format()} ETH"),
+                        addDivider(),
+                      ])
+                  .flattened
+                  .toList());
         }),
-        addDivider(),
-        BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
-          final usdcAddress = state.personaAddresses?[uuid];
-          final usdcBalance = state.usdcBalances[usdcAddress];
-          final balance = usdcBalance == null
-              ? "-- USDC"
-              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-          return _addressRow(
-              address: state.personaAddresses?[uuid] ?? "",
-              type: CryptoType.USDC,
-              balance: balance);
-        }),
-        addDivider(),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
           final tezosAddress = state.personaAddresses?[uuid];
-          final xtzBalance = state.balances[tezosAddress];
-          final balance = xtzBalance == null
-              ? "-- XTZ"
-              : "${XtzAmountFormatter(xtzBalance).format()} XTZ";
-          return _addressRow(
-            address: state.personaAddresses?[uuid] ?? "",
-            type: CryptoType.XTZ,
-            balance: balance,
-          );
+          if (tezosAddress == null || tezosAddress.isEmpty) {
+            return const SizedBox();
+          }
+          return Column(
+              children: tezosAddress
+                  .map((address) => [
+                        _addressRow(
+                          address: address,
+                          index: tezosAddress.indexOf(address),
+                          type: CryptoType.XTZ,
+                          balance: state.balances[address] == null
+                              ? "-- XTZ"
+                              : "${XtzAmountFormatter(state.balances[address]!).format()} XTZ",
+                        ),
+                        if (address != tezosAddress.last) addDivider(),
+                      ])
+                  .flattened
+                  .toList());
         }),
+        const SizedBox(height: 30),
+        Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: padding,
+                child: AuPrimaryButton(
+                  text: "add_address_to_wallet".tr(),
+                  onPressed: () {
+                    UIHelper.showDialog(context, "add_address_to_wallet".tr(),
+                        StatefulBuilder(builder: (
+                      BuildContext context,
+                      StateSetter dialogState,
+                    ) {
+                      return Column(
+                        children: [
+                          _walletTypeOption(
+                              theme, WalletType.Ethereum, dialogState),
+                          addDivider(height: 40, color: AppColor.white),
+                          _walletTypeOption(
+                              theme, WalletType.Tezos, dialogState),
+                          const SizedBox(height: 40),
+                          Padding(
+                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                            child: Column(
+                              children: [
+                                AuPrimaryButton(
+                                  text: "add_address".tr(),
+                                  onPressed: () async {
+                                    final newPersona =
+                                        await injector<AccountService>()
+                                            .addAddressPersona(
+                                                persona, _walletTypeSelecting);
+                                    if (!mounted) return;
+                                    Navigator.of(context).pop();
+                                    setState(() {
+                                      persona = newPersona;
+                                      _callBloc(newPersona);
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 10),
+                                OutlineButton(
+                                  onTap: () => Navigator.of(context).pop(),
+                                  text: "cancel".tr(),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      );
+                    }),
+                        isDismissible: true,
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        paddingTitle:
+                            ResponsiveLayout.pageHorizontalEdgeInsets);
+                  },
+                ),
+              ),
+            )
+          ],
+        ),
+        const SizedBox(height: 14),
         addDivider(),
       ],
+    );
+  }
+
+  Widget _walletTypeOption(
+      ThemeData theme, WalletType walletType, StateSetter dialogState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _walletTypeSelecting = walletType;
+          });
+          dialogState(() {});
+        },
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              Text(
+                walletType.getString(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              const Spacer(),
+              AuRadio<WalletType>(
+                onTap: (value) {
+                  setState(() {
+                    _walletTypeSelecting = walletType;
+                  });
+                  dialogState(() {});
+                },
+                value: _walletTypeSelecting,
+                groupValue: walletType,
+                color: AppColor.white,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _addressRow(
       {required String address,
       required CryptoType type,
+      required int index,
       String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.ppMori400Black14;
@@ -262,11 +407,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       ),
       onTap: () {
         final payload = WalletDetailsPayload(
-          personaUUID: widget.persona.uuid,
+          personaUUID: persona.uuid,
           address: address,
           type: type,
-          wallet: LibAukDart.getWallet(widget.persona.uuid),
-          personaName: widget.persona.name,
+          wallet: LibAukDart.getWallet(persona.uuid),
+          personaName: persona.name,
+          index: index,
           //personaName: widget.persona.name,
         );
         Navigator.of(context)
@@ -299,7 +445,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                   value: isHideGalleryEnabled,
                   onToggle: (value) async {
                     await injector<AccountService>()
-                        .setHidePersonaInGallery(widget.persona.uuid, value);
+                        .setHidePersonaInGallery(persona.uuid, value);
                     final hiddenAddress =
                         await injector<AccountService>().getHiddenAddresses();
                     if (!mounted) return;
@@ -358,7 +504,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 }
               }
 
-              final words = await widget.persona.wallet().exportMnemonicWords();
+              final words = await persona.wallet().exportMnemonicWords();
 
               if (!mounted) return;
 

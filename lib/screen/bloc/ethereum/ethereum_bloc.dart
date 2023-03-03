@@ -6,47 +6,45 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:web3dart/web3dart.dart';
 
 part 'ethereum_state.dart';
 
 class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
   final EthereumService _ethereumService;
+  final CloudDatabase _cloudDB;
 
-  EthereumBloc(this._ethereumService) : super(EthereumState(null, {})) {
+  EthereumBloc(this._ethereumService, this._cloudDB)
+      : super(EthereumState(null, {})) {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
-      final address = await Persona.newPersona(uuid: event.uuid)
-          .wallet()
-          .getETHEip55Address();
+      final persona = await _cloudDB.personaDao.findById(event.uuid);
+      if (persona == null || persona.ethereumIndex < 1) return;
+      final addresses = await persona.getEthAddresses();
       var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] = address;
+      personaAddresses[event.uuid] = addresses;
 
       emit(state.copyWith(personaAddresses: personaAddresses));
     });
 
     on<GetEthereumBalanceWithAddressEvent>((event, emit) async {
-      final ethBalance = await _ethereumService.getBalance(event.address);
-
       var ethBalances = state.ethBalances;
-      state.ethBalances[event.address] = ethBalance;
-
+      await Future.wait((event.addresses.map((address) async {
+        ethBalances[address] = await _ethereumService.getBalance(address);
+      })).toList());
       emit(state.copyWith(ethBalances: ethBalances));
     });
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
-      final address = await Persona.newPersona(uuid: event.uuid)
-          .wallet()
-          .getETHEip55Address();
-
-      final ethBalance = await _ethereumService.getBalance(address);
-      var ethBalances = state.copyWith().ethBalances;
-      ethBalances[address] = ethBalance;
-
-      emit(state.copyWith(ethBalances: ethBalances));
+      final persona = await _cloudDB.personaDao.findById(event.uuid);
+      if (persona == null || persona.ethereumIndex < 1) return;
+      final addresses = await persona.getEthAddresses();
+      var listAddresses = state.personaAddresses ?? {};
+      listAddresses[event.uuid] = addresses;
+      emit(state.copyWith(personaAddresses: listAddresses));
+      add(GetEthereumBalanceWithAddressEvent(addresses));
     });
   }
 }

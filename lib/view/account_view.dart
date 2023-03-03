@@ -56,9 +56,16 @@ Widget accountWithConnectionItem(
                   addOnlyDivider(),
                   _blockchainAddressView(
                     context,
-                    a,
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(GlobalReceiveDetailPage.tag, arguments: a),
+                    GlobalReceivePayload(
+                        address: a.accountNumber,
+                        blockchain: a.blockchain!,
+                        account: a),
+                    onTap: () => Navigator.of(context).pushNamed(
+                        GlobalReceiveDetailPage.tag,
+                        arguments: GlobalReceivePayload(
+                            address: a.accountNumber,
+                            blockchain: a.blockchain!,
+                            account: a)),
                   ),
                 ],
               )
@@ -97,10 +104,18 @@ Widget accountWithConnectionItem(
               .map((a) => [
                     addOnlyDivider(),
                     Container(
-                        child: _blockchainAddressView(context, a,
+                        child: _blockchainAddressView(
+                            context,
+                            GlobalReceivePayload(
+                                address: a.accountNumber,
+                                blockchain: a.blockchain!,
+                                account: a),
                             onTap: () => Navigator.of(context).pushNamed(
                                 GlobalReceiveDetailPage.tag,
-                                arguments: a))),
+                                arguments: GlobalReceivePayload(
+                                    address: a.accountNumber,
+                                    blockchain: a.blockchain!,
+                                    account: a)))),
                   ])
               .flattened
               .toList(),
@@ -205,7 +220,7 @@ Widget accountItem(BuildContext context, Account account,
 
 Widget _blockchainAddressView(
   BuildContext context,
-  Account account, {
+  GlobalReceivePayload receiver, {
   Function()? onTap,
 }) {
   final theme = Theme.of(context);
@@ -214,10 +229,10 @@ Widget _blockchainAddressView(
     child: TappableForwardRowWithContent(
       leftWidget: Row(
         children: [
-          _blockchainLogo(account.blockchain),
+          _blockchainLogo(receiver.blockchain),
           const SizedBox(width: 32),
           Text(
-            _blockchainName(account.blockchain),
+            _blockchainName(receiver.blockchain),
             style: theme.textTheme.ppMori700Black14,
           ),
           const SizedBox(width: 8),
@@ -225,7 +240,7 @@ Widget _blockchainAddressView(
       ),
       onTap: onTap,
       bottomWidget: Text(
-        account.accountNumber,
+        receiver.address,
         style: ResponsiveLayout.isMobile
             ? theme.textTheme.ppMori400Black14
             : theme.textTheme.ppMori400Black16,

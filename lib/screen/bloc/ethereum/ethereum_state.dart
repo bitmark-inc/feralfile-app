@@ -10,9 +10,9 @@ part of 'ethereum_bloc.dart';
 abstract class EthereumEvent {}
 
 class GetEthereumBalanceWithAddressEvent extends EthereumEvent {
-  final String address;
+  final List<String> addresses;
 
-  GetEthereumBalanceWithAddressEvent(this.address);
+  GetEthereumBalanceWithAddressEvent(this.addresses);
 }
 
 class GetEthereumBalanceWithUUIDEvent extends EthereumEvent {
@@ -28,13 +28,13 @@ class GetEthereumAddressEvent extends EthereumEvent {
 }
 
 class EthereumState {
-  Map<String, String>? personaAddresses;
+  Map<String, List<String>>? personaAddresses;
   Map<String, EtherAmount> ethBalances;
 
   EthereumState(this.personaAddresses, this.ethBalances);
 
   EthereumState copyWith({
-    Map<String, String>? personaAddresses,
+    Map<String, List<String>>? personaAddresses,
     Map<String, EtherAmount>? ethBalances,
   }) {
     return EthereumState(

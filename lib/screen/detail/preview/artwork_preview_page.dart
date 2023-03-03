@@ -589,7 +589,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       children: [
                         Text(
                           assetToken?.title ?? '',
-                          style: theme.textTheme.ppMori400White14,
+                          style: theme.textTheme.ppMori400White16,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -610,7 +610,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       "by".tr(args: [artistName]),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.ppMori400White12,
+                                      style: theme.textTheme.ppMori400White14,
                                     ),
                                   ),
                                 ],

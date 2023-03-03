@@ -153,6 +153,7 @@ class Wc2Service extends Wc2Handler {
   //#region Events handling
   @override
   void onSessionProposal(Wc2Proposal proposal) async {
+    log.info("[WC2Service] onSessionProposal: id = ${proposal.id}");
     final unsupportedChains =
         proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
     if (unsupportedChains.isNotEmpty) {
@@ -213,7 +214,7 @@ class Wc2Service extends Wc2Handler {
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
           try {
-            final account = await _accountService.getAccountByAddress(
+            final walletIndex = await _accountService.getAccountByAddress(
               chain: chain,
               address: request.params["address"],
             );
@@ -228,7 +229,8 @@ class Wc2Service extends Wc2Handler {
               request.id,
               metaData,
               WCEthereumTransaction.fromJson(transaction),
-              account.uuid,
+              walletIndex.wallet.uuid,
+              walletIndex.index,
               topic: request.topic,
               isWalletConnect2: true,
             );
@@ -277,7 +279,9 @@ class Wc2Service extends Wc2Handler {
           request.proposer!.toWCPeerMeta(),
           request.params["message"],
           WCSignType.PERSONAL_MESSAGE,
-          "", // uuid, used for Wallet connect 1 only
+          "",
+          0,
+          // uuid, index, used for Wallet connect 1 only
           wc2Params: Wc2SignRequestParams(
             chain: request.params["chain"],
             address: request.params["address"],

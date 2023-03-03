@@ -66,6 +66,7 @@ class Account {
   DateTime createdAt;
 
   bool get isTez => blockchain == "Tezos";
+
   bool get isEth => blockchain == "Ethereum";
 
   Account({
@@ -109,6 +110,7 @@ class CategorizedAccounts {
   String className;
 
   CategorizedAccounts(this.category, this.accounts, this.className);
+
   List<Account> get ethAccounts =>
       accounts.where((element) => element.isEth).toList();
 
@@ -116,6 +118,8 @@ class CategorizedAccounts {
       accounts.where((element) => element.isTez).toList();
 
   bool get isPersona => className == 'Persona';
+
+  Persona? get persona => accounts.firstWhere((e) => e.persona != null).persona;
 }
 
 class AccountsState {
