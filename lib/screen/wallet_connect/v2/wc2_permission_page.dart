@@ -173,8 +173,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       ),
     );
     Future.delayed(const Duration(seconds: 3), () {
-      showInfoNotification(
-          const Key("switchBack"), "you_all_set".tr());
+      showInfoNotification(const Key("switchBack"), "you_all_set".tr());
     });
   }
 
