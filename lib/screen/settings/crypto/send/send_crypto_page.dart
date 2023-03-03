@@ -120,14 +120,15 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         ),
                         const SizedBox(height: 4),
                         AuTextField(
-                          labelSemantics: "address_send_${widget.data.type.code}",
+                          labelSemantics:
+                              "address_send_${widget.data.type.code}",
                           title: "",
                           placeholder: "paste_or_scan_address".tr(),
                           isError: state.isAddressError,
                           controller: _addressController,
                           suffix: IconButton(
-                            icon:
-                                Icon(state.isScanQR ? AuIcon.scan : AuIcon.close),
+                            icon: Icon(
+                                state.isScanQR ? AuIcon.scan : AuIcon.close),
                             onPressed: () async {
                               if (_addressController.text.isNotEmpty) {
                                 _addressController.text = "";
@@ -196,7 +197,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         ),
                         const SizedBox(height: 4),
                         AuTextField(
-                          labelSemantics: "amount_send_${widget.data.type.code}",
+                          labelSemantics:
+                              "amount_send_${widget.data.type.code}",
                           title: "",
                           placeholder: "0.00 ${widget.data.type.code}",
                           isError: state.isAmountError,
@@ -237,14 +239,14 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 }
                               }
 
-                              context
-                                  .read<SendCryptoBloc>()
-                                  .add(CurrencyTypeChangedEvent(!state.isCrypto));
+                              context.read<SendCryptoBloc>().add(
+                                  CurrencyTypeChangedEvent(!state.isCrypto));
                             },
                           ),
                           onChanged: (value) {
-                            context.read<SendCryptoBloc>().add(AmountChangedEvent(
-                                _amountController.text.replaceAll(",", ".")));
+                            context.read<SendCryptoBloc>().add(
+                                AmountChangedEvent(_amountController.text
+                                    .replaceAll(",", ".")));
                           },
                         ),
                         gasFeeStatus(state, theme),
@@ -267,28 +269,27 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     type,
                                     state.wallet!,
                                     state.index!,
-                                      state.address!,
-                                      state.amount!,
-                                      state.fee!,
-                                      state.exchangeRate,
-                                      state.feeOption);
-                                  final txPayload = await Navigator.of(context)
-                                      .pushNamed(SendReviewPage.tag,
-                                          arguments: payload) as Map?;
-                                  if (txPayload != null &&
-                                      txPayload["hash"] != null &&
-                                      txPayload["hash"] is String) {
-                                    if (!mounted) return;
-                                    Navigator.of(context).pop(txPayload);
-                                  }
+                                    state.address!,
+                                    state.amount!,
+                                    state.fee!,
+                                    state.exchangeRate,
+                                    state.feeOption);
+                                final txPayload = await Navigator.of(context)
+                                    .pushNamed(SendReviewPage.tag,
+                                        arguments: payload) as Map?;
+                                if (txPayload != null &&
+                                    txPayload["hash"] != null &&
+                                    txPayload["hash"] is String) {
+                                  if (!mounted) return;
+                                  Navigator.of(context).pop(txPayload);
                                 }
-                              : null,
-                        ),
+                              }
+                            : null,
                       ),
-                    ],
-                  )
-                ],
-
+                    ),
+                  ],
+                )
+              ],
             ),
           ),
         );

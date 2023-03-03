@@ -327,7 +327,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                               TezosService>()
                                           .sendOperationTransaction(
                                               _currentWallet!.wallet,
-                                            _currentWallet!.index,
+                                              _currentWallet!.index,
                                               widget.request.operations!,
                                               baseOperationCustomFee: feeOption
                                                   .tezosBaseOperationCustomFee);

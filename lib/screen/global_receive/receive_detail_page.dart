@@ -72,8 +72,10 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                     )),
               ),
               const SizedBox(height: 48),
-              _account.blockchain != "USDC" ? ImportantNoteView(
-                  note: _blockchainWarningText(_account.blockchain)) : const SizedBox(),
+              _account.blockchain != "USDC"
+                  ? ImportantNoteView(
+                      note: _blockchainWarningText(_account.blockchain))
+                  : const SizedBox(),
               const SizedBox(height: 16),
               Container(
                 decoration: const BoxDecoration(

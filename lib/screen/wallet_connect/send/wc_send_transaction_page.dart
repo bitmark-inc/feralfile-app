@@ -261,7 +261,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                                 widget.args.transaction.data,
                                                 widget.args.uuid,
                                                 widget.args.index,
-                                              isWalletConnect2:widget
+                                                isWalletConnect2: widget
                                                     .args.isWalletConnect2,
                                                 topic: widget.args
                                                     .topic, // Used for wallet Connect 2.0 only
