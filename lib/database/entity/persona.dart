@@ -77,18 +77,18 @@ class Persona {
   }
 
   Future<List<String>> getEthAddresses() async {
-    final List<String> addresses = [];
-    for (int i = 0; i < ethereumIndex; i++) {
-      addresses.add(await wallet().getETHAddress(index: i));
-    }
+    List<String> addresses = List.filled(ethereumIndex, "");
+    await Future.wait(Iterable.generate(ethereumIndex, (i) async {
+      addresses[i] = await wallet().getETHAddress(index: i);
+    }));
     return addresses;
   }
 
   Future<List<String>> getTezosAddresses() async {
-    final List<String> addresses = [];
-    for (int i = 0; i < tezosIndex; i++) {
-      addresses.add(await wallet().getTezosAddress(index: i));
-    }
+    final List<String> addresses = List.filled(tezosIndex, "");
+    await Future.wait(Iterable.generate(tezosIndex, (i) async {
+      addresses[i] = await wallet().getTezosAddress(index: i);
+    }));
     return addresses;
   }
 
