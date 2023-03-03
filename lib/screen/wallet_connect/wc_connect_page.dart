@@ -146,7 +146,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
-
+    bool isForConnect = false;
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
         final accountDid = await selectedPersona!.wallet().getAccountDID();
@@ -184,6 +184,7 @@ class _WCConnectPageState extends State<WCConnectPage>
 
         payloadAddress = address;
         payloadType = CryptoType.ETH;
+        isForConnect = true;
 
         if (connectionRequest.name == AUTONOMY_TV_PEER_NAME) {
           metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
@@ -210,6 +211,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         );
         payloadAddress = address;
         payloadType = CryptoType.XTZ;
+        isForConnect = true;
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
           data: {
@@ -238,6 +240,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       type: payloadType,
       personaName: selectedPersona!.name,
       isBackHome: onBoarding,
+      isForConnect: isForConnect,
     );
 
     Navigator.of(context).pushReplacementNamed(

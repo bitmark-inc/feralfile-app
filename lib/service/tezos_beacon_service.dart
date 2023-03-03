@@ -41,6 +41,7 @@ class TezosBeaconService implements BeaconHandler {
 
   late TezosBeaconChannel _beaconChannel;
   P2PPeer? _currentPeer;
+  bool signedRecently = false;
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);

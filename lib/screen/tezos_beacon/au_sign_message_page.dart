@@ -188,12 +188,6 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                                       width: 24,
                                     ),
                                   );
-                                  Future.delayed(const Duration(seconds: 3),
-                                      () {
-                                    showInfoNotification(
-                                        const Key("switchBack"),
-                                        "you_all_set".tr());
-                                  });
                                 })
                             : null,
                       ),
