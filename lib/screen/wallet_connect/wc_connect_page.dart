@@ -98,15 +98,10 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   void callAccountBloc() {
-    if (widget.connectionRequest.isWCconnect ||
-        widget.connectionRequest.isWC2connect) {
-      context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-          includeLinkedAccount: false, getTezos: false));
-    } else if (widget.connectionRequest.isBeaconConnect ||
-        widget.connectionRequest.isWC2connect) {
-      context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-          includeLinkedAccount: false, getEth: false));
-    }
+    context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+        includeLinkedAccount: false,
+        getTezos: !widget.connectionRequest.isWCconnect,
+        getEth: !widget.connectionRequest.isBeaconConnect));
   }
 
   @override
@@ -344,26 +339,24 @@ class _WCConnectPageState extends State<WCConnectPage>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    ...grantPermissions
-                                        .map(
-                                          (permission) => Row(
-                                            children: [
-                                              const SizedBox(
-                                                width: 6,
-                                              ),
-                                              Text("•",
-                                                  style: theme.textTheme
-                                                      .ppMori400Black14),
-                                              const SizedBox(
-                                                width: 6,
-                                              ),
-                                              Text(permission,
-                                                  style: theme.textTheme
-                                                      .ppMori400Black14),
-                                            ],
+                                    ...grantPermissions.map(
+                                      (permission) => Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 6,
                                           ),
-                                        )
-                                        .toList(),
+                                          Text("•",
+                                              style: theme
+                                                  .textTheme.ppMori400Black14),
+                                          const SizedBox(
+                                            width: 6,
+                                          ),
+                                          Text(permission,
+                                              style: theme
+                                                  .textTheme.ppMori400Black14),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                 )),
                           ],
@@ -582,32 +575,32 @@ class _WCConnectPageState extends State<WCConnectPage>
         const SizedBox(height: 16.0),
         Column(
           children: [
-            ...accounts
-                .map((account) => PersonalConnectItem(
-                      categorizedAccount: account,
-                      ethSelectedAddress: ethSelectedAddress,
-                      tezSelectedAddress: tezSelectedAddress,
-                      isExpand: true,
-                      onSelectEth: (value) {
-                        int index = account.ethAccounts
-                            .indexWhere((e) => e.accountNumber == value);
-                        setState(() {
-                          ethSelectedAddress = value;
-                          selectedPersona =
-                              WalletIndex(account.persona!.wallet(), index);
-                        });
-                      },
-                      onSelectTez: (value) {
-                        int index = account.xtzAccounts
-                            .indexWhere((e) => e.accountNumber == value);
-                        setState(() {
-                          tezSelectedAddress = value;
-                          selectedPersona =
-                              WalletIndex(account.persona!.wallet(), index);
-                        });
-                      },
-                    ))
-                .toList(),
+            ...accounts.map(
+              (account) => PersonalConnectItem(
+                categorizedAccount: account,
+                ethSelectedAddress: ethSelectedAddress,
+                tezSelectedAddress: tezSelectedAddress,
+                isExpand: true,
+                onSelectEth: (value) {
+                  int index = account.ethAccounts
+                      .indexWhere((e) => e.accountNumber == value);
+                  setState(() {
+                    ethSelectedAddress = value;
+                    selectedPersona =
+                        WalletIndex(account.persona!.wallet(), index);
+                  });
+                },
+                onSelectTez: (value) {
+                  int index = account.xtzAccounts
+                      .indexWhere((e) => e.accountNumber == value);
+                  setState(() {
+                    tezSelectedAddress = value;
+                    selectedPersona =
+                        WalletIndex(account.persona!.wallet(), index);
+                  });
+                },
+              ),
+            ),
           ],
         ),
       ],
