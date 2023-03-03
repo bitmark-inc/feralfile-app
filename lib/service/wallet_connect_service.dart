@@ -265,7 +265,8 @@ class WalletConnectService {
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
         _requestSignMessageForConnection();
-        final result = await _navigationService.navigateTo(WCSignMessagePage.tag,
+        final result = await _navigationService.navigateTo(
+            WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid, index));
         if (result) {

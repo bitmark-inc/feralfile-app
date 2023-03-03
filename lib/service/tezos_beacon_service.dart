@@ -175,8 +175,9 @@ class TezosBeaconService implements BeaconHandler {
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       requestSignMessageForConnection();
-      final result = await _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
-      if(result) {
+      final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
+          arguments: request);
+      if (result) {
         _showYouAllSet();
       }
       _clearConnectFlag();
