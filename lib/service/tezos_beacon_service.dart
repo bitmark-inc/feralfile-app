@@ -62,7 +62,7 @@ class TezosBeaconService implements BeaconHandler {
     _requestSignMessageForConnectionFlag = false;
   }
 
-  void requestSignMessageForConnection() {
+  void _requestSignMessageForConnection() {
     if (_addedConnectionFlag) {
       _requestSignMessageForConnectionFlag = true;
       _addedConnectionFlag = false;
@@ -175,7 +175,7 @@ class TezosBeaconService implements BeaconHandler {
       hideOverlay(const Key("tezos_beacon_contacting"));
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
-      requestSignMessageForConnection();
+      _requestSignMessageForConnection();
       final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
           arguments: request);
       if (result) {
