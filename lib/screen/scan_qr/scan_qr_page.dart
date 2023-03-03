@@ -188,13 +188,13 @@ class _ScanQRPageState extends State<ScanQRPage>
                     qrSize / 2 -
                     cutPaddingTop,
                 0,
-                0,
+                30,
               ),
               child: Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (cameraPermission) ...[
-                      const Spacer(),
                       _instructionView(),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0.0),
@@ -254,7 +254,6 @@ class _ScanQRPageState extends State<ScanQRPage>
                       ),
                     ] else ...[
                       _instructionViewNoPermission(),
-                      const Spacer(),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: PrimaryButton(
@@ -269,7 +268,6 @@ class _ScanQRPageState extends State<ScanQRPage>
                         ),
                       )
                     ],
-                    const Spacer(),
                   ],
                 ),
               ),

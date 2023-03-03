@@ -441,8 +441,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       ),
                       onPressed: () {
                         if (isCopied) return;
-                        showInfoNotification(
-                            const Key("address"), "copied_to_clipboard".tr());
+                        showInfoNotification(const Key("address"),
+                            "address_copied_to_clipboard".tr());
                         Clipboard.setData(ClipboardData(text: address));
                         setState(() {
                           isCopied = true;
@@ -563,8 +563,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       },
                     );
                   },
-                  actionButton: 'see_transaction_detail'.tr().toUpperCase(),
-                  closeButton: "close".tr().toUpperCase(),
+                  actionButton: 'see_transaction_detail'.tr(),
+                  closeButton: "close".tr(),
                 );
               },
             ),

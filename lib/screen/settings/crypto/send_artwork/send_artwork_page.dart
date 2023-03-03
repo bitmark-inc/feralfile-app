@@ -14,12 +14,15 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -27,10 +30,9 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SendArtworkPage extends StatefulWidget {
   static const String tag = 'send_artwork';
@@ -45,16 +47,13 @@ class SendArtworkPage extends StatefulWidget {
 
 class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _quantityController =
-      TextEditingController(text: "1");
+  final TextEditingController _quantityController = TextEditingController();
   final feeWidgetKey = GlobalKey();
-  final _reviewButtonVisible =
-      ValueNotifier(!KeyboardVisibilityController().isVisible);
 
   late int index;
-  bool _showAllFeeOption = false;
   bool _initialChangeAddress = false;
   final _focusNode = FocusNode();
+  late FeeOption _selectedPriority;
 
   @override
   void initState() {
@@ -63,6 +62,8 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     context
         .read<SendArtworkBloc>()
         .add(GetBalanceEvent(widget.payload.wallet, index));
+    _selectedPriority = context.read<SendArtworkBloc>().state.feeOption;
+
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: 1, maxQuantity: widget.payload.ownedQuantity, index: index));
     if (widget.payload.asset.artistName != null) {
@@ -71,10 +72,6 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           .add(GetIdentityEvent([widget.payload.asset.artistName!]));
     }
 
-    KeyboardVisibilityController().onChange.listen((keyboardVisible) async {
-      await Future.delayed(Duration(milliseconds: keyboardVisible ? 0 : 150),
-          () => _reviewButtonVisible.value = !keyboardVisible);
-    });
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
         _onQuantityUpdated();
@@ -86,19 +83,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     return int.tryParse(_quantityController.text) ?? 0;
   }
 
-  void _updateQuantity({required bool isIncrease}) {
-    FocusScope.of(context).unfocus();
-    final newQuantity = _quantity + (isIncrease ? 1 : -1);
-    _quantityController.text = "$newQuantity";
-    _onQuantityUpdated();
-  }
-
   void _onQuantityUpdated() {
-    if (_quantity < 1) {
-      _quantityController.text = "1";
-    } else if (_quantity > widget.payload.ownedQuantity) {
-      _quantityController.text = "${widget.payload.ownedQuantity}";
-    }
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: _quantity,
         maxQuantity: widget.payload.ownedQuantity,
@@ -107,42 +92,19 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
   Widget _quantityInputField(
       {required int maxQuantity, required bool hasError}) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IconButton(
-            onPressed: () => _updateQuantity(isIncrease: false),
-            icon: const Icon(
-              Icons.remove,
-              color: Colors.black,
-            )),
-        ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 30, maxWidth: 90),
-          child: IntrinsicWidth(
-            child: Semantics(
-              label: "quantity_to_send_artwork",
-              child: TextField(
-                focusNode: _focusNode,
-                controller: _quantityController,
-                decoration: const InputDecoration(border: InputBorder.none),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: "IBMPlexMono",
-                    color: hasError ? const Color(0xFFa1200a) : Colors.black),
-                textAlignVertical: TextAlignVertical.center,
-                keyboardType: TextInputType.number,
-                onSubmitted: (value) => _onQuantityUpdated(),
-              ),
-            ),
-          ),
+        AuTextField(
+          labelSemantics: "quantity_send_artwork",
+          title: "",
+          placeholder:
+              "enter_a_number_".tr(args: ["1", maxQuantity.toString()]),
+          controller: _quantityController,
+          isError: hasError,
+          keyboardType: TextInputType.number,
+          onSubmit: (value) => _onQuantityUpdated(),
         ),
-        IconButton(
-            onPressed: () => _updateQuantity(isIncrease: true),
-            icon: const Icon(
-              Icons.add,
-              color: Colors.black,
-            )),
       ],
     );
   }
@@ -160,11 +122,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     final theme = Theme.of(context);
     final asset = widget.payload.asset;
     final maxQuantity = widget.payload.ownedQuantity;
-
-    final identityState = context.watch<IdentityBloc>().state;
-    final artistName =
-        asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
+    final divider = addDivider(height: 20);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -205,97 +163,72 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          addTitleSpace(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                "title".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  asset.title,
-                                  textAlign: TextAlign.right,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 16),
+                          _artworkView(context),
+                          const SizedBox(height: 20),
+                          _item(
+                              context: context,
+                              title: "token".tr(),
+                              content: polishSource(asset.source ?? ""),
+                              tapLink: asset.assetURL),
+                          divider,
+                          _item(
+                            context: context,
+                            title: "contract".tr(),
+                            content: asset.blockchain.capitalize(),
+                            tapLink: asset.getBlockchainUrl(),
                           ),
-                          if (artistName?.isNotEmpty == true) ...[
-                            const Divider(height: 32),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "artist".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  artistName ?? "",
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ],
-                          const Divider(height: 32),
+                          divider,
+                          _item(
+                              context: context,
+                              title: "minted".tr(),
+                              content: asset.mintedAt != null
+                                  ? localTimeStringFromISO8601(asset.mintedAt!)
+                                  : ''),
+                          divider,
                           if (widget.payload.asset.fungible == true) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "owned_tokens".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  "$maxQuantity",
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
+                            _item(
+                                context: context,
+                                title: "owned_tokens".tr(),
+                                content: "$maxQuantity"),
                             const SizedBox(
                               height: 8.0,
                             ),
-                            const Divider(),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "quantity_to_send".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Transform.translate(
-                                  offset: const Offset(16, 0),
-                                  child: _quantityInputField(
-                                      maxQuantity: maxQuantity,
-                                      hasError: state.isQuantityError),
-                                )
-                              ],
+                            divider,
+                            const SizedBox(height: 16),
+                            Text(
+                              "quantity_to_send".tr(),
+                              style: theme.textTheme.ppMori400Black14,
                             ),
-                          ] else ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                            const SizedBox(height: 8),
+                            _quantityInputField(
+                                maxQuantity: maxQuantity,
+                                hasError: state.isQuantityError),
+                            if (state.isQuantityError) ...[
+                              const SizedBox(height: 8),
+                              if (_quantity < 1)
                                 Text(
-                                  "edition".tr(),
-                                  style: theme.textTheme.headlineMedium,
+                                  "minimum_1".tr(),
+                                  style: theme.textTheme.ppMori400Black12
+                                      .copyWith(color: AppColor.red),
                                 ),
+                              if (_quantity > maxQuantity)
                                 Text(
-                                  asset.editionSlashMax,
-                                  style: theme.textTheme.bodyMedium,
+                                  "maximum_".tr(args: [maxQuantity.toString()]),
+                                  style: theme.textTheme.ppMori400Black12
+                                      .copyWith(color: AppColor.red),
                                 ),
-                              ],
-                            ),
+                            ]
                           ],
                           const SizedBox(height: 16.0),
+                          Text(
+                            "to".tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          const SizedBox(height: 8),
                           AuTextField(
                             labelSemantics: "to_address_send_artwork",
-                            title: "to".tr(),
+                            title: "",
                             placeholder: "paste_or_scan_address".tr(),
                             controller: _addressController,
                             isError: state.isAddressError,
@@ -338,24 +271,32 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               }
                             },
                           ),
-                          const SizedBox(height: 16.0),
-                          gasFeeStatus(state, theme),
-                          const SizedBox(height: 8.0),
-                          if (state.feeOptionValue != null)
-                            feeTable(state, context),
-                          const SizedBox(height: 24.0),
+                          const SizedBox(height: 8),
+                          Visibility(
+                              visible: state.isAddressError,
+                              child: Text(
+                                'error_invalid_address'.tr(),
+                                style: theme.textTheme.ppMori400Black12
+                                    .copyWith(color: AppColor.red),
+                              )),
+                          Visibility(
+                            visible: !state.isAddressError,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                gasFeeStatus(state, theme),
+                                const SizedBox(height: 8.0),
+                                if (state.feeOptionValue != null)
+                                  feeTable(state, context),
+                                const SizedBox(height: 24.0),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  ValueListenableBuilder<bool>(
-                      valueListenable: _reviewButtonVisible,
-                      builder: (context, visible, child) {
-                        return Visibility(
-                          visible: visible,
-                          child: _reviewButton(asset, state),
-                        );
-                      }),
+                  _reviewButton(asset, state)
                 ],
               ),
             );
@@ -400,6 +341,47 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     );
   }
 
+  Widget _item({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String? tapLink,
+    double width = 120,
+    bool forceSafariVC = true,
+  }) {
+    final theme = Theme.of(context);
+    Function()? onValueTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    return Row(
+      children: [
+        SizedBox(
+          width: width,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        GestureDetector(
+          onTap: onValueTap,
+          child: Text(
+            content,
+            style: theme.textTheme.ppMori400Black14.copyWith(
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null),
+          ),
+        )
+      ],
+    );
+  }
+
   Widget gasFeeStatus(SendArtworkState state, ThemeData theme) {
     if (_initialChangeAddress && state.feeOptionValue == null) {
       return Text("gas_fee_calculating".tr(),
@@ -408,13 +390,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     if (state.feeOptionValue != null && state.balance != null) {
       bool isValid = state.balance! >
           state.feeOptionValue!.getFee(state.feeOption) + BigInt.from(10);
-      if (isValid) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
-      } else {
-        return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: AppColor.red,
-            ));
+      if (!isValid) {
+        return Text(
+          "gas_fee_insufficient".tr(),
+          textAlign: TextAlign.start,
+          style: theme.textTheme.ppMori400Black12.copyWith(color: AppColor.red),
+        );
       }
     }
     return const SizedBox();
@@ -423,62 +404,98 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   Widget feeTable(SendArtworkState state, BuildContext context) {
     final theme = Theme.of(context);
     final feeOption = state.feeOption;
-    if (!_showAllFeeOption) {
-      return Row(
-        children: [
-          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
-          const Spacer(),
-          Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(
-            width: 56,
-            height: 24,
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _showAllFeeOption = true;
-              });
-            },
-            child: Text("edit_priority".tr(),
-                style: theme.textTheme.linkStyle
-                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        children: [
-          getFeeRow(FeeOption.LOW, state, theme),
-          const SizedBox(height: 8),
-          getFeeRow(FeeOption.MEDIUM, state, theme),
-          const SizedBox(height: 8),
-          getFeeRow(FeeOption.HIGH, state, theme),
-        ],
-      );
-    }
+    return Row(
+      children: [
+        Text("gas_fee".tr(), style: theme.textTheme.ppMori400Black12),
+        const SizedBox(width: 8),
+        Text(feeOption.name, style: theme.textTheme.ppMori400Black12),
+        const Spacer(),
+        Text(_gasFee(state), style: theme.textTheme.ppMori400Black12),
+        const SizedBox(
+          width: 24,
+        ),
+        GestureDetector(
+          onTap: () {
+            UIHelper.showDialog(
+                context,
+                "edit_priority".tr().capitalize(),
+                _editPriorityView(state, context, onSave: () {
+                  context
+                      .read<SendArtworkBloc>()
+                      .add(FeeOptionChangedEvent(_selectedPriority));
+                }),
+                backgroundColor: AppColor.auGreyBackground);
+          },
+          child: Text("edit_priority".tr(),
+              style: theme.textTheme.linkStyle
+                  .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
+        ),
+      ],
+    );
   }
 
-  Widget getFeeRow(
-      FeeOption feeOption, SendArtworkState state, ThemeData theme) {
-    final isSelected = feeOption == state.feeOption;
-    final textStyle = isSelected
-        ? theme.textTheme.atlasBlackBold12
-        : theme.textTheme.atlasBlackNormal12;
+  Widget _editPriorityView(SendArtworkState state, BuildContext context,
+      {required Function() onSave}) {
+    final theme = Theme.of(context);
+    return StatefulBuilder(builder: (context, setState) {
+      return Column(
+        children: [
+          getFeeRow(FeeOption.LOW, state, theme, setState),
+          addDivider(color: AppColor.white),
+          getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          addDivider(color: AppColor.white),
+          getFeeRow(FeeOption.HIGH, state, theme, setState),
+          addDivider(color: AppColor.white),
+          const SizedBox(height: 12),
+          PrimaryButton(
+            text: "save_priority".tr(),
+            onTap: () {
+              onSave();
+              Navigator.of(context).pop();
+            },
+          ),
+          const SizedBox(height: 8),
+          OutlineButton(
+            text: "cancel".tr(),
+            onTap: () {
+              _selectedPriority = state.feeOption;
+              Navigator.of(context).pop();
+            },
+          )
+        ],
+      );
+    });
+  }
+
+  Widget getFeeRow(FeeOption feeOption, SendArtworkState state, ThemeData theme,
+      StateSetter setState) {
+    final textStyle = theme.textTheme.ppMori400White14;
     return GestureDetector(
       onTap: () {
-        context.read<SendArtworkBloc>().add(FeeOptionChangedEvent(
-            feeOption, state.address ?? "", state.quantity));
+        setState(() {
+          _selectedPriority = feeOption;
+        });
       },
-      child: Row(
-        children: [
-          Text(feeOption.name, style: textStyle),
-          const Spacer(),
-          Text(_gasFee(state, feeOption: feeOption), style: textStyle),
-          const SizedBox(width: 56),
-          SvgPicture.asset(isSelected
-              ? "assets/images/radio_btn_selected.svg"
-              : "assets/images/radio_btn_not_selected.svg"),
-        ],
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            Text(feeOption.name, style: textStyle),
+            const Spacer(),
+            Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+            const SizedBox(width: 56),
+            AuRadio(
+              onTap: (FeeOption value) {
+                setState(() {
+                  _selectedPriority = feeOption;
+                });
+              },
+              value: feeOption,
+              groupValue: _selectedPriority,
+              color: AppColor.white,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -497,6 +514,55 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
       default:
         return "";
     }
+  }
+
+  Widget _artworkView(BuildContext context) {
+    final title = widget.payload.asset.title;
+    final theme = Theme.of(context);
+    final asset = widget.payload.asset;
+
+    final identityState = context.watch<IdentityBloc>().state;
+    final artistName =
+        asset.artistName?.toIdentityOrMask(identityState.identityMap);
+    return Container(
+      height: 160,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5), color: AppColor.primaryBlack),
+      child: Row(
+        children: [
+          tokenGalleryThumbnailWidget(context, widget.payload.asset, 500),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.ppMori400White16,
+                ),
+                const SizedBox(height: 8),
+                RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.ppMori400White14,
+                    children: [
+                      TextSpan(text: "by".tr(args: [artistName ?? ""])),
+                    ],
+                  ),
+                ),
+                if (asset.maxEdition == -1) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    asset.editionName ?? "",
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
+                ]
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
 

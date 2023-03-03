@@ -13,15 +13,19 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/web3dart.dart';
@@ -38,8 +42,8 @@ class WCSendTransactionPage extends StatefulWidget {
 }
 
 class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
-  bool _showAllFeeOption = false;
   final metricClient = injector.get<MetricClientService>();
+  late FeeOption _selectedPriority;
 
   @override
   void initState() {
@@ -55,6 +59,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         widget.args.transaction.data,
         widget.args.uuid,
         widget.args.index));
+    _selectedPriority = context.read<WCSendTransactionBloc>().state.feeOption;
   }
 
   @override
@@ -68,7 +73,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+    final divider = addDivider(height: 20);
 
     return WillPopScope(
       onWillPop: () async {
@@ -87,6 +93,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          title: "confirmation".tr(),
           onBack: () {
             metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
             context.read<WCSendTransactionBloc>().add(
@@ -128,16 +135,12 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 EtherUnit.wei, widget.args.transaction.value ?? '0');
             final total =
                 state.fee != null ? state.fee! + amount.getInWei : null;
-            final balance = state.balance;
-            final canSend = total != null && balance != null && total < balance;
+            final theme = Theme.of(context);
             return Stack(
               children: [
                 Container(
-                  margin: EdgeInsets.only(
-                      top: 16.0,
-                      left: 16.0,
-                      right: 16.0,
-                      bottom: MediaQuery.of(context).padding.bottom),
+                  margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton
+                      .copyWith(left: 0, right: 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -146,87 +149,82 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 8.0),
-                              Text(
-                                "h_confirm".tr(),
-                                style: theme.textTheme.displayLarge,
+                              addTitleSpace(),
+                              Padding(
+                                padding: padding,
+                                child: Text(
+                                  "purchase_artwork".tr(),
+                                  style: theme.textTheme.ppMori400Black16,
+                                ),
                               ),
-                              const SizedBox(height: 40.0),
-                              Text(
-                                "asset".tr(),
-                                style: theme.textTheme.headlineMedium,
+                              const SizedBox(height: 64.0),
+                              divider,
+                              Padding(
+                                padding: padding,
+                                child: Column(
+                                  children: [
+                                    _item(
+                                      context: context,
+                                      title: "asset".tr(),
+                                      content: "ethereum_eth".tr(),
+                                    ),
+                                    divider,
+                                    _item(
+                                        context: context,
+                                        title: "connection".tr(),
+                                        content: widget.args.peerMeta.name),
+                                    divider,
+                                    _item(
+                                        context: context,
+                                        title: "amount".tr(),
+                                        content:
+                                            "${EthAmountFormatter(amount.getInWei).format()} ETH"),
+                                    divider,
+                                    _item(
+                                        context: context,
+                                        title: "total_amount".tr(),
+                                        content:
+                                            "${total != null ? EthAmountFormatter(total).format() : "-"} ETH"),
+                                    divider,
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          color: AppColor.primaryBlack),
+                                      padding: const EdgeInsets.all(12),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "from".tr(),
+                                            style:
+                                                theme.textTheme.ppMori400Grey14,
+                                          ),
+                                          const SizedBox(height: 8.0),
+                                          Text(
+                                            widget.args.transaction.from,
+                                            style: theme
+                                                .textTheme.ppMori400White14,
+                                          ),
+                                          addDivider(color: AppColor.white),
+                                          Text(
+                                            "gas_fee2".tr(),
+                                            style:
+                                                theme.textTheme.ppMori400Grey14,
+                                          ),
+                                          const SizedBox(height: 8.0),
+                                          if (state.feeOptionValue != null) ...[
+                                            feeTable(state, context)
+                                          ],
+                                          gasFeeStatus(state, theme),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 16.0),
-                              Text(
-                                "ethereum_eth".tr(),
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              const Divider(height: 32),
-                              Text(
-                                "from".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              const SizedBox(height: 16.0),
-                              Text(
-                                widget.args.transaction.from,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              const Divider(height: 32),
-                              Text(
-                                "connection".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              const SizedBox(height: 16.0),
-                              Text(
-                                widget.args.peerMeta.name,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              const Divider(height: 32),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "send".tr(),
-                                    style: theme.textTheme.headlineMedium,
-                                  ),
-                                  Text(
-                                    "${EthAmountFormatter(amount.getInWei).format()} ETH",
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: 32),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "gas_fee2".tr(),
-                                    style: theme.textTheme.headlineMedium,
-                                  ),
-                                  Text(
-                                    "${state.fee != null ? EthAmountFormatter(state.fee!, digit: 8).format() : "-"} ETH",
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: 32),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "total_amount".tr(),
-                                    style: theme.textTheme.headlineMedium,
-                                  ),
-                                  Text(
-                                    "${total != null ? EthAmountFormatter(total).format() : "-"} ETH",
-                                    style: theme.textTheme.headlineMedium,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16.0),
                               gasFeeStatus(state, theme),
                               const SizedBox(height: 8.0),
                               if (state.feeOptionValue != null)
@@ -236,43 +234,45 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                           ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AuFilledButton(
-                              enabled: canSend,
-                              text: "send".tr().toUpperCase(),
-                              onPress: (state.fee != null &&
-                                      !state.isSending &&
-                                      canSend)
-                                  ? () async {
-                                      metricClient.addEvent(
-                                          MixpanelEvent.confirmTransaction);
+                      Padding(
+                        padding: padding,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: PrimaryButton(
+                                text: "send".tr(),
+                                onTap: (state.fee != null && !state.isSending)
+                                    ? () async {
+                                        metricClient.addEvent(
+                                            MixpanelEvent.confirmTransaction);
 
-                                      final to = EthereumAddress.fromHex(
-                                          widget.args.transaction.to);
+                                        final to = EthereumAddress.fromHex(
+                                            widget.args.transaction.to);
 
-                                      context.read<WCSendTransactionBloc>().add(
-                                            WCSendTransactionSendEvent(
-                                              widget.args.peerMeta,
-                                              widget.args.id,
-                                              to,
-                                              amount.getInWei,
-                                              state.fee!,
-                                              widget.args.transaction.data,
-                                              widget.args.uuid,
-                                              widget.args.index,
-                                              isWalletConnect2:
-                                                  widget.args.isWalletConnect2,
-                                              topic: widget.args
-                                                  .topic, // Used for wallet Connect 2.0 only
-                                            ),
-                                          );
-                                    }
-                                  : null,
-                            ),
-                          )
-                        ],
+                                        context
+                                            .read<WCSendTransactionBloc>()
+                                            .add(
+                                              WCSendTransactionSendEvent(
+                                                widget.args.peerMeta,
+                                                widget.args.id,
+                                                to,
+                                                amount.getInWei,
+                                                state.fee!,
+                                                widget.args.transaction.data,
+                                                widget.args.uuid,
+                                                widget.args.index,
+                                              isWalletConnect2:widget
+                                                    .args.isWalletConnect2,
+                                                topic: widget.args
+                                                    .topic, // Used for wallet Connect 2.0 only
+                                              ),
+                                            );
+                                      }
+                                    : null,
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -288,22 +288,59 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     );
   }
 
+  Widget _item({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String? tapLink,
+    double width = 120,
+    bool forceSafariVC = true,
+  }) {
+    final theme = Theme.of(context);
+    Function()? onValueTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    return Row(
+      children: [
+        SizedBox(
+          width: width,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        GestureDetector(
+          onTap: onValueTap,
+          child: Text(
+            content,
+            style: theme.textTheme.ppMori400Black14.copyWith(
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null),
+          ),
+        )
+      ],
+    );
+  }
+
   Widget gasFeeStatus(WCSendTransactionState state, ThemeData theme) {
     if (state.feeOptionValue == null) {
       return Text("gas_fee_calculating".tr(),
           style: theme.textTheme.headlineSmall);
     }
     if (state.feeOptionValue != null) {
-      if (state.balance == null) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
-      }
+      if (state.balance == null) return const SizedBox();
       bool isValid = state.balance! >
           ((BigInt.parse(widget.args.transaction.value ?? "0")) +
               (state.fee ?? BigInt.zero) +
               BigInt.from(10));
-      if (isValid) {
-        return Text("gas_fee".tr(), style: theme.textTheme.headlineSmall);
-      } else {
+      if (!isValid) {
         return Text("gas_fee_insufficient".tr(),
             style: theme.textTheme.headlineSmall?.copyWith(
               color: AppColor.red,
@@ -315,64 +352,93 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
   Widget feeTable(WCSendTransactionState state, BuildContext context) {
     final theme = Theme.of(context);
-    final feeOption = state.feeOption;
-    if (!_showAllFeeOption) {
-      return Row(
-        children: [
-          Text(feeOption.name, style: theme.textTheme.atlasBlackBold12),
-          const Spacer(),
-          Text(_gasFee(state), style: theme.textTheme.atlasBlackBold12),
-          const SizedBox(
-            width: 56,
-            height: 24,
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _showAllFeeOption = true;
-              });
-            },
-            child: Text("edit_priority".tr(),
-                style: theme.textTheme.linkStyle
-                    .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        children: [
-          getFeeRow(FeeOption.LOW, state, theme),
-          const SizedBox(height: 8),
-          getFeeRow(FeeOption.MEDIUM, state, theme),
-          const SizedBox(height: 8),
-          getFeeRow(FeeOption.HIGH, state, theme),
-        ],
-      );
-    }
+    return Row(
+      children: [
+        Text(_gasFee(state), style: theme.textTheme.ppMori400White14),
+        const Spacer(),
+        GestureDetector(
+          onTap: () {
+            UIHelper.showDialog(
+                context,
+                "edit_priority".tr().capitalize(),
+                _editPriorityView(context, state, onSave: () {
+                  context
+                      .read<WCSendTransactionBloc>()
+                      .add(FeeOptionChangedEvent(_selectedPriority));
+                }),
+                backgroundColor: AppColor.auGreyBackground);
+          },
+          child: Text("edit_priority".tr(),
+              style: theme.textTheme.ppMori400White14.copyWith(
+                decoration: TextDecoration.underline,
+              )),
+        ),
+      ],
+    );
   }
 
-  Widget getFeeRow(
-      FeeOption feeOption, WCSendTransactionState state, ThemeData theme) {
-    final isSelected = feeOption == state.feeOption;
-    final textStyle = isSelected
-        ? theme.textTheme.atlasBlackBold12
-        : theme.textTheme.atlasBlackNormal12;
+  Widget _editPriorityView(BuildContext context, WCSendTransactionState state,
+      {required Function() onSave}) {
+    final theme = Theme.of(context);
+    return StatefulBuilder(builder: (context, setState) {
+      return Column(
+        children: [
+          getFeeRow(FeeOption.LOW, state, theme, setState),
+          addDivider(color: AppColor.white),
+          getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          addDivider(color: AppColor.white),
+          getFeeRow(FeeOption.HIGH, state, theme, setState),
+          addDivider(color: AppColor.white),
+          const SizedBox(height: 12),
+          PrimaryButton(
+            text: "save_priority".tr(),
+            onTap: () {
+              onSave();
+              Navigator.of(context).pop();
+            },
+          ),
+          const SizedBox(height: 8),
+          OutlineButton(
+            text: "cancel".tr(),
+            onTap: () {
+              _selectedPriority = state.feeOption;
+              Navigator.of(context).pop();
+            },
+          )
+        ],
+      );
+    });
+  }
+
+  Widget getFeeRow(FeeOption feeOption, WCSendTransactionState state,
+      ThemeData theme, StateSetter setState) {
+    final textStyle = theme.textTheme.ppMori400White14;
     return GestureDetector(
       onTap: () {
-        context
-            .read<WCSendTransactionBloc>()
-            .add(FeeOptionChangedEvent(feeOption));
+        setState(() {
+          _selectedPriority = feeOption;
+        });
       },
-      child: Row(
-        children: [
-          Text(feeOption.name, style: textStyle),
-          const Spacer(),
-          Text(_gasFee(state, feeOption: feeOption), style: textStyle),
-          const SizedBox(width: 56),
-          SvgPicture.asset(isSelected
-              ? "assets/images/radio_btn_selected.svg"
-              : "assets/images/radio_btn_not_selected.svg"),
-        ],
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            Text(feeOption.name, style: textStyle),
+            const Spacer(),
+            Text(_gasFee(state, feeOption: feeOption), style: textStyle),
+            const SizedBox(width: 56),
+            AuRadio(
+              onTap: (FeeOption value) {
+                setState(() {
+                  _selectedPriority = feeOption;
+                });
+              },
+              value: feeOption,
+              groupValue: _selectedPriority,
+              color: AppColor.white,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -380,7 +446,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   String _gasFee(WCSendTransactionState state, {FeeOption? feeOption}) {
     if (state.feeOptionValue == null) return "";
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
-    return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
+    return "${EthAmountFormatter(fee).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
   }
 }
 

@@ -81,10 +81,8 @@ class EstimateFeeEvent extends SendArtworkEvent {
 
 class FeeOptionChangedEvent extends SendArtworkEvent {
   final FeeOption feeOption;
-  final String address;
-  final int quantity;
 
-  FeeOptionChangedEvent(this.feeOption, this.address, this.quantity);
+  FeeOptionChangedEvent(this.feeOption);
 }
 
 class SendArtworkState {
