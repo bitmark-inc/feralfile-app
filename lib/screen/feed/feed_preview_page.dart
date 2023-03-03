@@ -568,18 +568,16 @@ class _ControlViewState extends State<ControlView> {
                         Wrap(
                           runSpacing: 4.0,
                           children: [
-                            Flexible(
-                              child: RichText(
-                                text: TextSpan(
-                                  style: theme.textTheme.ppMori400White14,
-                                  children: [
-                                    TextSpan(
-                                      text: "_by".tr(args: [
-                                        events.first.actionRepresentation
-                                      ]),
-                                    ),
-                                  ],
-                                ),
+                            RichText(
+                              text: TextSpan(
+                                style: theme.textTheme.ppMori400White14,
+                                children: [
+                                  TextSpan(
+                                    text: "_by".tr(args: [
+                                      events.first.actionRepresentation
+                                    ]),
+                                  ),
+                                ],
                               ),
                             ),
                             ...events
