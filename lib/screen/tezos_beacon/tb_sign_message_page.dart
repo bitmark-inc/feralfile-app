@@ -112,10 +112,6 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         widget.request.id,
         signature,
       );
-      tezosService.signedRecently = true;
-      Future.delayed(const Duration(seconds: 5), () {
-        tezosService.signedRecently = false;
-      });
     }
   }
 
@@ -224,6 +220,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                       width: 24,
                                     ),
                                   );
+                                  injector<TezosBeaconService>()
+                                      .showYouAllSet();
                                 })
                             : null,
                       ),

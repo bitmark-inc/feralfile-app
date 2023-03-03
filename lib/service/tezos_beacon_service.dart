@@ -41,11 +41,36 @@ class TezosBeaconService implements BeaconHandler {
 
   late TezosBeaconChannel _beaconChannel;
   P2PPeer? _currentPeer;
-  bool signedRecently = false;
+
+  bool _addedConnectionFlag = false;
+  bool _requestSignMessageForConnectionFlag = false;
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
     _beaconChannel.connect();
+  }
+
+  void addedConnection() {
+    _addedConnectionFlag = true;
+    Future.delayed(const Duration(seconds: 10), () {
+      _addedConnectionFlag = false;
+    });
+  }
+
+  void requestSignMessageForConnection() {
+    if (_addedConnectionFlag) {
+      _requestSignMessageForConnectionFlag = true;
+      _addedConnectionFlag = false;
+    }
+  }
+
+  void showYouAllSet() {
+    if (_requestSignMessageForConnectionFlag) {
+      _requestSignMessageForConnectionFlag = false;
+      Future.delayed(const Duration(seconds: 3), () {
+        showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+      });
+    }
   }
 
   Future<String> getConnectionURI() {
@@ -144,6 +169,7 @@ class TezosBeaconService implements BeaconHandler {
       hideOverlay(const Key("tezos_beacon_contacting"));
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
+      requestSignMessageForConnection();
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
     } else if (request.type == "operation") {
       _navigationService.navigateTo(TBSendTransactionPage.tag,

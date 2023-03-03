@@ -146,7 +146,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
-    bool isForConnect = false;
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
         final accountDid = await selectedPersona!.wallet().getAccountDID();
@@ -175,7 +174,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         final approvedAddresses = [address];
         log.info(
             "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
-        await injector<WalletConnectService>().approveSession(
+        final result = await injector<WalletConnectService>().approveSession(
           selectedPersona!.uuid,
           (connectionRequest as WCConnectPageArgs).peerMeta,
           approvedAddresses,
@@ -184,11 +183,13 @@ class _WCConnectPageState extends State<WCConnectPage>
 
         payloadAddress = address;
         payloadType = CryptoType.ETH;
-        isForConnect = true;
 
         if (connectionRequest.name == AUTONOMY_TV_PEER_NAME) {
           metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
         } else {
+          if (result) {
+            injector<WalletConnectService>().addedConnection();
+          }
           metricClient.addEvent(
             MixpanelEvent.connectExternal,
             data: {
@@ -203,7 +204,8 @@ class _WCConnectPageState extends State<WCConnectPage>
         final wallet = selectedPersona!.wallet();
         final publicKey = await wallet.getTezosPublicKey();
         final address = await wallet.getTezosAddress();
-        await injector<TezosBeaconService>().permissionResponse(
+        final tezosService = injector<TezosBeaconService>();
+        await tezosService.permissionResponse(
           selectedPersona!.uuid,
           (connectionRequest as BeaconRequest).id,
           publicKey,
@@ -211,7 +213,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         );
         payloadAddress = address;
         payloadType = CryptoType.XTZ;
-        isForConnect = true;
+        tezosService.addedConnection();
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
           data: {
@@ -240,7 +242,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       type: payloadType,
       personaName: selectedPersona!.name,
       isBackHome: onBoarding,
-      isForConnect: isForConnect,
     );
 
     Navigator.of(context).pushReplacementNamed(

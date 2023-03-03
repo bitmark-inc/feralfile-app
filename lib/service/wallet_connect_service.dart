@@ -21,8 +21,11 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import '../main.dart';
@@ -35,13 +38,37 @@ class WalletConnectService {
   final List<WCClient> wcClients = List.empty(growable: true);
   Map<WCPeerMeta, String> tmpUuids = {};
   final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
-  bool signedRecently = false;
+  bool _addedConnectionFlag = false;
+  bool _requestSignMessageForConnectionFlag = false;
 
   WalletConnectService(
     this._navigationService,
     this._cloudDB,
     this._configurationService,
   );
+
+  void addedConnection() {
+    _addedConnectionFlag = true;
+    Future.delayed(const Duration(seconds: 10), () {
+      _addedConnectionFlag = false;
+    });
+  }
+
+  void requestSignMessageForConnection() {
+    if (_addedConnectionFlag) {
+      _requestSignMessageForConnectionFlag = true;
+      _addedConnectionFlag = false;
+    }
+  }
+
+  void showYouAllSet() {
+    if (_requestSignMessageForConnectionFlag) {
+      _requestSignMessageForConnectionFlag = false;
+      Future.delayed(const Duration(seconds: 3), () {
+        showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+      });
+    }
+  }
 
   Future initSessions({bool forced = false}) async {
     final wcConnections = await _cloudDB.connectionDao
@@ -231,6 +258,7 @@ class WalletConnectService {
         _navigationService.navigateTo(WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid));
+        requestSignMessageForConnection();
 
         final metricClient = injector.get<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.signIn, data: {

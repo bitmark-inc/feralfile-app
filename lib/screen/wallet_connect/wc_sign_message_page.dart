@@ -312,11 +312,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     width: 24,
                   ),
                 );
-                final wcService = injector<WalletConnectService>();
-                wcService.signedRecently = true;
-                Future.delayed(const Duration(seconds: 5), () {
-                  wcService.signedRecently = false;
-                });
+                injector<WalletConnectService>().showYouAllSet();
               }),
             ),
           )

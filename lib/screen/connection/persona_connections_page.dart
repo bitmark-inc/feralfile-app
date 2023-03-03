@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -14,10 +13,7 @@ import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -81,23 +77,6 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   void didPopNext() {
     super.didPopNext();
     _callFetchConnections();
-    if (widget.payload.isForConnect) {
-      final justSigned = ((widget.payload.type == CryptoType.ETH) &&
-              injector<WalletConnectService>().signedRecently) ||
-          ((widget.payload.type == CryptoType.XTZ) &&
-              injector<TezosBeaconService>().signedRecently);
-      if (justSigned) {
-        Future.delayed(const Duration(seconds: 1), () {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.homePage,
-            (route) => false,
-          );
-          Future.delayed(const Duration(seconds: 2), () {
-            showInfoNotification(const Key("switchBack"), "you_all_set".tr());
-          });
-        });
-      }
-    }
   }
 
   @override
@@ -264,7 +243,6 @@ class PersonaConnectionsPayload {
   final CryptoType type;
   final String personaName;
   final bool isBackHome;
-  final bool isForConnect;
 
   PersonaConnectionsPayload({
     required this.personaUUID,
@@ -272,6 +250,5 @@ class PersonaConnectionsPayload {
     required this.type,
     required this.personaName,
     this.isBackHome = false,
-    this.isForConnect = false,
   });
 }
