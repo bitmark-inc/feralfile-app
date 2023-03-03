@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -91,7 +90,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   .rejectRequest(widget.args.peerMeta, widget.args.id);
             }
             if (!mounted) return;
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           title: "signature_request".tr(),
         ),
@@ -195,7 +194,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
       if (state.event != null) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
 
       /***
@@ -295,35 +294,26 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                             .firstMatch(messageInUtf8);
                     final address = matched?.group(0)?.split("\n")[1].trim();
                     if (address == null) {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(false);
                       return;
                     }
                     context.read<FeralfileBloc>().add(UnlinkFFWeb3AccountEvent(
                         source: widget.args.peerMeta.url, address: address));
                   } else {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true);
                   }
                   // result in listener - linkState.done
                 } else {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 }
-                final notificationEnable =
-                    injector<ConfigurationService>().isNotificationEnabled() ??
-                        false;
-                if (notificationEnable) {
-                  showInfoNotification(
-                    const Key("signed"),
-                    "signed".tr(),
-                    frontWidget: SvgPicture.asset(
-                      "assets/images/checkbox_icon.svg",
-                      width: 24,
-                    ),
-                  );
-                  Future.delayed(const Duration(seconds: 3), () {
-                    showInfoNotification(
-                        const Key("switchBack"), "you_all_set".tr());
-                  });
-                }
+                showInfoNotification(
+                  const Key("signed"),
+                  "signed".tr(),
+                  frontWidget: SvgPicture.asset(
+                    "assets/images/checkbox_icon.svg",
+                    width: 24,
+                  ),
+                );
               }),
             ),
           )

@@ -42,9 +42,40 @@ class TezosBeaconService implements BeaconHandler {
   late TezosBeaconChannel _beaconChannel;
   P2PPeer? _currentPeer;
 
+  bool _addedConnectionFlag = false;
+  bool _requestSignMessageForConnectionFlag = false;
+
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
     _beaconChannel.connect();
+  }
+
+  void _addedConnection() {
+    _addedConnectionFlag = true;
+    Future.delayed(const Duration(seconds: 10), () {
+      _addedConnectionFlag = false;
+    });
+  }
+
+  void _clearConnectFlag() {
+    _addedConnectionFlag = false;
+    _requestSignMessageForConnectionFlag = false;
+  }
+
+  void _requestSignMessageForConnection() {
+    if (_addedConnectionFlag) {
+      _requestSignMessageForConnectionFlag = true;
+      _addedConnectionFlag = false;
+    }
+  }
+
+  void _showYouAllSet() {
+    if (_requestSignMessageForConnectionFlag) {
+      _requestSignMessageForConnectionFlag = false;
+      Future.delayed(const Duration(seconds: 3), () {
+        showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+      });
+    }
   }
 
   Future<String> getConnectionURI() {
@@ -102,6 +133,7 @@ class TezosBeaconService implements BeaconHandler {
         createdAt: DateTime.now(),
       );
       _cloudDB.connectionDao.insertConnection(connection);
+      _addedConnection();
     }
   }
 
@@ -131,7 +163,7 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  void handleNextRequest({bool isRemoved = false}) {
+  Future<void> handleNextRequest({bool isRemoved = false}) async {
     log.info("TezosBeaconService: handleRequest");
     if (isRemoved && _handlingRequests.isNotEmpty) {
       _handlingRequests.removeAt(0);
@@ -143,7 +175,13 @@ class TezosBeaconService implements BeaconHandler {
       hideOverlay(const Key("tezos_beacon_contacting"));
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
-      _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
+      _requestSignMessageForConnection();
+      final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
+          arguments: request);
+      if (result) {
+        _showYouAllSet();
+      }
+      _clearConnectFlag();
     } else if (request.type == "operation") {
       _navigationService.navigateTo(TBSendTransactionPage.tag,
           arguments: request);

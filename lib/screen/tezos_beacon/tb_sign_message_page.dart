@@ -11,7 +11,6 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -78,7 +77,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         reason: "No wallet found for address ${widget.request.sourceAddress}",
       );
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(false);
       return;
     }
 
@@ -110,7 +109,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         signature,
       );
     } else {
-      await injector<TezosBeaconService>().signResponse(
+      final tezosService = injector<TezosBeaconService>();
+      await tezosService.signResponse(
         widget.request.id,
         signature,
       );
@@ -138,7 +138,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
           context,
           onBack: () {
             _rejectRequest(reason: "User reject");
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           title: "signature_request".tr(),
         ),
@@ -213,27 +213,15 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                     "Sign In",
                                     hashedData: {"uuid": widget.request.id},
                                   );
-                                  Navigator.of(context).pop();
-                                  final notificationEnable =
-                                      injector<ConfigurationService>()
-                                              .isNotificationEnabled() ??
-                                          false;
-                                  if (notificationEnable) {
-                                    showInfoNotification(
-                                      const Key("signed"),
-                                      "signed".tr(),
-                                      frontWidget: SvgPicture.asset(
-                                        "assets/images/checkbox_icon.svg",
-                                        width: 24,
-                                      ),
-                                    );
-                                    Future.delayed(const Duration(seconds: 3),
-                                        () {
-                                      showInfoNotification(
-                                          const Key("switchBack"),
-                                          "you_all_set".tr());
-                                    });
-                                  }
+                                  Navigator.of(context).pop(true);
+                                  showInfoNotification(
+                                    const Key("signed"),
+                                    "signed".tr(),
+                                    frontWidget: SvgPicture.asset(
+                                      "assets/images/checkbox_icon.svg",
+                                      width: 24,
+                                    ),
+                                  );
                                 })
                             : null,
                       ),

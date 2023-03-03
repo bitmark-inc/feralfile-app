@@ -254,12 +254,6 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   Future<void> _approveThenNotify({bool onBoarding = false}) async {
     await _approve(onBoarding: onBoarding);
-    final notificationEnable =
-        injector<ConfigurationService>().isNotificationEnabled() ?? false;
-
-    if (!notificationEnable) {
-      return;
-    }
 
     metricClient.addEvent(MixpanelEvent.connectMarketSuccess);
     if (!mounted) return;

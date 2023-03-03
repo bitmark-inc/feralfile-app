@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -162,6 +163,18 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
     if (!mounted) return;
     Navigator.of(context).pop();
+
+    showInfoNotification(
+      const Key("signed"),
+      "signed".tr(),
+      frontWidget: SvgPicture.asset(
+        "assets/images/checkbox_icon.svg",
+        width: 24,
+      ),
+    );
+    Future.delayed(const Duration(seconds: 3), () {
+      showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+    });
   }
 
   Widget _wcAppInfo() {

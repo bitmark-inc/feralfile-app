@@ -251,10 +251,11 @@ class PersonaConnectionsPayload {
   final CryptoType type;
   final bool isBackHome;
 
-  PersonaConnectionsPayload(
-      {required this.personaUUID,
-      required this.index,
-      required this.address,
-      required this.type,
-      this.isBackHome = false});
+  PersonaConnectionsPayload({
+    required this.personaUUID,
+    required this.index,
+    required this.address,
+    required this.type,
+    this.isBackHome = false,
+  });
 }
