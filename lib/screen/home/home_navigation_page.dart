@@ -61,6 +61,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   bool _currentIsSubscribed = false;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
   void _onItemTapped(int index) {
     if (index != _pages.length) {
       if (_selectedIndex == index) {
@@ -265,6 +271,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       injector<TezosBeaconService>().cleanup();
       injector<Wc2Service>().cleanup();
     }
+    WidgetsBinding.instance.addObserver(this);
   }
 
   _checkisSubscribed() async {
@@ -422,6 +429,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   void dispose() {
     _pageController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
   }
 
