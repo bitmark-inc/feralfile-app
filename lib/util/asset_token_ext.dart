@@ -13,7 +13,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uri/uri.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
@@ -91,34 +90,6 @@ extension AssetTokenExtension on AssetToken {
     }
   }
 
-  String _multiUniqueUrl(String originUrl) {
-    try {
-      final uri = Uri.parse(originUrl);
-      final builder = UriBuilder.fromUri(uri);
-      final id = (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D")
-          ? _intToHex(tokenId!)
-          : tokenId;
-
-      builder.queryParameters
-        ..putIfAbsent("edition_index", () => "$edition")
-        ..putIfAbsent("edition_number", () => "$edition")
-        ..putIfAbsent("blockchain", () => blockchain)
-        ..putIfAbsent("token_id", () => "$id")
-        ..putIfAbsent("contract", () => "$contractAddress");
-      if (contractAddress == "KT1F6EKvGq8CKJhgsBy3GUJMSS9KPKn1UD5D" ||
-          (builder.queryParameters['token_id_hash']?.isNotEmpty ?? false)) {
-        return builder.build().toString();
-      }
-
-      final tokenHash = digestHex2Hash(id ?? '');
-      builder.queryParameters.putIfAbsent("token_id_hash", () => tokenHash);
-
-      return builder.build().toString();
-    } catch (e) {
-      return originUrl;
-    }
-  }
-
   String? tokenIdHex() => tokenId != null ? _intToHex(tokenId!) : null;
 
   String digestHex2Hash(String tokenId) {
@@ -142,7 +113,7 @@ extension AssetTokenExtension on AssetToken {
       final url = medium == null
           ? previewURL!
           : _replaceIPFSPreviewURL(previewURL!, medium!);
-      return source?.toLowerCase() == "feralfile" ? _multiUniqueUrl(url) : url;
+      return url;
     }
     return null;
   }
