@@ -20,6 +20,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ArticleDetailPage extends StatefulWidget {
   final EditorialPost post;
@@ -73,19 +74,47 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 32.0),
-                  Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppColor.greyMedium,
+                  Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColor.greyMedium,
+                            ),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(64))),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 4.0, horizontal: 8.0),
+                        child: Text(widget.post.tag ?? "",
+                            style: theme.textTheme.ppMori400Grey14),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "originally_published_at".tr(),
+                            style: theme.textTheme.ppMori400Grey12,
                           ),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(64))),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 4.0, horizontal: 8.0),
-                      child: Text(widget.post.tag ?? "",
-                          style: theme.textTheme.ppMori400Grey14),
-                    ),
+                          GestureDetector(
+                            onTap: () async {
+                              final website =
+                                  widget.post.reference?.website.toUrl() ?? "";
+
+                              if (website.isValidUrl()) {
+                                await launchUrlString(website,
+                                    mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Text(
+                              widget.post.reference?.website ??
+                                  widget.post.publisher.name,
+                              style: theme.textTheme.ppMori400SupperTeal12,
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32.0),
                   FutureBuilder<Response<String>>(

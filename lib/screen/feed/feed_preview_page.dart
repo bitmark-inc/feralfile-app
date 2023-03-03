@@ -549,9 +549,7 @@ class _ControlViewState extends State<ControlView> {
                         Text(
                           asset.title.isEmpty ? 'nft' : '${asset.title} ',
                           overflow: TextOverflow.ellipsis,
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.ppMori400White14
-                              : theme.textTheme.atlasWhiteItalic14,
+                          style: theme.textTheme.ppMori400White16,
                         ),
                         const SizedBox(
                           height: 3,
@@ -561,7 +559,7 @@ class _ControlViewState extends State<ControlView> {
                             overflow: TextOverflow.ellipsis,
                             text: TextSpan(
                                 text: 'by'.tr(args: [artistName]),
-                                style: theme.textTheme.ppMori400White12),
+                                style: theme.textTheme.ppMori400White14),
                           ),
                         ],
                         const SizedBox(
@@ -573,9 +571,7 @@ class _ControlViewState extends State<ControlView> {
                             Flexible(
                               child: RichText(
                                 text: TextSpan(
-                                  style: ResponsiveLayout.isMobile
-                                      ? theme.textTheme.ppMori400White12
-                                      : theme.textTheme.ppMori400White14,
+                                  style: theme.textTheme.ppMori400White14,
                                   children: [
                                     TextSpan(
                                       text: "_by".tr(args: [
@@ -591,13 +587,10 @@ class _ControlViewState extends State<ControlView> {
                                       GestureDetector(
                                         child: Text(
                                           followingNames[i],
-                                          style: ResponsiveLayout.isMobile
-                                              ? theme.textTheme.ppMori400White12
-                                                  .copyWith(
-                                                      color:
-                                                          AppColor.auSuperTeal)
-                                              : theme
-                                                  .textTheme.ppMori400White14,
+                                          style: theme
+                                              .textTheme.ppMori400White14
+                                              .copyWith(
+                                                  color: AppColor.auSuperTeal),
                                         ),
                                         onTap: () {
                                           Navigator.of(context).pushNamed(
@@ -612,16 +605,16 @@ class _ControlViewState extends State<ControlView> {
                                       if (i < events.length - 1)
                                         Text(", ",
                                             style: theme
-                                                .textTheme.ppMori400White12)
+                                                .textTheme.ppMori400White14)
                                     ])
                                 .flattened,
-                            Text(" • ", style: theme.textTheme.ppMori400Grey12),
+                            Text(" • ", style: theme.textTheme.ppMori400Grey14),
                             Text(
                                 events.length > 1
                                     ? "last_time_format"
                                         .tr(args: [followingTime])
                                     : followingTime,
-                                style: theme.textTheme.ppMori400Grey12),
+                                style: theme.textTheme.ppMori400Grey14),
                           ],
                         ),
                       ],
