@@ -46,7 +46,7 @@ extension WalletStorageExtension on WalletStorage {
     return token.balance ?? 0;
   }
 
-  Future getTezosAddress({int index = 0}) async {
+  Future<String> getTezosAddress({int index = 0}) async {
     final publicKey = await getTezosPublicKey(index: index);
     return crypto.addressFromPublicKey(publicKey);
   }
