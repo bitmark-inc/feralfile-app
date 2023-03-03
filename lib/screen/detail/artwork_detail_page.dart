@@ -89,9 +89,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final twitterUrl =
         "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
     final twitterUri = Uri.parse(twitterUrl);
-    if (await canLaunchUrl(twitterUri)) {
-      launchUrl(twitterUri, mode: LaunchMode.externalApplication);
-    }
+    launchUrl(twitterUri, mode: LaunchMode.externalApplication);
   }
 
   void _shareTwitter(AssetToken token) {
