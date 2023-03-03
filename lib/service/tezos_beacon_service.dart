@@ -50,7 +50,7 @@ class TezosBeaconService implements BeaconHandler {
     _beaconChannel.connect();
   }
 
-  void addedConnection() {
+  void _addedConnection() {
     _addedConnectionFlag = true;
     Future.delayed(const Duration(seconds: 10), () {
       _addedConnectionFlag = false;
@@ -133,6 +133,7 @@ class TezosBeaconService implements BeaconHandler {
         createdAt: DateTime.now(),
       );
       _cloudDB.connectionDao.insertConnection(connection);
+      _addedConnection();
     }
   }
 

@@ -179,7 +179,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         final approvedAddresses = [address];
         log.info(
             "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
-        final result = await injector<WalletConnectService>().approveSession(
+        await injector<WalletConnectService>().approveSession(
           selectedPersona!.wallet.uuid,
           selectedPersona!.index,
           (connectionRequest as WCConnectPageArgs).peerMeta,
@@ -193,9 +193,6 @@ class _WCConnectPageState extends State<WCConnectPage>
         if (connectionRequest.name == AUTONOMY_TV_PEER_NAME) {
           metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
         } else {
-          if (result) {
-            injector<WalletConnectService>().addedConnection();
-          }
           metricClient.addEvent(
             MixpanelEvent.connectExternal,
             data: {
@@ -211,8 +208,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         final index = selectedPersona!.index;
         final publicKey = await wallet.getTezosPublicKey(index: index);
         final address = wallet.getTezosAddressFromPubKey(publicKey);
-        final tezosService = injector<TezosBeaconService>();
-        await tezosService.permissionResponse(
+        await injector<TezosBeaconService>().permissionResponse(
           wallet.uuid,
           index,
           (connectionRequest as BeaconRequest).id,
@@ -221,7 +217,6 @@ class _WCConnectPageState extends State<WCConnectPage>
         );
         payloadAddress = address;
         payloadType = CryptoType.XTZ;
-        tezosService.addedConnection();
         metricClient.addEvent(
           MixpanelEvent.connectExternal,
           data: {

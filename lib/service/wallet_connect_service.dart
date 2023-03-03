@@ -48,7 +48,7 @@ class WalletConnectService {
     this._configurationService,
   );
 
-  void addedConnection() {
+  void _addedConnection() {
     _addedConnectionFlag = true;
     Future.delayed(const Duration(seconds: 10), () {
       _addedConnectionFlag = false;
@@ -176,6 +176,7 @@ class WalletConnectService {
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
+    _addedConnection();
     return true;
   }
 
