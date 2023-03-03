@@ -8,9 +8,10 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -34,6 +35,7 @@ class KeySyncPage extends StatelessWidget {
         return Scaffold(
           appBar: getBackAppBar(
             context,
+            title: "conflict_detected".tr(),
             onBack: () {
               if (state.isProcessing != true) {
                 Navigator.of(context).pop();
@@ -49,27 +51,24 @@ class KeySyncPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "conflict_detected".tr(),
-                          style: theme.textTheme.displayLarge,
-                        ),
-                        const SizedBox(height: 40),
+                        addTitleSpace(),
                         Text(
                           "conflict_keychains".tr(),
                           //"We have detected a conflict of keychains.",
-                          style: theme.textTheme.headlineMedium,
+                          style: theme.textTheme.ppMori700Black14,
                         ),
+                        const SizedBox(height: 12),
                         Text(
                           "this_might_occur".tr(),
                           //"This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
-                          style: theme.textTheme.bodyLarge,
+                          style: theme.textTheme.ppMori400Black14,
                         ),
                         const SizedBox(height: 20),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             "device_keychain".tr(),
-                            style: theme.textTheme.headlineMedium,
+                            style: theme.textTheme.ppMori700Black14,
                           ),
                           trailing: AuRadio(
                             value: true,
@@ -89,7 +88,7 @@ class KeySyncPage extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'cloud_keychain'.tr(),
-                            style: theme.textTheme.headlineMedium,
+                            style: theme.textTheme.ppMori700Black14,
                           ),
                           trailing: AuRadio(
                             value: false,
@@ -107,23 +106,26 @@ class KeySyncPage extends StatelessWidget {
                         const SizedBox(height: 40.0),
                         Container(
                           padding: const EdgeInsets.all(10),
-                          color: AppColor.secondaryDimGreyBackground,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: AppColor.secondaryDimGreyBackground,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'how_it_work'.tr(),
                                 style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.atlasDimgreyBold14
-                                    : theme.textTheme.atlasDimgreyBold16,
+                                    ? theme.textTheme.ppMori700Black14
+                                    : theme.textTheme.ppMori700Black16,
                               ),
                               const SizedBox(height: 5),
                               Text(
                                 "data_contain".tr(),
                                 //"All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
                                 style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.atlasBlackNormal14
-                                    : theme.textTheme.atlasBlackNormal16,
+                                    ? theme.textTheme.ppMori400Black14
+                                    : theme.textTheme.ppMori400Black16,
                               ),
                               const SizedBox(height: 10),
                               TextButton(
@@ -137,9 +139,11 @@ class KeySyncPage extends StatelessWidget {
                                 ),
                                 child: Text(
                                   "learn_security".tr(),
-                                  style: ResponsiveLayout.isMobile
-                                      ? theme.textTheme.linkStyle
-                                      : theme.textTheme.linkStyle16,
+                                  style: (ResponsiveLayout.isMobile
+                                          ? theme.textTheme.ppMori400Black14
+                                          : theme.textTheme.ppMori400Black16)
+                                      .copyWith(
+                                          decoration: TextDecoration.underline),
                                 ),
                               ),
                             ],
@@ -152,10 +156,10 @@ class KeySyncPage extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: AuFilledButton(
-                        text: "PROCEED",
+                      child: PrimaryButton(
+                        text: "proceed".tr(),
                         isProcessing: state.isProcessing == true,
-                        onPress: state.isProcessing == true
+                        onTap: state.isProcessing == true
                             ? null
                             : () {
                                 context

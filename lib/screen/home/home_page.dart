@@ -377,7 +377,7 @@ class HomePageState extends State<HomePage>
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
-    if (defaultAccounts.length >= 2) {
+    if (defaultAccounts.length >= 2 || true) {
       if (!mounted) return;
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
     }
