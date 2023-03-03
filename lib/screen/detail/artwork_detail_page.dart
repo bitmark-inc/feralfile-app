@@ -85,7 +85,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   void _manualShare(String caption, String url) async {
-    final twitterUrl = "${SocialApp.twitterPrefix}?url=$url&text=$caption";
+    final encodeCaption = Uri.encodeQueryComponent(caption);
+    final twitterUrl =
+        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
     final twitterUri = Uri.parse(twitterUrl);
     if (await canLaunchUrl(twitterUri)) {
       launchUrl(twitterUri, mode: LaunchMode.externalApplication);
@@ -107,6 +109,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       "id": token.id,
       "to": "Twitter",
       "caption": caption,
+      "title": token.title,
+      "artistID": token.artistID,
     });
   }
 
