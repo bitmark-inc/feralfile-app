@@ -924,6 +924,14 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider.value(value: accountsBloc),
+                      BlocProvider(
+                        create: (_) => PersonaBloc(
+                          injector<CloudDatabase>(),
+                          injector(),
+                          injector(),
+                          injector<AuditService>(),
+                        ),
+                      ),
                     ],
                     child: TVConnectPage(
                         wcConnectArgs:
