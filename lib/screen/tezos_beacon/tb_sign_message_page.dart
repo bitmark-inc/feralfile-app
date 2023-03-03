@@ -77,7 +77,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         reason: "No wallet found for address ${widget.request.sourceAddress}",
       );
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(false);
       return;
     }
 
@@ -138,7 +138,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
           context,
           onBack: () {
             _rejectRequest(reason: "User reject");
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           title: "signature_request".tr(),
         ),
@@ -213,7 +213,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                     "Sign In",
                                     hashedData: {"uuid": widget.request.id},
                                   );
-                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop(true);
                                   showInfoNotification(
                                     const Key("signed"),
                                     "signed".tr(),
@@ -222,8 +222,6 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                                       width: 24,
                                     ),
                                   );
-                                  injector<TezosBeaconService>()
-                                      .showYouAllSet();
                                 })
                             : null,
                       ),

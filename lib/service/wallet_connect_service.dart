@@ -55,14 +55,19 @@ class WalletConnectService {
     });
   }
 
-  void requestSignMessageForConnection() {
+  void _clearConnectFlag() {
+    _addedConnectionFlag = false;
+    _requestSignMessageForConnectionFlag = false;
+  }
+
+  void _requestSignMessageForConnection() {
     if (_addedConnectionFlag) {
       _requestSignMessageForConnectionFlag = true;
       _addedConnectionFlag = false;
     }
   }
 
-  void showYouAllSet() {
+  void _showYouAllSet() {
     if (_requestSignMessageForConnectionFlag) {
       _requestSignMessageForConnectionFlag = false;
       Future.delayed(const Duration(seconds: 3), () {
@@ -249,7 +254,7 @@ class WalletConnectService {
               arguments: WCConnectPageArgs(id, peerMeta));
         }
       },
-      onEthSign: (id, message) {
+      onEthSign: (id, message) async {
         log.info("[WalletConnectService]: onEthSign id = $id]");
         String? uuid =
             wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
@@ -259,11 +264,14 @@ class WalletConnectService {
             !wcClients.any(
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
-        _navigationService.navigateTo(WCSignMessagePage.tag,
+        _requestSignMessageForConnection();
+        final result = await _navigationService.navigateTo(WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid, index));
-        requestSignMessageForConnection();
-
+        if (result) {
+          _showYouAllSet();
+        }
+        _clearConnectFlag();
         final metricClient = injector.get<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.signIn, data: {
           "type": "Eth",

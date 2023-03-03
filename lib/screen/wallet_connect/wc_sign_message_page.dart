@@ -90,7 +90,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   .rejectRequest(widget.args.peerMeta, widget.args.id);
             }
             if (!mounted) return;
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           title: "signature_request".tr(),
         ),
@@ -194,7 +194,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
       if (state.event != null) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
 
       /***
@@ -294,17 +294,17 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                             .firstMatch(messageInUtf8);
                     final address = matched?.group(0)?.split("\n")[1].trim();
                     if (address == null) {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(false);
                       return;
                     }
                     context.read<FeralfileBloc>().add(UnlinkFFWeb3AccountEvent(
                         source: widget.args.peerMeta.url, address: address));
                   } else {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true);
                   }
                   // result in listener - linkState.done
                 } else {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 }
                 showInfoNotification(
                   const Key("signed"),
@@ -314,7 +314,6 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     width: 24,
                   ),
                 );
-                injector<WalletConnectService>().showYouAllSet();
               }),
             ),
           )

@@ -57,6 +57,11 @@ class TezosBeaconService implements BeaconHandler {
     });
   }
 
+  void _clearConnectFlag() {
+    _addedConnectionFlag = false;
+    _requestSignMessageForConnectionFlag = false;
+  }
+
   void requestSignMessageForConnection() {
     if (_addedConnectionFlag) {
       _requestSignMessageForConnectionFlag = true;
@@ -64,7 +69,7 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  void showYouAllSet() {
+  void _showYouAllSet() {
     if (_requestSignMessageForConnectionFlag) {
       _requestSignMessageForConnectionFlag = false;
       Future.delayed(const Duration(seconds: 3), () {
@@ -157,7 +162,7 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  void handleNextRequest({bool isRemoved = false}) {
+  Future<void> handleNextRequest({bool isRemoved = false}) async {
     log.info("TezosBeaconService: handleRequest");
     if (isRemoved && _handlingRequests.isNotEmpty) {
       _handlingRequests.removeAt(0);
@@ -170,7 +175,11 @@ class TezosBeaconService implements BeaconHandler {
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       requestSignMessageForConnection();
-      _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
+      final result = await _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);
+      if(result) {
+        _showYouAllSet();
+      }
+      _clearConnectFlag();
     } else if (request.type == "operation") {
       _navigationService.navigateTo(TBSendTransactionPage.tag,
           arguments: request);
