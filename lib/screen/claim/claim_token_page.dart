@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -24,6 +25,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ClaimTokenPageArgs {
@@ -341,9 +343,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   Future _claimToken(BuildContext context, String receiveAddress) async {
+    ClaimRespone? claimRespone;
     final ffService = injector<FeralFileService>();
     try {
-      await ffService.claimToken(
+      claimRespone = await ffService.claimToken(
         artworkId: widget.artwork.id,
         address: receiveAddress,
         otp: widget.otp,
@@ -373,6 +376,15 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         AppRouter.homePage,
         (route) => false,
       );
+      final token = claimRespone?.token;
+      final caption = claimRespone?.airdropInfo.twitterCaption;
+      if (token == null) {
+        return;
+      }
+      Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+          arguments: ArtworkDetailPayload(
+              [ArtworkIdentity(token.id, token.ownerAddress)], 0,
+              twitterCaption: caption ?? ""));
     }
   }
 
@@ -382,4 +394,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         : "$FF_ARTIST_COLLECTOR/${widget.artwork.exhibition?.id}";
     launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
+}
+
+class ClaimRespone {
+  AssetToken token;
+  AirdropInfo airdropInfo;
+
+  ClaimRespone({required this.token, required this.airdropInfo});
 }

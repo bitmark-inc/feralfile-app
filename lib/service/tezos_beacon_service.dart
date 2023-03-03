@@ -24,11 +24,13 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../main.dart';
 
@@ -138,7 +140,7 @@ class TezosBeaconService implements BeaconHandler {
     final request = _handlingRequests.first;
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
-      _navigationService.willShowContacting = false;
+      hideOverlay(const Key("tezos_beacon_contacting"));
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _navigationService.navigateTo(TBSignMessagePage.tag, arguments: request);

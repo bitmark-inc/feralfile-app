@@ -42,6 +42,9 @@ class Environment {
       ? connectWebsocketTestnetURL
       : connectWebsocketMainnetURL;
 
+  static String get tokenWebviewPrefix =>
+      dotenv.env['TOKEN_WEBVIEW_PREFIX'] ?? '';
+
   static String get indexerMainnetURL =>
       dotenv.env['INDEXER_MAINNET_API_URL'] ?? '';
 
