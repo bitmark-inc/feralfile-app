@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -109,11 +110,6 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         addTitleSpace(),
-                        if (type == CryptoType.USDC) ...[
-                          Text("please_verify_usdc_erc20".tr(),
-                              style: theme.textTheme.headlineSmall),
-                          const SizedBox(height: 8),
-                        ],
                         Text(
                           "to".tr(),
                           style: theme.textTheme.ppMori400Black14,
@@ -253,6 +249,12 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         const SizedBox(height: 8.0),
                         if (state.feeOptionValue != null)
                           feeTable(state, context),
+                        if (type == CryptoType.USDC) ...[
+                          const SizedBox(height: 16.0),
+                          ImportantNoteView(
+                            note: "please_verify_usdc_erc20".tr(),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -377,7 +379,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
           onTap: () {
             UIHelper.showDialog(
                 context,
-                "edit_priority".tr(),
+                "edit_priority".tr().capitalize(),
                 _editPriorityView(state, context, onSave: () {
                   context.read<SendCryptoBloc>().add(FeeOptionChangedEvent(
                       _selectedPriority, state.address ?? ""));
@@ -442,11 +444,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   String _cryptoIconAsset() {
     switch (widget.data.type) {
       case CryptoType.ETH:
-        return "assets/images/iconEth.svg";
+        return "assets/images/ether.svg";
       case CryptoType.XTZ:
         return "assets/images/tez.svg";
       default:
-        return "assets/images/iconUsdc.svg";
+        return "assets/images/usdc.svg";
     }
   }
 
