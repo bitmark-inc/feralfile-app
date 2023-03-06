@@ -365,10 +365,12 @@ class _OnboardingPageState extends State<OnboardingPage>
                   text: "restore_autonomy".tr(),
                   onTap: !state.isLoading
                       ? () {
-                          metricClient.addEvent(MixpanelEvent.restoreAccount);
                           context.read<RouterBloc>().add(
                               RestoreCloudDatabaseRoutingEvent(
                                   state.backupVersion));
+                          Future.delayed(const Duration(seconds: 20), () {
+                            injector<MetricClientService>().addEvent(MixpanelEvent.restoreAccount);
+                          });
                         }
                       : null,
                 ),
