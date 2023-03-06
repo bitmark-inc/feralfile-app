@@ -8,9 +8,13 @@
 abstract class KeySyncEvent {}
 
 class ToggleKeySyncEvent extends KeySyncEvent {
+  ToggleKeySyncEvent();
+}
+
+class ChangeKeyChainEvent extends KeySyncEvent {
   final bool isLocal;
 
-  ToggleKeySyncEvent(this.isLocal);
+  ChangeKeyChainEvent(this.isLocal);
 }
 
 class ProceedKeySyncEvent extends KeySyncEvent {}
@@ -18,6 +22,16 @@ class ProceedKeySyncEvent extends KeySyncEvent {}
 class KeySyncState {
   final bool isLocalSelected;
   final bool? isProcessing;
+  bool isLocalSelectedTmp;
 
-  KeySyncState(this.isLocalSelected, this.isProcessing);
+  KeySyncState(
+      this.isLocalSelected, this.isProcessing, this.isLocalSelectedTmp);
+
+  KeySyncState copyWith(
+      {bool? isLocalSelected, bool? isProcessing, bool? isLocalSelectedTmp}) {
+    return KeySyncState(
+        isLocalSelected ?? this.isLocalSelected,
+        isProcessing ?? this.isProcessing,
+        isLocalSelectedTmp ?? this.isLocalSelectedTmp);
+  }
 }

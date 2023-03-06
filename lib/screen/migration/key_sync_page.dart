@@ -21,37 +21,21 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class KeySyncPage extends StatefulWidget {
+class KeySyncPage extends StatelessWidget {
   const KeySyncPage({super.key});
-
-  @override
-  State<KeySyncPage> createState() => _KeySyncPageState();
-}
-
-class _KeySyncPageState extends State<KeySyncPage> {
-  late String _selectedKeychain;
-  @override
-  void initState() {
-    _selectedKeychain = KeyChain.device;
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    context
-        .read<KeySyncBloc>()
-        .add(ToggleKeySyncEvent(_selectedKeychain == KeyChain.device));
 
     return BlocConsumer<KeySyncBloc, KeySyncState>(
       listener: (context, state) async {
         if (state.isProcessing == false) {
           Navigator.of(context).pop();
         }
-        _selectedKeychain =
-            state.isLocalSelected ? KeyChain.device : KeyChain.cloud;
       },
       builder: (context, state) {
+        final bloc = context.read<KeySyncBloc>();
         return Scaffold(
           appBar: getBackAppBar(
             context,
@@ -99,48 +83,17 @@ class _KeySyncPageState extends State<KeySyncPage> {
                             child: GestureDetector(
                               onTap: () {
                                 UIHelper.showDialog(
-                                    context, "select_wallet_type".tr(),
-                                    StatefulBuilder(builder: (
-                                  BuildContext context,
-                                  StateSetter keyChainState,
-                                ) {
-                                  return Column(
-                                    children: [
-                                      _keyChainOption(theme, KeyChain.device,
-                                          keyChainState),
-                                      addDivider(
-                                          height: 40, color: AppColor.white),
-                                      _keyChainOption(
-                                          theme, KeyChain.cloud, keyChainState),
-                                      const SizedBox(height: 40),
-                                      Padding(
-                                        padding: ResponsiveLayout
-                                            .pageHorizontalEdgeInsets,
-                                        child: Column(
-                                          children: [
-                                            PrimaryButton(
-                                              text: "select".tr(),
-                                              onTap: () {
-                                                Navigator.of(context).pop();
-                                                if (state.isProcessing ==
-                                                    true) {
-                                                  return;
-                                                }
-                                                setState(() {});
-                                              },
-                                            ),
-                                            const SizedBox(height: 10),
-                                            OutlineButton(
-                                              onTap: () =>
-                                                  Navigator.of(context).pop(),
-                                              text: "cancel".tr(),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                }),
+                                    context,
+                                    "select_wallet_type".tr(),
+                                    SelectKeychainView(
+                                      onSelect: (bool isLocal) {
+                                        bloc.add(ToggleKeySyncEvent());
+                                      },
+                                      onChange: (bool isLocal) {
+                                        bloc.add(ChangeKeyChainEvent(isLocal));
+                                      },
+                                      defaultOption: state.isLocalSelected,
+                                    ),
                                     isDismissible: true,
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 32),
@@ -152,7 +105,9 @@ class _KeySyncPageState extends State<KeySyncPage> {
                                 child: Row(
                                   children: [
                                     Text(
-                                      _selectedKeychain,
+                                      state.isLocalSelected
+                                          ? KeyChain.device
+                                          : KeyChain.cloud,
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                     const Spacer(),
@@ -242,31 +197,97 @@ class _KeySyncPageState extends State<KeySyncPage> {
       },
     );
   }
+}
 
-  Widget _keyChainOption(
-      ThemeData theme, String keyChain, StateSetter keyChainState) {
+class SelectKeychainView extends StatefulWidget {
+  final Function(bool isLocal) onSelect;
+  final Function(bool isLocal) onChange;
+  final bool defaultOption;
+  const SelectKeychainView(
+      {super.key,
+      required this.onSelect,
+      required this.onChange,
+      required this.defaultOption});
+
+  @override
+  State<SelectKeychainView> createState() => SelectKeychainViewState();
+}
+
+class SelectKeychainViewState extends State<SelectKeychainView> {
+  late bool _selectedOption;
+  @override
+  void initState() {
+    _selectedOption = widget.defaultOption;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _option(
+          context,
+          true,
+        ),
+        addDivider(height: 40, color: AppColor.white),
+        _option(
+          context,
+          false,
+        ),
+        const SizedBox(height: 40),
+        Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            children: [
+              PrimaryButton(
+                text: "select".tr(),
+                onTap: () {
+                  widget.onSelect(_selectedOption);
+                  Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(height: 10),
+              OutlineButton(
+                onTap: () => Navigator.of(context).pop(),
+                text: "cancel".tr(),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _option(
+    BuildContext context,
+    bool option,
+  ) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: GestureDetector(
         onTap: () {
-          keyChainState(() {
-            _selectedKeychain = keyChain;
+          widget.onChange(option);
+          setState(() {
+            _selectedOption = option;
           });
         },
         child: Container(
           decoration: const BoxDecoration(color: Colors.transparent),
           child: Row(
             children: [
-              Text(keyChain, style: theme.textTheme.ppMori400White14),
+              Text(option ? KeyChain.device : KeyChain.cloud,
+                  style: theme.textTheme.ppMori400White14),
               const Spacer(),
               AuRadio(
                 onTap: (value) {
-                  keyChainState(() {
-                    _selectedKeychain = keyChain;
+                  widget.onChange(option);
+                  setState(() {
+                    _selectedOption = option;
                   });
                 },
-                value: keyChain,
-                groupValue: _selectedKeychain,
+                value: option,
+                groupValue: _selectedOption,
                 color: AppColor.white,
               ),
             ],

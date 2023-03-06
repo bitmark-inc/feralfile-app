@@ -15,13 +15,18 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
   final CloudDatabase _cloudDatabase;
 
   KeySyncBloc(this._backupService, this._cloudDatabase)
-      : super(KeySyncState(true, null)) {
+      : super(KeySyncState(true, null, true)) {
     on<ToggleKeySyncEvent>((event, emit) async {
-      emit(KeySyncState(event.isLocal, state.isProcessing));
+      emit(state.copyWith(isLocalSelected: state.isLocalSelectedTmp));
+    });
+
+    on<ChangeKeyChainEvent>((event, emit) {
+      emit(state.copyWith(isLocalSelectedTmp: event.isLocal));
     });
 
     on<ProceedKeySyncEvent>((event, emit) async {
-      emit(KeySyncState(state.isLocalSelected, true));
+      emit(state.copyWith(
+          isProcessing: true, isLocalSelectedTmp: state.isLocalSelected));
 
       final accounts = await _cloudDatabase.personaDao.getDefaultPersonas();
       if (accounts.length < 2) return;
@@ -61,7 +66,7 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
         await _cloudDatabase.personaDao.updatePersona(localDefaultPersona);
       }
 
-      emit(KeySyncState(state.isLocalSelected, false));
+      emit(state.copyWith(isProcessing: false));
     });
   }
 }
