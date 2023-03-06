@@ -88,7 +88,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
       await _backupService.restoreCloudDatabase(
           await _accountService.getDefaultAccount(), event.version);
-      injector<MetricClientService>().addEvent(MixpanelEvent.restoreAccount);
+
       await _accountService.androidRestoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
@@ -108,6 +108,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
       await migrationUtil.migrateIfNeeded();
+      injector<MetricClientService>().addEvent(MixpanelEvent.restoreAccount);
     });
   }
 }
