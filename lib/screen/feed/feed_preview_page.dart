@@ -344,7 +344,6 @@ class _FeedArtworkState extends State<FeedArtwork>
                           attempt: attempt > 0 ? attempt : null,
                           overriddenHtml: state.overriddenHtml,
                           isMute: true,
-                          loadingWidget: TokenThumbnailWidget(token: asset),
                         );
                       }
                       final mimeType = asset.getMimeType;
