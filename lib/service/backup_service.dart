@@ -139,6 +139,12 @@ class BackupService {
           inputPath: tempFilePath,
           outputPath: dbFilePath,
         );
+        final db = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
+        await db.execute(
+            """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
+        await db.execute(
+            """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
+
         await tempFile.delete();
         log.info("[BackupService] Cloud database is restored");
         return;
