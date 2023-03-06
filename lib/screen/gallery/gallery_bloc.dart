@@ -24,8 +24,7 @@ class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
 
       try {
         final tokens = (await _indexerApi.getNftTokensByOwner(
-                event.address, state.nextPageKey, INDEXER_TOKENS_MAXIMUM))
-            .map((asset) => AssetToken.fromAsset(asset))
+                event.address, state.nextPageKey, INDEXER_TOKENS_MAXIMUM, 0))
             .toList();
         // reload if tokensLength's 0 because it might be indexing case
         final isLastPage =

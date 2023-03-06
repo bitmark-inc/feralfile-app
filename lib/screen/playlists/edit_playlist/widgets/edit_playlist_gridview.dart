@@ -10,12 +10,14 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 
 class EditPlaylistGridView extends StatefulWidget {
   final List<AssetToken?> tokens;
+  final ScrollController? controller;
   final Function(String tokenID, bool value)? onChangedSelect;
   final List<String>? selectedTokens;
   final Function(List<AssetToken?>) onReorder;
   final Function()? onAddTap;
   const EditPlaylistGridView({
     Key? key,
+    this.controller,
     required this.tokens,
     this.onChangedSelect,
     this.selectedTokens,
@@ -46,6 +48,7 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
     final cachedImageSize = (estimatedCellWidth * 3).ceil();
 
     return ReorderableGridView.count(
+      controller: widget.controller,
       footer: [
         Visibility(
           visible: widget.tokens.isNotEmpty,

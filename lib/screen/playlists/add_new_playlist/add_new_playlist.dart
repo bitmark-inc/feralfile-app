@@ -1,10 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -14,9 +14,11 @@ import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/models/address_index.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
@@ -35,25 +37,74 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
   final bloc = injector.get<AddNewPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>();
   final _playlistNameC = TextEditingController();
-  List<String> hiddenTokens = [];
-  List<SentArtwork> sentArtworks = [];
 
   final _formKey = GlobalKey<FormState>();
   List<AssetToken> tokensPlaylist = [];
+  final _controller = ScrollController();
 
   @override
   void initState() {
     super.initState();
 
-    hiddenTokens =
-        injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
-    sentArtworks = injector<ConfigurationService>().getRecentlySentToken();
-    injector<AccountService>().getAllAddresses().then((value) {
-      nftBloc.add(RefreshTokenEvent(addresses: value));
-      nftBloc.add(RequestIndexEvent(value));
-    });
     _playlistNameC.text = widget.playListModel?.name ?? '';
+    _controller.addListener(_scrollListenerToLoadMore);
+    refreshTokens().then((value) {
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+    });
     bloc.add(InitPlaylist(playListModel: widget.playListModel));
+  }
+
+  _scrollListenerToLoadMore() {
+    if (_controller.position.pixels + 100 >=
+        _controller.position.maxScrollExtent) {
+      final nextKey = nftBloc.state.nextKey;
+      if (nextKey == null || nextKey.isLoaded) return;
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
+    }
+  }
+
+  Future<List<AddressIndex>> getAddressIndexes() async {
+    final accountService = injector<AccountService>();
+    return await accountService.getAllAddressIndexes();
+  }
+
+  Future<List<String>> getManualTokenIds() async {
+    final cloudDb = injector<CloudDatabase>();
+    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
+            ConnectionType.manuallyIndexerTokenID.rawValue))
+        .map((e) => e.key)
+        .toList();
+    return tokenIndexerIDs;
+  }
+
+  Future<List<String>> getAddresses() async {
+    final accountService = injector<AccountService>();
+    return await accountService.getAllAddresses();
+  }
+
+  Future refreshTokens() async {
+    final accountService = injector<AccountService>();
+
+    Future.wait([
+      getAddressIndexes(),
+      getManualTokenIds(),
+      accountService.getHiddenAddressIndexes(),
+    ]).then((value) async {
+      final addresses = value[0] as List<AddressIndex>;
+      final indexerIds = value[1] as List<String>;
+      final hiddenAddresses = value[2] as List<AddressIndex>;
+
+      nftBloc.add(RefreshNftCollectionByOwners(
+        hiddenAddresses: hiddenAddresses,
+        addresses: addresses,
+        debugTokens: indexerIds,
+      ));
+
+      if (!listEquals(addresses, NftCollectionBloc.addresses) ||
+          !listEquals(hiddenAddresses, NftCollectionBloc.hiddenAddresses)) {
+        nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+      }
+    });
   }
 
   @override
@@ -66,26 +117,10 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
     required List<AssetToken> tokens,
     List<String>? selectedTokens,
   }) {
+    tokens = tokens.filterAssetToken();
     tokens.sortToken();
-
-    final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-
-    tokens = tokens
-        .where(
-          (element) =>
-              !hiddenTokens.contains(element.id) &&
-              !sentArtworks.any(
-                (e) => e.isHidden(
-                    tokenID: element.id,
-                    address: element.ownerAddress,
-                    timestamp: expiredTime),
-              ),
-        )
-        .toList();
-
-    tokensPlaylist = tokens;
-
-    return tokensPlaylist;
+    bloc.state.tokens = tokens;
+    return tokens;
   }
 
   @override
@@ -99,187 +134,194 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
         }
       },
       builder: (context, state) {
-        final selectedCount = tokensPlaylist
-            .where(
-                (element) => state.selectedIDs?.contains(element.id) ?? false)
-            .length;
-        final isSelectedAll = selectedCount == tokensPlaylist.length;
         final paddingTop = MediaQuery.of(context).viewPadding.top;
         return Scaffold(
           backgroundColor: theme.primaryColor,
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: Stack(
-                children: [
-                  Form(
-                    key: _formKey,
-                    child: Column(
+            child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
+                bloc: nftBloc,
+                builder: (context, nftState) {
+                  final selectedCount = nftState.tokens
+                      .where((element) =>
+                          state.selectedIDs?.contains(element.id) ?? false)
+                      .length;
+                  final isSelectedAll = selectedCount == state.tokens?.length;
+                  return SafeArea(
+                    top: false,
+                    bottom: false,
+                    child: Stack(
                       children: [
-                        HeaderView(paddingTop: paddingTop, isWhite: true),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        Form(
+                          key: _formKey,
                           child: Column(
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    tr('playlist_name'),
-                                    style: theme.textTheme.ppMori400Grey12,
-                                  ),
-                                  TextFormField(
-                                    controller: _playlistNameC,
-                                    cursorColor: theme.colorScheme.secondary,
-                                    style:
-                                        theme.primaryTextTheme.ppMori700White24,
-                                    decoration: InputDecoration(
-                                      hintText: tr('untitled'),
-                                      hintStyle:
-                                          theme.textTheme.ppMori700Grey24,
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          width: 2,
-                                          color: theme.colorScheme.secondary,
-                                        ),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          width: 2,
-                                          color: theme.colorScheme.secondary,
-                                        ),
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          width: 2,
-                                          color: theme.colorScheme.secondary,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              HeaderView(paddingTop: paddingTop, isWhite: true),
                               Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: Column(
                                   children: [
-                                    Text(
-                                      tr(
-                                        selectedCount != 1
-                                            ? 'artworks_selected'
-                                            : 'artwork_selected',
-                                        args: [selectedCount.toString()],
-                                      ),
-                                      style: theme.textTheme.ppMori400White12,
-                                    ),
-                                    const Spacer(),
-                                    GestureDetector(
-                                      onTap: () => bloc.add(SelectItemPlaylist(
-                                          isSelectAll: !isSelectedAll)),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: theme.disableColor,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(64),
-                                        ),
-                                        child: Text(
-                                          isSelectedAll
-                                              ? tr('unselect_all')
-                                              : tr('select_all'),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          tr('playlist_name'),
                                           style:
                                               theme.textTheme.ppMori400Grey12,
                                         ),
+                                        TextFormField(
+                                          controller: _playlistNameC,
+                                          cursorColor:
+                                              theme.colorScheme.secondary,
+                                          style: theme.primaryTextTheme
+                                              .ppMori700White24,
+                                          decoration: InputDecoration(
+                                            hintText: tr('untitled'),
+                                            hintStyle:
+                                                theme.textTheme.ppMori700Grey24,
+                                            border: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                width: 2,
+                                                color:
+                                                    theme.colorScheme.secondary,
+                                              ),
+                                            ),
+                                            focusedBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                width: 2,
+                                                color:
+                                                    theme.colorScheme.secondary,
+                                              ),
+                                            ),
+                                            enabledBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                width: 2,
+                                                color:
+                                                    theme.colorScheme.secondary,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            tr(
+                                              selectedCount != 1
+                                                  ? 'artworks_selected'
+                                                  : 'artwork_selected',
+                                              args: [selectedCount.toString()],
+                                            ),
+                                            style: theme
+                                                .textTheme.ppMori400White12,
+                                          ),
+                                          const Spacer(),
+                                          GestureDetector(
+                                            onTap: () => bloc.add(
+                                                SelectItemPlaylist(
+                                                    isSelectAll:
+                                                        !isSelectedAll)),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: theme.disableColor,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(64),
+                                              ),
+                                              child: Text(
+                                                isSelectedAll
+                                                    ? tr('unselect_all')
+                                                    : tr('select_all'),
+                                                style: theme
+                                                    .textTheme.ppMori400Grey12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
+                              Expanded(
+                                child: NftCollectionGrid(
+                                  state: nftState.state,
+                                  tokens: nftState.tokens,
+                                  loadingIndicatorBuilder: loadingView,
+                                  customGalleryViewBuilder: (context, tokens) =>
+                                      _assetsWidget(
+                                    context,
+                                    setupPlayList(tokens: tokens),
+                                    onChanged: (tokenID, value) => bloc.add(
+                                      UpdateItemPlaylist(
+                                          tokenID: tokenID, value: value),
+                                    ),
+                                    selectedTokens: state.selectedIDs,
+                                  ),
+                                ),
+                              )
                             ],
                           ),
                         ),
-                        Expanded(
-                          child: BlocConsumer<NftCollectionBloc,
-                              NftCollectionBlocState>(
-                            bloc: nftBloc,
-                            builder: (context, nftState) {
-                              return NftCollectionGrid(
-                                state: nftState.state,
-                                tokens: nftState.tokens,
-                                loadingIndicatorBuilder: loadingView,
-                                customGalleryViewBuilder: (context, tokens) =>
-                                    _assetsWidget(
-                                  context,
-                                  setupPlayList(tokens: tokens),
-                                  onChanged: (tokenID, value) => bloc.add(
-                                    UpdateItemPlaylist(
-                                        tokenID: tokenID, value: value),
+                        Positioned(
+                          bottom: 30,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  PrimaryButton(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      final metricClient =
+                                          injector<MetricClientService>();
+                                      metricClient.addEvent(
+                                          MixpanelEvent.undoCreatePlaylist);
+                                    },
+                                    width: 170,
+                                    text: 'cancel'.tr(),
+                                    color: theme.auLightGrey,
                                   ),
-                                  selectedTokens: state.selectedIDs,
-                                ),
-                              );
-                            },
-                            listener: (context, nftState) {
-                              state.tokens = List.from(nftState.tokens);
-                            },
+                                  PrimaryButton(
+                                    onTap: () {
+                                      if (selectedCount <= 0) {
+                                        return;
+                                      }
+                                      bloc.add(
+                                        CreatePlaylist(
+                                          name: _playlistNameC.text.isNotEmpty
+                                              ? _playlistNameC.text
+                                              : null,
+                                        ),
+                                      );
+                                    },
+                                    width: 170,
+                                    text: tr('save'),
+                                    color: theme.auSuperTeal,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        )
+                        ),
                       ],
                     ),
-                  ),
-                  Positioned(
-                    bottom: 30,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            PrimaryButton(
-                              onTap: () {
-                                Navigator.pop(context);
-                                final metricClient =
-                                    injector<MetricClientService>();
-                                metricClient
-                                    .addEvent(MixpanelEvent.undoCreatePlaylist);
-                              },
-                              width: 170,
-                              text: 'cancel'.tr(),
-                              color: theme.auLightGrey,
-                            ),
-                            PrimaryButton(
-                              onTap: () {
-                                if (selectedCount <= 0) {
-                                  return;
-                                }
-                                bloc.add(
-                                  CreatePlaylist(
-                                    name: _playlistNameC.text.isNotEmpty
-                                        ? _playlistNameC.text
-                                        : null,
-                                  ),
-                                );
-                              },
-                              width: 170,
-                              text: tr('save'),
-                              color: theme.auSuperTeal,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  );
+                }),
           ),
         );
       },
@@ -300,6 +342,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
     final cachedImageSize = (estimatedCellWidth * 3).ceil();
 
     return GridView.builder(
+      controller: _controller,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: cellPerRow,
         crossAxisSpacing: cellSpacing,
@@ -376,7 +419,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
           SizedBox(
             width: double.infinity,
             height: double.infinity,
-            child: tokenGalleryWidget(
+            child: tokenGalleryThumbnailWidget(
               context,
               widget.token,
               widget.cachedImageSize,

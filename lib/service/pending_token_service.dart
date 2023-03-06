@@ -7,8 +7,8 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/database/dao/dao.dart';
+import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -70,44 +70,28 @@ extension FilterEventExt on FilterEvent {
     if (contractType != null && tokenId != null) {
       final indexerId = "eth-${address?.hexEip55}-$tokenId";
       final token = AssetToken(
-        artistName: null,
-        artistURL: null,
-        artistID: null,
-        assetData: null,
-        assetID: null,
-        assetURL: null,
-        basePrice: null,
-        baseCurrency: null,
+        asset: Asset.init(
+          maxEdition: 1,
+          source: address?.hexEip55,
+        ),
         blockchain: "ethereum",
-        blockchainUrl: null,
         fungible: false,
         contractType: contractType,
         tokenId: "$tokenId",
         contractAddress: address?.hexEip55 ?? "",
-        desc: null,
         edition: 0,
         editionName: "",
         id: indexerId,
-        maxEdition: 1,
-        medium: null,
-        mimeType: null,
-        mintedAt: null,
-        previewURL: null,
-        source: address?.hexEip55,
-        sourceURL: null,
-        thumbnailID: null,
-        thumbnailURL: null,
-        galleryThumbnailURL: null,
-        title: "",
-        ownerAddress: owner,
+        owner: owner,
         balance: 0,
         owners: {
           owner: 1,
         },
         lastActivityTime: timestamp,
+        lastRefreshedTime: DateTime(1),
         pending: true,
-        initialSaleModel: null,
-        originTokenInfoId: null,
+        originTokenInfo: [],
+        provenance: [],
       );
       return token;
     }
@@ -121,45 +105,33 @@ extension TZKTTokenExtension on TZKTToken {
     DateTime timestamp,
   ) {
     return AssetToken(
-      artistName:
-          (metadata?["creators"] as List<dynamic>?)?.cast<String>().firstOrNull,
-      artistURL: null,
-      artistID: null,
-      assetData: null,
-      assetID: null,
-      assetURL: null,
-      basePrice: null,
-      baseCurrency: null,
+      asset: Asset.init(
+        artistName: (metadata?["creators"] as List<dynamic>?)
+            ?.cast<String>()
+            .firstOrNull,
+        maxEdition: 1,
+        mimeType: metadata?["formats"]?[0]?["mimeType"],
+        source: contract?.address,
+        title: metadata?["name"] ?? "",
+      ),
       blockchain: "tezos",
-      blockchainUrl: null,
       fungible: false,
-      contractType: standard,
+      contractType: standard ?? '',
       tokenId: tokenId,
       contractAddress: contract?.address,
-      desc: null,
       edition: 0,
       editionName: "",
       id: "tez-${contract?.address}-$tokenId",
-      maxEdition: 1,
-      medium: null,
-      mimeType: metadata?["formats"]?[0]?["mimeType"],
-      mintedAt: null,
-      previewURL: null,
-      source: contract?.address,
-      sourceURL: null,
-      thumbnailID: null,
-      thumbnailURL: null,
-      galleryThumbnailURL: null,
-      title: metadata?["name"] ?? "",
       balance: 0,
-      ownerAddress: owner,
+      owner: owner,
       owners: {
         owner: 1,
       },
       lastActivityTime: timestamp,
+      lastRefreshedTime: DateTime(1),
       pending: true,
-      initialSaleModel: null,
-      originTokenInfoId: null,
+      originTokenInfo: [],
+      provenance: [],
     );
   }
 }
@@ -169,12 +141,16 @@ class PendingTokenService {
   final Web3Client _web3Client;
   final TokensService _tokenService;
   final AssetTokenDao _assetTokenDao;
+  final TokenDao _tokenDao;
+  final AssetDao _assetDao;
 
   PendingTokenService(
     this._tzktApi,
     this._web3Client,
     this._tokenService,
     this._assetTokenDao,
+    this._tokenDao,
+    this._assetDao,
   );
 
   Future<bool> checkPendingEthereumTokens(String owner, String tx) async {
@@ -248,15 +224,19 @@ class PendingTokenService {
           .toList();
 
       // Check if pending tokens are transferred out, then remove from local database.
-      final currentPendingTokens = (await _assetTokenDao.findAllPendingTokens())
-          .where((e) => e.ownerAddress == owner)
-          .whereNot((e) => e.isAirdrop);
+      final currentPendingTokens =
+          (await _assetTokenDao.findAllPendingAssetTokens())
+              .where((e) => e.owner == owner)
+              .whereNot((e) => e.isAirdrop);
       final removedPending = currentPendingTokens.where((e) =>
           tokens.firstWhereOrNull((element) => e.id == element.id) == null);
       log.info("[PendingTokenService] Delete transferred out pending tokens: "
           "${removedPending.map((e) => e.id).toList()}");
       for (AssetToken token in removedPending) {
-        await _assetTokenDao.deleteAsset(token);
+        if (token.asset?.assetID != null) {
+          await _assetDao.deleteAssetByID(token.asset!.assetID!);
+        }
+        await _tokenDao.deleteTokenByID(token.id);
       }
 
       final newTokens =

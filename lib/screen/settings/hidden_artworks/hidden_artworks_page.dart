@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
 
@@ -141,7 +142,14 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final asset = tokens[index];
-                final ext = p.extension(asset.getGalleryThumbnailUrl()!);
+                final thumbnailUrl =
+                    asset.getGalleryThumbnailUrl() ?? asset.galleryThumbnailURL;
+                if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+                  return GalleryNoThumbnailWidget(
+                    assetToken: asset,
+                  );
+                }
+                final ext = p.extension(thumbnailUrl);
                 return GestureDetector(
                   child: Stack(
                     children: [
@@ -149,7 +157,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                         tag: asset.id,
                         child: ext == ".svg"
                             ? SvgImage(
-                                url: asset.getGalleryThumbnailUrl()!,
+                                url: thumbnailUrl,
                                 loadingWidgetBuilder: (_) =>
                                     const GalleryThumbnailPlaceholder(),
                                 errorWidgetBuilder: (_) =>
@@ -158,7 +166,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                     const GalleryUnSupportThumbnailWidget(),
                               )
                             : CachedNetworkImage(
-                                imageUrl: asset.getGalleryThumbnailUrl()!,
+                                imageUrl: thumbnailUrl,
                                 width: double.infinity,
                                 height: double.infinity,
                                 fit: BoxFit.cover,
@@ -192,6 +200,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     await injector<ConfigurationService>()
                         .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
                     injector<SettingsDataService>().backup();
+                    NftCollectionBloc.eventController.add(ReloadEvent());
 
                     if (!mounted) return;
                     UIHelper.showHideArtworkResultDialog(context, !isHidden,

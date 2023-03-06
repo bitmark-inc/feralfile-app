@@ -30,14 +30,15 @@ class ArtworkPreviewLoadingState extends ArtworkPreviewState {
 }
 
 class ArtworkPreviewLoadedState extends ArtworkPreviewState {
-  AssetToken? asset;
+  AssetToken? assetToken;
   bool isFullScreen;
 
-  ArtworkPreviewLoadedState({this.asset, this.isFullScreen = false});
+  ArtworkPreviewLoadedState({this.assetToken, this.isFullScreen = false});
 
-  ArtworkPreviewLoadedState copyWith({AssetToken? asset, bool? isFullScreen}) {
+  ArtworkPreviewLoadedState copyWith(
+      {AssetToken? assetToken, bool? isFullScreen}) {
     return ArtworkPreviewLoadedState(
-        asset: asset ?? this.asset,
+        assetToken: assetToken ?? this.assetToken,
         isFullScreen: isFullScreen ?? this.isFullScreen);
   }
 }

@@ -3,13 +3,14 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -37,6 +38,8 @@ extension AssetTokenExtension on AssetToken {
     final saleModel = initialSaleModel?.toLowerCase();
     return ["airdrop", "shopping_airdrop"].contains(saleModel);
   }
+
+  ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
   String? get tokenURL {
     final network = Environment.appTestnetConfig ? "TEST" : "MAIN";
@@ -73,9 +76,9 @@ extension AssetTokenExtension on AssetToken {
       } else {
         addresses = await persona.getTezosAddresses();
       }
-      if (addresses.contains(ownerAddress)) {
+      if (addresses.contains(owner)) {
         result = Pair<WalletStorage, int>(
-            persona.wallet(), addresses.indexOf(ownerAddress));
+            persona.wallet(), addresses.indexOf(owner));
         break;
       }
     }
@@ -179,54 +182,42 @@ extension AssetTokenExtension on AssetToken {
     }
   }
 
-  String? getThumbnailUrl({usingThumbnailID = true}) {
-    if (thumbnailURL == null) return null;
-
-    if (thumbnailID != null && usingThumbnailID) {
-      return _refineToCloudflareURL(thumbnailURL!, thumbnailID!, "preview");
-    } else {
-      return _replaceIPFS(thumbnailURL!);
-    }
-  }
-
   String? getGalleryThumbnailUrl({usingThumbnailID = true}) {
-    if (galleryThumbnailURL == null) return null;
+    if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
+      return null;
+    }
 
-    if (thumbnailID != null && usingThumbnailID) {
+    if (usingThumbnailID) {
+      if (thumbnailID == null || thumbnailID!.isEmpty) {
+        return null;
+      }
       return _refineToCloudflareURL(
           galleryThumbnailURL!, thumbnailID!, "thumbnail");
-    } else {
-      return _replaceIPFS(galleryThumbnailURL!);
     }
+
+    return _replaceIPFS(galleryThumbnailURL!);
   }
 
   String? getBlockchainUrl() {
     final network = Environment.appTestnetConfig ? "TESTNET" : "MAINNET";
-    String? url = blockchainUrl;
-    if (url == null || url.isEmpty != false) {
-      switch ("${network}_$blockchain") {
-        case "MAINNET_ethereum":
-          url = "https://etherscan.io/address/$contractAddress";
-          break;
+    switch ("${network}_$blockchain") {
+      case "MAINNET_ethereum":
+        return "https://etherscan.io/address/$contractAddress";
 
-        case "TESTNET_ethereum":
-          url = "https://goerli.etherscan.io/address/$contractAddress";
-          break;
+      case "TESTNET_ethereum":
+        return "https://goerli.etherscan.io/address/$contractAddress";
 
-        case "MAINNET_tezos":
-        case "TESTNET_tezos":
-          url = "https://tzkt.io/$contractAddress";
-          break;
+      case "MAINNET_tezos":
+      case "TESTNET_tezos":
+        return "https://tzkt.io/$contractAddress";
 
-        case "MAINNET_bitmark":
-          url = "https://registry.bitmark.com/bitmark/$tokenId";
-          break;
-        case "TESTNET_bitmark":
-          url = "https://registry.test.bitmark.com/bitmark/$tokenId";
-          break;
-      }
+      case "MAINNET_bitmark":
+        return "https://registry.bitmark.com/bitmark/$tokenId";
+
+      case "TESTNET_bitmark":
+        return "https://registry.test.bitmark.com/bitmark/$tokenId";
     }
-    return url;
+    return null;
   }
 }
 
@@ -266,45 +257,48 @@ AssetToken createPendingAssetToken({
   final exhibition = artwork.exhibition;
   final contract = artwork.contract;
   return AssetToken(
-    artistName: artist.fullName,
-    artistURL: null,
-    artistID: artist.id,
-    assetData: null,
-    assetID: null,
-    assetURL: null,
-    basePrice: null,
-    baseCurrency: null,
+    asset: Asset(
+      '',
+      '',
+      DateTime.now(),
+      artist.id,
+      artist.fullName,
+      null,
+      null,
+      artwork.title,
+      artwork.description,
+      null,
+      null,
+      artwork.maxEdition,
+      "airdrop",
+      null,
+      artwork.thumbnailFileURI,
+      artwork.thumbnailFileURI,
+      artwork.galleryThumbnailFileURI,
+      null,
+      null,
+      "airdrop",
+      null,
+      null,
+    ),
     blockchain: exhibition?.mintBlockchain.toLowerCase() ?? "tezos",
-    blockchainUrl: null,
     fungible: false,
-    contractType: null,
+    contractType: '',
     tokenId: tokenId,
     contractAddress: contract?.address,
-    desc: artwork.description,
     edition: 0,
     editionName: "",
     id: indexerId ?? "",
-    maxEdition: artwork.maxEdition,
-    medium: null,
-    mimeType: null,
-    mintedAt: artwork.createdAt != null
-        ? dateFormatterYMDHM.format(artwork.createdAt!).toUpperCase()
-        : null,
-    previewURL: artwork.thumbnailFileURI,
-    source: "airdrop",
-    sourceURL: null,
-    thumbnailID: null,
-    thumbnailURL: artwork.thumbnailFileURI,
-    galleryThumbnailURL: artwork.galleryThumbnailFileURI,
-    title: artwork.title,
-    balance: 0,
-    ownerAddress: owner,
+    mintedAt: artwork.createdAt ?? DateTime.now(),
+    balance: 1,
+    owner: owner,
     owners: {
       owner: 1,
     },
     lastActivityTime: DateTime.now(),
+    lastRefreshedTime: DateTime(1),
     pending: true,
-    initialSaleModel: "airdrop",
-    originTokenInfoId: null,
+    originTokenInfo: [],
+    provenance: [],
   );
 }

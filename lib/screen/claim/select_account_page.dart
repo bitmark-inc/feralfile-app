@@ -239,7 +239,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
       arguments: ArtworkDetailPayload(
-          [ArtworkIdentity(token.id, token.ownerAddress)], 0,
+          [ArtworkIdentity(token.id, token.owner)], 0,
           twitterCaption: caption ?? ""),
     );
   }

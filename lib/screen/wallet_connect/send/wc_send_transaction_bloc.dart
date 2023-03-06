@@ -92,7 +92,8 @@ class WCSendTransactionBloc
                 await persona.getETHEip55Address(index: index), txHash)
             .then((hasPendingTokens) {
           if (hasPendingTokens) {
-            injector<NftCollectionBloc>().add(RefreshNftCollection());
+            NftCollectionBloc.eventController
+                .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
           }
         });
         _navigationService.goBack();

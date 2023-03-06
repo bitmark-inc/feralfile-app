@@ -42,7 +42,7 @@ class FeedArtworkDetailsPage extends StatefulWidget {
 class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   late ScrollController _scrollController;
   late FeedEvent feedEvent;
-  AssetToken? token;
+  AssetToken? assetToken;
   HashSet<String> _accountNumberHash = HashSet.identity();
 
   @override
@@ -89,15 +89,15 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
     }
 
     feedEvent = currentFeedEvent;
-    token = currentToken;
+    assetToken = currentToken;
 
     final identityState = context.watch<IdentityBloc>().state;
     final followingName =
         feedEvent.recipient.toIdentityOrMask(identityState.identityMap) ??
             feedEvent.recipient;
     final artistName =
-        token?.artistName?.toIdentityOrMask(identityState.identityMap);
-    final editionSubTitle = getEditionSubTitle(token!);
+        assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
+    final editionSubTitle = getEditionSubTitle(assetToken!);
 
     return Scaffold(
       appBar: AppBar(
@@ -107,7 +107,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              token!.title,
+              assetToken?.title ?? '',
               style: theme.textTheme.ppMori400White14,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -121,13 +121,13 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                     TextSpan(
                       text: artistName,
                       recognizer: TapGestureRecognizer()
-                        ..onTap = token!.artistID != null
+                        ..onTap = assetToken!.artistID != null
                             ? () => Navigator.of(context)
                                 .pushNamed(AppRouter.galleryPage,
                                     arguments: GalleryPagePayload(
-                                      address: token!.artistID!,
+                                      address: assetToken!.artistID!,
                                       artistName: artistName!,
-                                      artistURL: token!.artistURL,
+                                      artistURL: assetToken!.artistURL,
                                     ))
                             : null,
                       style: theme.textTheme.ppMori400White12,
@@ -167,9 +167,10 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                 ),
                 GestureDetector(
                   child: Center(
-                      child: FeedArtwork(
-                    assetToken: token,
-                  )),
+                    child: FeedArtwork(
+                      assetToken: assetToken,
+                    ),
+                  ),
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 const SizedBox(
@@ -223,19 +224,19 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      debugInfoWidget(context, token),
+                      debugInfoWidget(context, assetToken),
                       const SizedBox(height: 40.0),
                       HtmlWidget(
-                        token?.desc ?? "",
+                        assetToken?.description ?? "",
                         textStyle: theme.textTheme.ppMori400White12,
                       ),
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(
-                          context, token!, artistName),
-                      (token?.provenances ?? []).isNotEmpty
-                          ? _provenanceView(context, token!.provenances!)
+                          context, assetToken!, artistName),
+                      (assetToken?.provenance ?? []).isNotEmpty
+                          ? _provenanceView(context, assetToken!.provenance)
                           : const SizedBox(),
-                      artworkDetailsRightSection(context, token!),
+                      artworkDetailsRightSection(context, assetToken!),
                       const SizedBox(height: 80.0),
                     ],
                   ),
@@ -248,7 +249,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
             left: 0,
             right: 0,
             child: ReportButton(
-              token: token,
+              assetToken: assetToken,
               scrollController: _scrollController,
             ),
           ),

@@ -184,7 +184,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                               context: context,
                               title: "minted".tr(),
                               content: asset.mintedAt != null
-                                  ? localTimeStringFromISO8601(asset.mintedAt!)
+                                  ? localTimeString(asset.mintedAt!)
                                   : ''),
                           divider,
                           if (widget.payload.asset.fungible == true) ...[
@@ -548,14 +548,21 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           borderRadius: BorderRadius.circular(5), color: AppColor.primaryBlack),
       child: Row(
         children: [
-          tokenGalleryThumbnailWidget(context, widget.payload.asset, 500),
+          AspectRatio(
+            aspectRatio: 1,
+            child: tokenGalleryThumbnailWidget(
+              context,
+              widget.payload.asset,
+              500,
+            ),
+          ),
           const SizedBox(width: 24),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  title ?? '',
                   style: theme.textTheme.ppMori400White16,
                 ),
                 const SizedBox(height: 8),
