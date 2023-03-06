@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -110,6 +109,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         addTitleSpace(),
+                        if (type == CryptoType.USDC) ...[
+                          Text("please_verify_usdc_erc20".tr(),
+                              style: theme.textTheme.headlineSmall),
+                          const SizedBox(height: 8),
+                        ],
                         Text(
                           "to".tr(),
                           style: theme.textTheme.ppMori400Black14,
@@ -249,12 +253,6 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         const SizedBox(height: 8.0),
                         if (state.feeOptionValue != null)
                           feeTable(state, context),
-                        if (type == CryptoType.USDC) ...[
-                          const SizedBox(height: 16.0),
-                          ImportantNoteView(
-                            note: "please_verify_usdc_erc20".tr(),
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -332,30 +330,46 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   Widget _editPriorityView(SendCryptoState state, BuildContext context,
       {required Function() onSave}) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return StatefulBuilder(builder: (context, setState) {
       return Column(
         children: [
-          getFeeRow(FeeOption.LOW, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.LOW, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.HIGH, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.HIGH, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
           const SizedBox(height: 12),
-          PrimaryButton(
-            text: "save_priority".tr(),
-            onTap: () {
-              onSave();
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: PrimaryButton(
+              text: "save_priority".tr(),
+              onTap: () {
+                onSave();
+                Navigator.of(context).pop();
+              },
+            ),
           ),
           const SizedBox(height: 8),
-          OutlineButton(
-            text: "cancel".tr(),
-            onTap: () {
-              _selectedPriority = state.feeOption;
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: OutlineButton(
+              text: "cancel".tr(),
+              onTap: () {
+                _selectedPriority = state.feeOption;
+                Navigator.of(context).pop();
+              },
+            ),
           )
         ],
       );
@@ -384,7 +398,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                   context.read<SendCryptoBloc>().add(FeeOptionChangedEvent(
                       _selectedPriority, state.address ?? ""));
                 }),
-                backgroundColor: AppColor.auGreyBackground);
+                backgroundColor: AppColor.auGreyBackground,
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
             _unfocus();
           },
           child: Text("edit_priority".tr(),
@@ -444,11 +460,11 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   String _cryptoIconAsset() {
     switch (widget.data.type) {
       case CryptoType.ETH:
-        return "assets/images/ether.svg";
+        return "assets/images/iconEth.svg";
       case CryptoType.XTZ:
         return "assets/images/tez.svg";
       default:
-        return "assets/images/usdc.svg";
+        return "assets/images/iconUsdc.svg";
     }
   }
 
