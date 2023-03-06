@@ -80,6 +80,8 @@ class HomePageState extends State<HomePage>
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
 
+  late Timer _timer;
+
   Future<List<AddressIndex>> getAddressIndexes() async {
     final accountService = injector<AccountService>();
     return await accountService.getAllAddressIndexes();
@@ -127,15 +129,18 @@ class HomePageState extends State<HomePage>
         default:
       }
     });
-    refreshFeeds();
-
     refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
+    refreshFeeds();
+
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      refreshTokens(checkPendingToken: true);
+    });
   }
 
   _scrollListenerToLoadMore() {
@@ -167,6 +172,7 @@ class HomePageState extends State<HomePage>
     routeObserver.unsubscribe(this);
     _fgbgSubscription?.cancel();
     _controller.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
