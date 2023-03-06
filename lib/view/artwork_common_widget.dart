@@ -537,20 +537,24 @@ Widget placeholder(BuildContext context) {
   return AspectRatio(
     aspectRatio: 1,
     child: Container(
-      color: theme.auLightGrey,
+      color: AppColor.primaryBlack,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            loadingIndicator(valueColor: theme.colorScheme.primary),
+            Image.asset(
+              "assets/images/loading_white.gif",
+              width: 52,
+              height: 52,
+            ),
             const SizedBox(
               height: 12,
             ),
             Text(
               "loading...".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasGreyNormal12
-                  : theme.textTheme.atlasGreyNormal14,
+                  ? theme.textTheme.ppMori400White12
+                  : theme.textTheme.ppMori400White14,
             ),
           ],
         ),
@@ -819,17 +823,19 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            loadingIndicator(
-                valueColor: theme.colorScheme.surface,
-                backgroundColor: theme.colorScheme.surface.withOpacity(0.5)),
+            Image.asset(
+              "assets/images/loading_white.gif",
+              width: 52,
+              height: 52,
+            ),
             const SizedBox(
               height: 13,
             ),
             Text(
               "loading...".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasGreyNormal12
-                  : theme.textTheme.atlasGreyNormal14,
+                  ? theme.textTheme.ppMori400White12
+                  : theme.textTheme.ppMori400White14,
             ),
           ],
         ),
