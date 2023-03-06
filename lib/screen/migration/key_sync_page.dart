@@ -8,9 +8,13 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -18,7 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class KeySyncPage extends StatelessWidget {
-  const KeySyncPage({Key? key}) : super(key: key);
+  const KeySyncPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +35,11 @@ class KeySyncPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        final bloc = context.read<KeySyncBloc>();
         return Scaffold(
           appBar: getBackAppBar(
             context,
+            title: "conflict_detected".tr(),
             onBack: () {
               if (state.isProcessing != true) {
                 Navigator.of(context).pop();
@@ -49,83 +55,99 @@ class KeySyncPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "conflict_detected".tr(),
-                          style: theme.textTheme.displayLarge,
-                        ),
-                        const SizedBox(height: 40),
+                        addTitleSpace(),
                         Text(
                           "conflict_keychains".tr(),
                           //"We have detected a conflict of keychains.",
-                          style: theme.textTheme.headlineMedium,
+                          style: theme.textTheme.ppMori700Black14,
                         ),
+                        const SizedBox(height: 12),
                         Text(
                           "this_might_occur".tr(),
                           //"This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
-                          style: theme.textTheme.bodyLarge,
+                          style: theme.textTheme.ppMori400Black14,
                         ),
                         const SizedBox(height: 20),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            "device_keychain".tr(),
-                            style: theme.textTheme.headlineMedium,
-                          ),
-                          trailing: AuRadio(
-                            value: true,
-                            groupValue: state.isLocalSelected,
-                            onTap: (bool? value) {
-                              if (state.isProcessing == true) {
-                                return;
-                              }
-                              context
-                                  .read<KeySyncBloc>()
-                                  .add(ToggleKeySyncEvent(value ?? true));
-                            },
-                          ),
+                        Text(
+                          "select_your_default_keychain".tr(),
+                          style: theme.textTheme.ppMori400Black14,
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            'cloud_keychain'.tr(),
-                            style: theme.textTheme.headlineMedium,
-                          ),
-                          trailing: AuRadio(
-                            value: false,
-                            groupValue: state.isLocalSelected,
-                            onTap: (bool? value) {
-                              if (state.isProcessing == true) {
-                                return;
-                              }
-                              context
-                                  .read<KeySyncBloc>()
-                                  .add(ToggleKeySyncEvent(value ?? true));
-                            },
-                          ),
-                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                            padding: const EdgeInsets.all(20.0),
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: theme.colorScheme.primary),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(5.0))),
+                            child: GestureDetector(
+                              onTap: () {
+                                UIHelper.showDialog(
+                                    context,
+                                    "select_wallet_type".tr(),
+                                    SelectKeychainView(
+                                      onSelect: (bool isLocal) {
+                                        bloc.add(ToggleKeySyncEvent());
+                                      },
+                                      onChange: (bool isLocal) {
+                                        bloc.add(ChangeKeyChainEvent(isLocal));
+                                      },
+                                      defaultOption: state.isLocalSelected,
+                                    ),
+                                    isDismissible: true,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 32),
+                                    paddingTitle: ResponsiveLayout
+                                        .pageHorizontalEdgeInsets);
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      state.isLocalSelected
+                                          ? KeyChain.device
+                                          : KeyChain.cloud,
+                                      style: theme.textTheme.ppMori400Black14,
+                                    ),
+                                    const Spacer(),
+                                    RotatedBox(
+                                      quarterTurns: 1,
+                                      child: Icon(
+                                        AuIcon.chevron_Sm,
+                                        size: 12,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            )),
                         const SizedBox(height: 40.0),
                         Container(
-                          padding: const EdgeInsets.all(10),
-                          color: AppColor.secondaryDimGreyBackground,
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: AppColor.auSuperTeal,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'how_it_work'.tr(),
                                 style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.atlasDimgreyBold14
-                                    : theme.textTheme.atlasDimgreyBold16,
+                                    ? theme.textTheme.ppMori700Black14
+                                    : theme.textTheme.ppMori700Black16,
                               ),
-                              const SizedBox(height: 5),
+                              const SizedBox(height: 12),
                               Text(
                                 "data_contain".tr(),
                                 //"All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
                                 style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.atlasBlackNormal14
-                                    : theme.textTheme.atlasBlackNormal16,
+                                    ? theme.textTheme.ppMori400Black14
+                                    : theme.textTheme.ppMori400Black16,
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 12),
                               TextButton(
                                 onPressed: () => Navigator.of(context)
                                     .pushNamed(AppRouter.autonomySecurityPage),
@@ -137,9 +159,11 @@ class KeySyncPage extends StatelessWidget {
                                 ),
                                 child: Text(
                                   "learn_security".tr(),
-                                  style: ResponsiveLayout.isMobile
-                                      ? theme.textTheme.linkStyle
-                                      : theme.textTheme.linkStyle16,
+                                  style: (ResponsiveLayout.isMobile
+                                          ? theme.textTheme.ppMori400Black14
+                                          : theme.textTheme.ppMori400Black16)
+                                      .copyWith(
+                                          decoration: TextDecoration.underline),
                                 ),
                               ),
                             ],
@@ -152,10 +176,10 @@ class KeySyncPage extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: AuFilledButton(
-                        text: "PROCEED",
+                      child: PrimaryButton(
+                        text: "proceed".tr(),
                         isProcessing: state.isProcessing == true,
-                        onPress: state.isProcessing == true
+                        onTap: state.isProcessing == true
                             ? null
                             : () {
                                 context
@@ -171,6 +195,105 @@ class KeySyncPage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class SelectKeychainView extends StatefulWidget {
+  final Function(bool isLocal) onSelect;
+  final Function(bool isLocal) onChange;
+  final bool defaultOption;
+  const SelectKeychainView(
+      {super.key,
+      required this.onSelect,
+      required this.onChange,
+      required this.defaultOption});
+
+  @override
+  State<SelectKeychainView> createState() => SelectKeychainViewState();
+}
+
+class SelectKeychainViewState extends State<SelectKeychainView> {
+  late bool _selectedOption;
+  @override
+  void initState() {
+    _selectedOption = widget.defaultOption;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _option(
+          context,
+          true,
+        ),
+        addDivider(height: 40, color: AppColor.white),
+        _option(
+          context,
+          false,
+        ),
+        const SizedBox(height: 40),
+        Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            children: [
+              PrimaryButton(
+                text: "select".tr(),
+                onTap: () {
+                  widget.onSelect(_selectedOption);
+                  Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(height: 10),
+              OutlineButton(
+                onTap: () => Navigator.of(context).pop(),
+                text: "cancel".tr(),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _option(
+    BuildContext context,
+    bool option,
+  ) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () {
+          widget.onChange(option);
+          setState(() {
+            _selectedOption = option;
+          });
+        },
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              Text(option ? KeyChain.device : KeyChain.cloud,
+                  style: theme.textTheme.ppMori400White14),
+              const Spacer(),
+              AuRadio(
+                onTap: (value) {
+                  widget.onChange(option);
+                  setState(() {
+                    _selectedOption = option;
+                  });
+                },
+                value: option,
+                groupValue: _selectedOption,
+                color: AppColor.white,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

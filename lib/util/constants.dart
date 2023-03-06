@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -395,4 +396,9 @@ class LinkType {
 class SocialApp {
   static String twitter = "twitter";
   static String twitterPrefix = "https://twitter.com/intent/tweet";
+}
+
+class KeyChain {
+  static String device = "device_keychain".tr();
+  static String cloud = "cloud_keychain".tr();
 }
