@@ -369,7 +369,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                               RestoreCloudDatabaseRoutingEvent(
                                   state.backupVersion));
                           Future.delayed(const Duration(seconds: 20), () {
-                            injector<MetricClientService>().addEvent(MixpanelEvent.restoreAccount);
+                            injector<MetricClientService>()
+                                .addEvent(MixpanelEvent.restoreAccount);
                           });
                         }
                       : null,
