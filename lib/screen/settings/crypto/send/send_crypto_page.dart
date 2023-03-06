@@ -330,30 +330,46 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   Widget _editPriorityView(SendCryptoState state, BuildContext context,
       {required Function() onSave}) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return StatefulBuilder(builder: (context, setState) {
       return Column(
         children: [
-          getFeeRow(FeeOption.LOW, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.LOW, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.HIGH, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.HIGH, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
           const SizedBox(height: 12),
-          PrimaryButton(
-            text: "save_priority".tr(),
-            onTap: () {
-              onSave();
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: PrimaryButton(
+              text: "save_priority".tr(),
+              onTap: () {
+                onSave();
+                Navigator.of(context).pop();
+              },
+            ),
           ),
           const SizedBox(height: 8),
-          OutlineButton(
-            text: "cancel".tr(),
-            onTap: () {
-              _selectedPriority = state.feeOption;
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: OutlineButton(
+              text: "cancel".tr(),
+              onTap: () {
+                _selectedPriority = state.feeOption;
+                Navigator.of(context).pop();
+              },
+            ),
           )
         ],
       );
@@ -377,12 +393,14 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
           onTap: () {
             UIHelper.showDialog(
                 context,
-                "edit_priority".tr(),
+                "edit_priority".tr().capitalize(),
                 _editPriorityView(state, context, onSave: () {
                   context.read<SendCryptoBloc>().add(FeeOptionChangedEvent(
                       _selectedPriority, state.address ?? ""));
                 }),
-                backgroundColor: AppColor.auGreyBackground);
+                backgroundColor: AppColor.auGreyBackground,
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
             _unfocus();
           },
           child: Text("edit_priority".tr(),

@@ -69,6 +69,8 @@ class Account {
 
   bool get isEth => blockchain == "Ethereum";
 
+  bool get isUsdc => blockchain == "USDC";
+
   Account({
     required this.key,
     this.persona,

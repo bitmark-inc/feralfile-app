@@ -36,10 +36,12 @@ class GlobalReceiveDetailPage extends StatefulWidget {
 
 class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
   late Account _account;
+  late String? _blockchain;
 
   @override
   void initState() {
     _account = widget.payload.account;
+    _blockchain = widget.payload.blockchain;
     super.initState();
   }
 
@@ -51,7 +53,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "receive_on_".tr(args: [_account.blockchain!]),
+        title: "receive_on_".tr(args: [_blockchain!]),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -71,10 +73,9 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                       size: 180.0,
                     )),
               ),
-              const SizedBox(height: 48),
-              _account.blockchain != "USDC"
-                  ? ImportantNoteView(
-                      note: _blockchainWarningText(_account.blockchain))
+              const SizedBox(height: 30),
+              _blockchain != "USDC"
+                  ? ImportantNoteView(note: _blockchainWarningText(_blockchain))
                   : const SizedBox(),
               const SizedBox(height: 16),
               Container(
@@ -92,9 +93,8 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                "your_blockchain_address".tr(namedArgs: {
-                                  'blockChain': _account.blockchain!
-                                }),
+                                "your_blockchain_address".tr(
+                                    namedArgs: {'blockChain': _blockchain!}),
                                 textAlign: TextAlign.left,
                                 style: ResponsiveLayout.isMobile
                                     ? theme.textTheme.ppMori400Black12

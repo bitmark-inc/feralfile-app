@@ -588,6 +588,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               builder: (context, accountState) {
                 final account = accountState.accounts?.firstWhere((element) =>
                     element.blockchain == widget.payload.type.source);
+                final blockChain =
+                    (widget.payload.type.source == CryptoType.USDC.source)
+                        ? CryptoType.ETH.source
+                        : widget.payload.type.source;
                 return AuCustomButton(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -614,7 +618,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                           GlobalReceiveDetailPage.tag,
                           arguments: GlobalReceivePayload(
                               address: widget.payload.address,
-                              blockchain: widget.payload.type.source,
+                              blockchain: blockChain,
                               account: account));
                     }
                   },

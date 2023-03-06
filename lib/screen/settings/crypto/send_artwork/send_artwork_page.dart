@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -417,14 +418,17 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         GestureDetector(
           onTap: () {
             UIHelper.showDialog(
-                context,
-                "edit_priority".tr().capitalize(),
-                _editPriorityView(state, context, onSave: () {
-                  context
-                      .read<SendArtworkBloc>()
-                      .add(FeeOptionChangedEvent(_selectedPriority));
-                }),
-                backgroundColor: AppColor.auGreyBackground);
+              context,
+              "edit_priority".tr().capitalize(),
+              _editPriorityView(state, context, onSave: () {
+                context
+                    .read<SendArtworkBloc>()
+                    .add(FeeOptionChangedEvent(_selectedPriority));
+              }),
+              backgroundColor: AppColor.auGreyBackground,
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets,
+            );
           },
           child: Text("edit_priority".tr(),
               style: theme.textTheme.linkStyle
@@ -437,30 +441,46 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   Widget _editPriorityView(SendArtworkState state, BuildContext context,
       {required Function() onSave}) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return StatefulBuilder(builder: (context, setState) {
       return Column(
         children: [
-          getFeeRow(FeeOption.LOW, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.LOW, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.HIGH, state, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.HIGH, state, theme, setState),
+          ),
           addDivider(color: AppColor.white),
           const SizedBox(height: 12),
-          PrimaryButton(
-            text: "save_priority".tr(),
-            onTap: () {
-              onSave();
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: PrimaryButton(
+              text: "save_priority".tr(),
+              onTap: () {
+                onSave();
+                Navigator.of(context).pop();
+              },
+            ),
           ),
           const SizedBox(height: 8),
-          OutlineButton(
-            text: "cancel".tr(),
-            onTap: () {
-              _selectedPriority = state.feeOption;
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: OutlineButton(
+              text: "cancel".tr(),
+              onTap: () {
+                _selectedPriority = state.feeOption;
+                Navigator.of(context).pop();
+              },
+            ),
           )
         ],
       );

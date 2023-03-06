@@ -459,14 +459,17 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         GestureDetector(
           onTap: () {
             UIHelper.showDialog(
-                context,
-                "edit_priority".tr().capitalize(),
-                _editPriorityView(context, onSave: () {
-                  setState(() {
-                    feeOption = _selectedPriority;
-                  });
-                }),
-                backgroundColor: AppColor.auGreyBackground);
+              context,
+              "edit_priority".tr().capitalize(),
+              _editPriorityView(context, onSave: () {
+                setState(() {
+                  feeOption = _selectedPriority;
+                });
+              }),
+              backgroundColor: AppColor.auGreyBackground,
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets,
+            );
           },
           child: Text("edit_priority".tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
@@ -479,30 +482,46 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Widget _editPriorityView(BuildContext context, {required Function() onSave}) {
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return StatefulBuilder(builder: (context, setState) {
       return Column(
         children: [
-          getFeeRow(FeeOption.LOW, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.LOW, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.MEDIUM, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.MEDIUM, theme, setState),
+          ),
           addDivider(color: AppColor.white),
-          getFeeRow(FeeOption.HIGH, theme, setState),
+          Padding(
+            padding: padding,
+            child: getFeeRow(FeeOption.HIGH, theme, setState),
+          ),
           addDivider(color: AppColor.white),
           const SizedBox(height: 12),
-          PrimaryButton(
-            text: "save_priority".tr(),
-            onTap: () {
-              onSave();
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: PrimaryButton(
+              text: "save_priority".tr(),
+              onTap: () {
+                onSave();
+                Navigator.of(context).pop();
+              },
+            ),
           ),
           const SizedBox(height: 8),
-          OutlineButton(
-            text: "cancel".tr(),
-            onTap: () {
-              _selectedPriority = feeOption;
-              Navigator.of(context).pop();
-            },
+          Padding(
+            padding: padding,
+            child: OutlineButton(
+              text: "cancel".tr(),
+              onTap: () {
+                _selectedPriority = feeOption;
+                Navigator.of(context).pop();
+              },
+            ),
           )
         ],
       );
