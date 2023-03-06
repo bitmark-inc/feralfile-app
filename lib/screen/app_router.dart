@@ -915,7 +915,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider(
                   create: (_) => KeySyncBloc(injector(), injector()),
-                  child: KeySyncPage(),
+                  child: const KeySyncPage(),
                 ));
 
       case tvConnectPage:
