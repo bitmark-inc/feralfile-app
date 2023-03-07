@@ -33,7 +33,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   BigInt? cachedAmount;
   bool isEstimating = false;
 
-  final _safeBuffer = BigInt.from(10);
+  final _xtzSafeBuffer = BigInt.from(10);
+  final _ethSafeBuffer = BigInt.from(100);
 
   SendCryptoBloc(
     this._ethereumService,
@@ -59,7 +60,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
           if (state.feeOptionValue != null) {
             final maxAllow =
-                balance.getInWei - state.feeOptionValue!.high - _safeBuffer;
+                balance.getInWei - state.feeOptionValue!.high - _ethSafeBuffer;
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
@@ -72,7 +73,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           newState.balance = BigInt.from(balance);
           if (state.feeOptionValue != null) {
             final maxAllow =
-                newState.balance! - state.feeOptionValue!.high - _safeBuffer;
+                newState.balance! - state.feeOptionValue!.high - _xtzSafeBuffer;
             newState.maxAllow = maxAllow;
             newState.isValid = _isValid(newState);
           }
@@ -273,7 +274,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
       if (state.balance != null) {
         var maxAllow = _type != CryptoType.USDC
-            ? state.balance! - fee - _safeBuffer
+            ? state.balance! -
+                fee -
+                (_type == CryptoType.ETH ? _ethSafeBuffer : _xtzSafeBuffer)
             : state.balance!;
         if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
         newState.maxAllow = maxAllow;
@@ -295,7 +298,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         var maxAllow = _type != CryptoType.USDC
             ? state.balance! -
                 state.feeOptionValue!.getFee(event.feeOption) -
-                _safeBuffer
+                (_type == CryptoType.ETH ? _ethSafeBuffer : _xtzSafeBuffer)
             : state.balance!;
         if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
         newState.maxAllow = maxAllow;
