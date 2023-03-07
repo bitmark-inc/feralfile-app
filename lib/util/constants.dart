@@ -82,6 +82,9 @@ const publicTezosNodes = [
   "https://mainnet.tezos.marigold.dev",
 ];
 
+const TV_APP_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");

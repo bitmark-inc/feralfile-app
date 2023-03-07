@@ -42,12 +42,14 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 enum ActionState { notRequested, loading, error, done }
@@ -449,7 +451,6 @@ class UIHelper {
     AssetToken? assetToken,
   }) {
     final theme = Theme.of(context);
-    final isPDFArtwork = assetToken?.mimeType == 'application/pdf';
     return showDialog(
       context,
       'unavailable_cast'.tr(),
@@ -467,11 +468,27 @@ class UIHelper {
                 width: 17,
               ),
               Expanded(
-                child: Text(
-                  isPDFArtwork
-                      ? 'unavailable_cast_pdf_des'.tr()
-                      : 'unavailable_cast_interactive_des'.tr(),
-                  style: theme.textTheme.ppMori400Grey14,
+                child: RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.ppMori400Grey14,
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'software_artwork_connect_cast'.tr(),
+                      ),
+                      TextSpan(
+                        text: 'tv_app'.tr(),
+                        style: theme.textTheme.ppMori400Green14,
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            launchUrlString(TV_APP_STORE_URL,
+                                mode: LaunchMode.externalApplication);
+                          },
+                      ),
+                      TextSpan(
+                        text: 'on_google_app_store'.tr(),
+                      ),
+                    ],
+                  ),
                 ),
               )
             ],
@@ -1179,6 +1196,7 @@ class UIHelper {
 
 class ConnectedTV extends StatefulWidget {
   final Function() onTap;
+
   const ConnectedTV({
     super.key,
     required this.onTap,
@@ -1191,6 +1209,7 @@ class ConnectedTV extends StatefulWidget {
 class _ConnectedTVState extends State<ConnectedTV> {
   late Timer _timer;
   int _countdown = 5;
+
   @override
   void initState() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {

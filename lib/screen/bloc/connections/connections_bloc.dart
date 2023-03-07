@@ -134,6 +134,9 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
       for (var peer in bcPeers) {
         _tezosBeaconService.removePeer(peer);
       }
+
+      state.connectionItems?.remove(event.connectionItem);
+      emit(state.copyWith(connectionItems: state.connectionItems));
     });
   }
 }
