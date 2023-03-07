@@ -98,12 +98,14 @@ class TezosTXDetailPage extends StatelessWidget {
   Widget listViewNFT(
       BuildContext context, TZKTTransactionInterface tx, DateFormat formatter) {
     TZKTTokenTransfer? tx_;
+    TZKTOperation? txO;
     bool hasFee = true;
     if (tx is TZKTTokenTransfer) {
       hasFee = false;
       tx_ = tx;
     } else {
-      tx_ = (tx as TZKTOperation).tokenTransfer;
+      txO = tx as TZKTOperation;
+      tx_ = tx.tokenTransfer;
     }
 
     return Expanded(
@@ -126,8 +128,17 @@ class TezosTXDetailPage extends StatelessWidget {
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
           addOnlyDivider(),
           if (hasFee) ...[
-            _transactionInfo(
-                context, "gas_fee2".tr(), _gasFee(tx as TZKTOperation)),
+            if (tx.isBoughtNFT(currentAddress)) ...[
+              _transactionInfo(
+                  context, "amount".tr(), _transactionAmount(txO!)),
+              addOnlyDivider(),
+            ],
+            _transactionInfo(context, "gas_fee2".tr(), _gasFee(txO!)),
+            if (tx.isBoughtNFT(currentAddress)) ...[
+              addOnlyDivider(),
+              _transactionInfoCustom(context, "total_amount".tr(),
+                  _totalAmountWidget(context, txO, currentAddress)),
+            ]
           ],
         ],
       ),
@@ -248,7 +259,7 @@ class TezosTXDetailPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          tx.totalAmount(currentAddress),
+          tx.totalXTZAmount(currentAddress),
           textAlign: TextAlign.right,
           style: theme.textTheme.ppMori400Black14,
         ),
