@@ -185,40 +185,51 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                         addOnlyDivider(),
                       ],
                     )),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 3000),
-                  height: hideConnection ? 0 : null,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 52),
-                      Padding(
-                        padding: padding,
-                        child: _addressSection(),
-                      ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: padding,
-                        child: _sendReceiveSection(),
-                      ),
-                      const SizedBox(height: 24),
-                      addDivider(),
-                      if (showConnection) ...[
-                        Padding(
-                          padding: padding,
-                          child: _connectionsSection(),
+                Expanded(
+                  child: CustomScrollView(
+                    controller: controller,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 3000),
+                              child: Column(
+                                children: [
+                                  SizedBox(height: hideConnection ? 84 : 52),
+                                  Padding(
+                                    padding: padding,
+                                    child: _addressSection(),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Padding(
+                                    padding: padding,
+                                    child: _sendReceiveSection(),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  addDivider(),
+                                  if (showConnection) ...[
+                                    Padding(
+                                      padding: padding,
+                                      child: _connectionsSection(),
+                                    ),
+                                    addDivider(),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        addDivider(),
-                      ],
+                      ),
+                      widget.payload.type == CryptoType.XTZ
+                          ? TezosTXListView(
+                              address: state.address,
+                            )
+                          : const SliverToBoxAdapter(
+                              child: SizedBox(),
+                            )
                     ],
                   ),
-                ),
-                Expanded(
-                  child: widget.payload.type == CryptoType.XTZ
-                      ? TezosTXListView(
-                          address: state.address,
-                          controller: controller,
-                        )
-                      : Container(),
                 ),
                 widget.payload.type == CryptoType.XTZ
                     ? GestureDetector(
