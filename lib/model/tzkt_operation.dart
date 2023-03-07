@@ -36,6 +36,8 @@ abstract class TZKTTransactionInterface {
   String txAmountSign(String? currentAddress);
 
   int getID();
+
+  txUSDAmountSign(String? currentAddress) {}
 }
 
 @JsonSerializable()
@@ -134,6 +136,9 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   String totalAmount(String? currentAddress) {
+    if (isReceiveNFT(currentAddress)) {
+      return tokenTransfer!.totalAmount(currentAddress);
+    }
     return "${XtzAmountFormatter(getTotalAmount(currentAddress)).format()} XTZ";
   }
 
@@ -190,6 +195,13 @@ class TZKTOperation implements TZKTTransactionInterface {
   @override
   int getID() {
     return id;
+  }
+
+  @override
+  String txUSDAmountSign(String? currentAddress) {
+    if (transactionTitle(currentAddress) == "received_xtz".tr()) return "+";
+    if (sender?.address == currentAddress) return "-";
+    return "";
   }
 }
 
@@ -293,6 +305,11 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
   @override
   int getID() {
     return id;
+  }
+
+  @override
+  txUSDAmountSign(String? currentAddress) {
+    return "";
   }
 }
 

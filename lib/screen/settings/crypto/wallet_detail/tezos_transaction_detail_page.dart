@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/fiat_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -100,13 +99,11 @@ class TezosTXDetailPage extends StatelessWidget {
       BuildContext context, TZKTTransactionInterface tx, DateFormat formatter) {
     TZKTTokenTransfer? tx_;
     bool hasFee = true;
-    String amount = "";
     if (tx is TZKTTokenTransfer) {
       hasFee = false;
       tx_ = tx;
     } else {
       tx_ = (tx as TZKTOperation).tokenTransfer;
-      amount = _totalAmount(tx, currentAddress);
     }
 
     return Expanded(
@@ -129,7 +126,8 @@ class TezosTXDetailPage extends StatelessWidget {
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
           addOnlyDivider(),
           if (hasFee) ...[
-            _transactionInfo(context, "gas_fee2".tr(), amount),
+            _transactionInfo(
+                context, "gas_fee2".tr(), _gasFee(tx as TZKTOperation)),
           ],
         ],
       ),
@@ -241,10 +239,6 @@ class TezosTXDetailPage extends StatelessWidget {
 
   String _gasFee(TZKTOperation tx) {
     return "${(tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) / _nanoTEZFactor} XTZ";
-  }
-
-  String _totalAmount(TZKTOperation tx, String? currentAddress) {
-    return "${tx.totalAmount(currentAddress)} (${FiatFormatter((tx.quote.usd * (tx.getTotalAmount(currentAddress)) / _nanoTEZFactor)).format()} USD)";
   }
 
   Widget _totalAmountWidget(

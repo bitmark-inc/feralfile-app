@@ -32,9 +32,11 @@ class TezosTXListView extends StatefulWidget {
 class _TezosTXListViewState extends State<TezosTXListView> {
   static const _pageSize = 40;
   late final TZKTTransactionBloc tzktBloc;
-
+  late ScrollController _controller;
   final PagingController<int, TZKTTransactionInterface> _pagingController =
       PagingController(firstPageKey: 0, invisibleItemsThreshold: 10);
+
+  bool hideConnection = false;
 
   @override
   void initState() {
@@ -50,7 +52,21 @@ class _TezosTXListViewState extends State<TezosTXListView> {
         );
       },
     );
+    _controller = widget.controller ?? ScrollController();
+    _controller.addListener(_listener);
     super.initState();
+  }
+
+  void _listener() {
+    if (_controller.offset > 0) {
+      setState(() {
+        hideConnection = true;
+      });
+    } else {
+      setState(() {
+        hideConnection = false;
+      });
+    }
   }
 
   @override
@@ -88,44 +104,46 @@ class _TezosTXListViewState extends State<TezosTXListView> {
               }
             },
             builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.only(),
-                child: CustomScrollView(
-                  controller: widget.controller ?? ScrollController(),
-                  slivers: [
-                    PagedSliverList.separated(
-                      pagingController: _pagingController,
-                      builderDelegate:
-                          PagedChildBuilderDelegate<TZKTTransactionInterface>(
-                        animateTransitions: true,
-                        newPageErrorIndicatorBuilder: (context) {
-                          return Container(
-                            padding: ResponsiveLayout.pageEdgeInsets,
-                            child: Text("unable_load_tzkt".tr(),
-                                style: theme.textTheme.ppMori400Black14),
-                          );
-                        },
-                        noItemsFoundIndicatorBuilder: (context) {
-                          return Container(
-                            padding: ResponsiveLayout.pageEdgeInsets,
-                            child: Text("transaction_appear_hear".tr(),
-                                style: theme.textTheme.ppMori400Black14),
-                          );
-                        },
-                        itemBuilder: (context, item, index) {
-                          return Padding(
-                            padding: ResponsiveLayout.pageEdgeInsets,
-                            child: TezosTXRowView(
-                                tx: item, currentAddress: widget.address),
-                          );
-                        },
-                      ),
-                      separatorBuilder: (context, index) {
-                        return const Divider();
-                      },
+              return CustomScrollView(
+                controller: widget.controller ?? ScrollController(),
+                slivers: [
+                  if (hideConnection) ...[
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 305),
                     ),
                   ],
-                ),
+                  PagedSliverList.separated(
+                    pagingController: _pagingController,
+                    builderDelegate:
+                        PagedChildBuilderDelegate<TZKTTransactionInterface>(
+                      animateTransitions: true,
+                      newPageErrorIndicatorBuilder: (context) {
+                        return Container(
+                          padding: ResponsiveLayout.pageEdgeInsets,
+                          child: Text("unable_load_tzkt".tr(),
+                              style: theme.textTheme.ppMori400Black14),
+                        );
+                      },
+                      noItemsFoundIndicatorBuilder: (context) {
+                        return Container(
+                          padding: ResponsiveLayout.pageEdgeInsets,
+                          child: Text("transaction_appear_hear".tr(),
+                              style: theme.textTheme.ppMori400Black14),
+                        );
+                      },
+                      itemBuilder: (context, item, index) {
+                        return Padding(
+                          padding: ResponsiveLayout.pageEdgeInsets,
+                          child: TezosTXRowView(
+                              tx: item, currentAddress: widget.address),
+                        );
+                      },
+                    ),
+                    separatorBuilder: (context, index) {
+                      return const Divider();
+                    },
+                  ),
+                ],
               );
             },
           );
