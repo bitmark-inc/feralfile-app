@@ -339,7 +339,7 @@ class AccountServiceImpl extends AccountService {
           hashedData: {"id": persona.uuid});
     } catch (e) {
       log.info(
-          "[AccountService] deletePersona: error during execute mixpanel event");
+          "[AccountService] deletePersona: error during execute mixpanel event, ${e.toString()}");
     }
 
     log.info("[AccountService] deletePersona finished - ${persona.uuid}");
