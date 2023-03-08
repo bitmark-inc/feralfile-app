@@ -83,7 +83,7 @@ class Persona {
 
   Future<List<String>> getTezosAddresses() async {
     return await Future.wait(Iterable.generate(
-        tezosIndex, (i) => wallet().getETHEip55Address(index: i)));
+        tezosIndex, (i) => wallet().getTezosAddress(index: i)));
   }
 
   @override
