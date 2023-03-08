@@ -16,8 +16,8 @@ import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -145,7 +145,7 @@ class UpgradesView extends StatelessWidget {
                 style: theme.textTheme.bodyLarge),
             const SizedBox(height: 10.0),
             _benefitImage(context),
-            AuPrimaryButton(onPressed: () {}, text: 'subscribed'.tr()),
+            PrimaryButton(onTap: () {}, text: 'subscribed'.tr()),
             Text(
               "you_will_be_charged".tr(namedArgs: {
                 "price": state.productDetails?.price ?? "4.99usd".tr(),
@@ -182,8 +182,7 @@ class UpgradesView extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: Column(
                 children: [
-                  AuPrimaryButton(
-                      onPressed: () {}, text: 'sub_then_price'.tr()),
+                  PrimaryButton(onTap: () {}, text: 'sub_then_price'.tr()),
                   Text(
                     'you_will_be_charged'.tr(
                       namedArgs: {
@@ -220,8 +219,8 @@ class UpgradesView extends StatelessWidget {
           children: [
             Text('upgrade_to_use'.tr()),
             _benefitImage(context),
-            AuPrimaryButton(
-                onPressed: () {
+            PrimaryButton(
+                onTap: () {
                   onPressSubscribe(context);
                   Navigator.of(context).pop();
                 },

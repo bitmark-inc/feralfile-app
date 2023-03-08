@@ -1,6 +1,6 @@
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -26,6 +26,7 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
   final _urlController = TextEditingController();
   String _renderingType = RenderingType.webview;
   INFTRenderingWidget? renderingWidget;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,8 +59,8 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
                         _renderingType = value ?? RenderingType.webview;
                       });
                     }),
-                AuPrimaryButton(
-                  onPressed: () {
+                PrimaryButton(
+                  onTap: () {
                     if (_urlController.text.isNotEmpty &&
                         _renderingType.isNotEmpty) {
                       renderingWidget =

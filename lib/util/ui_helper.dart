@@ -790,9 +790,9 @@ class UIHelper {
             Row(
               children: [
                 Expanded(
-                  child: AuPrimaryButton(
+                  child: PrimaryButton(
                     text: "continue".tr(),
-                    onPressed: () => onContinue(),
+                    onTap: () => onContinue(),
                   ),
                 ),
               ],

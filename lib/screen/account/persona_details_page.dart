@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -254,9 +253,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             Expanded(
               child: Padding(
                 padding: padding,
-                child: AuPrimaryButton(
+                child: PrimaryButton(
                   text: "add_address_to_wallet".tr(),
-                  onPressed: () {
+                  onTap: () {
                     UIHelper.showDialog(context, "add_address_to_wallet".tr(),
                         StatefulBuilder(builder: (
                       BuildContext context,
@@ -274,9 +273,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                             padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                             child: Column(
                               children: [
-                                AuPrimaryButton(
+                                PrimaryButton(
                                   text: "add_address".tr(),
-                                  onPressed: () async {
+                                  onTap: () async {
                                     final newPersona =
                                         await injector<AccountService>()
                                             .addAddressPersona(
