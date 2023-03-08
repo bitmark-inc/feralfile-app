@@ -38,6 +38,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
@@ -245,19 +246,19 @@ class AccountServiceImpl extends AccountService {
     required String address,
   }) async {
     var personas = await _cloudDB.personaDao.getPersonas();
-    final lowCaseAddress = address.toLowerCase();
     for (Persona p in personas) {
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
+          final eip55Address = EthereumAddress.fromHex(address).hexEip55;
           final addresses = await p.getEthAddresses();
-          if (addresses.contains(lowCaseAddress)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
+          if (addresses.contains(eip55Address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(eip55Address));
           }
           break;
         case Wc2Chain.tezos:
           final addresses = await p.getTezosAddresses();
-          if (addresses.contains(lowCaseAddress)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
+          if (addresses.contains(address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(address));
           }
           break;
         case Wc2Chain.autonomy:
@@ -619,12 +620,12 @@ class AccountServiceImpl extends AccountService {
       if (!await personaWallet.isWalletCreated()) continue;
       switch (blockchain.toLowerCase()) {
         case "tezos":
-          addresses.add(await personaWallet.getTezosAddress());
+          addresses.addAll(await persona.getTezosAddresses());
           break;
         case "ethereum":
           final address = await personaWallet.getETHEip55Address();
           if (address.isNotEmpty) {
-            addresses.add(address);
+            addresses.addAll(await persona.getEthAddresses());
           }
           break;
       }
@@ -656,11 +657,7 @@ class AccountServiceImpl extends AccountService {
       if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
       final personaWallet = persona.wallet();
       if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-      hiddenAddresses.add(ethAddress);
-      hiddenAddresses.add(await personaWallet.getTezosAddress());
+      hiddenAddresses.addAll(await persona.getAddresses());
     }
 
     final linkedAccounts =
@@ -698,8 +695,7 @@ class AccountServiceImpl extends AccountService {
 
       if (ethAddress.isEmpty) continue;
 
-      addresses.add(ethAddress);
-      addresses.add(await personaWallet.getTezosAddress());
+      addresses.addAll(await persona.getAddresses());
     }
 
     final linkedAccounts =

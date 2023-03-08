@@ -78,7 +78,7 @@ class Persona {
 
   Future<List<String>> getEthAddresses() async {
     return await Future.wait(Iterable.generate(
-        ethereumIndex, (i) => wallet().getETHAddress(index: i)));
+        ethereumIndex, (i) => wallet().getETHEip55Address(index: i)));
   }
 
   Future<List<String>> getTezosAddresses() async {

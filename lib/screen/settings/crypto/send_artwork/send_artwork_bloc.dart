@@ -155,8 +155,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           final contractAddress =
               EthereumAddress.fromHex(event.contractAddress);
           final to = EthereumAddress.fromHex(event.address);
-          final from =
-              EthereumAddress.fromHex(await state.wallet!.getETHAddress());
+          final from = EthereumAddress.fromHex(
+              await state.wallet!.getETHEip55Address(index: index));
 
           final data = _asset.contractType == "erc1155"
               ? await _ethereumService.getERC1155TransferTransactionData(

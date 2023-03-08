@@ -49,7 +49,7 @@ class WCSendTransactionBloc
       newState.fee = newState.feeOptionValue!.getFee(state.feeOption);
 
       final balance =
-          await _ethereumService.getBalance(await persona.getETHAddress());
+          await _ethereumService.getBalance(await persona.getETHEip55Address());
       newState.balance = balance.getInWei;
       emit(newState);
     });
@@ -76,7 +76,7 @@ class WCSendTransactionBloc
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
       final index = event.index;
       final balance = await _ethereumService
-          .getBalance(await persona.getETHAddress(index: index));
+          .getBalance(await persona.getETHEip55Address(index: index));
       try {
         final txHash = await _ethereumService.sendTransaction(
             persona, index, event.to, event.value, event.data,

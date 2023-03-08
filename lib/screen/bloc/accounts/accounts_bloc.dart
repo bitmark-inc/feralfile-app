@@ -339,12 +339,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         final personas = await _cloudDB.personaDao.getPersonas();
 
         for (var persona in personas) {
-          final wallet = persona.wallet();
-          final ethAddress = await wallet.getETHEip55Address();
-          final tzAddress = await wallet.getTezosAddress();
-
-          addresses.add(ethAddress);
-          addresses.add(tzAddress);
+          addresses.addAll(await persona.getAddresses());
         }
 
         final linkedAccounts = await _cloudDB.connectionDao.getConnections();
