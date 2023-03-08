@@ -23,8 +23,13 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+// ignore: implementation_imports
+import 'package:overlay_support/src/overlay_state_finder.dart';
+
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  static const Key contactingKey = Key("tezos_beacon_contacting");
 
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
@@ -203,12 +208,14 @@ class NavigationService {
       final metricClient = injector.get<MetricClientService>();
       metricClient.timerEvent(MixpanelEvent.cancelContact);
 
+      bool dialogShowed = false;
       showInfoNotificationWithLink(
-        const Key("tezos_beacon_contacting"),
+        contactingKey,
         "establishing_contact".tr(),
         frontWidget: loadingIndicator(valueColor: AppColor.white),
         bottomRightWidget: GestureDetector(
           onTap: () {
+            dialogShowed = true;
             waitTooLongDialog();
           },
           child: Text(
@@ -223,6 +230,15 @@ class NavigationService {
         ),
         duration: const Duration(seconds: 15),
       );
+      final OverlaySupportState? overlaySupport = findOverlayState();
+      Future.delayed(const Duration(seconds: 4), () {
+        if (!dialogShowed &&
+            overlaySupport != null &&
+            overlaySupport.getEntry(key: contactingKey) != null) {
+          dialogShowed = true;
+          waitTooLongDialog();
+        }
+      });
       metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
