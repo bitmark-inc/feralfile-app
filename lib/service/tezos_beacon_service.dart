@@ -172,7 +172,7 @@ class TezosBeaconService implements BeaconHandler {
     final request = _handlingRequests.first;
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
-      hideOverlay(const Key("tezos_beacon_contacting"));
+      hideOverlay(NavigationService.contactingKey);
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _requestSignMessageForConnection();
