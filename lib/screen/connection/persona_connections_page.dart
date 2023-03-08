@@ -22,6 +22,8 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../view/responsive.dart';
 
@@ -169,10 +171,18 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               ...connectionItems.map((connectionItem) {
                 return Column(
                   children: [
-                    Padding(
-                      padding: ResponsiveLayout.pageEdgeInsets
-                          .copyWith(top: 0, bottom: 0),
-                      child: _connectionItemWidget(connectionItem),
+                    Slidable(
+                      groupTag: 'connectionsView',
+                      endActionPane: ActionPane(
+                        motion: const DrawerMotion(),
+                        dragDismissible: false,
+                        children: _slidableActions(connectionItem),
+                      ),
+                      child: Padding(
+                        padding: ResponsiveLayout.pageEdgeInsets
+                            .copyWith(top: 0, bottom: 0),
+                        child: _connectionItemWidget(connectionItem),
+                      ),
                     ),
                     addOnlyDivider()
                   ],
@@ -241,6 +251,27 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         _callFetchConnections();
       },
     );
+  }
+
+  List<CustomSlidableAction> _slidableActions(ConnectionItem connectionItem) {
+    final connection = connectionItem.representative;
+    final theme = Theme.of(context);
+
+    return [
+      CustomSlidableAction(
+        backgroundColor: Colors.red,
+        foregroundColor: theme.colorScheme.secondary,
+        child: Semantics(
+          label: "${connection.appName}_delete",
+          child: SvgPicture.asset('assets/images/unlink.svg'),
+        ),
+        onPressed: (_) {
+          context
+              .read<ConnectionsBloc>()
+              .add(DeleteConnectionsEvent(connectionItem));
+        },
+      ),
+    ];
   }
 }
 

@@ -161,8 +161,8 @@ Widget accountItem(BuildContext context, Account account,
           context.widget is AccountsView
               ? Visibility(
                   visible: isHideGalleryEnabled,
-                  child: Icon(
-                    Icons.visibility_off_outlined,
+                  child: SvgPicture.asset(
+                    'assets/images/hide.svg',
                     color: theme.colorScheme.surface,
                   ),
                 )
