@@ -192,9 +192,6 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                 context: context,
                                 title: "owned_tokens".tr(),
                                 content: "$maxQuantity"),
-                            const SizedBox(
-                              height: 8.0,
-                            ),
                             divider,
                             const SizedBox(height: 16),
                             Text(
@@ -386,7 +383,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   Widget gasFeeStatus(SendArtworkState state, ThemeData theme) {
     if (_initialChangeAddress && state.feeOptionValue == null) {
       return Text("gas_fee_calculating".tr(),
-          style: theme.textTheme.headlineSmall);
+          style: theme.textTheme.ppMori400Black12);
     }
     if (state.feeOptionValue != null && state.balance != null) {
       bool isValid = state.balance! >
