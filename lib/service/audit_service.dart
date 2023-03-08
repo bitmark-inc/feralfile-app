@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/audit.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AuditService {
@@ -44,7 +45,7 @@ class AuditServiceImpl extends AuditService {
         final wallet = e.wallet();
         return {
           'uuid': e.uuid,
-          'address': await wallet.getETHAddress(),
+          'address': await wallet.getETHEip55Address(),
           'name': await wallet.getName(),
         };
       })),
@@ -72,7 +73,7 @@ class AuditServiceImpl extends AuditService {
       final wallet = persona.wallet();
       metadata = {
         'uuid': persona.uuid,
-        'address': await wallet.getETHAddress(),
+        'address': await wallet.getETHEip55Address(),
         'name': await wallet.getName(),
       };
     }

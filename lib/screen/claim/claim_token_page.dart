@@ -259,7 +259,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           await configService.setPendingSettings(true);
                           address = blockchain == "Tezos"
                               ? await defaultAccount.getTezosAddress()
-                              : await defaultAccount.getETHAddress();
+                              : await defaultAccount.getETHEip55Address();
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {

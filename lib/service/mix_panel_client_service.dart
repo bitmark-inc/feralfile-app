@@ -8,15 +8,18 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
+
   MixPanelClientService(this._accountService);
 
   late Mixpanel mixpanel;
+
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
@@ -46,7 +49,7 @@ class MixPanelClientService {
     final distinctId = await mixpanel.getDistinctId();
     if (hashedUserID != distinctId) {
       mixpanel.alias(hashedUserID, distinctId);
-      final defaultAddress = await defaultAccount.getETHAddress();
+      final defaultAddress = await defaultAccount.getETHEip55Address();
       final hashedDefaultAddress =
           sha256.convert(utf8.encode(defaultAddress)).toString();
 

@@ -38,6 +38,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
@@ -245,19 +246,19 @@ class AccountServiceImpl extends AccountService {
     required String address,
   }) async {
     var personas = await _cloudDB.personaDao.getPersonas();
-    final lowCaseAddress = address.toLowerCase();
+    final eip55Address = EthereumAddress.fromHex(address).hexEip55;
     for (Persona p in personas) {
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
           final addresses = await p.getEthAddresses();
-          if (addresses.contains(lowCaseAddress)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
+          if (addresses.contains(eip55Address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(eip55Address));
           }
           break;
         case Wc2Chain.tezos:
           final addresses = await p.getTezosAddresses();
-          if (addresses.contains(lowCaseAddress)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(lowCaseAddress));
+          if (addresses.contains(eip55Address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(eip55Address));
           }
           break;
         case Wc2Chain.autonomy:

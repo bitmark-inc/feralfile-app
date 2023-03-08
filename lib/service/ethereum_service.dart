@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
@@ -81,7 +82,7 @@ class EthereumServiceImpl extends EthereumService {
 
     final gasPrice = await getFeeOptionValue();
     final sender =
-        EthereumAddress.fromHex(await wallet.getETHAddress(index: index));
+        EthereumAddress.fromHex(await wallet.getETHEip55Address(index: index));
     final fee = await getEthereumFee(feeOption);
 
     try {
@@ -142,7 +143,7 @@ class EthereumServiceImpl extends EthereumService {
     log.info("[EthereumService] sendTransaction - to: $to - amount $value");
 
     final sender =
-        EthereumAddress.fromHex(await wallet.getETHAddress(index: index));
+        EthereumAddress.fromHex(await wallet.getETHEip55Address(index: index));
     final nonce = await _web3Client.getTransactionCount(sender,
         atBlock: const BlockNum.pending());
     var gasLimit =
