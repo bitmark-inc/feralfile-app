@@ -619,12 +619,12 @@ class AccountServiceImpl extends AccountService {
       if (!await personaWallet.isWalletCreated()) continue;
       switch (blockchain.toLowerCase()) {
         case "tezos":
-          addresses.add(await personaWallet.getTezosAddress());
+          addresses.addAll(await persona.getTezosAddresses());
           break;
         case "ethereum":
           final address = await personaWallet.getETHEip55Address();
           if (address.isNotEmpty) {
-            addresses.add(address);
+            addresses.addAll(await persona.getEthAddresses());
           }
           break;
       }
@@ -656,11 +656,7 @@ class AccountServiceImpl extends AccountService {
       if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
       final personaWallet = persona.wallet();
       if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-      hiddenAddresses.add(ethAddress);
-      hiddenAddresses.add(await personaWallet.getTezosAddress());
+      hiddenAddresses.addAll(await persona.getAddresses());
     }
 
     final linkedAccounts =
@@ -698,8 +694,7 @@ class AccountServiceImpl extends AccountService {
 
       if (ethAddress.isEmpty) continue;
 
-      addresses.add(ethAddress);
-      addresses.add(await personaWallet.getTezosAddress());
+      addresses.addAll(await persona.getAddresses());
     }
 
     final linkedAccounts =
