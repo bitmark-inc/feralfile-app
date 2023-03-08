@@ -773,9 +773,9 @@ class UIHelper {
             Row(
               children: [
                 Expanded(
-                  child: AuPrimaryButton(
+                  child: PrimaryButton(
                     text: "continue".tr(),
-                    onPressed: () => onContinue(),
+                    onTap: () => onContinue(),
                   ),
                 ),
               ],
@@ -1179,6 +1179,7 @@ class UIHelper {
 
 class ConnectedTV extends StatefulWidget {
   final Function() onTap;
+
   const ConnectedTV({
     super.key,
     required this.onTap,
@@ -1191,6 +1192,7 @@ class ConnectedTV extends StatefulWidget {
 class _ConnectedTVState extends State<ConnectedTV> {
   late Timer _timer;
   int _countdown = 5;
+
   @override
   void initState() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {

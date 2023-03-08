@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -442,9 +441,9 @@ class _WCConnectPageState extends State<WCConnectPage>
               Expanded(
                 child: Padding(
                   padding: padding,
-                  child: AuPrimaryButton(
+                  child: PrimaryButton(
                     text: "connect".tr(),
-                    onPressed: () => withDebounce(() => _approveThenNotify()),
+                    onTap: () => withDebounce(() => _approveThenNotify()),
                   ),
                 ),
               )
@@ -460,9 +459,9 @@ class _WCConnectPageState extends State<WCConnectPage>
           Expanded(
             child: Padding(
               padding: padding,
-              child: AuPrimaryButton(
+              child: PrimaryButton(
                 text: "connect".tr(),
-                onPressed: selectedPersona != null
+                onTap: selectedPersona != null
                     ? () {
                         metricClient.addEvent(MixpanelEvent.connectMarket);
                         withDebounce(() => _approveThenNotify());

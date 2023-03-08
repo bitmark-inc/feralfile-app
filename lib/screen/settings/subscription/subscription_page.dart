@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -265,8 +264,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               alignment: Alignment.bottomCenter,
               child: Column(
                 children: [
-                  AuPrimaryButton(
-                    onPressed: () {
+                  PrimaryButton(
+                    onTap: () {
                       onPressSubscribe(context);
                     },
                     text: 'renew_for'.tr(
@@ -288,8 +287,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               alignment: Alignment.bottomCenter,
               child: Column(
                 children: [
-                  AuPrimaryButton(
-                      onPressed: () {
+                  PrimaryButton(
+                      onTap: () {
                         onPressSubscribe(context);
                       },
                       text: 'sub_then_price'.tr()),
