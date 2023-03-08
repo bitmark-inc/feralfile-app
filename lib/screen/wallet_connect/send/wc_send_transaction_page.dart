@@ -332,7 +332,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   Widget gasFeeStatus(WCSendTransactionState state, ThemeData theme) {
     if (state.feeOptionValue == null) {
       return Text("gas_fee_calculating".tr(),
-          style: theme.textTheme.headlineSmall);
+          style: theme.textTheme.ppMori400Black12);
     }
     if (state.feeOptionValue != null) {
       if (state.balance == null) return const SizedBox();

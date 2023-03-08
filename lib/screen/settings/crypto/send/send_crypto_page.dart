@@ -302,7 +302,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
       return Padding(
         padding: const EdgeInsets.only(top: 8),
         child: Text("gas_fee_calculating".tr(),
-            style: theme.textTheme.headlineSmall),
+            style: theme.textTheme.ppMori400Black12),
       );
     }
     if (state.feeOptionValue != null) {

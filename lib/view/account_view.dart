@@ -44,7 +44,7 @@ Widget accountWithConnectionItem(
                 child: Text(
                     categorizedAccounts.category.replaceFirst('did:key:', ''),
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.headlineMedium),
+                    style: theme.textTheme.ppMori400Black14),
               ),
             ],
           ),
@@ -93,7 +93,7 @@ Widget accountWithConnectionItem(
                         ? connection.name
                         : "unnamed".tr(),
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.headlineMedium),
+                    style: theme.textTheme.ppMori400Black14),
               ),
               linkedBox(context),
             ],
@@ -370,8 +370,8 @@ Widget linkedBox(BuildContext context) {
     child: Text(
       "linked".tr(),
       style: ResponsiveLayout.isMobile
-          ? theme.textTheme.ibmGreyNormal12
-          : theme.textTheme.ibmGreyNormal14,
+          ? theme.textTheme.ppMori400Grey12
+          : theme.textTheme.ppMori400Grey14,
     ),
   );
 }

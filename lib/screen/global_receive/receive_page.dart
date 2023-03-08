@@ -36,7 +36,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "select_address_tt".tr(),
+        title: "select_wallet_tt".tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {

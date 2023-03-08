@@ -437,8 +437,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   Widget gasFeeStatus(ThemeData theme) {
     if (feeOptionValue == null || balance == null) {
       return Text("gas_fee_calculating".tr(),
-          style:
-              theme.textTheme.headlineSmall?.copyWith(color: AppColor.white));
+          style: theme.textTheme.ppMori400White12);
     }
     bool isValid = balance! > feeOptionValue!.getFee(feeOption).toInt() + 10;
     if (!isValid) {
