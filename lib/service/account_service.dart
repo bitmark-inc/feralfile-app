@@ -246,10 +246,10 @@ class AccountServiceImpl extends AccountService {
     required String address,
   }) async {
     var personas = await _cloudDB.personaDao.getPersonas();
-    final eip55Address = EthereumAddress.fromHex(address).hexEip55;
     for (Persona p in personas) {
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
+          final eip55Address = EthereumAddress.fromHex(address).hexEip55;
           final addresses = await p.getEthAddresses();
           if (addresses.contains(eip55Address)) {
             return WalletIndex(p.wallet(), addresses.indexOf(eip55Address));
@@ -257,8 +257,8 @@ class AccountServiceImpl extends AccountService {
           break;
         case Wc2Chain.tezos:
           final addresses = await p.getTezosAddresses();
-          if (addresses.contains(eip55Address)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(eip55Address));
+          if (addresses.contains(address)) {
+            return WalletIndex(p.wallet(), addresses.indexOf(address));
           }
           break;
         case Wc2Chain.autonomy:
