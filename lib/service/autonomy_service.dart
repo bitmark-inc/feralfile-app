@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 
 abstract class AutonomyService {
   Future postLinkedAddresses();
