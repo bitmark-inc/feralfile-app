@@ -105,7 +105,7 @@ class MetricClientService {
       return;
     }
     addEvent(MixpanelEvent.viewScreen,
-        data: {"screen": screen!.snakeToCapital()});
+        data: {"screen": screen.snakeToCapital()});
     timerEvent(MixpanelEvent.endViewScreen);
   }
 
@@ -114,6 +114,6 @@ class MetricClientService {
       return;
     }
     addEvent(MixpanelEvent.endViewScreen,
-        data: {"screen": screen!.snakeToCapital()});
+        data: {"screen": screen.snakeToCapital()});
   }
 }
