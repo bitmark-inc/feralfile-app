@@ -35,11 +35,10 @@ class ViewPlaylistScreen extends StatefulWidget {
 
 class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final bloc = injector.get<ViewPlaylistBloc>();
-  final nftBloc = injector.get<NftCollectionBloc>();
+  final nftBloc = injector.get<NftCollectionBloc>(param1: false);
   final _configurationService = injector<ConfigurationService>();
   List<ArtworkIdentity> accountIdentities = [];
-  List<String> tokens = [];
-  List<AssetToken> tokensPlaylist = [];
+  List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
 
@@ -64,8 +63,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     injector<NavigationService>().popUntilHomeOrSettings();
   }
 
-  List<AssetToken> setupPlayList({
-    required List<AssetToken> tokens,
+  List<CompactedAssetToken> setupPlayList({
+    required List<CompactedAssetToken> tokens,
     List<String>? selectedTokens,
   }) {
     tokens = tokens.filterAssetToken();
@@ -142,7 +141,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               return NftCollectionGrid(
                 state: nftState.state,
                 tokens: setupPlayList(
-                  tokens: nftState.tokens,
+                  tokens: nftState.tokens.items,
                   selectedTokens: playList?.tokenIDs,
                 ),
                 customGalleryViewBuilder: (context, tokens) => _assetsWidget(
@@ -227,7 +226,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   Widget _assetsWidget(
     BuildContext context,
-    List<AssetToken> tokens, {
+    List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
     Function()? onMoreTap,
   }) {

@@ -83,7 +83,7 @@ extension FilterEventExt on FilterEvent {
         editionName: "",
         id: indexerId,
         owner: owner,
-        balance: 0,
+        balance: 1,
         owners: {
           owner: 1,
         },
@@ -122,7 +122,7 @@ extension TZKTTokenExtension on TZKTToken {
       edition: 0,
       editionName: "",
       id: "tez-${contract?.address}-$tokenId",
-      balance: 0,
+      balance: 1,
       owner: owner,
       owners: {
         owner: 1,
@@ -153,7 +153,8 @@ class PendingTokenService {
     this._assetDao,
   );
 
-  Future<bool> checkPendingEthereumTokens(String owner, String tx) async {
+  Future<List<AssetToken>> checkPendingEthereumTokens(
+      String owner, String tx) async {
     log.info(
         "[PendingTokenService] Check pending Ethereum tokens: $owner, $tx");
     int retryCount = 0;
@@ -181,14 +182,20 @@ class PendingTokenService {
         await _tokenService.setCustomTokens(pendingTokens);
         await _tokenService.reindexAddresses([owner]);
       }
-      return pendingTokens.isNotEmpty;
+      final localPendingToken =
+          (await _assetTokenDao.findAllPendingAssetTokens())
+              .where((e) => e.owner == owner)
+              .whereNot((e) => e.isAirdrop)
+              .toList();
+      return localPendingToken;
     } else {
-      return false;
+      return [];
     }
   }
 
-  Future<bool> checkPendingTezosTokens(String owner, {int? maxRetries}) async {
-    if (Environment.appTestnetConfig) return false;
+  Future<List<AssetToken>> checkPendingTezosTokens(String owner,
+      {int? maxRetries}) async {
+    if (Environment.appTestnetConfig) return [];
     log.info("[PendingTokenService] Check pending Tezos tokens: $owner");
     int retryCount = 0;
     final pendingTokens = List<AssetToken>.empty(growable: true);
@@ -233,8 +240,8 @@ class PendingTokenService {
       log.info("[PendingTokenService] Delete transferred out pending tokens: "
           "${removedPending.map((e) => e.id).toList()}");
       for (AssetToken token in removedPending) {
-        if (token.asset?.assetID != null) {
-          await _assetDao.deleteAssetByID(token.asset!.assetID!);
+        if (token.asset?.indexID != null) {
+          await _assetDao.deleteAssetByIndexID(token.asset!.indexID!);
         }
         await _tokenDao.deleteTokenByID(token.id);
       }
@@ -258,7 +265,11 @@ class PendingTokenService {
       await _tokenService.setCustomTokens(pendingTokens);
       await _tokenService.reindexAddresses([owner]);
     }
-    return pendingTokens.isNotEmpty;
+    final localPendingToken = (await _assetTokenDao.findAllPendingAssetTokens())
+        .where((e) => e.owner == owner)
+        .whereNot((e) => e.isAirdrop)
+        .toList();
+    return localPendingToken;
   }
 
   Future<List<String>> getTokenIDs(String owner) async {

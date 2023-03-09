@@ -29,8 +29,11 @@ class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
         // reload if tokensLength's 0 because it might be indexing case
         final isLastPage =
             tokens.isEmpty ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;
+        final compactedAssetToken =
+            tokens.map((e) => CompactedAssetToken.fromAssetToken(e)).toList();
 
-        List<AssetToken> allTokens = (state.tokens ?? []) + tokens;
+        List<CompactedAssetToken> allTokens =
+            (state.tokens ?? []) + compactedAssetToken;
 
         emit(GalleryState(
           tokens: allTokens,

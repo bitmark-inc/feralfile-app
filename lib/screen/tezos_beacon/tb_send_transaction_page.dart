@@ -348,11 +348,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                       if (address != null) {
                                         injector<PendingTokenService>()
                                             .checkPendingTezosTokens(address)
-                                            .then((hasPendingTokens) {
-                                          if (hasPendingTokens) {
+                                            .then((tokens) {
+                                          if (tokens.isNotEmpty) {
                                             NftCollectionBloc.eventController
-                                                .add(GetTokensByOwnerEvent(
-                                                    pageKey: PageKey.init()));
+                                                .add(UpdateTokensEvent(
+                                                    tokens: tokens));
                                           }
                                         });
                                       }

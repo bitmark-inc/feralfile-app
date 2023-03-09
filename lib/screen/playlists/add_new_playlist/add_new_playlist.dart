@@ -113,12 +113,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
     super.dispose();
   }
 
-  List<AssetToken> setupPlayList({
-    required List<AssetToken> tokens,
+  List<CompactedAssetToken> setupPlayList({
+    required List<CompactedAssetToken> tokens,
     List<String>? selectedTokens,
   }) {
     tokens = tokens.filterAssetToken();
-    tokens.sortToken();
     bloc.state.tokens = tokens;
     return tokens;
   }
@@ -142,7 +141,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                 bloc: nftBloc,
                 builder: (context, nftState) {
-                  final selectedCount = nftState.tokens
+                  final selectedCount = nftState.tokens.items
                       .where((element) =>
                           state.selectedIDs?.contains(element.id) ?? false)
                       .length;
@@ -258,7 +257,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
                               Expanded(
                                 child: NftCollectionGrid(
                                   state: nftState.state,
-                                  tokens: nftState.tokens,
+                                  tokens: nftState.tokens.items,
                                   loadingIndicatorBuilder: loadingView,
                                   customGalleryViewBuilder: (context, tokens) =>
                                       _assetsWidget(
@@ -330,7 +329,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
 
   Widget _assetsWidget(
     BuildContext context,
-    List<AssetToken> tokens, {
+    List<CompactedAssetToken> tokens, {
     Function(String tokenID, bool value)? onChanged,
     List<String>? selectedTokens,
   }) {
@@ -356,6 +355,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
           onChanged: (value) {
             onChanged?.call(tokens[index].id, value ?? false);
           },
+          usingThumbnailID: index > 50,
         );
       },
       itemCount: tokens.length,
@@ -366,9 +366,10 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
 class ThubnailPlaylistItem extends StatefulWidget {
   final bool showSelect;
   final bool isSelected;
-  final AssetToken token;
+  final CompactedAssetToken token;
   final Function(bool?)? onChanged;
   final int cachedImageSize;
+  final bool usingThumbnailID;
   final bool showTriggerOrder;
 
   const ThubnailPlaylistItem({
@@ -379,6 +380,7 @@ class ThubnailPlaylistItem extends StatefulWidget {
     this.isSelected = false,
     this.onChanged,
     this.showTriggerOrder = false,
+    this.usingThumbnailID = true,
   }) : super(key: key);
 
   @override
@@ -420,10 +422,8 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             width: double.infinity,
             height: double.infinity,
             child: tokenGalleryThumbnailWidget(
-              context,
-              widget.token,
-              widget.cachedImageSize,
-            ),
+                context, widget.token, widget.cachedImageSize,
+                usingThumbnailID: widget.usingThumbnailID),
           ),
           Positioned(
             top: 10,

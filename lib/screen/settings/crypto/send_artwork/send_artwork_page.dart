@@ -552,7 +552,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             aspectRatio: 1,
             child: tokenGalleryThumbnailWidget(
               context,
-              widget.payload.asset,
+              CompactedAssetToken.fromAssetToken(widget.payload.asset),
               500,
             ),
           ),

@@ -124,22 +124,24 @@ class HomePageState extends State<HomePage>
       switch (event.runtimeType) {
         case ReloadEvent:
         case GetTokensByOwnerEvent:
+        case UpdateTokensEvent:
           nftBloc.add(event);
           break;
         default:
       }
     });
+
+    refreshFeeds();
     refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
-    refreshFeeds();
 
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      refreshTokens(checkPendingToken: true);
+      refreshTokens();
     });
   }
 
@@ -198,7 +200,7 @@ class HomePageState extends State<HomePage>
     super.didPushNext();
   }
 
-  void _onTokensUpdate(List<AssetToken> tokens) async {
+  void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     final artistIds = tokens
         .map((e) => e.artistID)
         .where((value) => value?.isNotEmpty == true)
@@ -222,9 +224,8 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  List<AssetToken> _updateTokens(List<AssetToken> tokens) {
+  List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
     tokens = tokens.filterAssetToken();
-    tokens.sortToken();
     return tokens;
   }
 
@@ -248,7 +249,7 @@ class HomePageState extends State<HomePage>
       builder: (context, state) {
         return NftCollectionGrid(
           state: state.state,
-          tokens: _updateTokens(state.tokens),
+          tokens: _updateTokens(state.tokens.items),
           loadingIndicatorBuilder: _loadingView,
           emptyGalleryViewBuilder: _emptyGallery,
           customGalleryViewBuilder: (context, tokens) =>
@@ -258,7 +259,7 @@ class HomePageState extends State<HomePage>
       listener: (context, state) async {
         log.info("[NftCollectionBloc] State update $state");
         if (state.state == NftLoadingState.done) {
-          _onTokensUpdate(state.tokens);
+          _onTokensUpdate(state.tokens.items);
         }
       },
     );
@@ -328,7 +329,7 @@ class HomePageState extends State<HomePage>
     );
   }
 
-  Widget _assetsWidget(BuildContext context, List<AssetToken> tokens) {
+  Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
@@ -437,41 +438,52 @@ class HomePageState extends State<HomePage>
   Future refreshTokens({checkPendingToken = false}) async {
     final accountService = injector<AccountService>();
 
-    Future.wait([
+    final value = await Future.wait([
       getAddressIndexes(),
       getManualTokenIds(),
       accountService.getHiddenAddressIndexes(),
-    ]).then((value) async {
-      final addresses = value[0] as List<AddressIndex>;
-      final indexerIds = value[1] as List<String>;
-      final hiddenAddresses = value[2] as List<AddressIndex>;
+    ]);
+    final addresses = value[0] as List<AddressIndex>;
+    final indexerIds = value[1] as List<String>;
+    final hiddenAddresses = value[2] as List<AddressIndex>;
 
-      final activeAddresses = addresses
-          .where((element) => !hiddenAddresses.contains(element))
+    final activeAddresses = addresses
+        .where((element) => !hiddenAddresses.contains(element))
+        .map((e) => e.address)
+        .toList();
+    final isRefresh =
+        !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
+    if (isRefresh) {
+      final listDifferents = activeAddresses
+          .where(
+              (element) => !NftCollectionBloc.activeAddress.contains(element))
           .toList();
-
-      nftBloc.add(RefreshNftCollectionByOwners(
-        hiddenAddresses: hiddenAddresses,
-        addresses: addresses,
-        debugTokens: indexerIds,
-      ));
-
-      if (!listEquals(addresses, NftCollectionBloc.addresses) ||
-          !listEquals(hiddenAddresses, NftCollectionBloc.hiddenAddresses)) {
-        nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+      if (listDifferents.isNotEmpty) {
+        nftBloc.add(GetTokensBeforeByOwnerEvent(
+          pageKey: nftBloc.state.nextKey,
+          owners: listDifferents,
+        ));
       }
+    }
 
-      if (checkPendingToken) {
-        final pendingTokenService = injector<PendingTokenService>();
-        final pendingResults = await Future.wait(activeAddresses
-            .where((address) => address.address.startsWith("tz"))
-            .map((address) => pendingTokenService
-                .checkPendingTezosTokens(address.address, maxRetries: 1)));
-        if (pendingResults.any((e) => e)) {
-          nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-        }
+    nftBloc.add(RefreshNftCollectionByOwners(
+      hiddenAddresses: hiddenAddresses,
+      addresses: addresses,
+      debugTokens: indexerIds,
+      isRefresh: isRefresh,
+    ));
+
+    if (checkPendingToken) {
+      final pendingTokenService = injector<PendingTokenService>();
+      final pendingResults = await Future.wait(activeAddresses
+          .where((address) => address.startsWith("tz"))
+          .map((address) => pendingTokenService.checkPendingTezosTokens(address,
+              maxRetries: 1)));
+      if (pendingResults.any((e) => e.isNotEmpty)) {
+        nftBloc.add(UpdateTokensEvent(
+            tokens: pendingResults.expand((e) => e).toList()));
       }
-    });
+    }
   }
 
   void _handleForeBackground(FGBGType event) async {

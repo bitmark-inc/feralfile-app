@@ -1496,8 +1496,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: dab2a12965b2dfd73d85776f329b7702cbc14e72
-      resolved-ref: dab2a12965b2dfd73d85776f329b7702cbc14e72
+      ref: "680efa013b713f024afc0dedaebd5adbefa2b0d9"
+      resolved-ref: "680efa013b713f024afc0dedaebd5adbefa2b0d9"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"

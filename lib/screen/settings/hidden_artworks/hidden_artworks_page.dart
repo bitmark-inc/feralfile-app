@@ -51,7 +51,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       appBar: getBackAppBar(context, title: "hidden_artwork".tr(), onBack: () {
         Navigator.of(context).pop();
       }),
-      body: BlocBuilder<HiddenArtworksBloc, List<AssetToken>>(
+      body: BlocBuilder<HiddenArtworksBloc, List<CompactedAssetToken>>(
           builder: (context, state) {
         return Container(
           child: state.isEmpty
@@ -112,7 +112,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
     );
   }
 
-  Widget _assetsWidget(List<AssetToken> tokens) {
+  Widget _assetsWidget(List<CompactedAssetToken> tokens) {
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
@@ -142,46 +142,45 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final asset = tokens[index];
-                final thumbnailUrl =
-                    asset.getGalleryThumbnailUrl() ?? asset.galleryThumbnailURL;
-                if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-                  return GalleryNoThumbnailWidget(
-                    assetToken: asset,
-                  );
-                }
-                final ext = p.extension(thumbnailUrl);
+                final thumbnailUrl = asset.getGalleryThumbnailUrl();
+
+                final ext = p.extension(thumbnailUrl ?? '');
                 return GestureDetector(
                   child: Stack(
                     children: [
-                      Hero(
-                        tag: asset.id,
-                        child: ext == ".svg"
-                            ? SvgImage(
-                                url: thumbnailUrl,
-                                loadingWidgetBuilder: (_) =>
-                                    const GalleryThumbnailPlaceholder(),
-                                errorWidgetBuilder: (_) =>
-                                    const GalleryThumbnailErrorWidget(),
-                                unsupportWidgetBuilder: (context) =>
-                                    const GalleryUnSupportThumbnailWidget(),
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: thumbnailUrl,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                memCacheHeight: _cachedImageSize,
-                                memCacheWidth: _cachedImageSize,
-                                cacheManager: injector<CacheManager>(),
-                                placeholder: (context, index) =>
-                                    const GalleryThumbnailPlaceholder(),
-                                errorWidget: (context, url, error) =>
-                                    const GalleryThumbnailErrorWidget(),
-                                placeholderFadeInDuration: const Duration(
-                                  milliseconds: 300,
-                                ),
-                              ),
-                      ),
+                      thumbnailUrl == null || thumbnailUrl.isEmpty
+                          ? GalleryNoThumbnailWidget(
+                              assetToken: asset,
+                            )
+                          : Hero(
+                              tag: asset.id,
+                              child: ext == ".svg"
+                                  ? SvgImage(
+                                      url: thumbnailUrl,
+                                      loadingWidgetBuilder: (_) =>
+                                          const GalleryThumbnailPlaceholder(),
+                                      errorWidgetBuilder: (_) =>
+                                          const GalleryThumbnailErrorWidget(),
+                                      unsupportWidgetBuilder: (context) =>
+                                          const GalleryUnSupportThumbnailWidget(),
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: thumbnailUrl,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      fit: BoxFit.cover,
+                                      memCacheHeight: _cachedImageSize,
+                                      memCacheWidth: _cachedImageSize,
+                                      cacheManager: injector<CacheManager>(),
+                                      placeholder: (context, index) =>
+                                          const GalleryThumbnailPlaceholder(),
+                                      errorWidget: (context, url, error) =>
+                                          const GalleryThumbnailErrorWidget(),
+                                      placeholderFadeInDuration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                    ),
+                            ),
                       ClipRRect(
                         // Clip it cleanly.
                         child: Container(

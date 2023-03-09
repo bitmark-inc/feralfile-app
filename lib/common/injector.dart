@@ -214,11 +214,16 @@ Future<void> setup() async {
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
-  injector.registerFactory<NftCollectionBloc>(() => NftCollectionBloc(
-      injector(), injector(), injector(),
-      pendingTokenExpire: pendingTokenExpireMs != null
-          ? Duration(milliseconds: pendingTokenExpireMs)
-          : const Duration(hours: 4)));
+  injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
+      (p1, p2) => NftCollectionBloc(
+            injector(),
+            injector(),
+            injector(),
+            pendingTokenExpire: pendingTokenExpireMs != null
+                ? Duration(milliseconds: pendingTokenExpireMs)
+                : const Duration(hours: 4),
+            isSortedToken: p1 ?? true,
+          ));
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(

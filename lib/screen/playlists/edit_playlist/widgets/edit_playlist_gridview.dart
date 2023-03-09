@@ -9,11 +9,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 
 class EditPlaylistGridView extends StatefulWidget {
-  final List<AssetToken?> tokens;
+  final List<CompactedAssetToken?> tokens;
   final ScrollController? controller;
   final Function(String tokenID, bool value)? onChangedSelect;
   final List<String>? selectedTokens;
-  final Function(List<AssetToken?>) onReorder;
+  final Function(List<CompactedAssetToken?>) onReorder;
   final Function()? onAddTap;
   const EditPlaylistGridView({
     Key? key,

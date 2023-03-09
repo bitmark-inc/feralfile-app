@@ -26,7 +26,7 @@ class CreatePlaylist extends AddNewPlaylistEvent {
 }
 
 class AddNewPlaylistState {
-  List<AssetToken>? tokens;
+  List<CompactedAssetToken>? tokens;
   PlayListModel? playListModel;
   List<String>? selectedIDs;
   bool? isAddSuccess;
@@ -38,7 +38,7 @@ class AddNewPlaylistState {
   });
 
   AddNewPlaylistState copyWith({
-    List<AssetToken>? tokens,
+    List<CompactedAssetToken>? tokens,
     PlayListModel? playListModel,
     List<String>? selectedIDs,
     bool isAddSuccess = false,

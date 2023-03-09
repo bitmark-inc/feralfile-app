@@ -122,6 +122,28 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
+  String? getBlockchainUrl() {
+    final network = Environment.appTestnetConfig ? "TESTNET" : "MAINNET";
+    switch ("${network}_$blockchain") {
+      case "MAINNET_ethereum":
+        return "https://etherscan.io/address/$contractAddress";
+
+      case "TESTNET_ethereum":
+        return "https://goerli.etherscan.io/address/$contractAddress";
+
+      case "MAINNET_tezos":
+      case "TESTNET_tezos":
+        return "https://tzkt.io/$contractAddress";
+
+      case "MAINNET_bitmark":
+        return "https://registry.bitmark.com/bitmark/$tokenId";
+
+      case "TESTNET_bitmark":
+        return "https://registry.test.bitmark.com/bitmark/$tokenId";
+    }
+    return null;
+  }
+
   String get getMimeType {
     switch (mimeType) {
       case "image/avif":
@@ -197,27 +219,88 @@ extension AssetTokenExtension on AssetToken {
 
     return _replaceIPFS(galleryThumbnailURL!);
   }
+}
 
-  String? getBlockchainUrl() {
-    final network = Environment.appTestnetConfig ? "TESTNET" : "MAINNET";
-    switch ("${network}_$blockchain") {
-      case "MAINNET_ethereum":
-        return "https://etherscan.io/address/$contractAddress";
+extension CompactedAssetTokenExtension on CompactedAssetToken {
+  bool get hasMetadata {
+    return galleryThumbnailURL != null;
+  }
 
-      case "TESTNET_ethereum":
-        return "https://goerli.etherscan.io/address/$contractAddress";
+  ArtworkIdentity get identity => ArtworkIdentity(id, owner);
+  String get getMimeType {
+    switch (mimeType) {
+      case "image/avif":
+      case "image/bmp":
+      case "image/jpeg":
+      case "image/jpg":
+      case "image/png":
+      case "image/tiff":
+        return RenderingType.image;
 
-      case "MAINNET_tezos":
-      case "TESTNET_tezos":
-        return "https://tzkt.io/$contractAddress";
+      case "image/svg+xml":
+        return RenderingType.svg;
 
-      case "MAINNET_bitmark":
-        return "https://registry.bitmark.com/bitmark/$tokenId";
+      case "image/gif":
+        return RenderingType.gif;
 
-      case "TESTNET_bitmark":
-        return "https://registry.test.bitmark.com/bitmark/$tokenId";
+      case "audio/aac":
+      case "audio/midi":
+      case "audio/x-midi":
+      case "audio/mpeg":
+      case "audio/ogg":
+      case "audio/opus":
+      case "audio/wav":
+      case "audio/webm":
+      case "audio/3gpp":
+      case "audio/vnd.wave":
+        return RenderingType.audio;
+
+      case "video/x-msvideo":
+      case "video/3gpp":
+      case "video/mp4":
+      case "video/mpeg":
+      case "video/ogg":
+      case "video/3gpp2":
+      case "video/quicktime":
+      case "application/x-mpegURL":
+      case "video/x-flv":
+      case "video/MP2T":
+      case "video/webm":
+      case "application/octet-stream":
+        return RenderingType.video;
+
+      case "application/pdf":
+        return RenderingType.pdf;
+
+      case "model/gltf-binary":
+        return RenderingType.modelViewer;
+
+      default:
+        if (mimeType?.isNotEmpty ?? false) {
+          Sentry.captureMessage(
+            'Unsupport mimeType: $mimeType',
+            level: SentryLevel.warning,
+            params: [id],
+          );
+        }
+        return mimeType ?? RenderingType.webview;
     }
-    return null;
+  }
+
+  String? getGalleryThumbnailUrl({usingThumbnailID = true}) {
+    if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
+      return null;
+    }
+
+    if (usingThumbnailID) {
+      if (thumbnailID == null || thumbnailID!.isEmpty) {
+        return null;
+      }
+      return _refineToCloudflareURL(
+          galleryThumbnailURL!, thumbnailID!, "thumbnail");
+    }
+
+    return _replaceIPFS(galleryThumbnailURL!);
   }
 }
 

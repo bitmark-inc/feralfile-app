@@ -105,10 +105,11 @@ class PendingTokenWidget extends StatelessWidget {
 final Map<String, Future<bool>> _cachingStates = {};
 
 Widget tokenGalleryThumbnailWidget(
-    BuildContext context, AssetToken token, int cachedImageSize,
+    BuildContext context, CompactedAssetToken token, int cachedImageSize,
     {bool usingThumbnailID = true}) {
   final thumbnailUrl =
       token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
+
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
     return GalleryNoThumbnailWidget(
       assetToken: token,
@@ -307,7 +308,7 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
 }
 
 class GalleryNoThumbnailWidget extends StatelessWidget {
-  final AssetToken assetToken;
+  final CompactedAssetToken assetToken;
   const GalleryNoThumbnailWidget({Key? key, required this.assetToken})
       : super(key: key);
 

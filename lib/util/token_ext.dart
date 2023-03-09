@@ -4,25 +4,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:collection/collection.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
-extension AssetTokenExtension on List<AssetToken> {
-  void sortToken() {
-    sort((a, b) {
-      final aSource = a.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-      final bSource = b.source?.toLowerCase() ?? INDEXER_UNKNOWN_SOURCE;
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE &&
-          bSource == INDEXER_UNKNOWN_SOURCE) {
-        return b.lastActivityTime.compareTo(a.lastActivityTime);
-      }
-
-      if (aSource == INDEXER_UNKNOWN_SOURCE) return 1;
-      if (bSource == INDEXER_UNKNOWN_SOURCE) return -1;
-
-      return b.lastActivityTime.compareTo(a.lastActivityTime);
-    });
-  }
-
-  List<AssetToken> filterAssetToken() {
+extension AssetTokenExtension on List<CompactedAssetToken> {
+  List<CompactedAssetToken> filterAssetToken() {
     final hiddenTokens =
         injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
     final sentArtworks =

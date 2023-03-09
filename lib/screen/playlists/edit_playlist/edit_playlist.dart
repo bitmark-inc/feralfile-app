@@ -33,10 +33,8 @@ class EditPlaylistScreen extends StatefulWidget {
 
 class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final bloc = injector.get<EditPlaylistBloc>();
-  final nftBloc = injector.get<NftCollectionBloc>();
-  List<String> listTokens = [];
-
-  List<AssetToken> tokensPlaylist = [];
+  final nftBloc = injector.get<NftCollectionBloc>(param1: false);
+  List<CompactedAssetToken> tokensPlaylist = [];
 
   @override
   void initState() {
@@ -61,8 +59,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     injector<NavigationService>().popUntilHomeOrSettings();
   }
 
-  List<AssetToken> setupPlayList({
-    required List<AssetToken> tokens,
+  List<CompactedAssetToken> setupPlayList({
+    required List<CompactedAssetToken> tokens,
     List<String>? tokenIDs,
   }) {
     tokens = tokens.filterAssetToken();
@@ -129,7 +127,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   builder: (context, nftState) {
                     return NftCollectionGrid(
                       state: nftState.state,
-                      tokens: nftState.tokens,
+                      tokens: nftState.tokens.items,
                       loadingIndicatorBuilder: loadingView,
                       customGalleryViewBuilder: (gridContext, tokens) {
                         final listToken = setupPlayList(
@@ -327,9 +325,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
               arguments: playList,
             ).then((value) {
               if (value != null && value is PlayListModel) {
-                bloc.add(InitPlayList(
-                  playListModel: value,
-                ));
+                bloc.add(SavePlaylist());
               }
             });
           },
