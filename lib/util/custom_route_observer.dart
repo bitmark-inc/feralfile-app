@@ -10,6 +10,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
       _metricClient.trackEndScreen(previousRoute.settings.name);
     }
     _metricClient.trackStartScreen(route.settings.name);
+    super.didPush(route, previousRoute);
   }
 
   @override
@@ -18,5 +19,6 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
     if (previousRoute != null) {
       _metricClient.trackStartScreen(previousRoute.settings.name);
     }
+    super.didPop(route, previousRoute);
   }
 }
