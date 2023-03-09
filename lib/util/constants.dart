@@ -368,6 +368,8 @@ class MixpanelEvent {
   static const readAnnouncement = 'read_announcement';
   static const replyAnnouncement = 'reply_announcement';
   static const receiveAnnouncement = 'receive_announcement';
+  static const viewScreen = "view_screen";
+  static const endViewScreen = "end_view_screen";
 }
 
 class MixpanelProp {

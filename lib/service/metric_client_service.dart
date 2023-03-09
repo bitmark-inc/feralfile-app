@@ -99,4 +99,21 @@ class MetricClientService {
       log(e.toString());
     }
   }
+
+  Future<void> trackStartScreen(String? screen) async {
+    if (screen == null) {
+      return;
+    }
+    addEvent(MixpanelEvent.viewScreen,
+        data: {"screen": screen.snakeToCapital()});
+    timerEvent(MixpanelEvent.endViewScreen);
+  }
+
+  Future<void> trackEndScreen(String? screen) async {
+    if (screen == null) {
+      return;
+    }
+    addEvent(MixpanelEvent.endViewScreen,
+        data: {"screen": screen.snakeToCapital()});
+  }
 }

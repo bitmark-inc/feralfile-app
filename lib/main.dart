@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -176,7 +177,7 @@ class AutonomyApp extends StatelessWidget {
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =
-    RouteObserver<ModalRoute<void>>();
+    CustomRouteObserver<ModalRoute<void>>();
 
 var memoryValues = MemoryValues(
     airdropFFExhibitionId: ValueNotifier(null), deepLink: ValueNotifier(null));
