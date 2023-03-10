@@ -244,9 +244,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                             },
                           ),
                           onChanged: (value) {
+                            _amountController.text =
+                                _amountController.text.replaceAll(",", ".");
+                            _amountController.selection =
+                                TextSelection.fromPosition(TextPosition(
+                                    offset: _amountController.text.length));
                             context.read<SendCryptoBloc>().add(
-                                AmountChangedEvent(_amountController.text
-                                    .replaceAll(",", ".")));
+                                AmountChangedEvent(_amountController.text));
                           },
                         ),
                         gasFeeStatus(state, theme),
