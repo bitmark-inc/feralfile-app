@@ -23,11 +23,11 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
-          java-version: '11'
+          distribution: "zulu"
+          java-version: "11"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.7.1'
+          flutter-version: "3.7.1"
           channel: stable
       - name: Set env
         run: |
@@ -81,6 +81,7 @@ jobs:
           echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
           echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
           echo MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }} >> .env
+          echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
@@ -99,5 +100,5 @@ jobs:
           path: build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
           app: ${{ env.APPCENTER_APP_ID }}
           silent: false
-          group: 'Collaborators,Bitmark Internal Testers'
+          group: "Collaborators,Bitmark Internal Testers"
           release_notes: ${{ github.event.inputs.message }}

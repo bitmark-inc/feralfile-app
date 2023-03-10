@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-          description: 'App version'
-          required: true
+        description: "App version"
+        required: true
       message:
         description: Change logs
         required: false
@@ -23,11 +23,11 @@ jobs:
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.7.1'
+          flutter-version: "3.7.1"
           channel: stable
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '14.0'
+          xcode-version: "14.0"
 
       - name: Set env
         run: |
@@ -41,7 +41,7 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: "2.6"
           bundler-cache: true
           working-directory: ios
 
@@ -90,6 +90,7 @@ jobs:
           echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
           echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
           echo MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }} >> .env
+          echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
