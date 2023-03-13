@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -546,22 +547,26 @@ class _ArtworkView extends StatelessWidget {
 class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
-  final bool isPlaylist;
+  final PlayControlModel? playControl;
   final String? twitterCaption;
 
-  ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.twitterCaption, this.isPlaylist = false});
+  ArtworkDetailPayload(
+    this.identities,
+    this.currentIndex, {
+    this.twitterCaption,
+    this.playControl,
+  });
 
   ArtworkDetailPayload copyWith(
       {List<ArtworkIdentity>? ids,
       int? currentIndex,
-      bool? isPlaylist,
+      PlayControlModel? playControl,
       String? twitterCaption}) {
     return ArtworkDetailPayload(
       ids ?? identities,
       currentIndex ?? this.currentIndex,
       twitterCaption: twitterCaption ?? this.twitterCaption,
-      isPlaylist: isPlaylist ?? this.isPlaylist,
+      playControl: playControl ?? this.playControl,
     );
   }
 }

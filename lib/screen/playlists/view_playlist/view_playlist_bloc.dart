@@ -35,5 +35,22 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
       }
       emit(state.copyWith(isRename: false));
     });
+
+    on<UpdatePlayControl>((event, emit) async {
+      final playListModel = state.playListModel;
+      playListModel?.playControlModel = event.playControlModel;
+      final config = injector.get<ConfigurationService>();
+
+      final playlists = config.getPlayList();
+      final index =
+          playlists?.indexWhere((element) => element.id == playListModel?.id) ??
+              -1;
+      if (index != -1 && playListModel != null) {
+        playlists?[index] = playListModel;
+        config.setPlayList(playlists, override: true);
+        injector.get<SettingsDataService>().backup();
+      }
+      emit(state.copyWith(playListModel: playListModel));
+    });
   }
 }

@@ -32,7 +32,6 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
   ShakeDetector? _detector;
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
