@@ -77,6 +77,10 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -203,6 +207,10 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
+  static const postcardExplain = 'postcard_explain_screen';
+  static const designStamp = 'design_stamp_screen';
+  static const handSignaturePage = "hand_signature_page";
+  static const stampPreview = "stamp_preview";
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -339,6 +347,33 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => const BeOwnGalleryPage(),
+        );
+
+      case postcardExplain:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const PostcardExplain(),
+        );
+
+      case designStamp:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const DesignStampPage(),
+        );
+
+      case handSignaturePage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => HandSignaturePage(
+            payload: settings.arguments as HandSignaturePayload,
+          ),
+        );
+
+      case AppRouter.stampPreview:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) =>
+              StampPreview(payload: settings.arguments as HandSignaturePayload),
         );
 
       case moreAutonomyPage:

@@ -486,10 +486,11 @@ Divider headDivider() {
   );
 }
 
-Divider addOnlyDivider() {
-  return const Divider(
+Divider addOnlyDivider({Color? color}) {
+  return Divider(
     height: 1.0,
     thickness: 1.0,
+    color: color,
   );
 }
 
@@ -594,4 +595,19 @@ void disableLandscapeMode() {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+}
+
+class MomaPallet {
+  static const pink = Color.fromRGBO(233, 60, 172, 1);
+  static const red = Color.fromRGBO(228, 0, 43, 1);
+  static const brick = Color.fromRGBO(255, 88, 93, 1);
+  static const lightBrick = Color.fromRGBO(255, 179, 171, 1);
+  static const orange = Color.fromRGBO(255, 143, 28, 1);
+  static const lightYellow = Color.fromRGBO(255, 205, 0, 1);
+  static const bananaYellow = Color.fromRGBO(206, 220, 0, 1);
+  static const green = Color.fromRGBO(0, 177, 64, 1);
+  static const riverGreen = Color.fromRGBO(140, 226, 208, 1);
+  static const cloudBlue = Color.fromRGBO(0, 175, 215, 1);
+  static const blue = Color.fromRGBO(0, 87, 184, 1);
+  static const purple = Color.fromRGBO(117, 59, 189, 1);
 }

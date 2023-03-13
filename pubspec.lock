@@ -1110,13 +1110,13 @@ packages:
     source: hosted
     version: "4.0.2"
   image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image
-      sha256: "3686865febd85c57a632d87a0fb1f0a8a9ef602fdb68d909c3e9aa29ec70fd24"
+      sha256: "483a389d6ccb292b570c31b3a193779b1b0178e7eb571986d9a49904b6861227"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.13"
+    version: "4.0.15"
   image_picker:
     dependency: "direct main"
     description:
@@ -2256,10 +2256,10 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: b3e500b1896d40c8961ab430a94fc22eff8fa1b33af03584e2f0b89371c3fa6a
+      sha256: ab3eac31638e80663eae19c71e362012e1e2f67dfd527dc5c07d9397cd4238f2
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.48"
+    version: "20.4.53"
   syncfusion_flutter_pdf:
     dependency: transitive
     description:
@@ -2276,6 +2276,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "20.4.48"
+  syncfusion_flutter_signaturepad:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_signaturepad
+      sha256: dd29c5b88864dfd6f794183108c7274eee168d4fa6764d0581817fe2f484e966
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.4.53"
   syncfusion_pdfviewer_macos:
     dependency: transitive
     description:
@@ -2702,6 +2710,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.9.5"
+  widgets_to_image:
+    dependency: "direct main"
+    description:
+      name: widgets_to_image
+      sha256: e32c7b77267c01d319dc97333d4f3d894e9d81c8b3a408fd33862fa7775ee398
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   win32:
     dependency: transitive
     description:
@@ -2735,5 +2751,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=2.19.0 <3.0.0"
   flutter: ">=3.3.0"
