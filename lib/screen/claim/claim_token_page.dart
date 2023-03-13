@@ -60,7 +60,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   @override
   Widget build(BuildContext context) {
     final artwork = widget.artwork;
-    final artist = artwork.artist;
+    final artist = artwork.artist!;
     final artistName = artist.getDisplayName();
     final artworkThumbnail = artwork.getThumbnailURL();
     String gifter =

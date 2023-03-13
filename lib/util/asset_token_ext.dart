@@ -294,7 +294,7 @@ AssetToken createPendingAssetToken({
   final exhibition = artwork.exhibition;
   final contract = artwork.contract;
   return AssetToken(
-    artistName: artist.fullName,
+    artistName: artist!.fullName ?? "",
     artistURL: null,
     artistID: artist.id,
     assetData: null,

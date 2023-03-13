@@ -34,7 +34,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
     final theme = Theme.of(context);
     final artwork = widget.artwork;
     final contract = artwork.contract;
-    final artist = artwork.artist;
+    final artist = artwork.artist!;
     return Scaffold(
         appBar: _appBar(
           context,

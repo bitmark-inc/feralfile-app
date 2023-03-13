@@ -139,7 +139,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  "by".tr(args: [artwork.artist.fullName]),
+                  "by".tr(args: [artwork.artist!.fullName ?? ""]),
                   style: theme.textTheme.ppMori400White12,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
