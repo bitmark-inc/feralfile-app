@@ -556,6 +556,7 @@ class AppRouter {
         );
       case ScanQRPage.tag:
         return PageTransition(
+            settings: settings,
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
@@ -840,6 +841,7 @@ class AppRouter {
 
       case releaseNotesPage:
         return PageTransition(
+            settings: settings,
             type: PageTransitionType.bottomToTop,
             curve: Curves.easeIn,
             child: ReleaseNotesPage(
@@ -848,6 +850,7 @@ class AppRouter {
 
       case supportCustomerPage:
         return PageTransition(
+            settings: settings,
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
