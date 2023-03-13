@@ -35,26 +35,7 @@ class AddNewPlaylistBloc
     });
 
     on<SelectItemPlaylist>((event, emit) {
-      final hiddenTokens =
-          injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
-      final sentArtworks =
-          injector<ConfigurationService>().getRecentlySentToken();
-      final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-
-      final listTokenIDs = state.tokens
-              ?.where(
-                (element) =>
-                    !hiddenTokens.contains(element.id) &&
-                    !sentArtworks.any(
-                      (e) => e.isHidden(
-                          tokenID: element.id,
-                          address: element.ownerAddress,
-                          timestamp: expiredTime),
-                    ),
-              )
-              .map((e) => e.id)
-              .toList() ??
-          [];
+      final listTokenIDs = state.tokens?.map((e) => e.id).toList() ?? [];
       if (event.isSelectAll) {
         state.selectedIDs = List.from(listTokenIDs);
       } else {
@@ -70,9 +51,7 @@ class AddNewPlaylistBloc
       playListModel?.thumbnailURL = state.tokens
           ?.firstWhereOrNull(
               (element) => element.id == state.selectedIDs?.first)
-          ?.getThumbnailUrl(
-            usingThumbnailID: false,
-          );
+          ?.getGalleryThumbnailUrl();
 
       playListModel?.tokenIDs = state.selectedIDs?.toSet().toList();
 

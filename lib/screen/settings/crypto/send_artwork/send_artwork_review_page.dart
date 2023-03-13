@@ -56,17 +56,18 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
     });
 
     try {
-      final asset = widget.payload.asset;
-      if (widget.payload.asset.blockchain == "ethereum") {
+      final assetToken = widget.payload.assetToken;
+      if (widget.payload.assetToken.blockchain == "ethereum") {
         final ethereumService = injector<EthereumService>();
 
-        final contractAddress = EthereumAddress.fromHex(asset.contractAddress!);
+        final contractAddress =
+            EthereumAddress.fromHex(assetToken.contractAddress!);
         final to = EthereumAddress.fromHex(widget.payload.address);
         final from = EthereumAddress.fromHex(await widget.payload.wallet
             .getETHEip55Address(index: widget.payload.index));
-        final tokenId = asset.tokenId!;
+        final tokenId = assetToken.tokenId!;
 
-        final data = widget.payload.asset.contractType == "erc1155"
+        final data = widget.payload.assetToken.contractType == "erc1155"
             ? await ethereumService.getERC1155TransferTransactionData(
                 contractAddress, from, to, tokenId, widget.payload.quantity,
                 feeOption: widget.payload.feeOption)
@@ -90,10 +91,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               widget.payload.index,
               Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
-            blockchain: asset.blockchain,
-            id: asset.tokenId ?? "",
-            contractAddress: asset.contractAddress ?? "",
-            ownerAccount: asset.ownerAddress,
+            blockchain: assetToken.blockchain,
+            id: assetToken.tokenId ?? "",
+            contractAddress: assetToken.contractAddress ?? "",
+            ownerAccount: assetToken.owner,
             pendingTx: txHash,
             timestamp: timestamp,
             signature: signature,
@@ -110,13 +111,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         Navigator.of(context).pop(payload);
       } else {
         final tezosService = injector<TezosService>();
-        final tokenId = asset.tokenId!;
+        final tokenId = assetToken.tokenId!;
 
         final wallet = widget.payload.wallet;
         final index = widget.payload.index;
         final address = await wallet.getTezosAddress(index: index);
         final operation = await tezosService.getFa2TransferOperation(
-          widget.payload.asset.contractAddress!,
+          widget.payload.assetToken.contractAddress!,
           address,
           widget.payload.address,
           tokenId,
@@ -136,10 +137,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           final signature = await tezosService.signMessage(
               wallet, index, Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
-            blockchain: asset.blockchain,
-            id: asset.tokenId ?? "",
-            contractAddress: asset.contractAddress ?? "",
-            ownerAccount: asset.ownerAddress,
+            blockchain: assetToken.blockchain,
+            id: assetToken.tokenId ?? "",
+            contractAddress: assetToken.contractAddress ?? "",
+            ownerAccount: assetToken.owner,
             pendingTx: opHash,
             timestamp: timestamp,
             signature: signature,
@@ -186,7 +187,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               tokenId: tokenId,
               id: 0,
               contract: TZKTActor(
-                  address: widget.payload.asset.contractAddress ?? ''),
+                  address: widget.payload.assetToken.contractAddress ?? ''),
             ),
             status: 'pending');
         if (!mounted) return;
@@ -214,11 +215,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
   Widget build(BuildContext context) {
     final fee = widget.payload.feeOptionValue.getFee(widget.payload.feeOption);
     final theme = Theme.of(context);
-    final asset = widget.payload.asset;
+    final assetToken = widget.payload.assetToken;
 
     final identityState = context.watch<IdentityBloc>().state;
     final artistName =
-        asset.artistName?.toIdentityOrMask(identityState.identityMap);
+        assetToken.artistName?.toIdentityOrMask(identityState.identityMap);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final divider = addDivider(height: 20);
     return AbsorbPointer(
@@ -261,45 +262,46 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 _item(
                                   context: context,
                                   title: "title".tr(),
-                                  content: asset.title,
+                                  content: assetToken.title ?? '',
                                 ),
                                 divider,
                                 _item(
                                     context: context,
                                     title: "artist".tr(),
                                     content: artistName ?? "",
-                                    tapLink: asset.artistURL),
+                                    tapLink: assetToken.artistURL),
                                 divider,
-                                if (!(widget.payload.asset.fungible ==
+                                if (!(widget.payload.assetToken.fungible ==
                                     true)) ...[
                                   _item(
                                       context: context,
                                       title: "edition".tr(),
-                                      content: asset.editionSlashMax),
+                                      content: assetToken.editionSlashMax),
                                   divider,
                                 ],
                                 _item(
                                     context: context,
                                     title: "token".tr(),
-                                    content: polishSource(asset.source ?? ""),
-                                    tapLink: asset.assetURL),
+                                    content:
+                                        polishSource(assetToken.source ?? ""),
+                                    tapLink: assetToken.assetURL),
                                 divider,
                                 _item(
                                   context: context,
                                   title: "contract".tr(),
-                                  content: asset.blockchain.capitalize(),
-                                  tapLink: asset.getBlockchainUrl(),
+                                  content: assetToken.blockchain.capitalize(),
+                                  tapLink: assetToken.getBlockchainUrl(),
                                 ),
                                 divider,
                                 _item(
                                     context: context,
                                     title: "minted".tr(),
-                                    content: asset.mintedAt != null
-                                        ? localTimeStringFromISO8601(
-                                            asset.mintedAt!)
+                                    content: assetToken.mintedAt != null
+                                        ? localTimeString(assetToken.mintedAt!)
                                         : ''),
                                 divider,
-                                if (widget.payload.asset.fungible == true) ...[
+                                if (widget.payload.assetToken.fungible ==
+                                    true) ...[
                                   _item(
                                       context: context,
                                       title: "owned_tokens".tr(),
@@ -339,9 +341,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                       Text(
                                         _amountFormat(
                                           fee,
-                                          isETH:
-                                              widget.payload.asset.blockchain ==
-                                                  "ethereum",
+                                          isETH: widget.payload.assetToken
+                                                  .blockchain ==
+                                              "ethereum",
                                         ),
                                         style: theme.textTheme.ppMori400White14,
                                       ),
@@ -427,7 +429,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 }
 
 class SendArtworkReviewPayload {
-  final AssetToken asset;
+  final AssetToken assetToken;
   final WalletStorage wallet;
   final int index;
   final String address;
@@ -439,7 +441,7 @@ class SendArtworkReviewPayload {
   final FeeOptionValue feeOptionValue;
 
   SendArtworkReviewPayload(
-      this.asset,
+      this.assetToken,
       this.wallet,
       this.index,
       this.address,

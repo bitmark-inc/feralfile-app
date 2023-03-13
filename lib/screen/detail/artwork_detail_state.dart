@@ -19,9 +19,13 @@ class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
 }
 
 class ArtworkDetailState {
-  AssetToken? asset;
+  AssetToken? assetToken;
   List<Provenance> provenances;
   AssetPrice? assetPrice;
 
-  ArtworkDetailState({this.asset, required this.provenances, this.assetPrice});
+  ArtworkDetailState({
+    this.assetToken,
+    required this.provenances,
+    this.assetPrice,
+  });
 }

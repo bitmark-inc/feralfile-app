@@ -5,17 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
-import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
@@ -40,9 +38,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
 
 class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc = ArtworkPreviewDetailBloc(
-      GetIt.instance.get<NftCollectionBloc>().database.assetDao,
-      GetIt.instance.get<EthereumService>());
+  final bloc = ArtworkPreviewDetailBloc(injector(), injector());
 
   INFTRenderingWidget? _renderingWidget;
 
@@ -99,8 +95,9 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
           case ArtworkPreviewDetailLoadingState:
             return const CircularProgressIndicator();
           case ArtworkPreviewDetailLoadedState:
-            final asset = (state as ArtworkPreviewDetailLoadedState).asset;
-            if (asset != null) {
+            final assetToken =
+                (state as ArtworkPreviewDetailLoadedState).assetToken;
+            if (assetToken != null) {
               return BlocProvider(
                 create: (_) => RetryCubit(),
                 child: BlocBuilder<RetryCubit, int>(
@@ -110,10 +107,11 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                       _renderingWidget = null;
                     }
                     if (_renderingWidget == null ||
-                        _renderingWidget!.previewURL != asset.getPreviewUrl()) {
+                        _renderingWidget!.previewURL !=
+                            assetToken.getPreviewUrl()) {
                       _renderingWidget = buildRenderingWidget(
                         context,
-                        asset,
+                        assetToken,
                         attempt: attempt > 0 ? attempt : null,
                         onLoaded: widget.onLoaded,
                         onDispose: widget.onLoaded,
@@ -123,7 +121,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                       );
                     }
 
-                    switch (asset.getMimeType) {
+                    switch (assetToken.getMimeType) {
                       case RenderingType.image:
                       case RenderingType.video:
                       case RenderingType.gif:

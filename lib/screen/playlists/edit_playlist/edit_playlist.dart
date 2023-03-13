@@ -1,12 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -14,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -24,6 +21,7 @@ import 'widgets/edit_playlist_gridview.dart';
 import 'edit_playlist_bloc.dart';
 import 'edit_playlist_state.dart';
 import '../../../util/string_ext.dart';
+import '../../../util/token_ext.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -35,23 +33,14 @@ class EditPlaylistScreen extends StatefulWidget {
 
 class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final bloc = injector.get<EditPlaylistBloc>();
-  final nftBloc = injector.get<NftCollectionBloc>();
-  List<String> hiddenTokens = [];
-  List<SentArtwork> sentArtworks = [];
-  List<AssetToken> tokensPlaylist = [];
+  final nftBloc = injector.get<NftCollectionBloc>(param1: false);
+  List<CompactedAssetToken> tokensPlaylist = [];
+
   @override
   void initState() {
     super.initState();
-    hiddenTokens =
-        injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
-    sentArtworks = injector<ConfigurationService>().getRecentlySentToken();
-    injector<AccountService>().getAllAddresses().then((value) {
-      nftBloc.add(RefreshTokenEvent(
-        addresses: value,
-      ));
-      nftBloc.add(RequestIndexEvent(value));
-    });
 
+    nftBloc.add(RefreshNftCollectionByIDs(ids: widget.playListModel?.tokenIDs));
     bloc.add(InitPlayList(
       playListModel: widget.playListModel?.copyWith(
         tokenIDs: List.from(widget.playListModel?.tokenIDs ?? []),
@@ -70,24 +59,11 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     injector<NavigationService>().popUntilHomeOrSettings();
   }
 
-  List<AssetToken> setupPlayList({
-    required List<AssetToken> tokens,
+  List<CompactedAssetToken> setupPlayList({
+    required List<CompactedAssetToken> tokens,
     List<String>? tokenIDs,
   }) {
-    final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-
-    tokens = tokens
-        .where(
-          (element) =>
-              !hiddenTokens.contains(element.id) &&
-              !sentArtworks.any(
-                (e) => e.isHidden(
-                    tokenID: element.id,
-                    address: element.ownerAddress,
-                    timestamp: expiredTime),
-              ),
-        )
-        .toList();
+    tokens = tokens.filterAssetToken();
 
     final temp = tokenIDs
             ?.map((e) =>
@@ -151,7 +127,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   builder: (context, nftState) {
                     return NftCollectionGrid(
                       state: nftState.state,
-                      tokens: nftState.tokens,
+                      tokens: nftState.tokens.items,
                       loadingIndicatorBuilder: loadingView,
                       customGalleryViewBuilder: (gridContext, tokens) {
                         final listToken = setupPlayList(
@@ -186,9 +162,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                   arguments: playList,
                                 ).then((value) {
                                   if (value != null && value is PlayListModel) {
-                                    // bloc.add(InitPlayList(
-                                    //   playListModel: value,
-                                    // ));
                                     bloc.add(SavePlaylist());
                                   }
                                 }),
@@ -204,9 +177,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                               element?.id ==
                                               tokenIDs.firstOrDefault())
                                           .firstOrDefault()
-                                          ?.getThumbnailUrl(
-                                            usingThumbnailID: false,
-                                          ),
+                                          ?.getGalleryThumbnailUrl(),
                                     ),
                                   );
                                 },
@@ -244,9 +215,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                             element.id ==
                                             playList?.tokenIDs.firstOrDefault())
                                         .firstOrDefault()
-                                        ?.getThumbnailUrl(
-                                          usingThumbnailID: false,
-                                        );
+                                        ?.getGalleryThumbnailUrl();
                                     playList?.thumbnailURL = thubnailUrl;
                                     bloc.add(SavePlaylist());
                                   },
@@ -356,9 +325,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
               arguments: playList,
             ).then((value) {
               if (value != null && value is PlayListModel) {
-                bloc.add(InitPlayList(
-                  playListModel: value,
-                ));
+                bloc.add(SavePlaylist());
               }
             });
           },

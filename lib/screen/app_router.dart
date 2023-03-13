@@ -126,7 +126,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -211,7 +210,6 @@ class AppRouter {
     final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
         injector(), injector<AuditService>(), injector());
-    final nftCollectionBloc = injector<NftCollectionBloc>();
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -289,7 +287,6 @@ class AppRouter {
                             )),
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
-                    BlocProvider.value(value: nftCollectionBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
                               injector(),
@@ -300,7 +297,7 @@ class AppRouter {
                       create: (_) => FeedBloc(
                         injector(),
                         injector(),
-                        nftCollectionBloc.database.assetDao,
+                        injector(),
                       ),
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
@@ -321,7 +318,6 @@ class AppRouter {
                             )),
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
-                    BlocProvider.value(value: nftCollectionBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
                               injector(),
@@ -332,7 +328,7 @@ class AppRouter {
                       create: (_) => FeedBloc(
                         injector(),
                         injector(),
-                        nftCollectionBloc.database.assetDao,
+                        injector(),
                       ),
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
@@ -591,7 +587,6 @@ class AppRouter {
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
-                      BlocProvider.value(value: nftCollectionBloc),
                     ],
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
@@ -638,7 +633,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider(create: (_) => FeralfileBloc.create()),
-                      BlocProvider.value(value: nftCollectionBloc),
                     ],
                     child: LinkedAccountDetailsPage(
                         connection: settings.arguments as Connection)));
@@ -690,11 +684,17 @@ class AppRouter {
             child: MultiBlocProvider(
               providers: [
                 BlocProvider(
-                    create: (_) => ArtworkPreviewBloc(
-                        nftCollectionBloc.database.assetDao)),
+                  create: (_) => ArtworkPreviewBloc(
+                    injector(),
+                    injector(),
+                  ),
+                ),
                 BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                  create: (_) => IdentityBloc(
+                    injector<AppDatabase>(),
+                    injector(),
+                  ),
+                ),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
@@ -758,10 +758,10 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
-                            nftCollectionBloc.database.assetDao,
-                            nftCollectionBloc.database.provenanceDao,
+                            injector(),
+                            injector(),
+                            injector(),
                           )),
-                  BlocProvider.value(value: nftCollectionBloc),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
@@ -889,10 +889,8 @@ class AppRouter {
                   providers: [
                     BlocProvider(
                       create: (_) => HiddenArtworksBloc(
-                          injector<ConfigurationService>(),
-                          injector<NftCollectionBloc>().database.assetDao),
+                          injector<ConfigurationService>(), injector()),
                     ),
-                    BlocProvider.value(value: nftCollectionBloc),
                   ],
                   child: const HiddenArtworksPage(),
                 ));

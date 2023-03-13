@@ -90,9 +90,10 @@ class WCSendTransactionBloc
         injector<PendingTokenService>()
             .checkPendingEthereumTokens(
                 await persona.getETHEip55Address(index: index), txHash)
-            .then((hasPendingTokens) {
-          if (hasPendingTokens) {
-            injector<NftCollectionBloc>().add(RefreshNftCollection());
+            .then((tokens) {
+          if (tokens.isNotEmpty) {
+            NftCollectionBloc.eventController
+                .add(UpdateTokensEvent(tokens: tokens));
           }
         });
         _navigationService.goBack();

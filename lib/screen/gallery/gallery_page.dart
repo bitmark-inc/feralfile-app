@@ -155,7 +155,7 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
-  Widget _assetsWidget(List<AssetToken>? tokens, bool isLoading) {
+  Widget _assetsWidget(List<CompactedAssetToken>? tokens, bool isLoading) {
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;

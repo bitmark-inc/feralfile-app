@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.37.0+121
+version: 0.36.0+121
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -131,7 +131,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 8591e66f61c09ee09c19ab90e61d3849b5c9cab3
+      ref: 97e80a82aaace38d08913e746fdc7ef400320896
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:

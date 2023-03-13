@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_blo
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
-import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -56,7 +55,7 @@ class FeedPreviewPage extends StatelessWidget {
             create: (_) => FeedBloc(
               injector(),
               injector(),
-              nftCollectionBloc.database.assetDao,
+              nftCollectionBloc.database.tokenDao,
             ),
           ),
           BlocProvider(
@@ -245,10 +244,7 @@ class _FeedArtworkState extends State<FeedArtwork>
     with RouteAware, WidgetsBindingObserver {
   INFTRenderingWidget? _renderingWidget;
 
-  final _bloc = ArtworkPreviewDetailBloc(
-    injector<NftCollectionBloc>().database.assetDao,
-    injector<EthereumService>(),
-  );
+  final _bloc = ArtworkPreviewDetailBloc(injector(), injector());
 
   @override
   void initState() {
@@ -321,7 +317,7 @@ class _FeedArtworkState extends State<FeedArtwork>
               width: screenWidth,
             );
           case ArtworkPreviewDetailLoadedState:
-            final asset = (state as ArtworkPreviewDetailLoadedState).asset;
+            final asset = (state as ArtworkPreviewDetailLoadedState).assetToken;
             if (asset != null) {
               return MeasuredSize(
                 onChange: (Size size) {
@@ -348,7 +344,6 @@ class _FeedArtworkState extends State<FeedArtwork>
                           attempt: attempt > 0 ? attempt : null,
                           overriddenHtml: state.overriddenHtml,
                           isMute: true,
-                          loadingWidget: TokenThumbnailWidget(token: asset),
                         );
                       }
                       final mimeType = asset.getMimeType;
@@ -550,7 +545,9 @@ class _ControlViewState extends State<ControlView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          asset.title.isEmpty ? 'nft' : '${asset.title} ',
+                          asset.title != null && asset.title!.isEmpty
+                              ? 'nft'
+                              : '${asset.title} ',
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.ppMori400White16,
                         ),

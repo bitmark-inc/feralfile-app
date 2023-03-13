@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
+import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 part 'feed_state.dart';
@@ -18,10 +18,13 @@ part 'feed_state.dart';
 class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
   final FeedService _feedService;
   final ConfigurationService _configurationService;
-  final AssetTokenDao _assetTokenDao;
+  final TokenDao _tokenDao;
 
-  FeedBloc(this._feedService, this._configurationService, this._assetTokenDao)
-      : super(FeedState(
+  FeedBloc(
+    this._feedService,
+    this._configurationService,
+    this._tokenDao,
+  ) : super(FeedState(
           onBoardingStep:
               _configurationService.isFinishedFeedOnBoarding() ? -1 : 0,
         )) {
@@ -32,7 +35,7 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
           return;
         }
 
-        final ownedTokenIds = await _assetTokenDao.findAllAssetTokenIDs();
+        final ownedTokenIds = await _tokenDao.findAllTokenIDs();
         final newAppFeedData = await _feedService.fetchFeeds(
           state.appFeedData?.next,
           ignoredTokenIds: ownedTokenIds,

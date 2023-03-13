@@ -26,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ClaimTokenPageArgs {
@@ -376,6 +377,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         AppRouter.homePage,
         (route) => false,
       );
+      NftCollectionBloc.eventController
+          .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
       final token = claimRespone?.token;
       final caption = claimRespone?.airdropInfo.twitterCaption;
       if (token == null) {
@@ -383,7 +386,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       }
       Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.ownerAddress)], 0,
+              [ArtworkIdentity(token.id, token.owner)], 0,
               twitterCaption: caption ?? ""));
     }
   }

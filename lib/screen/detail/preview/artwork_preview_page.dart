@@ -184,18 +184,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  Future _moveToInfo(AssetToken? asset) async {
-    if (asset == null) return;
+  Future _moveToInfo(AssetToken? assetToken) async {
+    if (assetToken == null) return;
     metricClient.addEvent(
       MixpanelEvent.clickArtworkInfo,
       data: {
-        "id": asset.id,
+        "id": assetToken.id,
       },
     );
     keyboardManagerKey.currentState?.hideKeyboard();
 
     final currentIndex = tokens.indexWhere((element) =>
-        element.id == asset.id && element.owner == asset.ownerAddress);
+        element.id == assetToken.id && element.owner == assetToken.owner);
     if (currentIndex == initialPage) {
       Navigator.of(context).pop();
       return;
@@ -246,17 +246,17 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Future<void> onCastTap(AssetToken? asset) async {
-    final canCast = asset?.medium == "video" ||
-        asset?.medium == "image" ||
-        asset?.mimeType?.startsWith("audio/") == true;
+  Future<void> onCastTap(AssetToken? assetToken) async {
+    final canCast = assetToken?.medium == "video" ||
+        assetToken?.medium == "image" ||
+        assetToken?.mimeType?.startsWith("audio/") == true;
 
     keyboardManagerKey.currentState?.hideKeyboard();
 
     if (!canCast) {
       return UIHelper.showUnavailableCastDialog(
         context: context,
-        assetToken: asset,
+        assetToken: assetToken,
       );
     }
     return UIHelper.showDialog(
@@ -268,11 +268,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           if (!snapshot.hasData ||
               snapshot.data!.isEmpty ||
               snapshot.hasError) {
-            if (asset?.medium == "video") {
+            if (assetToken?.medium == "video") {
               _castDevices = _defaultCastDevices;
             }
           } else {
-            _castDevices = (asset?.medium == "video"
+            _castDevices = (assetToken?.medium == "video"
                     ? _defaultCastDevices
                     : List<AUCastDevice>.empty()) +
                 snapshot.data!
@@ -281,7 +281,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           }
 
           var castDevices = _castDevices;
-          if (asset?.medium == "image") {
+          if (assetToken?.medium == "image") {
             // remove the airplay option
             castDevices = _castDevices
                 .where((element) => element.type != AUCastDeviceType.Airplay)
@@ -327,7 +327,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             context,
                             castDevices,
                             isSubscribed,
-                            asset: asset,
+                            assetToken: assetToken,
                           ),
                         ),
                         OutlineButton(
@@ -350,7 +350,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Widget _castingListView(
       BuildContext context, List<AUCastDevice> devices, bool isSubscribed,
-      {AssetToken? asset}) {
+      {AssetToken? assetToken}) {
     final theme = Theme.of(context);
 
     if (devices.isEmpty) {
@@ -385,7 +385,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   behavior: HitTestBehavior.translucent,
                   onTap: () {
                     metricClient.addEvent(MixpanelEvent.streamArtwork, data: {
-                      'id': asset?.id,
+                      'id': assetToken?.id,
                       'device type': AUCastDeviceType.Airplay.name
                     });
                   },
@@ -396,7 +396,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     ? () {
                         metricClient.addEvent(MixpanelEvent.streamArtwork,
                             data: {
-                              'id': asset?.id,
+                              'id': assetToken?.id,
                               'device type': AUCastDeviceType.Chromecast.name
                             });
                         UIHelper.hideInfoDialog(context);
@@ -404,7 +404,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         if (copiedDevice.isActivated) {
                           _stopAndDisconnectChomecast(index);
                         } else {
-                          _connectAndCast(index: index, asset: asset);
+                          _connectAndCast(index: index, assetToken: assetToken);
                         }
 
                         // invert the state
@@ -500,10 +500,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _castDevices = [];
   }
 
-  Future<void> _connectAndCast({required int index, AssetToken? asset}) async {
+  Future<void> _connectAndCast(
+      {required int index, AssetToken? assetToken}) async {
     final device = _castDevices[index];
     if (device.chromecastDevice == null) return;
-    if (asset == null) return;
+    if (assetToken == null) return;
     final session = await CastSessionManager()
         .startSession(device.chromecastDevice!, const Duration(seconds: 5));
     device.chromecastSession = session;
@@ -514,8 +515,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       log.info("[Chromecast] device status: ${state.name}");
       if (state == CastSessionState.connected) {
         log.info(
-            "[Chromecast] send cast message with url: ${asset.getPreviewUrl()}");
-        _sendMessagePlayVideo(session: session, asset: asset);
+            "[Chromecast] send cast message with url: ${assetToken.getPreviewUrl()}");
+        _sendMessagePlayVideo(session: session, assetToken: assetToken);
       }
     });
 
@@ -528,12 +529,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   void _sendMessagePlayVideo(
-      {required CastSession session, required AssetToken asset}) {
+      {required CastSession session, required AssetToken assetToken}) {
     var message = {
       // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.
-      'contentId': asset.getPreviewUrl() ?? '',
-      'contentType':
-          asset.mimeType ?? lookupMimeType(asset.getPreviewUrl() ?? ''),
+      'contentId': assetToken.getPreviewUrl() ?? '',
+      'contentType': assetToken.mimeType ??
+          lookupMimeType(assetToken.getPreviewUrl() ?? ''),
       'streamType': 'BUFFERED',
       // or LIVE
 
@@ -541,10 +542,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       'metadata': {
         'type': 0,
         'metadataType': 0,
-        'title': asset.title,
+        'title': assetToken.title,
         'images': [
-          {'url': asset.getThumbnailUrl() ?? ''},
-          {'url': asset.getPreviewUrl()},
+          {'url': assetToken.getGalleryThumbnailUrl() ?? ''},
+          {'url': assetToken.getPreviewUrl()},
         ]
       }
     };
@@ -568,7 +569,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         AssetToken? assetToken;
         bool isFullScreen = false;
         if (state is ArtworkPreviewLoadedState) {
-          assetToken = state.asset;
+          assetToken = state.assetToken;
           isFullScreen = state.isFullScreen;
         }
         final hasKeyboard = assetToken?.medium == "software" ||
