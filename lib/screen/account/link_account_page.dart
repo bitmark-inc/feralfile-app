@@ -28,7 +28,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 class LinkAccountPage extends StatefulWidget {
   const LinkAccountPage({Key? key}) : super(key: key);
@@ -285,8 +285,7 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           await injector<AccountService>().linkETHWallet(session);
 
       // SideEffect: pre-fetch tokens
-      injector<NftCollectionBloc>()
-          .tokensService
+      injector<TokensService>()
           .fetchTokensForAddresses(linkedAccount.accountNumbers);
 
       final walletName =

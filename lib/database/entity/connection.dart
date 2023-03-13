@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
+import 'package:nft_collection/models/address_index.dart';
 
 enum ConnectionType {
   walletConnect, // Autonomy connect to ETH Wallet
@@ -235,6 +236,37 @@ class Connection {
 
       default:
         return accountNumber.split("||");
+    }
+  }
+
+  List<AddressIndex> get addressIndexes {
+    switch (connectionType) {
+      case 'feralFileWeb3':
+      case 'feralFileToken':
+        var addresses = [
+          AddressIndex(address: accountNumber, createdAt: createdAt)
+        ];
+        final ffAccount =
+            ffConnection?.ffAccount ?? ffWeb3Connection?.ffAccount;
+        final ethereumAddress = ffAccount?.ethereumAddress;
+        final tezosAddress = ffAccount?.tezosAddress;
+
+        if (ethereumAddress != null) {
+          addresses.add(
+              AddressIndex(address: ethereumAddress, createdAt: createdAt));
+        }
+        if (tezosAddress != null) {
+          addresses
+              .add(AddressIndex(address: tezosAddress, createdAt: createdAt));
+        }
+
+        return addresses;
+
+      default:
+        return accountNumber
+            .split("||")
+            .map((e) => AddressIndex(address: e, createdAt: createdAt))
+            .toList();
     }
   }
 

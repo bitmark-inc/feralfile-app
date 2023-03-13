@@ -18,9 +18,9 @@ class ArtworkPreviewDetailGetAssetTokenEvent extends ArtworkPreviewDetailEvent {
 
 class ArtworkFeedPreviewDetailGetAssetTokenEvent
     extends ArtworkPreviewDetailEvent {
-  final AssetToken token;
+  final AssetToken assetToken;
 
-  ArtworkFeedPreviewDetailGetAssetTokenEvent(this.token);
+  ArtworkFeedPreviewDetailGetAssetTokenEvent(this.assetToken);
 }
 
 abstract class ArtworkPreviewDetailState {
@@ -32,8 +32,8 @@ class ArtworkPreviewDetailLoadingState extends ArtworkPreviewDetailState {
 }
 
 class ArtworkPreviewDetailLoadedState extends ArtworkPreviewDetailState {
-  AssetToken? asset;
+  AssetToken? assetToken;
   String? overriddenHtml;
 
-  ArtworkPreviewDetailLoadedState({this.asset, this.overriddenHtml});
+  ArtworkPreviewDetailLoadedState({this.assetToken, this.overriddenHtml});
 }

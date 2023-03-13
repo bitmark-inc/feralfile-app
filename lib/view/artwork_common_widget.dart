@@ -102,88 +102,18 @@ class PendingTokenWidget extends StatelessWidget {
   }
 }
 
-class TokenThumbnailWidget extends StatelessWidget {
-  final AssetToken token;
-  final Function? onHideArtwork;
-
-  const TokenThumbnailWidget({
-    Key? key,
-    required this.token,
-    this.onHideArtwork,
-  }) : super(key: key);
-
-  Widget _buildContent(
-      {required String ext,
-      required double screenWidth,
-      required int attempt}) {
-    final thumbnailUrl = token.getThumbnailUrl();
-    if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-      return const AspectRatio(
-        aspectRatio: 1,
-        child: GalleryNoThumbnailWidget(),
-      );
-    }
-
-    return Hero(
-      tag: "thumbnail_${token.id}",
-      child: ext == ".svg"
-          ? Center(
-              child: SvgImage(
-                url: thumbnailUrl,
-                fallbackToWebView: true,
-                loadingWidgetBuilder: (context) => placeholder(context),
-                errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
-                unsupportWidgetBuilder: (context) => GalleryUnSupportWidget(
-                  onHideArtwork: () => onHideArtwork?.call(),
-                ),
-              ),
-            )
-          : CachedNetworkImage(
-              imageUrl: attempt > 0
-                  ? "${token.getThumbnailUrl(usingThumbnailID: false) ?? ''}?t=$attempt"
-                  : token.getThumbnailUrl() ?? "",
-              width: double.infinity,
-              memCacheWidth: (screenWidth * 3).floor(),
-              maxWidthDiskCache: (screenWidth * 3).floor(),
-              cacheManager: injector<CacheManager>(),
-              placeholder: (context, url) => placeholder(context),
-              placeholderFadeInDuration: const Duration(milliseconds: 300),
-              fit: BoxFit.cover,
-              errorWidget: (context, url, error) => AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: Theme.of(context).auLightGrey,
-                  child: BrokenTokenWidget(token: token),
-                ),
-              ),
-            ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ext = p.extension(token.getThumbnailUrl() ?? "");
-    final screenWidth = MediaQuery.of(context).size.width;
-    return BlocProvider(
-      create: (_) => RetryCubit(),
-      child: BlocBuilder<RetryCubit, int>(
-        builder: (context, state) => _buildContent(
-          ext: ext,
-          screenWidth: screenWidth,
-          attempt: state,
-        ),
-      ),
-    );
-  }
-}
-
 final Map<String, Future<bool>> _cachingStates = {};
 
 Widget tokenGalleryThumbnailWidget(
-    BuildContext context, AssetToken token, int cachedImageSize) {
-  final thumbnailUrl = token.getGalleryThumbnailUrl();
+    BuildContext context, CompactedAssetToken token, int cachedImageSize,
+    {bool usingThumbnailID = true}) {
+  final thumbnailUrl =
+      token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
+
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-    return const GalleryNoThumbnailWidget();
+    return GalleryNoThumbnailWidget(
+      assetToken: token,
+    );
   }
 
   final ext = p.extension(thumbnailUrl);
@@ -250,79 +180,6 @@ Widget tokenGalleryThumbnailWidget(
               ),
             ),
     ),
-  );
-}
-
-Widget tokenGalleryWidget(
-  BuildContext context,
-  AssetToken token,
-  int cachedImageSize,
-) {
-  final thumbnailUrl = token.getGalleryThumbnailUrl();
-  if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-    return const GalleryNoThumbnailWidget();
-  }
-
-  final ext = p.extension(thumbnailUrl);
-
-  final cacheManager = injector<CacheManager>();
-
-  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
-      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
-        final cached = cachedObject != null;
-        if (cached) {
-          _cachingStates[thumbnailUrl] = Future.value(true);
-        }
-        return cached;
-      });
-
-  return Semantics(
-    label: token.title,
-    child: ext == ".svg"
-        ? SvgImage(
-            url: thumbnailUrl,
-            loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
-            errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
-            unsupportWidgetBuilder: (context) =>
-                const GalleryUnSupportThumbnailWidget(),
-          )
-        : CachedNetworkImage(
-            imageUrl: thumbnailUrl,
-            fadeInDuration: Duration.zero,
-            fit: BoxFit.cover,
-            memCacheHeight: cachedImageSize,
-            memCacheWidth: cachedImageSize,
-            maxWidthDiskCache: cachedImageSize,
-            maxHeightDiskCache: cachedImageSize,
-            cacheManager: cacheManager,
-            placeholder: (context, index) => FutureBuilder<bool>(
-                future: cachingState,
-                builder: (context, snapshot) {
-                  return GalleryThumbnailPlaceholder(
-                    loading: !(snapshot.data ?? true),
-                  );
-                }),
-            errorWidget: (context, url, error) => CachedNetworkImage(
-              imageUrl:
-                  token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? "",
-              fadeInDuration: Duration.zero,
-              fit: BoxFit.cover,
-              memCacheHeight: cachedImageSize,
-              memCacheWidth: cachedImageSize,
-              maxWidthDiskCache: cachedImageSize,
-              maxHeightDiskCache: cachedImageSize,
-              cacheManager: cacheManager,
-              placeholder: (context, index) => FutureBuilder<bool>(
-                  future: cachingState,
-                  builder: (context, snapshot) {
-                    return GalleryThumbnailPlaceholder(
-                      loading: !(snapshot.data ?? true),
-                    );
-                  }),
-              errorWidget: (context, url, error) =>
-                  const GalleryThumbnailErrorWidget(),
-            ),
-          ),
   );
 }
 
@@ -451,7 +308,22 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
 }
 
 class GalleryNoThumbnailWidget extends StatelessWidget {
-  const GalleryNoThumbnailWidget({Key? key}) : super(key: key);
+  final CompactedAssetToken assetToken;
+  const GalleryNoThumbnailWidget({Key? key, required this.assetToken})
+      : super(key: key);
+
+  String getAssetDefault() {
+    switch (assetToken.getMimeType) {
+      case RenderingType.modelViewer:
+        return 'assets/images/icon_3d.svg';
+      case RenderingType.webview:
+        return 'assets/images/icon_software.svg';
+      case RenderingType.video:
+        return 'assets/images/icon_video.svg';
+      default:
+        return 'assets/images/no_thumbnail.svg';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -466,15 +338,8 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
         children: [
           Center(
             child: SvgPicture.asset(
-              'assets/images/no_thumbnail.svg',
+              getAssetDefault(),
               width: 24,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Text(
-              "no_thumbnail".tr(),
-              style: theme.textTheme.ppMori700QuickSilver8,
             ),
           ),
         ],
@@ -564,12 +429,12 @@ Widget placeholder(BuildContext context) {
 }
 
 class ReportButton extends StatefulWidget {
-  final AssetToken? token;
+  final AssetToken? assetToken;
   final ScrollController scrollController;
 
   const ReportButton({
     Key? key,
-    this.token,
+    this.assetToken,
     required this.scrollController,
   }) : super(key: key);
 
@@ -613,14 +478,14 @@ class _ReportButtonState extends State<ReportButton> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.token == null) return const SizedBox();
+    if (widget.assetToken == null) return const SizedBox();
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       height: isShowingArtwortReportProblemContainer ? 80 : 0,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: AnyProblemNFTWidget(
-          asset: widget.token!,
+          asset: widget.assetToken!,
         ),
       ),
     );
@@ -629,7 +494,7 @@ class _ReportButtonState extends State<ReportButton> {
 
 INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
-  AssetToken token, {
+  AssetToken assetToken, {
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
@@ -638,22 +503,22 @@ INFTRenderingWidget buildRenderingWidget(
   FocusNode? focusNode,
   Widget? loadingWidget,
 }) {
-  String mimeType = token.getMimeType;
+  String mimeType = assetToken.getMimeType;
 
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
-        ? token.getPreviewUrl()
-        : "${token.getPreviewUrl()}?t=$attempt",
-    thumbnailURL: token.getThumbnailUrl(usingThumbnailID: false),
+        ? assetToken.getPreviewUrl()
+        : "${assetToken.getPreviewUrl()}?t=$attempt",
+    thumbnailURL: assetToken.getGalleryThumbnailUrl(usingThumbnailID: false),
     loadingWidget: loadingWidget ?? previewPlaceholder(context),
-    errorWidget: BrokenTokenWidget(token: token),
+    errorWidget: BrokenTokenWidget(token: assetToken),
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,
     onDispose: onDispose,
     overriddenHtml: overriddenHtml,
-    skipViewport: token.scrollable ?? false,
+    skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
   ));
@@ -886,7 +751,6 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
             buildInfo('IndexerID', token.id),
             buildInfo(
                 'galleryThumbnailURL', token.getGalleryThumbnailUrl() ?? ''),
-            buildInfo('thumbnailURL', token.getThumbnailUrl() ?? ''),
             buildInfo('previewURL', token.getPreviewUrl() ?? ''),
             addDivider(),
           ],
@@ -894,14 +758,14 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
       });
 }
 
-Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
+Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
   final editionID =
-      ((token.swapped ?? false) && token.originTokenInfoId != null)
-          ? token.originTokenInfoId
-          : token.id.split("-").last;
-  return token.source == "feralfile"
+      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
+          ? assetToken.originTokenInfoId
+          : assetToken.id.split("-").last;
+  return assetToken.source == "feralfile"
       ? ArtworkRightsView(
-          contract: FFContract("", "", token.contractAddress ?? ""),
+          contract: FFContract("", "", assetToken.contractAddress ?? ""),
           editionID: editionID,
         )
       : const SizedBox();
@@ -974,12 +838,12 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
 }
 
 Widget artworkDetailsMetadataSection(
-    BuildContext context, AssetToken asset, String? artistName) {
+    BuildContext context, AssetToken assetToken, String? artistName) {
   final theme = Theme.of(context);
   final editionID =
-      ((asset.swapped ?? false) && asset.originTokenInfoId != null)
-          ? asset.originTokenInfoId ?? ""
-          : asset.id.split("-").last;
+      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
+          ? assetToken.originTokenInfoId ?? ""
+          : assetToken.id.split("-").last;
   return SectionExpandedWidget(
     header: "metadata".tr(),
     child: Column(
@@ -987,7 +851,7 @@ Widget artworkDetailsMetadataSection(
       children: [
         MetaDataItem(
           title: "title".tr(),
-          value: asset.title,
+          value: assetToken.title ?? '',
         ),
         if (artistName != null) ...[
           Divider(
@@ -1001,24 +865,24 @@ Widget artworkDetailsMetadataSection(
               final metricClient = injector.get<MetricClientService>();
 
               metricClient.addEvent(MixpanelEvent.clickArtist, data: {
-                'id': asset.id,
-                'artistID': asset.artistID,
+                'id': assetToken.id,
+                'artistID': assetToken.artistID,
               });
-              final uri =
-                  Uri.parse(asset.artistURL?.split(" & ").firstOrNull ?? "");
+              final uri = Uri.parse(
+                  assetToken.artistURL?.split(" & ").firstOrNull ?? "");
               launchUrl(uri, mode: LaunchMode.externalApplication);
             },
             forceSafariVC: true,
           ),
         ],
-        (asset.fungible == false)
+        (assetToken.fungible == false)
             ? Column(
                 children: [
                   Divider(
                     height: 32.0,
                     color: theme.auLightGrey,
                   ),
-                  _getEditionNameRow(context, asset),
+                  _getEditionNameRow(context, assetToken),
                 ],
               )
             : const SizedBox(),
@@ -1028,8 +892,8 @@ Widget artworkDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "token".tr(),
-          value: polishSource(asset.source ?? ""),
-          tapLink: asset.isAirdrop ? null : asset.assetURL,
+          value: polishSource(assetToken.source ?? ""),
+          tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
           forceSafariVC: true,
         ),
         Divider(
@@ -1064,8 +928,8 @@ Widget artworkDetailsMetadataSection(
             : const SizedBox(),
         MetaDataItem(
           title: "contract".tr(),
-          value: asset.blockchain.capitalize(),
-          tapLink: asset.getBlockchainUrl(),
+          value: assetToken.blockchain.capitalize(),
+          tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
         ),
         Divider(
@@ -1074,7 +938,7 @@ Widget artworkDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "medium".tr(),
-          value: asset.medium?.capitalize() ?? '',
+          value: assetToken.medium?.capitalize() ?? '',
         ),
         Divider(
           height: 32.0,
@@ -1082,17 +946,17 @@ Widget artworkDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "date_minted".tr(),
-          value: asset.mintedAt != null
-              ? localTimeStringFromISO8601(asset.mintedAt!)
+          value: assetToken.mintedAt != null
+              ? localTimeString(assetToken.mintedAt!)
               : '',
         ),
-        asset.assetData != null && asset.assetData!.isNotEmpty
+        assetToken.assetData != null && assetToken.assetData!.isNotEmpty
             ? Column(
                 children: [
                   const Divider(height: 32.0),
                   MetaDataItem(
                     title: "artwork_data".tr(),
-                    value: asset.assetData!,
+                    value: assetToken.assetData!,
                   )
                 ],
               )
@@ -1103,28 +967,29 @@ Widget artworkDetailsMetadataSection(
   );
 }
 
-Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
-  if (asset.editionName != null && asset.editionName != "") {
+Widget _getEditionNameRow(BuildContext context, AssetToken assetToken) {
+  if (assetToken.editionName != null && assetToken.editionName != "") {
     return MetaDataItem(
       title: "edition".tr(),
-      value: asset.editionName!,
+      value: assetToken.editionName!,
     );
   }
   return MetaDataItem(
     title: "edition".tr(),
-    value: asset.edition.toString(),
+    value: assetToken.edition.toString(),
   );
 }
 
 Widget tokenOwnership(
-    BuildContext context, AssetToken asset, List<String> addresses) {
+    BuildContext context, AssetToken assetToken, List<String> addresses) {
   final theme = Theme.of(context);
 
-  int ownedTokens = asset.balance ?? 0;
+  int ownedTokens = assetToken.balance ?? 0;
   if (ownedTokens == 0) {
-    ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+    ownedTokens =
+        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
     if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
     }
   }
 
@@ -1140,8 +1005,8 @@ Widget tokenOwnership(
         const SizedBox(height: 32.0),
         MetaDataItem(
           title: "editions".tr(),
-          value: "${asset.maxEdition}",
-          tapLink: asset.tokenURL,
+          value: "${assetToken.maxEdition}",
+          tapLink: assetToken.tokenURL,
           forceSafariVC: true,
         ),
         Divider(
@@ -1151,7 +1016,7 @@ Widget tokenOwnership(
         MetaDataItem(
           title: "owned".tr(),
           value: "$ownedTokens",
-          tapLink: asset.tokenURL,
+          tapLink: assetToken.tokenURL,
           forceSafariVC: true,
         ),
       ],

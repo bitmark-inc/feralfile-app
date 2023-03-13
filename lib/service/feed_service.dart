@@ -412,8 +412,6 @@ class FeedServiceImpl extends FeedService {
 
       final List<AssetToken> tokens = indexerIDs.isNotEmpty
           ? (await indexerAPI.getNftTokens({"ids": indexerIDs}))
-              .map((e) => AssetToken.fromAsset(e))
-              .toList()
           : [];
 
       // Get missing tokens
@@ -453,8 +451,6 @@ class FeedServiceImpl extends FeedService {
           isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
       final List<AssetToken> tokens = indexerIDs.isNotEmpty
           ? (await indexerAPI.getNftTokens({"ids": indexerIDs}))
-              .map((e) => AssetToken.fromAsset(e))
-              .toList()
           : [];
       _isolateSendPort?.send(FetchTokensByIndexerIDSuccess(uuid, tokens));
     } catch (exception) {

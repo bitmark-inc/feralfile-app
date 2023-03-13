@@ -15,7 +15,7 @@ class ReindexIndexerEvent extends GalleryEvent {
 }
 
 class GalleryState {
-  List<AssetToken>? tokens;
+  List<CompactedAssetToken>? tokens;
   int nextPageKey;
   bool isLastPage;
   bool isLoading;
@@ -28,7 +28,7 @@ class GalleryState {
   });
 
   GalleryState copyWith({
-    List<AssetToken>? tokens,
+    List<CompactedAssetToken>? tokens,
     int? nextPageKey,
     bool? isLastPage,
     bool? isLoading,

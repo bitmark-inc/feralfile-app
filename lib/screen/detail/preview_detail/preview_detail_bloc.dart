@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_sta
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
+import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
@@ -25,26 +25,28 @@ class ArtworkPreviewDetailBloc
   ArtworkPreviewDetailBloc(this._assetTokenDao, this._ethereumService)
       : super(ArtworkPreviewDetailLoadingState()) {
     on<ArtworkPreviewDetailGetAssetTokenEvent>((event, emit) async {
-      final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(
+      final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
           event.identity.id, event.identity.owner);
       String? overriddenHtml;
-      if (asset != null && asset.isFeralfileFrame == true) {
-        overriddenHtml = await _fetchFeralFileFramePreview(asset);
+      if (assetToken != null && assetToken.isFeralfileFrame == true) {
+        overriddenHtml = await _fetchFeralFileFramePreview(assetToken);
       }
       emit(ArtworkPreviewDetailLoadedState(
-          asset: asset, overriddenHtml: overriddenHtml));
+          assetToken: assetToken, overriddenHtml: overriddenHtml));
     });
 
     on<ArtworkFeedPreviewDetailGetAssetTokenEvent>((event, emit) async {
       await Future.delayed(const Duration(milliseconds: 500)); // Delay 0.5s
-      final asset = event.token;
+      final asset = event.assetToken;
       String? overriddenHtml;
       if (asset.isFeralfileFrame == true) {
         overriddenHtml = await _fetchFeralFileFramePreview(asset);
       }
 
       emit(ArtworkPreviewDetailLoadedState(
-          asset: asset, overriddenHtml: overriddenHtml));
+        assetToken: asset,
+        overriddenHtml: overriddenHtml,
+      ));
     });
   }
 

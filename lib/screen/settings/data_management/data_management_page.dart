@@ -23,7 +23,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc.dart';
+import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 class DataManagementPage extends StatefulWidget {
   const DataManagementPage({Key? key}) : super(key: key);
@@ -167,7 +168,9 @@ class _DataManagementPageState extends State<DataManagementPage> {
       //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
       "rebuild".tr(),
       () async {
-        await injector<NftCollectionBloc>().tokensService.purgeCachedGallery();
+        await injector<TokensService>().purgeCachedGallery();
+        NftCollectionBloc.eventController
+            .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
         await injector<CacheManager>().emptyCache();
         if (!mounted) return;
         context.read<IdentityBloc>().add(RemoveAllEvent());

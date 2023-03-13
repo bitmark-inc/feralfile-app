@@ -69,6 +69,7 @@ import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tezart/tezart.dart';
@@ -114,6 +115,20 @@ Future<void> setup() async {
     migrateCloudV3ToV4,
   ]).build();
 
+  final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
+  await NftCollection.initNftCollection(
+    indexerUrl: Environment.indexerURL,
+    logger: log,
+    apiLogger: apiLog,
+  );
+  injector
+      .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
+  injector.registerLazySingleton(() => NftCollection.prefs);
+  injector.registerLazySingleton(() => NftCollection.database);
+  injector.registerLazySingleton(() => NftCollection.database.assetDao);
+  injector.registerLazySingleton(() => NftCollection.database.tokenDao);
+  injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
+  injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
   injector.registerLazySingleton(() => cloudDB);
 
   final BaseOptions dioOptions = BaseOptions(
@@ -196,18 +211,19 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton(() => BackgroundService(injector(), injector()));
+  injector
+      .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
-  final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
-  final nftBloc = await NftCollection.createBloc(
-    indexerUrl: Environment.indexerURL,
-    logger: log,
-    apiLogger: apiLog,
-    pendingTokenExpire: pendingTokenExpireMs != null
-        ? Duration(milliseconds: pendingTokenExpireMs)
-        : null,
-  );
-  injector.registerSingleton(nftBloc);
-  injector.registerSingleton(nftBloc.tokensService);
+  injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
+      (p1, p2) => NftCollectionBloc(
+            injector(),
+            injector(),
+            injector(),
+            pendingTokenExpire: pendingTokenExpireMs != null
+                ? Duration(milliseconds: pendingTokenExpireMs)
+                : const Duration(hours: 4),
+            isSortedToken: p1 ?? true,
+          ));
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
@@ -218,8 +234,6 @@ Future<void> setup() async {
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
-  injector
-      .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
         injector(),
@@ -296,7 +310,9 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
-        nftBloc.database.assetDao,
+        NftCollection.database.assetTokenDao,
+        NftCollection.database.tokenDao,
+        NftCollection.database.assetDao,
       ));
   injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());

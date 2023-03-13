@@ -72,8 +72,8 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  Future _moveToInfo(AssetToken? asset) async {
-    if (asset == null) return;
+  Future _moveToInfo(AssetToken? assetToken) async {
+    if (assetToken == null) return;
     Wakelock.disable();
     Navigator.of(context).pop();
   }

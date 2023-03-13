@@ -66,7 +66,7 @@ const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
 
-const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 20);
+const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";

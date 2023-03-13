@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
 
@@ -50,7 +51,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       appBar: getBackAppBar(context, title: "hidden_artwork".tr(), onBack: () {
         Navigator.of(context).pop();
       }),
-      body: BlocBuilder<HiddenArtworksBloc, List<AssetToken>>(
+      body: BlocBuilder<HiddenArtworksBloc, List<CompactedAssetToken>>(
           builder: (context, state) {
         return Container(
           child: state.isEmpty
@@ -111,7 +112,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
     );
   }
 
-  Widget _assetsWidget(List<AssetToken> tokens) {
+  Widget _assetsWidget(List<CompactedAssetToken> tokens) {
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3.0;
@@ -141,39 +142,45 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final asset = tokens[index];
-                final ext = p.extension(asset.getGalleryThumbnailUrl()!);
+                final thumbnailUrl = asset.getGalleryThumbnailUrl();
+
+                final ext = p.extension(thumbnailUrl ?? '');
                 return GestureDetector(
                   child: Stack(
                     children: [
-                      Hero(
-                        tag: asset.id,
-                        child: ext == ".svg"
-                            ? SvgImage(
-                                url: asset.getGalleryThumbnailUrl()!,
-                                loadingWidgetBuilder: (_) =>
-                                    const GalleryThumbnailPlaceholder(),
-                                errorWidgetBuilder: (_) =>
-                                    const GalleryThumbnailErrorWidget(),
-                                unsupportWidgetBuilder: (context) =>
-                                    const GalleryUnSupportThumbnailWidget(),
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: asset.getGalleryThumbnailUrl()!,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                memCacheHeight: _cachedImageSize,
-                                memCacheWidth: _cachedImageSize,
-                                cacheManager: injector<CacheManager>(),
-                                placeholder: (context, index) =>
-                                    const GalleryThumbnailPlaceholder(),
-                                errorWidget: (context, url, error) =>
-                                    const GalleryThumbnailErrorWidget(),
-                                placeholderFadeInDuration: const Duration(
-                                  milliseconds: 300,
-                                ),
-                              ),
-                      ),
+                      thumbnailUrl == null || thumbnailUrl.isEmpty
+                          ? GalleryNoThumbnailWidget(
+                              assetToken: asset,
+                            )
+                          : Hero(
+                              tag: asset.id,
+                              child: ext == ".svg"
+                                  ? SvgImage(
+                                      url: thumbnailUrl,
+                                      loadingWidgetBuilder: (_) =>
+                                          const GalleryThumbnailPlaceholder(),
+                                      errorWidgetBuilder: (_) =>
+                                          const GalleryThumbnailErrorWidget(),
+                                      unsupportWidgetBuilder: (context) =>
+                                          const GalleryUnSupportThumbnailWidget(),
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: thumbnailUrl,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      fit: BoxFit.cover,
+                                      memCacheHeight: _cachedImageSize,
+                                      memCacheWidth: _cachedImageSize,
+                                      cacheManager: injector<CacheManager>(),
+                                      placeholder: (context, index) =>
+                                          const GalleryThumbnailPlaceholder(),
+                                      errorWidget: (context, url, error) =>
+                                          const GalleryThumbnailErrorWidget(),
+                                      placeholderFadeInDuration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                    ),
+                            ),
                       ClipRRect(
                         // Clip it cleanly.
                         child: Container(
@@ -192,6 +199,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     await injector<ConfigurationService>()
                         .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
                     injector<SettingsDataService>().backup();
+                    NftCollectionBloc.eventController.add(ReloadEvent());
 
                     if (!mounted) return;
                     UIHelper.showHideArtworkResultDialog(context, !isHidden,

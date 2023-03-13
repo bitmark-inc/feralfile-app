@@ -41,6 +41,7 @@ import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
+import 'package:nft_collection/models/models.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
@@ -95,9 +96,13 @@ abstract class AccountService {
 
   Future<List<String>> getAllAddresses();
 
+  Future<List<AddressIndex>> getAllAddressIndexes();
+
   Future<List<String>> getAddress(String blockchain);
 
   Future<List<String>> getHiddenAddresses();
+
+  Future<List<AddressIndex>> getHiddenAddressIndexes();
 
   Future<List<String>> getShowedAddresses();
 
@@ -611,6 +616,39 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
+  Future<List<AddressIndex>> getAllAddressIndexes() async {
+    if (_configurationService.isDemoArtworksMode()) {
+      return [];
+    }
+
+    List<AddressIndex> addresses = [];
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+
+    for (var persona in personas) {
+      final personaWallet = persona.wallet();
+      if (!await personaWallet.isWalletCreated()) continue;
+      final ethAddress = await personaWallet.getETHEip55Address();
+      final tezosAddress = await personaWallet.getTezosAddress();
+      if (ethAddress.isEmpty) continue;
+
+      addresses
+          .add(AddressIndex(address: ethAddress, createdAt: persona.createdAt));
+      addresses.add(
+          AddressIndex(address: tezosAddress, createdAt: persona.createdAt));
+    }
+
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+
+    for (final linkedAccount in linkedAccounts) {
+      addresses.addAll(linkedAccount.addressIndexes);
+    }
+
+    return addresses;
+  }
+
+  @override
   Future<List<String>> getAddress(String blockchain) async {
     final addresses = <String>[];
     // Full accounts
@@ -742,6 +780,42 @@ class AccountServiceImpl extends AccountService {
     }
     await _cloudDB.personaDao.updatePersona(newPersona);
     return newPersona;
+  }
+
+  @override
+  Future<List<AddressIndex>> getHiddenAddressIndexes() async {
+    List<AddressIndex> hiddenAddresses = [];
+
+    final personas = await _cloudDB.personaDao.getPersonas();
+    final hiddenPersonaUUIDs =
+        _configurationService.getPersonaUUIDsHiddenInGallery();
+
+    for (var persona in personas) {
+      if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
+      final personaWallet = persona.wallet();
+      if (!await personaWallet.isWalletCreated()) continue;
+      final ethAddress = await personaWallet.getETHEip55Address();
+      final tezosAddress = await personaWallet.getTezosAddress();
+      final createdAt = persona.createdAt;
+      if (ethAddress.isEmpty) continue;
+      hiddenAddresses
+          .add(AddressIndex(address: ethAddress, createdAt: createdAt));
+      hiddenAddresses
+          .add(AddressIndex(address: tezosAddress, createdAt: createdAt));
+    }
+
+    final linkedAccounts =
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final hiddenLinkedAccounts =
+        _configurationService.getLinkedAccountsHiddenInGallery();
+
+    for (final linkedAccount in linkedAccounts) {
+      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
+        hiddenAddresses.addAll(linkedAccount.addressIndexes);
+      }
+    }
+
+    return hiddenAddresses;
   }
 }
 

@@ -268,24 +268,24 @@ class FeralFileServiceImpl extends FeralFileService {
 
       final indexerId =
           artwork.airdropInfo!.getTokenIndexerId(response.result.editionID);
-      List<AssetToken> tokens = await _fetchTokens(
+      List<AssetToken> assetTokens = await _fetchTokens(
         indexerId: indexerId,
         receiver: receiver,
       );
-      if (tokens.isNotEmpty) {
-        await indexer.setCustomTokens(tokens);
+      if (assetTokens.isNotEmpty) {
+        await indexer.setCustomTokens(assetTokens);
       } else {
-        tokens = [
+        assetTokens = [
           createPendingAssetToken(
             artwork: artwork,
             owner: receiver,
             tokenId: response.result.editionID,
           )
         ];
-        await indexer.setCustomTokens(tokens);
+        await indexer.setCustomTokens(assetTokens);
       }
       return ClaimRespone(
-          token: tokens.first, airdropInfo: artwork.airdropInfo!);
+          token: assetTokens.first, airdropInfo: artwork.airdropInfo!);
     } else {
       throw NoRemainingToken();
     }
@@ -307,10 +307,10 @@ class FeralFileServiceImpl extends FeralFileService {
         "ids": [indexerId]
       });
       final tokens = assets
-          .map((e) => AssetToken.fromAsset(e))
           .map((e) => e
             ..pending = true
-            ..ownerAddress = receiver
+            ..owner = receiver
+            ..balance = 1
             ..owners.putIfAbsent(receiver, () => 1)
             ..lastActivityTime = DateTime.now())
           .toList();

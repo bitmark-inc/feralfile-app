@@ -172,24 +172,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
         listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
-      if (state.asset?.artistName != null &&
-          state.asset!.artistName!.length > 20) {
-        identitiesList.add(state.asset!.artistName!);
+      if (state.assetToken?.artistName != null &&
+          state.assetToken!.artistName!.length > 20) {
+        identitiesList.add(state.assetToken!.artistName!);
       }
       setState(() {
-        currentAsset = state.asset;
+        currentAsset = state.assetToken;
       });
-      if (withSharing && state.asset != null) {
-        _socialShare(context, state.asset!);
+      if (withSharing && state.assetToken != null) {
+        _socialShare(context, state.assetToken!);
         setState(() {
           withSharing = false;
         });
       }
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
-      if (state.asset != null) {
+      if (state.assetToken != null) {
         final identityState = context.watch<IdentityBloc>().state;
-        final asset = state.asset!;
+        final asset = state.assetToken!;
 
         final artistName =
             asset.artistName?.toIdentityOrMask(identityState.identityMap);
@@ -211,7 +211,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  asset.title,
+                  asset.title ?? '',
                   style: theme.textTheme.ppMori400White16,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -314,7 +314,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       Semantics(
                         label: 'Desc',
                         child: HtmlWidget(
-                          asset.desc ?? "",
+                          asset.description ?? "",
                           textStyle: theme.textTheme.ppMori400White14,
                         ),
                       ),
@@ -388,8 +388,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             injector<SettingsDataService>().backup();
 
             if (!mounted) return;
-
-            context.read<NftCollectionBloc>().add(RefreshNftCollection());
+            NftCollectionBloc.eventController.add(ReloadEvent());
             Navigator.of(context).pop();
             UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
               Navigator.of(context).popUntil((route) =>
@@ -416,9 +415,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
               final isSentAll = payload['isSentAll'] as bool;
               if (isSentAll) {
-                injector<ConfigurationService>().updateRecentlySentToken([
-                  SentArtwork(asset.id, asset.ownerAddress, DateTime.now())
-                ]);
+                injector<ConfigurationService>().updateRecentlySentToken(
+                    [SentArtwork(asset.id, asset.owner, DateTime.now())]);
                 if (isHidden) {
                   await injector<ConfigurationService>()
                       .updateTempStorageHiddenTokenIDs([asset.id], false);
