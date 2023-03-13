@@ -1556,8 +1556,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
             context,
             "artist".tr(),
             artist.getDisplayName(),
-            tapLink:
-                "${Environment.feralFileAPIURL}/profiles/${artist.id}",
+            tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
           ),
           const Divider(
             height: 32.0,
