@@ -34,7 +34,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
     final theme = Theme.of(context);
     final artwork = widget.artwork;
     final contract = artwork.contract;
-    final artist = artwork.artist!;
+    final artist = artwork.artist;
     return Scaffold(
         appBar: _appBar(
           context,
@@ -57,7 +57,9 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  "by".tr(args: [artist.getDisplayName()]).trim(),
+                  "by".tr(args: [
+                    artist != null ? artist.getDisplayName() : ""
+                  ]).trim(),
                   style:
                       theme.primaryTextTheme.headline4?.copyWith(fontSize: 18),
                 ),

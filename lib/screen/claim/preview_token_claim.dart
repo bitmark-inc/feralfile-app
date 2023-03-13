@@ -30,6 +30,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
     with AfterLayoutMixin, WidgetsBindingObserver {
   bool isFullScreen = false;
   ShakeDetector? _detector;
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -69,7 +70,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
     final safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
     final artwork = widget.artwork;
-    final artist = artwork.artist!;
+    final artist = artwork.artist;
     return Scaffold(
         backgroundColor: theme.colorScheme.primary,
         body: SafeArea(
@@ -116,7 +117,9 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                         const SizedBox(height: 4.0),
                                         Text(
                                           "by".tr(args: [
-                                            artist.getDisplayName()
+                                            artist != null
+                                                ? artist.getDisplayName()
+                                                : ""
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style:
