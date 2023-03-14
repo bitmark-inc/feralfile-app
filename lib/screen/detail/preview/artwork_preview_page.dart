@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
@@ -29,7 +28,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -848,70 +846,6 @@ class CastButton extends StatelessWidget {
         child: SvgPicture.asset(
           'assets/images/cast_icon.svg',
           color: canCast ? theme.colorScheme.secondary : theme.disableColor,
-        ),
-      ),
-    );
-  }
-}
-
-class FullscreenIntroPopup extends StatelessWidget {
-  const FullscreenIntroPopup({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      height: 300,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      color: theme.auGreyBackground,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              "full_screen".tr(),
-              style: theme.primaryTextTheme.displayLarge,
-            ),
-            const SizedBox(height: 40.0),
-            Text(
-              "shake_exit".tr(),
-              //"Shake your phone to exit fullscreen mode.",
-              textAlign: TextAlign.center,
-              style: theme.primaryTextTheme.bodyLarge,
-            ),
-            const SizedBox(height: 40.0),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "ok".tr(),
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.labelLarge,
-                    onPress: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                )
-              ],
-            ),
-            const SizedBox(height: 14.0),
-            Center(
-              child: GestureDetector(
-                child: Text(
-                  "dont_show_again".tr(),
-                  textAlign: TextAlign.center,
-                  style: theme.primaryTextTheme.labelLarge,
-                ),
-                onTap: () {
-                  injector<ConfigurationService>()
-                      .setFullscreenIntroEnable(false);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-          ],
         ),
       ),
     );
