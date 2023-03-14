@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -21,6 +23,7 @@ import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
 
 class BackupService {
   static const _dbFileName = "cloud_database.db";
@@ -130,6 +133,7 @@ class BackupService {
     );
     if (resp.statusCode == 200) {
       try {
+        final version = await injector<CloudDatabase>().database.getVersion();
         final tempFilePath =
             "${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName";
         final tempFile = File(tempFilePath);
@@ -140,10 +144,21 @@ class BackupService {
           outputPath: dbFilePath,
         );
         final db = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
-        await db.execute(
-            """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
-        await db.execute(
-            """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
+        try {
+          await db.execute(
+              """ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);""");
+          await db.execute(
+              """ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);""");
+        } catch (e) {
+          log.info("[BackupService]", e.toString());
+          await db.execute(
+              """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
+          await db.execute(
+              """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
+        }
+        if ((await db.database.getVersion()) < version) {
+          await db.database.setVersion(version);
+        }
 
         await tempFile.delete();
         log.info("[BackupService] Cloud database is restored");
