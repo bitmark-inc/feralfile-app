@@ -47,34 +47,6 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<Map<String, List<AssetPrice>>> getAssetPrice(body) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, List<AssetPrice>>>(Options(
-      method: 'POST',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/api/asset-prices',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    var value = _result.data!.map((k, dynamic v) => MapEntry(
-        k,
-        (v as List)
-            .map((i) => AssetPrice.fromJson(i as Map<String, dynamic>))
-            .toList()));
-    return value;
-  }
-
-  @override
   Future<ExhibitionResponse> getExhibition(
     exhibitionId, {
     includeArtwork = true,
@@ -99,33 +71,6 @@ class _FeralFileApi implements FeralFileApi {
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = ExhibitionResponse.fromJson(_result.data!);
-    return value;
-  }
-
-  @override
-  Future<TokenClaimResponse> claimToken(
-    exhibitionId,
-    body,
-  ) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    final _result = await _dio
-        .fetch<Map<String, dynamic>>(_setStreamType<TokenClaimResponse>(Options(
-      method: 'POST',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/api/exhibitions/${exhibitionId}/claim',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = TokenClaimResponse.fromJson(_result.data!);
     return value;
   }
 

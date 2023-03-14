@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -21,21 +20,11 @@ abstract class FeralFileApi {
   Future<Map<String, FFAccount>> getAccount(
       @Header("Authorization") String bearerToken);
 
-  @POST("/api/asset-prices")
-  Future<Map<String, List<AssetPrice>>> getAssetPrice(
-      @Body() Map<String, List<String>> body);
-
   @GET("/api/exhibitions/{exhibitionId}")
   Future<ExhibitionResponse> getExhibition(
     @Path("exhibitionId") String exhibitionId, {
     @Query("includeArtwork") bool includeArtwork = true,
   });
-
-  @POST("/api/exhibitions/{exhibitionId}/claim")
-  Future<TokenClaimResponse> claimToken(
-    @Path("exhibitionId") String exhibitionId,
-    @Body() Map<String, dynamic> body,
-  );
 
   @GET("/api/artworks/{artworkId}")
   Future<FFArtworkResponse> getArtwork(@Path("artworkId") String artworkId);
