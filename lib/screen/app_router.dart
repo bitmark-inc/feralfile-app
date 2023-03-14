@@ -373,7 +373,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
-              StampPreview(payload: settings.arguments as HandSignaturePayload),
+              StampPreview(payload: settings.arguments as StampPreviewPayload),
         );
 
       case moreAutonomyPage:

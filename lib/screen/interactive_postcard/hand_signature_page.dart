@@ -49,8 +49,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                       ),
                       SfSignaturePad(
                         key: signatureGlobalKey,
-                        minimumStrokeWidth: 5,
-                        maximumStrokeWidth: 10,
+                        minimumStrokeWidth: 18,
+                        maximumStrokeWidth: 50,
                         strokeColor: Colors.black,
                         backgroundColor: Colors.transparent,
                         onDrawEnd: () {
@@ -82,6 +82,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                     child: OutlineButton(
                       onTap: _handleClearButtonPressed,
                       text: "start_over".tr(),
+                      color: Colors.transparent,
                     ),
                   ),
                   const SizedBox(width: 20),
@@ -109,17 +110,19 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   void _handleSaveButtonPressed() async {
+    final stampWidth = MediaQuery.of(context).size.width.toInt();
+    final signatureWith = MediaQuery.of(context).size.height.toInt() - 65;
+    final ratio = signatureWith.toDouble() / stampWidth.toDouble();
     final data =
-        await signatureGlobalKey.currentState!.toImage(pixelRatio: 2.0);
+        await signatureGlobalKey.currentState!.toImage(pixelRatio: ratio * 1.5);
     final bytes = await data.toByteData(format: ImageByteFormat.png);
     if (!mounted) return;
-    final signature = bytes!.buffer.asUint8List();
-    final image = img.compositeImage(
-        img.decodePng(widget.payload.image)!, img.decodePng(signature)!,
+    final image = img.compositeImage(img.decodePng(widget.payload.image)!,
+        img.decodePng(bytes!.buffer.asUint8List())!,
         center: true);
     Navigator.of(context).pushNamed(StampPreview.tag,
-        arguments: HandSignaturePayload(
-          img.encodePng(image),
+        arguments: StampPreviewPayload(
+          image,
         ));
   }
 }
