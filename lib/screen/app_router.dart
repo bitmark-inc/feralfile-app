@@ -760,7 +760,6 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
-                            injector(),
                           )),
                 ],
                 child: ArtworkDetailPage(

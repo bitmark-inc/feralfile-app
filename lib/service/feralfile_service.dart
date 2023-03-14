@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/airdrop_data.dart';
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
@@ -44,8 +43,6 @@ abstract class FeralFileService {
   Future<FFAccount> getAccount(String token);
 
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
-
-  Future<List<AssetPrice>> getAssetPrices(List<String> ids);
 
   Future<FFArtwork> getAirdropArtworkFromExhibitionId(String id);
 
@@ -178,13 +175,6 @@ class FeralFileServiceImpl extends FeralFileService {
       throw Exception('Invalid response');
     }
     return ffAccount;
-  }
-
-  @override
-  Future<List<AssetPrice>> getAssetPrices(List<String> ids) async {
-    final response = await _feralFileApi.getAssetPrice({"editionIDs": ids});
-
-    return response["result"] ?? [];
   }
 
   Future<String> _getToken(WalletStorage wallet) async {

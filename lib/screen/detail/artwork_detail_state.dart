@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -21,11 +20,9 @@ class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
 class ArtworkDetailState {
   AssetToken? assetToken;
   List<Provenance> provenances;
-  AssetPrice? assetPrice;
 
   ArtworkDetailState({
     this.assetToken,
     required this.provenances,
-    this.assetPrice,
   });
 }

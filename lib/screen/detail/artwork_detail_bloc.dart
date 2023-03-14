@@ -6,21 +6,17 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:http/http.dart' as http;
 
 class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
-  final FeralFileService _feralFileService;
   final AssetTokenDao _assetTokenDao;
   final AssetDao _assetDao;
   final ProvenanceDao _provenanceDao;
 
   ArtworkDetailBloc(
-    this._feralFileService,
     this._assetTokenDao,
     this._assetDao,
     this._provenanceDao,
@@ -45,19 +41,10 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       final provenances =
           await _provenanceDao.findProvenanceByTokenID(event.identity.id);
 
-      emit(ArtworkDetailState(assetToken: assetToken, provenances: []));
-
-      List<AssetPrice> assetPrices = [];
-
-      if (event.identity.id.startsWith('bmk--')) {
-        assetPrices = await _feralFileService
-            .getAssetPrices([event.identity.id.replaceAll("bmk--", "")]);
-      }
-
       emit(ArtworkDetailState(
-          assetToken: assetToken,
-          provenances: provenances,
-          assetPrice: assetPrices.isNotEmpty ? assetPrices.first : null));
+        assetToken: assetToken,
+        provenances: provenances,
+      ));
     });
   }
 }
