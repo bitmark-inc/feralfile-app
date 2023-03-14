@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/models.dart';
@@ -68,12 +67,11 @@ extension FilterEventExt on FilterEvent {
       tokenId = getERC721TokenId();
     }
 
-    final toAddressStr = topics?[2].substring(26).toUpperCase();
+    final toAddressStr = topics?[2].substring(26);
     if (toAddressStr == null) {
       return null;
     }
-    final toAddress = EthereumAddress.fromHex("0x$toAddressStr}");
-    if (toAddress.hexEip55 != owner) {
+    if (owner.toLowerCase() != "0x$toAddressStr".toLowerCase()) {
       return null;
     }
 

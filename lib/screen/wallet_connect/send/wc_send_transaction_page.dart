@@ -162,6 +162,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               Padding(
                                 padding: padding,
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _item(
                                       context: context,
@@ -218,18 +219,13 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                           if (state.feeOptionValue != null) ...[
                                             feeTable(state, context)
                                           ],
-                                          gasFeeStatus(state, theme),
                                         ],
                                       ),
                                     ),
+                                    gasFeeStatus(state, theme),
                                   ],
                                 ),
                               ),
-                              gasFeeStatus(state, theme),
-                              const SizedBox(height: 8.0),
-                              if (state.feeOptionValue != null)
-                                feeTable(state, context),
-                              const SizedBox(height: 24.0),
                             ],
                           ),
                         ),
