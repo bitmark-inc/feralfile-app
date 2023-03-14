@@ -209,10 +209,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                 children: [
                                   cryptoType == CryptoType.USDC
                                       ? Padding(
-                                    padding: const EdgeInsets.fromLTRB(0, 26, 0, 12),
-                                    child: _erc20Tag(),
-                                  )
-                                      : SizedBox(height: hideConnection ? 84 : 52),
+                                          padding: const EdgeInsets.fromLTRB(
+                                              0, 26, 0, 12),
+                                          child: _erc20Tag(),
+                                        )
+                                      : SizedBox(
+                                          height: hideConnection ? 84 : 52),
                                   Padding(
                                     padding: padding,
                                     child: _addressSection(),
@@ -223,19 +225,21 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                     child: _sendReceiveSection(),
                                   ),
                                   const SizedBox(height: 24),
-                                  if (widget.payload.type == CryptoType.ETH) ...[
+                                  if (widget.payload.type ==
+                                      CryptoType.ETH) ...[
                                     BlocBuilder<USDCBloc, USDCState>(
                                         builder: (context, state) {
-                                          final address = widget.payload.address;
-                                          final usdcBalance = state.usdcBalances[address];
-                                          final balance = usdcBalance == null
-                                              ? "-- USDC"
-                                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-                                          return Padding(
-                                            padding: padding,
-                                            child: _usdcBalance(balance),
-                                          );
-                                        })
+                                      final address = widget.payload.address;
+                                      final usdcBalance =
+                                          state.usdcBalances[address];
+                                      final balance = usdcBalance == null
+                                          ? "-- USDC"
+                                          : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                                      return Padding(
+                                        padding: padding,
+                                        child: _usdcBalance(balance),
+                                      );
+                                    })
                                   ],
                                   addDivider(),
                                   if (showConnection) ...[
