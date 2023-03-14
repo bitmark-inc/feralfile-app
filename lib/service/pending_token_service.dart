@@ -67,6 +67,14 @@ extension FilterEventExt on FilterEvent {
       tokenId = getERC721TokenId();
     }
 
+    final toAddressStr = topics?[2].substring(26);
+    if (toAddressStr == null) {
+      return null;
+    }
+    if (owner.toLowerCase() != "0x$toAddressStr".toLowerCase()) {
+      return null;
+    }
+
     if (contractType != null && tokenId != null) {
       final indexerId = "eth-${address?.hexEip55}-$tokenId";
       final token = AssetToken(
