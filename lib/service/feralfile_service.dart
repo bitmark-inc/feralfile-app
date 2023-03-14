@@ -326,6 +326,6 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<Exhibition?> getExhibitionFromTokenID(String editionID) async {
     final artworkEditions = await _feralFileApi.getArtworkEditions(editionID);
-    return artworkEditions.result.artwork.exhibition;
+    return artworkEditions.result.artwork?.exhibition;
   }
 }

@@ -65,7 +65,7 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
-      'title': instance.slug,
+      'slug': instance.slug,
       'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
       'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
       'coverURI': instance.coverURI,
@@ -117,7 +117,7 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
       json['title'] as String,
       json['slug'] as String,
       json['medium'] as String,
-      json['description'] as String,
+      json['description'] as String?,
       json['thumbnailFileURI'] as String?,
       json['galleryThumbnailFileURI'] as String?,
       json['settings'] == null
@@ -190,18 +190,21 @@ Map<String, dynamic> _$FFContractToJson(FFContract instance) =>
     };
 
 AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
-    json['contractAddress'] as String,
-    json['blockchain'] as String,
-    json['remainAmount'] as int,
-    json['artworkId'] as String?,
-    json['artworkTitle'] as String?,
-    json['artist'] as String?,
-    json['gifter'] as String?,
-    json['startedAt'] == null
-        ? null
-        : DateTime.parse(json['startedAt'] as String),
-    json['endedAt'] == null ? null : DateTime.parse(json['endedAt'] as String),
-    json["twitterCaption"] as String?);
+      json['contractAddress'] as String,
+      json['blockchain'] as String,
+      json['remainAmount'] as int,
+      json['artworkId'] as String?,
+      json['artworkTitle'] as String?,
+      json['artist'] as String?,
+      json['gifter'] as String?,
+      json['startedAt'] == null
+          ? null
+          : DateTime.parse(json['startedAt'] as String),
+      json['endedAt'] == null
+          ? null
+          : DateTime.parse(json['endedAt'] as String),
+      json['twitterCaption'] as String?,
+    );
 
 Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
     <String, dynamic>{
@@ -321,8 +324,10 @@ ArtworkEdition _$ArtworkEditionFromJson(Map<String, dynamic> json) =>
       DateTime.parse(json['issuedAt'] as String),
       DateTime.parse(json['createdAt'] as String),
       DateTime.parse(json['updatedAt'] as String),
-      json['isArchived'] as bool,
-      FFArtwork.fromJson(json['artwork'] as Map<String, dynamic>),
+      json['isArchived'] as bool?,
+      json['artwork'] == null
+          ? null
+          : FFArtwork.fromJson(json['artwork'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ArtworkEditionToJson(ArtworkEdition instance) =>

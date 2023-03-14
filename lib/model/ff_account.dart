@@ -156,7 +156,7 @@ class FFArtwork {
   final String title;
   final String slug;
   final String medium;
-  final String description;
+  final String? description;
   final String? thumbnailFileURI;
   final String? galleryThumbnailFileURI;
   final FFArtworkSettings? settings;
@@ -423,8 +423,8 @@ class ArtworkEdition {
   final DateTime issuedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final bool isArchived;
-  final FFArtwork artwork;
+  final bool? isArchived;
+  final FFArtwork? artwork;
 
   ArtworkEdition(
       this.id,
