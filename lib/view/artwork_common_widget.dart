@@ -1551,16 +1551,18 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
         ),
-        _rowItem(
-          context,
-          "artist".tr(),
-          artist.getDisplayName(),
-          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
-        ),
-        const Divider(
-          height: 32.0,
-          color: AppColor.secondarySpanishGrey,
-        ),
+        if (artist != null) ...[
+          _rowItem(
+            context,
+            "artist".tr(),
+            artist.getDisplayName(),
+            tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
+          ),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          )
+        ],
         _rowItem(
           context,
           "token".tr(),

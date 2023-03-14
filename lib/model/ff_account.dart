@@ -124,12 +124,12 @@ class FFArtist {
   final String id;
   final String alias;
   final String slug;
-  final bool verified;
-  final bool isArtist;
-  final String fullName;
-  final String avatarURI;
-  final String accountNumber;
-  final String type;
+  final bool? verified;
+  final bool? isArtist;
+  final String? fullName;
+  final String? avatarURI;
+  final String? accountNumber;
+  final String? type;
 
   FFArtist(
     this.id,
@@ -160,7 +160,7 @@ class FFArtwork {
   final String? thumbnailFileURI;
   final String? galleryThumbnailFileURI;
   final FFArtworkSettings? settings;
-  final FFArtist artist;
+  final FFArtist? artist;
   final Exhibition? exhibition;
   final AirdropInfo? airdropInfo;
   final DateTime? createdAt;

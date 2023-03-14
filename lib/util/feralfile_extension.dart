@@ -76,7 +76,7 @@ extension FFContractExt on FFContract {
 
 extension FFArtistExt on FFArtist {
   String getDisplayName() {
-    return fullName.isNotEmpty ? fullName : alias;
+    return (fullName?.isNotEmpty == true) ? fullName! : alias;
   }
 }
 
