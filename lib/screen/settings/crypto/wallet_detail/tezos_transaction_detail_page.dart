@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/fiat_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -99,14 +98,14 @@ class TezosTXDetailPage extends StatelessWidget {
   Widget listViewNFT(
       BuildContext context, TZKTTransactionInterface tx, DateFormat formatter) {
     TZKTTokenTransfer? tx_;
+    TZKTOperation? txO;
     bool hasFee = true;
-    String amount = "";
     if (tx is TZKTTokenTransfer) {
       hasFee = false;
       tx_ = tx;
     } else {
-      tx_ = (tx as TZKTOperation).tokenTransfer;
-      amount = _totalAmount(tx, currentAddress);
+      txO = tx as TZKTOperation;
+      tx_ = tx.tokenTransfer;
     }
 
     return Expanded(
@@ -129,7 +128,17 @@ class TezosTXDetailPage extends StatelessWidget {
           _transactionInfo(context, "token_amount".tr(), tx_.amount),
           addOnlyDivider(),
           if (hasFee) ...[
-            _transactionInfo(context, "gas_fee2".tr(), amount),
+            if (tx.isBoughtNFT(currentAddress)) ...[
+              _transactionInfo(
+                  context, "amount".tr(), _transactionAmount(txO!)),
+              addOnlyDivider(),
+            ],
+            _transactionInfo(context, "gas_fee2".tr(), _gasFee(txO!)),
+            if (tx.isBoughtNFT(currentAddress)) ...[
+              addOnlyDivider(),
+              _transactionInfoCustom(context, "total_amount".tr(),
+                  _totalAmountWidget(context, txO, currentAddress)),
+            ]
           ],
         ],
       ),
@@ -243,10 +252,6 @@ class TezosTXDetailPage extends StatelessWidget {
     return "${(tx.bakerFee + (tx.storageFee ?? 0) + (tx.allocationFee ?? 0)) / _nanoTEZFactor} XTZ";
   }
 
-  String _totalAmount(TZKTOperation tx, String? currentAddress) {
-    return "${tx.totalAmount(currentAddress)} (${FiatFormatter((tx.quote.usd * (tx.getTotalAmount(currentAddress)) / _nanoTEZFactor)).format()} USD)";
-  }
-
   Widget _totalAmountWidget(
       BuildContext context, TZKTOperation tx, String? currentAddress) {
     final theme = Theme.of(context);
@@ -254,7 +259,7 @@ class TezosTXDetailPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          tx.totalAmount(currentAddress),
+          tx.totalXTZAmount(currentAddress),
           textAlign: TextAlign.right,
           style: theme.textTheme.ppMori400Black14,
         ),

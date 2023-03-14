@@ -30,6 +30,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
     with AfterLayoutMixin, WidgetsBindingObserver {
   bool isFullScreen = false;
   ShakeDetector? _detector;
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -116,7 +117,9 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                         const SizedBox(height: 4.0),
                                         Text(
                                           "by".tr(args: [
-                                            artist.getDisplayName()
+                                            artist != null
+                                                ? artist.getDisplayName()
+                                                : ""
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style: theme

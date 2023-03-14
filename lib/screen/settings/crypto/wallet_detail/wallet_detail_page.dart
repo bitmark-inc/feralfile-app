@@ -196,59 +196,70 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                         addOnlyDivider(),
                       ],
                     )),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 3000),
-                  height: hideConnection ? 0 : null,
-                  child: Column(
-                    children: [
-                      cryptoType == CryptoType.USDC
-                          ? Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 26, 0, 12),
-                              child: _erc20Tag(),
-                            )
-                          : const SizedBox(height: 52),
-                      Padding(
-                        padding: padding,
-                        child: _addressSection(),
-                      ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: padding,
-                        child: _sendReceiveSection(),
-                      ),
-                      const SizedBox(height: 24),
-                      if (widget.payload.type == CryptoType.ETH) ...[
-                        BlocBuilder<USDCBloc, USDCState>(
-                            builder: (context, state) {
-                          final address = widget.payload.address;
-                          final usdcBalance = state.usdcBalances[address];
-                          final balance = usdcBalance == null
-                              ? "-- USDC"
-                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-                          return Padding(
-                            padding: padding,
-                            child: _usdcBalance(balance),
-                          );
-                        })
-                      ],
-                      addDivider(),
-                      if (showConnection) ...[
-                        Padding(
-                          padding: padding,
-                          child: _connectionsSection(),
+                Expanded(
+                  child: CustomScrollView(
+                    controller: controller,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 3000),
+                              child: Column(
+                                children: [
+                                  cryptoType == CryptoType.USDC
+                                      ? Padding(
+                                    padding: const EdgeInsets.fromLTRB(0, 26, 0, 12),
+                                    child: _erc20Tag(),
+                                  )
+                                      : SizedBox(height: hideConnection ? 84 : 52),
+                                  Padding(
+                                    padding: padding,
+                                    child: _addressSection(),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Padding(
+                                    padding: padding,
+                                    child: _sendReceiveSection(),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  if (widget.payload.type == CryptoType.ETH) ...[
+                                    BlocBuilder<USDCBloc, USDCState>(
+                                        builder: (context, state) {
+                                          final address = widget.payload.address;
+                                          final usdcBalance = state.usdcBalances[address];
+                                          final balance = usdcBalance == null
+                                              ? "-- USDC"
+                                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                                          return Padding(
+                                            padding: padding,
+                                            child: _usdcBalance(balance),
+                                          );
+                                        })
+                                  ],
+                                  addDivider(),
+                                  if (showConnection) ...[
+                                    Padding(
+                                      padding: padding,
+                                      child: _connectionsSection(),
+                                    ),
+                                    addDivider(),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        addDivider(),
-                      ],
+                      ),
+                      widget.payload.type == CryptoType.XTZ
+                          ? TezosTXListView(
+                              address: widget.payload.address,
+                            )
+                          : const SliverToBoxAdapter(
+                              child: SizedBox(),
+                            )
                     ],
                   ),
-                ),
-                Expanded(
-                  child: widget.payload.type == CryptoType.XTZ
-                      ? TezosTXListView(
-                          address: widget.payload.address,
-                          controller: controller,
-                        )
-                      : Container(),
                 ),
                 widget.payload.type == CryptoType.XTZ
                     ? GestureDetector(

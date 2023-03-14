@@ -23,6 +23,8 @@ abstract class TZKTTransactionInterface {
 
   bool isReceiveNFT(String? currentAddress);
 
+  bool isBoughtNFT(String? currentAddress);
+
   String totalAmount(String? currentAddress);
 
   String transactionStatus();
@@ -36,6 +38,8 @@ abstract class TZKTTransactionInterface {
   String txAmountSign(String? currentAddress);
 
   int getID();
+
+  txUSDAmountSign(String? currentAddress) {}
 }
 
 @JsonSerializable()
@@ -119,6 +123,7 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   String transactionTitle(String? currentAddress) {
+    if (isBoughtNFT(currentAddress)) return "bought_nft".tr();
     if (isSendNFT(currentAddress)) return "sent_nft".tr();
     if (isReceiveNFT(currentAddress)) return "received_nft".tr();
     if (type != "transaction") {
@@ -134,6 +139,13 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   String totalAmount(String? currentAddress) {
+    if (isReceiveNFT(currentAddress)) {
+      return tokenTransfer!.totalAmount(currentAddress);
+    }
+    return "${XtzAmountFormatter(getTotalAmount(currentAddress)).format()} XTZ";
+  }
+
+  String totalXTZAmount(String? currentAddress) {
     return "${XtzAmountFormatter(getTotalAmount(currentAddress)).format()} XTZ";
   }
 
@@ -174,6 +186,7 @@ class TZKTOperation implements TZKTTransactionInterface {
 
   @override
   String transactionTitleDetail(String? currentAddress) {
+    if (isBoughtNFT(currentAddress)) return "bought_nft".tr();
     if (isSendNFT(currentAddress)) return "sent_nft".tr();
     if (isReceiveNFT(currentAddress)) return "received_nft".tr();
     if (parameter != null) {
@@ -190,6 +203,23 @@ class TZKTOperation implements TZKTTransactionInterface {
   @override
   int getID() {
     return id;
+  }
+
+  @override
+  String txUSDAmountSign(String? currentAddress) {
+    if (transactionTitle(currentAddress) == "received_xtz".tr()) return "+";
+    if (sender?.address == currentAddress) return "-";
+    return "";
+  }
+
+  @override
+  bool isBoughtNFT(String? currentAddress) {
+    if (isReceiveNFT(currentAddress) &&
+        !isSendNFT(currentAddress) &&
+        sender?.address == currentAddress) {
+      return true;
+    }
+    return false;
   }
 }
 
@@ -293,6 +323,16 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
   @override
   int getID() {
     return id;
+  }
+
+  @override
+  txUSDAmountSign(String? currentAddress) {
+    return "";
+  }
+
+  @override
+  bool isBoughtNFT(String? currentAddress) {
+    return false;
   }
 }
 

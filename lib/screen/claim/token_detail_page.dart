@@ -57,7 +57,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  "by".tr(args: [artist.getDisplayName()]).trim(),
+                  "by".tr(args: [artist?.getDisplayName() ?? ""]).trim(),
                   style: theme.primaryTextTheme.headlineMedium
                       ?.copyWith(fontSize: 18),
                 ),

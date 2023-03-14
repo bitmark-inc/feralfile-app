@@ -91,12 +91,12 @@ FFArtist _$FFArtistFromJson(Map<String, dynamic> json) => FFArtist(
       json['ID'] as String,
       json['alias'] as String,
       json['slug'] as String,
-      json['verified'] as bool,
-      json['isArtist'] as bool,
-      json['fullName'] as String,
-      json['avatarURI'] as String,
-      json['accountNumber'] as String,
-      json['type'] as String,
+      json['verified'] as bool?,
+      json['isArtist'] as bool?,
+      json['fullName'] as String?,
+      json['avatarURI'] as String?,
+      json['accountNumber'] as String?,
+      json['type'] as String?,
     );
 
 Map<String, dynamic> _$FFArtistToJson(FFArtist instance) => <String, dynamic>{
@@ -124,7 +124,9 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
           ? null
           : FFArtworkSettings.fromJson(
               json['settings'] as Map<String, dynamic>),
-      FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
+      json['artist'] == null
+          ? null
+          : FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
       json['exhibition'] == null
           ? null
           : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),

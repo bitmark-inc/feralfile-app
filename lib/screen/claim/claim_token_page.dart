@@ -64,7 +64,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   Widget build(BuildContext context) {
     final artwork = widget.artwork;
     final artist = artwork.artist;
-    final artistName = artist.getDisplayName();
+    final artistName = artist != null ? artist.getDisplayName() : "";
     final artworkThumbnail = artwork.getThumbnailURL();
     String gifter =
         artwork.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
