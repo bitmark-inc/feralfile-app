@@ -93,6 +93,9 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.da
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
@@ -213,6 +216,10 @@ class AppRouter {
   static const handSignaturePage = "hand_signature_page";
   static const stampPreview = "stamp_preview";
   static const claimEmptyPostCard = "claim_empty_postcard";
+  static const receivePostcardPage = 'receive_postcard_page';
+  static const postcardDetailPage = 'postcard_detail_page';
+  static const receivePostcardSelectAccountPage =
+      'receive_postcard_select_account_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1145,6 +1152,43 @@ class AppRouter {
             return const ClaimEmptyPostCardScreen();
           },
         );
+      case receivePostcardPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              final args = settings.arguments as ReceivePostcardPageArgs;
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                      create: (_) =>
+                          IdentityBloc(injector<AppDatabase>(), injector())),
+                ],
+                child: ReceivePostCardPage(
+                  asset: args.asset,
+                  sharedId: args.sharedId,
+                  counter: args.counter,
+                ),
+              );
+            });
+      case postcardDetailPage:
+        return CupertinoPageRoute(builder: (context) {
+          return PostcardDetailPage(
+            asset: settings.arguments as AssetToken,
+          );
+        });
+      case receivePostcardSelectAccountPage:
+        return CupertinoPageRoute(builder: (context) {
+          final args =
+              settings.arguments as ReceivePostcardSelectAccountPageArgs;
+          return BlocProvider.value(
+            value: accountsBloc,
+            child: ReceivePostcardSelectAccountPage(
+              blockchain: args.blockchain,
+              asset: args.asset,
+            ),
+          );
+        });
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

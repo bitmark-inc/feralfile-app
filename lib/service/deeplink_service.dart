@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -53,6 +54,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final FeralFileService _feralFileService;
   final NavigationService _navigationService;
   final BranchApi _branchApi;
+  final PostcardService _postcardService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -65,6 +67,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._feralFileService,
     this._navigationService,
     this._branchApi,
+    this._postcardService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -305,6 +308,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
+    data['source'] = "Postcard";
     final source = data["source"];
     switch (source) {
       case "FeralFile":
@@ -334,6 +338,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
             artworkId: artworkId,
             otp: _getOtpFromBranchData(data),
           );
+        }
+        break;
+      case "Postcard":
+        final String? sharedCode = data["shared_code"] ?? "shared_code";
+        if (sharedCode != null) {
+          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          await _handlePostcardDeeplink(sharedCode);
         }
         break;
       default:
@@ -469,6 +480,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
         injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition);
+      }
+    }
+  }
+
+  _handlePostcardDeeplink(String shareCode) async {
+    final sharedInfor =
+        await _postcardService.getSharedPostcardInfor(shareCode);
+    if (sharedInfor != null) {
+      final postcard = await _postcardService.getPostcard(sharedInfor.tokenId);
+      if (postcard != null) {
+        _navigationService.openPostcardReceivedPage(
+            asset: postcard,
+            shareId: sharedInfor.shareId,
+            counter: sharedInfor.counter);
       }
     }
   }
