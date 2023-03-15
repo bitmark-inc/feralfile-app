@@ -62,9 +62,8 @@ class MetricClientService {
     if (configurationService.isAnalyticsEnabled() == false) {
       return;
     }
-    final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
-            ?.getAccountDID()) ??
-        'unknown';
+    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+    final defaultDID = (await defaultAccount?.getAccountDID()) ?? 'unknown';
     final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
     MetricClient.addEvent(
       name,
@@ -104,16 +103,16 @@ class MetricClientService {
     if (screen == null) {
       return;
     }
-    addEvent(MixpanelEvent.viewScreen,
+    await addEvent(MixpanelEvent.viewScreen,
         data: {"screen": screen.snakeToCapital()});
-    timerEvent(MixpanelEvent.endViewScreen);
+    await timerEvent(MixpanelEvent.endViewScreen);
   }
 
   Future<void> trackEndScreen(String? screen) async {
     if (screen == null) {
       return;
     }
-    addEvent(MixpanelEvent.endViewScreen,
+    await addEvent(MixpanelEvent.endViewScreen,
         data: {"screen": screen.snakeToCapital()});
   }
 }
