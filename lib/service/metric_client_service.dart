@@ -104,16 +104,16 @@ class MetricClientService {
     if (screen == null) {
       return;
     }
-    addEvent(MixpanelEvent.viewScreen,
+    await addEvent(MixpanelEvent.viewScreen,
         data: {"screen": screen.snakeToCapital()});
-    timerEvent(MixpanelEvent.endViewScreen);
+    await timerEvent(MixpanelEvent.endViewScreen);
   }
 
   Future<void> trackEndScreen(String? screen) async {
     if (screen == null) {
       return;
     }
-    addEvent(MixpanelEvent.endViewScreen,
+    await addEvent(MixpanelEvent.endViewScreen,
         data: {"screen": screen.snakeToCapital()});
   }
 }
