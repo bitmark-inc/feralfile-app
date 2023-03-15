@@ -1,10 +1,10 @@
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
@@ -23,6 +23,7 @@ class HandSignaturePage extends StatefulWidget {
 class _HandSignaturePageState extends State<HandSignaturePage> {
   final GlobalKey<SfSignaturePadState> signatureGlobalKey = GlobalKey();
   bool didDraw = false;
+  bool loading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +89,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                   const SizedBox(width: 20),
                   Expanded(
                     child: PrimaryButton(
+                      isProcessing: loading,
                       enabled: didDraw,
                       onTap: _handleSaveButtonPressed,
                       text: "sign_postcard".tr(),
@@ -110,20 +112,36 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   void _handleSaveButtonPressed() async {
+    setState(() {
+      loading = true;
+    });
     final stampWidth = MediaQuery.of(context).size.width.toInt();
     final signatureWith = MediaQuery.of(context).size.height.toInt() - 65;
     final ratio = signatureWith.toDouble() / stampWidth.toDouble();
     final data =
         await signatureGlobalKey.currentState!.toImage(pixelRatio: ratio * 1.5);
     final bytes = await data.toByteData(format: ImageByteFormat.png);
+
+    final image = await _compositeImage(
+        [widget.payload.image, bytes!.buffer.asUint8List()]);
     if (!mounted) return;
-    final image = img.compositeImage(img.decodePng(widget.payload.image)!,
-        img.decodePng(bytes!.buffer.asUint8List())!,
-        center: true);
     Navigator.of(context).pushNamed(StampPreview.tag,
         arguments: StampPreviewPayload(
           image,
         ));
+    setState(() {
+      loading = false;
+    });
+  }
+
+  Future<img.Image> _compositeImage(List<Uint8List> images) async {
+    return _compositeImages(images);
+  }
+
+  img.Image _compositeImages(List<Uint8List> images) {
+    return img.compositeImage(
+        img.decodePng(images.first)!, img.decodePng(images.last)!,
+        center: true);
   }
 }
 
