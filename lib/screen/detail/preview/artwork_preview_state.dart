@@ -12,8 +12,9 @@ abstract class ArtworkPreviewEvent {}
 
 class ArtworkPreviewGetAssetTokenEvent extends ArtworkPreviewEvent {
   final ArtworkIdentity identity;
+  final bool useIndexer;
 
-  ArtworkPreviewGetAssetTokenEvent(this.identity);
+  ArtworkPreviewGetAssetTokenEvent(this.identity, {this.useIndexer = false});
 }
 
 abstract class ArtworkPreviewState {
@@ -22,6 +23,7 @@ abstract class ArtworkPreviewState {
 
 class ChangeFullScreen extends ArtworkPreviewEvent {
   bool isFullscreen;
+
   ChangeFullScreen({this.isFullscreen = false});
 }
 

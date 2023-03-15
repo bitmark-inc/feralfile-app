@@ -10,15 +10,27 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 
 class ArtworkPreviewBloc
     extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {
   final AssetTokenDao _assetTokenDao;
   final AssetDao _assetDao;
-  ArtworkPreviewBloc(this._assetTokenDao, this._assetDao)
+  final IndexerApi _indexerApi;
+
+  ArtworkPreviewBloc(this._assetTokenDao, this._assetDao, this._indexerApi)
       : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
+      if (event.useIndexer) {
+        final assetToken = await _indexerApi.getNftTokens({
+          "ids": [event.identity.id]
+        });
+        if (assetToken.isNotEmpty) {
+          emit(ArtworkPreviewLoadedState(assetToken: assetToken.first));
+        }
+        return;
+      }
       final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
           event.identity.id, event.identity.owner);
       if (state is ArtworkPreviewLoadedState) {

@@ -12,8 +12,10 @@ abstract class ArtworkPreviewDetailEvent {}
 
 class ArtworkPreviewDetailGetAssetTokenEvent extends ArtworkPreviewDetailEvent {
   final ArtworkIdentity identity;
+  final bool useIndexer;
 
-  ArtworkPreviewDetailGetAssetTokenEvent(this.identity);
+  ArtworkPreviewDetailGetAssetTokenEvent(this.identity,
+      {this.useIndexer = false});
 }
 
 class ArtworkFeedPreviewDetailGetAssetTokenEvent

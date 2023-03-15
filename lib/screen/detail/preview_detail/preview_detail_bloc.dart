@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_sta
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:web3dart/crypto.dart';
@@ -21,12 +22,18 @@ class ArtworkPreviewDetailBloc
     extends AuBloc<ArtworkPreviewDetailEvent, ArtworkPreviewDetailState> {
   final AssetTokenDao _assetTokenDao;
   final EthereumService _ethereumService;
+  final IndexerApi _indexerApi;
 
-  ArtworkPreviewDetailBloc(this._assetTokenDao, this._ethereumService)
+  ArtworkPreviewDetailBloc(
+      this._assetTokenDao, this._ethereumService, this._indexerApi)
       : super(ArtworkPreviewDetailLoadingState()) {
     on<ArtworkPreviewDetailGetAssetTokenEvent>((event, emit) async {
-      final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
-          event.identity.id, event.identity.owner);
+      final assetToken = event.useIndexer
+          ? (await _indexerApi.getNftTokens({
+              "ids": [event.identity.id]
+            })).first
+          : await _assetTokenDao.findAssetTokenByIdAndOwner(
+              event.identity.id, event.identity.owner);
       String? overriddenHtml;
       if (assetToken != null && assetToken.isFeralfileFrame == true) {
         overriddenHtml = await _fetchFeralFileFramePreview(assetToken);
