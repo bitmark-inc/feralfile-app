@@ -25,12 +25,17 @@ class _StampPreviewState extends State<StampPreview> {
   @override
   void initState() {
     super.initState();
-    rootBundle.load("assets/images/empty_postcard.png").then((value) {
+    fetchPostcard();
+  }
+
+  Future<void> fetchPostcard() async {
+    await rootBundle.load("assets/images/empty_postcard.png").then((value) {
+      postcardData = value.buffer.asUint8List();
       setState(() {
-        postcardData = value.buffer.asUint8List();
-        pasteStamp();
+        stampedPostcardData = postcardData;
       });
     });
+    await pasteStamp();
   }
 
   @override
