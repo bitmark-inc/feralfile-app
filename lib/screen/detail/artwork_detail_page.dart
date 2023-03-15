@@ -227,20 +227,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               ],
             ),
             actions: [
-              Semantics(
-                label: 'artworkDotIcon',
-                child: IconButton(
-                  onPressed: () => _showArtworkOptionsDialog(asset),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                  ),
-                  icon: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
-                  ),
-                ),
-              ),
+              widget.payload.useIndexer
+                  ? const SizedBox()
+                  : Semantics(
+                      label: 'artworkDotIcon',
+                      child: IconButton(
+                        onPressed: () => _showArtworkOptionsDialog(asset),
+                        constraints: const BoxConstraints(
+                          maxWidth: 44,
+                          maxHeight: 44,
+                        ),
+                        icon: SvgPicture.asset(
+                          'assets/images/more_circle.svg',
+                          width: 22,
+                        ),
+                      ),
+                    ),
               Semantics(
                 label: 'close_icon',
                 child: IconButton(
