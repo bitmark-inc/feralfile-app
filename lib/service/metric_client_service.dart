@@ -62,9 +62,8 @@ class MetricClientService {
     if (configurationService.isAnalyticsEnabled() == false) {
       return;
     }
-    final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
-            ?.getAccountDID()) ??
-        'unknown';
+    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+    final defaultDID = (await defaultAccount?.getAccountDID()) ?? 'unknown';
     final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
     MetricClient.addEvent(
       name,
