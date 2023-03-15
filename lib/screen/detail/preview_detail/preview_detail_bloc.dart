@@ -31,7 +31,8 @@ class ArtworkPreviewDetailBloc
       final assetToken = event.useIndexer
           ? (await _indexerApi.getNftTokens({
               "ids": [event.identity.id]
-            })).first
+            }))
+              .first
           : await _assetTokenDao.findAssetTokenByIdAndOwner(
               event.identity.id, event.identity.owner);
       String? overriddenHtml;

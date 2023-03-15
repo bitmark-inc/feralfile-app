@@ -22,17 +22,13 @@ class ArtworkPreviewBloc
   ArtworkPreviewBloc(this._assetTokenDao, this._assetDao, this._indexerApi)
       : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
-      if (event.useIndexer) {
-        final assetToken = await _indexerApi.getNftTokens({
-          "ids": [event.identity.id]
-        });
-        if (assetToken.isNotEmpty) {
-          emit(ArtworkPreviewLoadedState(assetToken: assetToken.first));
-        }
-        return;
-      }
-      final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
-          event.identity.id, event.identity.owner);
+      final assetToken = event.useIndexer
+          ? (await _indexerApi.getNftTokens({
+              "ids": [event.identity.id]
+            }))
+              .first
+          : await _assetTokenDao.findAssetTokenByIdAndOwner(
+              event.identity.id, event.identity.owner);
       if (state is ArtworkPreviewLoadedState) {
         final currentState = state as ArtworkPreviewLoadedState;
         emit(currentState.copyWith(assetToken: assetToken));
@@ -47,7 +43,9 @@ class ArtworkPreviewBloc
           if (response.statusCode == 520) {
             assetToken.asset?.previewURL = assetToken.previewURL!.replaceRange(
                 0, Environment.autonomyIpfsPrefix.length, DEFAULT_IPFS_PREFIX);
-            await _assetDao.insertAsset(assetToken.asset!);
+            if (!event.useIndexer) {
+              await _assetDao.insertAsset(assetToken.asset!);
+            }
             emit(ArtworkPreviewLoadedState(assetToken: assetToken));
           }
         }
