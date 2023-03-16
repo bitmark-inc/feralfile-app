@@ -175,28 +175,28 @@ class AccountServiceImpl extends AccountService {
     await walletStorage.importKey(
         words, "", DateTime.now().microsecondsSinceEpoch);
 
-    int tezosIndex = 1;
-    int ethereumIndex = 1;
+    String tezosIndexes = ",0";
+    String ethereumIndexes = ",0";
     switch (walletType) {
       case WalletType.Ethereum:
-        tezosIndex = 0;
+        tezosIndexes = "";
         break;
       case WalletType.Tezos:
-        ethereumIndex = 0;
+        ethereumIndexes = "";
         break;
       default:
         break;
     }
     final persona = Persona.newPersona(
-        uuid: uuid, ethereumIndex: ethereumIndex, tezosIndex: tezosIndex);
+        uuid: uuid, ethereumIndexes: ethereumIndexes, tezosIndexes: tezosIndexes);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
       "id": uuid,
-      "tezosIndex": tezosIndex,
-      "ethereumIndex": ethereumIndex
+      "tezosIndex": persona.getTezIndexes().length,
+      "ethereumIndex": persona.getEthIndexes().length
     });
     _autonomyService.postLinkedAddresses();
 
@@ -255,15 +255,15 @@ class AccountServiceImpl extends AccountService {
       switch (chain.caip2Namespace) {
         case Wc2Chain.ethereum:
           final eip55Address = EthereumAddress.fromHex(address).hexEip55;
-          final addresses = await p.getEthAddresses();
-          if (addresses.contains(eip55Address)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(eip55Address));
+          final index = await p.getEthAddressIndex(eip55Address);
+          if (index != null) {
+            return WalletIndex(p.wallet(), index);
           }
           break;
         case Wc2Chain.tezos:
-          final addresses = await p.getTezosAddresses();
-          if (addresses.contains(address)) {
-            return WalletIndex(p.wallet(), addresses.indexOf(address));
+          final index = await p.getTezAddressIndex(address);
+          if (index != null) {
+            return WalletIndex(p.wallet(), index);
           }
           break;
         case Wc2Chain.autonomy:
@@ -776,10 +776,12 @@ class AccountServiceImpl extends AccountService {
       Persona newPersona, WalletType walletType) async {
     switch (walletType) {
       case WalletType.Ethereum:
-        newPersona.ethereumIndex += 1;
+        ////////////////////////////////
+        //newPersona.ethereumIndex += 1;
         break;
       case WalletType.Tezos:
-        newPersona.tezosIndex += 1;
+        ///////////////////////////////
+        //newPersona.tezosIndex += 1;
         break;
       default:
     }

@@ -30,6 +30,8 @@ class Persona {
   int? defaultAccount;
   int ethereumIndex;
   int tezosIndex;
+  String? ethereumIndexes;
+  String? tezosIndexes;
 
   Persona(
       {required this.uuid,
@@ -37,7 +39,9 @@ class Persona {
       required this.createdAt,
       this.defaultAccount,
       this.ethereumIndex = 1,
-      this.tezosIndex = 1});
+      this.tezosIndex = 1,
+      this.ethereumIndexes = "",
+      this.tezosIndexes = ""});
 
   Persona.newPersona(
       {required this.uuid,
@@ -45,22 +49,24 @@ class Persona {
       this.defaultAccount,
       DateTime? createdAt,
       this.ethereumIndex = 1,
-      this.tezosIndex = 1})
+      this.tezosIndex = 1,
+      this.ethereumIndexes = "0",
+      this.tezosIndexes = "0"})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
     String? name,
     DateTime? createdAt,
-    int? ethereumIndex,
-    int? tezosIndex,
+    String? ethereumIndexes,
+    String? tezosIndexes,
   }) {
     return Persona(
         uuid: uuid,
         name: name ?? this.name,
         defaultAccount: defaultAccount,
         createdAt: createdAt ?? this.createdAt,
-        ethereumIndex: ethereumIndex ?? this.ethereumIndex,
-        tezosIndex: tezosIndex ?? this.tezosIndex);
+        ethereumIndexes: ethereumIndexes ?? this.ethereumIndexes,
+        tezosIndexes: tezosIndexes ?? this.tezosIndexes);
   }
 
   WalletStorage wallet() {
@@ -77,13 +83,47 @@ class Persona {
   }
 
   Future<List<String>> getEthAddresses() async {
-    return await Future.wait(Iterable.generate(
-        ethereumIndex, (i) => wallet().getETHEip55Address(index: i)));
+    return await Future.wait(
+        getEthIndexes().map((e) => wallet().getETHEip55Address(index: e)));
   }
 
   Future<List<String>> getTezosAddresses() async {
-    return await Future.wait(Iterable.generate(
-        tezosIndex, (i) => wallet().getTezosAddress(index: i)));
+    return await Future.wait(
+        getTezIndexes().map((e) => wallet().getTezosAddress(index: e)));
+  }
+
+  List<int> getEthIndexes() {
+    return _getIndexes(ethereumIndexes ?? "");
+  }
+
+  List<int> getTezIndexes() {
+    return _getIndexes(tezosIndexes ?? "");
+  }
+
+  Future<int?> getEthAddressIndex(String address) async {
+    final listIndex = getEthIndexes();
+    for (int i = 0; i < listIndex.length; i++) {
+      if ((await wallet().getETHEip55Address(index: listIndex[i])) == address) {
+        return listIndex[i];
+      }
+    }
+    return null;
+  }
+
+  Future<int?> getTezAddressIndex(String address) async {
+    final listIndex = getTezIndexes();
+    for (int i = 0; i < listIndex.length; i++) {
+      if ((await wallet().getTezosAddress(index: listIndex[i])) == address) {
+        return listIndex[i];
+      }
+    }
+    return null;
+  }
+
+  List<int> _getIndexes(String str) {
+    List<String> indexes = str.split(',');
+    indexes.removeWhere((element) => element.isEmpty);
+    return indexes.map((e) => int.parse(e)).toList();
   }
 
   @override
@@ -94,8 +134,8 @@ class Persona {
         other.name == name &&
         other.createdAt == createdAt &&
         other.defaultAccount == defaultAccount &&
-        other.ethereumIndex == ethereumIndex &&
-        other.tezosIndex == tezosIndex;
+        other.ethereumIndexes == ethereumIndexes &&
+        other.tezosIndexes == tezosIndexes;
   }
 
   @override
@@ -104,7 +144,7 @@ class Persona {
         name.hashCode ^
         createdAt.hashCode ^
         defaultAccount.hashCode ^
-        ethereumIndex.hashCode ^
-        tezosIndex.hashCode;
+        ethereumIndexes.hashCode ^
+        tezosIndexes.hashCode;
   }
 }

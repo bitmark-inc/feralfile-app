@@ -71,15 +71,15 @@ extension AssetTokenExtension on AssetToken {
 
     Pair<WalletStorage, int>? result;
     for (final persona in personas) {
-      final List<String> addresses;
+      int? index;
       if (blockchain == "ethereum") {
-        addresses = await persona.getEthAddresses();
+        index = await persona.getEthAddressIndex(owner);
       } else {
-        addresses = await persona.getTezosAddresses();
+        index = await persona.getTezAddressIndex(owner);
       }
-      if (addresses.contains(owner)) {
+      if (index != null) {
         result = Pair<WalletStorage, int>(
-            persona.wallet(), addresses.indexOf(owner));
+            persona.wallet(), index);
         break;
       }
     }
