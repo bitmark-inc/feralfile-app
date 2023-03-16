@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
@@ -587,6 +588,12 @@ class AppRouter {
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
+                      BlocProvider(
+                        create: (_) => ScanWalletBloc(
+                          injector(),
+                          injector(),
+                        ),
+                      ),
                     ],
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
