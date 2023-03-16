@@ -23,6 +23,7 @@ class MetricClientService {
 
   late DeviceConfig _deviceConfig;
   final mixPanelClient = injector<MixPanelClientService>();
+  bool isFinishInit = false;
 
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
@@ -48,7 +49,8 @@ class MetricClientService {
       internalBuild: isAppcenterBuild,
     );
 
-    mixPanelClient.initService();
+    await mixPanelClient.initService();
+    isFinishInit = true;
   }
 
   Future<void> addEvent(
@@ -65,26 +67,30 @@ class MetricClientService {
     final defaultAccount = await _accountService.getCurrentDefaultAccount();
     final defaultDID = (await defaultAccount?.getAccountDID()) ?? 'unknown';
     final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
-    MetricClient.addEvent(
-      name,
-      message: message,
-      userId: hashedUserID,
-      data: data,
-      hashedData: hashedData,
-      deviceConfig: _deviceConfig,
-    );
+    if (isFinishInit) {
+      MetricClient.addEvent(
+        name,
+        message: message,
+        userId: hashedUserID,
+        data: data,
+        hashedData: hashedData,
+        deviceConfig: _deviceConfig,
+      );
 
-    mixPanelClient.trackEvent(
-      name,
-      message: message,
-      data: data,
-      hashedData: hashedData,
-    );
-    mixPanelClient.mixpanel.flush();
+      mixPanelClient.trackEvent(
+        name,
+        message: message,
+        data: data,
+        hashedData: hashedData,
+      );
+      mixPanelClient.mixpanel.flush();
+    }
   }
 
   timerEvent(String name) {
-    mixPanelClient.timerEvent(name.snakeToCapital());
+    if (isFinishInit) {
+      mixPanelClient.timerEvent(name.snakeToCapital());
+    }
   }
 
   Future<void> sendAndClearMetrics() async {

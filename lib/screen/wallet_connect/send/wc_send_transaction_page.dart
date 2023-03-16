@@ -153,7 +153,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                               Padding(
                                 padding: padding,
                                 child: Text(
-                                  "purchase_artwork".tr(),
+                                  "confirm_transaction".tr(),
                                   style: theme.textTheme.ppMori400Black16,
                                 ),
                               ),
