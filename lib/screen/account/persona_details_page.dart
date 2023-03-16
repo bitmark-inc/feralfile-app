@@ -11,6 +11,8 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -76,6 +78,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         .add(GetEthereumBalanceWithUUIDEvent(persona.uuid));
 
     context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(persona.uuid));
+
+    context.read<ScanWalletBloc>().add(ScanEthereumWalletEvent(
+        wallet: WalletStorage(persona.uuid), gapLimit: 5));
+    context.read<ScanWalletBloc>().add(
+        ScanTezosWalletEvent(wallet: WalletStorage(persona.uuid), gapLimit: 5));
   }
 
   _getDidKey() async {
@@ -110,6 +117,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     final uuid = persona.uuid;
     final isDefaultAccount = persona.defaultAccount == 1;
 
+    print("--------------");
+    print(persona.ethereumIndexes);
+    print(persona.tezosIndexes);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -212,14 +222,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           }
           return Column(
               children: ethAddresses
-                  .map((address) => [
+                  .map((addressIndex) => [
                         _addressRow(
-                            address: address,
-                            index: ethAddresses.indexOf(address),
+                            address: addressIndex.first,
+                            index: addressIndex.second,
                             type: CryptoType.ETH,
-                            balance: state.ethBalances[address] == null
+                            balance: state.ethBalances[addressIndex.first] == null
                                 ? "-- ETH"
-                                : "${EthAmountFormatter(state.ethBalances[address]!.getInWei).format()} ETH"),
+                                : "${EthAmountFormatter(state.ethBalances[addressIndex.first]!.getInWei).format()} ETH"),
                         addDivider(),
                       ])
                   .flattened
@@ -232,16 +242,16 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           }
           return Column(
               children: tezosAddress
-                  .map((address) => [
+                  .map((addressIndex) => [
                         _addressRow(
-                          address: address,
-                          index: tezosAddress.indexOf(address),
+                          address: addressIndex.first,
+                          index: addressIndex.second,
                           type: CryptoType.XTZ,
-                          balance: state.balances[address] == null
+                          balance: state.balances[addressIndex.first] == null
                               ? "-- XTZ"
-                              : "${XtzAmountFormatter(state.balances[address]!).format()} XTZ",
+                              : "${XtzAmountFormatter(state.balances[addressIndex.first]!).format()} XTZ",
                         ),
-                        if (address != tezosAddress.last) addDivider(),
+                        if (addressIndex != tezosAddress.last) addDivider(),
                       ])
                   .flattened
                   .toList());
