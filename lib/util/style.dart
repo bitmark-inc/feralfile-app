@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -306,11 +307,12 @@ MarkdownStyleSheet markDownDetailPageStyle(
 }
 
 MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
-    {TextStyle? preferredStyle, EdgeInsets? pPadding}) {
+    {TextStyle? preferredStyle, EdgeInsets? pPadding, TextStyle? addStyle}) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
-  final textStyleWhite =
-      theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
+  final textStyleWhite = theme.textTheme.ppMori400White12
+      .copyWith(fontSize: 17)
+      .addStyle(addStyle);
   preferredStyle = preferredStyle ?? textStyleWhite;
   return MarkdownStyleSheet(
     a: preferredStyle.merge(
@@ -321,9 +323,13 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
     p: preferredStyle,
     pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
     code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
-    h1: preferredStyle.copyWith(fontSize: 24, fontWeight: FontWeight.w700),
+    h1: preferredStyle
+        .copyWith(fontSize: 24, fontWeight: FontWeight.w700)
+        .addStyle(addStyle),
     h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: preferredStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
+    h2: preferredStyle
+        .copyWith(fontSize: 20, fontWeight: FontWeight.w700)
+        .addStyle(addStyle),
     h2Padding: EdgeInsets.zero,
     h3: preferredStyle,
     h3Padding: EdgeInsets.zero,
@@ -338,7 +344,9 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
     del: preferredStyle.copyWith(
         decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: preferredStyle.copyWith(color: AppColor.white),
-    img: preferredStyle.copyWith(fontSize: 12, color: AppColor.disabledColor),
+    img: preferredStyle
+        .copyWith(fontSize: 12, color: AppColor.disabledColor)
+        .addStyle(addStyle),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
