@@ -193,23 +193,19 @@ class PendingTokenService {
       log.info(
           "[PendingTokenService] Pending Tokens: ${pendingTokens.map((e) => e.id).toList()}");
       if (pendingTokens.isNotEmpty) {
-        final pendingTxParams = pendingTokens
-            .map(
-              (e) => PendingTxParams(
-                blockchain: e.blockchain,
-                id: e.tokenId ?? "",
-                contractAddress: e.contractAddress ?? "",
-                ownerAccount: e.owner,
-                pendingTx: tx,
-                timestamp: timestamp,
-                signature: signature,
-              ),
-            )
-            .toList();
-        for (var element in pendingTxParams) {
-          log.info("[PendingTokenService] Pending Tx Params: $element");
+        for (var e in pendingTokens) {
+          final element = PendingTxParams(
+            blockchain: e.blockchain,
+            id: e.tokenId ?? "",
+            contractAddress: e.contractAddress ?? "",
+            ownerAccount: e.owner,
+            pendingTx: tx,
+            timestamp: timestamp,
+            signature: signature,
+          );
           injector<TokensService>().postPendingToken(element);
         }
+
         await _tokenService.setCustomTokens(pendingTokens);
         await _tokenService.reindexAddresses([owner]);
       }
