@@ -25,6 +25,12 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   });
 }
 
+class GetAccountsIRLEvent extends AccountsEvent {
+  final Map<String, dynamic>? param;
+  final String? blockchain;
+  GetAccountsIRLEvent({this.param, this.blockchain});
+}
+
 class LinkLedgerWalletEvent extends AccountsEvent {
   final String address;
   final String blockchain;

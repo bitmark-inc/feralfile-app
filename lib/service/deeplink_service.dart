@@ -120,7 +120,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
-          await _handleBranchDeeplink(link);
+          await _handleBranchDeeplink(link) ||
+          _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
     });
@@ -284,6 +285,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
           prefix: FF_TOKEN_DEEPLINK_PREFIX);
       await _linkFeralFileToken(
           link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _handleIRL(String link) {
+    log.info("[DeeplinkService] _handleIRL");
+
+    if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
+      final url = Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
+      _navigationService.navigateTo(AppRouter.irlWebview, arguments: url);
       return true;
     }
 

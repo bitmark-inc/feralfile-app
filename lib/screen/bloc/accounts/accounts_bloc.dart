@@ -104,6 +104,24 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       emit(AccountsState(accounts: accounts));
     });
 
+    on<GetAccountsIRLEvent>((event, emit) async {
+      final personas = await _cloudDB.personaDao.getPersonas();
+
+      List<Account> accounts = (await Future.wait(
+              personas.map((persona) => getAccountPersona(persona))))
+          .whereNotNull()
+          .toList();
+
+      accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final defaultAccount = accounts.firstWhereOrNull((element) =>
+          element.persona != null ? element.persona!.isDefault() : false);
+      if (defaultAccount != null) {
+        accounts.remove(defaultAccount);
+        accounts.insert(0, defaultAccount);
+      }
+      emit(AccountsState(accounts: accounts));
+    });
+
     on<GetCategorizedAccountsEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections =
