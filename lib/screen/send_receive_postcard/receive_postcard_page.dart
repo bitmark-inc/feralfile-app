@@ -210,12 +210,14 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                         final permissions = await checkLocationPermissions();
                         if (!permissions) {
                           await UIHelper.showDeclinedGeolocalization(context);
+                          return;
                         } else {
                           try {
                             location = await getGeoLocation(
                                 timeout: const Duration(seconds: 2));
                           } catch (e) {
                             await UIHelper.showWeakGPSSignal(context);
+                            return;
                           }
                         }
 
@@ -237,12 +239,12 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           await Navigator.of(context).pushNamed(
                             AppRouter.receivePostcardSelectAccountPage,
                             arguments: ReceivePostcardSelectAccountPageArgs(
-                                blockchain, asset),
+                                blockchain, asset, location),
                           );
                           return;
                         }
                         if (address != null && location != null && mounted) {
-                          _receivePostcard(context, address, location);
+                          _receivePostcard(context, "", address, location);
                         } else {
                           setState(() {
                             _processing = false;
@@ -302,14 +304,11 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     );
   }
 
-  Future _receivePostcard(
-      BuildContext context, String receiveAddress, Position location) async {
+  Future _receivePostcard(BuildContext context, String shareId,
+      String receiveAddress, Position location) async {
     final postcardService = injector<PostcardService>();
-    final respone = postcardService.receivePostcard(
-        shareId: '', tokenId: '', address: receiveAddress, counter: 20);
-    if (respone == null) {
-      return;
-    }
+    postcardService.receivePostcard(
+        shareId: shareId, location: location, address: receiveAddress);
     await UIHelper.showReceivePostcardSuccess(context);
     setState(() {
       _processing = false;

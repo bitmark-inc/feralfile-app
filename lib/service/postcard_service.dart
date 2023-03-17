@@ -8,15 +8,16 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 abstract class PostcardService {
   Future<ReceivePostcardRespone?> receivePostcard(
       {required String shareId,
-      required String tokenId,
-      required String address,
-      required int counter});
+      required Position location,
+      required String address});
 
   Future claimEmptyPostcard();
 
@@ -47,25 +48,46 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<ReceivePostcardRespone?> receivePostcard(
-      {required String shareId,
-      required String tokenId,
-      required String address,
-      required int counter}) async {
-    return ReceivePostcardRespone(tokenId: "tokenId");
+  Future<ReceivePostcardRespone?> receivePostcard({
+    required String shareId,
+    required Position location,
+    required String address,
+  }) async {
+    final body = {
+      "shareId": shareId,
+      "location": [location.latitude, location.longitude],
+      "address": address,
+    };
+    final response = await _postcardApi.claim(body);
+    if (response.statusCode == 200) {
+      final postcard = json.decode(response.body);
+      return ReceivePostcardRespone(tokenId: postcard["tokenId"]);
+    } else {
+      throw Exception('Failed to load postcards');
+    }
   }
 
   @override
   Future<SharePostcardRespone> sharePostcard(
       AssetToken asset, String signature) async {
-    // final tokenId = asset.tokenId;
+    final tokenId = asset.tokenId ?? '';
+    final counter = asset.counter;
     // final respone = await _postcardAPI.sharePostcard({
     //   "tokenId": tokenId,
     //   "signature": signature,
     // });
-    return SharePostcardRespone(
-        url:
-            "https://autonomy.bitmark.com/postcard?shareId=shareId&tokenId=tokenId&imageCID=imageCID&counter=0");
+    final body = {
+      "tokenId": tokenId,
+      "signature": signature,
+      "counter": counter,
+    };
+    final response = await _postcardApi.share(tokenId, body);
+    if (response.statusCode == 200) {
+      final url = json.decode(response.body);
+      return SharePostcardRespone(url: url);
+    } else {
+      throw Exception('Failed to load postcards');
+    }
   }
 
   Future<AssetToken> getPostcard(String tokenId) async {
@@ -76,13 +98,14 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<SharedPostcardInfor> getSharedPostcardInfor(String share_codde) {
-    return Future.value(SharedPostcardInfor(
-        shareId: "shareId",
-        tokenId:
-            "tez-KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt-37214540304218121786566893708923600581837527203284427749671447415338838818020",
-        imageCID: "imageCID",
-        counter: 0));
+  Future<SharedPostcardInfor> getSharedPostcardInfor(String share_codde) async {
+    final response = await _postcardApi.claimShareCode(share_codde);
+    if (response.statusCode == 200) {
+      final sharedPostcardInfor = json.decode(response.body);
+      return sharedPostcardInfor;
+    } else {
+      throw Exception('Failed to load postcards');
+    }
   }
 
   @override

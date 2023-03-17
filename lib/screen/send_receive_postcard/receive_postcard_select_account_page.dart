@@ -13,26 +13,31 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class ReceivePostcardSelectAccountPageArgs {
   final String? blockchain;
   final AssetToken asset;
+  final Position location;
 
   ReceivePostcardSelectAccountPageArgs(
     this.blockchain,
     this.asset,
+    this.location,
   );
 }
 
 class ReceivePostcardSelectAccountPage extends StatefulWidget {
   final String? blockchain;
   final AssetToken asset;
+  final Position location;
 
   const ReceivePostcardSelectAccountPage({
     Key? key,
     this.blockchain,
     required this.asset,
+    required this.location,
   }) : super(key: key);
 
   @override
@@ -132,7 +137,9 @@ class _ReceivePostcardSelectAccountPageState
                       : () async {
                           await _receivePostcard(
                             context,
+                            "shareId",
                             _selectedAddress!,
+                            widget.location,
                           );
                         }),
             ),
@@ -174,13 +181,11 @@ class _ReceivePostcardSelectAccountPageState
     });
   }
 
-  Future _receivePostcard(BuildContext context, String receiveAddress) async {
+  Future _receivePostcard(BuildContext context, String shareId,
+      String receiveAddress, Position location) async {
     final postcardService = injector<PostcardService>();
-    final respone = await postcardService.receivePostcard(
-        shareId: '', tokenId: '', address: receiveAddress, counter: 20);
-    if (respone == null) {
-      return;
-    }
+    postcardService.receivePostcard(
+        shareId: shareId, location: location, address: receiveAddress);
     await UIHelper.showReceivePostcardSuccess(context);
     setState(() {
       _processing = false;

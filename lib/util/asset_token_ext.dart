@@ -249,6 +249,10 @@ extension AssetTokenExtension on AssetToken {
   String get lastOwner {
     return owner;
   }
+
+  int get counter {
+    return 0;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {

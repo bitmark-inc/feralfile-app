@@ -1185,6 +1185,7 @@ class AppRouter {
             child: ReceivePostcardSelectAccountPage(
               blockchain: args.blockchain,
               asset: args.asset,
+              location: args.location,
             ),
           );
         });
