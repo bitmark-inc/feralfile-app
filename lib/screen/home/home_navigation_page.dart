@@ -147,6 +147,15 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 Navigator.pop(context);
                 Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
               }),
+          OptionItem(
+              title: 'Claim Empty postcard',
+              icon: const Icon(
+                AuIcon.collection,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).pushNamed(AppRouter.claimEmptyPostCard);
+              }),
         ],
       );
     }
