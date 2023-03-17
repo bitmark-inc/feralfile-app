@@ -13,8 +13,9 @@ abstract class ArtworkDetailEvent {}
 
 class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
   final ArtworkIdentity identity;
+  final bool useIndexer;
 
-  ArtworkDetailGetInfoEvent(this.identity);
+  ArtworkDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
 class ArtworkDetailState {

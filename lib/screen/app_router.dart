@@ -687,6 +687,7 @@ class AppRouter {
                   create: (_) => ArtworkPreviewBloc(
                     injector(),
                     injector(),
+                    injector(),
                   ),
                 ),
                 BlocProvider(
@@ -757,6 +758,7 @@ class AppRouter {
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
+                            injector(),
                             injector(),
                             injector(),
                             injector(),

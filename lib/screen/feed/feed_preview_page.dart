@@ -244,7 +244,7 @@ class _FeedArtworkState extends State<FeedArtwork>
     with RouteAware, WidgetsBindingObserver {
   INFTRenderingWidget? _renderingWidget;
 
-  final _bloc = ArtworkPreviewDetailBloc(injector(), injector());
+  final _bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
 
   @override
   void initState() {

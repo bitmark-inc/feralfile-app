@@ -106,7 +106,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
     final currentIdentity = tokens[initialPage];
-    _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity));
+    _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
+        useIndexer: widget.payload.useIndexer));
     super.initState();
   }
 
@@ -654,7 +655,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       onPageChanged: (value) {
                         _timer?.cancel();
                         final currentId = tokens[value];
-                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId));
+                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
+                            useIndexer: widget.payload.useIndexer));
                         _stopAllChromecastDevices();
                         keyboardManagerKey.currentState?.hideKeyboard();
                       },
@@ -664,6 +666,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                         identity: tokens[index],
                         onLoaded: setTimer,
                         focusNode: _focusNode,
+                        useIndexer: widget.payload.useIndexer,
                       ),
                     ),
                   ),
