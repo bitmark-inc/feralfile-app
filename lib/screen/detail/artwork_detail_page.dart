@@ -569,7 +569,7 @@ class ArtworkDetailPayload {
       int? currentIndex,
       PlayControlModel? playControl,
       String? twitterCaption,
-        bool? useIndexer}) {
+      bool? useIndexer}) {
     return ArtworkDetailPayload(
       ids ?? identities,
       currentIndex ?? this.currentIndex,
