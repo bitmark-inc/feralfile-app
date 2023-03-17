@@ -21,9 +21,11 @@ import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
@@ -48,6 +50,7 @@ import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/play_control_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -280,10 +283,14 @@ Future<void> setup() async {
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
+  injector.registerLazySingleton<PostcardApi>(
+      () => PostcardApi(dio, baseUrl: Environment.auClaimAPITestnetURL));
+
   injector.registerLazySingleton<EthereumService>(
       () => EthereumServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
+  injector.registerLazySingleton<PostcardService>(() => PostcardService());
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
 
   injector
@@ -317,6 +324,8 @@ Future<void> setup() async {
   injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
+  injector
+      .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
   injector.registerSingleton<ValueNotifier<PlayControlService>>(
       ValueNotifier<PlayControlService>(
           PlayControlService(timer: 0, isLoop: false, isShuffle: false)));

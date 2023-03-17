@@ -143,6 +143,11 @@ class Environment {
 
   static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 
+  static String get auClaimSecretKeyTestnet =>
+      dotenv.env['AU_CLAIM_SECRET_KEY_TESTNET'] ?? '';
+  static String get auClaimAPITestnetURL =>
+      dotenv.env['AU_CLAIM_API_TESTNET_URL'] ?? '';
+
   static String get cloudFlareImageUrlPrefix =>
       dotenv.env['CLOUD_FLARE_IMAGE_URL_PREFIX'] ?? '';
 }

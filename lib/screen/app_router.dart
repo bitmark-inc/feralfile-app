@@ -77,6 +77,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
@@ -211,6 +212,7 @@ class AppRouter {
   static const designStamp = 'design_stamp_screen';
   static const handSignaturePage = "hand_signature_page";
   static const stampPreview = "stamp_preview";
+  static const claimEmptyPostCard = "claim_empty_postcard";
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1136,6 +1138,13 @@ class AppRouter {
             builder: (context) {
               return const HelpUsPage();
             });
+      case claimEmptyPostCard:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return const ClaimEmptyPostCardScreen();
+          },
+        );
       default:
         throw Exception('Invalid route: ${settings.name}');
     }
