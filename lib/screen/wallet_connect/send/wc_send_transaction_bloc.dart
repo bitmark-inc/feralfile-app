@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
@@ -81,6 +84,9 @@ class WCSendTransactionBloc
         final txHash = await _ethereumService.sendTransaction(
             persona, index, event.to, event.value, event.data,
             feeOption: state.feeOption);
+        final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        final signature = await _ethereumService.signPersonalMessage(
+            persona, index, Uint8List.fromList(utf8.encode(timestamp)));
         if (event.isWalletConnect2) {
           await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
         } else {
@@ -89,7 +95,11 @@ class WCSendTransactionBloc
         }
         injector<PendingTokenService>()
             .checkPendingEthereumTokens(
-                await persona.getETHEip55Address(index: index), txHash)
+          await persona.getETHEip55Address(index: index),
+          txHash,
+          timestamp,
+          signature,
+        )
             .then((tokens) {
           if (tokens.isNotEmpty) {
             NftCollectionBloc.eventController
