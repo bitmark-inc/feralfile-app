@@ -21,7 +21,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.d
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/play_control_service.dart';
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -85,18 +85,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   INFTRenderingWidget? _renderingWidget;
 
-  final playControlListen = injector.get<ValueNotifier<PlayControlService>>();
   List<ArtworkIdentity> tokens = [];
   Timer? _timer;
   late int initialPage;
 
   final metricClient = injector.get<MetricClientService>();
 
+  PlayControlModel? playControl;
+
   @override
   void initState() {
     tokens = List.from(widget.payload.identities);
     final initialTokenID = tokens[widget.payload.currentIndex];
-    if (playControlListen.value.isShuffle && widget.payload.isPlaylist) {
+    playControl = widget.payload.playControl;
+    if (playControl?.isShuffle ?? false) {
       tokens.shuffle();
     }
     initialPage = tokens.indexOf(initialTokenID);
@@ -110,17 +112,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   setTimer({int? time}) {
     _timer?.cancel();
-    if (widget.payload.isPlaylist) {
-      final defauftDuration = playControlListen.value.timer == 0
-          ? time ?? 10
-          : playControlListen.value.timer;
+    if (playControl != null) {
+      final defauftDuration =
+          playControl!.timer == 0 ? time ?? 10 : playControl!.timer;
       _timer = Timer.periodic(Duration(seconds: defauftDuration), (timer) {
         if (!(_timer?.isActive ?? false)) return;
-        if (playControlListen.value.isLoop &&
-            controller.page?.toInt() == tokens.length - 1) {
+        if (controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
         } else {
-          if (controller.page?.toInt() == tokens.length - 1) return;
           controller.nextPage(
               duration: const Duration(microseconds: 1), curve: Curves.linear);
         }

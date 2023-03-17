@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:flutter/foundation.dart';
 
 class PlayListModel {
@@ -5,11 +6,14 @@ class PlayListModel {
   String? name;
   String? thumbnailURL;
   List<String>? tokenIDs;
+  PlayControlModel? playControlModel;
+
   PlayListModel({
     this.id,
     this.name,
     this.thumbnailURL,
     this.tokenIDs,
+    this.playControlModel,
   });
 
   PlayListModel copyWith({
@@ -17,13 +21,40 @@ class PlayListModel {
     String? name,
     String? thumbnailURL,
     List<String>? tokenIDs,
+    PlayControlModel? playControlModel,
   }) {
     return PlayListModel(
       id: id ?? this.id,
       name: name ?? this.name,
       thumbnailURL: thumbnailURL ?? this.thumbnailURL,
       tokenIDs: tokenIDs ?? this.tokenIDs,
+      playControlModel: playControlModel ?? this.playControlModel,
     );
+  }
+
+  @override
+  String toString() {
+    return 'PlayListModel(id: $id, name: $name, thumbnailURL: $thumbnailURL, tokenIDs: $tokenIDs, playControlModel: $playControlModel)';
+  }
+
+  @override
+  bool operator ==(covariant PlayListModel other) {
+    if (identical(this, other)) return true;
+
+    return other.id == id &&
+        other.name == name &&
+        other.thumbnailURL == thumbnailURL &&
+        listEquals(other.tokenIDs, tokenIDs) &&
+        other.playControlModel == playControlModel;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        name.hashCode ^
+        thumbnailURL.hashCode ^
+        tokenIDs.hashCode ^
+        playControlModel.hashCode;
   }
 
   Map<String, dynamic> toJson() {
@@ -32,6 +63,7 @@ class PlayListModel {
       'name': name,
       'thumbnailURL': thumbnailURL,
       'tokenIDs': tokenIDs,
+      'playControlModel': playControlModel?.toJson(),
     };
   }
 
@@ -44,23 +76,10 @@ class PlayListModel {
       tokenIDs: map['tokenIDs'] != null
           ? List<String>.from((map['tokenIDs'] as List<dynamic>))
           : null,
+      playControlModel: map['playControlModel'] != null
+          ? PlayControlModel.fromJson(
+              map['playControlModel'] as Map<String, dynamic>)
+          : null,
     );
   }
-
-  @override
-  String toString() =>
-      'PlayListModel(name: $name, thumbnailURL: $thumbnailURL, tokenIDs: $tokenIDs)';
-
-  @override
-  bool operator ==(covariant PlayListModel other) {
-    if (identical(this, other)) return true;
-
-    return other.id == id &&
-        other.name == name &&
-        other.thumbnailURL == thumbnailURL &&
-        listEquals(other.tokenIDs, tokenIDs);
-  }
-
-  @override
-  int get hashCode => name.hashCode ^ thumbnailURL.hashCode ^ tokenIDs.hashCode;
 }

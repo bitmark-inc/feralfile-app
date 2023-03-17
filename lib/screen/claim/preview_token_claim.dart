@@ -33,7 +33,6 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
