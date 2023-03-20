@@ -284,7 +284,7 @@ Future<void> setup() async {
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(
-      () => PostcardApi(dio, baseUrl: Environment.auClaimAPITestnetURL));
+      () => PostcardApi(dio, baseUrl: Environment.postcardAPITestnetURL));
 
   injector.registerLazySingleton<EthereumService>(
       () => EthereumServiceImpl(injector(), injector()));

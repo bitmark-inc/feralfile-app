@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:geolocator/geolocator.dart';
@@ -36,9 +37,11 @@ class PostcardServiceImpl extends PostcardService {
   final IndexerApi _indexerApi;
   PostcardServiceImpl(this._postcardApi, this._indexerApi);
 
+  @override
   Future claimEmptyPostcard() async {
     final body = {"id": "postcard", "claimer": "tz1"};
-    final response = await _postcardApi.claim(body);
+    final xApiSignature = Environment.xApiSignature;
+    final response = await _postcardApi.claim(xApiSignature, body);
     if (response.statusCode == 200) {
       final postcard = json.decode(response.body);
       return postcard;
@@ -58,7 +61,8 @@ class PostcardServiceImpl extends PostcardService {
       "location": [location.latitude, location.longitude],
       "address": address,
     };
-    final response = await _postcardApi.claim(body);
+    final xApiSignature = Environment.xApiSignature;
+    final response = await _postcardApi.claim(xApiSignature, body);
     if (response.statusCode == 200) {
       final postcard = json.decode(response.body);
       return ReceivePostcardRespone(tokenId: postcard["tokenId"]);
@@ -81,7 +85,8 @@ class PostcardServiceImpl extends PostcardService {
       "signature": signature,
       "counter": counter,
     };
-    final response = await _postcardApi.share(tokenId, body);
+    final xApiSignature = Environment.xApiSignature;
+    final response = await _postcardApi.share(xApiSignature, tokenId, body);
     if (response.statusCode == 200) {
       final url = json.decode(response.body);
       return SharePostcardRespone(url: url);
@@ -90,6 +95,7 @@ class PostcardServiceImpl extends PostcardService {
     }
   }
 
+  @override
   Future<AssetToken> getPostcard(String tokenId) async {
     final assets = await _indexerApi.getNftTokens({
       "ids": [tokenId]
@@ -98,8 +104,15 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<SharedPostcardInfor> getSharedPostcardInfor(String share_codde) async {
-    final response = await _postcardApi.claimShareCode(share_codde);
+  Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode) async {
+    return SharedPostcardInfor(
+        shareId: "sharedId",
+        tokenId: "tokenId",
+        imageCID: "imageCID",
+        counter: 0);
+    final xApiSignature = Environment.xApiSignature;
+    final response =
+        await _postcardApi.claimShareCode(xApiSignature, shareCode);
     if (response.statusCode == 200) {
       final sharedPostcardInfor = json.decode(response.body);
       return sharedPostcardInfor;

@@ -150,6 +150,11 @@ class Environment {
 
   static String get cloudFlareImageUrlPrefix =>
       dotenv.env['CLOUD_FLARE_IMAGE_URL_PREFIX'] ?? '';
+
+  static String get xApiSignature => dotenv.env['X_API_SIGNATURE'] ?? '';
+
+  static String get postcardAPITestnetURL =>
+      dotenv.env['POSTCARD_API_TESTNET_URL'] ?? '';
 }
 
 class Secret {
