@@ -316,7 +316,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
     if (usingThumbnailID) {
       if (thumbnailID == null || thumbnailID!.isEmpty) {
-        return _replaceIPFS(galleryThumbnailURL!); // return null;
+        return null;
       }
       return _refineToCloudflareURL(
           galleryThumbnailURL!, thumbnailID!, "thumbnail");
