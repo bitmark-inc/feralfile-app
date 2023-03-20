@@ -413,18 +413,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 return;
               }
 
+              final sentQuantity = payload['sentQuantity'] as int;
               final isSentAll = payload['isSentAll'] as bool;
-              if (isSentAll) {
-                injector<ConfigurationService>().updateRecentlySentToken(
-                    [SentArtwork(asset.id, asset.owner, DateTime.now())]);
-                if (isHidden) {
-                  await injector<ConfigurationService>()
-                      .updateTempStorageHiddenTokenIDs([asset.id], false);
-                  injector<SettingsDataService>().backup();
-                }
+              injector<ConfigurationService>().updateRecentlySentToken([
+                SentArtwork(asset.id, asset.owner, DateTime.now(), sentQuantity,
+                    isSentAll)
+              ]);
+              if (isHidden) {
+                await injector<ConfigurationService>()
+                    .updateTempStorageHiddenTokenIDs([asset.id], false);
+                injector<SettingsDataService>().backup();
               }
               if (!mounted) return;
-
+              setState(() {});
               if (!payload["isTezos"]) {
                 if (isSentAll) {
                   Navigator.of(context).popAndPushNamed(AppRouter.homePage);

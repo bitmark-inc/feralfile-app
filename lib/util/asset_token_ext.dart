@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -218,6 +219,23 @@ extension AssetTokenExtension on AssetToken {
     }
 
     return _replaceIPFS(galleryThumbnailURL!);
+  }
+
+  int? get getCurrentBalance {
+    if (balance == null) {
+      return null;
+    }
+    final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+    final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+    final totalSentQuantity = sentTokens
+        .where((element) =>
+            element.tokenID == id &&
+            element.address == owner &&
+            element.timestamp.isAfter(expiredTime))
+        .fold<int>(0,
+            (previousValue, element) => previousValue + element.sentQuantity);
+    return balance! - totalSentQuantity;
   }
 }
 
