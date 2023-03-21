@@ -9,4 +9,11 @@ abstract class PostcardApi {
 
   @POST("/postcard/claim")
   Future claim(@Body() Map<String, dynamic> body);
+
+  @POST("/postcard/{token_id}/share")
+  Future share(
+      @Path("token_id") String tokenId, @Body() Map<String, dynamic> body);
+
+  @POST("/claim/{share_code}")
+  Future claimShareCode(@Path("share_code") String shareCode);
 }

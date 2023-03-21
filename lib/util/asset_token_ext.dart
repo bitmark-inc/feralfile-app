@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/trip.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
@@ -218,6 +219,39 @@ extension AssetTokenExtension on AssetToken {
     }
 
     return _replaceIPFS(galleryThumbnailURL!);
+  }
+
+  double? get totalDistanceTraveled {
+    return 5848;
+  }
+
+  List<Trip> get trips {
+    return [
+      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
+      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
+      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
+      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
+      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
+      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
+      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
+      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
+    ];
+  }
+
+  bool get isSending {
+    return false;
+  }
+
+  bool get isPostcard {
+    return true;
+  }
+
+  String get lastOwner {
+    return owner;
+  }
+
+  int get counter {
+    return 0;
   }
 }
 

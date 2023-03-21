@@ -1192,6 +1192,31 @@ class UIHelper {
           );
         });
   }
+
+  static Future showAlreadyDelivered(BuildContext context) async {
+    final title = "already_delivered".tr();
+    final description = "it_seems_that".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
+  static Future showUnableToStamp(BuildContext context) async {}
+
+  static Future showDeclinedGeolocalization(BuildContext context) async {
+    final title = "unable_to_stamp_postcard".tr();
+    final description = "sharing_your_geolocation".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
+  static Future showWeakGPSSignal(BuildContext context) async {
+    final title = "unable_to_stamp_postcard".tr();
+    final description = "we_are_unable_to_stamp".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
+  static showReceivePostcardSuccess(BuildContext context) async {
+    return showErrorDialog(
+        context, "Receive Success", 'description', "close".tr());
+  }
 }
 
 class ConnectedTV extends StatefulWidget {

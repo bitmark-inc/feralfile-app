@@ -290,11 +290,13 @@ Future<void> setup() async {
       () => EthereumServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
-  injector.registerLazySingleton<PostcardService>(() => PostcardService());
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
 
   injector
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
+
+  injector.registerLazySingleton<PostcardService>(
+      () => PostcardServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
@@ -304,6 +306,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+        injector(),
         injector(),
         injector(),
         injector(),
