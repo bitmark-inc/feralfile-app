@@ -311,6 +311,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 itemCount: tokens.length,
               ),
             ),
+            const SizedBox(
+              height: 50,
+            )
           ],
         ),
         Positioned(
