@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -6,6 +7,8 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+
+import 'design_stamp.dart';
 
 class PostcardExplain extends StatefulWidget {
   static const String tag = 'postcard_explain_screen';
@@ -48,8 +51,11 @@ class _PostcardExplainState extends State<PostcardExplain> {
             ),
             PrimaryButton(
               text: "continue".tr(),
-              onTap: () {
-                Navigator.of(context).pushNamed(AppRouter.designStamp);
+              onTap: () async {
+                final location = await getGeoLocationWithPermission();
+                if (!mounted || location == null) return;
+                Navigator.of(context).pushNamed(AppRouter.designStamp,
+                    arguments: DesignStampPayload(location));
               },
             ),
           ],

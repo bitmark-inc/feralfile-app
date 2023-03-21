@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
@@ -53,7 +54,7 @@ class _StampPreviewState extends State<StampPreview> {
                 children: [
                   stampedPostcardData != null
                       ? Image.memory(
-                          stampedPostcardData!.buffer.asUint8List(),
+                          stampedPostcardData!,
                           fit: BoxFit.cover,
                         )
                       : const SizedBox(),
@@ -70,19 +71,35 @@ class _StampPreviewState extends State<StampPreview> {
 
   Future<void> pasteStamp() async {
     final postcardImage = img.decodePng(postcardData!);
-    final stampImageResized =
-        img.copyResize(widget.payload.image, width: 290, height: 312);
+    final stampImageResized = img.copyResize(widget.payload.image, width: 490, height: 546);
 
+    final image = await compositeImageAt(
+        CompositeImageParams(postcardImage!,stampImageResized, 210, 212));
     setState(() {
-      stampedPostcardData = img.encodePng(img.compositeImage(
-          postcardImage!, stampImageResized,
-          dstX: 120, dstY: 120));
+      stampedPostcardData = img.encodePng(image);
     });
   }
+}
+
+Future<img.Image> compositeImageAt(CompositeImageParams compositeImages) async {
+  return await compute(compositeImagesAt, compositeImages);
+}
+
+img.Image compositeImagesAt(CompositeImageParams param) {
+  return img.compositeImage(param.dst, param.src, dstX: param.x, dstY: param.y);
 }
 
 class StampPreviewPayload {
   final img.Image image;
 
   StampPreviewPayload(this.image);
+}
+
+class CompositeImageParams {
+  final img.Image dst;
+  final img.Image src;
+  final int x;
+  final int y;
+
+  CompositeImageParams(this.dst, this.src, this.x, this.y);
 }

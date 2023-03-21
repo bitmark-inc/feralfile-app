@@ -160,6 +160,7 @@ dependencies:
   syncfusion_flutter_signaturepad: ^20.4.53
   image: ^4.0.15
   widgets_to_image: ^0.0.2
+  geocoding: ^2.1.0
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:

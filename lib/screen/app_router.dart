@@ -367,7 +367,8 @@ class AppRouter {
       case designStamp:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => const DesignStampPage(),
+          builder: (context) => DesignStampPage(
+              payload: settings.arguments as DesignStampPayload),
         );
 
       case handSignaturePage:
