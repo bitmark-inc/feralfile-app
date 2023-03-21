@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -50,8 +51,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                       ),
                       SfSignaturePad(
                         key: signatureGlobalKey,
-                        minimumStrokeWidth: 18,
-                        maximumStrokeWidth: 50,
+                        minimumStrokeWidth: 12,
+                        maximumStrokeWidth: 35,
                         strokeColor: Colors.black,
                         backgroundColor: Colors.transparent,
                         onDrawEnd: () {
@@ -112,9 +113,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   void _handleSaveButtonPressed() async {
-    setState(() {
-      loading = true;
-    });
+    UIHelper.showLoadingScreen(context, text: "loading...".tr());
     final stampWidth = MediaQuery.of(context).size.width.toInt();
     final signatureWith = MediaQuery.of(context).size.height.toInt() - 65;
     final ratio = signatureWith.toDouble() / stampWidth.toDouble();
@@ -122,31 +121,30 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         await signatureGlobalKey.currentState!.toImage(pixelRatio: ratio * 1.5);
     final bytes = await data.toByteData(format: ImageByteFormat.png);
 
-    final image = await _compositeImage(
+    final image = await compositeImage(
         [widget.payload.image, bytes!.buffer.asUint8List()]);
     if (!mounted) return;
+    UIHelper.hideInfoDialog(context);
     Navigator.of(context).pushNamed(StampPreview.tag,
         arguments: StampPreviewPayload(
           image,
         ));
-    setState(() {
-      loading = false;
-    });
   }
 
-  Future<img.Image> _compositeImage(List<Uint8List> images) async {
-    return _compositeImages(images);
-  }
-
-  img.Image _compositeImages(List<Uint8List> images) {
-    return img.compositeImage(
-        img.decodePng(images.first)!, img.decodePng(images.last)!,
-        center: true);
-  }
 }
 
 class HandSignaturePayload {
   final Uint8List image;
 
   HandSignaturePayload(this.image);
+}
+
+Future<img.Image> compositeImage(List<Uint8List> images) async {
+  return await compute(compositeImages, images);
+}
+
+img.Image compositeImages(List<Uint8List> images) {
+  return img.compositeImage(
+      img.decodePng(images.first)!, img.decodePng(images.last)!,
+      center: true);
 }

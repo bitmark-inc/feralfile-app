@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -7,14 +8,16 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 import 'hand_signature_page.dart';
 
 class DesignStampPage extends StatefulWidget {
   static const String tag = 'design_stamp_screen';
+  final DesignStampPayload payload;
 
-  const DesignStampPage({Key? key}) : super(key: key);
+  const DesignStampPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<DesignStampPage> createState() => _DesignStampPageState();
@@ -31,13 +34,50 @@ class _DesignStampPageState extends State<DesignStampPage> {
   @override
   void initState() {
     super.initState();
-    location = "location".tr();
+    final placeMark = widget.payload.location.placeMark;
+    location = getLocation(placeMark);
+
     // date now dd-mm-yy
     date =
         "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}";
 
     stampColors.shuffle();
     selectedColor = stampColors[0];
+  }
+
+  String getLocation(Placemark placeMark) {
+    List<String> locationLevel = [];
+    if (placeMark.subLocality != null && placeMark.subLocality!.isNotEmpty) {
+      locationLevel.add(placeMark.subLocality!);
+    }
+    if (placeMark.subAdministrativeArea != null &&
+        placeMark.subAdministrativeArea!.isNotEmpty) {
+      locationLevel.add(placeMark.subAdministrativeArea!);
+    }
+    if (placeMark.locality != null && placeMark.locality!.isNotEmpty) {
+      locationLevel.add(placeMark.locality!);
+    }
+    if (placeMark.administrativeArea != null &&
+        placeMark.administrativeArea!.isNotEmpty) {
+      locationLevel.add(placeMark.administrativeArea!);
+    }
+    if (placeMark.country != null && placeMark.country!.isNotEmpty) {
+      locationLevel.add(placeMark.country!);
+    }
+    while (locationLevel.length > 3) {
+      locationLevel.removeAt(0);
+    }
+    return locationLevel.join(", ");
+  }
+
+  String selectLocation(String? first, String? second) {
+    if (first != null && first.isNotEmpty) {
+      return first;
+    } else if (second != null && second.isNotEmpty) {
+      return second;
+    } else {
+      return "";
+    }
   }
 
   @override
@@ -304,4 +344,10 @@ class StampPainter extends CustomPainter {
   bool shouldRepaint(covariant StampPainter oldDelegate) {
     return true;
   }
+}
+
+class DesignStampPayload {
+  final GeoLocation location;
+
+  DesignStampPayload(this.location);
 }

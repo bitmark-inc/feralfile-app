@@ -5,6 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -23,4 +27,40 @@ Future<Position> getGeoLocation(
           desiredAccuracy: LocationAccuracy.medium)
       .timeout(timeout);
   return position;
+}
+
+Future<GeoLocation?> getGeoLocationWithPermission(
+    {Duration timeout = const Duration(seconds: 10)}) async {
+  final hasPermission = await checkLocationPermissions();
+  final navigationService = injector<NavigationService>();
+  if (!hasPermission) {
+    UIHelper.showDeclinedGeolocalization(
+        navigationService.navigatorKey.currentContext!);
+    return null;
+  } else {
+    try {
+      final location =
+          await getGeoLocation(timeout: const Duration(seconds: 2));
+      List<Placemark> placeMarks = await placemarkFromCoordinates(
+          40.761806, -73.977783,
+          //location.latitude, location.longitude,
+          localeIdentifier: "en_US");
+      if (placeMarks.isEmpty) {
+        return null;
+      }
+      return GeoLocation(position: location, placeMark: placeMarks.first);
+    } catch (e) {
+      await UIHelper.showWeakGPSSignal(
+          NavigationService().navigatorKey.currentContext!);
+      return null;
+    }
+  }
+}
+
+class GeoLocation {
+  final Position position;
+  final Placemark placeMark;
+
+  //constructor
+  GeoLocation({required this.position, required this.placeMark});
 }
