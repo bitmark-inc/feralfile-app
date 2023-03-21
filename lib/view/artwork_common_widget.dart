@@ -984,6 +984,16 @@ Widget tokenOwnership(
     BuildContext context, AssetToken assetToken, List<String> addresses) {
   final theme = Theme.of(context);
 
+  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+  final totalSentQuantity = sentTokens
+      .where((element) =>
+          element.tokenID == assetToken.id &&
+          element.timestamp.isAfter(expiredTime))
+      .fold<int>(
+          0, (previousValue, element) => previousValue + element.sentQuantity);
+
   int ownedTokens = assetToken.balance ?? 0;
   if (ownedTokens == 0) {
     ownedTokens =
@@ -991,6 +1001,10 @@ Widget tokenOwnership(
     if (ownedTokens == 0) {
       ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
     }
+  }
+
+  if (ownedTokens > 0) {
+    ownedTokens -= totalSentQuantity;
   }
 
   return SectionExpandedWidget(
