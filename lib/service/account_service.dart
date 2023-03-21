@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -108,7 +109,8 @@ abstract class AccountService {
 
   Future<String> authorizeToViewer();
 
-  Future<Persona> addAddressPersona(Persona newPersona, WalletType walletType);
+  Future<Persona> addAddressPersona(
+      Persona newPersona, List<AddressInfo> addresses);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -188,15 +190,17 @@ class AccountServiceImpl extends AccountService {
         break;
     }
     final persona = Persona.newPersona(
-        uuid: uuid, ethereumIndexes: ethereumIndexes, tezosIndexes: tezosIndexes);
+        uuid: uuid,
+        ethereumIndexes: ethereumIndexes,
+        tezosIndexes: tezosIndexes);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
       "id": uuid,
-      "tezosIndex": persona.getTezIndexes().length,
-      "ethereumIndex": persona.getEthIndexes().length
+      "tezosIndex": persona.getTezIndexes(),
+      "ethereumIndex": persona.getEthIndexes()
     });
     _autonomyService.postLinkedAddresses();
 
@@ -773,18 +777,19 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona> addAddressPersona(
-      Persona newPersona, WalletType walletType) async {
-    switch (walletType) {
-      case WalletType.Ethereum:
-        ////////////////////////////////
-        //newPersona.ethereumIndex += 1;
-        break;
-      case WalletType.Tezos:
-        ///////////////////////////////
-        //newPersona.tezosIndex += 1;
-        break;
-      default:
+      Persona newPersona, List<AddressInfo> addresses) async {
+    final ethereumIndexes = newPersona.getEthIndexes();
+    final tezosIndexes = newPersona.getTezIndexes();
+    for (var address in addresses) {
+      if (address.getCryptoType() == CryptoType.ETH) {
+        ethereumIndexes.add(address.index);
+      } else if (address.getCryptoType() == CryptoType.XTZ) {
+        tezosIndexes.add(address.index);
+      }
     }
+    newPersona.ethereumIndexes = ethereumIndexes.toSet().toList().join(",");
+    newPersona.tezosIndexes = tezosIndexes.toSet().toList().join(",");
+
     await _cloudDB.personaDao.updatePersona(newPersona);
     return newPersona;
   }
