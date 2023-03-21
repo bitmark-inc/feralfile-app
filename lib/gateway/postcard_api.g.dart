@@ -99,6 +99,70 @@ class _PostcardApi implements PostcardApi {
     return value;
   }
 
+  @override
+  Future<dynamic> updatePostcard(
+    xApiSignature,
+    data,
+    signature,
+    timestamp,
+    address,
+    publicKey,
+    lat,
+    lon,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'X-Api-Signature': xApiSignature};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = FormData();
+    _data.files.add(MapEntry(
+      'image',
+      MultipartFile.fromFileSync(
+        data.path,
+        filename: data.path.split(Platform.pathSeparator).last,
+      ),
+    ));
+    _data.fields.add(MapEntry(
+      'signature',
+      signature,
+    ));
+    _data.fields.add(MapEntry(
+      'timestamp',
+      timestamp.toString(),
+    ));
+    _data.fields.add(MapEntry(
+      'address',
+      address,
+    ));
+    _data.fields.add(MapEntry(
+      'publicKey',
+      publicKey,
+    ));
+    _data.fields.add(MapEntry(
+      'lat',
+      lat.toString(),
+    ));
+    _data.fields.add(MapEntry(
+      'lon',
+      lon.toString(),
+    ));
+    final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+      contentType: 'multipart/form-data',
+    )
+        .compose(
+          _dio.options,
+          '/postcard/{token_id}/stamp',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data;
+    return value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

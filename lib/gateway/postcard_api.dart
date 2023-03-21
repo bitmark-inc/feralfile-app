@@ -1,3 +1,6 @@
+
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -18,4 +21,17 @@ abstract class PostcardApi {
   @POST("/claim/{share_code}")
   Future claimShareCode(@Header("X-Api-Signature") String xApiSignature,
       @Path("share_code") String shareCode);
+
+  @MultiPart()
+  @POST("/postcard/{token_id}/stamp")
+  Future<dynamic> updatePostcard(
+      @Header("X-Api-Signature") String xApiSignature,
+      @Part(name: "image") File data,
+      @Part(name: "signature") String signature,
+      @Part(name: "timestamp") int timestamp,
+      @Part(name: "address") String address,
+      @Part(name: "publicKey") String publicKey,
+      @Part(name: "lat") double lat,
+      @Part(name: "lon") double lon,
+      );
 }
