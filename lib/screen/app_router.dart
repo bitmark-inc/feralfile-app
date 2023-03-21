@@ -501,8 +501,15 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const ImportAccountPage());
+          settings: settings,
+          builder: (context) => BlocProvider(
+            create: (_) => ScanWalletBloc(
+              injector(),
+              injector(),
+            ),
+            child: const ImportAccountPage(),
+          ),
+        );
 
       case wcConnectPage:
         final argument = settings.arguments;

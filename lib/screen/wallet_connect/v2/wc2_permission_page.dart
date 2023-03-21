@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -620,28 +621,3 @@ class _PersonalConnectItemState extends State<PersonalConnectItem> {
   }
 }
 
-class LogoCrypto extends StatelessWidget {
-  final CryptoType? cryptoType;
-  final double? size;
-
-  const LogoCrypto({Key? key, this.cryptoType, this.size}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    if (cryptoType == CryptoType.XTZ) {
-      return SvgPicture.asset(
-        "assets/images/tez.svg",
-        width: size,
-        height: size,
-      );
-    }
-    if (cryptoType == CryptoType.ETH) {
-      return SvgPicture.asset(
-        'assets/images/ether.svg',
-        width: size,
-        height: size,
-      );
-    }
-    return Container();
-  }
-}

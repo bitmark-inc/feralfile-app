@@ -10,10 +10,10 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
   final TezosService _tezosService;
 
   ScanWalletBloc(this._ethereumService, this._tezosService)
-      : super(ScanWalletState(ethereumAddresses: [], tezosAddresses: [])) {
+      : super(ScanWalletState(addresses: [])) {
     on<ScanEthereumWalletEvent>(
       (event, emit) async {
-        emit(state.addNewAddresses([], [], isScanning: true));
+        emit(state.addNewAddresses([], isScanning: true));
         List<EthereumAddressInfo> ethereumAddresses = [];
         int gapCount = 0;
         int index = event.startIndex;
@@ -34,8 +34,13 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
 
           final hitStopGap = gapCount >= event.gapLimit;
           if (hitStopGap || ethereumAddresses.length >= event.maxLength) {
-            emit(state.addNewAddresses(ethereumAddresses, [],
-                hitStopGap: hitStopGap, isScanning: false));
+            if (event.isAdd) {
+              emit(state.addNewAddresses(ethereumAddresses,
+                  hitStopGap: hitStopGap, isScanning: false));
+            } else {
+              emit(ScanWalletState(
+                  addresses: ethereumAddresses, hitStopGap: hitStopGap));
+            }
             log.info(
                 "ScanEthereumWalletEvent: addresses: $ethereumAddresses hitStopGap: $hitStopGap");
             break;
@@ -47,7 +52,7 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
 
     on<ScanTezosWalletEvent>(
       (event, emit) async {
-        emit(state.addNewAddresses([], [], isScanning: true));
+        emit(state.addNewAddresses([], isScanning: true));
         List<TezosAddressInfo> tezosAddresses = [];
         int gapCount = 0;
         int index = event.startIndex;
@@ -68,8 +73,13 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
 
           final hitStopGap = gapCount >= event.gapLimit;
           if (hitStopGap || tezosAddresses.length >= event.maxLength) {
-            emit(state.addNewAddresses([], tezosAddresses,
-                hitStopGap: hitStopGap, isScanning: false));
+            if (event.isAdd) {
+              emit(state.addNewAddresses(tezosAddresses,
+                  hitStopGap: hitStopGap, isScanning: false));
+            } else {
+              emit(ScanWalletState(
+                  addresses: tezosAddresses, hitStopGap: hitStopGap));
+            }
 
             log.info(
                 "ScanTezosWalletEvent: addresses: $tezosAddresses hitStopGap: $hitStopGap");

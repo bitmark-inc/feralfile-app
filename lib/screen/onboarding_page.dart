@@ -334,7 +334,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                 )
               ] else if (state.onboardingStep ==
                   OnboardingStep.startScreen) ...[
-                Text("ne_make_a_new_account".tr(),
+                Text("create_wallet_description".tr(),
                     style: theme.textTheme.ppMori400Grey14),
                 const SizedBox(height: 20),
                 PrimaryButton(
@@ -347,15 +347,6 @@ class _OnboardingPageState extends State<OnboardingPage>
                       context.read<PersonaBloc>().add(CreatePersonaEvent());
                     });
                   },
-                ),
-                addDivider(height: 40),
-                Text("ad_i_already_have".tr(),
-                    style: theme.textTheme.ppMori400Grey14),
-                const SizedBox(height: 20),
-                PrimaryButton(
-                  text: "link_existing_wallet".tr(),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(AppRouter.linkAccountpage),
                 ),
               ] else if (state.onboardingStep == OnboardingStep.restore) ...[
                 Text("retrieve_at_once".tr(),
