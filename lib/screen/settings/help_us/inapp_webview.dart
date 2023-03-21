@@ -69,8 +69,6 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
             onPressed: () async {
               if (await webViewController.canGoBack()) {
                 await webViewController.goBack();
-              } else {
-                Navigator.of(context).pop();
               }
             },
           ),
