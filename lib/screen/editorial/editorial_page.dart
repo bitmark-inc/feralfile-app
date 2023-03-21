@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -76,6 +77,7 @@ class EditorialPageState extends State<EditorialPage>
       setState(() {
         _showFullHeader = isShowFullHeader;
       });
+      injector<ConfigurationService>().showNotifTip.value = isShowFullHeader;
     }
   }
 

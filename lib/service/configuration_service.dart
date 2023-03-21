@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -202,6 +203,16 @@ abstract class ConfigurationService {
   Future<void> reload();
 
   Future<void> removeAll();
+
+  ValueNotifier<bool> get showNotifTip;
+
+  ValueNotifier<bool> get showProTip;
+
+  ValueNotifier<bool> get showTvAppTip;
+
+  ValueNotifier<bool> get showCreatePlaylistTip;
+
+  ValueNotifier<bool> get showLinkOrImportTip;
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -869,4 +880,23 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setShowAuChainInfo(bool value) async {
     await _preferences.setBool(SHOW_AU_CHAIN_INFO, value);
   }
+
+  @override
+  ValueNotifier<bool> showProTip = ValueNotifier(true);
+
+  @override
+  // TODO: implement showCreatePlaylistTip
+  ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(true);
+
+  @override
+  // TODO: implement showLinkOrImport
+  ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(true);
+
+  @override
+  // TODO: implement showNotifTip
+  ValueNotifier<bool> showNotifTip = ValueNotifier(true);
+
+  @override
+  // TODO: implement showTvAppTip
+  ValueNotifier<bool> showTvAppTip = ValueNotifier(true);
 }

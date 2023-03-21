@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
@@ -46,11 +47,13 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,6 +61,7 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/token_ext.dart';
@@ -353,6 +357,13 @@ class HomePageState extends State<HomePage>
       SliverToBoxAdapter(
         child: HeaderView(paddingTop: paddingTop),
       ),
+      SliverToBoxAdapter(
+        child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 20),
+            child: Column(
+              children: _listTipcards(context),
+            )),
+      ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cellPerRow,
@@ -403,6 +414,62 @@ class HomePageState extends State<HomePage>
       slivers: sources,
       controller: _controller,
     );
+  }
+
+  List<Tipcard> _listTipcards(BuildContext context) {
+    final theme = Theme.of(context);
+    return [
+      Tipcard(
+          titleText: "enjoy_your_collection".tr(),
+          onPressed: () {
+            Navigator.of(context).pushNamed(
+              AppRouter.scanQRPage,
+              arguments: ScannerItem.GLOBAL,
+            );
+          },
+          buttonText: "sync_up_with_autonomy_tv".tr(),
+          content: RichText(
+            text: TextSpan(
+              text: "as_a_pro_sub_TV_app".tr(),
+              style: theme.textTheme.ppMori400Black14,
+              children: [
+                TextSpan(
+                  text: "tv_app".tr(),
+                  style: theme.textTheme.ppMori400Black14.copyWith(
+                      color: theme.colorScheme.primary,
+                      decoration: TextDecoration.underline),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      launchUrl(Uri.parse(TV_APP_STORE_URL),
+                          mode: LaunchMode.externalApplication);
+                    },
+                ),
+                TextSpan(
+                  text: "currently_available_on".tr(),
+                )
+              ],
+            ),
+          ),
+          listener: injector<ConfigurationService>().showTvAppTip),
+      Tipcard(
+          titleText: "create_your_first_playlist".tr(),
+          onPressed: () {
+            Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
+          },
+          buttonText: "create_new_playlist".tr(),
+          content: Text("as_a_pro_sub_playlist".tr(),
+              style: theme.textTheme.ppMori400Black14),
+          listener: injector<ConfigurationService>().showCreatePlaylistTip),
+      Tipcard(
+          titleText: "do_you_have_NFTs_in_other_wallets".tr(),
+          onPressed: () {
+            Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+          },
+          buttonText: "add_wallet".tr(),
+          content: Text("you_can_link_or_import".tr(),
+              style: theme.textTheme.ppMori400Black14),
+          listener: injector<ConfigurationService>().showLinkOrImportTip),
+    ];
   }
 
   Future<void> _cloudBackup() async {
