@@ -12,7 +12,8 @@ import 'claim_empty_postcard_state.dart';
 import 'claim_empty_postcard_bloc.dart';
 
 class ClaimEmptyPostCardScreen extends StatefulWidget {
-  const ClaimEmptyPostCardScreen({super.key});
+  final String id;
+  const ClaimEmptyPostCardScreen({super.key, required this.id});
 
   @override
   State<ClaimEmptyPostCardScreen> createState() =>
@@ -30,7 +31,18 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state.isClaimed == true) {
+            Navigator.pop(context);
+          }
+          if (state.error != null && state.error!.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error!),
+              ),
+            );
+          }
+        },
         bloc: bloc,
         builder: (context, state) {
           final artwork = state.assetToken;
@@ -151,6 +163,9 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           ),
                           PrimaryButton(
                             text: "accept_ownership".tr(),
+                            onTap: () {
+                              bloc.add(AcceptGiftEvent());
+                            },
                           ),
                           const SizedBox(
                             height: 30,

@@ -308,7 +308,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
-    data['source'] = "Postcard";
     final source = data["source"];
     switch (source) {
       case "FeralFile":
@@ -341,6 +340,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         break;
       case "Postcard":
+        final String? type = data["type"];
+        final String? id = data["id"];
+        if (type == "claim_empty_postcard" && id != null) {
+          _handleClaimEmptyPostcardDeeplink(id);
+          return;
+        }
         final String? sharedCode = data["shared_code"] ?? "shared_code";
         if (sharedCode != null) {
           log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
@@ -496,6 +501,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
             counter: sharedInfor.counter);
       }
     }
+  }
+
+  _handleClaimEmptyPostcardDeeplink(String? id) async {
+    _navigationService.navigatorKey.currentState?.pushNamed(
+      AppRouter.claimEmptyPostCard,
+      arguments: id,
+    );
   }
 }
 
