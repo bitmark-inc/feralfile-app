@@ -83,10 +83,40 @@ class _StampPreviewState extends State<StampPreview> {
   Future<void> pasteStamp() async {
     final postcardImage = img.decodePng(postcardData!);
     final stampImageResized =
-        img.copyResize(widget.payload.image, width: 490, height: 546);
+        img.copyResize(widget.payload.image, width: 520, height: 546);
 
-    final image = await compositeImageAt(
-        CompositeImageParams(postcardImage!, stampImageResized, 210, 212));
+    var image = await compositeImageAt(CompositeImageParams(
+        postcardImage!,
+        stampImageResized,
+        210,
+        212,
+        index,
+        490,
+        546));
+    image = compositeImagesAt(CompositeImageParams(
+        image,
+        stampImageResized,
+        210,
+        212,
+        1,
+        490,
+        546));
+    image = compositeImagesAt(CompositeImageParams(
+        image,
+        stampImageResized,
+        210,
+        212,
+        2,
+        490,
+        546));
+    image = compositeImagesAt(CompositeImageParams(
+        image,
+        stampImageResized,
+        210,
+        212,
+        9,
+        490,
+        546));
     setState(() {
       stamped = true;
       stampedPostcardData = img.encodePng(image);
@@ -101,7 +131,7 @@ class _StampPreviewState extends State<StampPreview> {
     final owner = await widget.payload.asset.getOwnerWallet();
     if (owner == null) return;
     final result = await injector<PostcardService>().stampPostcard(
-        widget.payload.asset.id,
+        widget.payload.asset.tokenId ?? "",
         owner.first,
         owner.second,
         imageData,
@@ -118,7 +148,12 @@ Future<img.Image> compositeImageAt(CompositeImageParams compositeImages) async {
 }
 
 img.Image compositeImagesAt(CompositeImageParams param) {
-  return img.compositeImage(param.dst, param.src, dstX: param.x, dstY: param.y);
+  final row = param.index ~/ 9;
+  final col = param.index % 9;
+  final dstX = param.x + col * param.w;
+  final dstY = param.y + row * param.h;
+
+  return img.compositeImage(param.dst, param.src, dstX: dstX-10, dstY: dstY);
 }
 
 class StampPreviewPayload {
@@ -134,6 +169,10 @@ class CompositeImageParams {
   final img.Image src;
   final int x;
   final int y;
+  final int index;
+  final int w;
+  final int h;
 
-  CompositeImageParams(this.dst, this.src, this.x, this.y);
+  CompositeImageParams(
+      this.dst, this.src, this.x, this.y, this.index, this.w, this.h);
 }

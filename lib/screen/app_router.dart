@@ -139,6 +139,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'interactive_postcard/postcard_detail_page.dart';
 
 class AppRouter {
   static const createPlayListPage = "createPlayList";
@@ -169,6 +170,7 @@ class AppRouter {
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
+  static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
   static const feedPreviewPage = 'feedPreviewPage';
   static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
@@ -810,6 +812,28 @@ class AppRouter {
                           )),
                 ],
                 child: ArtworkDetailPage(
+                    payload: settings.arguments as ArtworkDetailPayload)));
+
+      case claimedPostcardDetailsPage:
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 250),
+            settings: settings,
+            child: MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(
+                      create: (_) => ArtworkDetailBloc(
+                        injector(),
+                        injector(),
+                        injector(),
+                      )),
+                ],
+                child: ClaimedPostcardDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(

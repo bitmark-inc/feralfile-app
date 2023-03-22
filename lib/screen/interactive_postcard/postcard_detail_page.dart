@@ -18,8 +18,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -31,6 +32,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -42,7 +44,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -50,19 +51,18 @@ import 'package:share/share.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-part 'artwork_detail_page.g.dart';
 
-class ArtworkDetailPage extends StatefulWidget {
+class ClaimedPostcardDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
-  const ArtworkDetailPage({Key? key, required this.payload}) : super(key: key);
+  const ClaimedPostcardDetailPage({Key? key, required this.payload}) : super(key: key);
 
   @override
-  State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
+  State<ClaimedPostcardDetailPage> createState() => _ClaimedPostcardDetailPageState();
 }
 
-class _ArtworkDetailPageState extends State<ArtworkDetailPage>
-    with AfterLayoutMixin<ArtworkDetailPage> {
+class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
+    with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
 
@@ -157,7 +157,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void dispose() {
     final artworkId =
-        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
+    jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
     metricClient.addEvent(
       MixpanelEvent.stayInArtworkDetail,
       data: {
@@ -176,28 +176,28 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
         listener: (context, state) {
-      final identitiesList = state.provenances.map((e) => e.owner).toList();
-      if (state.assetToken?.artistName != null &&
-          state.assetToken!.artistName!.length > 20) {
-        identitiesList.add(state.assetToken!.artistName!);
-      }
-      setState(() {
-        currentAsset = state.assetToken;
-      });
-      if (withSharing && state.assetToken != null) {
-        _socialShare(context, state.assetToken!);
-        setState(() {
-          withSharing = false;
-        });
-      }
-      context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
-    }, builder: (context, state) {
+          final identitiesList = state.provenances.map((e) => e.owner).toList();
+          if (state.assetToken?.artistName != null &&
+              state.assetToken!.artistName!.length > 20) {
+            identitiesList.add(state.assetToken!.artistName!);
+          }
+          setState(() {
+            currentAsset = state.assetToken;
+          });
+          if (withSharing && state.assetToken != null) {
+            _socialShare(context, state.assetToken!);
+            setState(() {
+              withSharing = false;
+            });
+          }
+          context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+        }, builder: (context, state) {
       if (state.assetToken != null) {
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
 
         final artistName =
-            asset.artistName?.toIdentityOrMask(identityState.identityMap);
+        asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
         var subTitle = "";
         if (artistName != null && artistName.isNotEmpty) {
@@ -323,11 +323,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   PrimaryButton(
                     text: "postcard explain",
                     onTap: () {
-                      Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-                          arguments: widget.payload);
+                      Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+                          arguments: PostcardExplainPayload(asset));
                     },
                   ),
                 ],
+                travelInfoWidget(asset),
                 _artworkInfo(asset, state, artistName),
               ],
             ),
@@ -398,14 +399,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       builder: (context, identityState) =>
           BlocBuilder<AccountsBloc, AccountsState>(
               builder: (context, accountsState) {
-        final event = accountsState.event;
-        if (event != null && event is FetchAllAddressesSuccessEvent) {
-          _accountNumberHash = HashSet.of(event.addresses);
-        }
+                final event = accountsState.event;
+                if (event != null && event is FetchAllAddressesSuccessEvent) {
+                  _accountNumberHash = HashSet.of(event.addresses);
+                }
 
-        return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
-            _accountNumberHash, identityState.identityMap);
-      }),
+                return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
+                    _accountNumberHash, identityState.identityMap);
+              }),
     );
   }
 
@@ -438,7 +439,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             Navigator.of(context).pop();
             UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
               Navigator.of(context).popUntil((route) =>
-                  route.settings.name == AppRouter.homePage ||
+              route.settings.name == AppRouter.homePage ||
                   route.settings.name == AppRouter.homePageNoTransition);
             });
           },
@@ -500,8 +501,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 closeButton: "close".tr(),
                 onClose: () => isSentAll
                     ? Navigator.of(context).popAndPushNamed(
-                        AppRouter.homePage,
-                      )
+                  AppRouter.homePage,
+                )
                     : null,
               );
             },
@@ -531,120 +532,153 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final message = Uint8List.fromList(utf8.encode(timestamp));
     final signature =
-        await tezosService.signMessage(ownerWallet, addressIndex!, message);
+    await tezosService.signMessage(ownerWallet, addressIndex!, message);
 
     final sharePostcardRespone =
-        await injector<PostcardService>().sharePostcard(asset, signature);
+    await injector<PostcardService>().sharePostcard(asset, signature);
     if (sharePostcardRespone.url?.isNotEmpty ?? false) {
       Share.share(sharePostcardRespone.url!);
     }
   }
-}
 
-class ArtworkView extends StatelessWidget {
-  const ArtworkView({
-    Key? key,
-    required this.payload,
-    required this.token,
-  }) : super(key: key);
-
-  final ArtworkDetailPayload payload;
-  final AssetToken token;
-
-  @override
-  Widget build(BuildContext context) {
-    final mimeType = token.getMimeType;
-    switch (mimeType) {
-      case "image":
-      case "svg":
-      case 'gif':
-      case "audio":
-      case "video":
-        return Stack(
-          children: [
-            AbsorbPointer(
-              child: Center(
-                child: IntrinsicHeight(
-                  child: ArtworkPreviewWidget(
-                    identity: payload.identities[payload.currentIndex],
-                    isMute: true,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-          ],
-        );
-
-      default:
-        return AspectRatio(
-          aspectRatio: 1,
-          child: Stack(
+  Widget travelInfoWidget(AssetToken asset) {
+    final stamps = _getStamps(asset);
+    final travelInfo = _getTravelInfo(stamps);
+    final theme = Theme.of(context);
+    return Padding(
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // travel distance row
+          Row(
             children: [
-              Center(
-                child: ArtworkPreviewWidget(
-                  identity: payload.identities[payload.currentIndex],
-                  isMute: true,
-                ),
+              Text(
+                "travel_distance".tr(),
+                style: theme.textTheme.ppMori700White14,
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
+              const Spacer(),
+              Text(
+                "${_getTotalDistance(stamps)} mi",
+                style: theme.textTheme.ppMori700White14,
               ),
             ],
           ),
-        );
-    }
-  }
-}
-
-class ArtworkDetailPayload {
-  final List<ArtworkIdentity> identities;
-  final int currentIndex;
-  final bool isPlaylist;
-  final String? twitterCaption;
-
-  ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.twitterCaption, this.isPlaylist = false});
-
-  ArtworkDetailPayload copyWith(
-      {List<ArtworkIdentity>? ids,
-      int? currentIndex,
-      bool? isPlaylist,
-      String? twitterCaption}) {
-    return ArtworkDetailPayload(
-      ids ?? identities,
-      currentIndex ?? this.currentIndex,
-      twitterCaption: twitterCaption ?? this.twitterCaption,
-      isPlaylist: isPlaylist ?? this.isPlaylist,
+          addDivider(height: 30, color: AppColor.auGreyBackground),
+          ...travelInfo.map((e) => travelWidget(e)).toList(),
+        ],
+      ),
     );
   }
+
+  Widget travelWidget(TravelInfo travelInfo) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(travelInfo.getIndex().toString(),
+                  style: theme.textTheme.ppMori400White12
+                      .copyWith(color: AppColor.auQuickSilver)),
+              Text(
+                travelInfo.getSentLocation(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              Row(
+                children: [
+                  Text(
+                    "->",
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    travelInfo.getReceivedLocation(),
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            "${travelInfo.getDistance()} mi",
+            style: theme.textTheme.ppMori400White14,
+          ),
+        ]),
+        addDivider(height: 30, color: AppColor.auGreyBackground),
+      ],
+    );
+  }
+
+  List<StampInfo> _getStamps(AssetToken token) {
+    // create dummy stamps with random data
+    final stamps = <StampInfo>[];
+    stamps.add(StampInfo(0, "Moma", true, true));
+    stamps.add(StampInfo(1, "location1", true, true, distanceToPrevious: 100));
+    stamps
+        .add(StampInfo(2, "location2", false, false, distanceToPrevious: 200));
+
+    return stamps;
+  }
+
+  List<TravelInfo> _getTravelInfo(List<StampInfo> stamps) {
+    final travelInfo = <TravelInfo>[];
+    for (int i = 0; i < stamps.length - 1; i++) {
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1]));
+    }
+    travelInfo.add(TravelInfo(stamps[stamps.length - 1], null));
+    if (travelInfo.length > 44) {
+      travelInfo.removeLast();
+    }
+    return travelInfo;
+  }
+
+  double _getTotalDistance(List<StampInfo> stamps) {
+    double totalDistance = 0;
+    for (var stamp in stamps) {
+      totalDistance += stamp.distanceToPrevious ?? 0;
+    }
+    return totalDistance;
+  }
 }
 
-@JsonSerializable()
-class ArtworkIdentity {
-  final String id;
-  final String owner;
 
-  ArtworkIdentity(this.id, this.owner);
 
-  factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
-      _$ArtworkIdentityFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
+class StampInfo {
+  final int index;
+  final String location;
+  final double? distanceToPrevious;
+  final bool isStamped;
+  final bool isShared;
+
+  //constructor
+  StampInfo(this.index, this.location, this.isStamped, this.isShared,
+      {this.distanceToPrevious});
+}
+
+class TravelInfo {
+  final StampInfo from;
+  final StampInfo? to;
+
+  TravelInfo(this.from, this.to);
+
+  double? getDistance() {
+    return to?.distanceToPrevious;
+  }
+
+  int getIndex() {
+    return from.index;
+  }
+
+  String getSentLocation() {
+    return from.location;
+  }
+
+  String getReceivedLocation() {
+    return to?.location ?? "Not yet send";
+  }
 }
