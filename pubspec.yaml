@@ -24,6 +24,7 @@ dependencies:
   after_layout: ^1.2.0
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
+  carousel_slider: ^4.2.1
   cast: ^1.1.0
   collection: ^1.15.0
   connectivity_plus: ^2.2.1

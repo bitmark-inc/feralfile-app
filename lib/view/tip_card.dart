@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class Tipcard extends StatelessWidget {
   final String titleText;
   final Function() onPressed;
+  final Function()? onClosed;
   final String buttonText;
   final Widget content;
   final ValueNotifier<bool> listener;
@@ -16,6 +17,7 @@ class Tipcard extends StatelessWidget {
     required this.buttonText,
     required this.content,
     required this.listener,
+    this.onClosed,
   });
 
   @override
@@ -50,7 +52,8 @@ class Tipcard extends StatelessWidget {
                           ),
                           color: AppColor.primaryBlack,
                           onPressed: () {
-                            //listener.value = false;
+                            if (onClosed != null) onClosed!();
+                            listener.value = false;
                           },
                         ),
                       ],
@@ -65,7 +68,7 @@ class Tipcard extends StatelessWidget {
                         text: buttonText,
                         onTap: () {
                           onPressed();
-                          //listener.value = false;
+                          listener.value = false;
                         }),
                   ],
                 ),

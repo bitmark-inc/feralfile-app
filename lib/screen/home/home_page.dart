@@ -45,6 +45,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
@@ -358,11 +359,9 @@ class HomePageState extends State<HomePage>
         child: HeaderView(paddingTop: paddingTop),
       ),
       SliverToBoxAdapter(
-        child: Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 15, 20),
-            child: Column(
-              children: _listTipcards(context),
-            )),
+        child: CarouselWithIndicator(
+          items: _listTipcards(context),
+        ),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -419,56 +418,68 @@ class HomePageState extends State<HomePage>
   List<Tipcard> _listTipcards(BuildContext context) {
     final theme = Theme.of(context);
     return [
-      Tipcard(
-          titleText: "enjoy_your_collection".tr(),
-          onPressed: () {
-            Navigator.of(context).pushNamed(
-              AppRouter.scanQRPage,
-              arguments: ScannerItem.GLOBAL,
-            );
-          },
-          buttonText: "sync_up_with_autonomy_tv".tr(),
-          content: RichText(
-            text: TextSpan(
-              text: "as_a_pro_sub_TV_app".tr(),
-              style: theme.textTheme.ppMori400Black14,
-              children: [
-                TextSpan(
-                  text: "tv_app".tr(),
-                  style: theme.textTheme.ppMori400Black14.copyWith(
-                      color: theme.colorScheme.primary,
-                      decoration: TextDecoration.underline),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      launchUrl(Uri.parse(TV_APP_STORE_URL),
-                          mode: LaunchMode.externalApplication);
-                    },
-                ),
-                TextSpan(
-                  text: "currently_available_on".tr(),
-                )
-              ],
+      if (injector<ConfigurationService>().showTvAppTip.value)
+        Tipcard(
+            titleText: "enjoy_your_collection".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                AppRouter.scanQRPage,
+                arguments: ScannerItem.GLOBAL,
+              );
+            },
+            onClosed: () {
+              setState(() {});
+            },
+            buttonText: "sync_up_with_autonomy_tv".tr(),
+            content: RichText(
+              text: TextSpan(
+                text: "as_a_pro_sub_TV_app".tr(),
+                style: theme.textTheme.ppMori400Black14,
+                children: [
+                  TextSpan(
+                    text: "tv_app".tr(),
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        launchUrl(Uri.parse(TV_APP_STORE_URL),
+                            mode: LaunchMode.externalApplication);
+                      },
+                  ),
+                  TextSpan(
+                    text: "currently_available_on".tr(),
+                  )
+                ],
+              ),
             ),
-          ),
-          listener: injector<ConfigurationService>().showTvAppTip),
-      Tipcard(
-          titleText: "create_your_first_playlist".tr(),
-          onPressed: () {
-            Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
-          },
-          buttonText: "create_new_playlist".tr(),
-          content: Text("as_a_pro_sub_playlist".tr(),
-              style: theme.textTheme.ppMori400Black14),
-          listener: injector<ConfigurationService>().showCreatePlaylistTip),
-      Tipcard(
-          titleText: "do_you_have_NFTs_in_other_wallets".tr(),
-          onPressed: () {
-            Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
-          },
-          buttonText: "add_wallet".tr(),
-          content: Text("you_can_link_or_import".tr(),
-              style: theme.textTheme.ppMori400Black14),
-          listener: injector<ConfigurationService>().showLinkOrImportTip),
+            listener: injector<ConfigurationService>().showTvAppTip),
+      if (injector<ConfigurationService>().showCreatePlaylistTip.value)
+        Tipcard(
+            titleText: "create_your_first_playlist".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
+            },
+            onClosed: () {
+              setState(() {});
+            },
+            buttonText: "create_new_playlist".tr(),
+            content: Text("as_a_pro_sub_playlist".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: injector<ConfigurationService>().showCreatePlaylistTip),
+      if (injector<ConfigurationService>().showLinkOrImportTip.value)
+        Tipcard(
+            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+            },
+            onClosed: () {
+              setState(() {});
+            },
+            buttonText: "add_wallet".tr(),
+            content: Text("you_can_link_or_import".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: injector<ConfigurationService>().showLinkOrImportTip),
     ];
   }
 
