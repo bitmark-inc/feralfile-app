@@ -78,8 +78,7 @@ extension AssetTokenExtension on AssetToken {
         index = await persona.getTezAddressIndex(owner);
       }
       if (index != null) {
-        result = Pair<WalletStorage, int>(
-            persona.wallet(), index);
+        result = Pair<WalletStorage, int>(persona.wallet(), index);
         break;
       }
     }
@@ -245,6 +244,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   }
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
+
   String get getMimeType {
     switch (mimeType) {
       case "image/avif":

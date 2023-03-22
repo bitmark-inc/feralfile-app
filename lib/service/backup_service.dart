@@ -183,10 +183,8 @@ class BackupService {
                 """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
             await db.execute(
                 """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
-            await db.execute(
-                """UPDATE Persona set tezosIndexes = ',0';""");
-            await db.execute(
-                """UPDATE Persona set ethereumIndexes = ',0';""");
+            await db.execute("""UPDATE Persona set tezosIndexes = ',0';""");
+            await db.execute("""UPDATE Persona set ethereumIndexes = ',0';""");
           }
         }
 
