@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class FeedArtworkDetailsPage extends StatefulWidget {
 
 class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   late ScrollController _scrollController;
-  late FeedEvent feedEvent;
+  late List<FeedEvent> feedEvents;
   AssetToken? assetToken;
   HashSet<String> _accountNumberHash = HashSet.identity();
 
@@ -51,8 +52,8 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
     injector<MetricClientService>()
         .addEvent(MixpanelEvent.viewDiscoveryArtwork, data: {
       "id": widget.payload.feedToken?.id,
-      "eventId": widget.payload.feedEvent?.id,
-      "action": widget.payload.feedEvent?.action
+      "eventId": widget.payload.feedEvents.first.id,
+      "action": widget.payload.feedEvents.first.action
     });
     fetchIdentities();
     super.initState();
@@ -66,11 +67,11 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
 
   void fetchIdentities() {
     final currentToken = widget.payload.feedToken;
-    final currentFeedEvent = widget.payload.feedEvent;
+    final currentFeedEvents = widget.payload.feedEvents;
 
     final neededIdentities = [
       currentToken?.artistName ?? '',
-      currentFeedEvent?.recipient ?? ''
+      ...currentFeedEvents.map((e) => e.recipient),
     ];
     neededIdentities.removeWhere((element) => element == '');
 
@@ -83,18 +84,19 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentToken = widget.payload.feedToken;
-    final currentFeedEvent = widget.payload.feedEvent;
-    if (currentFeedEvent == null || currentToken == null) {
+    final currentFeedEvents = widget.payload.feedEvents;
+    if (currentFeedEvents.isEmpty || currentToken == null) {
       return const SizedBox();
     }
-
-    feedEvent = currentFeedEvent;
+    feedEvents = currentFeedEvents;
     assetToken = currentToken;
 
     final identityState = context.watch<IdentityBloc>().state;
-    final followingName =
-        feedEvent.recipient.toIdentityOrMask(identityState.identityMap) ??
-            feedEvent.recipient;
+    final followingNames = feedEvents
+        .map((event) =>
+            event.recipient.toIdentityOrMask(identityState.identityMap) ??
+            event.recipient)
+        .toList();
     final artistName =
         assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
     final editionSubTitle = getEditionSubTitle(assetToken!);
@@ -188,34 +190,44 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                 ),
                 Padding(
                   padding: ResponsiveLayout.getPadding,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Wrap(
+                    runSpacing: 4.0,
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: ResponsiveLayout.isMobile
-                              ? theme.textTheme.ppMori400White12
-                              : theme.textTheme.ppMori400White14,
+                          style: theme.textTheme.ppMori400White14,
                           children: [
                             TextSpan(
-                              text: "_by"
-                                  .tr(args: [feedEvent.actionRepresentation]),
+                              text: "_by".tr(args: [
+                                feedEvents.first.actionRepresentation
+                              ]),
                             ),
-                            TextSpan(
-                              text: followingName,
-                              style: theme.textTheme.ppMori400SupperTeal12,
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () => Navigator.of(context).pushNamed(
-                                      AppRouter.galleryPage,
-                                      arguments: GalleryPagePayload(
-                                        address: feedEvent.recipient,
-                                        artistName: followingName,
-                                      ),
-                                    ),
-                            )
                           ],
                         ),
                       ),
+                      ...feedEvents
+                          .mapIndexed((i, event) => [
+                                GestureDetector(
+                                  child: Text(
+                                    followingNames[i],
+                                    style: theme.textTheme.ppMori400White14
+                                        .copyWith(color: AppColor.auSuperTeal),
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).pushNamed(
+                                      AppRouter.galleryPage,
+                                      arguments: GalleryPagePayload(
+                                        address: event.recipient,
+                                        artistName: followingNames[i],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                if (i < feedEvents.length - 1)
+                                  Text(", ",
+                                      style: theme.textTheme.ppMori400White14)
+                              ])
+                          .flattened,
                     ],
                   ),
                 ),
