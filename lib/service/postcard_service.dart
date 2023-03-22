@@ -37,8 +37,8 @@ abstract class PostcardService {
 
   Future<bool> isReceived(String tokenId);
 
-  Future<bool> stampPostcard(
-      WalletStorage wallet, int index, File image, Position? location);
+  Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
+      File image, Position? location);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -133,8 +133,8 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<bool> stampPostcard(
-      WalletStorage wallet, int index, File image, Position? location) async {
+  Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
+      File image, Position? location) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final signature = await _tezosService.signMessage(
         wallet, index, Uint8List.fromList(utf8.encode(timestamp.toString())));
@@ -143,6 +143,7 @@ class PostcardServiceImpl extends PostcardService {
     final lat = location?.latitude;
     final lon = location?.longitude;
     final result = await _postcardApi.updatePostcard(
+        tokenId: tokenId,
         data: image,
         signature: signature,
         timestamp: timestamp,

@@ -102,6 +102,7 @@ class _PostcardApi implements PostcardApi {
 
   @override
   Future<dynamic> updatePostcard({
+    required tokenId,
     required data,
     required signature,
     required timestamp,
@@ -158,7 +159,7 @@ class _PostcardApi implements PostcardApi {
     )
         .compose(
           _dio.options,
-          '/v1/postcard/{token_id}/stamp',
+          '/v1/postcard/${tokenId}/stamp',
           queryParameters: queryParameters,
           data: _data,
         )

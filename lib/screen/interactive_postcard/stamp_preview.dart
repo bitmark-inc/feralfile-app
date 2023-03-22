@@ -71,6 +71,7 @@ class _StampPreviewState extends State<StampPreview> {
             ),
             PrimaryButton(
               text: "send_postcard".tr(),
+              enabled: stamped,
               onTap: () async {
                 await _sendPostcard();
               },
@@ -96,12 +97,15 @@ class _StampPreviewState extends State<StampPreview> {
     if (!stamped) return;
     String dir = (await getTemporaryDirectory()).path;
     File imageFile = File('$dir/postcardImage.png');
-    final imageData =
-        await imageFile.writeAsBytes(stampedPostcardData!);
+    final imageData = await imageFile.writeAsBytes(stampedPostcardData!);
     final owner = await widget.payload.asset.getOwnerWallet();
     if (owner == null) return;
     final result = await injector<PostcardService>().stampPostcard(
-        owner.first, owner.second, imageData, widget.payload.location);
+        widget.payload.asset.id,
+        owner.first,
+        owner.second,
+        imageData,
+        widget.payload.location);
     if (result) {
       if (!mounted) return;
       Navigator.of(context).pop();
