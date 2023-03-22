@@ -6,11 +6,16 @@
 //
 
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -30,12 +35,17 @@ abstract class PostcardService {
   Future<AssetToken> getPostcard(String tokenId);
 
   Future<bool> isReceived(String tokenId);
+
+  Future<bool> stampPostcard(
+      WalletStorage wallet, int index, File image, Position? location);
 }
 
 class PostcardServiceImpl extends PostcardService {
   final PostcardApi _postcardApi;
   final IndexerApi _indexerApi;
-  PostcardServiceImpl(this._postcardApi, this._indexerApi);
+  final TezosService _tezosService;
+
+  PostcardServiceImpl(this._postcardApi, this._indexerApi, this._tezosService);
 
   @override
   Future claimEmptyPostcard() async {
@@ -125,15 +135,39 @@ class PostcardServiceImpl extends PostcardService {
   Future<bool> isReceived(String tokenId) async {
     return false;
   }
+
+  @override
+  Future<bool> stampPostcard(
+      WalletStorage wallet, int index, File image, Position? location) async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final signature = await _tezosService.signMessage(
+        wallet, index, Uint8List.fromList(utf8.encode(timestamp.toString())));
+    final address = await wallet.getTezosAddress(index: index);
+    final publicKey = await wallet.getTezosPublicKey(index: index);
+    final lat = location?.latitude;
+    final lon = location?.longitude;
+    final result = await _postcardApi.updatePostcard(
+        data: image,
+        signature: signature,
+        timestamp: timestamp,
+        address: address,
+        publicKey: publicKey,
+        lat: lat,
+        lon: lon) as Map<String, dynamic>;
+    final ok = result["ok"] as int;
+    return ok == 1;
+  }
 }
 
 class SharePostcardRespone {
   String? url;
+
   SharePostcardRespone({this.url});
 }
 
 class ReceivePostcardRespone {
   String? tokenId;
+
   ReceivePostcardRespone({this.tokenId});
 }
 
@@ -142,6 +176,7 @@ class SharedPostcardInfor {
   String tokenId;
   String imageCID;
   int counter;
+
   SharedPostcardInfor(
       {required this.shareId,
       required this.tokenId,

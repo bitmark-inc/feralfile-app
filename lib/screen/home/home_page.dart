@@ -316,12 +316,7 @@ class HomePageState extends State<HomePage>
     return ListView(
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
-        GestureDetector(
-          child: HeaderView(paddingTop: paddingTop),
-          onTap: () {
-            Navigator.pushNamed(context, AppRouter.postcardExplain);
-          },
-        ),
+        HeaderView(paddingTop: paddingTop),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(

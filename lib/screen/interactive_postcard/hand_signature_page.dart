@@ -8,6 +8,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'package:image/image.dart' as img;
 
@@ -127,7 +129,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     UIHelper.hideInfoDialog(context);
     Navigator.of(context).pushNamed(StampPreview.tag,
         arguments: StampPreviewPayload(
-          image,
+          image, widget.payload.asset, widget.payload.location,
         ));
   }
 
@@ -135,8 +137,10 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
 class HandSignaturePayload {
   final Uint8List image;
+  final AssetToken asset;
+  final Position? location;
 
-  HandSignaturePayload(this.image);
+  HandSignaturePayload(this.image, this.asset, this.location);
 }
 
 Future<img.Image> compositeImage(List<Uint8List> images) async {

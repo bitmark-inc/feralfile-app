@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -31,6 +32,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -204,8 +206,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           subTitle = "by".tr(args: [artistName]);
         }
 
-        final editionSubTitle = getEditionSubTitle(asset);
-
         return Scaffold(
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
@@ -312,6 +312,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     onTap: () async {
                       final shareInfor = await injector<PostcardService>()
                           .getSharedPostcardInfor("shareCode");
+                      if (!mounted) return;
                       Navigator.of(context).pushNamed(
                           AppRouter.receivePostcardPage,
                           arguments: ReceivePostcardPageArgs(
@@ -319,52 +320,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                               sharedId: shareInfor.shareId,
                               counter: shareInfor.counter));
                     },
-                  )
+                  ),
+                  const SizedBox(height: 30),
+                  PrimaryButton(
+                    text: "postcard explain",
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+                          arguments: PostcardExplainPayload(asset));
+                    },
+                  ),
                 ],
-                const SizedBox(height: 20),
-                Visibility(
-                  visible: editionSubTitle.isNotEmpty,
-                  child: Padding(
-                    padding: ResponsiveLayout.getPadding,
-                    child: Text(
-                      editionSubTitle,
-                      style: theme.textTheme.ppMori400Grey14,
-                    ),
-                  ),
-                ),
-                debugInfoWidget(context, currentAsset),
-                const SizedBox(height: 16.0),
-                Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        label: 'Desc',
-                        child: HtmlWidget(
-                          asset.description ?? "",
-                          textStyle: theme.textTheme.ppMori400White14,
-                        ),
-                      ),
-                      const SizedBox(height: 40.0),
-                      artworkDetailsMetadataSection(context, asset, artistName),
-                      if (asset.fungible == true) ...[
-                        BlocBuilder<AccountsBloc, AccountsState>(
-                          builder: (context, state) {
-                            final addresses = state.addresses;
-                            return tokenOwnership(context, asset, addresses);
-                          },
-                        ),
-                      ] else ...[
-                        state.provenances.isNotEmpty
-                            ? _provenanceView(context, state.provenances)
-                            : const SizedBox()
-                      ],
-                      artworkDetailsRightSection(context, asset),
-                      const SizedBox(height: 80.0),
-                    ],
-                  ),
-                )
+                travelInfoWidget(asset),
+                _artworkInfo(asset, state, artistName),
               ],
             ),
           ),
@@ -373,6 +340,60 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         return const SizedBox();
       }
     });
+  }
+
+  Widget _artworkInfo(
+      AssetToken asset, ArtworkDetailState state, String? artistName) {
+    final theme = Theme.of(context);
+    final editionSubTitle = getEditionSubTitle(asset);
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Visibility(
+          visible: editionSubTitle.isNotEmpty,
+          child: Padding(
+            padding: ResponsiveLayout.getPadding,
+            child: Text(
+              editionSubTitle,
+              style: theme.textTheme.ppMori400Grey14,
+            ),
+          ),
+        ),
+        debugInfoWidget(context, currentAsset),
+        const SizedBox(height: 16.0),
+        Padding(
+          padding: ResponsiveLayout.getPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Semantics(
+                label: 'Desc',
+                child: HtmlWidget(
+                  asset.description ?? "",
+                  textStyle: theme.textTheme.ppMori400White14,
+                ),
+              ),
+              const SizedBox(height: 40.0),
+              artworkDetailsMetadataSection(context, asset, artistName),
+              if (asset.fungible == true) ...[
+                BlocBuilder<AccountsBloc, AccountsState>(
+                  builder: (context, state) {
+                    final addresses = state.addresses;
+                    return tokenOwnership(context, asset, addresses);
+                  },
+                ),
+              ] else ...[
+                state.provenances.isNotEmpty
+                    ? _provenanceView(context, state.provenances)
+                    : const SizedBox()
+              ],
+              artworkDetailsRightSection(context, asset),
+              const SizedBox(height: 80.0),
+            ],
+          ),
+        )
+      ],
+    );
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -521,6 +542,109 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       Share.share(sharePostcardRespone.url!);
     }
   }
+
+  Widget travelInfoWidget(AssetToken asset) {
+    final stamps = _getStamps(asset);
+    final travelInfo = _getTravelInfo(stamps);
+    final theme = Theme.of(context);
+    return Padding(
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // travel distance row
+          Row(
+            children: [
+              Text(
+                "travel_distance".tr(),
+                style: theme.textTheme.ppMori700White14,
+              ),
+              const Spacer(),
+              Text(
+                "${_getTotalDistance(stamps)} mi",
+                style: theme.textTheme.ppMori700White14,
+              ),
+            ],
+          ),
+          addDivider(height: 30, color: AppColor.auGreyBackground),
+          ...travelInfo.map((e) => travelWidget(e)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget travelWidget(TravelInfo travelInfo) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(travelInfo.getIndex().toString(),
+                  style: theme.textTheme.ppMori400White12
+                      .copyWith(color: AppColor.auQuickSilver)),
+              Text(
+                travelInfo.getSentLocation(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              Row(
+                children: [
+                  Text(
+                    "->",
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    travelInfo.getReceivedLocation(),
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            "${travelInfo.getDistance()} mi",
+            style: theme.textTheme.ppMori400White14,
+          ),
+        ]),
+        addDivider(height: 30, color: AppColor.auGreyBackground),
+      ],
+    );
+  }
+
+  List<StampInfo> _getStamps(AssetToken token) {
+    // create dummy stamps with random data
+    final stamps = <StampInfo>[];
+    stamps.add(StampInfo(0, "Moma", true, true));
+    stamps.add(StampInfo(1, "location1", true, true, distanceToPrevious: 100));
+    stamps
+        .add(StampInfo(2, "location2", false, false, distanceToPrevious: 200));
+
+    return stamps;
+  }
+
+  List<TravelInfo> _getTravelInfo(List<StampInfo> stamps) {
+    final travelInfo = <TravelInfo>[];
+    for (int i = 0; i < stamps.length - 1; i++) {
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1]));
+    }
+    travelInfo.add(TravelInfo(stamps[stamps.length - 1], null));
+    if (travelInfo.length > 44) {
+      travelInfo.removeLast();
+    }
+    return travelInfo;
+  }
+
+  double _getTotalDistance(List<StampInfo> stamps) {
+    double totalDistance = 0;
+    for (var stamp in stamps) {
+      totalDistance += stamp.distanceToPrevious ?? 0;
+    }
+    return totalDistance;
+  }
 }
 
 class _ArtworkView extends StatelessWidget {
@@ -629,4 +753,39 @@ class ArtworkIdentity {
       _$ArtworkIdentityFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
+}
+
+class StampInfo {
+  final int index;
+  final String location;
+  final double? distanceToPrevious;
+  final bool isStamped;
+  final bool isShared;
+
+  //constructor
+  StampInfo(this.index, this.location, this.isStamped, this.isShared,
+      {this.distanceToPrevious});
+}
+
+class TravelInfo {
+  final StampInfo from;
+  final StampInfo? to;
+
+  TravelInfo(this.from, this.to);
+
+  double? getDistance() {
+    return to?.distanceToPrevious;
+  }
+
+  int getIndex() {
+    return from.index;
+  }
+
+  String getSentLocation() {
+    return from.location;
+  }
+
+  String getReceivedLocation() {
+    return to?.location ?? "Not yet send";
+  }
 }
