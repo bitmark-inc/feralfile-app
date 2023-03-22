@@ -26,6 +26,7 @@ abstract class PostcardApi {
   @MultiPart()
   @POST("/v1/postcard/{token_id}/stamp")
   Future<dynamic> updatePostcard({
+    @Path("token_id") required String tokenId,
     @Part(name: "image") required File data,
     @Part(name: "signature") required String signature,
     @Part(name: "timestamp") required int timestamp,
