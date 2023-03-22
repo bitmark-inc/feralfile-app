@@ -100,20 +100,19 @@ class _PostcardApi implements PostcardApi {
   }
 
   @override
-  Future<dynamic> updatePostcard(
-    xApiSignature,
-    data,
-    signature,
-    timestamp,
-    address,
-    publicKey,
+  Future<dynamic> updatePostcard({
+    required data,
+    required signature,
+    required timestamp,
+    required address,
+    required publicKey,
     lat,
     lon,
-  ) async {
+  }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Api-Signature': xApiSignature};
-    _headers.removeWhere((k, v) => v == null);
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = FormData();
     _data.files.add(MapEntry(
       'image',
@@ -138,14 +137,18 @@ class _PostcardApi implements PostcardApi {
       'publicKey',
       publicKey,
     ));
-    _data.fields.add(MapEntry(
-      'lat',
-      lat.toString(),
-    ));
-    _data.fields.add(MapEntry(
-      'lon',
-      lon.toString(),
-    ));
+    if (lat != null) {
+      _data.fields.add(MapEntry(
+        'lat',
+        lat.toString(),
+      ));
+    }
+    if (lon != null) {
+      _data.fields.add(MapEntry(
+        'lon',
+        lon.toString(),
+      ));
+    }
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'POST',
       headers: _headers,

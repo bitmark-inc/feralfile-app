@@ -42,8 +42,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
       final location =
           await getGeoLocation(timeout: const Duration(seconds: 2));
       List<Placemark> placeMarks = await placemarkFromCoordinates(
-          40.761806, -73.977783,
-          //location.latitude, location.longitude,
+          location.latitude, location.longitude,
           localeIdentifier: "en_US");
       if (placeMarks.isEmpty) {
         return null;

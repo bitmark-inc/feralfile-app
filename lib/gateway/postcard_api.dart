@@ -24,14 +24,13 @@ abstract class PostcardApi {
 
   @MultiPart()
   @POST("/postcard/{token_id}/stamp")
-  Future<dynamic> updatePostcard(
-      @Header("X-Api-Signature") String xApiSignature,
-      @Part(name: "image") File data,
-      @Part(name: "signature") String signature,
-      @Part(name: "timestamp") int timestamp,
-      @Part(name: "address") String address,
-      @Part(name: "publicKey") String publicKey,
-      @Part(name: "lat") double lat,
-      @Part(name: "lon") double lon,
-      );
+  Future<dynamic> updatePostcard({
+    @Part(name: "image") required File data,
+    @Part(name: "signature") required String signature,
+    @Part(name: "timestamp") required int timestamp,
+    @Part(name: "address") required String address,
+    @Part(name: "publicKey") required String publicKey,
+    @Part(name: "lat") double? lat,
+    @Part(name: "lon") double? lon,
+  });
 }

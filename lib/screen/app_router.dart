@@ -361,7 +361,7 @@ class AppRouter {
       case postcardExplain:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => const PostcardExplain(),
+          builder: (context) => PostcardExplain(payload: settings.arguments as PostcardExplainPayload),
         );
 
       case designStamp:

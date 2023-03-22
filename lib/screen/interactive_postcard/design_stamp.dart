@@ -9,6 +9,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 import 'hand_signature_page.dart';
@@ -26,7 +27,7 @@ class DesignStampPage extends StatefulWidget {
 class _DesignStampPageState extends State<DesignStampPage> {
   List<Color?> rectColors = List<Color?>.filled(100, null);
   Color selectedColor = AppColor.primaryBlack;
-  late String location;
+  String location = "MoMA";
   late String date;
   WidgetsToImageController controller = WidgetsToImageController();
   bool line = true;
@@ -34,8 +35,10 @@ class _DesignStampPageState extends State<DesignStampPage> {
   @override
   void initState() {
     super.initState();
-    final placeMark = widget.payload.location.placeMark;
-    location = getLocation(placeMark);
+    if (widget.payload.location != null) {
+      final placeMark = widget.payload.location!.placeMark;
+      location = getLocation(placeMark);
+    }
 
     // date now dd-mm-yy
     date =
@@ -61,8 +64,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
         placeMark.administrativeArea!.isNotEmpty) {
       locationLevel.add(placeMark.administrativeArea!);
     }
-    if (placeMark.country != null && placeMark.country!.isNotEmpty) {
-      locationLevel.add(placeMark.country!);
+    if (placeMark.isoCountryCode != null &&
+        placeMark.isoCountryCode!.isNotEmpty) {
+      locationLevel.add(placeMark.isoCountryCode!);
     }
     while (locationLevel.length > 3) {
       locationLevel.removeAt(0);
@@ -216,18 +220,24 @@ class _DesignStampPageState extends State<DesignStampPage> {
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                 child: PrimaryButton(
                   text: "stamp_postcard".tr(),
-                  onTap: () async {
-                    setState(() {
-                      line = false;
-                    });
-                    Future.delayed(const Duration(milliseconds: 200), () async {
-                      final bytes = await controller.capture();
-                      if (!mounted) return;
-                      Navigator.of(context).pushNamed(
-                          HandSignaturePage.handSignaturePage,
-                          arguments: HandSignaturePayload(bytes!));
-                    });
-                  },
+                  onTap: rectColors.any((element) => element == null)
+                      ? null
+                      : () async {
+                          setState(() {
+                            line = false;
+                          });
+                          Future.delayed(const Duration(milliseconds: 200),
+                              () async {
+                            final bytes = await controller.capture();
+                            if (!mounted) return;
+                            Navigator.of(context).pushNamed(
+                                HandSignaturePage.handSignaturePage,
+                                arguments: HandSignaturePayload(
+                                    bytes!,
+                                    widget.payload.asset,
+                                    widget.payload.location?.position));
+                          });
+                        },
                 ),
               ),
             ],
@@ -347,7 +357,8 @@ class StampPainter extends CustomPainter {
 }
 
 class DesignStampPayload {
-  final GeoLocation location;
+  final AssetToken asset;
+  final GeoLocation? location;
 
-  DesignStampPayload(this.location);
+  DesignStampPayload(this.asset, this.location);
 }
