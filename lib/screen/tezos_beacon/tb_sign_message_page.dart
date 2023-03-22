@@ -63,7 +63,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
       for (final persona in personas) {
-        final index = await persona.getTezAddressIndex(widget.request.sourceAddress!);
+        final index =
+            await persona.getTezAddressIndex(widget.request.sourceAddress!);
         if (index != null) {
           currentWallet = WalletIndex(persona.wallet(), index);
           break;

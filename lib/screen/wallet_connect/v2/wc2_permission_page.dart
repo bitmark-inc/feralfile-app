@@ -620,4 +620,3 @@ class _PersonalConnectItemState extends State<PersonalConnectItem> {
     );
   }
 }
-
