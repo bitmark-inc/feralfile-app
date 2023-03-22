@@ -124,22 +124,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
             }
             _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
             return Column(children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Tipcard(
-                  titleText: "want_to_receive_real_time".tr(),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(AppRouter.preferencesPage);
-                  },
-                  buttonText: "turn_on_notif".tr(),
-                  content: Text(
-                    "turn_on_notif_to_get".tr(),
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                  listener: injector<ConfigurationService>().showNotifTip,
-                ),
-              ),
               Expanded(
                 child: CustomScrollView(
                   controller: widget.controller,
@@ -147,6 +131,26 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                   physics: const AlwaysScrollableScrollPhysics(),
                   cacheExtent: 1000,
                   slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 20),
+                        child: Tipcard(
+                          titleText: "want_to_receive_real_time".tr(),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pushNamed(AppRouter.preferencesPage);
+                          },
+                          buttonText: "turn_on_notif".tr(),
+                          content: Text(
+                            "turn_on_notif_to_get".tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          listener:
+                              injector<ConfigurationService>().showNotifTip,
+                        ),
+                      ),
+                    ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => _listItem(

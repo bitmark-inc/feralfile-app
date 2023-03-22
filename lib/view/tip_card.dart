@@ -1,3 +1,6 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +25,18 @@ class Tipcard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metricClient = injector<MetricClientService>();
     final theme = Theme.of(context);
     return ValueListenableBuilder<bool>(
-      valueListenable: listener,
+      valueListenable: listener
+        ..addListener(() {
+          print("listener.value: ${listener.value}");
+          if (listener.value) {
+            metricClient.addEvent(MixpanelEvent.showPostcard, data: {
+              'title': titleText,
+            });
+          }
+        }),
       builder: (context, value, Widget? child) {
         return value
             ? Container(
@@ -53,6 +65,10 @@ class Tipcard extends StatelessWidget {
                           color: AppColor.primaryBlack,
                           onPressed: () {
                             if (onClosed != null) onClosed!();
+                            metricClient
+                                .addEvent(MixpanelEvent.closePostcard, data: {
+                              'title': titleText,
+                            });
                             listener.value = false;
                           },
                         ),
@@ -68,6 +84,10 @@ class Tipcard extends StatelessWidget {
                         text: buttonText,
                         onTap: () {
                           onPressed();
+                          metricClient
+                              .addEvent(MixpanelEvent.pressPostcard, data: {
+                            'title': titleText,
+                          });
                           listener.value = false;
                         }),
                   ],

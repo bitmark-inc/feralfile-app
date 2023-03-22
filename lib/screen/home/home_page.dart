@@ -443,6 +443,12 @@ class HomePageState extends State<HomePage>
                         decoration: TextDecoration.underline),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
+                        final metricClient = injector<MetricClientService>();
+                        metricClient.addEvent(MixpanelEvent.tapLinkInTipCard,
+                            data: {
+                              "link": TV_APP_STORE_URL,
+                              "title": "enjoy_your_collection".tr()
+                            });
                         launchUrl(Uri.parse(TV_APP_STORE_URL),
                             mode: LaunchMode.externalApplication);
                       },
