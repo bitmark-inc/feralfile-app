@@ -26,13 +26,13 @@ class AddAddressToWallet extends StatefulWidget {
 
   const AddAddressToWallet(
       {Key? key,
-        required this.addresses,
-        required this.importedAddress,
-        this.scanNext = true,
-        this.onImport,
-        required this.walletType,
-        required this.wallet,
-        this.onSkip})
+      required this.addresses,
+      required this.importedAddress,
+      this.scanNext = true,
+      this.onImport,
+      required this.walletType,
+      required this.wallet,
+      this.onSkip})
       : super(key: key);
 
   @override
@@ -62,12 +62,12 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
     final theme = Theme.of(context);
     return BlocConsumer<ScanWalletBloc, ScanWalletState>(
         listener: (context, scanState) {
-          if (scanState.addresses.isNotEmpty && !scanState.isScanning) {
-            setState(() {
-              addresses = scanState.addresses;
-            });
-          }
-        }, builder: (context, scanState) {
+      if (scanState.addresses.isNotEmpty && !scanState.isScanning) {
+        setState(() {
+          addresses = scanState.addresses;
+        });
+      }
+    }, builder: (context, scanState) {
       final scanningNext = addresses.isNotEmpty && scanState.isScanning;
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 32),
@@ -93,39 +93,39 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
             Expanded(
               child: addresses.isEmpty && scanState.isScanning
                   ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      "assets/images/loading_white_tran.gif",
-                      width: 52,
-                      height: 52,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      "h_loading...".tr(),
-                      style: theme.textTheme.ppMori400White14,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "assets/images/loading_white_tran.gif",
+                            width: 52,
+                            height: 52,
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            "h_loading...".tr(),
+                            style: theme.textTheme.ppMori400White14,
+                          )
+                        ],
+                      ),
                     )
-                  ],
-                ),
-              )
                   : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    ...addresses
-                        .map((address) => [
-                      _addressOption(
-                          addressInfo: address,
-                          isImported: widget.importedAddress
-                              .contains(address.address)),
-                      addDivider(
-                          height: 1, color: AppColor.white),
-                    ])
-                        .flattened
-                        .toList(),
-                  ],
-                ),
-              ),
+                      child: Column(
+                        children: [
+                          ...addresses
+                              .map((address) => [
+                                    _addressOption(
+                                        addressInfo: address,
+                                        isImported: widget.importedAddress
+                                            .contains(address.address)),
+                                    addDivider(
+                                        height: 1, color: AppColor.white),
+                                  ])
+                              .flattened
+                              .toList(),
+                        ],
+                      ),
+                    ),
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -147,9 +147,9 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
                   text: "import".tr(),
                   onTap: selectedAddresses.isNotEmpty
                       ? () {
-                    widget.onImport?.call(selectedAddresses);
-                    Navigator.pop(context);
-                  }
+                          widget.onImport?.call(selectedAddresses);
+                          Navigator.pop(context);
+                        }
                       : null,
                 ),
                 if (widget.onSkip != null) ...[
@@ -199,14 +199,14 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
         onTap: isImported
             ? null
             : () {
-          setState(() {
-            if (selectedAddresses.contains(addressInfo)) {
-              selectedAddresses.remove(addressInfo);
-            } else {
-              selectedAddresses.add(addressInfo);
-            }
-          });
-        },
+                setState(() {
+                  if (selectedAddresses.contains(addressInfo)) {
+                    selectedAddresses.remove(addressInfo);
+                  } else {
+                    selectedAddresses.add(addressInfo);
+                  }
+                });
+              },
         child: Row(
           children: [
             LogoCrypto(
@@ -233,47 +233,46 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
             const Spacer(),
             isImported
                 ? ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                side: const BorderSide(
-                  color: AppColor.disabledColor,
-                ),
-                alignment: Alignment.center,
-              ),
-              onPressed: () {},
-              child: Text(
-                "Imported",
-                style: theme.textTheme.ppMori400White14.copyWith(
-                  color: AppColor.disabledColor,
-                ),
-              ),
-            )
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                      side: const BorderSide(
+                        color: AppColor.disabledColor,
+                      ),
+                      alignment: Alignment.center,
+                    ),
+                    onPressed: () {},
+                    child: Text(
+                      "Imported",
+                      style: theme.textTheme.ppMori400White14.copyWith(
+                        color: AppColor.disabledColor,
+                      ),
+                    ),
+                  )
                 : Row(
-              children: [
-                Text(
-                  addressInfo.getBalance(),
-                  style: theme.textTheme.ppMori400White14
-                      .copyWith(color: color),
-                ),
-                const SizedBox(width: 20),
-                RadioSelectAddress(
-                  isChecked: selectedAddresses.contains(addressInfo),
-                  checkColor: AppColor.white,
-                  borderColor: AppColor.white,
-                ),
-              ],
-            )
+                    children: [
+                      Text(
+                        addressInfo.getBalance(),
+                        style: theme.textTheme.ppMori400White14
+                            .copyWith(color: color),
+                      ),
+                      const SizedBox(width: 20),
+                      RadioSelectAddress(
+                        isChecked: selectedAddresses.contains(addressInfo),
+                        checkColor: AppColor.white,
+                        borderColor: AppColor.white,
+                      ),
+                    ],
+                  )
           ],
         ),
       ),
     );
   }
 }
-
 
 class LogoCrypto extends StatelessWidget {
   final CryptoType? cryptoType;
