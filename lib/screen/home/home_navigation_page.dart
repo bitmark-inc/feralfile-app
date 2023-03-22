@@ -154,7 +154,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.of(context).pushNamed(AppRouter.claimEmptyPostCard);
+                Navigator.of(context).pushNamed(
+                  AppRouter.claimEmptyPostCard,
+                  arguments: "postcard",
+                );
               }),
         ],
       );

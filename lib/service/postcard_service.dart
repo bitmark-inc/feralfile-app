@@ -9,9 +9,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:geolocator/geolocator.dart';
@@ -25,7 +25,8 @@ abstract class PostcardService {
       required Position location,
       required String address});
 
-  Future claimEmptyPostcard();
+  Future<ClaimPostCardResponse> claimEmptyPostcard(
+      {String? id, String? address});
 
   Future<SharePostcardRespone> sharePostcard(
       AssetToken asset, String signature);
@@ -48,16 +49,16 @@ class PostcardServiceImpl extends PostcardService {
   PostcardServiceImpl(this._postcardApi, this._indexerApi, this._tezosService);
 
   @override
-  Future claimEmptyPostcard() async {
-    final body = {"id": "postcard", "claimer": "tz1"};
-    final xApiSignature = Environment.xApiSignature;
-    final response = await _postcardApi.claim(xApiSignature, body);
-    if (response.statusCode == 200) {
-      final postcard = json.decode(response.body);
-      return postcard;
-    } else {
-      throw Exception('Failed to load postcards');
-    }
+  Future<ClaimPostCardResponse> claimEmptyPostcard(
+      {String? id, String? address}) async {
+    final body = {
+      "id": id,
+      "address": address,
+      "signature": "anything not check"
+    };
+    const xApiSignature = '';
+
+    return _postcardApi.claim(xApiSignature, body);
   }
 
   @override
@@ -71,14 +72,9 @@ class PostcardServiceImpl extends PostcardService {
       "location": [location.latitude, location.longitude],
       "address": address,
     };
-    final xApiSignature = Environment.xApiSignature;
-    final response = await _postcardApi.claim(xApiSignature, body);
-    if (response.statusCode == 200) {
-      final postcard = json.decode(response.body);
-      return ReceivePostcardRespone(tokenId: postcard["tokenId"]);
-    } else {
-      throw Exception('Failed to load postcards');
-    }
+    const xApiSignature = 'Environment.xApiSignature';
+    final postcard = await _postcardApi.claim(xApiSignature, body);
+    return ReceivePostcardRespone(tokenId: postcard.tokenID);
   }
 
   @override
@@ -95,7 +91,7 @@ class PostcardServiceImpl extends PostcardService {
       "signature": signature,
       "counter": counter,
     };
-    final xApiSignature = Environment.xApiSignature;
+    const xApiSignature = 'Environment.xApiSignature';
     final response = await _postcardApi.share(xApiSignature, tokenId, body);
     if (response.statusCode == 200) {
       final url = json.decode(response.body);
@@ -120,7 +116,7 @@ class PostcardServiceImpl extends PostcardService {
         tokenId: "tokenId",
         imageCID: "imageCID",
         counter: 0);
-    final xApiSignature = Environment.xApiSignature;
+    const xApiSignature = 'Environment.xApiSignature';
     final response =
         await _postcardApi.claimShareCode(xApiSignature, shareCode);
     if (response.statusCode == 200) {

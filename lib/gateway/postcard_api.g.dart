@@ -19,7 +19,7 @@ class _PostcardApi implements PostcardApi {
   String? baseUrl;
 
   @override
-  Future<dynamic> claim(
+  Future<ClaimPostCardResponse> claim(
     xApiSignature,
     body,
   ) async {
@@ -29,19 +29,20 @@ class _PostcardApi implements PostcardApi {
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<ClaimPostCardResponse>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
     )
-        .compose(
-          _dio.options,
-          '/postcard/claim',
-          queryParameters: queryParameters,
-          data: _data,
-        )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = _result.data;
+            .compose(
+              _dio.options,
+              '/v1/postcard/claim',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = ClaimPostCardResponse.fromJson(_result.data!);
     return value;
   }
 
@@ -64,7 +65,7 @@ class _PostcardApi implements PostcardApi {
     )
         .compose(
           _dio.options,
-          '/postcard/${tokenId}/share',
+          '/v1/postcard/${tokenId}/share',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -90,7 +91,7 @@ class _PostcardApi implements PostcardApi {
     )
         .compose(
           _dio.options,
-          '/claim/${shareCode}',
+          '/v1/claim/${shareCode}',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -157,7 +158,7 @@ class _PostcardApi implements PostcardApi {
     )
         .compose(
           _dio.options,
-          '/postcard/{token_id}/stamp',
+          '/v1/postcard/{token_id}/stamp',
           queryParameters: queryParameters,
           data: _data,
         )

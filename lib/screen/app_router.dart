@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
+import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
@@ -216,6 +217,7 @@ class AppRouter {
   static const handSignaturePage = "hand_signature_page";
   static const stampPreview = "stamp_preview";
   static const claimEmptyPostCard = "claim_empty_postcard";
+  static const selectAddressScreen = "select_address_screen";
   static const receivePostcardPage = 'receive_postcard_page';
   static const postcardDetailPage = 'postcard_detail_page';
   static const receivePostcardSelectAccountPage =
@@ -1147,10 +1149,26 @@ class AppRouter {
               return const HelpUsPage();
             });
       case claimEmptyPostCard:
+        final id = settings.arguments as String;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) {
-            return const ClaimEmptyPostCardScreen();
+            return ClaimEmptyPostCardScreen(id: id);
+          },
+        );
+
+      case selectAddressScreen:
+        final arguments = settings.arguments as Map;
+        final blockchain = arguments['blockchain'] as String;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+              ],
+              child: SelectAccountScreen(blockchain: blockchain),
+            );
           },
         );
       case receivePostcardPage:
