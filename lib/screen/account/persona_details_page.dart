@@ -505,5 +505,3 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 }
-
-
