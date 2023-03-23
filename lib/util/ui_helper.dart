@@ -589,12 +589,11 @@ class UIHelper {
           const SizedBox(
             height: 40,
           ),
-          AuFilledButton(
+          OutlineButton(
             text: "close".tr(),
-            onPress: () {
+            onTap: () {
               Navigator.of(context).pop();
             },
-            textStyle: theme.primaryTextTheme.labelLarge,
           ),
         ],
       ),
