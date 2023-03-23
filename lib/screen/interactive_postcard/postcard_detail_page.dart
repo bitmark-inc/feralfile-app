@@ -13,15 +13,14 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -31,7 +30,9 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -43,7 +44,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -51,21 +51,25 @@ import 'package:share/share.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-part 'artwork_detail_page.g.dart';
-
-class ArtworkDetailPage extends StatefulWidget {
+class ClaimedPostcardDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
-  const ArtworkDetailPage({Key? key, required this.payload}) : super(key: key);
+  const ClaimedPostcardDetailPage({Key? key, required this.payload})
+      : super(key: key);
 
   @override
-  State<ArtworkDetailPage> createState() => _ArtworkDetailPageState();
+  State<ClaimedPostcardDetailPage> createState() =>
+      _ClaimedPostcardDetailPageState();
 }
 
-class _ArtworkDetailPageState extends State<ArtworkDetailPage>
-    with AfterLayoutMixin<ArtworkDetailPage> {
+class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
+    with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
+
+  late Locale locale;
+  late DistanceFormatter distanceFormatter;
+  bool viewJourney = true;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -172,6 +176,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    locale = Localizations.localeOf(context);
+    distanceFormatter = DistanceFormatter(locale: locale);
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
@@ -260,84 +267,128 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               )
             ],
           ),
-          body: SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 40,
-                ),
-                Hero(
-                  tag: "detail_${asset.id}",
-                  child: ArtworkView(
-                    payload: widget.payload,
-                    token: asset,
-                  ),
-                ),
-                Visibility(
-                  visible: CHECK_WEB3_CONTRACT_ADDRESS
-                      .contains(asset.contractAddress),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16.0, right: 16.0, top: 40),
-                      child: OutlineButton(
-                        color: Colors.transparent,
-                        text: "web3_glossary".tr(),
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Hero(
+                        tag: "detail_${asset.id}",
+                        child: ArtworkView(
+                          payload: widget.payload,
+                          token: asset,
+                        ),
+                      ),
+                      Visibility(
+                        visible: CHECK_WEB3_CONTRACT_ADDRESS
+                            .contains(asset.contractAddress),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16.0, right: 16.0, top: 40),
+                            child: OutlineButton(
+                              color: Colors.transparent,
+                              text: "web3_glossary".tr(),
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, AppRouter.previewPrimerPage,
+                                    arguments: asset);
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      PrimaryButton(
+                        text: "stamp_postcard".tr(),
                         onTap: () {
-                          Navigator.pushNamed(
-                              context, AppRouter.previewPrimerPage,
-                              arguments: asset);
+                          Navigator.of(context).pushNamed(
+                              AppRouter.postcardExplain,
+                              arguments: PostcardExplainPayload(asset));
                         },
                       ),
-                    ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: _tabBar(),
+                      ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      viewJourney
+                          ? travelInfoWidget(asset)
+                          : _artworkInfo(asset, state, artistName),
+                    ],
                   ),
                 ),
-                const SizedBox(
-                  height: 40,
-                ),
-                if (_canShare(asset)) ...[
-                  PrimaryButton(
-                    text: "Share PostCard",
-                    onTap: () {
-                      _sharePostcard(asset);
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                  PrimaryButton(
-                    text: "To Receive",
-                    onTap: () async {
-                      final shareInfor = await injector<PostcardService>()
-                          .getSharedPostcardInfor("shareCode");
-                      if (!mounted) return;
-                      Navigator.of(context).pushNamed(
-                          AppRouter.receivePostcardPage,
-                          arguments: ReceivePostcardPageArgs(
-                              asset: asset,
-                              sharedId: shareInfor.shareId,
-                              counter: shareInfor.counter));
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                  PrimaryButton(
-                    text: "postcard explain",
-                    onTap: () {
-                      Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-                          arguments: widget.payload);
-                    },
-                  ),
-                ],
-                _artworkInfo(asset, state, artistName),
-              ],
-            ),
+              ),
+              Visibility(visible: viewJourney, child: _postcardAction(asset)),
+            ],
           ),
         );
       } else {
         return const SizedBox();
       }
     });
+  }
+
+  Widget _postcardAction(AssetToken asset) {
+    final isStamped = true;
+    if (!isStamped) {
+      return Padding(
+        padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+        child: PrimaryButton(
+          text: "stamp_postcard".tr(),
+          onTap: () {
+            Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+                arguments: PostcardExplainPayload(asset));
+          },
+        ),
+      );
+    } else if (_canShare(asset)) {
+      return Padding(
+        padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+        child: PrimaryButton(
+          text: "invite_to_collaborate".tr(),
+          onTap: () {
+            _sharePostcard(asset);
+          },
+        ),
+      );
+    } else {
+      return const SizedBox();
+    }
+  }
+
+  Future<void> _sharePostcard(AssetToken asset) async {
+    final tezosService = injector<TezosService>();
+    final owner = await asset.getOwnerWallet();
+    final ownerWallet = owner?.first;
+    final addressIndex = owner?.second;
+    if (ownerWallet == null) {
+      return;
+    }
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final message = Uint8List.fromList(utf8.encode(timestamp));
+    final signature =
+        await tezosService.signMessage(ownerWallet, addressIndex!, message);
+
+    final sharePostcardResponse =
+        await injector<PostcardService>().sharePostcard(asset, signature);
+    if (sharePostcardResponse.url?.isNotEmpty ?? false) {
+      Share.share(sharePostcardResponse.url!);
+    }
   }
 
   Widget _artworkInfo(
@@ -391,6 +442,47 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           ),
         )
       ],
+    );
+  }
+
+  Widget _tabBar() {
+    return Row(
+      children: [
+        _tab("journey".tr(), viewJourney),
+        const SizedBox(width: 10),
+        _tab("info".tr(), !viewJourney),
+      ],
+    );
+  }
+
+  Widget _tab(String text, bool isSelected) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (!isSelected) {
+            setState(() {
+              viewJourney = !viewJourney;
+            });
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.only(top: 5),
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                  width: 2,
+                  color:
+                      isSelected ? AppColor.auSuperTeal : AppColor.greyMedium),
+            ),
+          ),
+          child: Text(
+            text,
+            style: theme.textTheme.ppMori400White14
+                .copyWith(color: isSelected ? null : AppColor.greyMedium),
+          ),
+        ),
+      ),
     );
   }
 
@@ -521,133 +613,138 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     return true;
   }
 
-  Future<void> _sharePostcard(AssetToken asset) async {
-    final tezosService = injector<TezosService>();
-    final owner = await asset.getOwnerWallet();
-    final ownerWallet = owner?.first;
-    final addressIndex = owner?.second;
-    if (ownerWallet == null) {
-      return;
-    }
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final message = Uint8List.fromList(utf8.encode(timestamp));
-    final signature =
-        await tezosService.signMessage(ownerWallet, addressIndex!, message);
-
-    final sharePostcardRespone =
-        await injector<PostcardService>().sharePostcard(asset, signature);
-    if (sharePostcardRespone.url?.isNotEmpty ?? false) {
-      Share.share(sharePostcardRespone.url!);
-    }
-    injector<ConfigurationService>()
-        .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
-  }
-}
-
-class ArtworkView extends StatelessWidget {
-  const ArtworkView({
-    Key? key,
-    required this.payload,
-    required this.token,
-  }) : super(key: key);
-
-  final ArtworkDetailPayload payload;
-  final AssetToken token;
-
-  @override
-  Widget build(BuildContext context) {
-    final mimeType = token.getMimeType;
-    switch (mimeType) {
-      case "image":
-      case "svg":
-      case 'gif':
-      case "audio":
-      case "video":
-        return Stack(
-          children: [
-            AbsorbPointer(
-              child: Center(
-                child: IntrinsicHeight(
-                  child: ArtworkPreviewWidget(
-                    identity: payload.identities[payload.currentIndex],
-                    isMute: true,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-          ],
-        );
-
-      default:
-        return AspectRatio(
-          aspectRatio: 1,
-          child: Stack(
+  Widget travelInfoWidget(AssetToken asset) {
+    final stamps = _getStamps(asset);
+    final travelInfo = _getTravelInfo(stamps);
+    final theme = Theme.of(context);
+    return Padding(
+      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // travel distance row
+          Row(
             children: [
-              Center(
-                child: ArtworkPreviewWidget(
-                  identity: payload.identities[payload.currentIndex],
-                  isMute: true,
-                ),
+              Text(
+                "travel_distance".tr(),
+                style: theme.textTheme.ppMori700White14,
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed(AppRouter.artworkPreviewPage,
-                      arguments: payload);
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
+              const Spacer(),
+              Text(
+                distanceFormatter.format(distance: _getTotalDistance(stamps)),
+                style: theme.textTheme.ppMori700White14,
               ),
             ],
           ),
-        );
-    }
-  }
-}
-
-class ArtworkDetailPayload {
-  final List<ArtworkIdentity> identities;
-  final int currentIndex;
-  final bool isPlaylist;
-  final String? twitterCaption;
-
-  ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.twitterCaption, this.isPlaylist = false});
-
-  ArtworkDetailPayload copyWith(
-      {List<ArtworkIdentity>? ids,
-      int? currentIndex,
-      bool? isPlaylist,
-      String? twitterCaption}) {
-    return ArtworkDetailPayload(
-      ids ?? identities,
-      currentIndex ?? this.currentIndex,
-      twitterCaption: twitterCaption ?? this.twitterCaption,
-      isPlaylist: isPlaylist ?? this.isPlaylist,
+          addDivider(height: 30, color: AppColor.auGreyBackground),
+          ...travelInfo.map((e) => travelWidget(e)).toList(),
+        ],
+      ),
     );
   }
+
+  Widget travelWidget(TravelInfo travelInfo) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(travelInfo.getIndex().toString(),
+                  style: theme.textTheme.ppMori400White12
+                      .copyWith(color: AppColor.auQuickSilver)),
+              Text(
+                travelInfo.getSentLocation(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              Row(
+                children: [
+                  SvgPicture.asset("assets/images/arrow_3.svg"),
+                  const SizedBox(width: 6),
+                  Text(
+                    travelInfo.getReceivedLocation(),
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            distanceFormatter.format(distance: travelInfo.getDistance()),
+            style: theme.textTheme.ppMori400White14,
+          ),
+        ]),
+        addDivider(height: 30, color: AppColor.auGreyBackground),
+      ],
+    );
+  }
+
+  List<StampInfo> _getStamps(AssetToken token) {
+    // create dummy stamps with random data
+    final stamps = <StampInfo>[];
+    stamps.add(StampInfo(0, "Moma", true, true));
+    stamps.add(StampInfo(1, "location1", true, true, distanceToPrevious: 100));
+    stamps
+        .add(StampInfo(2, "location2", false, false, distanceToPrevious: 200));
+
+    return stamps;
+  }
+
+  List<TravelInfo> _getTravelInfo(List<StampInfo> stamps) {
+    final travelInfo = <TravelInfo>[];
+    for (int i = 0; i < stamps.length - 1; i++) {
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1]));
+    }
+    travelInfo.add(TravelInfo(stamps[stamps.length - 1], null));
+    if (travelInfo.length > 44) {
+      travelInfo.removeLast();
+    }
+    return travelInfo;
+  }
+
+  double _getTotalDistance(List<StampInfo> stamps) {
+    double totalDistance = 0;
+    for (var stamp in stamps) {
+      totalDistance += stamp.distanceToPrevious ?? 0;
+    }
+    return totalDistance;
+  }
 }
 
-@JsonSerializable()
-class ArtworkIdentity {
-  final String id;
-  final String owner;
+class StampInfo {
+  final int index;
+  final String location;
+  final double? distanceToPrevious;
+  final bool isStamped;
+  final bool isShared;
 
-  ArtworkIdentity(this.id, this.owner);
+  //constructor
+  StampInfo(this.index, this.location, this.isStamped, this.isShared,
+      {this.distanceToPrevious});
+}
 
-  factory ArtworkIdentity.fromJson(Map<String, dynamic> json) =>
-      _$ArtworkIdentityFromJson(json);
+class TravelInfo {
+  final StampInfo from;
+  final StampInfo? to;
 
-  Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
+  TravelInfo(this.from, this.to);
+
+  double? getDistance() {
+    return to?.distanceToPrevious;
+  }
+
+  int getIndex() {
+    return from.index;
+  }
+
+  String getSentLocation() {
+    return from.location;
+  }
+
+  String getReceivedLocation() {
+    return to?.location ?? "Not yet send";
+  }
 }
