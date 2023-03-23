@@ -22,7 +22,10 @@ class DistanceFormatter {
 
   DistanceFormatter({required this.locale});
 
-  String format({required double distance}) {
+  String format({double? distance}) {
+    if (distance == null) {
+      return '-';
+    }
     if (isMiles()) {
       return '${convertKmToMiles(distance).toStringAsFixed(0)} mi';
     }
