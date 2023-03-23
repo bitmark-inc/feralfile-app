@@ -1,16 +1,21 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:dio/dio.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-
+import 'package:libauk_dart/libauk_dart.dart';
 import 'claim_empty_postcard_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -71,15 +76,37 @@ class ClaimEmptyPostCardBloc
           AppRouter.selectAddressScreen,
           arguments: {
             'blockchain': 'Tezos',
+            'onConfirm': (String address) async {
+              navigationService.goBack(arguments: address);
+            }
           },
         );
       }
       try {
         if (address != null) {
-          final result = await _postcardService.claimEmptyPostcard(
+          final tezosService = injector.get<TezosService>();
+          final timestamp =
+              (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+          final account = await accountService.getAccountByAddress(
+            chain: 'tezos',
+            address: address,
+          );
+          final signature = await tezosService.signMessage(
+              account.wallet,
+              account.index,
+              Uint8List.fromList(utf8.encode(timestamp.toString())));
+          final publicKey =
+              await account.wallet.getTezosPublicKey(index: account.index);
+
+          final claimRequest = ClaimPostCardRequest(
             address: address,
             id: 'postcard',
+            timestamp: timestamp,
+            publicKey: publicKey,
+            signature: signature,
           );
+          final result =
+              await _postcardService.claimEmptyPostcard(claimRequest);
           final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
           final token = AssetToken(
             asset: Asset.init(

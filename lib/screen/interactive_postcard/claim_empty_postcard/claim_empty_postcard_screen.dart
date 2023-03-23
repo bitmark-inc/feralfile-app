@@ -156,6 +156,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           PrimaryButton(
                             text: "accept_ownership".tr(),
                             enabled: state.isClaiming != true,
+                            isProcessing: state.isClaiming == true,
                             onTap: () {
                               bloc.add(AcceptGiftEvent());
                             },

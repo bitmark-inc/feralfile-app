@@ -26,7 +26,7 @@ abstract class PostcardService {
       required String address});
 
   Future<ClaimPostCardResponse> claimEmptyPostcard(
-      {String? id, String? address});
+      ClaimPostCardRequest request);
 
   Future<SharePostcardRespone> sharePostcard(
       AssetToken asset, String signature);
@@ -50,13 +50,8 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
-      {String? id, String? address}) async {
-    final body = {
-      "id": id,
-      "address": address,
-      "signature": "anything not check"
-    };
-    return _postcardApi.claim(body);
+      ClaimPostCardRequest request) async {
+    return _postcardApi.claim(request);
   }
 
   @override
@@ -70,7 +65,10 @@ class PostcardServiceImpl extends PostcardService {
       "location": [location.latitude, location.longitude],
       "address": address,
     };
-    final postcard = await _postcardApi.claim(body);
+
+    ///TODO: update api
+    final postcard = await _postcardApi.claim(ClaimPostCardRequest());
+
     return ReceivePostcardRespone(tokenId: postcard.tokenID);
   }
 
