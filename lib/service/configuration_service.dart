@@ -195,6 +195,26 @@ abstract class ConfigurationService {
 
   DateTime? getSubscriptionTime();
 
+  Future setAlreadyShowNotifTip(bool show);
+
+  Future setAlreadyShowProTip(bool show);
+
+  Future setAlreadyShowTvAppTip(bool show);
+
+  Future setAlreadyShowCreatePlaylistTip(bool show);
+
+  Future setAlreadyShowLinkOrImportTip(bool show);
+
+  bool getAlreadyShowNotifTip();
+
+  bool getAlreadyShowProTip();
+
+  bool getAlreadyShowTvAppTip();
+
+  bool getAlreadyShowCreatePlaylistTip();
+
+  bool getAlreadyShowLinkOrImportTip();
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -286,6 +306,73 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_DONE_ON_BOARDING_TIME = "done_on_boarding_time";
 
   static const String KEY_SUBSCRIPTION_TIME = "subscription_time";
+
+  static const String KEY_CAN_SHOW_NOTIF_TIP = "show_notif_tip";
+
+  static const String KEY_CAN_SHOW_PRO_TIP = "show_pro_tip";
+
+  static const String KEY_CAN_SHOW_TV_APP_TIP = "show_tv_app_tip";
+
+  static const String KEY_CAN_SHOW_CREATE_PLAYLIST_TIP =
+      "show_create_playlist_tip";
+
+  static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
+      "show_link_or_import_tip";
+
+  @override
+  Future setAlreadyShowNotifTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_NOTIF_TIP, show);
+    showNotifTip.value = show;
+  }
+
+  @override
+  Future setAlreadyShowProTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_PRO_TIP, show);
+    showProTip.value = show;
+  }
+
+  @override
+  Future setAlreadyShowTvAppTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_TV_APP_TIP, show);
+    showTvAppTip.value = show;
+  }
+
+  @override
+  Future setAlreadyShowCreatePlaylistTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP, show);
+    showCreatePlaylistTip.value = show;
+  }
+
+  @override
+  Future setAlreadyShowLinkOrImportTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP, show);
+    showLinkOrImportTip.value = show;
+  }
+
+  @override
+  bool getAlreadyShowNotifTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_NOTIF_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowProTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_PRO_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowTvAppTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_TV_APP_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowCreatePlaylistTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowLinkOrImportTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP) ?? false;
+  }
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -897,19 +984,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  ValueNotifier<bool> showProTip = ValueNotifier(true);
+  ValueNotifier<bool> showProTip = ValueNotifier(false);
 
   @override
-  ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(true);
+  ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(false);
 
   @override
-  ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(true);
+  ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(false);
 
   @override
-  ValueNotifier<bool> showNotifTip = ValueNotifier(true);
+  ValueNotifier<bool> showNotifTip = ValueNotifier(false);
 
   @override
-  ValueNotifier<bool> showTvAppTip = ValueNotifier(true);
+  ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
 
   @override
   DateTime? getDoneOnboardingTime() {

@@ -336,6 +336,7 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
+    final configurationService = injector<ConfigurationService>();
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
@@ -362,9 +363,9 @@ class HomePageState extends State<HomePage>
       SliverToBoxAdapter(
         child: MultiValueListenableBuilder(
           valueListenables: [
-            injector<ConfigurationService>().showTvAppTip,
-            injector<ConfigurationService>().showCreatePlaylistTip,
-            injector<ConfigurationService>().showLinkOrImportTip,
+            configurationService.showTvAppTip,
+            configurationService.showCreatePlaylistTip,
+            configurationService.showLinkOrImportTip,
           ],
           builder: (BuildContext context, List<dynamic> values, Widget? child) {
             return CarouselWithIndicator(
@@ -427,8 +428,29 @@ class HomePageState extends State<HomePage>
 
   List<Tipcard> _listTipcards(BuildContext context) {
     final theme = Theme.of(context);
+    final configurationService = injector<ConfigurationService>();
     return [
-      if (injector<ConfigurationService>().showTvAppTip.value)
+      if (configurationService.showLinkOrImportTip.value)
+        Tipcard(
+            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+            },
+            buttonText: "add_wallet".tr(),
+            content: Text("you_can_link_or_import".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showLinkOrImportTip),
+      if (configurationService.showCreatePlaylistTip.value)
+        Tipcard(
+            titleText: "create_your_first_playlist".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
+            },
+            buttonText: "create_new_playlist".tr(),
+            content: Text("as_a_pro_sub_playlist".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showCreatePlaylistTip),
+      if (configurationService.showTvAppTip.value)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),
             onPressed: () {
@@ -444,7 +466,7 @@ class HomePageState extends State<HomePage>
                 style: theme.textTheme.ppMori400Black14,
                 children: [
                   TextSpan(
-                    text: "tv_app".tr(),
+                    text: "google_TV_app".tr(),
                     style: theme.textTheme.ppMori400Black14.copyWith(
                         color: theme.colorScheme.primary,
                         decoration: TextDecoration.underline),
@@ -466,27 +488,7 @@ class HomePageState extends State<HomePage>
                 ],
               ),
             ),
-            listener: injector<ConfigurationService>().showTvAppTip),
-      if (injector<ConfigurationService>().showCreatePlaylistTip.value)
-        Tipcard(
-            titleText: "create_your_first_playlist".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
-            },
-            buttonText: "create_new_playlist".tr(),
-            content: Text("as_a_pro_sub_playlist".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: injector<ConfigurationService>().showCreatePlaylistTip),
-      if (injector<ConfigurationService>().showLinkOrImportTip.value)
-        Tipcard(
-            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
-            },
-            buttonText: "add_wallet".tr(),
-            content: Text("you_can_link_or_import".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: injector<ConfigurationService>().showLinkOrImportTip),
+            listener: configurationService.showTvAppTip),
     ];
   }
 
@@ -583,6 +585,7 @@ class HomePageState extends State<HomePage>
   }
 
   void _checkTipCardShowTime() async {
+    final metricClient = injector<MetricClientService>();
     log.info("_checkTipCardShowTime");
     final configurationService = injector<ConfigurationService>();
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
@@ -590,19 +593,37 @@ class HomePageState extends State<HomePage>
 
     final now = DateTime.now();
     if (subscriptionTime != null) {
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24)))) {
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowTvAppTip()) {
         configurationService.showTvAppTip.value = true;
+        await configurationService.setAlreadyShowTvAppTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "enjoy_your_collection".tr()});
+      }
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowCreatePlaylistTip()) {
         configurationService.showCreatePlaylistTip.value = true;
+        configurationService.setAlreadyShowCreatePlaylistTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "create_your_first_playlist".tr()});
       }
     }
     if (doneOnboardingTime != null) {
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24)))) {
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+          !configurationService.getAlreadyShowLinkOrImportTip()) {
         configurationService.showLinkOrImportTip.value = true;
+        configurationService.setAlreadyShowLinkOrImportTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
       }
 
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
-          await isPremium()) {
+      if (now.isAfter(doneOnboardingTime.add(const Duration(seconds: 5))) &&
+          await isPremium() &&
+          !configurationService.getAlreadyShowProTip()) {
         configurationService.showProTip.value = true;
+        configurationService.setAlreadyShowProTip(false);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "try_autonomy_pro_free".tr()});
       }
     }
   }

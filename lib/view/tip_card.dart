@@ -27,16 +27,9 @@ class Tipcard extends StatelessWidget {
   Widget build(BuildContext context) {
     final metricClient = injector<MetricClientService>();
     final theme = Theme.of(context);
+
     return ValueListenableBuilder<bool>(
-      valueListenable: listener
-        ..addListener(() {
-          print("listener.value: ${listener.value}");
-          if (listener.value) {
-            metricClient.addEvent(MixpanelEvent.showPostcard, data: {
-              'title': titleText,
-            });
-          }
-        }),
+      valueListenable: listener,
       builder: (context, value, Widget? child) {
         return value
             ? Container(
@@ -66,7 +59,7 @@ class Tipcard extends StatelessWidget {
                           onPressed: () {
                             if (onClosed != null) onClosed!();
                             metricClient
-                                .addEvent(MixpanelEvent.closePostcard, data: {
+                                .addEvent(MixpanelEvent.closeTipcard, data: {
                               'title': titleText,
                             });
                             listener.value = false;
@@ -85,7 +78,7 @@ class Tipcard extends StatelessWidget {
                         onTap: () {
                           onPressed();
                           metricClient
-                              .addEvent(MixpanelEvent.pressPostcard, data: {
+                              .addEvent(MixpanelEvent.pressTipcard, data: {
                             'title': titleText,
                           });
                           listener.value = false;
