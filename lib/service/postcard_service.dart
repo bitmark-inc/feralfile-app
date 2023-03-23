@@ -10,8 +10,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:geolocator/geolocator.dart';
@@ -56,9 +56,7 @@ class PostcardServiceImpl extends PostcardService {
       "address": address,
       "signature": "anything not check"
     };
-    const xApiSignature = '';
-
-    return _postcardApi.claim(xApiSignature, body);
+    return _postcardApi.claim(body);
   }
 
   @override
@@ -72,8 +70,7 @@ class PostcardServiceImpl extends PostcardService {
       "location": [location.latitude, location.longitude],
       "address": address,
     };
-    const xApiSignature = 'Environment.xApiSignature';
-    final postcard = await _postcardApi.claim(xApiSignature, body);
+    final postcard = await _postcardApi.claim(body);
     return ReceivePostcardRespone(tokenId: postcard.tokenID);
   }
 
@@ -82,17 +79,13 @@ class PostcardServiceImpl extends PostcardService {
       AssetToken asset, String signature) async {
     final tokenId = asset.tokenId ?? '';
     final counter = asset.counter;
-    // final respone = await _postcardAPI.sharePostcard({
-    //   "tokenId": tokenId,
-    //   "signature": signature,
-    // });
     final body = {
       "tokenId": tokenId,
       "signature": signature,
       "counter": counter,
     };
-    const xApiSignature = 'Environment.xApiSignature';
-    final response = await _postcardApi.share(xApiSignature, tokenId, body);
+    return SharePostcardRespone(url: "https://bitmark.com");
+    final response = await _postcardApi.share(tokenId, body);
     if (response.statusCode == 200) {
       final url = json.decode(response.body);
       return SharePostcardRespone(url: url);
@@ -116,9 +109,7 @@ class PostcardServiceImpl extends PostcardService {
         tokenId: "tokenId",
         imageCID: "imageCID",
         counter: 0);
-    const xApiSignature = 'Environment.xApiSignature';
-    final response =
-        await _postcardApi.claimShareCode(xApiSignature, shareCode);
+    final response = await _postcardApi.claimShareCode(shareCode);
     if (response.statusCode == 200) {
       final sharedPostcardInfor = json.decode(response.body);
       return sharedPostcardInfor;

@@ -121,8 +121,10 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
                       style: theme.textTheme.ppMori700White14,
                     ),
                     Text(
-                      distanceFormatter.format(
-                          distance: asset.totalDistanceTraveled),
+                      asset.totalDistanceTraveled == null
+                          ? "-"
+                          : distanceFormatter.format(
+                              distance: asset.totalDistanceTraveled!),
                       style: theme.textTheme.ppMori700White14,
                     ),
                   ],
@@ -174,7 +176,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
             ),
             const Spacer(),
             Text(
-              distanceFormatter.format(distance: el.distance),
+              distanceFormatter.format(distance: el.distance!),
               style: theme.textTheme.ppMori400White14,
             )
           ],
@@ -202,7 +204,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
             ),
             const Spacer(),
             GestureDetector(
-              child: Text("send_link_again".tr(),
+              child: Text("invite_to_collaborate".tr(),
                   style: theme.textTheme.ppMori400SupperTeal12),
               onTap: () {
                 _sharePostcard(widget.asset);

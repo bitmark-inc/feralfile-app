@@ -19,14 +19,10 @@ class _PostcardApi implements PostcardApi {
   String? baseUrl;
 
   @override
-  Future<ClaimPostCardResponse> claim(
-    xApiSignature,
-    body,
-  ) async {
+  Future<ClaimPostCardResponse> claim(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Api-Signature': xApiSignature};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _result = await _dio.fetch<Map<String, dynamic>>(
@@ -48,14 +44,12 @@ class _PostcardApi implements PostcardApi {
 
   @override
   Future<dynamic> share(
-    xApiSignature,
     tokenId,
     body,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Api-Signature': xApiSignature};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
@@ -75,14 +69,10 @@ class _PostcardApi implements PostcardApi {
   }
 
   @override
-  Future<dynamic> claimShareCode(
-    xApiSignature,
-    shareCode,
-  ) async {
+  Future<dynamic> claimShareCode(shareCode) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Api-Signature': xApiSignature};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'POST',

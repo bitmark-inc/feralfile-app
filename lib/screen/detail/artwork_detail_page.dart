@@ -13,6 +13,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -541,6 +542,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     if (sharePostcardRespone.url?.isNotEmpty ?? false) {
       Share.share(sharePostcardRespone.url!);
     }
+    injector<ConfigurationService>()
+        .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
   }
 
   Widget travelInfoWidget(AssetToken asset) {
