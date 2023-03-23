@@ -59,6 +59,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -359,8 +360,17 @@ class HomePageState extends State<HomePage>
         child: HeaderView(paddingTop: paddingTop),
       ),
       SliverToBoxAdapter(
-        child: CarouselWithIndicator(
-          items: _listTipcards(context),
+        child: MultiValueListenableBuilder(
+          valueListenables: [
+            injector<ConfigurationService>().showTvAppTip,
+            injector<ConfigurationService>().showCreatePlaylistTip,
+            injector<ConfigurationService>().showLinkOrImportTip,
+          ],
+          builder: (BuildContext context, List<dynamic> values, Widget? child) {
+            return CarouselWithIndicator(
+              items: _listTipcards(context),
+            );
+          },
         ),
       ),
       SliverGrid(
@@ -427,9 +437,6 @@ class HomePageState extends State<HomePage>
                 arguments: ScannerItem.GLOBAL,
               );
             },
-            onClosed: () {
-              setState(() {});
-            },
             buttonText: "sync_up_with_autonomy_tv".tr(),
             content: RichText(
               text: TextSpan(
@@ -466,9 +473,6 @@ class HomePageState extends State<HomePage>
             onPressed: () {
               Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
             },
-            onClosed: () {
-              setState(() {});
-            },
             buttonText: "create_new_playlist".tr(),
             content: Text("as_a_pro_sub_playlist".tr(),
                 style: theme.textTheme.ppMori400Black14),
@@ -478,9 +482,6 @@ class HomePageState extends State<HomePage>
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
             onPressed: () {
               Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
-            },
-            onClosed: () {
-              setState(() {});
             },
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
@@ -581,8 +582,34 @@ class HomePageState extends State<HomePage>
     }
   }
 
+  void _checkTipCardShowTime() async {
+    log.info("_checkTipCardShowTime");
+    final configurationService = injector<ConfigurationService>();
+    final doneOnboardingTime = configurationService.getDoneOnboardingTime();
+    final subscriptionTime = configurationService.getSubscriptionTime();
+
+    final now = DateTime.now();
+    if (subscriptionTime != null) {
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24)))) {
+        configurationService.showTvAppTip.value = true;
+        configurationService.showCreatePlaylistTip.value = true;
+      }
+    }
+    if (doneOnboardingTime != null) {
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24)))) {
+        configurationService.showLinkOrImportTip.value = true;
+      }
+
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+          await isPremium()) {
+        configurationService.showProTip.value = true;
+      }
+    }
+  }
+
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
+    _checkTipCardShowTime();
     await injector<ConfigurationService>().reload();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
@@ -601,7 +628,6 @@ class HomePageState extends State<HomePage>
     refreshFeeds();
     refreshTokens(checkPendingToken: true);
     refreshNotification();
-
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
     injector<VersionService>().checkForUpdate();

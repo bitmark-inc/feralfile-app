@@ -187,6 +187,14 @@ abstract class ConfigurationService {
 
   Future setLastestVersion(bool value);
 
+  Future setDoneOnboardingTime(DateTime time);
+
+  DateTime? getDoneOnboardingTime();
+
+  Future setSubscriptionTime(DateTime time);
+
+  DateTime? getSubscriptionTime();
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -274,6 +282,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
   static const String SHOW_AU_CHAIN_INFO = "show_au_chain_info";
+
+  static const String KEY_DONE_ON_BOARDING_TIME = "done_on_boarding_time";
+
+  static const String KEY_SUBSCRIPTION_TIME = "subscription_time";
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -421,6 +433,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
         injector<CustomerSupportService>()
             .createAnnouncement(AnnouncementID.WELCOME);
       });
+    }
+    if (currentValue == false && value == true && getIsOldUser() == true) {
+      await setDoneOnboardingTime(DateTime.now());
     }
   }
 
@@ -885,18 +900,43 @@ class ConfigurationServiceImpl implements ConfigurationService {
   ValueNotifier<bool> showProTip = ValueNotifier(true);
 
   @override
-  // TODO: implement showCreatePlaylistTip
   ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(true);
 
   @override
-  // TODO: implement showLinkOrImport
   ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(true);
 
   @override
-  // TODO: implement showNotifTip
   ValueNotifier<bool> showNotifTip = ValueNotifier(true);
 
   @override
-  // TODO: implement showTvAppTip
   ValueNotifier<bool> showTvAppTip = ValueNotifier(true);
+
+  @override
+  DateTime? getDoneOnboardingTime() {
+    final timeString = _preferences.getString(KEY_DONE_ON_BOARDING_TIME);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setDoneOnboardingTime(DateTime time) async {
+    await _preferences.setString(
+        KEY_DONE_ON_BOARDING_TIME, time.toIso8601String());
+  }
+
+  @override
+  DateTime? getSubscriptionTime() {
+    final timeString = _preferences.getString(KEY_SUBSCRIPTION_TIME);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setSubscriptionTime(DateTime time) async {
+    await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
+  }
 }

@@ -251,6 +251,10 @@ class IAPServiceImpl implements IAPService {
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
+              if (purchaseDetails.status == PurchaseStatus.purchased) {
+                injector<ConfigurationService>()
+                    .setSubscriptionTime(DateTime.now());
+              }
               metricClient.addEvent(
                 MixpanelEvent.purchased,
                 data: {
