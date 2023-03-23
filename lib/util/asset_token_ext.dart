@@ -345,7 +345,7 @@ AssetToken createPendingAssetToken({
   final contract = artwork.contract;
   return AssetToken(
     asset: Asset(
-      '',
+      indexerId,
       '',
       DateTime.now(),
       artist?.id,
