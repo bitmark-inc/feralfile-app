@@ -208,6 +208,29 @@ class HomePageState extends State<HomePage>
         .toList();
     injector<FeedService>().refreshFollowings(artistIds);
 
+    //check minted postcard and naviagtor to artwork detail
+    final config = injector.get<ConfigurationService>();
+    final listTokenMints = config.getListPostcardMint();
+    if (tokens.any((element) =>
+        listTokenMints.contains(element.id) && element.pending != true)) {
+      final tokenMints = tokens
+          .where(
+            (element) =>
+                listTokenMints.contains(element.id) && element.pending != true,
+          )
+          .map((e) => e.identity)
+          .toList();
+      final payload = ArtworkDetailPayload(tokenMints, 0);
+      Navigator.of(context).pushNamed(
+        AppRouter.artworkDetailsPage,
+        arguments: payload,
+      );
+      config.setListPostcardMint(
+        tokenMints.map((e) => e.id).toList(),
+        isRemoved: true,
+      );
+    }
+
     // Check if there is any Tezos token in the list
     List<String> allAccountNumbers =
         await injector<AccountService>().getAllAddresses();
@@ -226,6 +249,7 @@ class HomePageState extends State<HomePage>
 
   List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
     tokens = tokens.filterAssetToken();
+
     return tokens;
   }
 
@@ -362,6 +386,13 @@ class HomePageState extends State<HomePage>
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
             final asset = tokens[index];
+
+            if (asset.pending == true && asset.source == 'postcard') {
+              return MintTokenWidget(
+                thumbnail: asset.galleryThumbnailURL,
+                tokenId: asset.tokenId,
+              );
+            }
 
             return GestureDetector(
               child: asset.pending == true && !asset.hasMetadata

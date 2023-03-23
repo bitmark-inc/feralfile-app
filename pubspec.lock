@@ -1576,8 +1576,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6f72731f00ab365982f05fa2bdd1955090f7ced4"
-      resolved-ref: "6f72731f00ab365982f05fa2bdd1955090f7ced4"
+      ref: "7c387f778d427b3d6f581abf934049c31c4ac185"
+      resolved-ref: "7c387f778d427b3d6f581abf934049c31c4ac185"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -2831,5 +2831,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <3.0.0"
+  dart: ">=2.19.0 <4.0.0"
   flutter: ">=3.3.0"

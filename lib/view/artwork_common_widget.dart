@@ -52,6 +52,38 @@ String getEditionSubTitle(AssetToken token) {
       : '${tr('edition')} ${token.edition}';
 }
 
+class MintTokenWidget extends StatelessWidget {
+  final String? thumbnail;
+  final String? tokenId;
+
+  const MintTokenWidget({Key? key, this.thumbnail, this.tokenId})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      label: "gallery_artwork_${tokenId}_minting",
+      child: Container(
+        color: theme.auLightGrey,
+        padding: const EdgeInsets.all(10),
+        child: Stack(
+          children: [
+            Center(child: SvgPicture.asset('assets/images/mint_icon.svg')),
+            Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: Text(
+                "minting_token".tr(),
+                style: theme.textTheme.ppMori700QuickSilver8,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class PendingTokenWidget extends StatelessWidget {
   final String? thumbnail;
   final String? tokenId;

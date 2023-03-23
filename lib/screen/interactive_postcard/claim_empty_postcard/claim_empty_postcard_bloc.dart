@@ -27,7 +27,9 @@ class ClaimEmptyPostCardBloc
           maxEdition: 1,
           mimeType: 'image/png',
           title: 'Postcard 001',
+          medium: 'image',
           thumbnailURL: 'https://picsum.photos/350/250',
+          previewURL: 'https://picsum.photos/350/250',
         ),
         blockchain: "tezos",
         fungible: false,
@@ -81,12 +83,14 @@ class ClaimEmptyPostCardBloc
           final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
           final token = AssetToken(
             asset: Asset.init(
+              indexID: tokenID,
               artistName: 'MoMa',
               maxEdition: 1,
               mimeType: 'image/png',
               title: 'Postcard 001',
               thumbnailURL: result.imageCID,
               previewURL: result.imageCID,
+              source: 'postcard',
             ),
             blockchain: "tezos",
             fungible: false,
@@ -107,6 +111,7 @@ class ClaimEmptyPostCardBloc
           );
           await _tokenService.setCustomTokens([token]);
           await _tokenService.reindexAddresses([address]);
+          injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
           NftCollectionBloc.eventController.add(
             GetTokensByOwnerEvent(pageKey: PageKey.init()),
           );
