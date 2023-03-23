@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/trip.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -222,7 +223,7 @@ extension AssetTokenExtension on AssetToken {
   }
 
   double? get totalDistanceTraveled {
-    return 5848;
+    return 5848.0;
   }
 
   List<Trip> get trips {
@@ -239,7 +240,10 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get isSending {
-    return false;
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    return sharedPostcards
+        .any((element) => (element.tokenID == id && element.owner == owner));
   }
 
   bool get isPostcard {

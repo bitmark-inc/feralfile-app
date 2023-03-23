@@ -96,7 +96,7 @@ class _ReceivePostcardSelectAccountPageState
         onBack: () {
           Navigator.of(context).pop();
         },
-        title: "receive_postcard".tr(),
+        title: "gift_edition".tr(),
       ),
       body: Container(
         padding: const EdgeInsets.only(bottom: 32),
@@ -107,7 +107,7 @@ class _ReceivePostcardSelectAccountPageState
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "where_do_want_to_receive_postcard".tr(),
+                "where_do_want_to_receive_gift".tr(),
                 style: theme.textTheme.ppMori700Black24,
               ),
             ),
@@ -115,7 +115,7 @@ class _ReceivePostcardSelectAccountPageState
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "claim_airdrop_select_account_desc".tr(args: [
+                "receive_postcard_desc".tr(args: [
                   widget.blockchain ?? "Tezos",
                   widget.blockchain ?? "Tezos",
                 ]),

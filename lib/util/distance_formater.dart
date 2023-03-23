@@ -10,9 +10,22 @@ import 'dart:ui';
 class DistanceFormatter {
   final Locale locale;
 
+  //function convert kms to miles
+  double convertKmToMiles(double km) {
+    return km * 0.621371;
+  }
+
+  // check is miles or km
+  bool isMiles() {
+    return locale.languageCode == 'en';
+  }
+
   DistanceFormatter({required this.locale});
 
-  String format({required dynamic distance}) {
-    return '${distance} mil';
+  String format({required double distance}) {
+    if (isMiles()) {
+      return '${convertKmToMiles(distance).toStringAsFixed(0)} mi';
+    }
+    return '${distance.toStringAsFixed(0)} km';
   }
 }

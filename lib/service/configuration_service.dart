@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -202,6 +203,11 @@ abstract class ConfigurationService {
   Future<void> reload();
 
   Future<void> removeAll();
+
+  List<SharedPostcard> getSharedPostcard();
+
+  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
+      {bool override = false});
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -233,6 +239,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
+  static const String KEY_SHARED_POSTCARD = "shared_postcard";
 
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
       "announcement_last_pull_time";
@@ -868,5 +875,31 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setShowAuChainInfo(bool value) async {
     await _preferences.setBool(SHOW_AU_CHAIN_INFO, value);
+  }
+
+  @override
+  List<SharedPostcard> getSharedPostcard() {
+    final sharedPostcardString =
+        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
+    return sharedPostcardString
+        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toList();
+  }
+
+  @override
+  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
+      {bool override = false}) async {
+    const key = KEY_SHARED_POSTCARD;
+    final updatePostcards =
+        sharedPostcards.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updatePostcards);
+    } else {
+      var sentPostcard = _preferences.getStringList(key) ?? [];
+
+      sentPostcard.addAll(updatePostcards);
+      await _preferences.setStringList(key, sentPostcard.toSet().toList());
+    }
   }
 }
