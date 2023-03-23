@@ -11,10 +11,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SelectAccountScreen extends StatefulWidget {
   final String blockchain;
+  final Future Function(String) onConfirm;
 
   const SelectAccountScreen({
     super.key,
     required this.blockchain,
+    required this.onConfirm,
   });
 
   @override
@@ -23,6 +25,7 @@ class SelectAccountScreen extends StatefulWidget {
 
 class _SelectAccountScreenState extends State<SelectAccountScreen> {
   String? _selectedAddress;
+  bool _isConfirming = false;
 
   @override
   void initState() {
@@ -87,8 +90,17 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryButton(
                 text: "h_confirm".tr(),
+                isProcessing: _isConfirming,
                 onTap: _selectedAddress != null
-                    ? () => Navigator.pop(context, _selectedAddress)
+                    ? () async {
+                        setState(() {
+                          _isConfirming = true;
+                        });
+                        await widget.onConfirm(_selectedAddress!);
+                        setState(() {
+                          _isConfirming = false;
+                        });
+                      }
                     : null,
               ),
             ),

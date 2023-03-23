@@ -365,7 +365,8 @@ class AppRouter {
       case postcardExplain:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => PostcardExplain(payload: settings.arguments as PostcardExplainPayload),
+          builder: (context) => PostcardExplain(
+              payload: settings.arguments as PostcardExplainPayload),
         );
 
       case designStamp:
@@ -828,10 +829,10 @@ class AppRouter {
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
-                        injector(),
-                        injector(),
-                        injector(),
-                      )),
+                            injector(),
+                            injector(),
+                            injector(),
+                          )),
                 ],
                 child: ClaimedPostcardDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
@@ -1184,6 +1185,7 @@ class AppRouter {
       case selectAddressScreen:
         final arguments = settings.arguments as Map;
         final blockchain = arguments['blockchain'] as String;
+        final onConfirm = arguments['onConfirm'] as Future Function(String);
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) {
@@ -1191,7 +1193,10 @@ class AppRouter {
               providers: [
                 BlocProvider.value(value: accountsBloc),
               ],
-              child: SelectAccountScreen(blockchain: blockchain),
+              child: SelectAccountScreen(
+                blockchain: blockchain,
+                onConfirm: onConfirm,
+              ),
             );
           },
         );

@@ -1,3 +1,82 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+
+class ClaimPostCardRequest {
+  String? id;
+  String? timestamp;
+  String? publicKey;
+  String? address;
+  String? signature;
+  ClaimPostCardRequest({
+    this.id,
+    this.timestamp,
+    this.publicKey,
+    this.address,
+    this.signature,
+  });
+
+  ClaimPostCardRequest copyWith({
+    String? id,
+    String? timestamp,
+    String? publicKey,
+    String? address,
+    String? signature,
+  }) {
+    return ClaimPostCardRequest(
+      id: id ?? this.id,
+      timestamp: timestamp ?? this.timestamp,
+      publicKey: publicKey ?? this.publicKey,
+      address: address ?? this.address,
+      signature: signature ?? this.signature,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'timestamp': timestamp,
+      'publicKey': publicKey,
+      'address': address,
+      'signature': signature,
+    };
+  }
+
+  factory ClaimPostCardRequest.fromJson(Map<String, dynamic> map) {
+    return ClaimPostCardRequest(
+      id: map['id'] != null ? map['id'] as String : null,
+      timestamp: map['timestamp'] != null ? map['timestamp'] as String : null,
+      publicKey: map['publicKey'] != null ? map['publicKey'] as String : null,
+      address: map['address'] != null ? map['address'] as String : null,
+      signature: map['signature'] != null ? map['signature'] as String : null,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'ClaimPostCardRequest(id: $id, timestamp: $timestamp, publicKey: $publicKey, address: $address, signature: $signature)';
+  }
+
+  @override
+  bool operator ==(covariant ClaimPostCardRequest other) {
+    if (identical(this, other)) return true;
+
+    return other.id == id &&
+        other.timestamp == timestamp &&
+        other.publicKey == publicKey &&
+        other.address == address &&
+        other.signature == signature;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        timestamp.hashCode ^
+        publicKey.hashCode ^
+        address.hashCode ^
+        signature.hashCode;
+  }
+}
+
 class ClaimPostCardResponse {
   String? tokenID;
   String? imageCID;

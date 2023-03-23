@@ -24,7 +24,7 @@ class _PostcardApi implements PostcardApi {
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    _data.addAll(body);
+    _data.addAll(body.toJson());
     final _result = await _dio.fetch<Map<String, dynamic>>(
         _setStreamType<ClaimPostCardResponse>(Options(
       method: 'POST',

@@ -12,7 +12,7 @@ abstract class PostcardApi {
   factory PostcardApi(Dio dio, {String baseUrl}) = _PostcardApi;
 
   @POST("/v1/postcard/claim")
-  Future<ClaimPostCardResponse> claim(@Body() Map<String, dynamic> body);
+  Future<ClaimPostCardResponse> claim(@Body() ClaimPostCardRequest body);
 
   @POST("/v1/postcard/{token_id}/share")
   Future share(
