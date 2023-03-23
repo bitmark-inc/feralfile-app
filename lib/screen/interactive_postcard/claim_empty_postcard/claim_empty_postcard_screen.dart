@@ -1,5 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -74,36 +76,26 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           const SizedBox(
                             height: 24,
                           ),
-                          FittedBox(
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              child: Transform.translate(
-                                offset: const Offset(1, 0),
-                                child: Container(
-                                  color: theme.auQuickSilver,
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 60,
-                                          horizontal: 15,
-                                        ),
-                                        child: Container(
-                                          color: Colors.black,
-                                          child: CachedNetworkImage(
-                                            fit: BoxFit.cover,
-                                            imageUrl:
-                                                artwork.thumbnailURL ?? '',
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                          Container(
+                            color: theme.auQuickSilver,
+                            child: Column(
+                              children: [
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 60,
+                                    horizontal: 15,
+                                  ),
+                                  child: CachedNetworkImage(
+                                    imageUrl: artwork.getPreviewUrl() ?? '',
+                                    placeholder: (context, url) => const Center(
+                                      child: PreviewPlaceholder(),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           Padding(
@@ -163,6 +155,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           ),
                           PrimaryButton(
                             text: "accept_ownership".tr(),
+                            enabled: state.isClaiming != true,
                             onTap: () {
                               bloc.add(AcceptGiftEvent());
                             },

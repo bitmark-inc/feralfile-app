@@ -208,6 +208,10 @@ abstract class ConfigurationService {
 
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
       {bool override = false});
+
+  List<String> getListPostcardMint();
+  Future<void> setListPostcardMint(List<String> tokenID,
+      {bool override = false, bool isRemoved = false});
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -274,6 +278,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
       "sent_tezos_artwork_metric";
+
+  static const String POSTCARD_MINT = "postcard_mint";
 
   final SharedPreferences _preferences;
 
@@ -900,6 +906,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
       sentPostcard.addAll(updatePostcards);
       await _preferences.setStringList(key, sentPostcard.toSet().toList());
+    }
+  }
+
+  @override
+  List<String> getListPostcardMint() {
+    return _preferences.getStringList(POSTCARD_MINT) ?? [];
+  }
+
+  @override
+  Future<void> setListPostcardMint(List<String> tokenID,
+      {bool override = false, bool isRemoved = false}) async {
+    if (override) {
+      await _preferences.setStringList(POSTCARD_MINT, tokenID);
+    } else {
+      var currentPortcardMints =
+          _preferences.getStringList(POSTCARD_MINT) ?? [];
+      if (isRemoved) {
+        currentPortcardMints
+            .removeWhere((element) => tokenID.contains(element));
+      } else {
+        currentPortcardMints.addAll(tokenID);
+      }
+      await _preferences.setStringList(POSTCARD_MINT, currentPortcardMints);
     }
   }
 }
