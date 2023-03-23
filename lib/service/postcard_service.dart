@@ -142,15 +142,6 @@ class PostcardServiceImpl extends PostcardService {
     final publicKey = await wallet.getTezosPublicKey(index: index);
     final lat = location?.latitude;
     final lon = location?.longitude;
-
-    print("--------------------");
-    print("tokenId: $tokenId");
-    print("timestamp: $timestamp");
-    print("signature: $signature");
-    print("address: $address");
-    print("publicKey: $publicKey");
-    print("lat: $lat");
-    print("lon: $lon");
     final result = await _postcardApi.updatePostcard(
         tokenId: tokenId,
         data: image,
@@ -160,8 +151,8 @@ class PostcardServiceImpl extends PostcardService {
         publicKey: publicKey,
         lat: lat,
         lon: lon) as Map<String, dynamic>;
-    final ok = result["ok"] as int;
-    return ok == 1;
+    final ok = result["metadataCID"] as String;
+    return ok.isNotEmpty;
   }
 }
 

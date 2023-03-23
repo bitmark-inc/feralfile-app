@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -86,37 +87,13 @@ class _StampPreviewState extends State<StampPreview> {
         img.copyResize(widget.payload.image, width: 520, height: 546);
 
     var image = await compositeImageAt(CompositeImageParams(
-        postcardImage!,
-        stampImageResized,
-        210,
-        212,
-        index,
-        490,
-        546));
-    image = compositeImagesAt(CompositeImageParams(
-        image,
-        stampImageResized,
-        210,
-        212,
-        1,
-        490,
-        546));
-    image = compositeImagesAt(CompositeImageParams(
-        image,
-        stampImageResized,
-        210,
-        212,
-        2,
-        490,
-        546));
-    image = compositeImagesAt(CompositeImageParams(
-        image,
-        stampImageResized,
-        210,
-        212,
-        9,
-        490,
-        546));
+        postcardImage!, stampImageResized, 210, 212, index, 490, 546));
+    image = compositeImagesAt(
+        CompositeImageParams(image, stampImageResized, 210, 212, 1, 490, 546));
+    image = compositeImagesAt(
+        CompositeImageParams(image, stampImageResized, 210, 212, 2, 490, 546));
+    image = compositeImagesAt(
+        CompositeImageParams(image, stampImageResized, 210, 212, 9, 490, 546));
     setState(() {
       stamped = true;
       stampedPostcardData = img.encodePng(image);
@@ -138,7 +115,7 @@ class _StampPreviewState extends State<StampPreview> {
         widget.payload.location);
     if (result) {
       if (!mounted) return;
-      Navigator.of(context).pop();
+      injector<NavigationService>().popUntilHomeOrSettings();
     }
   }
 }
@@ -153,7 +130,7 @@ img.Image compositeImagesAt(CompositeImageParams param) {
   final dstX = param.x + col * param.w;
   final dstY = param.y + row * param.h;
 
-  return img.compositeImage(param.dst, param.src, dstX: dstX-10, dstY: dstY);
+  return img.compositeImage(param.dst, param.src, dstX: dstX - 10, dstY: dstY);
 }
 
 class StampPreviewPayload {
