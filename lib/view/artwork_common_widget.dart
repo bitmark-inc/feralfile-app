@@ -440,7 +440,7 @@ Widget placeholder(BuildContext context) {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              "assets/images/loading_white.gif",
+              "assets/images/loading_white_tran.gif",
               width: 52,
               height: 52,
             ),
@@ -721,7 +721,7 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              "assets/images/loading_white.gif",
+              "assets/images/loading_white_tran.gif",
               width: 52,
               height: 52,
             ),

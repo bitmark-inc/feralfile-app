@@ -194,7 +194,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    "assets/images/loading_white.gif",
+                    "assets/images/loading_white_tran.gif",
                     width: 52,
                     height: 52,
                   ),
