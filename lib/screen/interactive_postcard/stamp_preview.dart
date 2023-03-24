@@ -8,12 +8,12 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class StampPreview extends StatefulWidget {
   static const String tag = "stamp_preview";
@@ -39,11 +39,16 @@ class _StampPreviewState extends State<StampPreview> {
   }
 
   Future<void> fetchPostcard() async {
-    await rootBundle.load("assets/images/empty_postcard.png").then((value) {
-      postcardData = value.buffer.asUint8List();
-      setState(() {
-        stampedPostcardData = postcardData;
-      });
+    const emptyPostcardUrl = "https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw";
+    //String emptyPostcardUrl = widget.payload.asset.previewURL!;
+
+    http.Response response = await http.get(
+        Uri.parse(emptyPostcardUrl)
+    );
+    final bytes = response.bodyBytes;
+    postcardData = bytes;
+    setState(() {
+      stampedPostcardData = postcardData;
     });
     await pasteStamp();
   }
@@ -88,12 +93,6 @@ class _StampPreviewState extends State<StampPreview> {
 
     var image = await compositeImageAt(CompositeImageParams(
         postcardImage!, stampImageResized, 210, 212, index, 490, 546));
-    image = compositeImagesAt(
-        CompositeImageParams(image, stampImageResized, 210, 212, 1, 490, 546));
-    image = compositeImagesAt(
-        CompositeImageParams(image, stampImageResized, 210, 212, 2, 490, 546));
-    image = compositeImagesAt(
-        CompositeImageParams(image, stampImageResized, 210, 212, 9, 490, 546));
     setState(() {
       stamped = true;
       stampedPostcardData = img.encodePng(image);
