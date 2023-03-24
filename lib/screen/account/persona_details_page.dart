@@ -163,12 +163,21 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                 style: theme.textTheme.ppMori400Black16,
               ),
               const Spacer(),
-              OutlineButton(
-                text: "add_address_to_wallet".tr(),
-                color: Colors.transparent,
-                textColor: AppColor.primaryBlack,
-                borderColor: AppColor.primaryBlack,
-                onTap: () {
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  side: const BorderSide(),
+                  alignment: Alignment.center,
+                ),
+                child: Text(
+                  "add_address_to_wallet".tr(),
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+                onPressed: () {
                   UIHelper.showDialog(context, "add_address_to_wallet".tr(),
                       StatefulBuilder(builder: (
                     BuildContext dialogContext,

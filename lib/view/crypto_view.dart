@@ -144,7 +144,7 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
                   const SizedBox(height: 10),
                 ],
                 PrimaryButton(
-                  text: "import".tr(),
+                  text: "select".tr(),
                   onTap: selectedAddresses.isNotEmpty
                       ? () {
                           widget.onImport?.call(selectedAddresses);
