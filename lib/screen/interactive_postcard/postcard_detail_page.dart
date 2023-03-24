@@ -702,12 +702,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     travelInfo
         .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
 
-    for (var e in travelInfo) {
-      e.getLocationName();
-    }
-    for (var e in travelInfo) {
+    await Future.wait(travelInfo.map((e) async {
       e.getDistance();
-    }
+      await e.getLocationName();
+    }));
+
     if (travelInfo.length > 44) {
       travelInfo.removeLast();
     }
@@ -770,9 +769,12 @@ class TravelInfo {
   }
 
   Future<void> _getReceivedLocation() async {
-    if (to == null) receivedLocation = "Not yet sent";
-    receivedLocation = await getLocationNameFromCoordinates(
-        to!.claimedLocation!.lat, to!.claimedLocation!.lon);
+    if (to == null) {
+      receivedLocation = "not_sent".tr();
+    } else {
+      receivedLocation = await getLocationNameFromCoordinates(
+          to!.claimedLocation!.lat, to!.claimedLocation!.lon);
+    }
   }
 
   Future<void> getLocationName() async {
