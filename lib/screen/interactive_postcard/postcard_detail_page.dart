@@ -14,6 +14,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -41,6 +42,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -383,11 +385,20 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final message = Uint8List.fromList(utf8.encode(timestamp));
     final signature =
         await tezosService.signMessage(ownerWallet, addressIndex!, message);
-
-    final sharePostcardResponse =
-        await injector<PostcardService>().sharePostcard(asset, signature);
-    if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
-      Share.share(sharePostcardResponse.deeplink!);
+    try {
+      final sharePostcardRespone =
+          await injector<PostcardService>().sharePostcard(asset, signature);
+      if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
+        Share.share(sharePostcardRespone.deeplink!);
+      }
+      injector<ConfigurationService>()
+          .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
+    } catch (e) {
+      if (e is DioError) {
+        if (mounted) {
+          UIHelper.showSharePostcardFailed(context, e);
+        }
+      }
     }
   }
 

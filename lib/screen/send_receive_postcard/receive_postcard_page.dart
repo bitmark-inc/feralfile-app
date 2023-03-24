@@ -26,7 +26,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/models.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 class ReceivePostcardPageArgs {
   final AssetToken asset;
@@ -280,6 +281,39 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                                 shareCode: widget.shareCode,
                                                 location: location,
                                                 address: address);
+                                    final tokenID = response.id;
+
+                                    final pendingToken = AssetToken(
+                                      asset: Asset.init(
+                                        indexID: tokenID,
+                                        artistName: 'MoMa',
+                                        maxEdition: 1,
+                                        mimeType: 'image/png',
+                                        title: 'Postcard 001',
+                                        thumbnailURL: "",
+                                        previewURL: "",
+                                        source: 'postcard',
+                                      ),
+                                      blockchain: "tezos",
+                                      fungible: false,
+                                      contractType: '',
+                                      tokenId: response.id,
+                                      contractAddress: "",
+                                      edition: 0,
+                                      editionName: "",
+                                      id: tokenID,
+                                      balance: 1,
+                                      owner: address,
+                                      lastActivityTime: DateTime.now(),
+                                      lastRefreshedTime: DateTime(1),
+                                      pending: true,
+                                      originTokenInfo: [],
+                                      provenance: [],
+                                      owners: {},
+                                    );
+
+                                    await injector<TokensService>()
+                                        .setCustomTokens([pendingToken]);
                                     if (!mounted) return;
                                     await UIHelper.showReceivePostcardSuccess(
                                         context);
