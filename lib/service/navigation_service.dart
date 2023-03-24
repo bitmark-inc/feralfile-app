@@ -272,15 +272,12 @@ class NavigationService {
   }
 
   void openPostcardReceivedPage(
-      {required AssetToken asset,
-      required String shareId,
-      required int counter}) async {
+      {required AssetToken asset, required String shareCode}) async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(
         AppRouter.receivePostcardPage,
-        arguments: ReceivePostcardPageArgs(
-            asset: asset, sharedId: shareId, counter: counter),
+        arguments: ReceivePostcardPageArgs(asset: asset, shareCode: shareCode),
       );
     } else {
       Future.value(0);

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -14,11 +15,14 @@ abstract class PostcardApi {
   @POST("/v1/postcard/claim")
   Future<ClaimPostCardResponse> claim(@Body() ClaimPostCardRequest body);
 
+  @POST("/v1/postcard/claim")
+  Future<ReceivePostcardResponse> receive(@Body() Map<String, dynamic> body);
+
   @POST("/v1/postcard/{token_id}/share")
   Future share(
       @Path("token_id") String tokenId, @Body() Map<String, dynamic> body);
 
-  @POST("/v1/claim/{share_code}")
+  @GET("/v1/postcard/claim/{share_code}")
   Future claimShareCode(@Path("share_code") String shareCode);
 
   @MultiPart()

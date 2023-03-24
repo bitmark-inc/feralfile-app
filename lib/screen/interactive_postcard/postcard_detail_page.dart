@@ -386,8 +386,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
     final sharePostcardResponse =
         await injector<PostcardService>().sharePostcard(asset, signature);
-    if (sharePostcardResponse.url?.isNotEmpty ?? false) {
-      Share.share(sharePostcardResponse.url!);
+    if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
+      Share.share(sharePostcardResponse.deeplink!);
     }
   }
 

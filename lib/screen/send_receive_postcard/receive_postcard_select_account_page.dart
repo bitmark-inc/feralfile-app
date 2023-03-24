@@ -1,11 +1,7 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -13,31 +9,21 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:nft_collection/models/asset_token.dart';
 
 class ReceivePostcardSelectAccountPageArgs {
   final String? blockchain;
-  final AssetToken asset;
-  final Position location;
 
   ReceivePostcardSelectAccountPageArgs(
     this.blockchain,
-    this.asset,
-    this.location,
   );
 }
 
 class ReceivePostcardSelectAccountPage extends StatefulWidget {
   final String? blockchain;
-  final AssetToken asset;
-  final Position location;
 
   const ReceivePostcardSelectAccountPage({
     Key? key,
     this.blockchain,
-    required this.asset,
-    required this.location,
   }) : super(key: key);
 
   @override
@@ -48,7 +34,7 @@ class ReceivePostcardSelectAccountPage extends StatefulWidget {
 
 class _ReceivePostcardSelectAccountPageState
     extends State<ReceivePostcardSelectAccountPage> with RouteAware {
-  bool _processing = false;
+  final bool _processing = false;
   String? _selectedAddress;
 
   @override
@@ -134,13 +120,8 @@ class _ReceivePostcardSelectAccountPageState
                   text: "h_confirm".tr(),
                   onTap: _selectedAddress == null
                       ? null
-                      : () async {
-                          await _receivePostcard(
-                            context,
-                            "shareId",
-                            _selectedAddress!,
-                            widget.location,
-                          );
+                      : () {
+                          Navigator.pop(context, _selectedAddress);
                         }),
             ),
           ],
@@ -179,22 +160,5 @@ class _ReceivePostcardSelectAccountPageState
         ],
       );
     });
-  }
-
-  Future _receivePostcard(BuildContext context, String shareId,
-      String receiveAddress, Position location) async {
-    final postcardService = injector<PostcardService>();
-    postcardService.receivePostcard(
-        shareId: shareId, location: location, address: receiveAddress);
-    await UIHelper.showReceivePostcardSuccess(context);
-    setState(() {
-      _processing = false;
-    });
-    if (mounted) {
-      await Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRouter.homePage,
-        (route) => false,
-      );
-    }
   }
 }
