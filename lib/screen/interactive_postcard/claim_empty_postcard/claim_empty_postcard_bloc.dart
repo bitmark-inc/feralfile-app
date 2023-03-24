@@ -15,7 +15,6 @@ import 'package:nft_collection/models/models.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'claim_empty_postcard_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -33,8 +32,10 @@ class ClaimEmptyPostCardBloc
           mimeType: 'image/png',
           title: 'Postcard 001',
           medium: 'image',
-          thumbnailURL: 'https://picsum.photos/350/250',
-          previewURL: 'https://picsum.photos/350/250',
+          thumbnailURL:
+              'https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw',
+          previewURL:
+              'https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw',
         ),
         blockchain: "tezos",
         fungible: false,

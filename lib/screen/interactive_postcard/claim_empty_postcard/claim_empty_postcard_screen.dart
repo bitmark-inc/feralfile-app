@@ -50,11 +50,6 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
           final artwork = state.assetToken;
           if (artwork == null) return Container();
           final theme = Theme.of(context);
-          String gifter = 'MoMa';
-          String giftIntro = "you_can_receive_free_gift".tr();
-          if (gifter.trim().isNotEmpty) {
-            giftIntro += " ${'from'.tr().toLowerCase()} ";
-          }
           return Scaffold(
             backgroundColor: theme.colorScheme.primary,
             body: Container(
@@ -130,28 +125,66 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           const SizedBox(
                             height: 30,
                           ),
-                          RichText(
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                              text: giftIntro,
-                              style: theme.textTheme.ppMori400White14,
+                          Container(
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                              color: theme.auSuperTeal,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TextSpan(
-                                  text: gifter,
-                                  style:
-                                      theme.primaryTextTheme.ppMori700White14,
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 15),
+                                  child: Text(
+                                    'How it works',
+                                    style: theme.textTheme.ppMori700Black14,
+                                  ),
                                 ),
-                                TextSpan(
-                                  text: ".",
-                                  style:
-                                      theme.primaryTextTheme.ppMori400White14,
+                                RichText(
+                                  maxLines: 10,
+                                  overflow: TextOverflow.ellipsis,
+                                  text: TextSpan(
+                                    text: "Introducing the ",
+                                    style: theme.textTheme.ppMori400Black14,
+                                    children: [
+                                      TextSpan(
+                                        text: 'MoMA Postcard Project, ',
+                                        style: theme.textTheme.ppMori400Black14
+                                            .copyWith(
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            'a collaborative, creative experience. Just design, stamp and send!',
+                                        style: theme.textTheme.ppMori400Black14,
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            "\n\nYour objective is simple: send the postcard on a journey as far around the world as you can.",
+                                        style: theme.textTheme.ppMori400Black14,
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            "\n\nTap \"accept postcard\" to begin",
+                                        style: theme.textTheme.ppMori400Black14,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(
                             height: 30,
+                          ),
+                          Text(
+                            "accept_ownership_desc".tr(),
+                            style: theme.primaryTextTheme.ppMori400White14,
+                          ),
+                          const SizedBox(
+                            height: 16,
                           ),
                           PrimaryButton(
                             text: "accept_ownership".tr(),
@@ -163,13 +196,6 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           ),
                           const SizedBox(
                             height: 30,
-                          ),
-                          Text(
-                            "accept_ownership_desc".tr(),
-                            style: theme.primaryTextTheme.ppMori400White14,
-                          ),
-                          const SizedBox(
-                            height: 16,
                           ),
                           RichText(
                             text: TextSpan(
@@ -191,19 +217,19 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                               ],
                             ),
                           ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          OutlineButton(
+                            text: "decline".tr(),
+                            color: theme.colorScheme.primary,
+                            onTap: () {
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  OutlineButton(
-                    text: "decline".tr(),
-                    color: theme.colorScheme.primary,
-                    onTap: () {
-                      Navigator.of(context).pop(false);
-                    },
                   ),
                 ],
               ),
