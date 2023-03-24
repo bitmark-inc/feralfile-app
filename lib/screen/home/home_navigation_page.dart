@@ -6,8 +6,10 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
@@ -16,6 +18,7 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -73,7 +76,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         if (index == 0) {
           _homePageKey.currentState?.scrollToTop();
         }
-        if (index == _pages.length - 1) {
+        if (index == _pages.length - 2) {
           _editorialPageStateKey.currentState?.scrollToTop();
         }
       }
@@ -86,7 +89,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _homePageKey.currentState
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
-      } else if (index == _pages.length - 1) {
+      } else if (index == _pages.length - 2) {
         final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
@@ -170,6 +173,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             return EditorialPage(
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(
+              value: AccountsBloc(injector(), injector<CloudDatabase>(),
+                  injector(), injector<AuditService>(), injector())),
+        ],
+        child: const WalletPage(),
+      ),
     ];
     _bottomItems = [
       const BottomNavigationBarItem(
@@ -231,6 +242,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             }),
         label: '',
       ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.wallet,
+          size: 25,
+        ),
+        label: '',
+      ),
       BottomNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(
           valueListenable:
@@ -288,6 +306,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               return EditorialPage(
                   key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
             }),
+        MultiBlocProvider(
+          providers: [
+            BlocProvider.value(
+                value: AccountsBloc(injector(), injector<CloudDatabase>(),
+                    injector(), injector<AuditService>(), injector())),
+          ],
+          child: const WalletPage(),
+        ),
       ];
       _bottomItems = [
         const BottomNavigationBarItem(
@@ -354,6 +380,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                   ],
                 );
               }),
+          label: '',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.wallet,
+            size: 25,
+          ),
           label: '',
         ),
         BottomNavigationBarItem(
