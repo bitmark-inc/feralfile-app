@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/position_utils.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -8,7 +9,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
@@ -37,7 +37,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     super.initState();
     if (widget.payload.location != null) {
       final placeMark = widget.payload.location!.placeMark;
-      location = getLocation(placeMark);
+      location = getLocationName(placeMark);
     }
 
     // date now dd-mm-yy
@@ -48,31 +48,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     selectedColor = stampColors[0];
   }
 
-  String getLocation(Placemark placeMark) {
-    List<String> locationLevel = [];
-    if (placeMark.subLocality != null && placeMark.subLocality!.isNotEmpty) {
-      locationLevel.add(placeMark.subLocality!);
-    }
-    if (placeMark.subAdministrativeArea != null &&
-        placeMark.subAdministrativeArea!.isNotEmpty) {
-      locationLevel.add(placeMark.subAdministrativeArea!);
-    }
-    if (placeMark.locality != null && placeMark.locality!.isNotEmpty) {
-      locationLevel.add(placeMark.locality!);
-    }
-    if (placeMark.administrativeArea != null &&
-        placeMark.administrativeArea!.isNotEmpty) {
-      locationLevel.add(placeMark.administrativeArea!);
-    }
-    if (placeMark.isoCountryCode != null &&
-        placeMark.isoCountryCode!.isNotEmpty) {
-      locationLevel.add(placeMark.isoCountryCode!);
-    }
-    while (locationLevel.length > 3) {
-      locationLevel.removeAt(0);
-    }
-    return locationLevel.join(", ");
-  }
+
 
   String selectLocation(String? first, String? second) {
     if (first != null && first.isNotEmpty) {

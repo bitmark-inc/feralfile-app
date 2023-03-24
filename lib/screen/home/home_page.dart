@@ -415,7 +415,11 @@ class HomePageState extends State<HomePage>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                final pageName = asset.source == "autonomy-postcard"
+                    ? AppRouter.claimedPostcardDetailsPage
+                    : AppRouter.artworkDetailsPage;
+                Navigator.of(context).pushNamed(
+                    AppRouter.claimedPostcardDetailsPage, ////need change to pageName
                     arguments: payload);
 
                 _metricClient.addEvent(MixpanelEvent.viewArtwork,
