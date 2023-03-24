@@ -73,18 +73,24 @@ class PostcardServiceImpl extends PostcardService {
   Future<SharePostcardResponse> sharePostcard(
       AssetToken asset, String signature) async {
     final tokenId = asset.tokenId ?? '';
-    final body = {"tokenId": tokenId, "contractAddress": asset.contractAddress};
-    final response = await _postcardApi.share(tokenId, body);
-    final deeplink = response["deeplink"];
-    return SharePostcardResponse(deeplink: deeplink);
+    final body = {
+      "address": asset.owner,
+      "contractAddress": asset.contractAddress
+    };
+    try {
+      final response = await _postcardApi.share(tokenId, body);
+
+      final deeplink = response["deeplink"];
+      return SharePostcardResponse(deeplink: deeplink);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
   Future<AssetToken> getPostcard(String tokenId) async {
     final assets = await _indexerApi.getNftTokens({
-      "ids": [
-        "tez-KT1VZ6Zkoae9DtXkbuw4wtFCg9WH8eywcvEX-40646190046962204893135567732757205213573014650276468766179006995682078298273"
-      ]
+      "ids": [tokenId]
     });
     return assets.first;
   }

@@ -28,6 +28,22 @@ class ReceivePostcardBloc
 
       emit(state.copyWith(isReceiving: false));
     });
+
+    on<GetPostcardEvent>((event, emit) async {
+      try {
+        final sharedPostcardInfor =
+            await _postcardService.getSharedPostcardInfor(event.shareCode);
+        final contractAddress = "KT1MeB8Wntrx4fjksZkCWUwmGDQTGs6DsMwp";
+        final tokenId = 'tez-$contractAddress-${sharedPostcardInfor.tokenID}';
+        final postcard = await _postcardService.getPostcard(tokenId);
+        // emit(state.copyWith(postcard: postcard));
+      } catch (e) {
+        if (e is DioError) {
+          emit(state.copyWith(error: e));
+        }
+      }
+    });
+
     on<GetLocationEvent>((event, emit) async {
       Position? location;
       final permissions = await checkLocationPermissions();

@@ -9,8 +9,12 @@ class ReceivePostcardState {
   final Position? location;
   final DioError? error;
 
-  ReceivePostcardState(
-      {this.isReceiving, this.locationAllowed, this.location, this.error});
+  ReceivePostcardState({
+    this.isReceiving,
+    this.locationAllowed,
+    this.location,
+    this.error,
+  });
 
   ReceivePostcardState copyWith({
     bool? isReceiving,
@@ -36,3 +40,9 @@ class AcceptPostcardEvent extends ReceivePostcardEvent {
 }
 
 class GetLocationEvent extends ReceivePostcardEvent {}
+
+class GetPostcardEvent extends ReceivePostcardEvent {
+  final String shareCode;
+
+  GetPostcardEvent(this.shareCode);
+}
