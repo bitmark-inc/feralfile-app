@@ -137,7 +137,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 15),
                                   child: Text(
-                                    'How it works',
+                                    'how_it_works'.tr(),
                                     style: theme.textTheme.ppMori700Black14,
                                   ),
                                 ),
@@ -145,29 +145,27 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                   maxLines: 10,
                                   overflow: TextOverflow.ellipsis,
                                   text: TextSpan(
-                                    text: "Introducing the ",
+                                    text: "introducing_the".tr(),
                                     style: theme.textTheme.ppMori400Black14,
                                     children: [
                                       TextSpan(
-                                        text: 'MoMA Postcard Project, ',
+                                        text: 'moma_postcard_project'.tr(),
                                         style: theme.textTheme.ppMori400Black14
                                             .copyWith(
                                           fontStyle: FontStyle.italic,
                                         ),
                                       ),
                                       TextSpan(
-                                        text:
-                                            'a collaborative, creative experience. Just design, stamp and send!',
+                                        text: 'a_collaborative'.tr(),
+                                        style: theme.textTheme.ppMori400Black14,
+                                      ),
+                                      TextSpan(
+                                        text: "your_objective".tr(),
                                         style: theme.textTheme.ppMori400Black14,
                                       ),
                                       TextSpan(
                                         text:
-                                            "\n\nYour objective is simple: send the postcard on a journey as far around the world as you can.",
-                                        style: theme.textTheme.ppMori400Black14,
-                                      ),
-                                      TextSpan(
-                                        text:
-                                            "\n\nTap \"accept postcard\" to begin",
+                                            "tap_accept_postcard_to_begin".tr(),
                                         style: theme.textTheme.ppMori400Black14,
                                       ),
                                     ],
