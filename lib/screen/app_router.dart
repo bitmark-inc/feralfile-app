@@ -1213,8 +1213,7 @@ class AppRouter {
                 ],
                 child: ReceivePostCardPage(
                   asset: args.asset,
-                  sharedId: args.sharedId,
-                  counter: args.counter,
+                  shareCode: args.shareCode,
                 ),
               );
             });
@@ -1232,8 +1231,6 @@ class AppRouter {
             value: accountsBloc,
             child: ReceivePostcardSelectAccountPage(
               blockchain: args.blockchain,
-              asset: args.asset,
-              location: args.location,
             ),
           );
         });

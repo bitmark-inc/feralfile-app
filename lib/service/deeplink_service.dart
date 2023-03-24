@@ -308,7 +308,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
-    final source = data["source"];
+    final source = "Postcard"; //data["source"];
     switch (source) {
       case "FeralFile":
         final String? tokenId = data["token_id"];
@@ -346,7 +346,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _handleClaimEmptyPostcardDeeplink(id);
           return;
         }
-        final String? sharedCode = data["shared_code"] ?? "shared_code";
+        final String? sharedCode = data["share_code"] ?? "share_code";
         if (sharedCode != null) {
           log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
           await _handlePostcardDeeplink(sharedCode);
@@ -492,15 +492,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
   _handlePostcardDeeplink(String shareCode) async {
     final sharedInfor =
         await _postcardService.getSharedPostcardInfor(shareCode);
-    if (sharedInfor != null) {
-      final postcard = await _postcardService.getPostcard(sharedInfor.tokenId);
-      if (postcard != null) {
-        _navigationService.openPostcardReceivedPage(
-            asset: postcard,
-            shareId: sharedInfor.shareId,
-            counter: sharedInfor.counter);
-      }
-    }
+    final postcard = await _postcardService.getPostcard(sharedInfor.id);
+    _navigationService.openPostcardReceivedPage(
+        asset: postcard, shareCode: sharedInfor.shareCode);
   }
 
   _handleClaimEmptyPostcardDeeplink(String? id) async {

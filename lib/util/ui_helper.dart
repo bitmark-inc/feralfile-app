@@ -1217,6 +1217,11 @@ class UIHelper {
     return showErrorDialog(
         context, "Receive Success", 'description', "close".tr());
   }
+
+  static showReceivePostcardFailed(BuildContext context, DioError error) async {
+    return showErrorDialog(context, "Receive Failed",
+        error.response?.data['message'], "close".tr());
+  }
 }
 
 class ConnectedTV extends StatefulWidget {

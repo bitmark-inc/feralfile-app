@@ -11,8 +11,9 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -20,15 +21,15 @@ import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 abstract class PostcardService {
-  Future<ReceivePostcardRespone?> receivePostcard(
-      {required String shareId,
+  Future<ReceivePostcardResponse> receivePostcard(
+      {required String shareCode,
       required Position location,
       required String address});
 
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request);
 
-  Future<SharePostcardRespone> sharePostcard(
+  Future<SharePostcardResponse> sharePostcard(
       AssetToken asset, String signature);
 
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode);
@@ -55,65 +56,45 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<ReceivePostcardRespone?> receivePostcard({
-    required String shareId,
+  Future<ReceivePostcardResponse> receivePostcard({
+    required String shareCode,
     required Position location,
     required String address,
   }) async {
     final body = {
-      "shareId": shareId,
+      "shareCode": shareCode,
       "location": [location.latitude, location.longitude],
       "address": address,
     };
-
-    ///TODO: update api
-    final postcard = await _postcardApi.claim(ClaimPostCardRequest());
-
-    return ReceivePostcardRespone(tokenId: postcard.tokenID);
+    return _postcardApi.receive(body);
   }
 
   @override
-  Future<SharePostcardRespone> sharePostcard(
+  Future<SharePostcardResponse> sharePostcard(
       AssetToken asset, String signature) async {
     final tokenId = asset.tokenId ?? '';
-    final counter = asset.counter;
-    final body = {
-      "tokenId": tokenId,
-      "signature": signature,
-      "counter": counter,
-    };
-    return SharePostcardRespone(url: "https://bitmark.com");
+    final body = {"tokenId": tokenId, "contractAddress": asset.contractAddress};
     final response = await _postcardApi.share(tokenId, body);
-    if (response.statusCode == 200) {
-      final url = json.decode(response.body);
-      return SharePostcardRespone(url: url);
-    } else {
-      throw Exception('Failed to load postcards');
-    }
+    final deeplink = response["deeplink"];
+    return SharePostcardResponse(deeplink: deeplink);
   }
 
   @override
   Future<AssetToken> getPostcard(String tokenId) async {
     final assets = await _indexerApi.getNftTokens({
-      "ids": [tokenId]
+      "ids": [
+        "tez-KT1VZ6Zkoae9DtXkbuw4wtFCg9WH8eywcvEX-40646190046962204893135567732757205213573014650276468766179006995682078298273"
+      ]
     });
     return assets.first;
   }
 
   @override
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode) async {
-    return SharedPostcardInfor(
-        shareId: "sharedId",
-        tokenId: "tokenId",
-        imageCID: "imageCID",
-        counter: 0);
     final response = await _postcardApi.claimShareCode(shareCode);
-    if (response.statusCode == 200) {
-      final sharedPostcardInfor = json.decode(response.body);
-      return sharedPostcardInfor;
-    } else {
-      throw Exception('Failed to load postcards');
-    }
+    response["shareCode"] = shareCode;
+    final sharedPostcardInfor = SharedPostcardInfor.fromJson(response);
+    return sharedPostcardInfor;
   }
 
   @override
@@ -143,29 +124,4 @@ class PostcardServiceImpl extends PostcardService {
     final ok = result["metadataCID"] as String;
     return ok.isNotEmpty;
   }
-}
-
-class SharePostcardRespone {
-  String? url;
-
-  SharePostcardRespone({this.url});
-}
-
-class ReceivePostcardRespone {
-  String? tokenId;
-
-  ReceivePostcardRespone({this.tokenId});
-}
-
-class SharedPostcardInfor {
-  String shareId;
-  String tokenId;
-  String imageCID;
-  int counter;
-
-  SharedPostcardInfor(
-      {required this.shareId,
-      required this.tokenId,
-      required this.imageCID,
-      required this.counter});
 }
