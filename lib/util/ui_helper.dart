@@ -874,7 +874,7 @@ class UIHelper {
               const SizedBox(width: 24),
               IconButton(
                   padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
+                  constraints: const BoxConstraints(),
                   onPressed: () => Share.share(address),
                   icon: SvgPicture.asset(
                     'assets/images/Share.svg',
