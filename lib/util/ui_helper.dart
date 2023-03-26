@@ -209,6 +209,8 @@ class UIHelper {
       Vibrate.feedback(feedback);
     }
 
+    final height = MediaQuery.of(context).size.height > 800 ? 689 : 600;
+
     await showModalBottomSheet<dynamic>(
       context: context,
       isDismissible: isDismissible,
@@ -223,7 +225,7 @@ class UIHelper {
       builder: (context) {
         return Container(
           color: Colors.transparent,
-          height: 689,
+          height: height.toDouble(),
           child: ClipPath(
             clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
             child: Container(

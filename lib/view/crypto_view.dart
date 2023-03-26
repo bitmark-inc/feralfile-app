@@ -111,19 +111,16 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
                     )
                   : SingleChildScrollView(
                       child: Column(
-                        children: [
-                          ...addresses
-                              .map((address) => [
-                                    _addressOption(
-                                        addressInfo: address,
-                                        isImported: widget.importedAddress
-                                            .contains(address.address)),
-                                    addDivider(
-                                        height: 1, color: AppColor.white),
-                                  ])
-                              .flattened
-                              .toList(),
-                        ],
+                        children: addresses
+                            .map((address) => [
+                                  _addressOption(
+                                      addressInfo: address,
+                                      isImported: widget.importedAddress
+                                          .contains(address.address)),
+                                  addDivider(height: 1, color: AppColor.white),
+                                ])
+                            .flattened
+                            .toList(),
                       ),
                     ),
             ),
@@ -246,7 +243,7 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
                     ),
                     onPressed: () {},
                     child: Text(
-                      "Imported",
+                      "imported_".tr(),
                       style: theme.textTheme.ppMori400White14.copyWith(
                         color: AppColor.disabledColor,
                       ),
@@ -282,20 +279,21 @@ class LogoCrypto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (cryptoType == CryptoType.XTZ) {
-      return SvgPicture.asset(
-        "assets/images/tez.svg",
-        width: size,
-        height: size,
-      );
+    switch (cryptoType) {
+      case CryptoType.ETH:
+        return SvgPicture.asset(
+          'assets/images/ether.svg',
+          width: size,
+          height: size,
+        );
+      case CryptoType.XTZ:
+        return SvgPicture.asset(
+          "assets/images/tez.svg",
+          width: size,
+          height: size,
+        );
+      default:
+        return Container();
     }
-    if (cryptoType == CryptoType.ETH) {
-      return SvgPicture.asset(
-        'assets/images/ether.svg',
-        width: size,
-        height: size,
-      );
-    }
-    return Container();
   }
 }
