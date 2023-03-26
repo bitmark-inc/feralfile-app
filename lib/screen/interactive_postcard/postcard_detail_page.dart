@@ -197,14 +197,16 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       //////////
       final a = PostcardMetadata(
           lastOwner: "d",
-          isStamped: true,
+          isStamped: false,
           locationInformation: [
             LocationInformation(
                 claimedLocation: Location(lat: 16.045479, lon: 108.220218),
                 stampedLocation: Location(lat: 16.045479, lon: 108.220218)),
             LocationInformation(
                 claimedLocation: Location(lat: 22.980525, lon: 120.220683),
-                stampedLocation: Location(lat: 22.980525, lon: 120.220683))
+                stampedLocation: Location(lat: 22.980525, lon: 120.220683)),
+            LocationInformation(
+                claimedLocation: Location(lat: 42.699094, lon: -75.856003),)
           ]);
 
       postcardMetadata = PostcardMetadata.fromJson(a.toJson());
@@ -699,11 +701,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
     }
 
-    travelInfo
-        .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
+    if (stamps[stamps.length - 1].stampedLocation != null) {
+      travelInfo
+          .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
+    }
 
     await Future.wait(travelInfo.map((e) async {
-      e.getDistance();
       await e.getLocationName();
     }));
 
@@ -764,8 +767,10 @@ class TravelInfo {
   }
 
   Future<void> _getSentLocation() async {
-    sentLocation = await getLocationNameFromCoordinates(
-        from.stampedLocation!.lat, from.stampedLocation!.lon);
+    if (from.stampedLocation != null) {
+      sentLocation = await getLocationNameFromCoordinates(
+          from.stampedLocation!.lat, from.stampedLocation!.lon);
+    }
   }
 
   Future<void> _getReceivedLocation() async {
