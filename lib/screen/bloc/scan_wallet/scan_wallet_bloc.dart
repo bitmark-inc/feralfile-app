@@ -18,7 +18,8 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
         int gapCount = 0;
         int index = event.startIndex;
         final wallet = event.wallet;
-        while (true) {
+        bool hitStopGap = false;
+        while (!hitStopGap && ethereumAddresses.length < event.maxLength) {
           final address = await wallet.getETHEip55Address(index: index);
           final balance = await _ethereumService.getBalance(address);
           final hasBalance = balance.getInWei.compareTo(BigInt.zero) > 0;
@@ -32,21 +33,19 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
             ethereumAddresses.add(EthereumAddressInfo(index, address, balance));
           }
 
-          final hitStopGap = gapCount >= event.gapLimit;
-          if (hitStopGap || ethereumAddresses.length >= event.maxLength) {
-            if (event.isAdd) {
-              emit(state.addNewAddresses(ethereumAddresses,
-                  hitStopGap: hitStopGap, isScanning: false));
-            } else {
-              emit(ScanWalletState(
-                  addresses: ethereumAddresses, hitStopGap: hitStopGap));
-            }
-            log.info(
-                "ScanEthereumWalletEvent: addresses: $ethereumAddresses hitStopGap: $hitStopGap");
-            break;
-          }
+          hitStopGap = gapCount >= event.gapLimit;
           index++;
         }
+
+        if (event.isAdd) {
+          emit(state.addNewAddresses(ethereumAddresses,
+              hitStopGap: hitStopGap, isScanning: false));
+        } else {
+          emit(ScanWalletState(
+              addresses: ethereumAddresses, hitStopGap: hitStopGap));
+        }
+        log.info(
+            "ScanEthereumWalletEvent: addresses: $ethereumAddresses hitStopGap: $hitStopGap");
       },
     );
 
@@ -57,7 +56,8 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
         int gapCount = 0;
         int index = event.startIndex;
         final wallet = event.wallet;
-        while (true) {
+        bool hitStopGap = false;
+        while (!hitStopGap && tezosAddresses.length < event.maxLength) {
           final address = await wallet.getTezosAddress(index: index);
           final balance = await _tezosService.getBalance(address);
           final hasBalance = balance > 0;
@@ -71,22 +71,20 @@ class ScanWalletBloc extends AuBloc<ScanWalletEvent, ScanWalletState> {
             tezosAddresses.add(TezosAddressInfo(index, address, balance));
           }
 
-          final hitStopGap = gapCount >= event.gapLimit;
-          if (hitStopGap || tezosAddresses.length >= event.maxLength) {
-            if (event.isAdd) {
-              emit(state.addNewAddresses(tezosAddresses,
-                  hitStopGap: hitStopGap, isScanning: false));
-            } else {
-              emit(ScanWalletState(
-                  addresses: tezosAddresses, hitStopGap: hitStopGap));
-            }
-
-            log.info(
-                "ScanTezosWalletEvent: addresses: $tezosAddresses hitStopGap: $hitStopGap");
-            break;
-          }
+          hitStopGap = gapCount >= event.gapLimit;
           index++;
         }
+
+        if (event.isAdd) {
+          emit(state.addNewAddresses(tezosAddresses,
+              hitStopGap: hitStopGap, isScanning: false));
+        } else {
+          emit(ScanWalletState(
+              addresses: tezosAddresses, hitStopGap: hitStopGap));
+        }
+
+        log.info(
+            "ScanTezosWalletEvent: addresses: $tezosAddresses hitStopGap: $hitStopGap");
       },
     );
   }
