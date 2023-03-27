@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -37,12 +39,13 @@ class _StampPreviewState extends State<StampPreview> {
   void initState() {
     super.initState();
     fetchPostcard();
+    final postcardMetadata = PostcardMetadata.fromJson(
+        jsonDecode(widget.payload.asset.artworkMetadata!));
+    index = postcardMetadata.locationInformation.length - 1;
   }
 
   Future<void> fetchPostcard() async {
-    const emptyPostcardUrl =
-        "https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw";
-    //String emptyPostcardUrl = widget.payload.asset.previewURL!;
+    String emptyPostcardUrl = widget.payload.asset.getPreviewUrl()!;
 
     http.Response response = await http.get(Uri.parse(emptyPostcardUrl));
     final bytes = response.bodyBytes;
