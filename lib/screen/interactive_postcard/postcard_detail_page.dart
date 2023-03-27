@@ -74,6 +74,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   bool viewJourney = true;
   PostcardMetadata? postcardMetadata;
   List<TravelInfo> travelInfo = [];
+  String? owner;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -193,8 +194,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
+      if (state.assetToken != null) {
+        await _getOwner(state.assetToken!);
+      }
 
       //////////
+      /*
       final a = PostcardMetadata(
           lastOwner: "d",
           isStamped: false,
@@ -210,6 +215,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           ]);
 
       postcardMetadata = PostcardMetadata.fromJson(a.toJson());
+
+       */
+      postcardMetadata = PostcardMetadata.fromJson(
+          state.assetToken!.projectMetadata!.latest.artworkMetadata!);
       await _getTravelInfo();
       setState(() {
         currentAsset = state.assetToken;
@@ -357,27 +366,29 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardAction(AssetToken asset) {
     final isStamped = postcardMetadata?.isStamped ?? false;
-    if (!isStamped) {
-      return Padding(
-        padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-        child: PrimaryButton(
-          text: "stamp_postcard".tr(),
-          onTap: () {
-            Navigator.of(context).pushNamed(AppRouter.postcardExplain,
-                arguments: PostcardExplainPayload(asset));
-          },
-        ),
-      );
-    } else if (_canShare(asset)) {
-      return Padding(
-        padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-        child: PrimaryButton(
-          text: "invite_to_collaborate".tr(),
-          onTap: () {
-            _sharePostcard(asset);
-          },
-        ),
-      );
+    if (_canShare()) {
+      if (!isStamped) {
+        return Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+          child: PrimaryButton(
+            text: "stamp_postcard".tr(),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+                  arguments: PostcardExplainPayload(asset));
+            },
+          ),
+        );
+      } else {
+        return Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+          child: PrimaryButton(
+            text: "invite_to_collaborate".tr(),
+            onTap: () {
+              _sharePostcard(asset);
+            },
+          ),
+        );
+      }
     } else {
       return const SizedBox();
     }
@@ -621,8 +632,15 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  bool _canShare(AssetToken asset) {
-    return true;
+  bool _canShare() {
+    return owner == postcardMetadata!.lastOwner;
+  }
+
+  Future<void> _getOwner(AssetToken asset) async {
+    final wallet = await asset.getOwnerWallet();
+    if (wallet != null) {
+      owner = await wallet.first.getTezosAddress(index: wallet.second);
+    }
   }
 
   Widget travelInfoWidget() {
