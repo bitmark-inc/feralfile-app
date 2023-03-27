@@ -55,7 +55,7 @@ class HomeNavigationPage extends StatefulWidget {
 
 class _HomeNavigationPageState extends State<HomeNavigationPage>
     with RouteAware, WidgetsBindingObserver {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
   late List<BottomNavigationBarItem> _bottomItems;
@@ -559,7 +559,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(0);
+        _pageController.jumpToPage(1);
         break;
 
       case "customer_support_new_message":
@@ -589,7 +589,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _onItemTapped(1);
+        _onItemTapped(0);
         final metricClient = injector<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.tabNotification, data: {
           'type': notificationType,
