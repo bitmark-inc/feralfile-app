@@ -214,7 +214,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
        */
       postcardMetadata = PostcardMetadata.fromJson(
-          state.assetToken!.projectMetadata!.latest.artworkMetadata!);
+          jsonDecode(state.assetToken!.asset!.artworkMetadata!));
       await _getTravelInfo();
       setState(() {
         currentAsset = state.assetToken;
@@ -631,7 +631,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   bool _canShare(AssetToken asset) {
     return asset.owner == postcardMetadata!.lastOwner;
   }
-
 
   Widget travelInfoWidget() {
     final theme = Theme.of(context);
