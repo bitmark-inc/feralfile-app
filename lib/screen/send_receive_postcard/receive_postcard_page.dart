@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -203,6 +204,11 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           const SizedBox(
                             height: 30,
                           ),
+                          Padding(
+                            padding: padding,
+                            child: const HowItWorksView(),
+                          ),
+                          const SizedBox(height: 30),
                           Padding(
                             padding: padding,
                             child: PrimaryButton(

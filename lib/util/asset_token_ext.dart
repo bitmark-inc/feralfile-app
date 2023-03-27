@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/trip.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
@@ -224,36 +226,42 @@ extension AssetTokenExtension on AssetToken {
     return _replaceIPFS(galleryThumbnailURL!);
   }
 
-  double? get totalDistanceTraveled {
-    return 5848.0;
-  }
-
-  List<Trip> get trips {
-    return [
-      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
-      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
-      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
-      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
-      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
-      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
-      Trip(from: "New York, USA", to: "Milan, Italy", distance: 4021),
-      Trip(from: "Boulder, CO, USA", to: "New York, NY, USA", distance: 1827),
-    ];
-  }
-
   bool get isSending {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
-    return sharedPostcards
-        .any((element) => (element.tokenID == id && element.owner == owner));
-  }
-
-  bool get isPostcard {
-    return true;
+    return sharedPostcards.any(
+        (element) => (element.tokenID == id && element.owner == lastOwner));
   }
 
   String get lastOwner {
-    return owner;
+    return postcardMetadata.lastOwner;
+  }
+
+  PostcardMetadata get postcardMetadata {
+    return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
+  }
+
+  Future<List<TravelInfo>> get listTravelInfo async {
+    final stamps = postcardMetadata.locationInformation;
+
+    final travelInfo = <TravelInfo>[];
+    for (int i = 0; i < stamps.length - 1; i++) {
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
+    }
+
+    if (stamps[stamps.length - 1].stampedLocation != null) {
+      travelInfo
+          .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
+    }
+
+    await Future.wait(travelInfo.map((e) async {
+      await e.getLocationName();
+    }));
+
+    if (travelInfo.length > 44) {
+      travelInfo.removeLast();
+    }
+    return travelInfo;
   }
 
   int get counter {

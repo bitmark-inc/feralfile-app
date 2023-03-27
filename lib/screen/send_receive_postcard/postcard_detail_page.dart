@@ -5,13 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/trip.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
@@ -24,7 +18,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:share/share.dart';
 
 class PostcardDetailPage extends StatefulWidget {
   final AssetToken asset;
@@ -41,14 +34,17 @@ class PostcardDetailPage extends StatefulWidget {
 class _PostcardDetailPageState extends State<PostcardDetailPage> {
   late Locale locale;
   late DistanceFormatter distanceFormatter;
+  late List<TravelInfo> travelInfo;
 
   @override
   void initState() {
     super.initState();
+    travelInfo = [];
   }
 
   @override
   Widget build(BuildContext context) {
+    _getTravelInfo(widget.asset);
     locale = Localizations.localeOf(context);
     distanceFormatter = DistanceFormatter(locale: locale);
     final theme = Theme.of(context);
@@ -58,8 +54,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
     if (artistName != null && artistName.isNotEmpty) {
       subTitle = "by".tr(args: [artistName]);
     }
-    final sendingTrip =
-        Trip(from: 'Boulder, CO, USA', to: 'Unknown', distance: null);
+
     return Scaffold(
         appBar: AppBar(
           leadingWidth: 0,
@@ -109,7 +104,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
                 const SizedBox(height: 30),
                 // Show artwork here.
                 CachedNetworkImage(
-                  imageUrl: asset.thumbnailURL ?? "",
+                  imageUrl: asset.getPreviewUrl() ?? "",
                   fit: BoxFit.fitWidth,
                 ),
                 const SizedBox(height: 24.0),
@@ -121,26 +116,18 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
                       style: theme.textTheme.ppMori700White14,
                     ),
                     Text(
-                      asset.totalDistanceTraveled == null
-                          ? "-"
-                          : distanceFormatter.format(
-                              distance: asset.totalDistanceTraveled!),
+                      distanceFormatter.format(
+                          distance: travelInfo.totalDistance),
                       style: theme.textTheme.ppMori700White14,
                     ),
                   ],
                 ),
 
                 addDivider(color: AppColor.greyMedium),
-                if (asset.isSending) ...[
-                  _sendingTripItem(
-                      context,
-                      Trip.sendingTrip(asset.trips.last.to),
-                      asset.trips.length + 1),
-                  addDivider(color: AppColor.greyMedium),
-                ],
-                ...asset.trips
+
+                ...travelInfo
                     .mapIndexed((index, el) => [
-                          _tripItem(context, el, asset.trips.length - index),
+                          _tripItem(context, el),
                           addDivider(color: AppColor.greyMedium)
                         ])
                     .flattened
@@ -151,7 +138,14 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
         ));
   }
 
-  Widget _tripItem(BuildContext context, Trip el, int index) {
+  Future<void> _getTravelInfo(AssetToken assetToken) async {
+    final travelInfo = await assetToken.listTravelInfo;
+    setState(() {
+      this.travelInfo = travelInfo;
+    });
+  }
+
+  Widget _tripItem(BuildContext context, TravelInfo travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
 
@@ -159,11 +153,11 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(index),
+          formatter.format(travelInfo.index),
           style: theme.textTheme.ppMori400Grey12,
         ),
         Text(
-          el.from,
+          travelInfo.sentLocation ?? "Unknown",
           style: theme.textTheme.ppMori400White14,
         ),
         Row(
@@ -171,83 +165,17 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
             SvgPicture.asset("assets/images/arrow_3.svg"),
             const SizedBox(width: 6),
             Text(
-              el.to,
+              travelInfo.receivedLocation ?? "Unknown",
               style: theme.textTheme.ppMori400White14,
             ),
             const Spacer(),
             Text(
-              distanceFormatter.format(distance: el.distance!),
+              distanceFormatter.format(distance: travelInfo.getDistance()),
               style: theme.textTheme.ppMori400White14,
             )
           ],
         ),
       ],
     );
-  }
-
-  Widget _sendingTripItem(BuildContext context, Trip el, index) {
-    final theme = Theme.of(context);
-    NumberFormat formatter = NumberFormat("00");
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          formatter.format(index),
-          style: theme.textTheme.ppMori400Grey12,
-        ),
-        Row(
-          children: [
-            Text(
-              el.from,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const Spacer(),
-            GestureDetector(
-              child: Text("invite_to_collaborate".tr(),
-                  style: theme.textTheme.ppMori400SupperTeal12),
-              onTap: () {
-                _sharePostcard(widget.asset);
-              },
-            )
-          ],
-        ),
-        Row(
-          children: [
-            SvgPicture.asset("assets/images/arrow_3.svg"),
-            const SizedBox(width: 6),
-            Text(
-              el.to,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const Spacer(),
-            Text(
-              "waiting".tr(),
-              style: theme.textTheme.ppMori400White14,
-            )
-          ],
-        ),
-      ],
-    );
-  }
-
-  Future<void> _sharePostcard(AssetToken asset) async {
-    final tezosService = injector<TezosService>();
-    final owner = await asset.getOwnerWallet();
-    final ownerWallet = owner?.first;
-    final addressIndex = owner?.second;
-    if (ownerWallet == null) {
-      return;
-    }
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final message = Uint8List.fromList(utf8.encode(timestamp));
-    final signature =
-        await tezosService.signMessage(ownerWallet, addressIndex!, message);
-
-    final sharePostcardRespone =
-        await injector<PostcardService>().sharePostcard(asset, signature);
-    if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
-      Share.share(sharePostcardRespone.deeplink!);
-    }
   }
 }
