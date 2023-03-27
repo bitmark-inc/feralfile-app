@@ -60,9 +60,7 @@ class _WalletPageState extends State<WalletPage>
   Widget build(BuildContext context) {
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return Scaffold(
-      appBar: getBackAppBar(context, title: "wallets".tr(), onBack: () {
-        Navigator.of(context).pop();
-      }),
+      appBar: getBackAppBar(context, title: "wallets".tr(), onBack: null),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
