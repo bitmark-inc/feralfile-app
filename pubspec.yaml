@@ -132,7 +132,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 2198a45b169c004577a30d4f593b8431f1ef7b03
+      ref: c5368f849341f8018831cdd3021de80ca8c5d1d4
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:

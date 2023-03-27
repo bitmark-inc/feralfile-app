@@ -193,29 +193,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
-
-      //////////
-      /*
-      final a = PostcardMetadata(
-          lastOwner: "d",
-          isStamped: false,
-          locationInformation: [
-            LocationInformation(
-                claimedLocation: Location(lat: 16.045479, lon: 108.220218),
-                stampedLocation: Location(lat: 16.045479, lon: 108.220218)),
-            LocationInformation(
-                claimedLocation: Location(lat: 22.980525, lon: 120.220683),
-                stampedLocation: Location(lat: 22.980525, lon: 120.220683)),
-            LocationInformation(
-                claimedLocation: Location(lat: 42.699094, lon: -75.856003),)
-          ]);
-
-      postcardMetadata = PostcardMetadata.fromJson(a.toJson());
-
-       */
-      postcardMetadata = PostcardMetadata.fromJson(
-          jsonDecode(state.assetToken!.asset!.artworkMetadata!));
-      await _getTravelInfo();
       setState(() {
         currentAsset = state.assetToken;
       });
@@ -229,6 +206,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
+        postcardMetadata = PostcardMetadata.fromJson(
+            jsonDecode(state.assetToken!.asset!.artworkMetadata!));
+        _getTravelInfo();
+
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
 
