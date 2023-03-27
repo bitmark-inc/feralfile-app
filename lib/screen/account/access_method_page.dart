@@ -85,29 +85,32 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title.isNotEmpty) ...[
-            Row(
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.ppMori400Black16,
-                ),
-                const Spacer(),
-                forward
-                    ? SvgPicture.asset('assets/images/iconForward.svg')
-                    : const SizedBox(),
-              ],
+      child: Container(
+        decoration: const BoxDecoration(color: Colors.transparent),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title.isNotEmpty) ...[
+              Row(
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.ppMori400Black16,
+                  ),
+                  const Spacer(),
+                  forward
+                      ? SvgPicture.asset('assets/images/iconForward.svg')
+                      : const SizedBox(),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            Text(
+              content ?? "",
+              style: theme.textTheme.ppMori400Black14,
             ),
-            const SizedBox(height: 16),
           ],
-          Text(
-            content ?? "",
-            style: theme.textTheme.ppMori400Black14,
-          ),
-        ],
+        ),
       ),
     );
   }

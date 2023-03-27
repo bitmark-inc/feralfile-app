@@ -204,67 +204,70 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
                   }
                 });
               },
-        child: Row(
-          children: [
-            LogoCrypto(
-              cryptoType: addressInfo.getCryptoType(),
-              size: 24,
-            ),
-            const SizedBox(width: 34),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  addressInfo.getCryptoType().source,
-                  style: theme.textTheme.ppMori400White14.copyWith(
-                    color: color,
-                  ),
-                ),
-                Text(addressInfo.address.maskOnly(5),
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              LogoCrypto(
+                cryptoType: addressInfo.getCryptoType(),
+                size: 24,
+              ),
+              const SizedBox(width: 34),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    addressInfo.getCryptoType().source,
                     style: theme.textTheme.ppMori400White14.copyWith(
                       color: color,
                     ),
-                    overflow: TextOverflow.ellipsis),
-              ],
-            ),
-            const Spacer(),
-            isImported
-                ? ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      side: const BorderSide(
-                        color: AppColor.disabledColor,
-                      ),
-                      alignment: Alignment.center,
-                    ),
-                    onPressed: () {},
-                    child: Text(
-                      "imported_".tr(),
+                  ),
+                  Text(addressInfo.address.maskOnly(5),
                       style: theme.textTheme.ppMori400White14.copyWith(
-                        color: AppColor.disabledColor,
+                        color: color,
                       ),
-                    ),
-                  )
-                : Row(
-                    children: [
-                      Text(
-                        addressInfo.getBalance(),
-                        style: theme.textTheme.ppMori400White14
-                            .copyWith(color: color),
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
+              const Spacer(),
+              isImported
+                  ? ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25.0),
+                        ),
+                        side: const BorderSide(
+                          color: AppColor.disabledColor,
+                        ),
+                        alignment: Alignment.center,
                       ),
-                      const SizedBox(width: 20),
-                      RadioSelectAddress(
-                        isChecked: selectedAddresses.contains(addressInfo),
-                        checkColor: AppColor.white,
-                        borderColor: AppColor.white,
+                      onPressed: () {},
+                      child: Text(
+                        "imported_".tr(),
+                        style: theme.textTheme.ppMori400White14.copyWith(
+                          color: AppColor.disabledColor,
+                        ),
                       ),
-                    ],
-                  )
-          ],
+                    )
+                  : Row(
+                      children: [
+                        Text(
+                          addressInfo.getBalance(),
+                          style: theme.textTheme.ppMori400White14
+                              .copyWith(color: color),
+                        ),
+                        const SizedBox(width: 20),
+                        RadioSelectAddress(
+                          isChecked: selectedAddresses.contains(addressInfo),
+                          checkColor: AppColor.white,
+                          borderColor: AppColor.white,
+                        ),
+                      ],
+                    )
+            ],
+          ),
         ),
       ),
     );
