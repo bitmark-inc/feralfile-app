@@ -308,7 +308,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
-    final source = "Postcard"; //data["source"];
+    final source = data["source"];
     switch (source) {
       case "FeralFile":
         final String? tokenId = data["token_id"];
