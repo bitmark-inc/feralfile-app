@@ -419,7 +419,7 @@ class HomePageState extends State<HomePage>
                     ? AppRouter.claimedPostcardDetailsPage
                     : AppRouter.artworkDetailsPage;
                 Navigator.of(context).pushNamed(
-                    AppRouter.claimedPostcardDetailsPage, ////need change to pageName
+                    pageName,
                     arguments: payload);
 
                 _metricClient.addEvent(MixpanelEvent.viewArtwork,
