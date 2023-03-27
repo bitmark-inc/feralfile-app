@@ -145,9 +145,22 @@ class BackupService {
         );
         final db = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
         final backUpVersion = await db.database.getVersion();
-        if (backUpVersion == 4) {
-          log.info("[BackupService] database restore version = 4");
-          await db.execute("""
+
+
+        try {
+          await db.execute(
+              """ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);""");
+          await db.execute(
+              """ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);""");
+        } catch (e) {
+          log.info("[BackupService]", e.toString());
+          await db.execute(
+              """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
+          await db.execute(
+              """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
+        }
+
+        await db.execute("""
       UPDATE Persona SET tezosIndexes = 
         (WITH RECURSIVE
           cnt(x, y, id) AS (
@@ -159,7 +172,7 @@ class BackupService {
         SELECT y FROM cnt WHERE x = (SELECT id FROM cnt WHERE x = 0));
       """);
 
-          await db.execute("""
+        await db.execute("""
       UPDATE Persona SET ethereumIndexes = 
         (WITH RECURSIVE
           cnt(x, y, id) AS (
@@ -170,23 +183,6 @@ class BackupService {
           )
         SELECT y FROM cnt WHERE x = (SELECT id FROM cnt WHERE x = 0));
       """);
-        } else if (backUpVersion < 4) {
-          log.info("[BackupService] database restore version < 4");
-          try {
-            await db.execute(
-                """ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);""");
-            await db.execute(
-                """ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);""");
-          } catch (e) {
-            log.info("[BackupService]", e.toString());
-            await db.execute(
-                """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
-            await db.execute(
-                """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
-            await db.execute("""UPDATE Persona set tezosIndexes = ',0';""");
-            await db.execute("""UPDATE Persona set ethereumIndexes = ',0';""");
-          }
-        }
 
         if (backUpVersion < version) {
           await db.database.setVersion(version);
