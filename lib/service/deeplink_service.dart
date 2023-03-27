@@ -346,10 +346,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _handleClaimEmptyPostcardDeeplink(id);
           return;
         }
-        final String? sharedCode = data["share_code"] ?? "share_code";
+        final String? sharedCode = data["share_code"];
         if (sharedCode != null) {
           log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
           await _handlePostcardDeeplink(sharedCode);
+        } else {
+          _navigationService.waitTooLongDialog();
         }
         break;
       default:
