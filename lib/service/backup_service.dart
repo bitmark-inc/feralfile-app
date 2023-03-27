@@ -146,7 +146,6 @@ class BackupService {
         final db = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
         final backUpVersion = await db.database.getVersion();
 
-
         try {
           await db.execute(
               """ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);""");
