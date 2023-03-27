@@ -61,8 +61,10 @@ extension AssetTokenExtension on AssetToken {
     return "$editionStr$maxEditionStr";
   }
 
-  Future<Pair<WalletStorage, int>?> getOwnerWallet() async {
-    if (contractAddress == null || tokenId == null) return null;
+  Future<Pair<WalletStorage, int>?> getOwnerWallet(
+      {bool checkContract = true}) async {
+    if ((checkContract && contractAddress == null) || tokenId == null)
+      return null;
     if (!(blockchain == "ethereum" &&
             (contractType == "erc721" || contractType == "erc1155")) &&
         !(blockchain == "tezos" && contractType == "fa2")) return null;

@@ -7,6 +7,7 @@
 
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:after_layout/after_layout.dart';
@@ -51,7 +52,6 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:share/share.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:math';
 
 class ClaimedPostcardDetailPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -818,7 +818,9 @@ class Location {
 
   // factory constructor
   factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(lat: json['lat'] as double, lon: json['lon'] as double);
+    return Location(
+        lat: double.parse(json['lat'].toString()),
+        lon: double.parse(json['lon'].toString()));
   }
 
   // toJson method

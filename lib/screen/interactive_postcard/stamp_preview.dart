@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -9,11 +11,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 
 class StampPreview extends StatefulWidget {
   static const String tag = "stamp_preview";
@@ -39,12 +40,11 @@ class _StampPreviewState extends State<StampPreview> {
   }
 
   Future<void> fetchPostcard() async {
-    const emptyPostcardUrl = "https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw";
+    const emptyPostcardUrl =
+        "https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw";
     //String emptyPostcardUrl = widget.payload.asset.previewURL!;
 
-    http.Response response = await http.get(
-        Uri.parse(emptyPostcardUrl)
-    );
+    http.Response response = await http.get(Uri.parse(emptyPostcardUrl));
     final bytes = response.bodyBytes;
     postcardData = bytes;
     setState(() {
@@ -104,7 +104,8 @@ class _StampPreviewState extends State<StampPreview> {
     String dir = (await getTemporaryDirectory()).path;
     File imageFile = File('$dir/postcardImage.png');
     final imageData = await imageFile.writeAsBytes(stampedPostcardData!);
-    final owner = await widget.payload.asset.getOwnerWallet();
+    final owner =
+        await widget.payload.asset.getOwnerWallet(checkContract: false);
     if (owner == null) return;
     final result = await injector<PostcardService>().stampPostcard(
         widget.payload.asset.tokenId ?? "",
