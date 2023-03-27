@@ -7,13 +7,11 @@
 
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -21,13 +19,10 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -47,7 +42,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:share/share.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -298,37 +292,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 const SizedBox(
                   height: 40,
                 ),
-                if (_canShare(asset)) ...[
-                  PrimaryButton(
-                    text: "Share PostCard",
-                    onTap: () {
-                      _sharePostcard(asset);
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                  PrimaryButton(
-                    text: "To Receive",
-                    onTap: () async {
-                      final shareInfor = await injector<PostcardService>()
-                          .getSharedPostcardInfor("shareCode");
-                      if (!mounted) return;
-                      Navigator.of(context).pushNamed(
-                          AppRouter.receivePostcardPage,
-                          arguments: ReceivePostcardPageArgs(
-                              asset: asset,
-                              sharedId: shareInfor.shareId,
-                              counter: shareInfor.counter));
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                  PrimaryButton(
-                    text: "postcard explain",
-                    onTap: () {
-                      Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-                          arguments: widget.payload);
-                    },
-                  ),
-                ],
                 _artworkInfo(asset, state, artistName),
               ],
             ),
@@ -515,32 +478,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         ),
       ],
     );
-  }
-
-  bool _canShare(AssetToken asset) {
-    return true;
-  }
-
-  Future<void> _sharePostcard(AssetToken asset) async {
-    final tezosService = injector<TezosService>();
-    final owner = await asset.getOwnerWallet();
-    final ownerWallet = owner?.first;
-    final addressIndex = owner?.second;
-    if (ownerWallet == null) {
-      return;
-    }
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final message = Uint8List.fromList(utf8.encode(timestamp));
-    final signature =
-        await tezosService.signMessage(ownerWallet, addressIndex!, message);
-
-    final sharePostcardRespone =
-        await injector<PostcardService>().sharePostcard(asset, signature);
-    if (sharePostcardRespone.url?.isNotEmpty ?? false) {
-      Share.share(sharePostcardRespone.url!);
-    }
-    injector<ConfigurationService>()
-        .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
   }
 }
 
