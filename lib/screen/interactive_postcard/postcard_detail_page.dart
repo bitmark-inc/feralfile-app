@@ -74,7 +74,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   bool viewJourney = true;
   PostcardMetadata? postcardMetadata;
   List<TravelInfo> travelInfo = [];
-  String? owner;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -193,9 +192,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
-      }
-      if (state.assetToken != null) {
-        await _getOwner(state.assetToken!);
       }
 
       //////////
@@ -366,7 +362,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardAction(AssetToken asset) {
     final isStamped = postcardMetadata?.isStamped ?? false;
-    if (_canShare()) {
+    if (_canShare(asset)) {
       if (!isStamped) {
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
@@ -632,16 +628,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  bool _canShare() {
-    return owner == postcardMetadata!.lastOwner;
+  bool _canShare(AssetToken asset) {
+    return asset.owner == postcardMetadata!.lastOwner;
   }
 
-  Future<void> _getOwner(AssetToken asset) async {
-    final wallet = await asset.getOwnerWallet();
-    if (wallet != null) {
-      owner = await wallet.first.getTezosAddress(index: wallet.second);
-    }
-  }
 
   Widget travelInfoWidget() {
     final theme = Theme.of(context);
