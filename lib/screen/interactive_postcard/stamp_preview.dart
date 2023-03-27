@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -37,24 +39,44 @@ class _StampPreviewState extends State<StampPreview> {
   void initState() {
     super.initState();
     fetchPostcard();
+    final postcardMetadata = PostcardMetadata.fromJson(
+        jsonDecode(widget.payload.asset.artworkMetadata!));
+    index = postcardMetadata.locationInformation.length - 1;
   }
 
   Future<void> fetchPostcard() async {
-    const emptyPostcardUrl =
-        "https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw";
-    //String emptyPostcardUrl = widget.payload.asset.previewURL!;
-
+    String emptyPostcardUrl = widget.payload.asset.getPreviewUrl()!;
     http.Response response = await http.get(Uri.parse(emptyPostcardUrl));
     final bytes = response.bodyBytes;
     postcardData = bytes;
-    setState(() {
-      stampedPostcardData = postcardData;
-    });
     await pasteStamp();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (stampedPostcardData == null) {
+      return Scaffold(
+        backgroundColor: AppColor.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                "assets/images/loading.gif",
+                width: 52,
+                height: 52,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "loading...".tr(),
+                style: theme.textTheme.ppMori400Black14,
+              )
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
         backgroundColor: AppColor.primaryBlack,
         appBar: getBackAppBar(context, title: "send".tr(), onBack: () {
@@ -76,7 +98,7 @@ class _StampPreviewState extends State<StampPreview> {
               ),
             ),
             PrimaryButton(
-              text: "send_postcard".tr(),
+              text: "stamp_postcard".tr(),
               enabled: stamped,
               onTap: () async {
                 await _sendPostcard();
