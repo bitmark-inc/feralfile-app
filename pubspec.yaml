@@ -24,6 +24,7 @@ dependencies:
   after_layout: ^1.2.0
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
+  carousel_slider: ^4.2.1
   cast: ^1.1.0
   collection: ^1.15.0
   connectivity_plus: ^2.2.1
@@ -138,6 +139,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/metric-client-dart
       ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+  multi_value_listenable_builder: ^0.0.2
   auto_size_text: ^3.0.0
   uri: ^1.0.0
   reorderable_grid_view: ^2.2.5
