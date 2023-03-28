@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -85,7 +86,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         bloc: bloc,
         builder: (context, state) {
           final asset = widget.asset;
-          final artworkThumbnail = asset.getPreviewUrl()!;
+          final artworkThumbnail = asset.getPreviewUrl() ?? "";
           final theme = Theme.of(context);
           final padding =
               ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
@@ -111,46 +112,33 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           const SizedBox(
                             height: 24,
                           ),
-                          FittedBox(
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              child: Transform.translate(
-                                offset: const Offset(1, 0),
-                                child: Container(
-                                  color: theme.auQuickSilver,
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(
-                                        height: 10,
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              color: theme.auQuickSilver,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 60,
+                                      horizontal: 15,
+                                    ),
+                                    child: CachedNetworkImage(
+                                      imageUrl: artworkThumbnail,
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                        child: PreviewPlaceholder(),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 60,
-                                          horizontal: 15,
-                                        ),
-                                        child: Container(
-                                          color: Colors.black,
-                                          child: CachedNetworkImage(
-                                            fit: BoxFit.cover,
-                                            imageUrl: artworkThumbnail,
-                                            progressIndicatorBuilder: (context,
-                                                    url, downloadProgress) =>
-                                                Center(
-                                              child: loadingIndicator(),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                              onTap: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.postcardDetailPage,
-                                    arguments: asset);
-                              },
                             ),
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, AppRouter.postcardDetailPage,
+                                  arguments: asset);
+                            },
                           ),
                           Padding(
                             padding: padding.copyWith(top: 15, bottom: 15),
