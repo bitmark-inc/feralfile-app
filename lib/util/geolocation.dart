@@ -10,12 +10,11 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 Future<bool> checkLocationPermissions() async {
-  await Geolocator.requestPermission();
-  final status = await Permission.location.status;
-  if (status.isDenied || status.isPermanentlyDenied) {
+  final permission = await Geolocator.requestPermission();
+  if (permission == LocationPermission.denied ||
+      permission == LocationPermission.deniedForever) {
     return false;
   }
   return true;
@@ -50,7 +49,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
       return GeoLocation(position: location, placeMark: placeMarks.first);
     } catch (e) {
       await UIHelper.showWeakGPSSignal(
-          NavigationService().navigatorKey.currentContext!);
+          navigationService.navigatorKey.currentContext!);
       return null;
     }
   }

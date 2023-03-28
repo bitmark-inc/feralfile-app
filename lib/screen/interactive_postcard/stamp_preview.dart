@@ -83,29 +83,31 @@ class _StampPreviewState extends State<StampPreview> {
         appBar: getBackAppBar(context, title: "send".tr(), onBack: () {
           Navigator.of(context).pop();
         }, isWhite: false),
-        body: Column(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  stampedPostcardData != null
-                      ? Image.memory(
-                          stampedPostcardData!,
-                          fit: BoxFit.cover,
-                        )
-                      : const SizedBox(),
-                ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    stampedPostcardData != null
+                        ? Image.memory(
+                            stampedPostcardData!,
+                            fit: BoxFit.cover,
+                          )
+                        : const SizedBox(),
+                  ],
+                ),
               ),
-            ),
-            PrimaryButton(
-              text: "finalize_postcard".tr(),
-              enabled: stamped,
-              onTap: () async {
-                await _sendPostcard();
-              },
-            )
-          ],
+              PrimaryButton(
+                text: "finalize_postcard".tr(),
+                enabled: stamped,
+                onTap: () async {
+                  await _sendPostcard();
+                },
+              )
+            ],
+          ),
         ));
   }
 
