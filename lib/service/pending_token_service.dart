@@ -81,6 +81,7 @@ extension FilterEventExt on FilterEvent {
       final indexerId = "eth-${address?.hexEip55}-$tokenId";
       final token = AssetToken(
         asset: Asset.init(
+          indexID: indexerId,
           maxEdition: 1,
           source: address?.hexEip55,
         ),
@@ -116,6 +117,7 @@ extension TZKTTokenExtension on TZKTToken {
   ) {
     return AssetToken(
       asset: Asset.init(
+        indexID: "tzkt-${contract?.address}-$tokenId",
         artistName: (metadata?["creators"] as List<dynamic>?)
             ?.cast<String>()
             .firstOrNull,
