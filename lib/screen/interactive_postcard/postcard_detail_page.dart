@@ -42,6 +42,8 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -327,7 +329,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         height: 40,
                       ),
                       viewJourney
-                          ? travelInfoWidget()
+                          ? travelInfoWidget(asset)
                           : _artworkInfo(asset, state, artistName),
                     ],
                   ),
@@ -357,7 +359,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             },
           ),
         );
-      } else {
+      } else if (!asset.isSending) {
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: PrimaryButton(
@@ -368,9 +370,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           ),
         );
       }
-    } else {
-      return const SizedBox();
     }
+
+    return const SizedBox();
   }
 
   Future<void> _sharePostcard(AssetToken asset) async {
@@ -624,7 +626,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return asset.owner == postcardMetadata!.lastOwner;
   }
 
-  Widget travelInfoWidget() {
+  Widget travelInfoWidget(AssetToken asset) {
     final theme = Theme.of(context);
     return Padding(
       padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -647,7 +649,27 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ],
           ),
           addDivider(height: 30, color: AppColor.auGreyBackground),
-          ...travelInfo.map((e) => travelWidget(e)).toList(),
+          ...travelInfo
+              .map((TravelInfo e) {
+                if (e.receivedLocation == null) {
+                  if (asset.isSending) {
+                    return _sendingTripItem(context, asset, e);
+                  } else {
+                    if (asset.owner == asset.lastOwner) {
+                      return travelWidget(e);
+                    }
+                  }
+                } else {
+                  return travelWidget(e);
+                }
+              })
+              .whereNotNull()
+              .toList(),
+
+          // if (travelInfo.isNotEmpty && asset.isSending) ...[
+          //   _sendingTripItem(context, asset, travelInfo.last),
+          //   addDivider(color: AppColor.greyMedium),
+          // ],
         ],
       ),
     );
@@ -674,7 +696,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   SvgPicture.asset("assets/images/arrow_3.svg"),
                   const SizedBox(width: 6),
                   Text(
-                    travelInfo.receivedLocation ?? "",
+                    travelInfo.receivedLocation ?? "Not sent",
                     style: theme.textTheme.ppMori400White14,
                   ),
                 ],
@@ -723,6 +745,53 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       totalDistance += travelInfo.getDistance() ?? 0;
     }
     return totalDistance;
+  }
+
+  Widget _sendingTripItem(
+      BuildContext context, AssetToken asset, TravelInfo travelInfo) {
+    final theme = Theme.of(context);
+    NumberFormat formatter = NumberFormat("00");
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          formatter.format(travelInfo.index),
+          style: theme.textTheme.ppMori400Grey12,
+        ),
+        Row(
+          children: [
+            Text(
+              travelInfo.sentLocation ?? "",
+              style: theme.textTheme.ppMori400White14,
+            ),
+            const Spacer(),
+            GestureDetector(
+              child: Text("invite_to_collaborate".tr(),
+                  style: theme.textTheme.ppMori400SupperTeal12),
+              onTap: () {
+                _sharePostcard(asset);
+              },
+            )
+          ],
+        ),
+        Row(
+          children: [
+            SvgPicture.asset("assets/images/arrow_3.svg"),
+            const SizedBox(width: 6),
+            Text(
+              "Unknown",
+              style: theme.textTheme.ppMori400White14,
+            ),
+            const Spacer(),
+            Text(
+              "waiting".tr(),
+              style: theme.textTheme.ppMori400White14,
+            )
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -774,7 +843,7 @@ class TravelInfo {
 
   Future<void> _getReceivedLocation() async {
     if (to == null) {
-      receivedLocation = "not_sent".tr();
+      receivedLocation = null;
     } else {
       receivedLocation = await getLocationNameFromCoordinates(
           to!.claimedLocation!.lat, to!.claimedLocation!.lon);
@@ -868,5 +937,15 @@ class LocationInformation {
       'claimedLocation': claimedLocation?.toJson(),
       'stampedLocation': stampedLocation?.toJson(),
     };
+  }
+}
+
+extension ListTravelInfo on List<TravelInfo> {
+  double get totalDistance {
+    double totalDistance = 0;
+    for (var travelInfo in this) {
+      totalDistance += travelInfo.getDistance() ?? 0;
+    }
+    return totalDistance;
   }
 }

@@ -46,6 +46,7 @@ class _StampPreviewState extends State<StampPreview> {
 
   Future<void> fetchPostcard() async {
     String emptyPostcardUrl = widget.payload.asset.getPreviewUrl()!;
+
     http.Response response = await http.get(Uri.parse(emptyPostcardUrl));
     final bytes = response.bodyBytes;
     postcardData = bytes;
@@ -98,7 +99,7 @@ class _StampPreviewState extends State<StampPreview> {
               ),
             ),
             PrimaryButton(
-              text: "stamp_postcard".tr(),
+              text: "finalize_postcard".tr(),
               enabled: stamped,
               onTap: () async {
                 await _sendPostcard();

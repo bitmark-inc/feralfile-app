@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -79,7 +80,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         bloc: bloc,
         builder: (context, state) {
           final asset = widget.asset;
-          final artworkThumbnail = asset.thumbnailURL!;
+          final artworkThumbnail = asset.getPreviewUrl()!;
           final theme = Theme.of(context);
           final padding =
               ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
@@ -194,7 +195,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                     "you_have_received".tr(namedArgs: {
                                       "address": asset.lastOwner
                                               .toIdentityOrMask({}) ??
-                                          "Unknow"
+                                          "Unknown"
                                     }),
                                     style: theme.textTheme.ppMori400White14,
                                   );
@@ -203,6 +204,11 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           const SizedBox(
                             height: 30,
                           ),
+                          Padding(
+                            padding: padding,
+                            child: const HowItWorksView(),
+                          ),
+                          const SizedBox(height: 30),
                           Padding(
                             padding: padding,
                             child: PrimaryButton(
@@ -281,29 +287,30 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                                 shareCode: widget.shareCode,
                                                 location: location,
                                                 address: address);
-                                    final tokenID = response.id;
+                                    final indexID =
+                                        'tez-${response.contractAddress}-${response.tokenID}';
 
                                     final pendingToken = AssetToken(
                                       asset: Asset.init(
-                                        indexID: tokenID,
+                                        indexID: indexID,
                                         artistName: 'MoMa',
                                         maxEdition: 1,
                                         mimeType: 'image/png',
                                         title: 'Postcard 001',
                                         thumbnailURL: "",
                                         previewURL: "",
-                                        source: 'postcard',
+                                        source: 'autonomy-postcard',
                                       ),
                                       blockchain: "tezos",
                                       fungible: false,
                                       contractType: '',
-                                      tokenId: response.id,
+                                      tokenId: response.tokenID,
                                       contractAddress: "",
                                       edition: 0,
                                       editionName: "",
-                                      id: tokenID,
+                                      id: indexID,
                                       balance: 1,
-                                      owner: address,
+                                      owner: response.owner,
                                       lastActivityTime: DateTime.now(),
                                       lastRefreshedTime: DateTime(1),
                                       pending: true,
@@ -403,33 +410,29 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
 }
 
 class ReceivePostcardResponse {
-  final String id;
+  final String tokenID;
+  final String imageCID;
+  final String blockchain;
   final String owner;
-  final String txRequestID;
-  final String txRequest;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  ReceivePostcardResponse(this.id, this.owner, this.txRequestID, this.txRequest,
-      this.createdAt, this.updatedAt);
+  final String contractAddress;
+  ReceivePostcardResponse(this.tokenID, this.imageCID, this.blockchain,
+      this.owner, this.contractAddress);
 
   factory ReceivePostcardResponse.fromJson(Map<String, dynamic> json) {
     return ReceivePostcardResponse(
-      json['id'],
-      json['Owner'],
-      json['txRequestID'],
-      json['TxRequest'],
-      DateTime.parse(json['CreatedAt']),
-      DateTime.parse(json['UpdatedAt']),
+      json['tokenID'],
+      json['imageCID'],
+      json['blockchain'],
+      json['owner'],
+      json['contractAddress'],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
+        'tokenID': tokenID,
+        'imageCID': imageCID,
+        'blockchain': blockchain,
         'owner': owner,
-        'txRequestID': txRequestID,
-        'txRequest': txRequest,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
+        'contractAddress': contractAddress,
       };
 }
