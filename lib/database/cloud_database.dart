@@ -63,9 +63,7 @@ final migrateCloudV4ToV5 = Migration(4, 5, (database) async {
     await database.execute("""
       ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);
       """);
-  } catch (e) {
-
-  }
+  } catch (e) {}
   await database.execute("""
       ALTER TABLE Persona ADD COLUMN tezosIndexes TEXT;
       """);
