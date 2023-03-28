@@ -7,6 +7,7 @@
 
 import 'dart:math';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -22,6 +23,8 @@ import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.da
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -57,11 +60,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   bool hideSend = false;
   bool hideAddress = false;
   bool hideBalance = false;
+  bool isHideGalleryEnabled = false;
 
   @override
   void initState() {
     super.initState();
     final personUUID = widget.payload.personaUUID;
+    isHideGalleryEnabled = injector<ConfigurationService>()
+        .isAddressHiddenInGallery(widget.payload.address);
     context.read<AccountsBloc>().add(
         FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
@@ -166,10 +172,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
       appBar: getBackAppBar(
         context,
         title: widget.payload.type.name,
-        icon: const Icon(
-          AuIcon.scan,
+        icon: SvgPicture.asset(
+          'assets/images/more_circle.svg',
+          width: 22,
+          color: AppColor.primaryBlack,
         ),
-        action: showConnection ? _connectionIconTap : null,
+        action: _showOptionDialog,
+        //showConnection ? _connectionIconTap : null,
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -308,7 +317,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         break;
     }
 
-    Navigator.of(context).pushNamed(AppRouter.scanQRPage, arguments: scanItem);
+    Navigator.of(context)
+        .popAndPushNamed(AppRouter.scanQRPage, arguments: scanItem);
   }
 
   Widget _usdcBalance(String balance) {
@@ -647,6 +657,51 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     return const SizedBox(
       height: 10,
     );
+  }
+
+  _showOptionDialog() {
+    if (!mounted) return;
+    UIHelper.showDrawerAction(context, options: [
+      isHideGalleryEnabled
+          ? OptionItem(
+              title: 'unhide_from_collection_view'.tr(),
+              icon: SvgPicture.asset(
+                'assets/images/unhide.svg',
+                color: AppColor.primaryBlack,
+              ),
+              onTap: () {
+                injector<AccountService>().setHideAddressInGallery(
+                    widget.payload.address, !isHideGalleryEnabled);
+                setState(() {
+                  isHideGalleryEnabled = !isHideGalleryEnabled;
+                });
+                Navigator.of(context).pop();
+              },
+            )
+          : OptionItem(
+              title: 'hide_from_collection_view'.tr(),
+              icon: const Icon(
+                AuIcon.hidden_artwork,
+                color: AppColor.primaryBlack,
+              ),
+              onTap: () {
+                injector<AccountService>().setHideAddressInGallery(
+                    widget.payload.address, !isHideGalleryEnabled);
+                setState(() {
+                  isHideGalleryEnabled = !isHideGalleryEnabled;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+      OptionItem(
+        title: 'scan'.tr(),
+        icon: const Icon(
+          AuIcon.scan,
+          color: AppColor.primaryBlack,
+        ),
+        onTap: _connectionIconTap,
+      ),
+    ]);
   }
 }
 

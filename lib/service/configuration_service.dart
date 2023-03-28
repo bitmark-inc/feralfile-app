@@ -101,6 +101,11 @@ abstract class ConfigurationService {
       List<String> personaUUIDs, bool isEnabled,
       {bool override = false});
 
+  Future<void> setHideAddressInGallery(List<String> address, bool isEnabled,
+      {bool override = false});
+
+  List<String> getAddressesHiddenInGallery();
+
   List<String> getPersonaUUIDsHiddenInGallery();
 
   bool isPersonaHiddenInGallery(String value);
@@ -112,6 +117,8 @@ abstract class ConfigurationService {
   List<String> getLinkedAccountsHiddenInGallery();
 
   bool isLinkedAccountHiddenInGallery(String value);
+
+  bool isAddressHiddenInGallery(String value);
 
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
@@ -264,6 +271,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_personas_in_gallery';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
+  static const String KEY_HIDDEN_ADDRESSES_IN_GALLERY =
+      'hidden_address_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
@@ -569,6 +578,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  Future<void> setHideAddressInGallery(List<String> addresses, bool isEnabled,
+      {bool override = false}) async {
+    if (override && isEnabled) {
+      await _preferences.setStringList(
+          KEY_HIDDEN_ADDRESSES_IN_GALLERY, addresses);
+    } else {
+      var currentAddresses =
+          _preferences.getStringList(KEY_HIDDEN_ADDRESSES_IN_GALLERY) ?? [];
+
+      isEnabled
+          ? currentAddresses.addAll(addresses)
+          : currentAddresses.removeWhere((i) => addresses.contains(i));
+      await _preferences.setStringList(
+          KEY_HIDDEN_ADDRESSES_IN_GALLERY, currentAddresses);
+    }
+  }
+
+  @override
+  List<String> getAddressesHiddenInGallery() {
+    return _preferences.getStringList(KEY_HIDDEN_ADDRESSES_IN_GALLERY) ?? [];
+  }
+
+  @override
   List<String> getPersonaUUIDsHiddenInGallery() {
     return _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
   }
@@ -609,6 +641,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool isLinkedAccountHiddenInGallery(String value) {
     var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
     return hiddenLinkedAccounts.contains(value);
+  }
+
+  @override
+  bool isAddressHiddenInGallery(String value) {
+    var hiddenAddresses = getAddressesHiddenInGallery();
+    return hiddenAddresses.contains(value);
   }
 
   @override

@@ -375,6 +375,7 @@ class MixpanelEvent {
   static const closeTipcard = "close_tip_card";
   static const pressTipcard = "press_tip_card";
   static const tapLinkInTipCard = "tap_link_in_tip_card";
+  static String hideAddress = "hide_address";
 }
 
 class MixpanelProp {

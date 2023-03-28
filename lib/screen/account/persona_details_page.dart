@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -140,9 +139,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                   ),
             const SizedBox(height: 32),
             _addressesSection(uuid),
-            const SizedBox(height: 16),
-            _preferencesSection(),
-            addDivider(),
             const SizedBox(height: 16),
             _backupSection(),
             const SizedBox(height: 40),
@@ -416,52 +412,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         Navigator.of(context)
             .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
       },
-    );
-  }
-
-  Widget _preferencesSection() {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: padding,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          "preferences".tr(),
-          style: theme.textTheme.ppMori400Black16,
-        ),
-        const SizedBox(
-          height: 24,
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('hide_from_collection'.tr(),
-                    style: theme.textTheme.ppMori400Black16),
-                AuToggle(
-                  value: isHideGalleryEnabled,
-                  onToggle: (value) async {
-                    await injector<AccountService>()
-                        .setHidePersonaInGallery(persona.uuid, value);
-                    if (!mounted) return;
-                    setState(() {
-                      isHideGalleryEnabled = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              "do_not_show_nft".tr(),
-              //"Do not show this account's NFTs in the collection view.",
-              style: theme.textTheme.ppMori400Black14,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-      ]),
     );
   }
 
