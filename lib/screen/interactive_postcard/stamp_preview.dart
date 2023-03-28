@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -83,31 +84,40 @@ class _StampPreviewState extends State<StampPreview> {
         appBar: getBackAppBar(context, title: "send".tr(), onBack: () {
           Navigator.of(context).pop();
         }, isWhite: false),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    stampedPostcardData != null
-                        ? Image.memory(
-                            stampedPostcardData!,
-                            fit: BoxFit.cover,
-                          )
-                        : const SizedBox(),
-                  ],
-                ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  stampedPostcardData != null
+                      ? Image.memory(
+                          stampedPostcardData!,
+                          fit: BoxFit.cover,
+                        )
+                      : const SizedBox(),
+                ],
               ),
-              PrimaryButton(
-                text: "finalize_postcard".tr(),
-                enabled: stamped,
-                onTap: () async {
-                  await _sendPostcard();
-                },
-              )
-            ],
-          ),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+              child: Column(
+                children: [
+                  Text("finalize_note".tr(),
+                      style: theme.textTheme.ppMori400Black14
+                          .copyWith(color: AppColor.auQuickSilver)),
+                  const SizedBox(height: 20),
+                  PrimaryButton(
+                    text: "finalize_postcard".tr(),
+                    enabled: stamped,
+                    onTap: () async {
+                      await _sendPostcard();
+                    },
+                  ),
+                ],
+              ),
+            )
+          ],
         ));
   }
 
