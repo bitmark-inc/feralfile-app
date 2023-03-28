@@ -322,31 +322,26 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future setAlreadyShowNotifTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_NOTIF_TIP, show);
-    showNotifTip.value = show;
   }
 
   @override
   Future setAlreadyShowProTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_PRO_TIP, show);
-    showProTip.value = show;
   }
 
   @override
   Future setAlreadyShowTvAppTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_TV_APP_TIP, show);
-    showTvAppTip.value = show;
   }
 
   @override
   Future setAlreadyShowCreatePlaylistTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP, show);
-    showCreatePlaylistTip.value = show;
   }
 
   @override
   Future setAlreadyShowLinkOrImportTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP, show);
-    showLinkOrImportTip.value = show;
   }
 
   @override
@@ -514,15 +509,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
     log.info("setDoneOnboarding: $value");
     final currentValue = isDoneOnboarding();
     await _preferences.setBool(KEY_DONE_ONBOARING, value);
+
     if (currentValue == false && value == true && getIsOldUser() == false) {
+      await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
       Future.delayed(const Duration(seconds: 2), () async {
         injector<CustomerSupportService>()
             .createAnnouncement(AnnouncementID.WELCOME);
       });
-    }
-    if (currentValue == false && value == true && getIsOldUser() == true) {
-      await setDoneOnboardingTime(DateTime.now());
     }
   }
 

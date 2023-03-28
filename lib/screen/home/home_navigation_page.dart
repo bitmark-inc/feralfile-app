@@ -35,8 +35,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -503,6 +503,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     log.info("Receive notification: ${event.notification}");
     final data = event.notification.additionalData;
     if (data == null) return;
+    final configurationService = injector<ConfigurationService>();
+    if (configurationService.isNotificationEnabled() != true) {
+      injector<ConfigurationService>().showNotifTip.value = true;
+    }
 
     switch (data['notification_type']) {
       case "customer_support_new_message":

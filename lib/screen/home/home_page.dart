@@ -318,11 +318,11 @@ class HomePageState extends State<HomePage>
   Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
     final paddingTop = MediaQuery.of(context).viewPadding.top;
-
     return ListView(
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
         HeaderView(paddingTop: paddingTop),
+        _carouselTipcard(context),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
@@ -336,7 +336,6 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
-    final configurationService = injector<ConfigurationService>();
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
@@ -361,18 +360,7 @@ class HomePageState extends State<HomePage>
         child: HeaderView(paddingTop: paddingTop),
       ),
       SliverToBoxAdapter(
-        child: MultiValueListenableBuilder(
-          valueListenables: [
-            configurationService.showTvAppTip,
-            configurationService.showCreatePlaylistTip,
-            configurationService.showLinkOrImportTip,
-          ],
-          builder: (BuildContext context, List<dynamic> values, Widget? child) {
-            return CarouselWithIndicator(
-              items: _listTipcards(context),
-            );
-          },
-        ),
+        child: _carouselTipcard(context),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -423,6 +411,22 @@ class HomePageState extends State<HomePage>
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: sources,
       controller: _controller,
+    );
+  }
+
+  Widget _carouselTipcard(BuildContext context) {
+    final configurationService = injector<ConfigurationService>();
+    return MultiValueListenableBuilder(
+      valueListenables: [
+        configurationService.showTvAppTip,
+        configurationService.showCreatePlaylistTip,
+        configurationService.showLinkOrImportTip,
+      ],
+      builder: (BuildContext context, List<dynamic> values, Widget? child) {
+        return CarouselWithIndicator(
+          items: _listTipcards(context),
+        );
+      },
     );
   }
 
@@ -588,6 +592,7 @@ class HomePageState extends State<HomePage>
     final metricClient = injector<MetricClientService>();
     log.info("_checkTipCardShowTime");
     final configurationService = injector<ConfigurationService>();
+
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
     final subscriptionTime = configurationService.getSubscriptionTime();
 
@@ -609,16 +614,16 @@ class HomePageState extends State<HomePage>
       }
     }
     if (doneOnboardingTime != null) {
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowLinkOrImportTip()) {
         configurationService.showLinkOrImportTip.value = true;
         configurationService.setAlreadyShowLinkOrImportTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
       }
-
-      if (now.isAfter(doneOnboardingTime.add(const Duration(seconds: 5))) &&
-          await isPremium() &&
+      final premium = await isPremium();
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+          !premium &&
           !configurationService.getAlreadyShowProTip()) {
         configurationService.showProTip.value = true;
         configurationService.setAlreadyShowProTip(false);
