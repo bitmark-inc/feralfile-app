@@ -211,8 +211,8 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                             padding: padding,
                             child: PrimaryButton(
                               text: "accept_postcard".tr(),
-                              enabled: !(state.isReceiving ?? false),
-                              isProcessing: state.isReceiving ?? false,
+                              enabled: !(_isProcessing),
+                              isProcessing: _isProcessing,
                               onTap: () async {
                                 setState(() {
                                   _isProcessing = true;
