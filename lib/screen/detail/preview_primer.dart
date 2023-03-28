@@ -2,14 +2,18 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
@@ -109,7 +113,70 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final token = widget.token;
+    final identityBloc = context.read<IdentityBloc>();
     return Scaffold(
+        appBar: isFullScreen
+            ? null
+            : AppBar(
+                backgroundColor: theme.colorScheme.primary,
+                leadingWidth: 0,
+                centerTitle: false,
+                title: GestureDetector(
+                  onTap: () => _moveToInfo(token),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        token.title ?? '',
+                        style: theme.textTheme.ppMori400White16,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      BlocBuilder<IdentityBloc, IdentityState>(
+                        bloc: identityBloc
+                          ..add(GetIdentityEvent([
+                            token.artistName ?? '',
+                          ])),
+                        builder: (context, state) {
+                          final artistName = token.artistName
+                              ?.toIdentityOrMask(state.identityMap);
+                          if (artistName != null) {
+                            return Row(
+                              children: [
+                                const SizedBox(height: 4.0),
+                                Expanded(
+                                  child: Text(
+                                    "by".tr(args: [artistName]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.ppMori400White14,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    constraints: const BoxConstraints(
+                      maxWidth: 44,
+                      maxHeight: 44,
+                    ),
+                    icon: Icon(
+                      AuIcon.close,
+                      color: theme.colorScheme.secondary,
+                      size: 20,
+                    ),
+                    tooltip: 'close_icon',
+                  )
+                ],
+              ),
         backgroundColor: theme.colorScheme.primary,
         body: SafeArea(
           top: false,
@@ -118,14 +185,6 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
           right: !isFullScreen,
           child: Column(
             children: [
-              Visibility(
-                visible: !isFullScreen,
-                child: ControlView(
-                  assetToken: token,
-                  onClickInfo: () => _moveToInfo(token),
-                  onClickFullScreen: onClickFullScreen,
-                ),
-              ),
               Expanded(
                 child: WebView(
                   initialUrl: WEB3_PRIMER_URL,
@@ -142,7 +201,35 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                     );
                   },
                 ),
-              )
+              ),
+              Visibility(
+                visible: !isFullScreen,
+                child: Container(
+                  color: theme.colorScheme.primary,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 15,
+                      bottom: 30,
+                      right: 20,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () => onClickFullScreen(),
+                          child: Semantics(
+                            label: "fullscreen_icon",
+                            child: SvgPicture.asset(
+                              'assets/images/fullscreen_icon.svg',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ));
