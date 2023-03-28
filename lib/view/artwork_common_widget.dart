@@ -1000,7 +1000,7 @@ Widget tokenOwnership(
       children: [
         Text(
           "how_many_editions_you_own".tr(),
-          style: theme.textTheme.ppMori400White12,
+          style: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 32.0),
         MetaDataItem(
