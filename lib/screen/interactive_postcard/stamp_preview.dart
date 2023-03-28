@@ -122,16 +122,15 @@ class _StampPreviewState extends State<StampPreview> {
   }
 
   Future<void> pasteStamp() async {
-    final postcardImage = img.decodePng(postcardData!);
+    final postcardImage = await decodeFuture(postcardData!);
     final stampImageResized =
-        img.copyResize(widget.payload.image, width: 520, height: 546);
+        await resizeImage(ResizeImageParams(widget.payload.image, 520, 546));
 
     var image = await compositeImageAt(CompositeImageParams(
-        postcardImage!, stampImageResized, 210, 212, index, 490, 546));
-    setState(() {
-      stamped = true;
-      stampedPostcardData = img.encodePng(image);
-    });
+        postcardImage, stampImageResized, 210, 212, index, 490, 546));
+    stamped = true;
+    stampedPostcardData = await encodeImage(image);
+    setState(() {});
   }
 
   Future<void> _sendPostcard() async {
@@ -168,6 +167,31 @@ img.Image compositeImagesAt(CompositeImageParams param) {
   return img.compositeImage(param.dst, param.src, dstX: dstX - 10, dstY: dstY);
 }
 
+Future<img.Image> resizeImage(ResizeImageParams resizeImageParams) async {
+  return await compute(resizeImageAt, resizeImageParams);
+}
+
+img.Image resizeImageAt(ResizeImageParams param) {
+  return img.copyResize(param.image, width: param.width, height: param.height);
+}
+
+Future<img.Image> decodeFuture(Uint8List data) async {
+  return await compute(_decodeImage, data);
+}
+
+img.Image _decodeImage(Uint8List data) {
+  return img.decodeImage(data)!;
+}
+
+// isolate encodeImage
+Future<Uint8List> encodeImage(img.Image image) async {
+  return await compute(_encodeImage, image);
+}
+
+Uint8List _encodeImage(img.Image image) {
+  return img.encodePng(image);
+}
+
 class StampPreviewPayload {
   final img.Image image;
   final AssetToken asset;
@@ -187,4 +211,12 @@ class CompositeImageParams {
 
   CompositeImageParams(
       this.dst, this.src, this.x, this.y, this.index, this.w, this.h);
+}
+
+class ResizeImageParams {
+  final img.Image image;
+  final int width;
+  final int height;
+
+  ResizeImageParams(this.image, this.width, this.height);
 }
