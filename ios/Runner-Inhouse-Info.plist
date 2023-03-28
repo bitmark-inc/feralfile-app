@@ -87,7 +87,7 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Allow Autonomy to use your location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Allow Autonomy to use your location</string>`
+	<string>Allow Autonomy to use your location</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
