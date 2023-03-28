@@ -231,10 +231,6 @@ import Starscream
         }
     }
     
-    override func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        .allButUpsideDown
-    }
-    
     func authenticationCompleted(success: Bool) {
         if success {
             hideAuthenticationOverlay()
