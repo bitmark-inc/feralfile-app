@@ -79,7 +79,7 @@ class _StampPreviewState extends State<StampPreview> {
               ),
             ),
             PrimaryButton(
-              text: "send_postcard".tr(),
+              text: "finalize_postcard".tr(),
               enabled: stamped,
               onTap: () async {
                 await _sendPostcard();

@@ -42,6 +42,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -647,11 +648,27 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ],
           ),
           addDivider(height: 30, color: AppColor.auGreyBackground),
-          ...travelInfo.map((e) => travelWidget(e)).toList(),
-          if (travelInfo.isNotEmpty && asset.isSending) ...[
-            _sendingTripItem(context, asset, travelInfo.last),
-            addDivider(color: AppColor.greyMedium),
-          ],
+          ...travelInfo
+              .map((TravelInfo e) {
+                if (e.receivedLocation == null) {
+                  if (asset.isSending) {
+                    return _sendingTripItem(context, asset, e);
+                  } else {
+                    if (asset.owner == asset.lastOwner) {
+                      return travelWidget(e);
+                    }
+                  }
+                } else {
+                  return travelWidget(e);
+                }
+              })
+              .whereNotNull()
+              .toList(),
+
+          // if (travelInfo.isNotEmpty && asset.isSending) ...[
+          //   _sendingTripItem(context, asset, travelInfo.last),
+          //   addDivider(color: AppColor.greyMedium),
+          // ],
         ],
       ),
     );
@@ -678,7 +695,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   SvgPicture.asset("assets/images/arrow_3.svg"),
                   const SizedBox(width: 6),
                   Text(
-                    travelInfo.receivedLocation ?? "",
+                    travelInfo.receivedLocation ?? "Not sent",
                     style: theme.textTheme.ppMori400White14,
                   ),
                 ],
@@ -744,7 +761,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         Row(
           children: [
             Text(
-              travelInfo.receivedLocation ?? "",
+              travelInfo.sentLocation ?? "",
               style: theme.textTheme.ppMori400White14,
             ),
             const Spacer(),
@@ -825,7 +842,7 @@ class TravelInfo {
 
   Future<void> _getReceivedLocation() async {
     if (to == null) {
-      receivedLocation = "not_sent".tr();
+      receivedLocation = null;
     } else {
       receivedLocation = await getLocationNameFromCoordinates(
           to!.claimedLocation!.lat, to!.claimedLocation!.lon);

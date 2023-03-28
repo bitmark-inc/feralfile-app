@@ -229,8 +229,9 @@ extension AssetTokenExtension on AssetToken {
   bool get isSending {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
-    return sharedPostcards.any(
-        (element) => (element.tokenID == id && element.owner == lastOwner));
+    return sharedPostcards.any((element) => (element.tokenID == id &&
+        element.owner == lastOwner &&
+        owner == lastOwner));
   }
 
   String get lastOwner {
@@ -249,10 +250,10 @@ extension AssetTokenExtension on AssetToken {
       travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
     }
 
-    if (stamps[stamps.length - 1].stampedLocation != null) {
-      travelInfo
-          .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
-    }
+    // if (stamps[stamps.length - 1].stampedLocation != null) {
+    //   travelInfo
+    //       .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
+    // }
 
     await Future.wait(travelInfo.map((e) async {
       await e.getLocationName();
