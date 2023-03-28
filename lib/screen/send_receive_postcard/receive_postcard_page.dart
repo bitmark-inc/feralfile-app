@@ -59,11 +59,13 @@ class ReceivePostCardPage extends StatefulWidget {
 class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   final metricClient = injector.get<MetricClientService>();
   final bloc = injector.get<ReceivePostcardBloc>();
+  late bool _isProcessing;
 
   @override
   void initState() {
     _fetchIdentities();
     super.initState();
+    _isProcessing = false;
   }
 
   void _fetchIdentities() {
@@ -219,6 +221,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                               enabled: !(state.isReceiving ?? false),
                               isProcessing: state.isReceiving ?? false,
                               onTap: () async {
+                                setState(() {
+                                  _isProcessing = true;
+                                });
                                 final isReceived =
                                     await injector<PostcardService>()
                                         .isReceived(asset.tokenId ?? "");
@@ -335,10 +340,19 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                       GetTokensByOwnerEvent(
                                           pageKey: PageKey.init()),
                                     );
+                                    setState(() {
+                                      _isProcessing = false;
+                                    });
                                     if (!mounted) return;
                                     await UIHelper.showReceivePostcardSuccess(
                                         context);
-                                    if (!mounted) return;
+                                    if (mounted) {
+                                      Navigator.of(context)
+                                          .pushNamedAndRemoveUntil(
+                                        AppRouter.homePage,
+                                        (route) => false,
+                                      );
+                                    }
                                   } catch (e) {
                                     if (e is DioError) {
                                       if (!mounted) return;
@@ -349,12 +363,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                       // emit(state.copyWith(isReceiving: false, error: e));
                                     }
                                   }
-                                }
-                                if (mounted) {
-                                  Navigator.of(context).pushNamedAndRemoveUntil(
-                                    AppRouter.homePage,
-                                    (route) => false,
-                                  );
                                 }
                               },
                             ),
