@@ -91,6 +91,13 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         index: index));
   }
 
+  void _unfocus() {
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+  }
+
   Widget _quantityInputField(
       {required int maxQuantity, required bool hasError}) {
     return Column(
@@ -149,153 +156,169 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
               );
             }
           }, builder: (context, state) {
-            return Container(
-              margin: const EdgeInsets.only(
-                top: 16.0,
-                left: 16.0,
-                right: 16.0,
-                bottom: 40.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          _artworkView(context),
-                          const SizedBox(height: 20),
-                          _item(
-                              context: context,
-                              title: "token".tr(),
-                              content: polishSource(asset.source ?? ""),
-                              tapLink: asset.assetURL),
-                          divider,
-                          _item(
-                            context: context,
-                            title: "contract".tr(),
-                            content: asset.blockchain.capitalize(),
-                            tapLink: asset.getBlockchainUrl(),
-                          ),
-                          divider,
-                          _item(
-                              context: context,
-                              title: "minted".tr(),
-                              content: asset.mintedAt != null
-                                  ? localTimeString(asset.mintedAt!)
-                                  : ''),
-                          divider,
-                          if (widget.payload.asset.fungible == true) ...[
+            return GestureDetector(
+              behavior: HitTestBehavior.deferToChild,
+              onTap: () {
+                _unfocus();
+              },
+              child: Container(
+                margin: const EdgeInsets.only(
+                  top: 16.0,
+                  left: 16.0,
+                  right: 16.0,
+                  bottom: 40.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            _artworkView(context),
+                            const SizedBox(height: 20),
                             _item(
                                 context: context,
-                                title: "owned_tokens".tr(),
-                                content: "$maxQuantity"),
+                                title: "token".tr(),
+                                content: polishSource(asset.source ?? ""),
+                                tapLink: asset.assetURL),
                             divider,
-                            const SizedBox(height: 16),
+                            _item(
+                              context: context,
+                              title: "contract".tr(),
+                              content: asset.blockchain.capitalize(),
+                              tapLink: asset.getBlockchainUrl(),
+                            ),
+                            divider,
+                            _item(
+                                context: context,
+                                title: "minted".tr(),
+                                content: asset.mintedAt != null
+                                    ? localTimeString(asset.mintedAt!)
+                                    : ''),
+                            divider,
+                            if (widget.payload.asset.fungible == true) ...[
+                              _item(
+                                  context: context,
+                                  title: "owned_tokens".tr(),
+                                  content: "$maxQuantity"),
+                              divider,
+                              const SizedBox(height: 16),
+                              Text(
+                                "quantity_to_send".tr(),
+                                style: theme.textTheme.ppMori400Black14,
+                              ),
+                              const SizedBox(height: 8),
+                              _quantityInputField(
+                                  maxQuantity: maxQuantity,
+                                  hasError: state.isQuantityError),
+                              if (state.isQuantityError) ...[
+                                const SizedBox(height: 8),
+                                if (_quantity < 1)
+                                  Text(
+                                    "minimum_1".tr(),
+                                    style: theme.textTheme.ppMori400Black12
+                                        .copyWith(color: AppColor.red),
+                                  ),
+                                if (_quantity > maxQuantity)
+                                  Text(
+                                    "maximum_"
+                                        .tr(args: [maxQuantity.toString()]),
+                                    style: theme.textTheme.ppMori400Black12
+                                        .copyWith(color: AppColor.red),
+                                  ),
+                              ]
+                            ],
+                            const SizedBox(height: 16.0),
                             Text(
-                              "quantity_to_send".tr(),
+                              "to".tr(),
                               style: theme.textTheme.ppMori400Black14,
                             ),
                             const SizedBox(height: 8),
-                            _quantityInputField(
-                                maxQuantity: maxQuantity,
-                                hasError: state.isQuantityError),
-                            if (state.isQuantityError) ...[
-                              const SizedBox(height: 8),
-                              if (_quantity < 1)
-                                Text(
-                                  "minimum_1".tr(),
-                                  style: theme.textTheme.ppMori400Black12
-                                      .copyWith(color: AppColor.red),
-                                ),
-                              if (_quantity > maxQuantity)
-                                Text(
-                                  "maximum_".tr(args: [maxQuantity.toString()]),
-                                  style: theme.textTheme.ppMori400Black12
-                                      .copyWith(color: AppColor.red),
-                                ),
-                            ]
-                          ],
-                          const SizedBox(height: 16.0),
-                          Text(
-                            "to".tr(),
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                          const SizedBox(height: 8),
-                          AuTextField(
-                            labelSemantics: "to_address_send_artwork",
-                            title: "",
-                            placeholder: "paste_or_scan_address".tr(),
-                            controller: _addressController,
-                            isError: state.isAddressError,
-                            suffix: IconButton(
-                              icon: Icon(
-                                  state.isScanQR ? AuIcon.scan : AuIcon.close),
-                              onPressed: () async {
-                                if (_addressController.text.isNotEmpty) {
-                                  _addressController.text = "";
-                                  context
-                                      .read<SendArtworkBloc>()
-                                      .add(AddressChangedEvent("", index));
-                                  _initialChangeAddress = true;
-                                } else {
-                                  dynamic address = await Navigator.of(context)
-                                      .pushNamed(ScanQRPage.tag,
-                                          arguments:
-                                              asset.blockchain == "ethereum"
-                                                  ? ScannerItem.ETH_ADDRESS
-                                                  : ScannerItem.XTZ_ADDRESS);
-                                  if (address != null && address is String) {
-                                    address =
-                                        address.replacePrefix("ethereum:", "");
-                                    _addressController.text = address;
-                                    if (!mounted) return;
-                                    context.read<SendArtworkBloc>().add(
-                                        AddressChangedEvent(address, index));
+                            AuTextField(
+                              labelSemantics: "to_address_send_artwork",
+                              title: "",
+                              placeholder: "paste_or_scan_address".tr(),
+                              controller: _addressController,
+                              isError: state.isAddressError,
+                              suffix: IconButton(
+                                icon: Icon(state.isScanQR
+                                    ? AuIcon.scan
+                                    : AuIcon.close),
+                                onPressed: () async {
+                                  if (_addressController.text.isNotEmpty) {
+                                    _addressController.text = "";
+                                    context
+                                        .read<SendArtworkBloc>()
+                                        .add(AddressChangedEvent("", index));
                                     _initialChangeAddress = true;
+                                  } else {
+                                    dynamic address =
+                                        await Navigator.of(context).pushNamed(
+                                            ScanQRPage.tag,
+                                            arguments:
+                                                asset.blockchain == "ethereum"
+                                                    ? ScannerItem.ETH_ADDRESS
+                                                    : ScannerItem.XTZ_ADDRESS);
+                                    if (address != null && address is String) {
+                                      address = address.replacePrefix(
+                                          "ethereum:", "");
+                                      _addressController.text = address;
+                                      if (!mounted) return;
+                                      context.read<SendArtworkBloc>().add(
+                                          AddressChangedEvent(address, index));
+                                      _initialChangeAddress = true;
+                                    }
                                   }
+                                },
+                              ),
+                              onSubmit: (value) {
+                                if (value != state.address) {
+                                  context.read<SendArtworkBloc>().add(
+                                        AddressChangedEvent(
+                                            _addressController.text, index),
+                                      );
+                                  _initialChangeAddress = true;
                                 }
                               },
-                            ),
-                            onSubmit: (value) {
-                              if (value != state.address) {
+                              onChanged: (value) {
+                                _initialChangeAddress = true;
                                 context.read<SendArtworkBloc>().add(
                                       AddressChangedEvent(
                                           _addressController.text, index),
                                     );
-                                _initialChangeAddress = true;
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          Visibility(
-                              visible: state.isAddressError,
-                              child: Text(
-                                'error_invalid_address'.tr(),
-                                style: theme.textTheme.ppMori400Black12
-                                    .copyWith(color: AppColor.red),
-                              )),
-                          Visibility(
-                            visible: !state.isAddressError,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                gasFeeStatus(state, theme),
-                                const SizedBox(height: 8.0),
-                                if (state.feeOptionValue != null)
-                                  feeTable(state, context),
-                                const SizedBox(height: 24.0),
-                              ],
+                              },
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Visibility(
+                                visible: state.isAddressError,
+                                child: Text(
+                                  'error_invalid_address'.tr(),
+                                  style: theme.textTheme.ppMori400Black12
+                                      .copyWith(color: AppColor.red),
+                                )),
+                            Visibility(
+                              visible: !state.isAddressError,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  gasFeeStatus(state, theme),
+                                  const SizedBox(height: 8.0),
+                                  if (state.feeOptionValue != null)
+                                    feeTable(state, context),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  _reviewButton(asset, state)
-                ],
+                    _reviewButton(asset, state)
+                  ],
+                ),
               ),
             );
           }),
@@ -312,6 +335,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
             text: "review".tr(),
             onTap: state.isValid
                 ? () async {
+                    _unfocus();
                     final payload = await Navigator.of(context).pushNamed(
                         AppRouter.sendArtworkReviewPage,
                         arguments: SendArtworkReviewPayload(

@@ -170,7 +170,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        _moveToInfo(entry.key, entry.value.first);
+        _moveToInfo(entry.key, entry.value);
       },
       child: Column(children: [
         Center(
@@ -197,10 +197,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     );
   }
 
-  Future _moveToInfo(AssetToken asset, FeedEvent event) async {
+  Future _moveToInfo(AssetToken asset, List<FeedEvent> events) async {
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
-      arguments: FeedDetailPayload(asset, event),
+      arguments: FeedDetailPayload(asset, events),
     );
   }
 
@@ -405,17 +405,18 @@ class _FeedArtworkState extends State<FeedArtwork>
 
 class FeedDetailPayload {
   AssetToken? feedToken;
-  FeedEvent? feedEvent;
+  List<FeedEvent> feedEvents;
 
   FeedDetailPayload(
     this.feedToken,
-    this.feedEvent,
+    this.feedEvents,
   );
 
-  FeedDetailPayload copyWith(AssetToken? feedToken, FeedEvent? feedEvent) {
+  FeedDetailPayload copyWith(
+      AssetToken? feedToken, List<FeedEvent>? feedEvents) {
     return FeedDetailPayload(
       feedToken ?? this.feedToken,
-      feedEvent ?? this.feedEvent,
+      feedEvents ?? this.feedEvents,
     );
   }
 }

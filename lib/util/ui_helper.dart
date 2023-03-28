@@ -33,7 +33,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -645,12 +644,11 @@ class UIHelper {
           const SizedBox(
             height: 40,
           ),
-          AuFilledButton(
+          OutlineButton(
             text: "close".tr(),
-            onPress: () {
+            onTap: () {
               Navigator.of(context).pop();
             },
-            textStyle: theme.primaryTextTheme.labelLarge,
           ),
         ],
       ),
@@ -910,37 +908,41 @@ class UIHelper {
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('alias'.tr(), style: theme.primaryTextTheme.headlineSmall),
-            const SizedBox(height: 16),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(
-                  child: Text(
-                name,
-                style: theme.primaryTextTheme.headlineMedium,
-                overflow: TextOverflow.ellipsis,
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (name.isNotEmpty) ...[
+                    Text(
+                      name,
+                      style: theme.textTheme.ppMori700White14,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Text(
+                    address,
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ],
               )),
-              GestureDetector(
-                child: Text("share".tr(),
-                    style: theme.primaryTextTheme.headlineMedium),
-                onTap: () => Share.share(address),
-              )
+              const SizedBox(width: 24),
+              IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Share.share(address),
+                  icon: SvgPicture.asset(
+                    'assets/images/Share.svg',
+                    color: AppColor.white,
+                  )),
             ]),
-            const SizedBox(height: 16),
-            Text(
-              address,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ibmWhiteNormal14
-                  : theme.textTheme.ibmWhiteNormal16,
-            ),
-            const SizedBox(height: 56),
-            TextButton(
-              onPressed: () {
+            const SizedBox(height: 40),
+            OutlineButton(
+              onTap: () {
                 Navigator.of(context).pop();
               },
-              child: Text(
-                "close".tr(),
-                style: theme.primaryTextTheme.labelLarge,
-              ),
+              text: "close".tr(),
             ),
             const SizedBox(height: 15),
           ],

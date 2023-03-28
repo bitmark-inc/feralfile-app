@@ -589,7 +589,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _onItemTapped(0);
+        _onItemTapped(_pages.length - 1);
         final metricClient = injector<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.tabNotification, data: {
           'type': notificationType,
