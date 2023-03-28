@@ -131,6 +131,11 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                           child: CachedNetworkImage(
                                             fit: BoxFit.cover,
                                             imageUrl: artworkThumbnail,
+                                            progressIndicatorBuilder: (context,
+                                                    url, downloadProgress) =>
+                                                Center(
+                                              child: loadingIndicator(),
+                                            ),
                                           ),
                                         ),
                                       ),
