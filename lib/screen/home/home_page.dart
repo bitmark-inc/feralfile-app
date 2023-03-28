@@ -222,9 +222,10 @@ class HomePageState extends State<HomePage>
           .toList();
       final payload = ArtworkDetailPayload(tokenMints, 0);
       Navigator.of(context).pushNamed(
-        AppRouter.artworkDetailsPage,
+        AppRouter.claimedPostcardDetailsPage,
         arguments: payload,
       );
+
       config.setListPostcardMint(
         tokenMints.map((e) => e.id).toList(),
         isRemoved: true,
