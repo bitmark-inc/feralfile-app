@@ -163,17 +163,6 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                 ),
                 actions: [
                   IconButton(
-                    onPressed: () {
-                      onClickFullScreen();
-                    },
-                    icon: Semantics(
-                      label: "fullscreen_icon",
-                      child: SvgPicture.asset(
-                        'assets/images/fullscreen_icon.svg',
-                      ),
-                    ),
-                  ),
-                  IconButton(
                     onPressed: () => Navigator.pop(context),
                     constraints: const BoxConstraints(
                       maxWidth: 44,
@@ -212,7 +201,35 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                     );
                   },
                 ),
-              )
+              ),
+              Visibility(
+                visible: !isFullScreen,
+                child: Container(
+                  color: theme.colorScheme.primary,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 15,
+                      bottom: 30,
+                      right: 20,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () => onClickFullScreen(),
+                          child: Semantics(
+                            label: "fullscreen_icon",
+                            child: SvgPicture.asset(
+                              'assets/images/fullscreen_icon.svg',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ));
