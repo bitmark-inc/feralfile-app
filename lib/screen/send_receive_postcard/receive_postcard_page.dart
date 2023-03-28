@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_b
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -29,6 +30,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
 class ReceivePostcardPageArgs {
   final AssetToken asset;
@@ -299,7 +302,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                         title: 'Postcard 001',
                                         thumbnailURL: "",
                                         previewURL: "",
-                                        source: 'autonomy-postcard',
+                                        source: 'postcard',
                                       ),
                                       blockchain: "tezos",
                                       fungible: false,
@@ -319,8 +322,19 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                       owners: {},
                                     );
 
-                                    await injector<TokensService>()
+                                    final tokenService =
+                                        injector<TokensService>();
+                                    await tokenService
                                         .setCustomTokens([pendingToken]);
+                                    await tokenService
+                                        .reindexAddresses([address]);
+                                    injector
+                                        .get<ConfigurationService>()
+                                        .setListPostcardMint([indexID]);
+                                    NftCollectionBloc.eventController.add(
+                                      GetTokensByOwnerEvent(
+                                          pageKey: PageKey.init()),
+                                    );
                                     if (!mounted) return;
                                     await UIHelper.showReceivePostcardSuccess(
                                         context);
