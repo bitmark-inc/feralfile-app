@@ -99,6 +99,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -203,6 +204,7 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
+  static const inappWebviewPage = 'inapp_webview_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1102,6 +1104,12 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return const HelpUsPage();
+            });
+      case inappWebviewPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return InappWebviewPage(url: settings.arguments as String);
             });
       default:
         throw Exception('Invalid route: ${settings.name}');
