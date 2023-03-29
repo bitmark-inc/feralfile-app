@@ -571,10 +571,14 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 return;
               }
 
+              final sentQuantity = payload['sentQuantity'] as int;
               final isSentAll = payload['isSentAll'] as bool;
+
               if (isSentAll) {
-                injector<ConfigurationService>().updateRecentlySentToken(
-                    [SentArtwork(asset.id, asset.owner, DateTime.now())]);
+                injector<ConfigurationService>().updateRecentlySentToken([
+                  SentArtwork(asset.id, asset.owner, DateTime.now(),
+                      sentQuantity, isSentAll)
+                ]);
                 if (isHidden) {
                   await injector<ConfigurationService>()
                       .updateTempStorageHiddenTokenIDs([asset.id], false);

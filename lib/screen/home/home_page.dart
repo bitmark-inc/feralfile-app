@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
@@ -44,20 +45,25 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/token_ext.dart';
@@ -355,6 +361,7 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
+    final configurationService = injector<ConfigurationService>();
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
@@ -377,6 +384,20 @@ class HomePageState extends State<HomePage>
     sources = [
       SliverToBoxAdapter(
         child: HeaderView(paddingTop: paddingTop),
+      ),
+      SliverToBoxAdapter(
+        child: MultiValueListenableBuilder(
+          valueListenables: [
+            configurationService.showTvAppTip,
+            configurationService.showCreatePlaylistTip,
+            configurationService.showLinkOrImportTip,
+          ],
+          builder: (BuildContext context, List<dynamic> values, Widget? child) {
+            return CarouselWithIndicator(
+              items: _listTipcards(context),
+            );
+          },
+        ),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -439,6 +460,72 @@ class HomePageState extends State<HomePage>
       slivers: sources,
       controller: _controller,
     );
+  }
+
+  List<Tipcard> _listTipcards(BuildContext context) {
+    final theme = Theme.of(context);
+    final configurationService = injector<ConfigurationService>();
+    return [
+      if (configurationService.showLinkOrImportTip.value)
+        Tipcard(
+            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+            },
+            buttonText: "add_wallet".tr(),
+            content: Text("you_can_link_or_import".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showLinkOrImportTip),
+      if (configurationService.showCreatePlaylistTip.value)
+        Tipcard(
+            titleText: "create_your_first_playlist".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
+            },
+            buttonText: "create_new_playlist".tr(),
+            content: Text("as_a_pro_sub_playlist".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showCreatePlaylistTip),
+      if (configurationService.showTvAppTip.value)
+        Tipcard(
+            titleText: "enjoy_your_collection".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                AppRouter.scanQRPage,
+                arguments: ScannerItem.GLOBAL,
+              );
+            },
+            buttonText: "sync_up_with_autonomy_tv".tr(),
+            content: RichText(
+              text: TextSpan(
+                text: "as_a_pro_sub_TV_app".tr(),
+                style: theme.textTheme.ppMori400Black14,
+                children: [
+                  TextSpan(
+                    text: "google_TV_app".tr(),
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        final metricClient = injector<MetricClientService>();
+                        metricClient.addEvent(MixpanelEvent.tapLinkInTipCard,
+                            data: {
+                              "link": TV_APP_STORE_URL,
+                              "title": "enjoy_your_collection".tr()
+                            });
+                        launchUrl(Uri.parse(TV_APP_STORE_URL),
+                            mode: LaunchMode.externalApplication);
+                      },
+                  ),
+                  TextSpan(
+                    text: "currently_available_on".tr(),
+                  )
+                ],
+              ),
+            ),
+            listener: configurationService.showTvAppTip),
+    ];
   }
 
   Future<void> _cloudBackup() async {
@@ -533,8 +620,53 @@ class HomePageState extends State<HomePage>
     }
   }
 
+  void _checkTipCardShowTime() async {
+    final metricClient = injector<MetricClientService>();
+    log.info("_checkTipCardShowTime");
+    final configurationService = injector<ConfigurationService>();
+    final doneOnboardingTime = configurationService.getDoneOnboardingTime();
+    final subscriptionTime = configurationService.getSubscriptionTime();
+
+    final now = DateTime.now();
+    if (subscriptionTime != null) {
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowTvAppTip()) {
+        configurationService.showTvAppTip.value = true;
+        await configurationService.setAlreadyShowTvAppTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "enjoy_your_collection".tr()});
+      }
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowCreatePlaylistTip()) {
+        configurationService.showCreatePlaylistTip.value = true;
+        configurationService.setAlreadyShowCreatePlaylistTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "create_your_first_playlist".tr()});
+      }
+    }
+    if (doneOnboardingTime != null) {
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+          !configurationService.getAlreadyShowLinkOrImportTip()) {
+        configurationService.showLinkOrImportTip.value = true;
+        configurationService.setAlreadyShowLinkOrImportTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
+      }
+
+      if (now.isAfter(doneOnboardingTime.add(const Duration(seconds: 5))) &&
+          await isPremium() &&
+          !configurationService.getAlreadyShowProTip()) {
+        configurationService.showProTip.value = true;
+        configurationService.setAlreadyShowProTip(false);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "try_autonomy_pro_free".tr()});
+      }
+    }
+  }
+
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
+    _checkTipCardShowTime();
     await injector<ConfigurationService>().reload();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
@@ -553,7 +685,6 @@ class HomePageState extends State<HomePage>
     refreshFeeds();
     refreshTokens(checkPendingToken: true);
     refreshNotification();
-
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
     injector<VersionService>().checkForUpdate();

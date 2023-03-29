@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -92,6 +93,87 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.dispose();
   }
 
+  void _onMoreTap(BuildContext context, PlayListModel? playList) {
+    final theme = Theme.of(context);
+    UIHelper.showDrawerAction(
+      context,
+      options: [
+        OptionItem(
+          title: 'Rename',
+          icon: SvgPicture.asset(
+            'assets/images/rename_icon.svg',
+            width: 24,
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            bloc.add(ChangeRename(value: true));
+          },
+        ),
+        OptionItem(
+          title: 'Edit',
+          icon: SvgPicture.asset(
+            'assets/images/edit_icon.svg',
+            width: 24,
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            if (isDemo) return;
+            Navigator.pushNamed(
+              context,
+              AppRouter.editPlayListPage,
+              arguments: playList,
+            );
+          },
+        ),
+        OptionItem(
+          title: 'Delete',
+          icon: SvgPicture.asset(
+            'assets/images/delete_icon.svg',
+            width: 24,
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            UIHelper.showMessageActionNew(
+              context,
+              tr('delete_playlist'),
+              '',
+              descriptionWidget: RichText(
+                text: TextSpan(children: [
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White16,
+                    text: "you_are_about".tr(),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori700White16,
+                    text: playList?.name ?? tr('untitled'),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White16,
+                    text: "dont_worry".tr(),
+                  ),
+                ]),
+              ),
+              actionButton: "delete_dialog".tr(),
+              onAction: deletePlayList,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _onShufferTap(PlayListModel? playList) {
+    final playControlModel = playList?.playControlModel ?? PlayControlModel();
+    playControlModel.isShuffle = !playControlModel.isShuffle;
+    bloc.add(UpdatePlayControl(playControlModel: playControlModel));
+  }
+
+  void _onTimerTap(PlayListModel? playList) {
+    final playControlModel = playList?.playControlModel ?? PlayControlModel();
+    bloc.add(
+        UpdatePlayControl(playControlModel: playControlModel.onChangeTime()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -99,7 +181,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       bloc: bloc,
       listener: (context, state) {},
       builder: (context, state) {
-        final playList = widget.playListModel;
+        final playList = state.playListModel;
         final isRename = state.isRename;
         if (isRename == true) {
           _focusNode.requestFocus();
@@ -148,73 +230,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   context,
                   tokens,
                   accountIdentities: accountIdentities,
-                  onMoreTap: () {
-                    UIHelper.showDrawerAction(
-                      context,
-                      options: [
-                        OptionItem(
-                          title: 'Rename',
-                          icon: SvgPicture.asset(
-                            'assets/images/rename_icon.svg',
-                            width: 24,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            bloc.add(ChangeRename(value: true));
-                          },
-                        ),
-                        OptionItem(
-                          title: 'Edit',
-                          icon: SvgPicture.asset(
-                            'assets/images/edit_icon.svg',
-                            width: 24,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            if (isDemo) return;
-                            Navigator.pushNamed(
-                              context,
-                              AppRouter.editPlayListPage,
-                              arguments: playList,
-                            );
-                          },
-                        ),
-                        OptionItem(
-                          title: 'Delete',
-                          icon: SvgPicture.asset(
-                            'assets/images/delete_icon.svg',
-                            width: 24,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            UIHelper.showMessageActionNew(
-                              context,
-                              tr('delete_playlist'),
-                              '',
-                              descriptionWidget: RichText(
-                                text: TextSpan(children: [
-                                  TextSpan(
-                                    style: theme.textTheme.ppMori400White16,
-                                    text: "you_are_about".tr(),
-                                  ),
-                                  TextSpan(
-                                    style: theme.textTheme.ppMori700White16,
-                                    text: playList?.name ?? tr('untitled'),
-                                  ),
-                                  TextSpan(
-                                    style: theme.textTheme.ppMori400White16,
-                                    text: "dont_worry".tr(),
-                                  ),
-                                ]),
-                              ),
-                              actionButton: "delete_dialog".tr(),
-                              onAction: deletePlayList,
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
+                  playControlModel:
+                      playList?.playControlModel ?? PlayControlModel(),
+                  onMoreTap: () => _onMoreTap(context, playList),
+                  onShuffleTap: () => _onShufferTap(playList),
+                  onTimerTap: () => _onTimerTap(playList),
                 ),
               );
             },
@@ -229,6 +249,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
     Function()? onMoreTap,
+    Function()? onShuffleTap,
+    Function()? onTimerTap,
+    required PlayControlModel playControlModel,
   }) {
     final theme = Theme.of(context);
     int cellPerRow =
@@ -237,7 +260,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
         cellSpacing * (cellPerRow - 1);
     final cachedImageSize = (estimatedCellWidth * 3).ceil();
-
     return Stack(
       children: [
         Column(
@@ -299,8 +321,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           .toList()
                           .indexOf(asset);
                       final payload = ArtworkDetailPayload(
-                          accountIdentities, index,
-                          isPlaylist: true);
+                        accountIdentities,
+                        index,
+                        playControl: playControlModel,
+                      );
 
                       Navigator.of(context).pushNamed(
                           AppRouter.artworkDetailsPage,
@@ -311,6 +335,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 itemCount: tokens.length,
               ),
             ),
+            const SizedBox(
+              height: 50,
+            )
           ],
         ),
         Positioned(
@@ -318,12 +345,15 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           left: 0,
           right: 0,
           child: PlaylistControl(
+            playControl: playControlModel,
             showPlay: accountIdentities.isNotEmpty,
+            onShuffleTap: onShuffleTap,
+            onTimerTap: onTimerTap,
             onPlayTap: () {
               final payload = ArtworkDetailPayload(
                 accountIdentities,
                 0,
-                isPlaylist: true,
+                playControl: playControlModel,
               );
               Navigator.of(context).pushNamed(
                 AppRouter.artworkPreviewPage,

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -10,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:nft_collection/models/pending_tx_params.dart';
 import 'package:web3dart/web3dart.dart';
 
 const _erc1155Topic =
@@ -79,6 +81,7 @@ extension FilterEventExt on FilterEvent {
       final indexerId = "eth-${address?.hexEip55}-$tokenId";
       final token = AssetToken(
         asset: Asset.init(
+          indexID: indexerId,
           maxEdition: 1,
           source: address?.hexEip55,
         ),
@@ -114,6 +117,7 @@ extension TZKTTokenExtension on TZKTToken {
   ) {
     return AssetToken(
       asset: Asset.init(
+        indexID: "tzkt-${contract?.address}-$tokenId",
         artistName: (metadata?["creators"] as List<dynamic>?)
             ?.cast<String>()
             .firstOrNull,
@@ -162,7 +166,11 @@ class PendingTokenService {
   );
 
   Future<List<AssetToken>> checkPendingEthereumTokens(
-      String owner, String tx) async {
+    String owner,
+    String tx,
+    String timestamp,
+    String signature,
+  ) async {
     log.info(
         "[PendingTokenService] Check pending Ethereum tokens: $owner, $tx");
     int retryCount = 0;
@@ -187,14 +195,29 @@ class PendingTokenService {
       log.info(
           "[PendingTokenService] Pending Tokens: ${pendingTokens.map((e) => e.id).toList()}");
       if (pendingTokens.isNotEmpty) {
+        for (var e in pendingTokens) {
+          final element = PendingTxParams(
+            blockchain: e.blockchain,
+            id: e.tokenId ?? "",
+            contractAddress: e.contractAddress ?? "",
+            ownerAccount: e.owner,
+            pendingTx: tx,
+            timestamp: timestamp,
+            signature: signature,
+          );
+          injector<TokensService>().postPendingToken(element);
+        }
+
         await _tokenService.setCustomTokens(pendingTokens);
         await _tokenService.reindexAddresses([owner]);
       }
+
       final localPendingToken =
           (await _assetTokenDao.findAllPendingAssetTokens())
               .where((e) => e.owner == owner)
               .whereNot((e) => e.isAirdrop)
               .toList();
+
       return localPendingToken;
     } else {
       return [];

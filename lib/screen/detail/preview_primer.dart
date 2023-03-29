@@ -2,16 +2,14 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-
-import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_debounce/easy_debounce.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
@@ -83,18 +81,26 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
       isFullScreen = true;
     });
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    final theme = Theme.of(context);
 
     if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
-      showModalBottomSheet<void>(
-        context: context,
-        constraints: BoxConstraints(
-            maxWidth: ResponsiveLayout.isMobile
-                ? double.infinity
-                : Constants.maxWidthModalTablet),
-        barrierColor: Colors.black.withOpacity(0.5),
-        builder: (BuildContext context) {
-          return const FullscreenIntroPopup();
-        },
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+            decoration: BoxDecoration(
+              color: theme.auSuperTeal.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(64),
+            ),
+            child: Text(
+              'shake_exit'.tr(),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.ppMori600Black12,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
       );
     }
   }

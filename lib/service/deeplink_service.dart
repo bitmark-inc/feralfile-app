@@ -59,6 +59,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   String? currentExhibitionId;
   String? handlingDeepLink;
 
+  final Map<String, bool> _deepLinkHandlingMap = {};
+
   DeeplinkServiceImpl(
     this._configurationService,
     this._walletConnectService,
@@ -77,11 +79,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
       _addScanQREvent(link: "", linkType: "", prefix: "", addData: data);
-      if (data["+clicked_branch_link"] == true) {
+      if (data["+clicked_branch_link"] == true &&
+          _deepLinkHandlingMap[data["link"]] == null) {
+        _deepLinkHandlingMap[data["link"]] = true;
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
         await _handleBranchDeeplinkData(data);
         handlingDeepLink = null;
+        _deepLinkHandlingMap.remove(data["link"]);
       }
     }, onError: (error) {
       log.warning(
@@ -107,16 +112,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (link == "autonomy://") return;
 
     if (link == null) return;
+    if (_deepLinkHandlingMap[link] != null) return;
 
     log.info("[DeeplinkService] receive deeplink $link");
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
       _deepLinkHandleClock("Handle Deep Link Time Out", link);
+      _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link);
+      _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
     });
   }

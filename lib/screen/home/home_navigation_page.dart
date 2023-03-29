@@ -6,8 +6,10 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
@@ -16,6 +18,7 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -69,11 +72,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _onItemTapped(int index) {
     if (index != _pages.length) {
+      final feedService = injector<FeedService>();
       if (_selectedIndex == index) {
-        if (index == 0) {
+        if (index == 1) {
           _homePageKey.currentState?.scrollToTop();
         }
-        if (index == _pages.length - 1) {
+        if (index == 0) {
           _editorialPageStateKey.currentState?.scrollToTop();
         }
       }
@@ -81,12 +85,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _selectedIndex = index;
       });
       _pageController.jumpToPage(_selectedIndex);
-      if (index == 0) {
-        final feedService = injector<FeedService>();
+      if (index == 1) {
         _homePageKey.currentState
             ?.refreshTokens()
             .then((value) => feedService.checkNewFeeds());
-      } else if (index == _pages.length - 1) {
+      } else if (index == 0) {
+        _homePageKey.currentState
+            ?.refreshTokens()
+            .then((value) => feedService.checkNewFeeds());
         final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
@@ -156,29 +162,35 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void initState() {
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
-    if (memoryValues.homePageInitialTab != HomePageTab.HOME) {
+    if (memoryValues.homePageInitialTab != HomePageTab.DISCOVER) {
       _selectedIndex = 1;
     } else {
       _selectedIndex = 0;
     }
     _pageController = PageController(initialPage: _selectedIndex);
+
+    final feedService = injector<FeedService>();
+    _homePageKey.currentState
+        ?.refreshTokens()
+        .then((value) => feedService.checkNewFeeds());
     _pages = <Widget>[
-      HomePage(key: _homePageKey),
       ValueListenableBuilder<bool>(
           valueListenable: injector<FeedService>().hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
             return EditorialPage(
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
+      HomePage(key: _homePageKey),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(
+              value: AccountsBloc(injector(), injector<CloudDatabase>(),
+                  injector(), injector<AuditService>(), injector())),
+        ],
+        child: const WalletPage(),
+      ),
     ];
     _bottomItems = [
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.collection,
-          size: 25,
-        ),
-        label: '',
-      ),
       BottomNavigationBarItem(
         icon: ValueListenableBuilder<int>(
             valueListenable: injector<FeedService>().unviewedCount,
@@ -231,6 +243,20 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             }),
         label: '',
       ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.collection,
+          size: 25,
+        ),
+        label: '',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.wallet,
+          size: 25,
+        ),
+        label: '',
+      ),
       BottomNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(
           valueListenable:
@@ -251,8 +277,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         label: '',
       ),
     ];
-    _checkisSubscribed();
-    injector.get<IAPService>().purchases.addListener(_checkisSubscribed);
+    _checkIfSubscribed();
+    injector.get<IAPService>().purchases.addListener(_checkIfSubscribed);
 
     final configService = injector<ConfigurationService>();
     if (!configService.isReadRemoveSupport()) {
@@ -274,13 +300,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  _checkisSubscribed() async {
+  _checkIfSubscribed() async {
     if (_currentIsSubscribed) return;
     final isSubscribed = await injector.get<IAPService>().isSubscribed();
     if (isSubscribed) {
       _pages = <Widget>[
-        HomePage(key: _homePageKey),
-        const ListPlaylistsScreen(),
         ValueListenableBuilder<bool>(
             valueListenable: injector<FeedService>().hasFeed,
             builder:
@@ -288,22 +312,18 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               return EditorialPage(
                   key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
             }),
+        HomePage(key: _homePageKey),
+        const ListPlaylistsScreen(),
+        MultiBlocProvider(
+          providers: [
+            BlocProvider.value(
+                value: AccountsBloc(injector(), injector<CloudDatabase>(),
+                    injector(), injector<AuditService>(), injector())),
+          ],
+          child: const WalletPage(),
+        ),
       ];
       _bottomItems = [
-        const BottomNavigationBarItem(
-          icon: Icon(
-            AuIcon.collection,
-            size: 25,
-          ),
-          label: '',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(
-            AuIcon.playlists,
-            size: 25,
-          ),
-          label: '',
-        ),
         BottomNavigationBarItem(
           icon: ValueListenableBuilder<int>(
               valueListenable: injector<FeedService>().unviewedCount,
@@ -356,6 +376,27 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               }),
           label: '',
         ),
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.collection,
+            size: 25,
+          ),
+          label: '',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.playlists,
+            size: 25,
+          ),
+          label: '',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(
+            AuIcon.wallet,
+            size: 25,
+          ),
+          label: '',
+        ),
         BottomNavigationBarItem(
           icon: ValueListenableBuilder<List<int>?>(
             valueListenable:
@@ -376,8 +417,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           label: '',
         ),
       ];
-      _currentIsSubscribed = isSubscribed;
-      setState(() {});
+      setState(() {
+        _currentIsSubscribed = isSubscribed;
+      });
     }
   }
 
@@ -517,7 +559,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(0);
+        _pageController.jumpToPage(1);
         break;
 
       case "customer_support_new_message":
@@ -547,7 +589,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _onItemTapped(1);
+        _onItemTapped(_pages.length - 1);
         final metricClient = injector<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.tabNotification, data: {
           'type': notificationType,

@@ -214,7 +214,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           Padding(
                             padding: padding,
                             child: Text(
-                              "purchase_artwork".tr(),
+                              "confirm_transaction".tr(),
                               style: theme.textTheme.ppMori400Black16,
                             ),
                           ),

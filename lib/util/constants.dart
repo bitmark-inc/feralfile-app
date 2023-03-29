@@ -371,6 +371,10 @@ class MixpanelEvent {
   static const receiveAnnouncement = 'receive_announcement';
   static const viewScreen = "view_screen";
   static const endViewScreen = "end_view_screen";
+  static const showTipcard = "show_tip_card";
+  static const closeTipcard = "close_tip_card";
+  static const pressTipcard = "press_tip_card";
+  static const tapLinkInTipCard = "tap_link_in_tip_card";
 }
 
 class MixpanelProp {

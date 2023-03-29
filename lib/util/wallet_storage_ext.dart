@@ -15,11 +15,12 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:web3dart/credentials.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
+import 'package:web3dart/credentials.dart';
 
 extension StringExtension on WalletStorage {
   Future<String> getETHEip55Address({int index = 0}) async {
@@ -44,7 +45,7 @@ extension StringHelper on String {
 
 extension WalletStorageExtension on WalletStorage {
   int getOwnedQuantity(AssetToken token) {
-    return token.balance ?? 0;
+    return token.getCurrentBalance ?? 0;
   }
 
   Future<String> getTezosAddress({int index = 0}) async {

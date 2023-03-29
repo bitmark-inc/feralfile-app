@@ -190,7 +190,7 @@ class MemoryValues {
   ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
-  HomePageTab homePageInitialTab = HomePageTab.HOME;
+  HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
 
   MemoryValues({
     this.scopedPersona,

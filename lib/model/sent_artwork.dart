@@ -13,8 +13,11 @@ class SentArtwork {
   final String tokenID;
   final String address;
   final DateTime timestamp;
+  final int sentQuantity;
+  final bool isSentAll;
 
-  SentArtwork(this.tokenID, this.address, this.timestamp);
+  SentArtwork(this.tokenID, this.address, this.timestamp, this.sentQuantity,
+      this.isSentAll);
 
   factory SentArtwork.fromJson(Map<String, dynamic> json) =>
       _$SentArtworkFromJson(json);

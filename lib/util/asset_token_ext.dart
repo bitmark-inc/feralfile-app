@@ -226,6 +226,23 @@ extension AssetTokenExtension on AssetToken {
     return _replaceIPFS(galleryThumbnailURL!);
   }
 
+  int? get getCurrentBalance {
+    if (balance == null) {
+      return null;
+    }
+    final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+    final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+    final totalSentQuantity = sentTokens
+        .where((element) =>
+            element.tokenID == id &&
+            element.address == owner &&
+            element.timestamp.isAfter(expiredTime))
+        .fold<int>(0,
+            (previousValue, element) => previousValue + element.sentQuantity);
+    return balance! - totalSentQuantity;
+  }
+
   bool get isSending {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
@@ -249,11 +266,6 @@ extension AssetTokenExtension on AssetToken {
     for (int i = 0; i < stamps.length - 1; i++) {
       travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
     }
-
-    // if (stamps[stamps.length - 1].stampedLocation != null) {
-    //   travelInfo
-    //       .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
-    // }
 
     await Future.wait(travelInfo.map((e) async {
       await e.getLocationName();
@@ -394,7 +406,7 @@ AssetToken createPendingAssetToken({
   final contract = artwork.contract;
   return AssetToken(
     asset: Asset(
-      '',
+      indexerId,
       '',
       DateTime.now(),
       artist?.id,

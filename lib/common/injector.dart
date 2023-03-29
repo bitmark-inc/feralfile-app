@@ -50,7 +50,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
-import 'package:autonomy_flutter/service/play_control_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -66,7 +65,6 @@ import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -330,9 +328,6 @@ Future<void> setup() async {
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
-  injector.registerSingleton<ValueNotifier<PlayControlService>>(
-      ValueNotifier<PlayControlService>(
-          PlayControlService(timer: 0, isLoop: false, isShuffle: false)));
 
   injector
       .registerLazySingleton<ReceivePostcardBloc>(() => ReceivePostcardBloc());

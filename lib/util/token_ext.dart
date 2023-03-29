@@ -15,10 +15,12 @@ extension AssetTokenExtension on List<CompactedAssetToken> {
         hiddenTokens.contains(element.id) ||
         (element.balance == 0 && element.isDebugged != true) ||
         sentArtworks.any(
-          (e) => e.isHidden(
-              tokenID: element.id,
-              address: element.owner,
-              timestamp: expiredTime),
+          (e) =>
+              e.isSentAll &&
+              e.isHidden(
+                  tokenID: element.id,
+                  address: element.owner,
+                  timestamp: expiredTime),
         )).toList();
   }
 }

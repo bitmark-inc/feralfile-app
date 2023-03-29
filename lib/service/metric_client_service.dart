@@ -23,6 +23,7 @@ class MetricClientService {
 
   late DeviceConfig _deviceConfig;
   final mixPanelClient = injector<MixPanelClientService>();
+  bool isFinishInit = false;
 
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
@@ -48,7 +49,8 @@ class MetricClientService {
       internalBuild: isAppcenterBuild,
     );
 
-    mixPanelClient.initService();
+    await mixPanelClient.initService();
+    isFinishInit = true;
   }
 
   Future<void> addEvent(
@@ -62,30 +64,33 @@ class MetricClientService {
     if (configurationService.isAnalyticsEnabled() == false) {
       return;
     }
-    final defaultDID = (await (await _accountService.getCurrentDefaultAccount())
-            ?.getAccountDID()) ??
-        'unknown';
+    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+    final defaultDID = (await defaultAccount?.getAccountDID()) ?? 'unknown';
     final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
-    MetricClient.addEvent(
-      name,
-      message: message,
-      userId: hashedUserID,
-      data: data,
-      hashedData: hashedData,
-      deviceConfig: _deviceConfig,
-    );
+    if (isFinishInit) {
+      MetricClient.addEvent(
+        name,
+        message: message,
+        userId: hashedUserID,
+        data: data,
+        hashedData: hashedData,
+        deviceConfig: _deviceConfig,
+      );
 
-    mixPanelClient.trackEvent(
-      name,
-      message: message,
-      data: data,
-      hashedData: hashedData,
-    );
-    mixPanelClient.mixpanel.flush();
+      mixPanelClient.trackEvent(
+        name,
+        message: message,
+        data: data,
+        hashedData: hashedData,
+      );
+      mixPanelClient.mixpanel.flush();
+    }
   }
 
   timerEvent(String name) {
-    mixPanelClient.timerEvent(name.snakeToCapital());
+    if (isFinishInit) {
+      mixPanelClient.timerEvent(name.snakeToCapital());
+    }
   }
 
   Future<void> sendAndClearMetrics() async {
@@ -104,16 +109,16 @@ class MetricClientService {
     if (screen == null) {
       return;
     }
-    addEvent(MixpanelEvent.viewScreen,
+    await addEvent(MixpanelEvent.viewScreen,
         data: {"screen": screen.snakeToCapital()});
-    timerEvent(MixpanelEvent.endViewScreen);
+    await timerEvent(MixpanelEvent.endViewScreen);
   }
 
   Future<void> trackEndScreen(String? screen) async {
     if (screen == null) {
       return;
     }
-    addEvent(MixpanelEvent.endViewScreen,
+    await addEvent(MixpanelEvent.endViewScreen,
         data: {"screen": screen.snakeToCapital()});
   }
 }

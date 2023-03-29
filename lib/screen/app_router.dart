@@ -108,6 +108,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -214,6 +215,7 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
+  static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const handSignaturePage = "hand_signature_page";
@@ -737,6 +739,7 @@ class AppRouter {
                   create: (_) => ArtworkPreviewBloc(
                     injector(),
                     injector(),
+                    injector(),
                   ),
                 ),
                 BlocProvider(
@@ -810,6 +813,7 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
+                            injector(),
                           )),
                 ],
                 child: ArtworkDetailPage(
@@ -829,6 +833,7 @@ class AppRouter {
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
+                            injector(),
                             injector(),
                             injector(),
                             injector(),
@@ -1172,6 +1177,12 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return const HelpUsPage();
+            });
+      case inappWebviewPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return InappWebviewPage(url: settings.arguments as String);
             });
       case claimEmptyPostCard:
         final id = settings.arguments as String;

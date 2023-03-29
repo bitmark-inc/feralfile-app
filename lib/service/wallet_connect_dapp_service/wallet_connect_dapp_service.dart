@@ -66,7 +66,7 @@ class WalletConnectDappService {
     _wcSession = WCSession(
         topic: const Uuid().v4(),
         version: "1",
-        bridge: "https://walletconnect.bitmark.com",
+        bridge: "https://bridge.walletconnect.org",
         key: generateRandomHex(32));
 
     final encodedBridge = Uri.encodeComponent(_wcSession.bridge);

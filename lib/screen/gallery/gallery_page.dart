@@ -1,7 +1,13 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -105,7 +111,7 @@ class _GalleryPageState extends State<GalleryPage> {
                 children: [
                   Text(
                     'artist_collection'.tr(),
-                    style: theme.textTheme.ppMori400Grey12,
+                    style: theme.textTheme.ppMori400Grey14,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -123,13 +129,13 @@ class _GalleryPageState extends State<GalleryPage> {
                             : null,
                         child: Text(
                           widget.payload.artistName,
-                          style: theme.textTheme.ppMori400White12,
+                          style: theme.textTheme.ppMori400White16,
                         ),
                       ),
                       if (tokens != null && tokens.isEmpty) ...[
                         Text(
                           'indexing'.tr(),
-                          style: theme.textTheme.ppMori400White12,
+                          style: theme.textTheme.ppMori400White16,
                         ),
                       ]
                     ],
@@ -202,8 +208,22 @@ class _GalleryPageState extends State<GalleryPage> {
             (BuildContext context, int index) {
               final token = tokens[index];
 
-              return tokenGalleryThumbnailWidget(
-                  context, token, _cachedImageSize);
+              return GestureDetector(
+                onTap: () async {
+                  if (token.pending == true && !token.hasMetadata) return;
+                  final payload = ArtworkDetailPayload(
+                      [ArtworkIdentity(token.id, token.owner)], 0,
+                      useIndexer: true);
+                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+                      arguments: payload);
+
+                  injector<MetricClientService>().addEvent(
+                      MixpanelEvent.viewArtwork,
+                      data: {"id": token.id});
+                },
+                child: tokenGalleryThumbnailWidget(
+                    context, token, _cachedImageSize),
+              );
             },
             childCount: tokens.length,
           ),

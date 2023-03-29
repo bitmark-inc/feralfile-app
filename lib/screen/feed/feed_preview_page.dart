@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_blo
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -25,6 +26,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -121,21 +123,43 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }
             _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
-            return Stack(children: [
-              CustomScrollView(
-                controller: widget.controller,
-                shrinkWrap: true,
-                physics: const AlwaysScrollableScrollPhysics(),
-                cacheExtent: 1000,
-                slivers: [
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => _listItem(
-                          state.feedTokenEventsMap!.entries.elementAt(index)),
-                      childCount: state.feedTokenEventsMap?.length ?? 0,
+            return Column(children: [
+              Expanded(
+                child: CustomScrollView(
+                  controller: widget.controller,
+                  shrinkWrap: true,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  cacheExtent: 1000,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 20),
+                        child: Tipcard(
+                          titleText: "want_to_receive_real_time".tr(),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pushNamed(AppRouter.preferencesPage);
+                          },
+                          buttonText: "turn_on_notif".tr(),
+                          content: Text(
+                            "turn_on_notif_to_get".tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          listener:
+                              injector<ConfigurationService>().showNotifTip,
+                        ),
+                      ),
                     ),
-                  )
-                ],
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _listItem(
+                            state.feedTokenEventsMap!.entries.elementAt(index)),
+                        childCount: state.feedTokenEventsMap?.length ?? 0,
+                      ),
+                    )
+                  ],
+                ),
               )
             ]);
           }),
@@ -146,7 +170,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        _moveToInfo(entry.key, entry.value.first);
+        _moveToInfo(entry.key, entry.value);
       },
       child: Column(children: [
         Center(
@@ -173,10 +197,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     );
   }
 
-  Future _moveToInfo(AssetToken asset, FeedEvent event) async {
+  Future _moveToInfo(AssetToken asset, List<FeedEvent> events) async {
     Navigator.of(context).pushNamed(
       AppRouter.feedArtworkDetailsPage,
-      arguments: FeedDetailPayload(asset, event),
+      arguments: FeedDetailPayload(asset, events),
     );
   }
 
@@ -244,7 +268,7 @@ class _FeedArtworkState extends State<FeedArtwork>
     with RouteAware, WidgetsBindingObserver {
   INFTRenderingWidget? _renderingWidget;
 
-  final _bloc = ArtworkPreviewDetailBloc(injector(), injector());
+  final _bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
 
   @override
   void initState() {
@@ -381,17 +405,18 @@ class _FeedArtworkState extends State<FeedArtwork>
 
 class FeedDetailPayload {
   AssetToken? feedToken;
-  FeedEvent? feedEvent;
+  List<FeedEvent> feedEvents;
 
   FeedDetailPayload(
     this.feedToken,
-    this.feedEvent,
+    this.feedEvents,
   );
 
-  FeedDetailPayload copyWith(AssetToken? feedToken, FeedEvent? feedEvent) {
+  FeedDetailPayload copyWith(
+      AssetToken? feedToken, List<FeedEvent>? feedEvents) {
     return FeedDetailPayload(
       feedToken ?? this.feedToken,
-      feedEvent ?? this.feedEvent,
+      feedEvents ?? this.feedEvents,
     );
   }
 }
