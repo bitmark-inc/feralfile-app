@@ -138,7 +138,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.walletPage ||
+          route.settings.name == AppRouter.homePageNoTransition ||
           route.settings.name == AppRouter.claimSelectAccountPage);
     } else {
       Navigator.of(context).pushNamedAndRemoveUntil(
