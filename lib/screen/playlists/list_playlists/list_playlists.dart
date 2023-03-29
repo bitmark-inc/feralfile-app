@@ -206,10 +206,6 @@ class _PlaylistItemState extends State<PlaylistItem> {
                               color: theme.disableColor,
                             );
                           },
-                          memCacheHeight: 1000,
-                          memCacheWidth: 1000,
-                          maxWidthDiskCache: 1000,
-                          maxHeightDiskCache: 1000,
                           fadeInDuration: Duration.zero,
                         ),
                 ),
