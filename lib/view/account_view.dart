@@ -5,11 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -132,8 +130,6 @@ Widget accountItem(BuildContext context, Account account,
   final persona = account.persona;
   if (persona != null) {
     final getDidKey = persona.wallet().getAccountDID();
-    final isHideGalleryEnabled =
-        injector<AccountService>().isPersonaHiddenInGallery(persona.uuid);
     return TappableForwardRow(
       leftWidget: Row(
         children: [
@@ -162,8 +158,6 @@ Widget accountItem(BuildContext context, Account account,
   final connection = account.connections?.first;
 
   if (connection != null) {
-    final isHideGalleryEnabled = injector<AccountService>()
-        .isLinkedAccountHiddenInGallery(connection.hiddenGalleryKey);
     return TappableForwardRow(
       leftWidget: Row(
         children: [

@@ -118,14 +118,6 @@ class _AccountsViewState extends State<AccountsView> {
 
   List<CustomSlidableAction> slidableActions(Account account, bool isDefault) {
     final theme = Theme.of(context);
-    bool isHidden = false;
-    if (account.persona != null) {
-      isHidden = injector<AccountService>()
-          .isPersonaHiddenInGallery(account.persona!.uuid);
-    } else if (account.connections?.first != null) {
-      isHidden = injector<AccountService>().isLinkedAccountHiddenInGallery(
-          account.connections!.first.hiddenGalleryKey);
-    }
 
     var actions = [
       CustomSlidableAction(
