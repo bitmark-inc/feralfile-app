@@ -8,7 +8,6 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -37,7 +36,6 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   final TextEditingController _nameController = TextEditingController();
 
   bool isSavingAliasDisabled = true;
-  Persona? persona;
 
   void saveAliasButtonChangedState() {
     setState(() {
@@ -62,118 +60,121 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: getBackAppBar(context,
-          onBack: persona == null || !widget.payload.allowBack
-              ? null
-              : () {
-                  _deleteWalletAndBack();
-                },
-          title: "wallet_alias".tr()),
-      body: BlocListener<PersonaBloc, PersonaState>(
-        listener: (context, state) {
-          if (state.persona != null) {
-            setState(() {
-              persona = state.persona;
-            });
-          }
-          switch (state.namePersonaState) {
-            case ActionState.notRequested:
-              _nameController.text = state.persona?.name ?? "";
-              break;
+    return BlocConsumer<PersonaBloc, PersonaState>(
+      listener: (context, state) {
+        switch (state.namePersonaState) {
+          case ActionState.notRequested:
+            _nameController.text = state.persona?.name ?? "";
+            break;
 
-            case ActionState.done:
-              _doneNaming();
-              break;
+          case ActionState.done:
+            _doneNaming();
+            break;
 
-            default:
-              break;
-          }
-        },
-        child: Container(
-          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Text(
-                        injector<ConfigurationService>().isDoneOnboarding()
-                            ? "need_add_alias".tr()
-                            : "aa_you_can_add".tr(),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                      const SizedBox(height: 40),
-                      AuTextField(
-                          labelSemantics: "enter_alias_full",
-                          title: "",
-                          placeholder: "enter_alias".tr(),
-                          controller: _nameController,
-                          onChanged: (valueChanged) {
-                            if (_nameController.text.trim().isEmpty !=
-                                isSavingAliasDisabled) {
-                              saveAliasButtonChangedState();
-                            }
-                          }),
-                    ],
+          default:
+            break;
+        }
+        switch (state.deletePersonaState) {
+          case ActionState.done:
+            Navigator.of(context).pop();
+            break;
+
+          default:
+            break;
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          appBar: getBackAppBar(
+            context,
+            onBack: state.persona == null || !widget.payload.allowBack
+                ? null
+                : () {
+                    context
+                        .read<PersonaBloc>()
+                        .add(DeletePersonaEvent(state.persona!));
+                  },
+            title: "wallet_alias".tr(),
+          ),
+          body: Container(
+            margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        addTitleSpace(),
+                        Text(
+                          injector<ConfigurationService>().isDoneOnboarding()
+                              ? "need_add_alias".tr()
+                              : "aa_you_can_add".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                        const SizedBox(height: 40),
+                        AuTextField(
+                            labelSemantics: "enter_alias_full",
+                            title: "",
+                            placeholder: "enter_alias".tr(),
+                            controller: _nameController,
+                            onChanged: (valueChanged) {
+                              if (_nameController.text.trim().isEmpty !=
+                                  isSavingAliasDisabled) {
+                                saveAliasButtonChangedState();
+                              }
+                            }),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: PrimaryButton(
-                          text: "save_alias".tr(),
-                          onTap: isSavingAliasDisabled
-                              ? null
-                              : () {
-                                  context.read<PersonaBloc>().add(
-                                      NamePersonaEvent(
-                                          _nameController.text.trim()));
-                                },
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            text: "save_alias".tr(),
+                            onTap: isSavingAliasDisabled
+                                ? null
+                                : () {
+                                    context.read<PersonaBloc>().add(
+                                        NamePersonaEvent(
+                                            _nameController.text.trim()));
+                                  },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  !injector<ConfigurationService>().isDoneOnboarding() &&
-                          !widget.payload.isForceAlias
-                      ? OutlineButton(
-                          onTap: () async {
-                            //_doneNaming();
-                            if (!mounted) {
-                              _doneNaming();
-                              return;
-                            }
-                            context
-                                .read<PersonaBloc>()
-                                .add(NamePersonaEvent(''));
-                          },
-                          text: "skip".tr(),
-                          color: AppColor.white,
-                          textColor: AppColor.primaryBlack,
-                          borderColor: AppColor.primaryBlack,
-                        )
-                      : const SizedBox(),
-                ],
-              ),
-            ],
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    !injector<ConfigurationService>().isDoneOnboarding() &&
+                            !widget.payload.isForceAlias
+                        ? OutlineButton(
+                            onTap: () async {
+                              //_doneNaming();
+                              if (!mounted) {
+                                _doneNaming();
+                                return;
+                              }
+                              context
+                                  .read<PersonaBloc>()
+                                  .add(NamePersonaEvent(''));
+                            },
+                            text: "skip".tr(),
+                            color: AppColor.white,
+                            textColor: AppColor.primaryBlack,
+                            borderColor: AppColor.primaryBlack,
+                          )
+                        : const SizedBox(),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  Future<void> _deleteWalletAndBack() async {
-    await injector<AccountService>().deletePersona(persona!);
-    if (!mounted) return;
-    Navigator.of(context).pop();
   }
 
   Future _doneNaming() async {

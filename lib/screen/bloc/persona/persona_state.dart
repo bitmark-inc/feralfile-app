@@ -31,6 +31,13 @@ class GetInfoPersonaEvent extends PersonaEvent {
   GetInfoPersonaEvent(this.uuid);
 }
 
+class DeletePersonaEvent extends PersonaEvent {
+  final Persona persona;
+  // constructor
+  DeletePersonaEvent(this.persona);
+
+}
+
 class NamePersonaEvent extends PersonaEvent {
   final String name;
 
@@ -40,6 +47,7 @@ class NamePersonaEvent extends PersonaEvent {
 class PersonaState {
   ActionState createAccountState = ActionState.notRequested;
   ActionState namePersonaState = ActionState.notRequested;
+  ActionState deletePersonaState = ActionState.notRequested;
 
   Persona? persona;
   List<Persona>? personas;
@@ -47,6 +55,7 @@ class PersonaState {
   PersonaState({
     this.createAccountState = ActionState.notRequested,
     this.namePersonaState = ActionState.notRequested,
+    this.deletePersonaState = ActionState.notRequested,
     this.persona,
     this.personas,
   });
@@ -54,12 +63,14 @@ class PersonaState {
   PersonaState copyWith({
     ActionState? createAccountState,
     ActionState? namePersonaState,
+    ActionState? deletePersonaState,
     Persona? persona,
     List<Persona>? personas,
   }) {
     return PersonaState(
       createAccountState: createAccountState ?? this.createAccountState,
       namePersonaState: namePersonaState ?? this.namePersonaState,
+      deletePersonaState: deletePersonaState ?? this.deletePersonaState,
       persona: persona ?? this.persona,
       personas: personas ?? this.personas,
     );
