@@ -424,17 +424,20 @@ class HomePageState extends State<HomePage>
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
-          items: _listTipcards(context),
+          items: _listTipcards(context, values as List<bool>),
         );
       },
     );
   }
 
-  List<Tipcard> _listTipcards(BuildContext context) {
+  List<Tipcard> _listTipcards(BuildContext context, List<bool> values) {
     final theme = Theme.of(context);
+    final isShowTvAppTip = values[0];
+    final isShowCreatePlaylistTip = values[1];
+    final isShowLinkOrImportTip = values[2];
     final configurationService = injector<ConfigurationService>();
     return [
-      if (configurationService.showLinkOrImportTip.value)
+      if (isShowLinkOrImportTip)
         Tipcard(
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
             onPressed: () {
@@ -444,7 +447,7 @@ class HomePageState extends State<HomePage>
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: configurationService.showLinkOrImportTip),
-      if (configurationService.showCreatePlaylistTip.value)
+      if (isShowCreatePlaylistTip)
         Tipcard(
             titleText: "create_your_first_playlist".tr(),
             onPressed: () {
@@ -454,7 +457,7 @@ class HomePageState extends State<HomePage>
             content: Text("as_a_pro_sub_playlist".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: configurationService.showCreatePlaylistTip),
-      if (configurationService.showTvAppTip.value)
+      if (isShowTvAppTip)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),
             onPressed: () {
