@@ -64,11 +64,11 @@ class _NumberPickerState extends State<NumberPicker> {
     return Column(
       children: [
         SliderTheme(
-          data: SliderThemeData(
+          data: const SliderThemeData(
             trackHeight: 4.0,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12.0),
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
             overlayShape: RoundSliderOverlayShape(overlayRadius: 20.0),
-            rangeThumbShape: const RoundRangeSliderThumbShape(
+            rangeThumbShape: RoundRangeSliderThumbShape(
               enabledThumbRadius: 12.0,
             ),
           ),
