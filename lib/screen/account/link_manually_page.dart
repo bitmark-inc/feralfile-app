@@ -142,8 +142,8 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
     Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
       if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context)
-            .popUntil((route) => route.settings.name == AppRouter.homePageNoTransition);
+        Navigator.of(context).popUntil(
+            (route) => route.settings.name == AppRouter.homePageNoTransition);
       } else {
         doneOnboarding(context);
       }
