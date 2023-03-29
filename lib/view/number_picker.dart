@@ -30,7 +30,6 @@ class _NumberPickerState extends State<NumberPicker> {
   late double _selectedValue;
   @override
   void initState() {
-    // TODO: implement initState
     _selectedValue = widget.value;
     super.initState();
   }
@@ -87,7 +86,7 @@ class _NumberPickerState extends State<NumberPicker> {
               inactiveColor: Colors.black.withOpacity(0.2),
               thumbColor: Colors.black,
               overlayColor: MaterialStateColor.resolveWith(
-                (states) => Colors.amber,
+                (states) => Colors.transparent,
               )),
         ),
         Row(

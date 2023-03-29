@@ -307,12 +307,12 @@ MarkdownStyleSheet markDownDetailPageStyle(
 }
 
 MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
-    {TextStyle? preferredStyle, EdgeInsets? pPadding, TextStyle? addStyle}) {
+    {TextStyle? preferredStyle, EdgeInsets? pPadding, double? adjustSize}) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
-  final textStyleWhite = theme.textTheme.ppMori400White12
-      .copyWith(fontSize: 17)
-      .addStyle(addStyle);
+  final size = adjustSize ?? 0;
+  final textStyleWhite =
+      theme.textTheme.ppMori400White12.copyWith(fontSize: 17).adjustSize(size);
   preferredStyle = preferredStyle ?? textStyleWhite;
   return MarkdownStyleSheet(
     a: preferredStyle.merge(
@@ -325,11 +325,11 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
     code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
     h1: preferredStyle
         .copyWith(fontSize: 24, fontWeight: FontWeight.w700)
-        .addStyle(addStyle),
+        .adjustSize(size),
     h1Padding: const EdgeInsets.only(bottom: 24),
     h2: preferredStyle
         .copyWith(fontSize: 20, fontWeight: FontWeight.w700)
-        .addStyle(addStyle),
+        .adjustSize(size),
     h2Padding: EdgeInsets.zero,
     h3: preferredStyle,
     h3Padding: EdgeInsets.zero,
@@ -346,7 +346,7 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
     blockquote: preferredStyle.copyWith(color: AppColor.white),
     img: preferredStyle
         .copyWith(fontSize: 12, color: AppColor.disabledColor)
-        .addStyle(addStyle),
+        .adjustSize(size),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,

@@ -9,12 +9,12 @@ import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/editorial/common/publisher_view.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_flutter/view/markdown_view.dart';
+import 'package:autonomy_flutter/view/modal_widget.dart';
 import 'package:autonomy_flutter/view/number_picker.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -43,13 +43,13 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   late ScrollController _controller;
   final metricClient = injector.get<MetricClientService>();
   late double _selectedSize;
-  late TextStyle addStyle;
+  late double adjustSize;
 
   @override
   void initState() {
     super.initState();
     _selectedSize = 16.0;
-    addStyle = TextStyle(fontSize: _selectedSize - 16);
+    adjustSize = _selectedSize - 16;
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
     _trackEvent();
@@ -69,7 +69,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    addStyle = TextStyle(fontSize: _selectedSize - 16);
+    adjustSize = _selectedSize - 16;
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       backgroundColor: theme.colorScheme.primary,
@@ -96,7 +96,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                             vertical: 4.0, horizontal: 8.0),
                         child: Text(widget.post.tag ?? "",
                             style: theme.textTheme.ppMori400Grey14
-                                .addStyle(addStyle)),
+                                .adjustSize(adjustSize)),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -105,7 +105,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                           Text(
                             "originally_published_at".tr(),
                             style: theme.textTheme.ppMori400Grey12
-                                .addStyle(addStyle),
+                                .adjustSize(adjustSize),
                           ),
                           GestureDetector(
                             onTap: () async {
@@ -121,7 +121,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               widget.post.reference?.website ??
                                   widget.post.publisher.name,
                               style: theme.textTheme.ppMori400SupperTeal12
-                                  .addStyle(addStyle),
+                                  .adjustSize(adjustSize),
                             ),
                           )
                         ],
@@ -138,7 +138,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               AuMarkdown(
                                   data: snapshot.data!.data!,
                                   styleSheet: editorialMarkDownStyle(context,
-                                      addStyle: addStyle)),
+                                      adjustSize: adjustSize)),
                               const SizedBox(height: 50),
                               if (widget.post.reference != null)
                                 Container(
@@ -158,7 +158,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                           widget.post.publisher.intro ?? "",
                                           style: theme
                                               .textTheme.ppMori400White12
-                                              .addStyle(addStyle),
+                                              .adjustSize(adjustSize),
                                         ),
                                         const SizedBox(height: 32.0),
                                       ],
@@ -207,7 +207,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               child: Text(
                             "error_loading_content".tr(),
                             style: theme.textTheme.ppMori400White12
-                                .addStyle(addStyle),
+                                .adjustSize(adjustSize),
                           ));
                         } else {
                           return const Center(
@@ -247,7 +247,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                 const SizedBox(height: 10.0),
                 Text(
                   widget.post.content["title"],
-                  style: theme.textTheme.ppMori400White16.addStyle(addStyle),
+                  style:
+                      theme.textTheme.ppMori400White16.adjustSize(adjustSize),
                   maxLines: 3,
                 ),
               ],
@@ -256,86 +257,25 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           const SizedBox(width: 50.0),
           IconButton(
             onPressed: () async {
-              final theme = Theme.of(context);
               await showModalBottomSheet<dynamic>(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  enableDrag: false,
-                  constraints: BoxConstraints(
-                      maxWidth: ResponsiveLayout.isMobile
-                          ? double.infinity
-                          : Constants.maxWidthModalTablet),
-                  barrierColor: Colors.black.withOpacity(0.5),
-                  isScrollControlled: true,
-                  builder: (context) {
-                    return Container(
-                      color: theme.auSuperTeal,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(
-                                AuIcon.close,
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      "assets/images/Text Size.svg",
-                                      width: 18,
-                                      color: AppColor.primaryBlack,
-                                    ),
-                                    const SizedBox(
-                                      width: 40,
-                                    ),
-                                    Text(
-                                      "text_size".tr(),
-                                      style: theme.textTheme.ppMori400Black14,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 32),
-                                NumberPicker(
-                                    onChange: (value) {
-                                      setState(() {
-                                        _selectedSize = value;
-                                      });
-                                    },
-                                    min: 12,
-                                    max: 18,
-                                    divisions: 6,
-                                    value: _selectedSize,
-                                    selectedStyle:
-                                        theme.textTheme.ppMori400Black12,
-                                    unselectedStyle: theme
-                                        .textTheme.ppMori400Black12
-                                        .copyWith(
-                                            color: AppColor.primaryBlack
-                                                .withOpacity(0.2))),
-                                const SizedBox(
-                                  height: 40,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  });
+                context: context,
+                backgroundColor: Colors.transparent,
+                enableDrag: false,
+                constraints: BoxConstraints(
+                    maxWidth: ResponsiveLayout.isMobile
+                        ? double.infinity
+                        : Constants.maxWidthModalTablet),
+                barrierColor: Colors.black.withOpacity(0.5),
+                isScrollControlled: true,
+                builder: (context) {
+                  return ModalSheet(
+                    child: _editSize(context),
+                  );
+                },
+              );
             },
             icon: SvgPicture.asset(
-              "assets/images/Text Size.svg",
+              "assets/images/text_size.svg",
               color: AppColor.white,
               width: 32,
               height: 32,
@@ -360,13 +300,13 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
         Expanded(
           flex: 4,
           child: Text(name,
-              style: theme.textTheme.ppMori400White12.addStyle(addStyle)),
+              style: theme.textTheme.ppMori400White12.adjustSize(adjustSize)),
         ),
         Expanded(
           flex: 6,
           child: Text(
             value,
-            style: theme.textTheme.ppMori400White12.addStyle(addStyle),
+            style: theme.textTheme.ppMori400White12.adjustSize(adjustSize),
           ),
         ),
       ],
@@ -383,7 +323,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
         Expanded(
           flex: 4,
           child: Text(name,
-              style: theme.textTheme.ppMori400White12.addStyle(addStyle)),
+              style: theme.textTheme.ppMori400White12.adjustSize(adjustSize)),
         ),
         Expanded(
           flex: 6,
@@ -402,11 +342,52 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                     },
                     child: Text(
                       e.first,
-                      style:
-                          theme.textTheme.ppMori400Green12.addStyle(addStyle),
+                      style: theme.textTheme.ppMori400Green12
+                          .adjustSize(adjustSize),
                     )))
                 .toList(),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _editSize(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            SvgPicture.asset(
+              "assets/images/text_size.svg",
+              width: 18,
+              color: AppColor.primaryBlack,
+            ),
+            const SizedBox(
+              width: 40,
+            ),
+            Text(
+              "text_size".tr(),
+              style: theme.textTheme.ppMori400Black14,
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        NumberPicker(
+            onChange: (value) {
+              setState(() {
+                _selectedSize = value;
+              });
+            },
+            min: 12,
+            max: 18,
+            divisions: 6,
+            value: _selectedSize,
+            selectedStyle: theme.textTheme.ppMori400Black12,
+            unselectedStyle: theme.textTheme.ppMori400Black12
+                .copyWith(color: AppColor.primaryBlack.withOpacity(0.2))),
+        const SizedBox(
+          height: 40,
         ),
       ],
     );
