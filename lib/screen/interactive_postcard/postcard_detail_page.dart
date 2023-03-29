@@ -112,7 +112,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void _shareTwitter(AssetToken token) {
     final prefix = Environment.tokenWebviewPrefix;
     final url = '$prefix/token/${token.id}';
-    final caption = widget.payload.twitterCaption ?? "";
+    final caption = widget.payload.twitterCaption ?? token.twitterCaption;
     SocialShare.checkInstalledAppsForShare().then((data) {
       if (data?[SocialApp.twitter]) {
         SocialShare.shareTwitter(caption, url: url);
@@ -623,6 +623,18 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             },
           ),
         ],
+        OptionItem(
+          title: 'share_on_'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/Share.svg',
+            width: 24,
+            height: 24,
+          ),
+          onTap: () async {
+            _shareTwitter(asset);
+            Navigator.of(context).pop();
+          },
+        ),
         OptionItem(
           title: 'report_nft_rendering_issues'.tr(),
           icon: const Icon(AuIcon.help_us),
