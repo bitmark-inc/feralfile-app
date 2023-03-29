@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 
 class LinkManuallyPage extends StatefulWidget {
   final String type;
+
   const LinkManuallyPage({required this.type, Key? key}) : super(key: key);
 
   @override
@@ -142,7 +143,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
     Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
       if (injector<ConfigurationService>().isDoneOnboarding()) {
         Navigator.of(context)
-            .popUntil((route) => route.settings.name == AppRouter.walletPage);
+            .popUntil((route) => route.settings.name == AppRouter.homePageNoTransition);
       } else {
         doneOnboarding(context);
       }
