@@ -701,6 +701,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         ),
         onTap: _connectionIconTap,
       ),
+      OptionItem(),
     ]);
   }
 }

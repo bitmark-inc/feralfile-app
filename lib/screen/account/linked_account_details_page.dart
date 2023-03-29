@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -17,7 +18,6 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -26,6 +26,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/svg.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -188,13 +190,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               padding: padding,
               child: _addressesSection(),
             ),
-            addDivider(),
-            const SizedBox(height: 16),
-            Padding(
-              padding: padding,
-              child: _preferencesSection(),
-            ),
-            addDivider(),
+            addOnlyDivider(),
             const SizedBox(height: 16),
             Padding(
               padding: padding,
@@ -232,7 +228,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                           : ""),
                   e == contextedAddresses.last
                       ? const SizedBox()
-                      : addDivider(),
+                      : addOnlyDivider(),
                 ],
               ),
             ),
@@ -246,78 +242,52 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       {required String address, required balanceString}) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400Grey14;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(type.source, style: theme.textTheme.ppMori700Black14),
-          Text(balanceString, style: balanceStyle),
-        ],
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        dragDismissible: false,
+        children: slidableActions(address),
       ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () async {
-                showInfoNotification(
-                    const Key("address"), "copied_to_clipboard".tr());
-                Clipboard.setData(ClipboardData(text: address));
-              },
-              child: Text(
-                address,
-                style: theme.textTheme.ppMori400Black14,
-              ),
-            ),
-          ),
-        ],
-      )
-    ]);
-  }
-
-  Widget _preferencesSection() {
-    final theme = Theme.of(context);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(
-        "preferences".tr(),
-        style: theme.textTheme.ppMori400Black16,
-      ),
-      const SizedBox(
-        height: 24,
-      ),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text("hide_from_collection".tr(),
-                  style: theme.textTheme.ppMori400Black16),
-              AuToggle(
-                value: isHideGalleryEnabled,
-                onToggle: (value) async {
-                  await injector<AccountService>()
-                      .setHideLinkedAccountInGallery(
-                          widget.connection.hiddenGalleryKey, value);
-
-                  setState(() {
-                    isHideGalleryEnabled = value;
-                  });
-                },
-              )
+              Text(type.source, style: theme.textTheme.ppMori700Black14),
+              const Expanded(child: SizedBox()),
+              if (isHideGalleryEnabled) ...[
+                SvgPicture.asset(
+                  'assets/images/hide.svg',
+                  color: theme.colorScheme.surface,
+                ),
+                const SizedBox(width: 10),
+              ],
+              Text(balanceString, style: balanceStyle),
             ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            "do_not_show_nft".tr(),
-            //"Do not show this account's NFTs in the collection view."
-            style: theme.textTheme.ppMori400Black12,
-          ),
-        ],
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    showInfoNotification(
+                        const Key("address"), "copied_to_clipboard".tr());
+                    Clipboard.setData(ClipboardData(text: address));
+                  },
+                  child: Text(
+                    address,
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+                ),
+              ),
+            ],
+          )
+        ]),
       ),
-      const SizedBox(height: 12),
-    ]);
+    );
   }
 
   Widget _backupSection() {
@@ -338,5 +308,29 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         ],
       ],
     );
+  }
+
+  List<CustomSlidableAction> slidableActions(String address) {
+    final theme = Theme.of(context);
+    final isHidden =
+        injector<ConfigurationService>().isAddressHiddenInGallery(address);
+    return [
+      CustomSlidableAction(
+        backgroundColor: AppColor.secondarySpanishGrey,
+        foregroundColor: theme.colorScheme.secondary,
+        child: Semantics(
+          label: "${address}_hide",
+          child: SvgPicture.asset(
+              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
+        ),
+        onPressed: (_) async {
+          injector<ConfigurationService>()
+              .setHideLinkedAccountInGallery([address], !isHidden);
+          setState(() {
+            isHideGalleryEnabled = !isHideGalleryEnabled;
+          });
+        },
+      ),
+    ];
   }
 }
