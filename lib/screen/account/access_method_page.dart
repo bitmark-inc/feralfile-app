@@ -108,7 +108,8 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
               final createdPersona = state.persona;
               if (createdPersona != null) {
                 Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: NamePersonaPayload(uuid: createdPersona.uuid));
+                    arguments: NamePersonaPayload(
+                        uuid: createdPersona.uuid, allowBack: true));
               }
             });
             break;

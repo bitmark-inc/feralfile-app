@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -36,6 +37,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   final TextEditingController _nameController = TextEditingController();
 
   bool isSavingAliasDisabled = true;
+  Persona? persona;
 
   void saveAliasButtonChangedState() {
     setState(() {
@@ -61,9 +63,20 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
+      appBar: getBackAppBar(context,
+          onBack: persona == null || !widget.payload.allowBack
+              ? null
+              : () {
+                  _deleteWalletAndBack();
+                },
+          title: "wallet_alias".tr()),
       body: BlocListener<PersonaBloc, PersonaState>(
         listener: (context, state) {
+          if (state.persona != null) {
+            setState(() {
+              persona = state.persona;
+            });
+          }
           switch (state.namePersonaState) {
             case ActionState.notRequested:
               _nameController.text = state.persona?.name ?? "";
@@ -157,6 +170,12 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
     );
   }
 
+  Future<void> _deleteWalletAndBack() async {
+    await injector<AccountService>().deletePersona(persona!);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   Future _doneNaming() async {
     if (Platform.isAndroid) {
       final isAndroidEndToEndEncryptionAvailable =
@@ -189,6 +208,8 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
 class NamePersonaPayload {
   final String uuid;
   final bool isForceAlias;
+  final bool allowBack;
 
-  NamePersonaPayload({required this.uuid, this.isForceAlias = false});
+  NamePersonaPayload(
+      {required this.uuid, this.isForceAlias = false, this.allowBack = false});
 }
