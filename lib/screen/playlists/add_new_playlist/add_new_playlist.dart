@@ -422,8 +422,12 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             width: double.infinity,
             height: double.infinity,
             child: tokenGalleryThumbnailWidget(
-                context, widget.token, widget.cachedImageSize,
-                usingThumbnailID: widget.usingThumbnailID),
+              context,
+              widget.token,
+              widget.cachedImageSize,
+              usingThumbnailID: widget.usingThumbnailID,
+              useHero: false,
+            ),
           ),
           Positioned(
             top: 10,

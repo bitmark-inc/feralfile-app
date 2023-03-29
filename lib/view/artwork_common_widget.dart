@@ -38,6 +38,7 @@ import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import '../common/injector.dart';
 
@@ -137,8 +138,12 @@ class PendingTokenWidget extends StatelessWidget {
 final Map<String, Future<bool>> _cachingStates = {};
 
 Widget tokenGalleryThumbnailWidget(
-    BuildContext context, CompactedAssetToken token, int cachedImageSize,
-    {bool usingThumbnailID = true}) {
+  BuildContext context,
+  CompactedAssetToken token,
+  int cachedImageSize, {
+  bool usingThumbnailID = true,
+  bool useHero = true,
+}) {
   final thumbnailUrl =
       token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
 
@@ -164,7 +169,7 @@ Widget tokenGalleryThumbnailWidget(
   return Semantics(
     label: "gallery_artwork_${token.title}",
     child: Hero(
-      tag: "gallery_thumbnail_${token.id}",
+      tag: useHero ? "gallery_thumbnail_${token.id}" : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
       child: ext == ".svg"
           ? SvgImage(

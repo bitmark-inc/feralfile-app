@@ -101,18 +101,22 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
+          case ActionState.loading:
+            UIHelper.showLoadingScreen(context, text: "generating_wallet".tr());
+            break;
           case ActionState.done:
             UIHelper.hideInfoDialog(context);
-            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
-              UIHelper.hideInfoDialog(context);
-              final createdPersona = state.persona;
-              if (createdPersona != null) {
-                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: NamePersonaPayload(uuid: createdPersona.uuid));
-              }
-            });
+            final createdPersona = state.persona;
+            if (createdPersona != null) {
+              Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                  arguments: NamePersonaPayload(
+                      uuid: createdPersona.uuid, allowBack: true));
+            }
             break;
 
+          case ActionState.error:
+            UIHelper.hideInfoDialog(context);
+            break;
           default:
             break;
         }
@@ -124,8 +128,6 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
           content: "ne_make_a_new_account".tr(),
           onTap: () {
             if (state.createAccountState == ActionState.loading) return;
-            UIHelper.showInfoDialog(context, "generating".tr(), "",
-                isDismissible: true);
             context.read<PersonaBloc>().add(CreatePersonaEvent());
           },
         );

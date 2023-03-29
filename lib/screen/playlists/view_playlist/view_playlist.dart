@@ -312,6 +312,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             asset,
                             cachedImageSize,
                             usingThumbnailID: index > 50,
+                            useHero: false,
                           ),
                     onTap: () {
                       if (asset.pending == true && !asset.hasMetadata) return;
