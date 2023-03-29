@@ -277,8 +277,8 @@ extension AssetTokenExtension on AssetToken {
     return travelInfo;
   }
 
-  int get counter {
-    return 0;
+  String get twitterCaption {
+    return "Here is Twitter Caption From Asset";
   }
 }
 
