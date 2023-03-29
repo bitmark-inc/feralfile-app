@@ -16,14 +16,12 @@ import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
-import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -61,8 +59,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
   final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
-
-  bool _currentIsSubscribed = false;
 
   @override
   void didChangeDependencies() {
@@ -245,7 +241,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
       const BottomNavigationBarItem(
         icon: Icon(
-          AuIcon.collection,
+          AuIcon.playlists,
           size: 25,
         ),
         label: '',
@@ -277,8 +273,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         label: '',
       ),
     ];
-    _checkIfSubscribed();
-    injector.get<IAPService>().purchases.addListener(_checkIfSubscribed);
 
     final configService = injector<ConfigurationService>();
     if (!configService.isReadRemoveSupport()) {
@@ -298,129 +292,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       injector<Wc2Service>().cleanup();
     }
     WidgetsBinding.instance.addObserver(this);
-  }
-
-  _checkIfSubscribed() async {
-    if (_currentIsSubscribed) return;
-    final isSubscribed = await injector.get<IAPService>().isSubscribed();
-    if (isSubscribed) {
-      _pages = <Widget>[
-        ValueListenableBuilder<bool>(
-            valueListenable: injector<FeedService>().hasFeed,
-            builder:
-                (BuildContext context, bool isShowDiscover, Widget? child) {
-              return EditorialPage(
-                  key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
-            }),
-        HomePage(key: _homePageKey),
-        const ListPlaylistsScreen(),
-        MultiBlocProvider(
-          providers: [
-            BlocProvider.value(
-                value: AccountsBloc(injector(), injector<CloudDatabase>(),
-                    injector(), injector<AuditService>(), injector())),
-          ],
-          child: const WalletPage(),
-        ),
-      ];
-      _bottomItems = [
-        BottomNavigationBarItem(
-          icon: ValueListenableBuilder<int>(
-              valueListenable: injector<FeedService>().unviewedCount,
-              builder: (BuildContext context, int unreadCount, Widget? child) {
-                if (unreadCount > 0) {
-                  context.read<FeedBloc>().add(GetFeedsEvent());
-                }
-                return Stack(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15.0),
-                      child: Icon(
-                        AuIcon.discover,
-                        size: 25,
-                      ),
-                    ),
-                    if (unreadCount > 0) ...[
-                      Positioned(
-                        left: 28,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.only(
-                            left: 3,
-                            right: 3,
-                          ),
-                          height: 11,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          constraints: const BoxConstraints(minWidth: 11),
-                          child: Center(
-                            child: Text(
-                              "$unreadCount",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .ppMori700White12
-                                  .copyWith(
-                                    fontSize: 8,
-                                  ),
-                              overflow: TextOverflow.visible,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ]
-                  ],
-                );
-              }),
-          label: '',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(
-            AuIcon.collection,
-            size: 25,
-          ),
-          label: '',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(
-            AuIcon.playlists,
-            size: 25,
-          ),
-          label: '',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(
-            AuIcon.wallet,
-            size: 25,
-          ),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: ValueListenableBuilder<List<int>?>(
-            valueListenable:
-                injector<CustomerSupportService>().numberOfIssuesInfo,
-            builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                Widget? child) {
-              return iconWithRedDot(
-                icon: const Icon(
-                  AuIcon.drawer,
-                  size: 25,
-                ),
-                padding: const EdgeInsets.only(right: 2, top: 2),
-                withReddot:
-                    (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
-              );
-            },
-          ),
-          label: '',
-        ),
-      ];
-      setState(() {
-        _currentIsSubscribed = isSubscribed;
-      });
-    }
   }
 
   @override
@@ -589,7 +460,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _onItemTapped(_pages.length - 1);
+        _pageController.jumpToPage(1);
         final metricClient = injector<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.tabNotification, data: {
           'type': notificationType,

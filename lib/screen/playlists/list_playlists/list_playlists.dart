@@ -3,17 +3,15 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   const ListPlaylistsScreen({Key? key}) : super(key: key);
@@ -27,8 +25,10 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier(null);
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
 
-  Future<List<PlayListModel>?> _getPlaylist() async {
+  Future<List<PlayListModel>?> getPlaylist() async {
     final configurationService = injector.get<ConfigurationService>();
+    final isSubscribed = await injector.get<IAPService>().isSubscribed();
+    if (!isSubscribed && !isDemo) return null;
     if (isDemo) {
       return injector<VersionService>().getDemoAccountFromGithub();
     }
@@ -36,7 +36,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   }
 
   _initPlayList() async {
-    _playlists.value = await _getPlaylist();
+    _playlists.value = await getPlaylist();
   }
 
   @override
@@ -55,7 +55,6 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-
     super.dispose();
   }
 
@@ -87,99 +86,60 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    final theme = Theme.of(context);
-    final radio = (MediaQuery.of(context).size.width - 45) / 425;
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            HeaderView(
-              paddingTop: paddingTop,
-              action: Padding(
-                padding: const EdgeInsets.only(right: 15),
-                child: GestureDetector(
-                  onTap: _gotoCreatePlaylist,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(64),
-                      border: Border.all(color: theme.colorScheme.primary),
-                    ),
-                    child: Text(
-                      'new_playlist'.tr(),
-                      style: theme.textTheme.ppMori400Black12,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            ValueListenableBuilder<List<PlayListModel>?>(
-              valueListenable: _playlists,
-              builder: (context, value, child) => ReorderableGridView.count(
+    return ValueListenableBuilder<List<PlayListModel>?>(
+      valueListenable: _playlists,
+      builder: (context, value, child) => value == null
+          ? const SizedBox.shrink()
+          : SizedBox(
+              height: 110,
+              child: ReorderableListView.builder(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                onDragStart: (index) {
+                onReorderStart: (index) {
                   Vibrate.feedback(FeedbackType.light);
                 },
+                proxyDecorator: (child, index, animation) {
+                  return PlaylistItem(
+                    key: ValueKey(value[index]),
+                    name: value[index].name,
+                    thumbnailURL: value[index].thumbnailURL,
+                    onHold: true,
+                  );
+                },
+                itemCount: _playlists.value?.length ?? 0,
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
-                    final element = value?.removeAt(oldIndex);
-                    if (element != null) value?.insert(newIndex, element);
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
+                    }
+                    final item = value.removeAt(oldIndex);
+                    value.insert(newIndex, item);
                     _onUpdatePlaylists();
                   });
                 },
-                header: isDemo || (_playlists.value?.isNotEmpty ?? true)
+                footer: isDemo
                     ? null
-                    : [
-                        AddPlayListItem(
+                    : SizedBox(
+                        height: 80,
+                        width: 80,
+                        child: AddPlayListItem(
                           onTap: _gotoCreatePlaylist,
-                        )
-                      ],
-                crossAxisCount: 2,
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                childAspectRatio: radio,
-                dragWidgetBuilder: (index, child) => Scaffold(
-                  body: PlaylistItem(
-                    key: ValueKey(value?[index]),
-                    name: value?[index].name,
-                    thumbnailURL: value?[index].thumbnailURL,
-                    onHold: true,
-                    onSelected: () => Navigator.pushNamed(
-                      context,
-                      AppRouter.viewPlayListPage,
-                      arguments: value?[index],
-                    ).then((value) {
-                      _initPlayList();
-                    }),
-                  ),
+                        ),
+                      ),
+                itemBuilder: (context, index) => PlaylistItem(
+                  key: ValueKey(value[index]),
+                  name: value[index].name,
+                  thumbnailURL: value[index].thumbnailURL,
+                  onSelected: () => Navigator.pushNamed(
+                    context,
+                    AppRouter.viewPlayListPage,
+                    arguments: value[index],
+                  ).then((value) {
+                    _initPlayList();
+                  }),
                 ),
-                children: value
-                        ?.map(
-                          (e) => PlaylistItem(
-                            key: ValueKey(e),
-                            name: e.name,
-                            thumbnailURL: e.thumbnailURL,
-                            // onHold: true,
-                            onSelected: () => Navigator.pushNamed(
-                              context,
-                              AppRouter.viewPlayListPage,
-                              arguments: e,
-                            ),
-                          ),
-                        )
-                        .toList() ??
-                    [],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -208,54 +168,58 @@ class _PlaylistItemState extends State<PlaylistItem> {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: widget.onSelected,
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(
-            width: widget.onHold ? 3 : 0,
-            color: theme.auSuperTeal,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 15, top: 10),
-              child: Text(
-                (widget.name?.isNotEmpty ?? false) ? widget.name! : 'Untitled',
-                style: theme.textTheme.ppMori400White12,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                width: double.infinity,
-                child: widget.thumbnailURL == null
-                    ? Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        color: theme.disableColor,
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: widget.thumbnailURL ?? '',
-                        fit: BoxFit.cover,
-                        cacheManager: injector.get<CacheManager>(),
-                        errorWidget: (context, url, error) => Container(
+      child: Padding(
+        padding: const EdgeInsets.only(right: 15),
+        child: Container(
+          width: 83,
+          color: theme.colorScheme.background,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: widget.onHold
+                          ? theme.auSuperTeal
+                          : Colors.transparent,
+                      width: widget.onHold ? 2 : 0,
+                    ),
+                  ),
+                  height: 83,
+                  width: 83,
+                  child: widget.thumbnailURL == null ||
+                          widget.thumbnailURL!.isEmpty
+                      ? Container(
                           width: double.infinity,
                           height: double.infinity,
                           color: theme.disableColor,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: widget.thumbnailURL!,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) {
+                            return Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              color: theme.disableColor,
+                            );
+                          },
+                          fadeInDuration: Duration.zero,
                         ),
-                        memCacheHeight: 1000,
-                        memCacheWidth: 1000,
-                        maxWidthDiskCache: 1000,
-                        maxHeightDiskCache: 1000,
-                        fadeInDuration: Duration.zero,
-                      ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 5),
+              Text(
+                (widget.name?.isNotEmpty ?? false) ? widget.name! : 'Untitled',
+                style: widget.onHold
+                    ? theme.textTheme.ppMori600Black12
+                    : theme.textTheme.ppMori400Black12,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -272,49 +236,30 @@ class AddPlayListItem extends StatelessWidget {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(
-            color: theme.colorScheme.primary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 83,
+            height: 83,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(
+                color: theme.auLightGrey,
+              ),
+            ),
+            child: Icon(
+              AuIcon.add,
+              color: theme.auLightGrey,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'new_playlist'.tr(),
-                style: theme.textTheme.ppMori400Black12,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: theme.auLightGrey,
-                    border: Border.all(color: theme.auLightGrey),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(1),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
-                      child: Icon(
-                        AuIcon.add,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          const SizedBox(height: 5),
+          Text(
+            'new_playlist'.tr(),
+            style: theme.textTheme.ppMori400Black12,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
+        ],
       ),
     );
   }
