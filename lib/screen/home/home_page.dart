@@ -14,11 +14,11 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
@@ -96,14 +96,6 @@ class HomePageState extends State<HomePage>
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
     return await accountService.getAllAddresses();
-  }
-
-  Future<List<PlayListModel>?> getPlaylist() async {
-    final configurationService = injector.get<ConfigurationService>();
-    if (configurationService.isDemoArtworksMode()) {
-      return injector<VersionService>().getDemoAccountFromGithub();
-    }
-    return configurationService.getPlayList();
   }
 
   Future<List<String>> getManualTokenIds() async {
@@ -372,6 +364,12 @@ class HomePageState extends State<HomePage>
               items: _listTipcards(context),
             );
           },
+        ),
+      ),
+      const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 15),
+          child: ListPlaylistsScreen(),
         ),
       ),
       SliverGrid(
