@@ -355,7 +355,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.ppMori400Black14;
-
+    final isHideGalleryEnabled =
+        injector<ConfigurationService>().isAddressHiddenInGallery(address);
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       child: Padding(
@@ -372,6 +373,13 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                       Text(type.source,
                           style: theme.textTheme.ppMori700Black16),
                       const Expanded(child: SizedBox()),
+                      if (isHideGalleryEnabled) ...[
+                        SvgPicture.asset(
+                          'assets/images/hide.svg',
+                          color: theme.colorScheme.surface,
+                        ),
+                        const SizedBox(width: 10),
+                      ],
                       Text(balance,
                           style: addressStyle.copyWith(
                               color: AppColor.auQuickSilver)),

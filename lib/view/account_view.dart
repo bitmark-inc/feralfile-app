@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -156,20 +155,6 @@ Widget accountItem(BuildContext context, Account account,
           ),
         ],
       ),
-      rightWidget: Row(
-        children: [
-          context.widget is AccountsView
-              ? Visibility(
-                  visible: isHideGalleryEnabled,
-                  child: SvgPicture.asset(
-                    'assets/images/hide.svg',
-                    color: theme.colorScheme.surface,
-                  ),
-                )
-              : const SizedBox(),
-          const SizedBox(width: 8),
-        ],
-      ),
       onTap: onPersonaTap,
     );
   }
@@ -197,16 +182,6 @@ Widget accountItem(BuildContext context, Account account,
       ),
       rightWidget: Row(
         children: [
-          Visibility(
-            visible: isHideGalleryEnabled,
-            child: SvgPicture.asset(
-              'assets/images/hide.svg',
-              color: theme.colorScheme.surface,
-            ),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
           linkedBox(context),
           const SizedBox(width: 8),
         ],
