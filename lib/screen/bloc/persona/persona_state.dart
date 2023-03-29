@@ -33,9 +33,9 @@ class GetInfoPersonaEvent extends PersonaEvent {
 
 class DeletePersonaEvent extends PersonaEvent {
   final Persona persona;
+
   // constructor
   DeletePersonaEvent(this.persona);
-
 }
 
 class NamePersonaEvent extends PersonaEvent {
