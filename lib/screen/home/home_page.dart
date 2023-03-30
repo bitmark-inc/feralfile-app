@@ -14,11 +14,11 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
@@ -95,14 +95,6 @@ class HomePageState extends State<HomePage>
   Future<List<String>> getAddresses() async {
     final accountService = injector<AccountService>();
     return await accountService.getAllAddresses();
-  }
-
-  Future<List<PlayListModel>?> getPlaylist() async {
-    final configurationService = injector.get<ConfigurationService>();
-    if (configurationService.isDemoArtworksMode()) {
-      return injector<VersionService>().getDemoAccountFromGithub();
-    }
-    return configurationService.getPlayList();
   }
 
   Future<List<String>> getManualTokenIds() async {
@@ -316,11 +308,11 @@ class HomePageState extends State<HomePage>
   Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
     final paddingTop = MediaQuery.of(context).viewPadding.top;
-
     return ListView(
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
         HeaderView(paddingTop: paddingTop),
+        _carouselTipcard(context),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
@@ -334,7 +326,6 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
-    final configurationService = injector<ConfigurationService>();
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
@@ -359,17 +350,12 @@ class HomePageState extends State<HomePage>
         child: HeaderView(paddingTop: paddingTop),
       ),
       SliverToBoxAdapter(
-        child: MultiValueListenableBuilder(
-          valueListenables: [
-            configurationService.showTvAppTip,
-            configurationService.showCreatePlaylistTip,
-            configurationService.showLinkOrImportTip,
-          ],
-          builder: (BuildContext context, List<dynamic> values, Widget? child) {
-            return CarouselWithIndicator(
-              items: _listTipcards(context),
-            );
-          },
+        child: _carouselTipcard(context),
+      ),
+      const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 15),
+          child: ListPlaylistsScreen(),
         ),
       ),
       SliverGrid(
@@ -424,11 +410,30 @@ class HomePageState extends State<HomePage>
     );
   }
 
-  List<Tipcard> _listTipcards(BuildContext context) {
+  Widget _carouselTipcard(BuildContext context) {
+    final configurationService = injector<ConfigurationService>();
+    return MultiValueListenableBuilder(
+      valueListenables: [
+        configurationService.showTvAppTip,
+        configurationService.showCreatePlaylistTip,
+        configurationService.showLinkOrImportTip,
+      ],
+      builder: (BuildContext context, List<dynamic> values, Widget? child) {
+        return CarouselWithIndicator(
+          items: _listTipcards(context, values as List<bool>),
+        );
+      },
+    );
+  }
+
+  List<Tipcard> _listTipcards(BuildContext context, List<bool> values) {
     final theme = Theme.of(context);
+    final isShowTvAppTip = values[0];
+    final isShowCreatePlaylistTip = values[1];
+    final isShowLinkOrImportTip = values[2];
     final configurationService = injector<ConfigurationService>();
     return [
-      if (configurationService.showLinkOrImportTip.value)
+      if (isShowLinkOrImportTip)
         Tipcard(
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
             onPressed: () {
@@ -438,7 +443,7 @@ class HomePageState extends State<HomePage>
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: configurationService.showLinkOrImportTip),
-      if (configurationService.showCreatePlaylistTip.value)
+      if (isShowCreatePlaylistTip)
         Tipcard(
             titleText: "create_your_first_playlist".tr(),
             onPressed: () {
@@ -448,7 +453,7 @@ class HomePageState extends State<HomePage>
             content: Text("as_a_pro_sub_playlist".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: configurationService.showCreatePlaylistTip),
-      if (configurationService.showTvAppTip.value)
+      if (isShowTvAppTip)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),
             onPressed: () {
@@ -580,6 +585,7 @@ class HomePageState extends State<HomePage>
     final metricClient = injector<MetricClientService>();
     log.info("_checkTipCardShowTime");
     final configurationService = injector<ConfigurationService>();
+
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
     final subscriptionTime = configurationService.getSubscriptionTime();
 
@@ -601,16 +607,16 @@ class HomePageState extends State<HomePage>
       }
     }
     if (doneOnboardingTime != null) {
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowLinkOrImportTip()) {
         configurationService.showLinkOrImportTip.value = true;
         configurationService.setAlreadyShowLinkOrImportTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
       }
-
-      if (now.isAfter(doneOnboardingTime.add(const Duration(seconds: 5))) &&
-          await isPremium() &&
+      final premium = await isPremium();
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+          !premium &&
           !configurationService.getAlreadyShowProTip()) {
         configurationService.showProTip.value = true;
         configurationService.setAlreadyShowProTip(false);

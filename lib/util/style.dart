@@ -486,10 +486,11 @@ Divider headDivider() {
   );
 }
 
-Divider addOnlyDivider() {
-  return const Divider(
+Divider addOnlyDivider({Color? color}) {
+  return Divider(
     height: 1.0,
     thickness: 1.0,
+    color: color,
   );
 }
 

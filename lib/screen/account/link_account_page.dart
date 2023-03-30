@@ -233,8 +233,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
       await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
         if (injector<ConfigurationService>().isDoneOnboarding()) {
-          Navigator.of(context)
-              .popUntil((route) => route.settings.name == AppRouter.walletPage);
+          Navigator.of(context).popUntil(
+              (route) => route.settings.name == AppRouter.homePageNoTransition);
         } else {
           Navigator.of(context).pushNamedAndRemoveUntil(
               AppRouter.accountsPreviewPage, (route) => false);

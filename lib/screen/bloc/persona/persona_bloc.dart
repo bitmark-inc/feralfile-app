@@ -85,5 +85,10 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
       emit(state.copyWith(
           namePersonaState: ActionState.done, persona: updatedPersona));
     });
+
+    on<DeletePersonaEvent>((event, emit) async {
+      await _accountService.deletePersona(event.persona);
+      emit(state.copyWith(deletePersonaState: ActionState.done));
+    });
   }
 }

@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/models/models.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
@@ -42,7 +43,6 @@ import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
-import 'package:nft_collection/models/models.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
@@ -91,9 +91,13 @@ abstract class AccountService {
 
   Future setHideLinkedAccountInGallery(String address, bool isEnabled);
 
+  Future setHideAddressInGallery(String address, bool isEnabled);
+
   bool isPersonaHiddenInGallery(String personaUUID);
 
   bool isLinkedAccountHiddenInGallery(String address);
+
+  bool isAddressHiddenInGallery(String address);
 
   Future<List<String>> getAllAddresses();
 
@@ -492,6 +496,11 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
+  bool isAddressHiddenInGallery(String address) {
+    return _configurationService.isAddressHiddenInGallery(address);
+  }
+
+  @override
   Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
     await _configurationService
         .setHidePersonaInGallery([personaUUID], isEnabled);
@@ -506,6 +515,15 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
         hashedData: {"address": address});
+  }
+
+  @override
+  Future setHideAddressInGallery(String address, bool isEnabled) async {
+    await _configurationService.setHideAddressInGallery([address], isEnabled);
+    injector<SettingsDataService>().backup();
+    final metricClient = injector.get<MetricClientService>();
+    metricClient
+        .addEvent(MixpanelEvent.hideAddress, hashedData: {"address": address});
   }
 
   @override
@@ -796,12 +814,14 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<List<AddressIndex>> getHiddenAddressIndexes() async {
-    List<AddressIndex> hiddenAddresses = [];
+    List<AddressIndex> hiddenAddresses = _configurationService
+        .getAddressesHiddenInGallery()
+        .map((e) => AddressIndex(address: e, createdAt: DateTime.now()))
+        .toList();
 
     final personas = await _cloudDB.personaDao.getPersonas();
     final hiddenPersonaUUIDs =
         _configurationService.getPersonaUUIDsHiddenInGallery();
-
     for (var persona in personas) {
       if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
       final personaWallet = persona.wallet();
@@ -827,7 +847,7 @@ class AccountServiceImpl extends AccountService {
       }
     }
 
-    return hiddenAddresses;
+    return hiddenAddresses.toSet().toList();
   }
 }
 
