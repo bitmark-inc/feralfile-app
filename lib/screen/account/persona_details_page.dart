@@ -257,7 +257,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                                     null
                                 ? "-- ETH"
                                 : "${EthAmountFormatter(state.ethBalances[addressIndex.first]!.getInWei).format()} ETH"),
-                        addDivider(),
+                        addOnlyDivider(),
                       ])
                   .flattened
                   .toList());
@@ -278,7 +278,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                             ? "-- XTZ"
                             : "${XtzAmountFormatter(state.balances[addressIndex.first]!).format()} XTZ",
                       ),
-                      addDivider(),
+                      addOnlyDivider(),
                     ])
                 .flattened
                 .toList(),
