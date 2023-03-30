@@ -26,7 +26,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
@@ -169,7 +168,6 @@ class HomePageState extends State<HomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     injector<FeralFileService>().completeDelayedFFConnections();
-    _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
   }
@@ -492,12 +490,6 @@ class HomePageState extends State<HomePage>
     ];
   }
 
-  Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
-  }
-
   Future<void> _checkForKeySync() async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
@@ -702,7 +694,6 @@ class HomePageState extends State<HomePage>
   void _handleBackground() {
     _metricClient.addEvent(MixpanelEvent.deviceBackground);
     _metricClient.sendAndClearMetrics();
-    _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }
 

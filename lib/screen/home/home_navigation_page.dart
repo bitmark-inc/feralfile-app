@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -19,7 +22,9 @@ import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
@@ -39,6 +44,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -54,7 +60,10 @@ class HomeNavigationPage extends StatefulWidget {
 }
 
 class _HomeNavigationPageState extends State<HomeNavigationPage>
-    with RouteAware, WidgetsBindingObserver {
+    with
+        RouteAware,
+        WidgetsBindingObserver,
+        AfterLayoutMixin<HomeNavigationPage> {
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
@@ -62,6 +71,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
   final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
 
+  StreamSubscription<FGBGType>? _fgbgSubscription;
   bool _currentIsSubscribed = false;
 
   @override
@@ -298,6 +308,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       injector<Wc2Service>().cleanup();
     }
     WidgetsBinding.instance.addObserver(this);
+    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
   }
 
   _checkIfSubscribed() async {
@@ -472,7 +483,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void dispose() {
     _pageController.dispose();
     WidgetsBinding.instance.removeObserver(this);
-
+    _fgbgSubscription?.cancel();
     super.dispose();
   }
 
@@ -620,5 +631,30 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         ),
       );
     }
+  }
+
+  void _handleBackground() {
+    _cloudBackup();
+  }
+
+  void _handleForeBackground(FGBGType event) async {
+    switch (event) {
+      case FGBGType.foreground:
+        break;
+      case FGBGType.background:
+        _handleBackground();
+        break;
+    }
+  }
+
+  @override
+  FutureOr<void> afterFirstLayout(BuildContext context) {
+    _cloudBackup();
+  }
+
+  Future<void> _cloudBackup() async {
+    final accountService = injector<AccountService>();
+    final backup = injector<BackupService>();
+    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 }
