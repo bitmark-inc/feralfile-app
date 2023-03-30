@@ -48,6 +48,7 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
           migrateCloudV1ToV2,
           migrateCloudV2ToV3,
           migrateCloudV3ToV4,
+          migrateCloudV4ToV5,
         ]).build();
 
         final connections = await tmpCloudDb.connectionDao.getConnections();

@@ -108,10 +108,28 @@ class OutlineButton extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 13),
           child: Center(
-            child: Text(
-              text ?? '',
-              style:
-                  theme.textTheme.ppMori400White14.copyWith(color: textColor),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                isProcessing
+                    ? Container(
+                        height: 14.0,
+                        width: 14.0,
+                        margin: const EdgeInsets.only(right: 8.0),
+                        child: CircularProgressIndicator(
+                          color: theme.colorScheme.primary,
+                          backgroundColor: theme.colorScheme.surface,
+                          strokeWidth: 2.0,
+                        ),
+                      )
+                    : const SizedBox(),
+                Text(
+                  text ?? '',
+                  style: theme.textTheme.ppMori400White14.copyWith(
+                      color: textColor ??
+                          (!enabled ? AppColor.disabledColor : null)),
+                ),
+              ],
             ),
           ),
         ),

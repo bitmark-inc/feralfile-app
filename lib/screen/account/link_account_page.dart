@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -63,8 +62,6 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final padding = EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding);
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -79,28 +76,6 @@ class _LinkAccountPageState extends State<LinkAccountPage>
           children: [
             addTitleSpace(),
             _tezosLinkView(context),
-            const SizedBox(height: 30),
-            Padding(
-              padding: padding,
-              child: Column(
-                children: [
-                  OutlineButton(
-                    text: "import_wallet".tr(),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(AppRouter.importAccountPage),
-                    color: AppColor.white,
-                    borderColor: AppColor.primaryBlack,
-                    textColor: AppColor.primaryBlack,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "im_view_and_control".tr(),
-                    style: theme.textTheme.ppMori400Black14
-                        .copyWith(color: AppColor.auQuickSilver),
-                  )
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -258,8 +233,8 @@ class _LinkAccountPageState extends State<LinkAccountPage>
 
       await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
         if (injector<ConfigurationService>().isDoneOnboarding()) {
-          Navigator.of(context)
-              .popUntil((route) => route.settings.name == AppRouter.walletPage);
+          Navigator.of(context).popUntil(
+              (route) => route.settings.name == AppRouter.homePageNoTransition);
         } else {
           Navigator.of(context).pushNamedAndRemoveUntil(
               AppRouter.accountsPreviewPage, (route) => false);

@@ -86,10 +86,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
       for (final persona in personas) {
-        final addresses = await persona.getTezosAddresses();
-        if (addresses.contains(widget.request.sourceAddress)) {
-          currentWallet = WalletIndex(persona.wallet(),
-              addresses.indexOf(widget.request.sourceAddress!));
+        final index =
+            await persona.getTezAddressIndex(widget.request.sourceAddress!);
+        if (index != null) {
+          currentWallet = WalletIndex(persona.wallet(), index);
           break;
         }
       }
