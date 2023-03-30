@@ -591,7 +591,7 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  void _checkTipCardShowTime() async {
+  Future _checkTipCardShowTime() async {
     final metricClient = injector<MetricClientService>();
     log.info("_checkTipCardShowTime");
     final configurationService = injector<ConfigurationService>();
@@ -638,8 +638,8 @@ class HomePageState extends State<HomePage>
 
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
-    _checkTipCardShowTime();
     await injector<ConfigurationService>().reload();
+    await _checkTipCardShowTime();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {
