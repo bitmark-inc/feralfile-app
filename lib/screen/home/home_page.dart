@@ -420,17 +420,17 @@ class HomePageState extends State<HomePage>
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
-          items: _listTipcards(context, values as List<bool>),
+          items: _listTipcards(context, values),
         );
       },
     );
   }
 
-  List<Tipcard> _listTipcards(BuildContext context, List<bool> values) {
+  List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
     final theme = Theme.of(context);
-    final isShowTvAppTip = values[0];
-    final isShowCreatePlaylistTip = values[1];
-    final isShowLinkOrImportTip = values[2];
+    final isShowTvAppTip = values[0] as bool;
+    final isShowCreatePlaylistTip = values[1] as bool;
+    final isShowLinkOrImportTip = values[2] as bool;
     final configurationService = injector<ConfigurationService>();
     return [
       if (isShowLinkOrImportTip)
