@@ -252,7 +252,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(
-            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(type.source, style: theme.textTheme.ppMori700Black14),
