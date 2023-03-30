@@ -26,7 +26,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
@@ -161,7 +160,6 @@ class HomePageState extends State<HomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     injector<FeralFileService>().completeDelayedFFConnections();
-    _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
   }
@@ -422,17 +420,17 @@ class HomePageState extends State<HomePage>
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
-          items: _listTipcards(context, values as List<bool>),
+          items: _listTipcards(context, values),
         );
       },
     );
   }
 
-  List<Tipcard> _listTipcards(BuildContext context, List<bool> values) {
+  List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
     final theme = Theme.of(context);
-    final isShowTvAppTip = values[0];
-    final isShowCreatePlaylistTip = values[1];
-    final isShowLinkOrImportTip = values[2];
+    final isShowTvAppTip = values[0] as bool;
+    final isShowCreatePlaylistTip = values[1] as bool;
+    final isShowLinkOrImportTip = values[2] as bool;
     final configurationService = injector<ConfigurationService>();
     return [
       if (isShowLinkOrImportTip)
@@ -495,12 +493,6 @@ class HomePageState extends State<HomePage>
             ),
             listener: configurationService.showTvAppTip),
     ];
-  }
-
-  Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 
   Future<void> _checkForKeySync() async {
@@ -708,7 +700,6 @@ class HomePageState extends State<HomePage>
   void _handleBackground() {
     _metricClient.addEvent(MixpanelEvent.deviceBackground);
     _metricClient.sendAndClearMetrics();
-    _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }
 

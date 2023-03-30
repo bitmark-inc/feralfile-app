@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -109,7 +111,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   Widget build(BuildContext context) {
     final uuid = persona.uuid;
     final isDefaultAccount = persona.defaultAccount == 1;
-
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -128,11 +129,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                         padding: padding.copyWith(top: 0, bottom: 0),
                         child: _defaultAccount(context),
                       ),
-                      if (injector<ConfigurationService>()
-                          .getShowAuChainInfo()) ...[
-                        const SizedBox(height: 30),
-                        _importInfo(context),
-                      ],
                     ],
                   )
                 : const SizedBox(
@@ -149,45 +145,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  Widget _importInfo(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: ResponsiveLayout.pageHorizontalEdgeInsets,
-      padding: const EdgeInsets.all(15.0),
-      decoration: const BoxDecoration(
-        color: AppColor.auSuperTeal,
-        borderRadius: BorderRadius.all(Radius.circular(5.0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                "info".tr(),
-                style: theme.textTheme.ppMori700Black14,
-              ),
-              const Spacer(),
-              GestureDetector(
-                child: closeIcon(),
-                onTap: () async {
-                  await injector<ConfigurationService>()
-                      .setShowAuChainInfo(false);
-                  setState(() {});
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Text(
-            "generate_support_au".tr(),
-            style: theme.textTheme.ppMori400Black14,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _addressesSection(String uuid) {
     final theme = Theme.of(context);
 
@@ -196,9 +153,91 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       children: [
         Padding(
           padding: padding,
-          child: Text(
-            "addresses".tr(),
-            style: theme.textTheme.ppMori400Black16,
+          child: Row(
+            children: [
+              Text(
+                "addresses".tr(),
+                style: theme.textTheme.ppMori400Black16,
+              ),
+              const Spacer(),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  side: const BorderSide(),
+                  alignment: Alignment.center,
+                ),
+                child: Text(
+                  "add_address_to_wallet".tr(),
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+                onPressed: () {
+                  UIHelper.showDialog(context, "add_address_to_wallet".tr(),
+                      StatefulBuilder(builder: (
+                    BuildContext dialogContext,
+                    StateSetter dialogState,
+                  ) {
+                    return Column(
+                      children: [
+                        _walletTypeOption(
+                            theme, WalletType.Ethereum, dialogState),
+                        addDivider(height: 40, color: AppColor.white),
+                        _walletTypeOption(theme, WalletType.Tezos, dialogState),
+                        const SizedBox(height: 40),
+                        Padding(
+                          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                          child: Column(
+                            children: [
+                              PrimaryButton(
+                                text: "add_address".tr(),
+                                onTap: () async {
+                                  Navigator.of(context).pop();
+                                  UIHelper.showScrollableDialog(
+                                    context,
+                                    BlocProvider.value(
+                                      value: context.read<ScanWalletBloc>(),
+                                      child: AddAddressToWallet(
+                                        addresses: const [],
+                                        importedAddress:
+                                            await persona.getAddresses(),
+                                        walletType: _walletTypeSelecting,
+                                        wallet: persona.wallet(),
+                                        onImport: (addresses) async {
+                                          Persona newPersona =
+                                              await injector<AccountService>()
+                                                  .addAddressPersona(
+                                                      persona, addresses);
+                                          setState(() {
+                                            persona = newPersona;
+                                            _callBloc(newPersona);
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    isDismissible: true,
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              OutlineButton(
+                                onTap: () => Navigator.of(context).pop(),
+                                text: "cancel".tr(),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    );
+                  }),
+                      isDismissible: true,
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
+                },
+              )
+            ],
           ),
         ),
         const SizedBox(height: 40),
@@ -209,14 +248,15 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           }
           return Column(
               children: ethAddresses
-                  .map((address) => [
+                  .map((addressIndex) => [
                         _addressRow(
-                            address: address,
-                            index: ethAddresses.indexOf(address),
+                            address: addressIndex.first,
+                            index: addressIndex.second,
                             type: CryptoType.ETH,
-                            balance: state.ethBalances[address] == null
+                            balance: state.ethBalances[addressIndex.first] ==
+                                    null
                                 ? "-- ETH"
-                                : "${EthAmountFormatter(state.ethBalances[address]!.getInWei).format()} ETH"),
+                                : "${EthAmountFormatter(state.ethBalances[addressIndex.first]!.getInWei).format()} ETH"),
                         addOnlyDivider(),
                       ])
                   .flattened
@@ -228,85 +268,22 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             return const SizedBox();
           }
           return Column(
-              children: tezosAddress
-                  .map((address) => [
-                        _addressRow(
-                          address: address,
-                          index: tezosAddress.indexOf(address),
-                          type: CryptoType.XTZ,
-                          balance: state.balances[address] == null
-                              ? "-- XTZ"
-                              : "${XtzAmountFormatter(state.balances[address]!).format()} XTZ",
-                        ),
-                        if (address != tezosAddress.last) addDivider(),
-                      ])
-                  .flattened
-                  .toList());
+            children: tezosAddress
+                .map((addressIndex) => [
+                      _addressRow(
+                        address: addressIndex.first,
+                        index: addressIndex.second,
+                        type: CryptoType.XTZ,
+                        balance: state.balances[addressIndex.first] == null
+                            ? "-- XTZ"
+                            : "${XtzAmountFormatter(state.balances[addressIndex.first]!).format()} XTZ",
+                      ),
+                      addOnlyDivider(),
+                    ])
+                .flattened
+                .toList(),
+          );
         }),
-        const SizedBox(height: 30),
-        Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: padding,
-                child: PrimaryButton(
-                  text: "add_address_to_wallet".tr(),
-                  onTap: () {
-                    UIHelper.showDialog(context, "add_address_to_wallet".tr(),
-                        StatefulBuilder(builder: (
-                      BuildContext context,
-                      StateSetter dialogState,
-                    ) {
-                      return Column(
-                        children: [
-                          _walletTypeOption(
-                              theme, WalletType.Ethereum, dialogState),
-                          addDivider(height: 40, color: AppColor.white),
-                          _walletTypeOption(
-                              theme, WalletType.Tezos, dialogState),
-                          const SizedBox(height: 40),
-                          Padding(
-                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                            child: Column(
-                              children: [
-                                PrimaryButton(
-                                  text: "add_address".tr(),
-                                  onTap: () async {
-                                    final newPersona =
-                                        await injector<AccountService>()
-                                            .addAddressPersona(
-                                                persona, _walletTypeSelecting);
-                                    if (!mounted) return;
-                                    Navigator.of(context).pop();
-                                    setState(() {
-                                      persona = newPersona;
-                                      _callBloc(newPersona);
-                                    });
-                                  },
-                                ),
-                                const SizedBox(height: 10),
-                                OutlineButton(
-                                  onTap: () => Navigator.of(context).pop(),
-                                  text: "cancel".tr(),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      );
-                    }),
-                        isDismissible: true,
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        paddingTitle:
-                            ResponsiveLayout.pageHorizontalEdgeInsets);
-                  },
-                ),
-              ),
-            )
-          ],
-        ),
-        const SizedBox(height: 14),
-        addDivider(),
       ],
     );
   }

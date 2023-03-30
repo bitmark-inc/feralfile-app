@@ -25,10 +25,6 @@ abstract class ConfigurationService {
 
   int? getAnnouncementLastPullTime();
 
-  Future<void> setShowAuChainInfo(bool value);
-
-  bool getShowAuChainInfo();
-
   Future<void> setOldUser();
 
   bool getIsOldUser();
@@ -1003,16 +999,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> readRemoveSupport(bool value) async {
     await _preferences.setBool(READ_REMOVE_SUPPORT, value);
-  }
-
-  @override
-  bool getShowAuChainInfo() {
-    return _preferences.getBool(SHOW_AU_CHAIN_INFO) ?? false;
-  }
-
-  @override
-  Future<void> setShowAuChainInfo(bool value) async {
-    await _preferences.setBool(SHOW_AU_CHAIN_INFO, value);
   }
 
   @override

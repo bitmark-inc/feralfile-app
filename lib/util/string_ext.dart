@@ -20,7 +20,16 @@ extension StringExtension on String {
     } else if (length <= number) {
       return this;
     }
-    return "[${substring(0, number)}...${substring(length - number, length)}]";
+    return "[${maskOnly(number)}]";
+  }
+
+  String maskOnly(int number) {
+    if (isEmpty) {
+      return "";
+    } else if (length <= number) {
+      return this;
+    }
+    return "${substring(0, number)}...${substring(length - number, length)}";
   }
 
   String maskIfNeeded() {

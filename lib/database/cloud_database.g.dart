@@ -70,7 +70,7 @@ class _$CloudDatabase extends CloudDatabase {
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 4,
+      version: 5,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -86,7 +86,7 @@ class _$CloudDatabase extends CloudDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER NOT NULL, `tezosIndex` INTEGER NOT NULL, PRIMARY KEY (`uuid`))');
+            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER NOT NULL, `tezosIndex` INTEGER NOT NULL, `ethereumIndexes` TEXT, `tezosIndexes` TEXT, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
@@ -128,7 +128,9 @@ class _$PersonaDao extends PersonaDao {
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
                   'defaultAccount': item.defaultAccount,
                   'ethereumIndex': item.ethereumIndex,
-                  'tezosIndex': item.tezosIndex
+                  'tezosIndex': item.tezosIndex,
+                  'ethereumIndexes': item.ethereumIndexes,
+                  'tezosIndexes': item.tezosIndexes
                 }),
         _personaUpdateAdapter = UpdateAdapter(
             database,
@@ -140,7 +142,9 @@ class _$PersonaDao extends PersonaDao {
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
                   'defaultAccount': item.defaultAccount,
                   'ethereumIndex': item.ethereumIndex,
-                  'tezosIndex': item.tezosIndex
+                  'tezosIndex': item.tezosIndex,
+                  'ethereumIndexes': item.ethereumIndexes,
+                  'tezosIndexes': item.tezosIndexes
                 }),
         _personaDeletionAdapter = DeletionAdapter(
             database,
@@ -152,7 +156,9 @@ class _$PersonaDao extends PersonaDao {
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
                   'defaultAccount': item.defaultAccount,
                   'ethereumIndex': item.ethereumIndex,
-                  'tezosIndex': item.tezosIndex
+                  'tezosIndex': item.tezosIndex,
+                  'ethereumIndexes': item.ethereumIndexes,
+                  'tezosIndexes': item.tezosIndexes
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -176,7 +182,9 @@ class _$PersonaDao extends PersonaDao {
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             defaultAccount: row['defaultAccount'] as int?,
             ethereumIndex: row['ethereumIndex'] as int,
-            tezosIndex: row['tezosIndex'] as int));
+            tezosIndex: row['tezosIndex'] as int,
+            ethereumIndexes: row['ethereumIndexes'] as String?,
+            tezosIndexes: row['tezosIndexes'] as String?));
   }
 
   @override
@@ -189,7 +197,9 @@ class _$PersonaDao extends PersonaDao {
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             defaultAccount: row['defaultAccount'] as int?,
             ethereumIndex: row['ethereumIndex'] as int,
-            tezosIndex: row['tezosIndex'] as int));
+            tezosIndex: row['tezosIndex'] as int,
+            ethereumIndexes: row['ethereumIndexes'] as String?,
+            tezosIndexes: row['tezosIndexes'] as String?));
   }
 
   @override
@@ -207,7 +217,9 @@ class _$PersonaDao extends PersonaDao {
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             defaultAccount: row['defaultAccount'] as int?,
             ethereumIndex: row['ethereumIndex'] as int,
-            tezosIndex: row['tezosIndex'] as int),
+            tezosIndex: row['tezosIndex'] as int,
+            ethereumIndexes: row['ethereumIndexes'] as String?,
+            tezosIndexes: row['tezosIndexes'] as String?),
         arguments: [uuid]);
   }
 
