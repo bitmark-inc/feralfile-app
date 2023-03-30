@@ -188,6 +188,62 @@ class UIHelper {
     );
   }
 
+  static Future<void> showScrollableDialog(
+    BuildContext context,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+  }) async {
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    final height = MediaQuery.of(context).size.height > 800 ? 689 : 600;
+
+    await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          height: height.toDouble(),
+          child: ClipPath(
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              child: content,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   static Future<void> showMessageAction(
     BuildContext context,
     String title,
@@ -819,7 +875,7 @@ class UIHelper {
                       ),
                       TextSpan(
                         style: theme.textTheme.ppMori700White14,
-                        text: "hidden_art".tr(),
+                        text: "hidden_artwork".tr(),
                       ),
                       TextSpan(
                         style: theme.textTheme.ppMori400White14,

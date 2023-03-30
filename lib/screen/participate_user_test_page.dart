@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -12,7 +13,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../util/constants.dart';
 
@@ -118,12 +118,12 @@ class ParticipateUserTestPage extends StatelessWidget {
                 Expanded(
                   child: PrimaryButton(
                     text: "schedule_test".tr(),
-                    onTap: () => launchUrl(Uri.parse(USER_TEST_CALENDAR_LINK),
-                        mode: LaunchMode.inAppWebView,
-                        webViewConfiguration: const WebViewConfiguration(
-                            headers: <String, String>{
-                              'my_header_key': 'my_header_value'
-                            })),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AppRouter.inappWebviewPage,
+                        arguments: USER_TEST_CALENDAR_LINK,
+                      );
+                    },
                   ),
                 ),
               ],

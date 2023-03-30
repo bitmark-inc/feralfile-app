@@ -633,8 +633,8 @@ class _WCConnectPageState extends State<WCConnectPage>
       log.info("[wc_connect_page] could not find default account");
       return;
     }
-    persona.ethereumIndex = 1;
-    persona.tezosIndex = 1;
+    persona.tezosIndexes = ",0";
+    persona.ethereumIndexes = ",0";
     final namedPersona =
         await injector<AccountService>().namePersona(persona, defaultName);
     injector<ConfigurationService>().setDoneOnboarding(true);

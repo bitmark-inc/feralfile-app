@@ -12,13 +12,17 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_flutter/view/markdown_view.dart';
+import 'package:autonomy_flutter/view/modal_widget.dart';
+import 'package:autonomy_flutter/view/number_picker.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -38,10 +42,14 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
   late ScrollController _controller;
   final metricClient = injector.get<MetricClientService>();
+  late double _selectedSize;
+  late double adjustSize;
 
   @override
   void initState() {
     super.initState();
+    _selectedSize = 16.0;
+    adjustSize = _selectedSize - 16;
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
     _trackEvent();
@@ -61,6 +69,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    adjustSize = _selectedSize - 16;
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       backgroundColor: theme.colorScheme.primary,
@@ -86,7 +95,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 4.0, horizontal: 8.0),
                         child: Text(widget.post.tag ?? "",
-                            style: theme.textTheme.ppMori400Grey14),
+                            style: theme.textTheme.ppMori400Grey14
+                                .adjustSize(adjustSize)),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -94,7 +104,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                         children: [
                           Text(
                             "originally_published_at".tr(),
-                            style: theme.textTheme.ppMori400Grey12,
+                            style: theme.textTheme.ppMori400Grey12
+                                .adjustSize(adjustSize),
                           ),
                           GestureDetector(
                             onTap: () async {
@@ -109,7 +120,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                             child: Text(
                               widget.post.reference?.website ??
                                   widget.post.publisher.name,
-                              style: theme.textTheme.ppMori400SupperTeal12,
+                              style: theme.textTheme.ppMori400SupperTeal12
+                                  .adjustSize(adjustSize),
                             ),
                           )
                         ],
@@ -125,7 +137,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                             children: [
                               AuMarkdown(
                                   data: snapshot.data!.data!,
-                                  styleSheet: editorialMarkDownStyle(context)),
+                                  styleSheet: editorialMarkDownStyle(context,
+                                      adjustSize: adjustSize)),
                               const SizedBox(height: 50),
                               if (widget.post.reference != null)
                                 Container(
@@ -143,8 +156,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                         const SizedBox(height: 10.0),
                                         Text(
                                           widget.post.publisher.intro ?? "",
-                                          style:
-                                              theme.textTheme.ppMori400White12,
+                                          style: theme
+                                              .textTheme.ppMori400White12
+                                              .adjustSize(adjustSize),
                                         ),
                                         const SizedBox(height: 32.0),
                                       ],
@@ -192,7 +206,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                           return Center(
                               child: Text(
                             "error_loading_content".tr(),
-                            style: theme.textTheme.ppMori400White12,
+                            style: theme.textTheme.ppMori400White12
+                                .adjustSize(adjustSize),
                           ));
                         } else {
                           return const Center(
@@ -232,13 +247,40 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                 const SizedBox(height: 10.0),
                 Text(
                   widget.post.content["title"],
-                  style: theme.textTheme.ppMori400White16,
+                  style:
+                      theme.textTheme.ppMori400White16.adjustSize(adjustSize),
                   maxLines: 3,
                 ),
               ],
             ),
           ),
           const SizedBox(width: 50.0),
+          IconButton(
+            onPressed: () async {
+              await showModalBottomSheet<dynamic>(
+                context: context,
+                backgroundColor: Colors.transparent,
+                enableDrag: false,
+                constraints: BoxConstraints(
+                    maxWidth: ResponsiveLayout.isMobile
+                        ? double.infinity
+                        : Constants.maxWidthModalTablet),
+                barrierColor: Colors.black.withOpacity(0.5),
+                isScrollControlled: true,
+                builder: (context) {
+                  return ModalSheet(
+                    child: _editSize(context),
+                  );
+                },
+              );
+            },
+            icon: SvgPicture.asset(
+              "assets/images/text_size.svg",
+              color: AppColor.white,
+              width: 32,
+              height: 32,
+            ),
+          ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
             icon: closeIcon(color: theme.colorScheme.secondary),
@@ -257,13 +299,14 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       children: <Widget>[
         Expanded(
           flex: 4,
-          child: Text(name, style: theme.textTheme.ppMori400White12),
+          child: Text(name,
+              style: theme.textTheme.ppMori400White12.adjustSize(adjustSize)),
         ),
         Expanded(
           flex: 6,
           child: Text(
             value,
-            style: theme.textTheme.ppMori400White12,
+            style: theme.textTheme.ppMori400White12.adjustSize(adjustSize),
           ),
         ),
       ],
@@ -279,7 +322,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       children: <Widget>[
         Expanded(
           flex: 4,
-          child: Text(name, style: theme.textTheme.ppMori400White12),
+          child: Text(name,
+              style: theme.textTheme.ppMori400White12.adjustSize(adjustSize)),
         ),
         Expanded(
           flex: 6,
@@ -298,10 +342,52 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                     },
                     child: Text(
                       e.first,
-                      style: theme.textTheme.ppMori400Green12,
+                      style: theme.textTheme.ppMori400Green12
+                          .adjustSize(adjustSize),
                     )))
                 .toList(),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _editSize(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            SvgPicture.asset(
+              "assets/images/text_size.svg",
+              width: 18,
+              color: AppColor.primaryBlack,
+            ),
+            const SizedBox(
+              width: 40,
+            ),
+            Text(
+              "text_size".tr(),
+              style: theme.textTheme.ppMori400Black14,
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        NumberPicker(
+            onChange: (value) {
+              setState(() {
+                _selectedSize = value;
+              });
+            },
+            min: 12,
+            max: 18,
+            divisions: 6,
+            value: _selectedSize,
+            selectedStyle: theme.textTheme.ppMori400Black12,
+            unselectedStyle: theme.textTheme.ppMori400Black12
+                .copyWith(color: AppColor.primaryBlack.withOpacity(0.2))),
+        const SizedBox(
+          height: 40,
         ),
       ],
     );

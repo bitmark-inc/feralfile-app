@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -306,11 +307,12 @@ MarkdownStyleSheet markDownDetailPageStyle(
 }
 
 MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
-    {TextStyle? preferredStyle, EdgeInsets? pPadding}) {
+    {TextStyle? preferredStyle, EdgeInsets? pPadding, double? adjustSize}) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
+  final size = adjustSize ?? 0;
   final textStyleWhite =
-      theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
+      theme.textTheme.ppMori400White12.copyWith(fontSize: 17).adjustSize(size);
   preferredStyle = preferredStyle ?? textStyleWhite;
   return MarkdownStyleSheet(
     a: preferredStyle.merge(
@@ -321,9 +323,13 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
     p: preferredStyle,
     pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
     code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
-    h1: preferredStyle.copyWith(fontSize: 24, fontWeight: FontWeight.w700),
+    h1: preferredStyle
+        .copyWith(fontSize: 24, fontWeight: FontWeight.w700)
+        .adjustSize(size),
     h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: preferredStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
+    h2: preferredStyle
+        .copyWith(fontSize: 20, fontWeight: FontWeight.w700)
+        .adjustSize(size),
     h2Padding: EdgeInsets.zero,
     h3: preferredStyle,
     h3Padding: EdgeInsets.zero,
@@ -338,7 +344,9 @@ MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
     del: preferredStyle.copyWith(
         decoration: TextDecoration.lineThrough, color: textColor),
     blockquote: preferredStyle.copyWith(color: AppColor.white),
-    img: preferredStyle.copyWith(fontSize: 12, color: AppColor.disabledColor),
+    img: preferredStyle
+        .copyWith(fontSize: 12, color: AppColor.disabledColor)
+        .adjustSize(size),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
@@ -486,10 +494,11 @@ Divider headDivider() {
   );
 }
 
-Divider addOnlyDivider() {
-  return const Divider(
+Divider addOnlyDivider({Color? color}) {
+  return Divider(
     height: 1.0,
     thickness: 1.0,
+    color: color,
   );
 }
 

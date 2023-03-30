@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
@@ -99,6 +100,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -203,6 +205,7 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
+  static const inappWebviewPage = 'inapp_webview_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -500,8 +503,15 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const ImportAccountPage());
+          settings: settings,
+          builder: (context) => BlocProvider(
+            create: (_) => ScanWalletBloc(
+              injector(),
+              injector(),
+            ),
+            child: const ImportAccountPage(),
+          ),
+        );
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -587,6 +597,12 @@ class AppRouter {
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
+                      BlocProvider(
+                        create: (_) => ScanWalletBloc(
+                          injector(),
+                          injector(),
+                        ),
+                      ),
                     ],
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
@@ -1102,6 +1118,12 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return const HelpUsPage();
+            });
+      case inappWebviewPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return InappWebviewPage(url: settings.arguments as String);
             });
       default:
         throw Exception('Invalid route: ${settings.name}');

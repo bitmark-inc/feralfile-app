@@ -14,12 +14,12 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../common/injector.dart';
 import '../../database/cloud_database.dart';
@@ -65,6 +65,8 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
               child: _linkAccount(context),
             ),
             addDivider(height: 48),
+            Padding(padding: padding, child: _importWallet(context)),
+            addDivider(height: 48),
             injector<ConfigurationService>().isDoneOnboarding()
                 ? _linkDebugWidget(context)
                 : const SizedBox(),
@@ -78,22 +80,38 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
       {required BuildContext context,
       required String title,
       String? content,
-      required dynamic Function()? onTap}) {
+      required dynamic Function()? onTap,
+      bool forward = true}) {
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        if (title.isNotEmpty) ...[
-          Text(
-            content ?? "",
-            style: theme.textTheme.ppMori400Grey14,
-          ),
-          const SizedBox(height: 16),
-        ],
-        PrimaryButton(
-          text: title,
-          onTap: onTap,
-        )
-      ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: const BoxDecoration(color: Colors.transparent),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title.isNotEmpty) ...[
+              Row(
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.ppMori400Black16,
+                  ),
+                  const Spacer(),
+                  forward
+                      ? SvgPicture.asset('assets/images/iconForward.svg')
+                      : const SizedBox(),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            Text(
+              content ?? "",
+              style: theme.textTheme.ppMori400Black14,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -101,18 +119,22 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
     return BlocConsumer<PersonaBloc, PersonaState>(
       listener: (context, state) {
         switch (state.createAccountState) {
+          case ActionState.loading:
+            UIHelper.showLoadingScreen(context, text: "generating_wallet".tr());
+            break;
           case ActionState.done:
             UIHelper.hideInfoDialog(context);
-            UIHelper.showGeneratedPersonaDialog(context, onContinue: () {
-              UIHelper.hideInfoDialog(context);
-              final createdPersona = state.persona;
-              if (createdPersona != null) {
-                Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: NamePersonaPayload(uuid: createdPersona.uuid));
-              }
-            });
+            final createdPersona = state.persona;
+            if (createdPersona != null) {
+              Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
+                  arguments: NamePersonaPayload(
+                      uuid: createdPersona.uuid, allowBack: true));
+            }
             break;
 
+          case ActionState.error:
+            UIHelper.hideInfoDialog(context);
+            break;
           default:
             break;
         }
@@ -121,13 +143,12 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
         return _addWalletItem(
           context: context,
           title: "create_a_new_wallet".tr(),
-          content: "ne_make_a_new_account".tr(),
+          content: "create_wallet_description".tr(),
           onTap: () {
             if (state.createAccountState == ActionState.loading) return;
-            UIHelper.showInfoDialog(context, "generating".tr(), "",
-                isDismissible: true);
             context.read<PersonaBloc>().add(CreatePersonaEvent());
           },
+          forward: false,
         );
       },
     );
@@ -137,9 +158,19 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
     return _addWalletItem(
         context: context,
         title: "link_existing_wallet".tr(),
-        content: "ad_i_already_have".tr(),
+        content: "link_wallet_description".tr(),
         onTap: () {
           Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+        });
+  }
+
+  Widget _importWallet(BuildContext context) {
+    return _addWalletItem(
+        context: context,
+        title: "import_wallet".tr(),
+        content: "import_wallet_description".tr(),
+        onTap: () {
+          Navigator.of(context).pushNamed(AppRouter.importAccountPage);
         });
   }
 
