@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -33,6 +32,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
@@ -141,9 +141,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             const SizedBox(height: 32),
             _addressesSection(uuid),
             const SizedBox(height: 16),
-            _preferencesSection(),
-            addDivider(),
-            const SizedBox(height: 16),
             _backupSection(),
             const SizedBox(height: 40),
           ],
@@ -220,7 +217,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                             balance: state.ethBalances[address] == null
                                 ? "-- ETH"
                                 : "${EthAmountFormatter(state.ethBalances[address]!.getInWei).format()} ETH"),
-                        addDivider(),
+                        addOnlyDivider(),
                       ])
                   .flattened
                   .toList());
@@ -359,109 +356,78 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.ppMori400Black14;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      child: Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(type.source,
-                          style: theme.textTheme.ppMori700Black16),
-                      const Expanded(child: SizedBox()),
-                      Text(balance,
-                          style: addressStyle.copyWith(
-                              color: AppColor.auQuickSilver)),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                    ],
-                  ),
-                ),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    address,
-                    style: addressStyle,
-                    key: const Key("fullAccount_address"),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+    final isHideGalleryEnabled =
+        injector<ConfigurationService>().isAddressHiddenInGallery(address);
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        dragDismissible: false,
+        children: slidableActions(address),
       ),
-      onTap: () {
-        final payload = WalletDetailsPayload(
-          personaUUID: persona.uuid,
-          address: address,
-          type: type,
-          wallet: LibAukDart.getWallet(persona.uuid),
-          personaName: persona.name,
-          index: index,
-          //personaName: widget.persona.name,
-        );
-        Navigator.of(context)
-            .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
-      },
-    );
-  }
-
-  Widget _preferencesSection() {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: padding,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          "preferences".tr(),
-          style: theme.textTheme.ppMori400Black16,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        child: Padding(
+          padding: padding.copyWith(bottom: 16, top: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(type.source,
+                            style: theme.textTheme.ppMori700Black16),
+                        const Expanded(child: SizedBox()),
+                        if (isHideGalleryEnabled) ...[
+                          SvgPicture.asset(
+                            'assets/images/hide.svg',
+                            color: theme.colorScheme.surface,
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                        Text(balance,
+                            style: addressStyle.copyWith(
+                                color: AppColor.auQuickSilver)),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SvgPicture.asset('assets/images/iconForward.svg'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      address,
+                      style: addressStyle,
+                      key: const Key("fullAccount_address"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        const SizedBox(
-          height: 24,
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('hide_from_collection'.tr(),
-                    style: theme.textTheme.ppMori400Black16),
-                AuToggle(
-                  value: isHideGalleryEnabled,
-                  onToggle: (value) async {
-                    await injector<AccountService>()
-                        .setHidePersonaInGallery(persona.uuid, value);
-                    if (!mounted) return;
-                    setState(() {
-                      isHideGalleryEnabled = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              "do_not_show_nft".tr(),
-              //"Do not show this account's NFTs in the collection view.",
-              style: theme.textTheme.ppMori400Black14,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-      ]),
+        onTap: () {
+          final payload = WalletDetailsPayload(
+            personaUUID: persona.uuid,
+            address: address,
+            type: type,
+            wallet: LibAukDart.getWallet(persona.uuid),
+            personaName: persona.name,
+            index: index,
+            //personaName: widget.persona.name,
+          );
+          Navigator.of(context)
+              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
+        },
+      ),
     );
   }
 
@@ -535,5 +501,27 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         ],
       ),
     );
+  }
+
+  List<CustomSlidableAction> slidableActions(String address) {
+    final theme = Theme.of(context);
+    final isHidden =
+        injector<ConfigurationService>().isAddressHiddenInGallery(address);
+    return [
+      CustomSlidableAction(
+        backgroundColor: AppColor.secondarySpanishGrey,
+        foregroundColor: theme.colorScheme.secondary,
+        child: Semantics(
+          label: "${address}_hide",
+          child: SvgPicture.asset(
+              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
+        ),
+        onPressed: (_) async {
+          injector<ConfigurationService>()
+              .setHideAddressInGallery([address], !isHidden);
+          setState(() {});
+        },
+      ),
+    ];
   }
 }
