@@ -203,8 +203,8 @@ class AccountServiceImpl extends AccountService {
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
       "id": uuid,
-      "tezosIndex": persona.getTezIndexes(),
-      "ethereumIndex": persona.getEthIndexes()
+      "tezosIndex": persona.getTezIndexes,
+      "ethereumIndex": persona.getEthIndexes
     });
     _autonomyService.postLinkedAddresses();
 
@@ -796,8 +796,8 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
-    final ethereumIndexes = newPersona.getEthIndexes();
-    final tezosIndexes = newPersona.getTezIndexes();
+    final ethereumIndexes = newPersona.getEthIndexes;
+    final tezosIndexes = newPersona.getTezIndexes;
     for (var address in addresses) {
       if (address.getCryptoType() == CryptoType.ETH) {
         ethereumIndexes.add(address.index);

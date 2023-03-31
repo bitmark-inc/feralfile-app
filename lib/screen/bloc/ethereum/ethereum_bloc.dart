@@ -22,9 +22,9 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getEthIndexes().isEmpty) return;
+      if (persona == null || persona.getEthIndexes.isEmpty) return;
       final addresses = await persona.getEthAddresses();
-      final indexes = persona.getEthIndexes();
+      final indexes = persona.getEthIndexes;
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] =
           addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
@@ -42,9 +42,9 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getEthIndexes().isEmpty) return;
+      if (persona == null || persona.getEthIndexes.isEmpty) return;
       final addresses = await persona.getEthAddresses();
-      final indexes = persona.getEthIndexes();
+      final indexes = persona.getEthIndexes;
       var listAddresses = state.personaAddresses ?? {};
       listAddresses[event.uuid] =
           addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();

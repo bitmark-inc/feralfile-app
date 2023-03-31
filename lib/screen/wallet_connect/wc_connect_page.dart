@@ -399,17 +399,22 @@ class _WCConnectPageState extends State<WCConnectPage>
   _autoSelectDefault(List<CategorizedAccounts>? categorizedAccounts) {
     if (categorizedAccounts == null) return;
     if (categorizedAccounts.length != 1) return;
+    final persona = categorizedAccounts.first.persona;
+    if (persona == null) return;
+
     final ethAccounts = categorizedAccounts.first.ethAccounts;
     final xtzAccounts = categorizedAccounts.first.xtzAccounts;
+
     if (ethAccounts.length == 1) {
       ethSelectedAddress = ethAccounts.first.accountNumber;
       selectedPersona =
-          WalletIndex(categorizedAccounts.first.persona!.wallet(), 0);
+          WalletIndex(persona.wallet(), persona.getEthIndexes.first);
     }
+
     if (xtzAccounts.length == 1) {
       tezSelectedAddress = xtzAccounts.first.accountNumber;
       selectedPersona =
-          WalletIndex(categorizedAccounts.first.persona!.wallet(), 0);
+          WalletIndex(persona.wallet(), persona.getTezIndexes.first);
     }
   }
 
