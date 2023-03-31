@@ -437,7 +437,7 @@ class HomePageState extends State<HomePage>
         Tipcard(
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
             onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+              Navigator.of(context).pushNamed(AppRouter.accessMethodPage);
             },
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),

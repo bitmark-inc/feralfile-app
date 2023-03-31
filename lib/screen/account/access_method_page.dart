@@ -7,6 +7,7 @@
 
 // ignore_for_file: unused_field
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -34,9 +35,16 @@ class AccessMethodPage extends StatefulWidget {
   State<AccessMethodPage> createState() => _AccessMethodPageState();
 }
 
-class _AccessMethodPageState extends State<AccessMethodPage> {
+class _AccessMethodPageState extends State<AccessMethodPage>
+    with AfterLayoutMixin {
   var _redrawObject = Object();
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    injector<ConfigurationService>().setAlreadyShowLinkOrImportTip(true);
+    injector<ConfigurationService>().showLinkOrImportTip.value = false;
+  }
 
   @override
   Widget build(BuildContext context) {

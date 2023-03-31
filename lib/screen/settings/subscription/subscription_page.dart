@@ -7,9 +7,11 @@
 
 import 'dart:io';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -31,10 +33,12 @@ class SubscriptionPage extends StatefulWidget {
   State<SubscriptionPage> createState() => _SubscriptionPageState();
 }
 
-class _SubscriptionPageState extends State<SubscriptionPage> {
+class _SubscriptionPageState extends State<SubscriptionPage>
+    with AfterLayoutMixin {
   @override
-  void initState() {
-    super.initState();
+  void afterFirstLayout(BuildContext context) {
+    injector<ConfigurationService>().setAlreadyShowProTip(true);
+    injector<ConfigurationService>().showProTip.value = false;
   }
 
   @override

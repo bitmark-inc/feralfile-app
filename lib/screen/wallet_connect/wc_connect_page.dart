@@ -9,10 +9,10 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -191,6 +191,8 @@ class _WCConnectPageState extends State<WCConnectPage>
 
         if (connectionRequest.name == AUTONOMY_TV_PEER_NAME) {
           metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
+          injector<ConfigurationService>().setAlreadyShowTvAppTip(true);
+          injector<ConfigurationService>().showTvAppTip.value = false;
         } else {
           metricClient.addEvent(
             MixpanelEvent.connectExternal,
