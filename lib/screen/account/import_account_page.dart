@@ -53,8 +53,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   Persona? _persona;
 
   bool isError = false;
-  WalletType _walletType = WalletType.Ethereum;
-  WalletType _walletTypeSelecting = WalletType.Ethereum;
+  WalletType _walletType = WalletType.Autonomy;
+  WalletType _walletTypeSelecting = WalletType.Autonomy;
   final metricClient = injector.get<MetricClientService>();
 
   @override
