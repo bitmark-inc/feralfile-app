@@ -17,9 +17,10 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:tezart/tezart.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 class IRLWebScreen extends StatefulWidget {
-  final String url;
+  final Uri url;
   const IRLWebScreen({Key? key, required this.url}) : super(key: key);
 
   @override
@@ -42,20 +43,35 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     }
   }
 
+  JSResult _logAndReturnJSResult(String func, JSResult result) {
+    log.info('[IRLWebScreen] $func: ${result.toJson()}');
+    return result;
+  }
+
   Future<JSResult?> _getAddress(List<dynamic> args) async {
     try {
+      log.info('[IRLWebScreen] getAddress: $args');
       if (args.firstOrNull == null || args.firstOrNull is! Map) {
-        return JSResult.error('Payload is invalid');
+        return _logAndReturnJSResult(
+          '_getAddress',
+          JSResult.error('Payload is invalid'),
+        );
       }
       final arguments = (args.firstOrNull as Map);
 
       final chain = arguments['chain'];
       if (chain == null) {
-        return JSResult.error('Blockchain is invalid');
+        return _logAndReturnJSResult(
+          '_getAddress',
+          JSResult.error('Blockchain is invalid'),
+        );
       }
 
       if (chain == null) {
-        return JSResult.error('Blockchain is unsupported');
+        return _logAndReturnJSResult(
+          '_getAddress',
+          JSResult.error('Blockchain is unsupported'),
+        );
       }
       final account = await Navigator.of(context).pushNamed(
         AppRouter.irlGetAddress,
@@ -67,18 +83,29 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       );
       if (account != null && account is Account?) {
         final address = await (account as Account?)?.getAddress(chain);
-        return JSResult.result(address);
+        return _logAndReturnJSResult(
+          '_getAddress',
+          JSResult.result(address),
+        );
       }
       return null;
     } catch (e) {
-      return JSResult.error(e.toString());
+      return _logAndReturnJSResult(
+        '_getAddress',
+        JSResult.error(e.toString()),
+      );
     }
   }
 
   Future<JSResult?> _signMessage(List<dynamic> args) async {
     try {
+      log.info('[IRLWebScreen] signMessage: $args');
+
       if (args.firstOrNull == null || args.firstOrNull is! Map) {
-        return JSResult.error('Payload is invalid');
+        return _logAndReturnJSResult(
+          '_signMessage',
+          JSResult.error('Payload is invalid'),
+        );
       }
 
       final argument = IRLSignMessagePayload.fromJson(args.firstOrNull);
@@ -88,11 +115,19 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       );
 
       if (account == null) {
-        return JSResult.error(
-          'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+        return _logAndReturnJSResult(
+          '_signMessage',
+          JSResult.error(
+            'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+          ),
         );
       }
-      if (!mounted) return JSResult();
+      if (!mounted) {
+        return _logAndReturnJSResult(
+          '_signMessage',
+          JSResult(),
+        );
+      }
 
       final signature = await Navigator.of(context).pushNamed(
         AppRouter.irlSignMessage,
@@ -100,19 +135,37 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       );
 
       if (signature == null) {
-        return JSResult.error('Rejected');
+        return _logAndReturnJSResult(
+          '_signMessage',
+          JSResult.error('Rejected'),
+        );
       }
-      return JSResult.result(signature);
+      return _logAndReturnJSResult(
+        '_signMessage',
+        JSResult.result(signature),
+      );
     } catch (e) {
-      if (e is AccountException) return JSResult.error(e.message ?? '');
-      return JSResult.error(e.toString());
+      if (e is AccountException) {
+        return _logAndReturnJSResult(
+          '_signMessage',
+          JSResult.error(e.message ?? ''),
+        );
+      }
+      return _logAndReturnJSResult(
+        '_signMessage',
+        JSResult.error(e.toString()),
+      );
     }
   }
 
   Future<JSResult?> _sendTransaction(List<dynamic> args) async {
     try {
+      log.info('[IRLWebScreen] signMessage: $args');
       if (args.firstOrNull == null || args.firstOrNull is! Map) {
-        return JSResult.error('Payload is invalid');
+        return _logAndReturnJSResult(
+          '_sendTransaction',
+          JSResult.error('Payload is invalid'),
+        );
       }
       final argument = IRLSendTransactionPayload.fromJson(args.firstOrNull);
 
@@ -122,11 +175,19 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       );
 
       if (account == null) {
-        return JSResult.error(
-          'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+        return _logAndReturnJSResult(
+          '_sendTransaction',
+          JSResult.error(
+            'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+          ),
         );
       }
-      if (!mounted) return JSResult();
+      if (!mounted) {
+        return _logAndReturnJSResult(
+          '_sendTransaction',
+          JSResult(),
+        );
+      }
 
       switch (argument.chain.caip2Namespace) {
         case Wc2Chain.ethereum:
@@ -149,11 +210,20 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
               arguments: args,
             );
             if (txHash == null) {
-              return JSResult.error('Rejected');
+              return _logAndReturnJSResult(
+                '_sendTransaction',
+                JSResult.error('Rejected'),
+              );
             }
-            return JSResult.result(txHash);
+            return _logAndReturnJSResult(
+              '_sendTransaction',
+              JSResult.result(txHash),
+            );
           } catch (e) {
-            return JSResult.error(e.toString());
+            return _logAndReturnJSResult(
+              '_sendTransaction',
+              JSResult.error(e.toString()),
+            );
           }
 
         case Wc2Chain.tezos:
@@ -170,15 +240,27 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             arguments: beaconRequest,
           );
           if (txHash == null) {
-            return JSResult.error('Rejected');
+            return _logAndReturnJSResult(
+              '_sendTransaction',
+              JSResult.error('Rejected'),
+            );
           }
 
-          return JSResult.result(txHash);
+          return _logAndReturnJSResult(
+            '_sendTransaction',
+            JSResult.result(txHash),
+          );
         default:
-          return JSResult();
+          return _logAndReturnJSResult(
+            '_sendTransaction',
+            JSResult(),
+          );
       }
     } catch (e) {
-      return JSResult.error(e.toString());
+      return _logAndReturnJSResult(
+        '_sendTransaction',
+        JSResult.error(e.toString()),
+      );
     }
   }
 
@@ -208,19 +290,22 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: InAppWebView(
-              initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
-              onWebViewCreated: (controller) {
-                _controller = controller;
-                _addJavaScriptHandler();
-              },
-              onConsoleMessage: (controller, consoleMessage) {},
-            ),
-          )
-        ],
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: InAppWebView(
+                initialUrlRequest: URLRequest(url: widget.url),
+                onWebViewCreated: (controller) {
+                  _controller = controller;
+                  _addJavaScriptHandler();
+                },
+                onConsoleMessage: (controller, consoleMessage) {},
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

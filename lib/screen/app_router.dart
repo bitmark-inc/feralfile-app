@@ -1133,7 +1133,7 @@ class AppRouter {
               return InappWebviewPage(url: settings.arguments as String);
             });
       case irlWebview:
-        final url = settings.arguments as String;
+        final url = settings.arguments as Uri;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {

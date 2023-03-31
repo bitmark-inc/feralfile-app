@@ -295,8 +295,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info("[DeeplinkService] _handleIRL");
 
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
-      final url = Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
-      _navigationService.navigateTo(AppRouter.irlWebview, arguments: url);
+      final urlDecode =
+          Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
+
+      final uri = Uri.tryParse(urlDecode);
+      if (uri == null) return false;
+
+      if (Environment.irlWhitelistUrl.isNotEmpty) {
+        final validUrl = Environment.irlWhitelistUrl.any(
+          (element) => uri.host.contains(element),
+        );
+        if (!validUrl) return false;
+      }
+      _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
       return true;
     }
 

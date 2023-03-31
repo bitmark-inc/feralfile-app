@@ -1,6 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -127,91 +131,148 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
 
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8.0),
-                    Text(
-                      "signature_request".tr(),
-                      style: theme.textTheme.displayLarge,
-                    ),
-                    const SizedBox(height: 40.0),
-                    Text(
-                      "connection".tr(),
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      widget.payload.metadata?['name'] ?? "",
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const Divider(height: 32),
-                    Text(
-                      "message".tr(),
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      messageInUtf8,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        return true;
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+          title: "signature_request".tr(),
+        ),
+        body: Container(
+          margin: const EdgeInsets.only(bottom: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: _metadataInfo(widget.payload.metadata),
+                      ),
+                      const SizedBox(height: 60.0),
+                      addOnlyDivider(),
+                      const SizedBox(height: 30.0),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          "message".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                      ),
+                      const SizedBox(height: 4.0),
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 20, horizontal: 22),
+                          decoration: BoxDecoration(
+                            color: AppColor.auLightGrey,
+                            borderRadius: BorderRadiusGeometry.lerp(
+                                const BorderRadius.all(Radius.circular(5)),
+                                const BorderRadius.all(Radius.circular(5)),
+                                5),
+                          ),
+                          child: Text(
+                            messageInUtf8,
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "sign".tr().toUpperCase(),
-                    onPress: _currentWallet != null
-                        ? () => withDebounce(() async {
-                              final signature =
-                                  await _currentWallet!.signMessage(
-                                chain: widget.payload.chain,
-                                message: widget.payload.payload,
-                              );
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButton(
+                        text: "sign".tr(),
+                        onTap: _currentWallet != null
+                            ? () => withDebounce(() async {
+                                  final signature =
+                                      await _currentWallet!.signMessage(
+                                    chain: widget.payload.chain,
+                                    message: widget.payload.payload,
+                                  );
 
-                              if (!mounted) return;
+                                  if (!mounted) return;
 
-                              Navigator.of(context).pop(signature);
-                              final notificationEnabled =
-                                  injector<ConfigurationService>()
-                                          .isNotificationEnabled() ??
-                                      false;
-                              if (notificationEnabled) {
-                                showInfoNotification(
-                                  const Key("signed"),
-                                  "signed".tr(),
-                                  frontWidget: SvgPicture.asset(
-                                    "assets/images/checkbox_icon.svg",
-                                    width: 24,
-                                  ),
-                                );
-                              }
-                            })
-                        : null,
-                  ),
-                )
-              ],
-            )
-          ],
+                                  Navigator.of(context).pop(signature);
+                                  final notificationEnabled =
+                                      injector<ConfigurationService>()
+                                              .isNotificationEnabled() ??
+                                          false;
+                                  if (notificationEnabled) {
+                                    showInfoNotification(
+                                      const Key("signed"),
+                                      "signed".tr(),
+                                      frontWidget: SvgPicture.asset(
+                                        "assets/images/checkbox_icon.svg",
+                                        width: 24,
+                                      ),
+                                    );
+                                  }
+                                })
+                            : null,
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _metadataInfo(Map<String, dynamic>? metadata) {
+    final theme = Theme.of(context);
+
+    final icons = metadata?['icons'] as List?;
+    final name = metadata?['name'];
+
+    return metadata != null
+        ? Row(
+            children: [
+              if (icons != null && icons.isNotEmpty) ...[
+                CachedNetworkImage(
+                  imageUrl: icons.first,
+                  width: 64.0,
+                  height: 64.0,
+                  errorWidget: (context, url, error) => const SizedBox(
+                    width: 64,
+                    height: 64,
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(
+                  width: 64,
+                  height: 64,
+                ),
+              ],
+              const SizedBox(width: 16.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: theme.textTheme.ppMori700Black24),
+                  ],
+                ),
+              )
+            ],
+          )
+        : const SizedBox();
   }
 }
