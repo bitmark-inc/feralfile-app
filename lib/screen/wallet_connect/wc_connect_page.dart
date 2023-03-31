@@ -378,9 +378,9 @@ class _WCConnectPageState extends State<WCConnectPage>
                             });
                           }
                         }
-                        setState(() {
-                          categorizedAccounts = stateCategorizedAccounts;
-                        });
+                        categorizedAccounts = stateCategorizedAccounts;
+                        _autoSelectDefault(categorizedAccounts);
+                        setState(() {});
                       }, builder: (context, state) {
                         return _selectAccount();
                       }),
@@ -394,6 +394,23 @@ class _WCConnectPageState extends State<WCConnectPage>
         ),
       ),
     );
+  }
+
+  _autoSelectDefault(List<CategorizedAccounts>? categorizedAccounts) {
+    if (categorizedAccounts == null) return;
+    if (categorizedAccounts.length != 1) return;
+    final ethAccounts = categorizedAccounts.first.ethAccounts;
+    final xtzAccounts = categorizedAccounts.first.xtzAccounts;
+    if (ethAccounts.length == 1) {
+      ethSelectedAddress = ethAccounts.first.accountNumber;
+      selectedPersona =
+          WalletIndex(categorizedAccounts.first.persona!.wallet(), 0);
+    }
+    if (xtzAccounts.length == 1) {
+      tezSelectedAddress = xtzAccounts.first.accountNumber;
+      selectedPersona =
+          WalletIndex(categorizedAccounts.first.persona!.wallet(), 0);
+    }
   }
 
   Widget _appInfo() {
