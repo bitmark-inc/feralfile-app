@@ -502,7 +502,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   _handlePostcardDeeplink(String shareCode) async {
     final sharedInfor =
         await _postcardService.getSharedPostcardInfor(shareCode);
-    final contractAddress = "KT1MeB8Wntrx4fjksZkCWUwmGDQTGs6DsMwp";
+    final contractAddress = Environment.postcardContractAddress;
     final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
     final postcard = await _postcardService.getPostcard(tokenId);
     _navigationService.openPostcardReceivedPage(
