@@ -875,7 +875,7 @@ class UIHelper {
                       ),
                       TextSpan(
                         style: theme.textTheme.ppMori700White14,
-                        text: "hidden_art".tr(),
+                        text: "hidden_artwork".tr(),
                       ),
                       TextSpan(
                         style: theme.textTheme.ppMori400White14,

@@ -483,7 +483,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   List<CustomSlidableAction> slidableActions(String address) {
     final theme = Theme.of(context);
     final isHidden =
-        injector<ConfigurationService>().isAddressHiddenInGallery(address);
+        injector<AccountService>().isAddressHiddenInGallery(address);
     return [
       CustomSlidableAction(
         backgroundColor: AppColor.secondarySpanishGrey,
@@ -494,8 +494,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
         ),
         onPressed: (_) async {
-          injector<ConfigurationService>()
-              .setHideAddressInGallery([address], !isHidden);
+          injector<AccountService>()
+              .setHideAddressInGallery(address, !isHidden);
           setState(() {});
         },
       ),

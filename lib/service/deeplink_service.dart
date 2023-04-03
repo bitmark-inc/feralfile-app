@@ -80,13 +80,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
       _addScanQREvent(link: "", linkType: "", prefix: "", addData: data);
       if (data["+clicked_branch_link"] == true &&
-          _deepLinkHandlingMap[data["link"]] == null) {
-        _deepLinkHandlingMap[data["link"]] = true;
+          _deepLinkHandlingMap[data["~referring_link"]] == null) {
+        _deepLinkHandlingMap[data["~referring_link"]] = true;
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
         await _handleBranchDeeplinkData(data);
         handlingDeepLink = null;
-        _deepLinkHandlingMap.remove(data["link"]);
+        _deepLinkHandlingMap.remove(data["~referring_link"]);
       }
     }, onError: (error) {
       log.warning(
