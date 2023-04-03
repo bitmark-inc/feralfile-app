@@ -113,10 +113,7 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
                 text: "h_confirm".tr(),
                 onTap: _selectedAccount == null
                     ? null
-                    : () async {
-                        Navigator.pop(context, _selectedAccount);
-                        return;
-                      },
+                    : () => Navigator.pop(context, _selectedAccount),
               ),
             ),
           ],
@@ -170,7 +167,7 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                 child: _accountItem(context, accounts[index]),
               ),
-              if (accountWidgets.length > 1) ...[const Divider(height: 1.0)],
+              if (accountWidgets.length > 1) const Divider(height: 1.0),
             ],
           );
         },

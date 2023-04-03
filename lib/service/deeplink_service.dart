@@ -301,8 +301,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final uri = Uri.tryParse(urlDecode);
       if (uri == null) return false;
 
-      if (Environment.irlWhitelistUrl.isNotEmpty) {
-        final validUrl = Environment.irlWhitelistUrl.any(
+      if (Environment.irlWhitelistUrls.isNotEmpty) {
+        final validUrl = Environment.irlWhitelistUrls.any(
           (element) => uri.host.contains(element),
         );
         if (!validUrl) return false;
