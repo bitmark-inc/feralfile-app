@@ -591,14 +591,14 @@ class HomePageState extends State<HomePage>
 
     final now = DateTime.now();
     if (subscriptionTime != null) {
-      if (now.isAfter(subscriptionTime.add(const Duration(seconds: 20))) &&
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowTvAppTip()) {
         configurationService.showTvAppTip.value = true;
         await configurationService.setAlreadyShowTvAppTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "enjoy_your_collection".tr()});
       }
-      if (now.isAfter(subscriptionTime.add(const Duration(seconds: 20))) &&
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowCreatePlaylistTip()) {
         configurationService.showCreatePlaylistTip.value = true;
         configurationService.setAlreadyShowCreatePlaylistTip(true);
@@ -607,7 +607,7 @@ class HomePageState extends State<HomePage>
       }
     }
     if (doneOnboardingTime != null) {
-      if (now.isAfter(doneOnboardingTime.add(const Duration(seconds: 20))) &&
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowLinkOrImportTip()) {
         configurationService.showLinkOrImportTip.value = true;
         configurationService.setAlreadyShowLinkOrImportTip(true);
@@ -615,7 +615,7 @@ class HomePageState extends State<HomePage>
             data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
       }
       final premium = await isPremium();
-      if (now.isAfter(doneOnboardingTime.add(const Duration(seconds: 20))) &&
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
           !premium &&
           !configurationService.getAlreadyShowProTip()) {
         configurationService.showProTip.value = true;
