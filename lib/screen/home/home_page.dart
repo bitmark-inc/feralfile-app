@@ -437,7 +437,7 @@ class HomePageState extends State<HomePage>
         Tipcard(
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
             onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
+              Navigator.of(context).pushNamed(AppRouter.accessMethodPage);
             },
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
@@ -581,7 +581,7 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  void _checkTipCardShowTime() async {
+  Future _checkTipCardShowTime() async {
     final metricClient = injector<MetricClientService>();
     log.info("_checkTipCardShowTime");
     final configurationService = injector<ConfigurationService>();
@@ -619,7 +619,7 @@ class HomePageState extends State<HomePage>
           !premium &&
           !configurationService.getAlreadyShowProTip()) {
         configurationService.showProTip.value = true;
-        configurationService.setAlreadyShowProTip(false);
+        configurationService.setAlreadyShowProTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "try_autonomy_pro_free".tr()});
       }
@@ -628,8 +628,8 @@ class HomePageState extends State<HomePage>
 
   void _handleForeground() async {
     memoryValues.inForegroundAt = DateTime.now();
-    _checkTipCardShowTime();
     await injector<ConfigurationService>().reload();
+    await _checkTipCardShowTime();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {
