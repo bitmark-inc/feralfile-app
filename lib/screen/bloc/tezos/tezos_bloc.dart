@@ -20,10 +20,10 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     on<GetTezosAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getTezIndexes().isEmpty) return;
+      if (persona == null || persona.getTezIndexes.isEmpty) return;
       final addresses = await persona.getTezosAddresses();
       var personaAddresses = state.personaAddresses ?? {};
-      final indexes = persona.getTezIndexes();
+      final indexes = persona.getTezIndexes;
       personaAddresses[event.uuid] =
           addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
 
@@ -41,10 +41,10 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getTezIndexes().isEmpty) return;
+      if (persona == null || persona.getTezIndexes.isEmpty) return;
       final addresses = await persona.getTezosAddresses();
       var listAddresses = state.personaAddresses ?? {};
-      final indexes = persona.getTezIndexes();
+      final indexes = persona.getTezIndexes;
       listAddresses[event.uuid] =
           addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
       emit(state.copyWith(personaAddresses: listAddresses));

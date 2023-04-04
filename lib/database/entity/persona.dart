@@ -83,25 +83,21 @@ class Persona {
   }
 
   Future<List<String>> getEthAddresses() async {
-    return await Future.wait(
-        getEthIndexes().map((e) => wallet().getETHEip55Address(index: e)));
+    return Future.wait(
+        getEthIndexes.map((e) => wallet().getETHEip55Address(index: e)));
   }
 
   Future<List<String>> getTezosAddresses() async {
-    return await Future.wait(
-        getTezIndexes().map((e) => wallet().getTezosAddress(index: e)));
+    return Future.wait(
+        getTezIndexes.map((e) => wallet().getTezosAddress(index: e)));
   }
 
-  List<int> getEthIndexes() {
-    return _getIndexes(ethereumIndexes ?? "");
-  }
+  List<int> get getEthIndexes => _getIndexes(ethereumIndexes ?? "");
 
-  List<int> getTezIndexes() {
-    return _getIndexes(tezosIndexes ?? "");
-  }
+  List<int> get getTezIndexes => _getIndexes(tezosIndexes ?? "");
 
   Future<int?> getEthAddressIndex(String address) async {
-    final listIndex = getEthIndexes();
+    final listIndex = getEthIndexes;
     for (int i = 0; i < listIndex.length; i++) {
       if ((await wallet().getETHEip55Address(index: listIndex[i])) == address) {
         return listIndex[i];
@@ -111,7 +107,7 @@ class Persona {
   }
 
   Future<int?> getTezAddressIndex(String address) async {
-    final listIndex = getTezIndexes();
+    final listIndex = getTezIndexes;
     for (int i = 0; i < listIndex.length; i++) {
       if ((await wallet().getTezosAddress(index: listIndex[i])) == address) {
         return listIndex[i];
