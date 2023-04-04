@@ -392,6 +392,22 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
       emit(AccountsState(accounts: accounts));
     });
+
+    on<FindLinkedAccount>((event, emit) async {
+      final connection =
+          await _cloudDB.connectionDao.findById(event.connectionKey);
+      List<Account> accounts = [];
+      if (connection != null) {
+        accounts.add(Account(
+            key: connection.key,
+            name: connection.name,
+            blockchain: event.type.source,
+            accountNumber: event.address,
+            connections: [connection],
+            createdAt: connection.createdAt));
+      }
+      emit(AccountsState(accounts: accounts));
+    });
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {
