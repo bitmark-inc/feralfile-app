@@ -195,6 +195,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       // maybe something wrong with WC register; fix by this for now
       "https://autonomy.io/apps/wc?uri=",
       "https://autonomy.io/apps/wc/wc?uri=",
+      "autonomy://wc?uri=",
     ];
 
     final tzPrefixes = [
@@ -245,14 +246,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
+      final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, "wc:");
       _addScanQREvent(
           link: link,
           linkType: LinkType.dAppConnect,
           prefix: callingWCDeeplinkPrefix);
       if (link.isAutonomyConnectUri) {
-        await _walletConnect2Service.connect(link);
+        await _walletConnect2Service.connect(wcLink);
       } else {
-        await _walletConnectService.connect(link);
+        await _walletConnectService.connect(wcLink);
       }
       return true;
     }
