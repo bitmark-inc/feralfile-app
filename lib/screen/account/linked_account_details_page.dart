@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -42,7 +41,6 @@ class LinkedAccountDetailsPage extends StatefulWidget {
 
 class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   final Map<String, String> _balances = {};
-  bool isHideGalleryEnabled = false;
   List<ContextedAddress> contextedAddresses = [];
   String _source = '';
 
@@ -130,9 +128,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       default:
         break;
     }
-
-    isHideGalleryEnabled = injector<AccountService>()
-        .isLinkedAccountHiddenInGallery(widget.connection.hiddenGalleryKey);
   }
 
   Future fetchXtzBalance(String address) async {
@@ -242,6 +237,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       {required String address, required balanceString}) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400Grey14;
+    final isHideGalleryEnabled =
+        injector<AccountService>().isLinkedAccountHiddenInGallery(address);
     return Slidable(
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
@@ -327,7 +324,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   List<CustomSlidableAction> slidableActions(String address) {
     final theme = Theme.of(context);
     final isHidden =
-        injector<ConfigurationService>().isAddressHiddenInGallery(address);
+        injector<AccountService>().isLinkedAccountHiddenInGallery(address);
     return [
       CustomSlidableAction(
         backgroundColor: AppColor.secondarySpanishGrey,
@@ -338,11 +335,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
         ),
         onPressed: (_) async {
-          injector<ConfigurationService>()
-              .setHideLinkedAccountInGallery([address], !isHidden);
-          setState(() {
-            isHideGalleryEnabled = !isHideGalleryEnabled;
-          });
+          await injector<AccountService>()
+              .setHideLinkedAccountInGallery(address, !isHidden);
+          setState(() {});
         },
       ),
     ];
