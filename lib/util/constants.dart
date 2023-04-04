@@ -284,6 +284,19 @@ extension CryptoTypeHelpers on CryptoType {
         return "Unknown";
     }
   }
+
+  static CryptoType fromSource(String source) {
+    switch (source) {
+      case "Ethereum":
+        return CryptoType.ETH;
+      case "Tezos":
+        return CryptoType.XTZ;
+      case "USDC":
+        return CryptoType.USDC;
+      default:
+        return CryptoType.UNKNOWN;
+    }
+  }
 }
 
 class Constants {

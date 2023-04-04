@@ -598,7 +598,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 onSelectEth: (value) {
                   int order = account.ethAccounts
                       .indexWhere((e) => e.accountNumber == value);
-                  int index  = account.persona!.getEthIndexes[order];
+                  int index = account.persona!.getEthIndexes[order];
                   setState(() {
                     ethSelectedAddress = value;
                     selectedPersona =
@@ -608,7 +608,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 onSelectTez: (value) {
                   int order = account.xtzAccounts
                       .indexWhere((e) => e.accountNumber == value);
-                  int index  = account.persona!.getEthIndexes[order];
+                  int index = account.persona!.getTezIndexes[order];
                   setState(() {
                     tezSelectedAddress = value;
                     selectedPersona =

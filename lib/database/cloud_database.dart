@@ -7,19 +7,24 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/database/dao/address_dao.dart';
 import 'package:autonomy_flutter/database/dao/audit_dao.dart';
 import 'package:autonomy_flutter/database/dao/connection_dao.dart';
 import 'package:autonomy_flutter/database/dao/persona_dao.dart';
 import 'package:autonomy_flutter/database/entity/audit.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
+
+import 'entity/wallet_address.dart';
 
 part 'cloud_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 5, entities: [Persona, Connection, Audit])
+@Database(version: 6, entities: [Persona, Connection, Audit, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
 
@@ -27,10 +32,13 @@ abstract class CloudDatabase extends FloorDatabase {
 
   AuditDao get auditDao;
 
+  WalletAddressDao get addressDao;
+
   Future<dynamic> removeAll() async {
     await personaDao.removeAll();
     await connectionDao.removeAll();
     await auditDao.removeAll();
+    await addressDao.removeAll();
   }
 }
 
@@ -86,4 +94,39 @@ final migrateCloudV4ToV5 = Migration(4, 5, (database) async {
           )
         SELECT y FROM cnt WHERE x = (SELECT id FROM cnt WHERE x = 0));
       """);
+});
+
+final migrateCloudV5ToV6 = Migration(5, 6, (database) async {
+  await database.execute(
+      'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, PRIMARY KEY (`address`))');
+  final personaTable = await database.query("Persona");
+  final personas = personaTable.map((e) => Persona.fromJson(e)).toList();
+  for (var persona in personas) {
+    List<String>? tezIndexesStr = (persona.tezosIndexes ?? "").split(',');
+    tezIndexesStr.removeWhere((element) => element.isEmpty);
+    final tezIndexes = tezIndexesStr.map((e) => int.parse(e)).toList();
+    for (var index in tezIndexes) {
+      await database.insert("WalletAddress", {
+        "address": await persona.wallet().getTezosAddress(index: index),
+        "uuid": persona.uuid,
+        "index": index,
+        "cryptoType": CryptoType.XTZ.source,
+        "createdAt": persona.createdAt.millisecondsSinceEpoch,
+        "isHidden": 0,
+      });
+    }
+    List<String>? ethIndexesStr = (persona.ethereumIndexes ?? "").split(',');
+    ethIndexesStr.removeWhere((element) => element.isEmpty);
+    final ethIndexes = ethIndexesStr.map((e) => int.parse(e)).toList();
+    for (var index in ethIndexes) {
+      await database.insert("WalletAddress", {
+        "address": await persona.wallet().getETHEip55Address(index: index),
+        "uuid": persona.uuid,
+        "index": index,
+        "cryptoType": CryptoType.ETH.source,
+        "createdAt": persona.createdAt.millisecondsSinceEpoch,
+        "isHidden": 0,
+      });
+    }
+  }
 });

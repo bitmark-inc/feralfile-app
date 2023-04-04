@@ -69,6 +69,20 @@ class Persona {
         tezosIndexes: tezosIndexes ?? this.tezosIndexes);
   }
 
+  // fromJson method
+  factory Persona.fromJson(Map<String, dynamic> json) {
+    return Persona(
+      uuid: json['uuid'],
+      name: json['name'],
+      createdAt: DateTimeConverter().decode(json['createdAt']),
+      defaultAccount: json['defaultAccount'],
+      ethereumIndex: json['ethereumIndex'],
+      tezosIndex: json['tezosIndex'],
+      ethereumIndexes: json['ethereumIndexes'],
+      tezosIndexes: json['tezosIndexes'],
+    );
+  }
+
   WalletStorage wallet() {
     return LibAukDart.getWallet(uuid);
   }

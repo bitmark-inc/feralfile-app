@@ -114,6 +114,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       appBar: getBackAppBar(
         context,
         title: title?.replaceFirst('did:key:', '') ?? '',
+        action: _showOptionDialog,
         onBack: () => Navigator.of(context).pop(),
       ),
       body: SingleChildScrollView(
@@ -142,6 +143,10 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         ),
       ),
     );
+  }
+
+  _showOptionDialog() {
+
   }
 
   Widget _addressesSection(String uuid) {

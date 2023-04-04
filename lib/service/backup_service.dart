@@ -167,6 +167,7 @@ class BackupService {
           migrateCloudV2ToV3,
           migrateCloudV3ToV4,
           migrateCloudV4ToV5,
+          migrateCloudV5ToV6,
         ]).build();
 
         await tempFile.delete();
