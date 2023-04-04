@@ -116,7 +116,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
         override: true);
 
     await _configurationService.setHideAddressInGallery(
-        data.hiddenAddressesFromGallery, true,
+        data.hiddenAddressesFromGallery ?? [], true,
         override: true);
 
     await _configurationService.setHideLinkedAccountInGallery(
@@ -137,7 +137,7 @@ class SettingsDataBackup {
   List<String> hiddenMainnetTokenIDs;
   List<String> hiddenTestnetTokenIDs;
   List<String> hiddenLinkedAccountsFromGallery;
-  List<String> hiddenAddressesFromGallery;
+  List<String>? hiddenAddressesFromGallery;
   List<PlayListModel>? playlists;
 
   SettingsDataBackup({
@@ -147,7 +147,7 @@ class SettingsDataBackup {
     required this.hiddenMainnetTokenIDs,
     required this.hiddenTestnetTokenIDs,
     required this.hiddenLinkedAccountsFromGallery,
-    required this.hiddenAddressesFromGallery,
+    this.hiddenAddressesFromGallery,
     this.playlists,
   });
 

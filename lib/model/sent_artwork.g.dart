@@ -10,7 +10,7 @@ SentArtwork _$SentArtworkFromJson(Map<String, dynamic> json) => SentArtwork(
       json['tokenID'] as String,
       json['address'] as String,
       DateTime.parse(json['timestamp'] as String),
-      json['sentQuantity'] as int,
+      (json['sentQuantity'] ?? 1) as int,
       json['isSentAll'] as bool,
     );
 

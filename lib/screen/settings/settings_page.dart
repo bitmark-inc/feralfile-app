@@ -106,10 +106,10 @@ class _SettingsPageState extends State<SettingsPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "settings".tr(),
-        onBack: () {
+        onClose: () {
           Navigator.of(context).pop();
         },
       ),
