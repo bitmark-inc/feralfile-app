@@ -32,10 +32,11 @@ class NamePersonaPage extends StatefulWidget {
   State<NamePersonaPage> createState() => _NamePersonaPageState();
 }
 
-class _NamePersonaPageState extends State<NamePersonaPage> {
+class _NamePersonaPageState extends State<NamePersonaPage> with RouteAware {
   final TextEditingController _nameController = TextEditingController();
 
   bool isSavingAliasDisabled = true;
+  final bool canPop = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
@@ -60,97 +61,103 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
-      body: BlocListener<PersonaBloc, PersonaState>(
-        listener: (context, state) {
-          switch (state.namePersonaState) {
-            case ActionState.notRequested:
-              _nameController.text = state.persona?.name ?? "";
-              break;
+    return WillPopScope(
+      onWillPop: () async {
+        return canPop;
+      },
+      child: Scaffold(
+        appBar:
+            getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
+        body: BlocListener<PersonaBloc, PersonaState>(
+          listener: (context, state) {
+            switch (state.namePersonaState) {
+              case ActionState.notRequested:
+                _nameController.text = state.persona?.name ?? "";
+                break;
 
-            case ActionState.done:
-              _doneNaming();
-              break;
+              case ActionState.done:
+                _doneNaming();
+                break;
 
-            default:
-              break;
-          }
-        },
-        child: Container(
-          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Text(
-                        injector<ConfigurationService>().isDoneOnboarding()
-                            ? "need_add_alias".tr()
-                            : "aa_you_can_add".tr(),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                      const SizedBox(height: 40),
-                      AuTextField(
-                          labelSemantics: "enter_alias_full",
-                          title: "",
-                          placeholder: "enter_alias".tr(),
-                          controller: _nameController,
-                          onChanged: (valueChanged) {
-                            if (_nameController.text.trim().isEmpty !=
-                                isSavingAliasDisabled) {
-                              saveAliasButtonChangedState();
-                            }
-                          }),
-                    ],
+              default:
+                break;
+            }
+          },
+          child: Container(
+            margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        addTitleSpace(),
+                        Text(
+                          injector<ConfigurationService>().isDoneOnboarding()
+                              ? "need_add_alias".tr()
+                              : "aa_you_can_add".tr(),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
+                        const SizedBox(height: 40),
+                        AuTextField(
+                            labelSemantics: "enter_alias_full",
+                            title: "",
+                            placeholder: "enter_alias".tr(),
+                            controller: _nameController,
+                            onChanged: (valueChanged) {
+                              if (_nameController.text.trim().isEmpty !=
+                                  isSavingAliasDisabled) {
+                                saveAliasButtonChangedState();
+                              }
+                            }),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: PrimaryButton(
-                          text: "save_alias".tr(),
-                          onTap: isSavingAliasDisabled
-                              ? null
-                              : () {
-                                  context.read<PersonaBloc>().add(
-                                      NamePersonaEvent(
-                                          _nameController.text.trim()));
-                                },
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            text: "save_alias".tr(),
+                            onTap: isSavingAliasDisabled
+                                ? null
+                                : () {
+                                    context.read<PersonaBloc>().add(
+                                        NamePersonaEvent(
+                                            _nameController.text.trim()));
+                                  },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  !injector<ConfigurationService>().isDoneOnboarding() &&
-                          !widget.payload.isForceAlias
-                      ? OutlineButton(
-                          onTap: () async {
-                            //_doneNaming();
-                            if (!mounted) {
-                              _doneNaming();
-                              return;
-                            }
-                            context
-                                .read<PersonaBloc>()
-                                .add(NamePersonaEvent(''));
-                          },
-                          text: "skip".tr(),
-                          color: AppColor.white,
-                          textColor: AppColor.primaryBlack,
-                          borderColor: AppColor.primaryBlack,
-                        )
-                      : const SizedBox(),
-                ],
-              ),
-            ],
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    !injector<ConfigurationService>().isDoneOnboarding() &&
+                            !widget.payload.isForceAlias
+                        ? OutlineButton(
+                            onTap: () async {
+                              //_doneNaming();
+                              if (!mounted) {
+                                _doneNaming();
+                                return;
+                              }
+                              context
+                                  .read<PersonaBloc>()
+                                  .add(NamePersonaEvent(''));
+                            },
+                            text: "skip".tr(),
+                            color: AppColor.white,
+                            textColor: AppColor.primaryBlack,
+                            borderColor: AppColor.primaryBlack,
+                          )
+                        : const SizedBox(),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
