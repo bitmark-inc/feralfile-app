@@ -338,7 +338,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
         dragDismissible: false,
-        children: slidableActions(address),
+        children: slidableActions(address, type, index),
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -474,7 +474,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  List<CustomSlidableAction> slidableActions(String address) {
+  List<CustomSlidableAction> slidableActions(
+      String address, CryptoType type, int index) {
     final theme = Theme.of(context);
     final isHidden =
         injector<AccountService>().isAddressHiddenInGallery(address);
@@ -493,6 +494,21 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           setState(() {});
         },
       ),
+      CustomSlidableAction(
+        backgroundColor: Colors.red,
+        foregroundColor: theme.colorScheme.secondary,
+        child: Semantics(
+            label: "${address}_delete",
+            child: SvgPicture.asset('assets/images/trash.svg')),
+        onPressed: (_) async {
+          final newPersona = await injector<AccountService>()
+              .deleteAddressPersona(persona, type, index);
+          setState(() {
+            persona = newPersona;
+            _callBloc(persona);
+          });
+        },
+      )
     ];
   }
 }

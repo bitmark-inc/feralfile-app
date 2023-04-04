@@ -115,6 +115,9 @@ abstract class AccountService {
 
   Future<Persona> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses);
+
+  Future<Persona> deleteAddressPersona(
+      Persona persona, CryptoType cryptoType, int index);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -848,6 +851,46 @@ class AccountServiceImpl extends AccountService {
     }
 
     return hiddenAddresses.toSet().toList();
+  }
+
+  @override
+  Future<Persona> deleteAddressPersona(
+      Persona persona, CryptoType cryptoType, int index) async {
+    switch (cryptoType) {
+      case CryptoType.ETH:
+        final listIndexes = persona.getEthIndexes;
+        listIndexes.remove(index);
+        persona.ethereumIndexes = listIndexes.join(",");
+        await _cloudDB.personaDao.updatePersona(persona);
+        final connections = await _cloudDB.connectionDao
+            .getConnectionsByType(ConnectionType.dappConnect.rawValue);
+        for (var connection in connections) {
+          final wcConnection = connection.wcConnection;
+          if (wcConnection == null) continue;
+          if (wcConnection.personaUuid == persona.uuid &&
+              wcConnection.index == index) {
+            _cloudDB.connectionDao.deleteConnection(connection);
+          }
+        }
+        return persona;
+      case CryptoType.XTZ:
+        final listIndexes = persona.getTezIndexes;
+        listIndexes.remove(index);
+        persona.tezosIndexes = listIndexes.join(",");
+        await _cloudDB.personaDao.updatePersona(persona);
+        final connections = await _cloudDB.connectionDao
+            .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
+
+        for (var connection in connections) {
+          if (connection.beaconConnectConnection?.personaUuid == persona.uuid &&
+              connection.beaconConnectConnection?.index == index) {
+            _cloudDB.connectionDao.deleteConnection(connection);
+          }
+        }
+        return persona;
+      default:
+        return persona;
+    }
   }
 }
 

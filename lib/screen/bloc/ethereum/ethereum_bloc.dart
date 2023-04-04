@@ -46,7 +46,10 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getEthIndexes.isEmpty) return;
+      if (persona == null || persona.getEthIndexes.isEmpty) {
+        emit(state.copyWith(personaAddresses: {}));
+        return;
+      }
       final addresses = await persona.getEthAddresses();
       final indexes = persona.getEthIndexes;
       var listAddresses = state.personaAddresses ?? {};

@@ -596,8 +596,9 @@ class _WCConnectPageState extends State<WCConnectPage>
                 tezSelectedAddress: tezSelectedAddress,
                 isExpand: true,
                 onSelectEth: (value) {
-                  int index = account.ethAccounts
+                  int order = account.ethAccounts
                       .indexWhere((e) => e.accountNumber == value);
+                  int index  = account.persona!.getEthIndexes[order];
                   setState(() {
                     ethSelectedAddress = value;
                     selectedPersona =
@@ -605,8 +606,9 @@ class _WCConnectPageState extends State<WCConnectPage>
                   });
                 },
                 onSelectTez: (value) {
-                  int index = account.xtzAccounts
+                  int order = account.xtzAccounts
                       .indexWhere((e) => e.accountNumber == value);
+                  int index  = account.persona!.getEthIndexes[order];
                   setState(() {
                     tezSelectedAddress = value;
                     selectedPersona =

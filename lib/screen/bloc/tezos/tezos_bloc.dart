@@ -44,7 +44,10 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getTezIndexes.isEmpty) return;
+      if (persona == null || persona.getTezIndexes.isEmpty) {
+        emit(state.copyWith(personaAddresses: {}));
+        return;
+      }
       final addresses = await persona.getTezosAddresses();
       var listAddresses = state.personaAddresses ?? {};
       final indexes = persona.getTezIndexes;
