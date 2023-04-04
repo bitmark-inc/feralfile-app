@@ -693,13 +693,6 @@ class AppRouter {
                     BlocProvider.value(value: ethereumBloc),
                     BlocProvider.value(value: tezosBloc),
                     BlocProvider.value(value: usdcBloc),
-                    BlocProvider.value(
-                        value: ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector(),
-                    )),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),

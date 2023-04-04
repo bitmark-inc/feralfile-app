@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_tran
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -54,16 +53,13 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     with RouteAware {
   late ScrollController controller;
   bool hideConnection = false;
-  bool hideSend = false;
-  bool hideAddress = false;
-  bool hideBalance = false;
   bool isHideGalleryEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    isHideGalleryEnabled = injector<ConfigurationService>()
-        .isAddressHiddenInGallery(widget.payload.address);
+    isHideGalleryEnabled = injector<AccountService>()
+        .isLinkedAccountHiddenInGallery(widget.payload.address);
 
     context.read<AccountsBloc>().add(FindLinkedAccount(
         widget.payload.connectionKey,
@@ -542,7 +538,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 color: AppColor.primaryBlack,
               ),
               onTap: () {
-                injector<AccountService>().setHideAddressInGallery(
+                injector<AccountService>().setHideLinkedAccountInGallery(
                     widget.payload.address, !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
@@ -557,7 +553,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 color: AppColor.primaryBlack,
               ),
               onTap: () {
-                injector<AccountService>().setHideAddressInGallery(
+                injector<AccountService>().setHideLinkedAccountInGallery(
                     widget.payload.address, !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;

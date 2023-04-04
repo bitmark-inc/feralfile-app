@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
@@ -20,6 +21,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -39,7 +41,8 @@ class LinkedAccountDetailsPage extends StatefulWidget {
       _LinkedAccountDetailsPageState();
 }
 
-class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
+class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
+    with RouteAware {
   final Map<String, String> _balances = {};
   List<ContextedAddress> contextedAddresses = [];
   String _source = '';
@@ -146,6 +149,24 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     switch (widget.connection.connectionType) {
       case 'feralFileWeb3':
@@ -245,8 +266,24 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         dragDismissible: false,
         children: slidableActions(address),
       ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
+      child: TappableForwardRowWithContent(
+        leftWidget: Text(type.source, style: theme.textTheme.ppMori700Black14),
+        rightWidget: Row(
+          children: [
+            if (isHideGalleryEnabled) ...[
+              SvgPicture.asset(
+                'assets/images/hide.svg',
+                color: theme.colorScheme.surface,
+              ),
+              const SizedBox(width: 10),
+            ],
+            Text(balanceString, style: balanceStyle),
+          ],
+        ),
+        bottomWidget: Text(
+          address,
+          style: theme.textTheme.ppMori400Black14,
+        ),
         onTap: () async {
           final payload = LinkedWalletDetailsPayload(
             connectionKey: widget.connection.key,
@@ -259,44 +296,6 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
           Navigator.of(context)
               .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(type.source, style: theme.textTheme.ppMori700Black14),
-                  const Expanded(child: SizedBox()),
-                  if (isHideGalleryEnabled) ...[
-                    SvgPicture.asset(
-                      'assets/images/hide.svg',
-                      color: theme.colorScheme.surface,
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  Text(balanceString, style: balanceStyle),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  SvgPicture.asset('assets/images/iconForward.svg'),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      address,
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        ),
       ),
     );
   }
