@@ -359,6 +359,7 @@ Dio _feralFileDio(BaseOptions options) {
 
 Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
+  dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(PostcardAuthInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);

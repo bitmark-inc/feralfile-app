@@ -199,19 +199,17 @@ class PostcardAuthInterceptor extends Interceptor {
         options.method.toUpperCase() == "POST") {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      final clientName = "autonomy-postcard";
       final canonicalString = List<String>.of([
         options.uri.toString(),
         json.encode(options.data),
         timestamp,
       ]).join("|");
       final hmacSha256 =
-          Hmac(sha256, utf8.encode(Environment.postcardSecretKey));
+          Hmac(sha256, utf8.encode(Environment.auClaimSecretKey));
       final digest = hmacSha256.convert(utf8.encode(canonicalString));
       final sig = bytesToHex(digest.bytes);
-      options.headers["X-Api-Signature"] = "t=$timestamp,s=$sig";
+      options.headers["X-Api-Signature"] = sig;
       options.headers["X-Api-Timestamp"] = timestamp;
-      options.headers['X-Api-Client-Name'] = clientName;
     }
     handler.next(options);
   }
