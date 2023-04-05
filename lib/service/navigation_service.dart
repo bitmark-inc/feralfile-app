@@ -178,9 +178,9 @@ class NavigationService {
     }
   }
 
-  void goBack() {
+  void goBack({Object? result}) {
     log.info("NavigationService.goBack");
-    return navigatorKey.currentState?.pop();
+    return navigatorKey.currentState?.pop(result);
   }
 
   void popUntilHomeOrSettings() {

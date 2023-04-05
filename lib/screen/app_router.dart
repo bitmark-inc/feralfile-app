@@ -78,6 +78,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -122,9 +123,11 @@ import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.da
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -206,6 +209,9 @@ class AppRouter {
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
   static const inappWebviewPage = 'inapp_webview_page';
+  static const irlWebview = 'irl_web_claim';
+  static const irlGetAddress = 'irl_get_address';
+  static const irlSignMessage = 'irl_sign_message';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1022,6 +1028,7 @@ class AppRouter {
                   blockchain: args.blockchain,
                   artwork: args.artwork,
                   otp: args.otp,
+                  fromWebview: args.fromWebview,
                 ),
               );
             });
@@ -1125,6 +1132,34 @@ class AppRouter {
             builder: (context) {
               return InappWebviewPage(url: settings.arguments as String);
             });
+      case irlWebview:
+        final url = settings.arguments as Uri;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return IRLWebScreen(url: url);
+            });
+
+      case irlGetAddress:
+        final payload = settings.arguments as IRLGetAddressPayLoad?;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: IRLGetAddressPage(payload: payload),
+            );
+          },
+        );
+
+      case irlSignMessage:
+        final payload = settings.arguments as IRLSignMessagePayload;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return IRLSignMessageScreen(payload: payload);
+            });
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

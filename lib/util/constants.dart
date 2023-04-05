@@ -29,6 +29,7 @@ const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
+const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     "https://github.com/bitmark-inc/autonomy-client";
 const DEEP_LINKS = [

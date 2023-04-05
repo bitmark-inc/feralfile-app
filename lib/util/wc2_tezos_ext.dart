@@ -66,16 +66,16 @@ extension Wc2TezosRequestExt on Wc2Request {
 
     final beaconRequest = BeaconRequest(
       "$id",
-      senderID,
-      version,
-      originID,
-      "operation",
-      appName,
-      icon,
-    )
-      ..operations = operations
-      ..sourceAddress = sourceAddress
-      ..wc2Topic = topic;
+      senderID: senderID,
+      version: version,
+      originID: originID,
+      type: "operation",
+      appName: appName,
+      icon: icon,
+      operations: operations,
+      sourceAddress: sourceAddress,
+      wc2Topic: topic,
+    );
 
     return beaconRequest;
   }

@@ -34,6 +34,7 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
   final String uuid;
   final int index;
   final bool isWalletConnect2;
+  final bool isIRL;
   final String? topic;
 
   WCSendTransactionSendEvent(
@@ -46,6 +47,7 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
     this.uuid,
     this.index, {
     required this.isWalletConnect2,
+    this.isIRL = false,
     this.topic,
   });
 }
@@ -61,12 +63,14 @@ class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
   final int requestId;
   final String? topic;
   final bool isWalletConnect2;
+  final bool isIRL;
 
   WCSendTransactionRejectEvent(
     this.peerMeta,
     this.requestId, {
     this.topic,
     required this.isWalletConnect2,
+    this.isIRL = false,
   });
 }
 
