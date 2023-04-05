@@ -73,7 +73,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final account = await Navigator.of(context).pushNamed(
+      final address = await Navigator.of(context).pushNamed(
         AppRouter.irlGetAddress,
         arguments: IRLGetAddressPayLoad(
           blockchain: chain,
@@ -81,8 +81,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           metadata: arguments['metadata'],
         ),
       );
-      if (account != null && account is Account?) {
-        final address = await (account as Account?)?.getAddress(chain);
+      if (address != null) {
         return _logAndReturnJSResult(
           '_getAddress',
           JSResult.result(address),

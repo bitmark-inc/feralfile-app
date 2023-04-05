@@ -134,8 +134,8 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             ),
             const SizedBox(height: 30),
             Expanded(
-                child:
-                    SingleChildScrollView(child: _buildAddressList(context))),
+              child: SingleChildScrollView(child: _buildAddressList(context)),
+            ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryButton(

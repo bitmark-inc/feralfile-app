@@ -1,9 +1,7 @@
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
-import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -39,16 +37,11 @@ class IRLGetAddressPage extends StatefulWidget {
 }
 
 class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
-  Account? _selectedAccount;
+  String? _selectedAddress;
 
   @override
   void initState() {
-    context.read<AccountsBloc>().add(
-          GetAccountsIRLEvent(
-            param: widget.payload?.params,
-            blockchain: widget.payload?.blockchain,
-          ),
-        );
+    _callAccountEvent();
     super.initState();
   }
 
@@ -66,11 +59,20 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
 
   @override
   void didPopNext() {
-    context.read<AccountsBloc>().add(GetAccountsIRLEvent(
-          param: widget.payload?.params,
-          blockchain: widget.payload?.blockchain,
-        ));
+    _callAccountEvent();
     super.didPopNext();
+  }
+
+  void _callAccountEvent() {
+    if (widget.payload?.blockchain?.toLowerCase() == "tezos") {
+      context
+          .read<AccountsBloc>()
+          .add(GetCategorizedAccountsEvent(getEth: false));
+    } else {
+      context
+          .read<AccountsBloc>()
+          .add(GetCategorizedAccountsEvent(getTezos: false));
+    }
   }
 
   @override
@@ -106,14 +108,18 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
               ),
             ),
             const SizedBox(height: 30),
-            Expanded(child: _buildPersonaList(context)),
+            Expanded(
+              child: SingleChildScrollView(
+                child: _buildAddressList(context),
+              ),
+            ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryButton(
                 text: "h_confirm".tr(),
-                onTap: _selectedAccount == null
+                onTap: _selectedAddress == null
                     ? null
-                    : () => Navigator.pop(context, _selectedAccount),
+                    : () => Navigator.pop(context, _selectedAddress),
               ),
             ),
           ],
@@ -122,56 +128,36 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
     );
   }
 
-  Widget _accountItem(BuildContext context, Account account) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      child: IgnorePointer(
-        child: Row(
-          children: [
-            Expanded(child: accountItem(context, account)),
-            AuRadio(
-                onTap: (_) {},
-                value: account.key,
-                groupValue: _selectedAccount?.key)
-          ],
-        ),
-      ),
-      onTap: () {
-        setState(() {
-          _selectedAccount = account;
-        });
-      },
-    );
-  }
-
-  Widget _buildPersonaList(BuildContext context) {
-    final connectionType = widget.payload?.blockchain == Wc2Chain.tezos
-        ? "walletBeacon"
-        : "walletConnect";
+  Widget _buildAddressList(BuildContext context) {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final accounts = state.accounts
-              ?.where((e) =>
-                  e.persona != null ||
-                  e.connections?.any((connection) =>
-                          connection.connectionType == connectionType) ==
-                      true)
-              .toList() ??
-          [];
-      final accountWidgets =
-          accounts.map((e) => _accountItem(context, e)).toList();
-      return ListView.builder(
-        itemBuilder: (context, index) {
-          return Column(
-            children: [
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _accountItem(context, accounts[index]),
-              ),
-              if (accountWidgets.length > 1) const Divider(height: 1.0),
-            ],
-          );
-        },
-        itemCount: accountWidgets.length,
+      final categorizedAccounts = state.categorizedAccounts ?? [];
+      return Column(
+        children: [
+          ...categorizedAccounts
+              .map((account) => PersonalConnectItem(
+                    categorizedAccount: account,
+                    ethSelectedAddress: _selectedAddress,
+                    tezSelectedAddress: _selectedAddress,
+                    isExpand: true,
+                    onSelectEth: (value) {
+                      setState(() {
+                        if (widget.payload?.blockchain?.toLowerCase() !=
+                            "tezos") {
+                          _selectedAddress = value;
+                        }
+                      });
+                    },
+                    onSelectTez: (value) {
+                      setState(() {
+                        if (widget.payload?.blockchain?.toLowerCase() ==
+                            "tezos") {
+                          _selectedAddress = value;
+                        }
+                      });
+                    },
+                  ))
+              .toList(),
+        ],
       );
     });
   }
