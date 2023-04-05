@@ -132,32 +132,30 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
       final categorizedAccounts = state.categorizedAccounts ?? [];
       return Column(
-        children: [
-          ...categorizedAccounts
-              .map((account) => PersonalConnectItem(
-                    categorizedAccount: account,
-                    ethSelectedAddress: _selectedAddress,
-                    tezSelectedAddress: _selectedAddress,
-                    isExpand: true,
-                    onSelectEth: (value) {
-                      setState(() {
-                        if (widget.payload?.blockchain?.toLowerCase() !=
-                            "tezos") {
-                          _selectedAddress = value;
-                        }
-                      });
-                    },
-                    onSelectTez: (value) {
-                      setState(() {
-                        if (widget.payload?.blockchain?.toLowerCase() ==
-                            "tezos") {
-                          _selectedAddress = value;
-                        }
-                      });
-                    },
-                  ))
-              .toList(),
-        ],
+        children: categorizedAccounts
+            .map((account) => PersonalConnectItem(
+                  categorizedAccount: account,
+                  ethSelectedAddress: _selectedAddress,
+                  tezSelectedAddress: _selectedAddress,
+                  isExpand: true,
+                  onSelectEth: (value) {
+                    setState(() {
+                      if (widget.payload?.blockchain?.toLowerCase() !=
+                          "tezos") {
+                        _selectedAddress = value;
+                      }
+                    });
+                  },
+                  onSelectTez: (value) {
+                    setState(() {
+                      if (widget.payload?.blockchain?.toLowerCase() ==
+                          "tezos") {
+                        _selectedAddress = value;
+                      }
+                    });
+                  },
+                ))
+            .toList(),
       );
     });
   }
