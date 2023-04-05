@@ -13,9 +13,7 @@ import 'package:wallet_connect/wallet_connect.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:tezart/tezart.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
@@ -73,7 +71,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final account = await Navigator.of(context).pushNamed(
+      final address = await Navigator.of(context).pushNamed(
         AppRouter.irlGetAddress,
         arguments: IRLGetAddressPayLoad(
           blockchain: chain,
@@ -81,8 +79,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           metadata: arguments['metadata'],
         ),
       );
-      if (account != null && account is Account?) {
-        final address = await (account as Account?)?.getAddress(chain);
+      if (address != null) {
         return _logAndReturnJSResult(
           '_getAddress',
           JSResult.result(address),
