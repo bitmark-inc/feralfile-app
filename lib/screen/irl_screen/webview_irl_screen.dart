@@ -13,9 +13,7 @@ import 'package:wallet_connect/wallet_connect.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:tezart/tezart.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
