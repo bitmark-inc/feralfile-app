@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
@@ -364,6 +365,13 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => const BeOwnGalleryPage(),
+        );
+
+      case ChatThreadPage.tag:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ChatThreadPage(
+              payload: settings.arguments as ChatThreadPagePayload),
         );
 
       case postcardExplain:

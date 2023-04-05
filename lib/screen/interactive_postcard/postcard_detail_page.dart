@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
@@ -239,6 +240,36 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               ],
             ),
             actions: [
+              Semantics(
+                label: 'chat',
+                child: IconButton(
+                  onPressed: () async {
+                    final wallet = await asset.getOwnerWallet();
+                    if (wallet == null || !mounted) return;
+                    Navigator.of(context).pushNamed(
+                      ChatThreadPage.tag,
+                      arguments: ChatThreadPagePayload(
+                          tokenId: asset.id,
+                          wallet: wallet.first,
+                          address: asset.owner,
+                          index: wallet.second,
+                          cryptoType: asset.blockchain == "ethereum"
+                              ? CryptoType.ETH
+                              : CryptoType.XTZ,
+                          name: asset.title ?? ''),
+                    );
+                  },
+                  constraints: const BoxConstraints(
+                    maxWidth: 44,
+                    maxHeight: 44,
+                  ),
+                  icon: SvgPicture.asset(
+                    'assets/images/icon_chat.svg',
+                    width: 22,
+                    color: AppColor.white,
+                  ),
+                ),
+              ),
               Semantics(
                 label: 'artworkDotIcon',
                 child: IconButton(
