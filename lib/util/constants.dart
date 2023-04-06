@@ -232,7 +232,20 @@ enum CryptoType {
   ETH,
   XTZ,
   USDC,
-  UNKNOWN,
+  UNKNOWN;
+
+  static CryptoType fromSource(String source) {
+    switch (source) {
+      case "Ethereum":
+        return CryptoType.ETH;
+      case "Tezos":
+        return CryptoType.XTZ;
+      case "USDC":
+        return CryptoType.USDC;
+      default:
+        return CryptoType.UNKNOWN;
+    }
+  }
 }
 
 enum AnnouncementID {
@@ -282,19 +295,6 @@ extension CryptoTypeHelpers on CryptoType {
         return "USDC";
       case CryptoType.UNKNOWN:
         return "Unknown";
-    }
-  }
-
-  static CryptoType fromSource(String source) {
-    switch (source) {
-      case "Ethereum":
-        return CryptoType.ETH;
-      case "Tezos":
-        return CryptoType.XTZ;
-      case "USDC":
-        return CryptoType.USDC;
-      default:
-        return CryptoType.UNKNOWN;
     }
   }
 }

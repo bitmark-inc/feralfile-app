@@ -1,4 +1,3 @@
-
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:floor/floor.dart';
 
@@ -24,4 +23,22 @@ class WalletAddress {
       required this.cryptoType,
       required this.createdAt,
       this.isHidden = false});
+
+  WalletAddress copyWith({
+    String? address,
+    String? uuid,
+    int? index,
+    String? cryptoType,
+    DateTime? createdAt,
+    bool? isHidden,
+  }) {
+    return WalletAddress(
+      address: address ?? this.address,
+      uuid: uuid ?? this.uuid,
+      index: index ?? this.index,
+      cryptoType: cryptoType ?? this.cryptoType,
+      createdAt: createdAt ?? this.createdAt,
+      isHidden: isHidden ?? this.isHidden,
+    );
+  }
 }

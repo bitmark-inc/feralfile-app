@@ -1,4 +1,3 @@
-
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:floor/floor.dart';
 
