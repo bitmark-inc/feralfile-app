@@ -196,7 +196,15 @@ class PostcardAuthInterceptor extends Interceptor {
   Future<String> getData(RequestOptions options) async {
     if (options.data is FormData) {
       final formData = options.data as FormData;
-      final formDataInBytes = await formData.readAsBytes();
+      final fields = formData.fields;
+      final files = formData.files.map((e) {
+        return MapEntry(e.key, e.value.filename ?? "");
+      }).toList();
+      final mixData = List<MapEntry<String, dynamic>>.of(fields)..addAll(files);
+      mixData.sort((a, b) => a.key.compareTo(b.key));
+      final formDataInBytes =
+          utf8.encode(mixData.map((e) => e.value).join("|"));
+      //final formDataInBytes = await formData.readAsBytes();
       final hexBody = bytesToHex(sha256.convert(formDataInBytes).bytes);
       return hexBody;
     }
