@@ -197,10 +197,7 @@ class AccountServiceImpl extends AccountService {
       default:
         break;
     }
-    final persona = Persona.newPersona(
-        uuid: uuid,
-        ethereumIndexes: ethereumIndexes,
-        tezosIndexes: tezosIndexes);
+    final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
     await persona.insertAddress(walletType);
     await androidBackupKeys();
