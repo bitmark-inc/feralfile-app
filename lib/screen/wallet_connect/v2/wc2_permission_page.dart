@@ -261,7 +261,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               Expanded(
                 child: SingleChildScrollView(
                   child: BlocConsumer<AccountsBloc, AccountsState>(
-                      listener: (context, state) async {
+                      listener: (context, state) {
                     final categorizedAccounts = state.categorizedAccounts ?? [];
 
                     final selectManual = categorizedAccounts.length > 1 ||
@@ -270,13 +270,17 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         (_selectXTZAddress &&
                             categorizedAccounts.first.xtzAccounts.length > 1);
 
-                    if (!selectManual) {
+                    if (selectManual) return;
+
+                    if (selectedAddress.containsKey('eip155:1')) {
                       selectedAddress['eip155:1'] = categorizedAccounts
                           .first.ethAccounts.first.accountNumber;
+                    }
+                    if (selectedAddress.containsKey('tezos')) {
                       selectedAddress['tezos'] = categorizedAccounts
                           .first.xtzAccounts.first.accountNumber;
-                      setState(() {});
                     }
+                    setState(() {});
                   }, builder: (context, state) {
                     final categorizedAccounts = state.categorizedAccounts ?? [];
                     if (categorizedAccounts.isEmpty) return const SizedBox();
