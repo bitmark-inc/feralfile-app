@@ -87,11 +87,14 @@ class WCSendTransactionBloc
         final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
         final signature = await _ethereumService.signPersonalMessage(
             persona, index, Uint8List.fromList(utf8.encode(timestamp)));
-        if (event.isWalletConnect2) {
-          await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
-        } else {
-          _walletConnectService.approveRequest(
-              event.peerMeta, event.requestId, txHash);
+
+        if (!event.isIRL) {
+          if (event.isWalletConnect2) {
+            await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
+          } else {
+            _walletConnectService.approveRequest(
+                event.peerMeta, event.requestId, txHash);
+          }
         }
         injector<PendingTokenService>()
             .checkPendingEthereumTokens(
@@ -106,7 +109,7 @@ class WCSendTransactionBloc
                 .add(UpdateTokensEvent(tokens: tokens));
           }
         });
-        _navigationService.goBack();
+        _navigationService.goBack(result: txHash);
       } catch (e) {
         final newState = sendingState.clone();
         newState.balance = balance.getInWei;
@@ -118,10 +121,12 @@ class WCSendTransactionBloc
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {
-      if (event.isWalletConnect2) {
-        _wc2Service.respondOnReject(event.topic ?? "");
-      } else {
-        _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
+      if (!event.isIRL) {
+        if (event.isWalletConnect2) {
+          _wc2Service.respondOnReject(event.topic ?? "");
+        } else {
+          _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
+        }
       }
       _navigationService.goBack();
     });

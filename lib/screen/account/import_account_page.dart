@@ -8,11 +8,12 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -31,6 +33,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -44,7 +47,10 @@ class ImportAccountPage extends StatefulWidget {
 class _ImportAccountPageState extends State<ImportAccountPage> {
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
-  bool _isDefaultAccountCreated = false;
+  bool _isImporting = false;
+  bool _isScanning = false;
+  int scanCount = 0;
+  Persona? _persona;
 
   bool isError = false;
   WalletType _walletType = WalletType.Autonomy;
@@ -53,17 +59,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
 
   @override
   void initState() {
-    fetchDefaultAccount();
     metricClient.timerEvent(MixpanelEvent.backImportAccount);
     super.initState();
-  }
-
-  Future<void> fetchDefaultAccount() async {
-    final isCreated =
-        (await injector<CloudDatabase>().personaDao.getPersonas()).isNotEmpty;
-    setState(() {
-      _isDefaultAccountCreated = isCreated;
-    });
   }
 
   @override
@@ -160,13 +157,13 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                               return Column(
                                 children: [
                                   _walletTypeOption(
-                                      theme, WalletType.Autonomy, dialogState),
-                                  addDivider(height: 40, color: AppColor.white),
-                                  _walletTypeOption(
                                       theme, WalletType.Ethereum, dialogState),
                                   addDivider(height: 40, color: AppColor.white),
                                   _walletTypeOption(
                                       theme, WalletType.Tezos, dialogState),
+                                  addDivider(height: 40, color: AppColor.white),
+                                  _walletTypeOption(
+                                      theme, WalletType.Autonomy, dialogState),
                                   const SizedBox(height: 40),
                                   Padding(
                                     padding: ResponsiveLayout
@@ -265,13 +262,66 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                 ),
               ),
             ),
-            PrimaryButton(
-              enabled: _isSubmissionEnabled,
-              text: "h_confirm".tr(),
-              onTap: () {
-                if (_isSubmissionEnabled) _import();
-              },
-            ),
+            BlocConsumer<ScanWalletBloc, ScanWalletState>(
+                listener: (scanContext, scanState) async {
+              if (scanState.isScanning == false && _persona != null) {
+                scanCount++;
+                if (_walletType != WalletType.Autonomy || scanCount > 1) {
+                  setState(() {
+                    _isScanning = false;
+                  });
+                  if (scanState.addresses.isEmpty) {
+                    Navigator.of(context).popAndPushNamed(
+                        AppRouter.namePersonaPage,
+                        arguments: NamePersonaPayload(uuid: _persona!.uuid));
+                    return;
+                  } else {
+                    UIHelper.showScrollableDialog(
+                      context,
+                      BlocProvider.value(
+                        value: context.read<ScanWalletBloc>(),
+                        child: AddAddressToWallet(
+                          addresses: scanState.addresses,
+                          importedAddress: await _persona!.getAddresses(),
+                          walletType: _walletTypeSelecting,
+                          wallet: _persona!.wallet(),
+                          onImport: (addresses) async {
+                            final newPersona = await injector<AccountService>()
+                                .addAddressPersona(_persona!, addresses);
+                            if (!mounted) return;
+                            Navigator.of(context).popAndPushNamed(
+                                AppRouter.namePersonaPage,
+                                arguments:
+                                    NamePersonaPayload(uuid: newPersona.uuid));
+                          },
+                          onSkip: () {
+                            UIHelper.hideInfoDialog(context);
+                            Navigator.of(context).popAndPushNamed(
+                                AppRouter.namePersonaPage,
+                                arguments:
+                                    NamePersonaPayload(uuid: _persona!.uuid));
+                          },
+                          scanNext: false,
+                        ),
+                      ),
+                    );
+                  }
+                }
+              }
+            }, builder: (scanContext, scanState) {
+              return PrimaryButton(
+                enabled: _isSubmissionEnabled && !_isImporting && !_isScanning,
+                isProcessing: _isImporting || _isScanning,
+                text: _isImporting
+                    ? "importing".tr()
+                    : _isScanning
+                        ? "scanning_addresses".tr()
+                        : "import".tr(),
+                onTap: () {
+                  if (_isSubmissionEnabled) _import();
+                },
+              );
+            }),
           ],
         ),
       ),
@@ -318,30 +368,53 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
     try {
       setState(() {
         isError = false;
+        _isImporting = true;
       });
-      final bool createBaseWallet =
-          !_isDefaultAccountCreated && _walletType != WalletType.Autonomy;
       final accountService = injector<AccountService>();
-      if (createBaseWallet) {
-        await accountService.createPersona(isDefault: true);
-      }
 
       final persona = await accountService.importPersona(
           _phraseTextController.text.trim(),
           walletType: _walletType);
+      _persona = persona;
       log.info("Import wallet: ${_walletType.getString()}");
       // SideEffect: pre-fetch tokens
       final addresses = await persona.getAddresses();
       injector<TokensService>().fetchTokensForAddresses(addresses);
+      setState(() {
+        _isImporting = false;
+        _isScanning = true;
+      });
 
       if (!mounted) return;
-      UIHelper.showImportedPersonaDialog(context,
-          onContinue: () => Navigator.of(context).popAndPushNamed(
-              AppRouter.namePersonaPage,
-              arguments: NamePersonaPayload(
-                  uuid: persona.uuid, isForceAlias: createBaseWallet)));
-      if (createBaseWallet) {
-        injector<ConfigurationService>().setShowAuChainInfo(true);
+      switch (_walletType) {
+        case WalletType.Ethereum:
+          context.read<ScanWalletBloc>().add(ScanEthereumWalletEvent(
+              wallet: persona.wallet(),
+              startIndex: 1,
+              showEmptyAddresses: false,
+              gapLimit: 2));
+          break;
+        case WalletType.Tezos:
+          context.read<ScanWalletBloc>().add(ScanTezosWalletEvent(
+              wallet: persona.wallet(),
+              startIndex: 1,
+              showEmptyAddresses: false,
+              gapLimit: 2));
+          break;
+        default:
+          context.read<ScanWalletBloc>().add(ScanEthereumWalletEvent(
+              wallet: persona.wallet(),
+              startIndex: 1,
+              showEmptyAddresses: false,
+              gapLimit: 2,
+              isAdd: true));
+
+          context.read<ScanWalletBloc>().add(ScanTezosWalletEvent(
+              wallet: persona.wallet(),
+              startIndex: 1,
+              showEmptyAddresses: false,
+              gapLimit: 2,
+              isAdd: true));
       }
     } on AccountImportedException catch (e) {
       showErrorDiablog(
@@ -359,6 +432,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       });
       setState(() {
         isError = true;
+        _isImporting = false;
       });
     } catch (exception) {
       if (!(exception is PlatformException &&
@@ -368,6 +442,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;
+        _isImporting = false;
       });
     }
   }

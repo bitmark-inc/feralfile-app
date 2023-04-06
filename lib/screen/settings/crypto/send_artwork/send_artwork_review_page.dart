@@ -106,7 +106,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         final payload = {
           "isTezos": false,
           "hash": txHash,
-          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
+          "sentQuantity": widget.payload.quantity,
         };
         Navigator.of(context).pop(payload);
       } else {
@@ -195,7 +196,8 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           "isTezos": true,
           "hash": opHash,
           "tx": tx,
-          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
+          "sentQuantity": widget.payload.quantity,
         };
         Navigator.of(context).pop(payload);
       }

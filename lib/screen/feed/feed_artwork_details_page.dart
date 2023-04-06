@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -26,6 +27,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -142,6 +144,17 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
         ),
         actions: [
           IconButton(
+            onPressed: () => _showFeedOptionsDialog(),
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+            ),
+            icon: SvgPicture.asset(
+              'assets/images/more_circle.svg',
+              width: 22,
+            ),
+          ),
+          IconButton(
             onPressed: () => Navigator.pop(context),
             constraints: const BoxConstraints(
               maxWidth: 44,
@@ -256,15 +269,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
               ],
             ),
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ReportButton(
-              assetToken: assetToken,
-              scrollController: _scrollController,
-            ),
-          ),
         ],
       ),
     );
@@ -283,6 +287,27 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
         return artworkDetailsProvenanceSectionNotEmpty(context, provenances,
             _accountNumberHash, identityState.identityMap);
       }),
+    );
+  }
+
+  _showFeedOptionsDialog() {
+    final assetToken = widget.payload.feedToken;
+    if (assetToken == null) {
+      return;
+    }
+    UIHelper.showDrawerAction(
+      context,
+      options: [
+        OptionItem(
+          title: 'report_nft_rendering_issues'.tr(),
+          icon: const Icon(AuIcon.help_us),
+          onTap: () {
+            Navigator.of(context).pop();
+            showReportIssueDialog(context, assetToken);
+          },
+        ),
+        OptionItem(),
+      ],
     );
   }
 }

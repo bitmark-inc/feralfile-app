@@ -118,35 +118,8 @@ class _AccountsViewState extends State<AccountsView> {
 
   List<CustomSlidableAction> slidableActions(Account account, bool isDefault) {
     final theme = Theme.of(context);
-    bool isHidden = false;
-    if (account.persona != null) {
-      isHidden = injector<AccountService>()
-          .isPersonaHiddenInGallery(account.persona!.uuid);
-    } else if (account.connections?.first != null) {
-      isHidden = injector<AccountService>().isLinkedAccountHiddenInGallery(
-          account.connections!.first.hiddenGalleryKey);
-    }
 
     var actions = [
-      CustomSlidableAction(
-        backgroundColor: AppColor.secondarySpanishGrey,
-        foregroundColor: theme.colorScheme.secondary,
-        child: Semantics(
-          label: "${account.name}_hide",
-          child: SvgPicture.asset(
-              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
-        ),
-        onPressed: (_) async {
-          if (account.persona != null) {
-            await injector<AccountService>()
-                .setHidePersonaInGallery(account.persona!.uuid, !isHidden);
-          } else if (account.connections?.first != null) {
-            await injector<AccountService>().setHideLinkedAccountInGallery(
-                account.connections!.first.hiddenGalleryKey, !isHidden);
-          }
-          setState(() {});
-        },
-      ),
       CustomSlidableAction(
         backgroundColor: AppColor.auGreyBackground,
         foregroundColor: theme.colorScheme.secondary,

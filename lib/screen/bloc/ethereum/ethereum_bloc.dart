@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -21,10 +22,12 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.ethereumIndex < 1) return;
+      if (persona == null || persona.getEthIndexes.isEmpty) return;
       final addresses = await persona.getEthAddresses();
+      final indexes = persona.getEthIndexes;
       var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] = addresses;
+      personaAddresses[event.uuid] =
+          addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
 
       emit(state.copyWith(personaAddresses: personaAddresses));
     });
@@ -39,10 +42,12 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.ethereumIndex < 1) return;
+      if (persona == null || persona.getEthIndexes.isEmpty) return;
       final addresses = await persona.getEthAddresses();
+      final indexes = persona.getEthIndexes;
       var listAddresses = state.personaAddresses ?? {};
-      listAddresses[event.uuid] = addresses;
+      listAddresses[event.uuid] =
+          addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
       emit(state.copyWith(personaAddresses: listAddresses));
       add(GetEthereumBalanceWithAddressEvent(addresses));
     });

@@ -143,6 +143,9 @@ class Environment {
 
   static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 
+  static List<String> get irlWhitelistUrls =>
+      dotenv.env['IRL_WHITELIST_URL']?.split(',') ?? [];
+
   static String get cloudFlareImageUrlPrefix =>
       dotenv.env['CLOUD_FLARE_IMAGE_URL_PREFIX'] ?? '';
 }

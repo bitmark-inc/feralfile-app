@@ -57,6 +57,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   String? currentExhibitionId;
   String? handlingDeepLink;
 
+  final Map<String, bool> _deepLinkHandlingMap = {};
+
   DeeplinkServiceImpl(
     this._configurationService,
     this._walletConnectService,
@@ -74,11 +76,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
       _addScanQREvent(link: "", linkType: "", prefix: "", addData: data);
-      if (data["+clicked_branch_link"] == true) {
+      if (data["+clicked_branch_link"] == true &&
+          _deepLinkHandlingMap[data["~referring_link"]] == null) {
+        _deepLinkHandlingMap[data["~referring_link"]] = true;
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
         await _handleBranchDeeplinkData(data);
         handlingDeepLink = null;
+        _deepLinkHandlingMap.remove(data["~referring_link"]);
       }
     }, onError: (error) {
       log.warning(
@@ -104,16 +109,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (link == "autonomy://") return;
 
     if (link == null) return;
+    if (_deepLinkHandlingMap[link] != null) return;
 
     log.info("[DeeplinkService] receive deeplink $link");
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
       _deepLinkHandleClock("Handle Deep Link Time Out", link);
+      _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
-          await _handleBranchDeeplink(link);
+          await _handleBranchDeeplink(link) ||
+          _handleIRL(link);
+      _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
     });
   }
@@ -187,6 +196,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       // maybe something wrong with WC register; fix by this for now
       "https://autonomy.io/apps/wc?uri=",
       "https://autonomy.io/apps/wc/wc?uri=",
+      "autonomy://wc?uri=",
     ];
 
     final tzPrefixes = [
@@ -237,14 +247,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
+      final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, "wc:");
       _addScanQREvent(
           link: link,
           linkType: LinkType.dAppConnect,
           prefix: callingWCDeeplinkPrefix);
       if (link.isAutonomyConnectUri) {
-        await _walletConnect2Service.connect(link);
+        await _walletConnect2Service.connect(wcLink);
       } else {
-        await _walletConnectService.connect(link);
+        await _walletConnectService.connect(wcLink);
       }
       return true;
     }
@@ -276,6 +287,29 @@ class DeeplinkServiceImpl extends DeeplinkService {
           prefix: FF_TOKEN_DEEPLINK_PREFIX);
       await _linkFeralFileToken(
           link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _handleIRL(String link) {
+    log.info("[DeeplinkService] _handleIRL");
+
+    if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
+      final urlDecode =
+          Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
+
+      final uri = Uri.tryParse(urlDecode);
+      if (uri == null) return false;
+
+      if (Environment.irlWhitelistUrls.isNotEmpty) {
+        final validUrl = Environment.irlWhitelistUrls.any(
+          (element) => uri.host.contains(element),
+        );
+        if (!validUrl) return false;
+      }
+      _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
       return true;
     }
 

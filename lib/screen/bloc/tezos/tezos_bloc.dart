@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 
 part 'tezos_state.dart';
@@ -19,10 +20,12 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     on<GetTezosAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.tezosIndex < 1) return;
+      if (persona == null || persona.getTezIndexes.isEmpty) return;
       final addresses = await persona.getTezosAddresses();
       var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] = addresses;
+      final indexes = persona.getTezIndexes;
+      personaAddresses[event.uuid] =
+          addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
 
       emit(state.copyWith(personaAddresses: personaAddresses));
     });
@@ -38,10 +41,12 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
       final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.tezosIndex < 1) return;
+      if (persona == null || persona.getTezIndexes.isEmpty) return;
       final addresses = await persona.getTezosAddresses();
       var listAddresses = state.personaAddresses ?? {};
-      listAddresses[event.uuid] = addresses;
+      final indexes = persona.getTezIndexes;
+      listAddresses[event.uuid] =
+          addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
       emit(state.copyWith(personaAddresses: listAddresses));
       add(GetTezosBalanceWithAddressEvent(addresses));
     });

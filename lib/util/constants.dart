@@ -29,6 +29,7 @@ const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
+const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     "https://github.com/bitmark-inc/autonomy-client";
 const DEEP_LINKS = [
@@ -372,6 +373,11 @@ class MixpanelEvent {
   static const receiveAnnouncement = 'receive_announcement';
   static const viewScreen = "view_screen";
   static const endViewScreen = "end_view_screen";
+  static const showTipcard = "show_tip_card";
+  static const closeTipcard = "close_tip_card";
+  static const pressTipcard = "press_tip_card";
+  static const tapLinkInTipCard = "tap_link_in_tip_card";
+  static const hideAddress = "hide_address";
 }
 
 class MixpanelProp {

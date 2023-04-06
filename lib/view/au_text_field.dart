@@ -50,16 +50,14 @@ class AuTextField extends StatelessWidget {
               ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
               : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
           decoration: BoxDecoration(
-              border: Border.all(
-                  color: isEmpty
-                      ? AppColor.auLightGrey
-                      : isError
-                          ? AppColor.red
-                          : theme.colorScheme.primary),
-              borderRadius: BorderRadiusGeometry.lerp(
-                  const BorderRadius.all(Radius.circular(5)),
-                  const BorderRadius.all(Radius.circular(5)),
-                  5)),
+            border: Border.all(
+                color: isEmpty
+                    ? AppColor.auLightGrey
+                    : isError
+                        ? AppColor.red
+                        : theme.colorScheme.primary),
+            borderRadius: BorderRadius.circular(5),
+          ),
           child: Row(
             children: [
               Expanded(

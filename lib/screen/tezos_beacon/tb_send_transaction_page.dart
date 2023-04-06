@@ -72,10 +72,17 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     });
   }
 
+  int _totalAmount = 0;
+
   @override
   void initState() {
     _wc2Service = injector<Wc2Service>();
     super.initState();
+    _totalAmount = widget.request.operations?.fold(
+            0,
+            (previousValue, element) =>
+                (previousValue ?? 0) + (element.amount ?? 0)) ??
+        0;
     fetchPersona();
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
@@ -86,10 +93,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
       for (final persona in personas) {
-        final addresses = await persona.getTezosAddresses();
-        if (addresses.contains(widget.request.sourceAddress)) {
-          currentWallet = WalletIndex(persona.wallet(),
-              addresses.indexOf(widget.request.sourceAddress!));
+        final index =
+            await persona.getTezAddressIndex(widget.request.sourceAddress!);
+        if (index != null) {
+          currentWallet = WalletIndex(persona.wallet(), index);
           break;
         }
       }
@@ -157,9 +164,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final total = _fee != null
-        ? (widget.request.operations!.first.amount ?? 0) + _fee!
-        : null;
+    final total = _fee != null ? _totalAmount + _fee! : null;
     final theme = Theme.of(context);
     final wc2Topic = widget.request.wc2Topic;
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
@@ -357,7 +362,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                         });
                                       }
                                       if (!mounted) return;
-                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop(txHash);
                                     } on TezartNodeError catch (err) {
                                       log.info(err);
                                       if (!mounted) return;

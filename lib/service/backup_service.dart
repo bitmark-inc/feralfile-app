@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
@@ -133,7 +132,6 @@ class BackupService {
     );
     if (resp.statusCode == 200) {
       try {
-        final version = await injector<CloudDatabase>().database.getVersion();
         final tempFilePath =
             "${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName";
         final tempFile = File(tempFilePath);
@@ -143,22 +141,33 @@ class BackupService {
           inputPath: tempFilePath,
           outputPath: dbFilePath,
         );
+
+        //Update missing table migration for version 4
         final db = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
-        try {
-          await db.execute(
-              """ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);""");
-          await db.execute(
-              """ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);""");
-        } catch (e) {
-          log.info("[BackupService]", e.toString());
-          await db.execute(
-              """UPDATE Persona set tezosIndex = 1 where tezosIndex ISNULL;""");
-          await db.execute(
-              """UPDATE Persona set ethereumIndex = 1 where ethereumIndex ISNULL;""");
+        final backUpVersion = await db.getVersion();
+        if (backUpVersion == 4) {
+          final count = Sqflite.firstIntValue(await db.rawQuery(
+              "SELECT COUNT(*) FROM pragma_table_info('Persona') WHERE name='tezosIndex';"));
+          if (count == 0) {
+            await db.execute(
+                "ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);");
+          }
+
+          final count2 = Sqflite.firstIntValue(await db.rawQuery(
+              "SELECT COUNT(*) FROM pragma_table_info('Persona') WHERE name='ethereumIndex';"));
+          if (count2 == 0) {
+            await db.execute(
+                "ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);");
+          }
         }
-        if ((await db.database.getVersion()) < version) {
-          await db.database.setVersion(version);
-        }
+
+        //Migrate database
+        await $FloorCloudDatabase.databaseBuilder(dbName).addMigrations([
+          migrateCloudV1ToV2,
+          migrateCloudV2ToV3,
+          migrateCloudV3ToV4,
+          migrateCloudV4ToV5,
+        ]).build();
 
         await tempFile.delete();
         log.info("[BackupService] Cloud database is restored");

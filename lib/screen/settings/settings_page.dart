@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -103,11 +104,12 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "settings".tr(),
-        onBack: () {
+        onClose: () {
           Navigator.of(context).pop();
         },
       ),
@@ -115,17 +117,23 @@ class _SettingsPageState extends State<SettingsPage>
         child: NotificationListener(
           child: Column(
             children: [
-              addTitleSpace(),
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Tipcard(
+                    titleText: "try_autonomy_pro_free".tr(),
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.subscriptionPage);
+                    },
+                    buttonText: "start_free_trial".tr(),
+                    content: Text("experience_premium_features".tr(),
+                        style: theme.textTheme.ppMori400Black14),
+                    listener: injector<ConfigurationService>().showProTip),
+              ),
+              const SizedBox(height: 30),
               Column(
                 children: [
-                  _settingItem(
-                    title: "wallets".tr(),
-                    icon: const Icon(AuIcon.account),
-                    onTap: () {
-                      Navigator.of(context).pushNamed(AppRouter.walletPage);
-                    },
-                  ),
-                  addOnlyDivider(),
                   _settingItem(
                     title: "preferences".tr(),
                     icon: const Icon(AuIcon.preferences),

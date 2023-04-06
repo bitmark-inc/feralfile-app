@@ -63,10 +63,10 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
       for (final persona in personas) {
-        final addresses = await persona.getTezosAddresses();
-        if (addresses.contains(widget.request.sourceAddress)) {
-          currentWallet = WalletIndex(persona.wallet(),
-              addresses.indexOf(widget.request.sourceAddress!));
+        final index =
+            await persona.getTezAddressIndex(widget.request.sourceAddress!);
+        if (index != null) {
+          currentWallet = WalletIndex(persona.wallet(), index);
           break;
         }
       }
@@ -175,10 +175,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                               vertical: 20, horizontal: 22),
                           decoration: BoxDecoration(
                             color: AppColor.auLightGrey,
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
                             messageInUtf8,

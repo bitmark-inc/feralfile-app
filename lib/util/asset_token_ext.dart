@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -70,15 +71,14 @@ extension AssetTokenExtension on AssetToken {
 
     Pair<WalletStorage, int>? result;
     for (final persona in personas) {
-      final List<String> addresses;
+      int? index;
       if (blockchain == "ethereum") {
-        addresses = await persona.getEthAddresses();
+        index = await persona.getEthAddressIndex(owner);
       } else {
-        addresses = await persona.getTezosAddresses();
+        index = await persona.getTezAddressIndex(owner);
       }
-      if (addresses.contains(owner)) {
-        result = Pair<WalletStorage, int>(
-            persona.wallet(), addresses.indexOf(owner));
+      if (index != null) {
+        result = Pair<WalletStorage, int>(persona.wallet(), index);
         break;
       }
     }
@@ -219,6 +219,23 @@ extension AssetTokenExtension on AssetToken {
 
     return _replaceIPFS(galleryThumbnailURL!);
   }
+
+  int? get getCurrentBalance {
+    if (balance == null) {
+      return null;
+    }
+    final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+    final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+    final totalSentQuantity = sentTokens
+        .where((element) =>
+            element.tokenID == id &&
+            element.address == owner &&
+            element.timestamp.isAfter(expiredTime))
+        .fold<int>(0,
+            (previousValue, element) => previousValue + element.sentQuantity);
+    return balance! - totalSentQuantity;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
@@ -227,6 +244,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   }
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
+
   String get getMimeType {
     switch (mimeType) {
       case "image/avif":

@@ -9,10 +9,10 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -191,6 +191,8 @@ class _WCConnectPageState extends State<WCConnectPage>
 
         if (connectionRequest.name == AUTONOMY_TV_PEER_NAME) {
           metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
+          injector<ConfigurationService>().setAlreadyShowTvAppTip(true);
+          injector<ConfigurationService>().showTvAppTip.value = false;
         } else {
           metricClient.addEvent(
             MixpanelEvent.connectExternal,
@@ -378,9 +380,9 @@ class _WCConnectPageState extends State<WCConnectPage>
                             });
                           }
                         }
-                        setState(() {
-                          categorizedAccounts = stateCategorizedAccounts;
-                        });
+                        categorizedAccounts = stateCategorizedAccounts;
+                        _autoSelectDefault(categorizedAccounts);
+                        setState(() {});
                       }, builder: (context, state) {
                         return _selectAccount();
                       }),
@@ -394,6 +396,28 @@ class _WCConnectPageState extends State<WCConnectPage>
         ),
       ),
     );
+  }
+
+  _autoSelectDefault(List<CategorizedAccounts>? categorizedAccounts) {
+    if (categorizedAccounts == null) return;
+    if (categorizedAccounts.length != 1) return;
+    final persona = categorizedAccounts.first.persona;
+    if (persona == null) return;
+
+    final ethAccounts = categorizedAccounts.first.ethAccounts;
+    final xtzAccounts = categorizedAccounts.first.xtzAccounts;
+
+    if (ethAccounts.length == 1) {
+      ethSelectedAddress = ethAccounts.first.accountNumber;
+      selectedPersona =
+          WalletIndex(persona.wallet(), persona.getEthIndexes.first);
+    }
+
+    if (xtzAccounts.length == 1) {
+      tezSelectedAddress = xtzAccounts.first.accountNumber;
+      selectedPersona =
+          WalletIndex(persona.wallet(), persona.getTezIndexes.first);
+    }
   }
 
   Widget _appInfo() {
@@ -633,8 +657,8 @@ class _WCConnectPageState extends State<WCConnectPage>
       log.info("[wc_connect_page] could not find default account");
       return;
     }
-    persona.ethereumIndex = 1;
-    persona.tezosIndex = 1;
+    persona.tezosIndexes = ",0";
+    persona.ethereumIndexes = ",0";
     final namedPersona =
         await injector<AccountService>().namePersona(persona, defaultName);
     injector<ConfigurationService>().setDoneOnboarding(true);

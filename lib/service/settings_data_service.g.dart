@@ -20,13 +20,13 @@ SettingsDataBackup _$SettingsDataBackupFromJson(Map<String, dynamic> json) =>
       hiddenTestnetTokenIDs: (json['hiddenTestnetTokenIDs'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      hiddenFullAccountsFromGallery:
-          (json['hiddenFullAccountsFromGallery'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
       hiddenLinkedAccountsFromGallery:
           (json['hiddenLinkedAccountsFromGallery'] as List<dynamic>)
               .map((e) => e as String)
+              .toList(),
+      hiddenAddressesFromGallery:
+          (json['hiddenAddressesFromGallery'] as List<dynamic>?)
+              ?.map((e) => e as String)
               .toList(),
       playlists: (json['playlists'] as List<dynamic>?)
           ?.map((e) => PlayListModel.fromJson(e as Map<String, dynamic>))
@@ -40,8 +40,8 @@ Map<String, dynamic> _$SettingsDataBackupToJson(SettingsDataBackup instance) =>
       'finishedSurveys': instance.finishedSurveys,
       'hiddenMainnetTokenIDs': instance.hiddenMainnetTokenIDs,
       'hiddenTestnetTokenIDs': instance.hiddenTestnetTokenIDs,
-      'hiddenFullAccountsFromGallery': instance.hiddenFullAccountsFromGallery,
       'hiddenLinkedAccountsFromGallery':
           instance.hiddenLinkedAccountsFromGallery,
+      'hiddenAddressesFromGallery': instance.hiddenAddressesFromGallery,
       'playlists': instance.playlists,
     };

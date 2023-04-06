@@ -12,10 +12,10 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'settings_data_service.g.dart';
@@ -60,8 +60,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
       finishedSurveys: _configurationService.getFinishedSurveys(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
       hiddenTestnetTokenIDs: [],
-      hiddenFullAccountsFromGallery:
-          _configurationService.getPersonaUUIDsHiddenInGallery(),
+      hiddenAddressesFromGallery:
+          _configurationService.getAddressesHiddenInGallery(),
       hiddenLinkedAccountsFromGallery:
           _configurationService.getLinkedAccountsHiddenInGallery(),
       playlists: _configurationService.getPlayList(),
@@ -115,8 +115,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
         data.hiddenMainnetTokenIDs, true,
         override: true);
 
-    await _configurationService.setHidePersonaInGallery(
-        data.hiddenFullAccountsFromGallery, true,
+    await _configurationService.setHideAddressInGallery(
+        data.hiddenAddressesFromGallery ?? [], true,
         override: true);
 
     await _configurationService.setHideLinkedAccountInGallery(
@@ -136,8 +136,8 @@ class SettingsDataBackup {
   List<String> finishedSurveys;
   List<String> hiddenMainnetTokenIDs;
   List<String> hiddenTestnetTokenIDs;
-  List<String> hiddenFullAccountsFromGallery;
   List<String> hiddenLinkedAccountsFromGallery;
+  List<String>? hiddenAddressesFromGallery;
   List<PlayListModel>? playlists;
 
   SettingsDataBackup({
@@ -146,8 +146,8 @@ class SettingsDataBackup {
     required this.finishedSurveys,
     required this.hiddenMainnetTokenIDs,
     required this.hiddenTestnetTokenIDs,
-    required this.hiddenFullAccountsFromGallery,
     required this.hiddenLinkedAccountsFromGallery,
+    this.hiddenAddressesFromGallery,
     this.playlists,
   });
 

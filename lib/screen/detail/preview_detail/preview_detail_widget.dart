@@ -22,6 +22,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final Function({int? time})? onDispose;
   final bool isMute;
   final FocusNode? focusNode;
+  final bool useIndexer;
 
   const ArtworkPreviewWidget({
     Key? key,
@@ -30,6 +31,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
     this.onDispose,
     this.isMute = false,
     this.focusNode,
+    this.useIndexer = false,
   }) : super(key: key);
 
   @override
@@ -38,13 +40,14 @@ class ArtworkPreviewWidget extends StatefulWidget {
 
 class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc = ArtworkPreviewDetailBloc(injector(), injector());
+  final bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
 
   INFTRenderingWidget? _renderingWidget;
 
   @override
   void initState() {
-    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity));
+    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
+        useIndexer: widget.useIndexer));
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }

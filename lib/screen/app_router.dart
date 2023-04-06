@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
@@ -77,6 +78,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -99,6 +101,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -120,9 +123,11 @@ import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.da
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -203,6 +208,10 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
+  static const inappWebviewPage = 'inapp_webview_page';
+  static const irlWebview = 'irl_web_claim';
+  static const irlGetAddress = 'irl_get_address';
+  static const irlSignMessage = 'irl_sign_message';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -500,8 +509,15 @@ class AppRouter {
 
       case importAccountPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const ImportAccountPage());
+          settings: settings,
+          builder: (context) => BlocProvider(
+            create: (_) => ScanWalletBloc(
+              injector(),
+              injector(),
+            ),
+            child: const ImportAccountPage(),
+          ),
+        );
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -587,6 +603,12 @@ class AppRouter {
                       BlocProvider.value(value: ethereumBloc),
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
+                      BlocProvider(
+                        create: (_) => ScanWalletBloc(
+                          injector(),
+                          injector(),
+                        ),
+                      ),
                     ],
                     child: PersonaDetailsPage(
                       persona: settings.arguments as Persona,
@@ -687,6 +709,7 @@ class AppRouter {
                   create: (_) => ArtworkPreviewBloc(
                     injector(),
                     injector(),
+                    injector(),
                   ),
                 ),
                 BlocProvider(
@@ -757,6 +780,7 @@ class AppRouter {
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
+                            injector(),
                             injector(),
                             injector(),
                             injector(),
@@ -1004,6 +1028,7 @@ class AppRouter {
                   blockchain: args.blockchain,
                   artwork: args.artwork,
                   otp: args.otp,
+                  fromWebview: args.fromWebview,
                 ),
               );
             });
@@ -1101,6 +1126,40 @@ class AppRouter {
             builder: (context) {
               return const HelpUsPage();
             });
+      case inappWebviewPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return InappWebviewPage(url: settings.arguments as String);
+            });
+      case irlWebview:
+        final url = settings.arguments as Uri;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return IRLWebScreen(url: url);
+            });
+
+      case irlGetAddress:
+        final payload = settings.arguments as IRLGetAddressPayLoad?;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: IRLGetAddressPage(payload: payload),
+            );
+          },
+        );
+
+      case irlSignMessage:
+        final payload = settings.arguments as IRLSignMessagePayload;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return IRLSignMessageScreen(payload: payload);
+            });
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

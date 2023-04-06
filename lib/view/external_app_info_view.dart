@@ -21,11 +21,9 @@ class ExternalAppInfoView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-          color: AppColor.auLightGrey,
-          borderRadius: BorderRadiusGeometry.lerp(
-              const BorderRadius.all(Radius.circular(5)),
-              const BorderRadius.all(Radius.circular(5)),
-              5)),
+        color: AppColor.auLightGrey,
+        borderRadius: BorderRadius.circular(5),
+      ),
       child: Row(
         children: [
           icon,

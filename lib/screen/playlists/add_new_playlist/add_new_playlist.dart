@@ -1,3 +1,4 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -5,6 +6,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -33,7 +35,8 @@ class AddNewPlaylistScreen extends StatefulWidget {
   State<AddNewPlaylistScreen> createState() => _AddNewPlaylistScreenState();
 }
 
-class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
+class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
+    with AfterLayoutMixin {
   final bloc = injector.get<AddNewPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>();
   final _playlistNameC = TextEditingController();
@@ -52,6 +55,12 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen> {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
     bloc.add(InitPlaylist(playListModel: widget.playListModel));
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    injector<ConfigurationService>().setAlreadyShowCreatePlaylistTip(true);
+    injector<ConfigurationService>().showCreatePlaylistTip.value = false;
   }
 
   _scrollListenerToLoadMore() {
@@ -422,8 +431,12 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
             width: double.infinity,
             height: double.infinity,
             child: tokenGalleryThumbnailWidget(
-                context, widget.token, widget.cachedImageSize,
-                usingThumbnailID: widget.usingThumbnailID),
+              context,
+              widget.token,
+              widget.cachedImageSize,
+              usingThumbnailID: widget.usingThumbnailID,
+              useHero: false,
+            ),
           ),
           Positioned(
             top: 10,

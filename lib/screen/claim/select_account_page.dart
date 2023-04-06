@@ -24,20 +24,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class SelectAccountPageArgs {
   final String? blockchain;
 
-  final FFArtwork artwork;
+  final FFArtwork? artwork;
+  final bool fromWebview;
 
   final Otp? otp;
 
   SelectAccountPageArgs(
     this.blockchain,
     this.artwork,
-    this.otp,
-  );
+    this.otp, {
+    this.fromWebview = false,
+  });
 }
 
 class SelectAccountPage extends StatefulWidget {
   final String? blockchain;
-  final FFArtwork artwork;
+  final FFArtwork? artwork;
+  final bool? fromWebview;
   final Otp? otp;
 
   const SelectAccountPage({
@@ -45,6 +48,7 @@ class SelectAccountPage extends StatefulWidget {
     this.blockchain,
     required this.artwork,
     this.otp,
+    this.fromWebview = false,
   }) : super(key: key);
 
   @override
@@ -130,23 +134,30 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             ),
             const SizedBox(height: 30),
             Expanded(
-                child:
-                    SingleChildScrollView(child: _buildAddressList(context))),
+              child: SingleChildScrollView(child: _buildAddressList(context)),
+            ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryButton(
-                  isProcessing: _processing,
-                  enabled: !_processing,
-                  text: "h_confirm".tr(),
-                  onTap: _selectedAddress == null
-                      ? null
-                      : () async {
+                isProcessing: _processing,
+                enabled: !_processing,
+                text: "h_confirm".tr(),
+                onTap: _selectedAddress == null
+                    ? null
+                    : () async {
+                        if (widget.fromWebview == true) {
+                          Navigator.pop(context, _selectedAddress);
+                          return;
+                        }
+                        if (widget.artwork != null) {
                           await _claimToken(
                             _selectedAddress!,
-                            widget.artwork.id,
+                            widget.artwork!.id,
                             otp: widget.otp,
                           );
-                        }),
+                        }
+                      },
+              ),
             ),
           ],
         ),
@@ -158,30 +169,30 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
       final categorizedAccounts = state.categorizedAccounts ?? [];
       return Column(
-        children: [
-          ...categorizedAccounts
-              .map((account) => PersonalConnectItem(
-                    categorizedAccount: account,
-                    ethSelectedAddress: _selectedAddress,
-                    tezSelectedAddress: _selectedAddress,
-                    isExpand: true,
-                    onSelectEth: (value) {
-                      setState(() {
-                        if (widget.blockchain?.toLowerCase() != "tezos") {
-                          _selectedAddress = value;
-                        }
-                      });
-                    },
-                    onSelectTez: (value) {
-                      setState(() {
-                        if (widget.blockchain?.toLowerCase() == "tezos") {
-                          _selectedAddress = value;
-                        }
-                      });
-                    },
-                  ))
-              .toList(),
-        ],
+        children: categorizedAccounts
+            .map(
+              (account) => PersonalConnectItem(
+                categorizedAccount: account,
+                ethSelectedAddress: _selectedAddress,
+                tezSelectedAddress: _selectedAddress,
+                isExpand: true,
+                onSelectEth: (value) {
+                  setState(() {
+                    if (widget.blockchain?.toLowerCase() != "tezos") {
+                      _selectedAddress = value;
+                    }
+                  });
+                },
+                onSelectTez: (value) {
+                  setState(() {
+                    if (widget.blockchain?.toLowerCase() == "tezos") {
+                      _selectedAddress = value;
+                    }
+                  });
+                },
+              ),
+            )
+            .toList(),
       );
     });
   }
@@ -210,7 +221,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.artwork.id,
+          "id": widget.artwork?.id,
         },
       );
       memoryValues.airdropFFExhibitionId.value = null;
@@ -219,7 +230,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       await UIHelper.showClaimTokenError(
         context,
         e,
-        artwork: widget.artwork,
+        artwork: widget.artwork!,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     } finally {

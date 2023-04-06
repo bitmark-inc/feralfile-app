@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -23,10 +24,6 @@ abstract class ConfigurationService {
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
 
   int? getAnnouncementLastPullTime();
-
-  Future<void> setShowAuChainInfo(bool value);
-
-  bool getShowAuChainInfo();
 
   Future<void> setOldUser();
 
@@ -100,6 +97,11 @@ abstract class ConfigurationService {
       List<String> personaUUIDs, bool isEnabled,
       {bool override = false});
 
+  Future<void> setHideAddressInGallery(List<String> address, bool isEnabled,
+      {bool override = false});
+
+  List<String> getAddressesHiddenInGallery();
+
   List<String> getPersonaUUIDsHiddenInGallery();
 
   bool isPersonaHiddenInGallery(String value);
@@ -111,6 +113,8 @@ abstract class ConfigurationService {
   List<String> getLinkedAccountsHiddenInGallery();
 
   bool isLinkedAccountHiddenInGallery(String value);
+
+  bool isAddressHiddenInGallery(String value);
 
   List<String> getTempStorageHiddenTokenIDs({Network? network});
 
@@ -186,6 +190,34 @@ abstract class ConfigurationService {
 
   Future setLastestVersion(bool value);
 
+  Future setDoneOnboardingTime(DateTime time);
+
+  DateTime? getDoneOnboardingTime();
+
+  Future setSubscriptionTime(DateTime time);
+
+  DateTime? getSubscriptionTime();
+
+  Future setAlreadyShowNotifTip(bool show);
+
+  Future setAlreadyShowProTip(bool show);
+
+  Future setAlreadyShowTvAppTip(bool show);
+
+  Future setAlreadyShowCreatePlaylistTip(bool show);
+
+  Future setAlreadyShowLinkOrImportTip(bool show);
+
+  bool getAlreadyShowNotifTip();
+
+  bool getAlreadyShowProTip();
+
+  bool getAlreadyShowTvAppTip();
+
+  bool getAlreadyShowCreatePlaylistTip();
+
+  bool getAlreadyShowLinkOrImportTip();
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -202,6 +234,16 @@ abstract class ConfigurationService {
   Future<void> reload();
 
   Future<void> removeAll();
+
+  ValueNotifier<bool> get showNotifTip;
+
+  ValueNotifier<bool> get showProTip;
+
+  ValueNotifier<bool> get showTvAppTip;
+
+  ValueNotifier<bool> get showCreatePlaylistTip;
+
+  ValueNotifier<bool> get showLinkOrImportTip;
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -225,6 +267,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'hidden_personas_in_gallery';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
+  static const String KEY_HIDDEN_ADDRESSES_IN_GALLERY =
+      'hidden_address_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
       'temp_storage_hidden_token_ids_mainnet';
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
@@ -263,6 +307,72 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
   static const String SHOW_AU_CHAIN_INFO = "show_au_chain_info";
+
+  static const String KEY_DONE_ON_BOARDING_TIME = "done_on_boarding_time";
+
+  static const String KEY_SUBSCRIPTION_TIME = "subscription_time";
+
+  static const String KEY_CAN_SHOW_NOTIF_TIP = "show_notif_tip";
+
+  static const String KEY_CAN_SHOW_PRO_TIP = "show_pro_tip";
+
+  static const String KEY_CAN_SHOW_TV_APP_TIP = "show_tv_app_tip";
+
+  static const String KEY_CAN_SHOW_CREATE_PLAYLIST_TIP =
+      "show_create_playlist_tip";
+
+  static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
+      "show_link_or_import_tip";
+
+  @override
+  Future setAlreadyShowNotifTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_NOTIF_TIP, show);
+  }
+
+  @override
+  Future setAlreadyShowProTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_PRO_TIP, show);
+  }
+
+  @override
+  Future setAlreadyShowTvAppTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_TV_APP_TIP, show);
+  }
+
+  @override
+  Future setAlreadyShowCreatePlaylistTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP, show);
+  }
+
+  @override
+  Future setAlreadyShowLinkOrImportTip(bool show) async {
+    await _preferences.setBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP, show);
+  }
+
+  @override
+  bool getAlreadyShowNotifTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_NOTIF_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowProTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_PRO_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowTvAppTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_TV_APP_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowCreatePlaylistTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP) ?? false;
+  }
+
+  @override
+  bool getAlreadyShowLinkOrImportTip() {
+    return _preferences.getBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP) ?? false;
+  }
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
@@ -404,7 +514,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
     log.info("setDoneOnboarding: $value");
     final currentValue = isDoneOnboarding();
     await _preferences.setBool(KEY_DONE_ONBOARING, value);
+
     if (currentValue == false && value == true && getIsOldUser() == false) {
+      await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
       Future.delayed(const Duration(seconds: 2), () async {
         injector<CustomerSupportService>()
@@ -456,6 +568,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  Future<void> setHideAddressInGallery(List<String> addresses, bool isEnabled,
+      {bool override = false}) async {
+    if (override && isEnabled) {
+      await _preferences.setStringList(
+          KEY_HIDDEN_ADDRESSES_IN_GALLERY, addresses);
+    } else {
+      var currentAddresses =
+          _preferences.getStringList(KEY_HIDDEN_ADDRESSES_IN_GALLERY) ?? [];
+
+      isEnabled
+          ? currentAddresses.addAll(addresses)
+          : currentAddresses.removeWhere((i) => addresses.contains(i));
+      await _preferences.setStringList(
+          KEY_HIDDEN_ADDRESSES_IN_GALLERY, currentAddresses);
+    }
+  }
+
+  @override
+  List<String> getAddressesHiddenInGallery() {
+    return _preferences.getStringList(KEY_HIDDEN_ADDRESSES_IN_GALLERY) ?? [];
+  }
+
+  @override
   List<String> getPersonaUUIDsHiddenInGallery() {
     return _preferences.getStringList(KEY_HIDDEN_PERSONAS_IN_GALLERY) ?? [];
   }
@@ -496,6 +631,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   bool isLinkedAccountHiddenInGallery(String value) {
     var hiddenLinkedAccounts = getLinkedAccountsHiddenInGallery();
     return hiddenLinkedAccounts.contains(value);
+  }
+
+  @override
+  bool isAddressHiddenInGallery(String value) {
+    var hiddenAddresses = getAddressesHiddenInGallery();
+    return hiddenAddresses.contains(value);
   }
 
   @override
@@ -861,12 +1002,46 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool getShowAuChainInfo() {
-    return _preferences.getBool(SHOW_AU_CHAIN_INFO) ?? false;
+  ValueNotifier<bool> showProTip = ValueNotifier(false);
+
+  @override
+  ValueNotifier<bool> showCreatePlaylistTip = ValueNotifier(false);
+
+  @override
+  ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(false);
+
+  @override
+  ValueNotifier<bool> showNotifTip = ValueNotifier(false);
+
+  @override
+  ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
+
+  @override
+  DateTime? getDoneOnboardingTime() {
+    final timeString = _preferences.getString(KEY_DONE_ON_BOARDING_TIME);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
   }
 
   @override
-  Future<void> setShowAuChainInfo(bool value) async {
-    await _preferences.setBool(SHOW_AU_CHAIN_INFO, value);
+  Future setDoneOnboardingTime(DateTime time) async {
+    await _preferences.setString(
+        KEY_DONE_ON_BOARDING_TIME, time.toIso8601String());
+  }
+
+  @override
+  DateTime? getSubscriptionTime() {
+    final timeString = _preferences.getString(KEY_SUBSCRIPTION_TIME);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setSubscriptionTime(DateTime time) async {
+    await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
 }

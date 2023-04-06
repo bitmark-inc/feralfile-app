@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -70,7 +71,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _scrollController = ScrollController();
     super.initState();
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
-        widget.payload.identities[widget.payload.currentIndex]));
+        widget.payload.identities[widget.payload.currentIndex],
+        useIndexer: widget.payload.useIndexer));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
@@ -225,20 +227,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               ],
             ),
             actions: [
-              Semantics(
-                label: 'artworkDotIcon',
-                child: IconButton(
-                  onPressed: () => _showArtworkOptionsDialog(asset),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                  ),
-                  icon: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
-                  ),
-                ),
-              ),
+              widget.payload.useIndexer
+                  ? const SizedBox()
+                  : Semantics(
+                      label: 'artworkDotIcon',
+                      child: IconButton(
+                        onPressed: () => _showArtworkOptionsDialog(asset),
+                        constraints: const BoxConstraints(
+                          maxWidth: 44,
+                          maxHeight: 44,
+                        ),
+                        icon: SvgPicture.asset(
+                          'assets/images/more_circle.svg',
+                          width: 22,
+                        ),
+                      ),
+                    ),
               Semantics(
                 label: 'close_icon',
                 child: IconButton(
@@ -413,18 +417,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 return;
               }
 
+              final sentQuantity = payload['sentQuantity'] as int;
               final isSentAll = payload['isSentAll'] as bool;
-              if (isSentAll) {
-                injector<ConfigurationService>().updateRecentlySentToken(
-                    [SentArtwork(asset.id, asset.owner, DateTime.now())]);
-                if (isHidden) {
-                  await injector<ConfigurationService>()
-                      .updateTempStorageHiddenTokenIDs([asset.id], false);
-                  injector<SettingsDataService>().backup();
-                }
+              injector<ConfigurationService>().updateRecentlySentToken([
+                SentArtwork(asset.id, asset.owner, DateTime.now(), sentQuantity,
+                    isSentAll)
+              ]);
+              if (isHidden) {
+                await injector<ConfigurationService>()
+                    .updateTempStorageHiddenTokenIDs([asset.id], false);
+                injector<SettingsDataService>().backup();
               }
               if (!mounted) return;
-
+              setState(() {});
               if (!payload["isTezos"]) {
                 if (isSentAll) {
                   Navigator.of(context).popAndPushNamed(AppRouter.homePage);
@@ -498,6 +503,7 @@ class _ArtworkView extends StatelessWidget {
                   child: ArtworkPreviewWidget(
                     identity: payload.identities[payload.currentIndex],
                     isMute: true,
+                    useIndexer: payload.useIndexer,
                   ),
                 ),
               ),
@@ -525,6 +531,7 @@ class _ArtworkView extends StatelessWidget {
                 child: ArtworkPreviewWidget(
                   identity: payload.identities[payload.currentIndex],
                   isMute: true,
+                  useIndexer: payload.useIndexer,
                 ),
               ),
               GestureDetector(
@@ -546,22 +553,30 @@ class _ArtworkView extends StatelessWidget {
 class ArtworkDetailPayload {
   final List<ArtworkIdentity> identities;
   final int currentIndex;
-  final bool isPlaylist;
+  final PlayControlModel? playControl;
   final String? twitterCaption;
+  final bool useIndexer;
 
-  ArtworkDetailPayload(this.identities, this.currentIndex,
-      {this.twitterCaption, this.isPlaylist = false});
+  ArtworkDetailPayload(
+    this.identities,
+    this.currentIndex, {
+    this.twitterCaption,
+    this.playControl,
+    this.useIndexer = false,
+  });
 
   ArtworkDetailPayload copyWith(
       {List<ArtworkIdentity>? ids,
       int? currentIndex,
-      bool? isPlaylist,
-      String? twitterCaption}) {
+      PlayControlModel? playControl,
+      String? twitterCaption,
+      bool? useIndexer}) {
     return ArtworkDetailPayload(
       ids ?? identities,
       currentIndex ?? this.currentIndex,
       twitterCaption: twitterCaption ?? this.twitterCaption,
-      isPlaylist: isPlaylist ?? this.isPlaylist,
+      playControl: playControl ?? this.playControl,
+      useIndexer: useIndexer ?? this.useIndexer,
     );
   }
 }
