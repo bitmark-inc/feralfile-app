@@ -359,7 +359,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                       ),
                       const SizedBox(height: 40),
                       BlocConsumer<AccountsBloc, AccountsState>(
-                          listener: (context, state) {
+                          listener: (context, state) async {
                         var stateCategorizedAccounts =
                             state.categorizedAccounts;
                         if (stateCategorizedAccounts == null ||
@@ -372,12 +372,9 @@ class _WCConnectPageState extends State<WCConnectPage>
 
                         if (connectionRequest.isWC2connect) {
                           if (stateCategorizedAccounts.isNotEmpty) {
-                            setState(() async {
-                              selectedPersona = WalletIndex(
-                                  (await injector<AccountService>()
-                                      .getDefaultAccount()),
-                                  0);
-                            });
+                            final wallet = await injector<AccountService>()
+                                .getDefaultAccount();
+                            selectedPersona = WalletIndex(wallet, 0);
                           }
                         }
                         categorizedAccounts = stateCategorizedAccounts;
