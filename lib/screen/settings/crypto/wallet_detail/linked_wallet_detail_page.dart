@@ -472,9 +472,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         widget.payload.type == CryptoType.USDC) {
       return Row(
         children: [
-          const SizedBox(
-            width: 16.0,
-          ),
           Expanded(
             child: BlocConsumer<AccountsBloc, AccountsState>(
               listener: (context, accountState) async {},
