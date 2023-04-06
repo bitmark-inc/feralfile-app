@@ -47,8 +47,7 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
         return;
       }
       var listAddresses = state.personaAddresses ?? {};
-      listAddresses[event.uuid] =
-          walletAddresses;
+      listAddresses[event.uuid] = walletAddresses;
       emit(state.copyWith(personaAddresses: listAddresses));
       add(GetEthereumBalanceWithAddressEvent(
           walletAddresses.map((e) => e.address).toList()));

@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
