@@ -421,7 +421,7 @@ class HomePageState extends State<HomePage>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                final pageName = asset.source == "autonomy-postcard"
+                final pageName = asset.source == "Autonomy Dev" || true
                     ? AppRouter.claimedPostcardDetailsPage
                     : AppRouter.artworkDetailsPage;
                 Navigator.of(context)
