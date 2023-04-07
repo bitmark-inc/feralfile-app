@@ -32,6 +32,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gif_view/gif_view.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -217,10 +218,11 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
+                  GifView.asset(
                     "assets/images/loading_white.gif",
                     width: 52,
                     height: 52,
+                    frameRate: 12,
                   ),
                   const SizedBox(
                     height: 12,

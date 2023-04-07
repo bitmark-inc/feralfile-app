@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -126,7 +127,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-
+      logger.info(
+          'GetCategorizedAccountsEvent: personas: ${personas.map((e) => e.uuid).toList()}');
       if (personas.isEmpty &&
           ((event.includeLinkedAccount && connections.isEmpty) ||
               !event.includeLinkedAccount)) {

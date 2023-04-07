@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -22,6 +23,9 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);
+
+      logger.info('GetEthereumAddressEvent: persona: ${persona?.uuid}');
+
       if (persona == null || persona.getEthIndexes.isEmpty) return;
       final addresses = await persona.getEthAddresses();
       final indexes = persona.getEthIndexes;
