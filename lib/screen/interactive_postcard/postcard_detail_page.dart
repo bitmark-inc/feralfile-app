@@ -7,7 +7,6 @@
 
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:after_layout/after_layout.dart';
@@ -15,6 +14,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -23,6 +23,8 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -33,7 +35,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
-import 'package:autonomy_flutter/util/position_utils.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -75,8 +76,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late Locale locale;
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
-  PostcardMetadata? postcardMetadata;
-  List<TravelInfo> travelInfo = [];
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -196,9 +195,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
-      if (state.assetToken != null) {
-        _getInfo(state.assetToken!);
-      }
       setState(() {
         currentAsset = state.assetToken;
       });
@@ -212,7 +208,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
-        _getInfo(state.assetToken!);
+        context
+            .read<TravelInfoBloc>()
+            .add(GetTravelInfoEvent(asset: state.assetToken!));
 
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
@@ -345,15 +343,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     });
   }
 
-  Future<void> _getInfo(AssetToken asset) async {
-    postcardMetadata =
-        PostcardMetadata.fromJson(jsonDecode(asset.asset!.artworkMetadata!));
-    await _getTravelInfo();
-  }
-
   Widget _postcardAction(AssetToken asset) {
-    final isStamped = postcardMetadata?.isStamped ?? false;
-    if (_canShare(asset)) {
+    final isStamped = asset.postcardMetadata.isStamped;
+    if (asset.canShare) {
       if (!isStamped) {
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
@@ -644,56 +636,57 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  bool _canShare(AssetToken asset) {
-    return asset.owner == postcardMetadata!.lastOwner;
-  }
-
   Widget travelInfoWidget(AssetToken asset) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // travel distance row
-          Row(
+    return BlocConsumer<TravelInfoBloc, TravelInfoState>(
+      listener: (context, state) {},
+      builder: (context, state) {
+        final travelInfo = state.listTravelInfo;
+
+        if (travelInfo == null) {
+          return const SizedBox();
+        }
+        return Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "travel_distance".tr(),
-                style: theme.textTheme.ppMori700White14,
+              // travel distance row
+              Row(
+                children: [
+                  Text(
+                    "travel_distance".tr(),
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                  const Spacer(),
+                  Text(
+                    distanceFormatter.format(
+                        distance: travelInfo.totalDistance),
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                ],
               ),
-              const Spacer(),
-              Text(
-                distanceFormatter.format(
-                    distance: _getTotalDistance(travelInfo)),
-                style: theme.textTheme.ppMori700White14,
-              ),
-            ],
-          ),
-          addDivider(height: 30, color: AppColor.auGreyBackground),
-          ...travelInfo
-              .map((TravelInfo e) {
-                if (e.receivedLocation == null) {
-                  if (asset.isSending) {
-                    return _sendingTripItem(context, asset, e);
-                  } else {
-                    if (asset.owner == asset.lastOwner) {
+              addDivider(height: 30, color: AppColor.auGreyBackground),
+              ...travelInfo
+                  .map((TravelInfo e) {
+                    if (e.receivedLocation == null) {
+                      if (asset.isSending) {
+                        return _sendingTripItem(context, asset, e);
+                      } else {
+                        if (asset.owner == asset.lastOwner) {
+                          return travelWidget(e);
+                        }
+                      }
+                    } else {
                       return travelWidget(e);
                     }
-                  }
-                } else {
-                  return travelWidget(e);
-                }
-              })
-              .whereNotNull()
-              .toList(),
-
-          // if (travelInfo.isNotEmpty && asset.isSending) ...[
-          //   _sendingTripItem(context, asset, travelInfo.last),
-          //   addDivider(color: AppColor.greyMedium),
-          // ],
-        ],
-      ),
+                  })
+                  .whereNotNull()
+                  .toList(),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -734,39 +727,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         addDivider(height: 30, color: AppColor.auGreyBackground),
       ],
     );
-  }
-
-  Future<void> _getTravelInfo() async {
-    final stamps = postcardMetadata!.locationInformation;
-
-    final travelInfo = <TravelInfo>[];
-    for (int i = 0; i < stamps.length - 1; i++) {
-      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
-    }
-
-    if (stamps[stamps.length - 1].stampedLocation != null) {
-      travelInfo
-          .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
-    }
-
-    await Future.wait(travelInfo.map((e) async {
-      await e.getLocationName();
-    }));
-
-    if (travelInfo.length > 44) {
-      travelInfo.removeLast();
-    }
-    setState(() {
-      this.travelInfo = travelInfo;
-    });
-  }
-
-  double _getTotalDistance(List<TravelInfo> travelInfos) {
-    double totalDistance = 0;
-    for (var travelInfo in travelInfos) {
-      totalDistance += travelInfo.getDistance() ?? 0;
-    }
-    return totalDistance;
   }
 
   Widget _sendingTripItem(
@@ -817,67 +777,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 }
 
-class TravelInfo {
-  final LocationInformation from;
-  final LocationInformation? to;
-  final int index;
-  String? sentLocation;
-  String? receivedLocation;
-
-  TravelInfo(this.from, this.to, this.index,
-      {this.sentLocation, this.receivedLocation});
-
-  double? getDistance() {
-    if (to == null) {
-      return null;
-    }
-    return _getDistanceFromLatLonInKm(
-        from.stampedLocation!.lat,
-        from.stampedLocation!.lon,
-        to!.claimedLocation!.lat,
-        to!.claimedLocation!.lon);
-  }
-
-  // get distance from longitude and latitude
-  double _getDistanceFromLatLonInKm(
-      double lat1, double lon1, double lat2, double lon2) {
-    var R = 6371; // Radius of the earth in km
-    var dLat = deg2rad(lat2 - lat1); // deg2rad below
-    var dLon = deg2rad(lon2 - lon1);
-    var a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-    var c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    var d = R * c; // Distance in km
-    return d;
-  }
-
-  // convert degree to radian
-  double deg2rad(double deg) {
-    return deg * (pi / 180);
-  }
-
-  Future<void> _getSentLocation() async {
-    if (from.stampedLocation != null) {
-      sentLocation = await getLocationNameFromCoordinates(
-          from.stampedLocation!.lat, from.stampedLocation!.lon);
-    }
-  }
-
-  Future<void> _getReceivedLocation() async {
-    if (to == null) {
-      receivedLocation = null;
-    } else {
-      receivedLocation = await getLocationNameFromCoordinates(
-          to!.claimedLocation!.lat, to!.claimedLocation!.lon);
-    }
-  }
-
-  Future<void> getLocationName() async {
-    await _getSentLocation();
-    await _getReceivedLocation();
-  }
-}
-
 class PostcardMetadata {
   final String lastOwner;
   final bool isStamped;
@@ -908,66 +807,5 @@ class PostcardMetadata {
       'locationInformation':
           locationInformation.map((e) => e.toJson()).toList(),
     };
-  }
-}
-
-class Location {
-  final double lat;
-  final double lon;
-
-  // constructor
-  Location({required this.lat, required this.lon});
-
-  // factory constructor
-  factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-        lat: double.parse(json['lat'].toString()),
-        lon: double.parse(json['lon'].toString()));
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'lat': lat,
-      'lon': lon,
-    };
-  }
-}
-
-class LocationInformation {
-  final Location? claimedLocation;
-  final Location? stampedLocation;
-
-  // constructor
-  LocationInformation({this.claimedLocation, this.stampedLocation});
-
-  // factory constructor
-  factory LocationInformation.fromJson(Map<String, dynamic> json) {
-    return LocationInformation(
-      claimedLocation: json['claimedLocation'] == null
-          ? null
-          : Location.fromJson(json['claimedLocation'] as Map<String, dynamic>),
-      stampedLocation: json['stampedLocation'] == null
-          ? null
-          : Location.fromJson(json['stampedLocation'] as Map<String, dynamic>),
-    );
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'claimedLocation': claimedLocation?.toJson(),
-      'stampedLocation': stampedLocation?.toJson(),
-    };
-  }
-}
-
-extension ListTravelInfo on List<TravelInfo> {
-  double get totalDistance {
-    double totalDistance = 0;
-    for (var travelInfo in this) {
-      totalDistance += travelInfo.getDistance() ?? 0;
-    }
-    return totalDistance;
   }
 }

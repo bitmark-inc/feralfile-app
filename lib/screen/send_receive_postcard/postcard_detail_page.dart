@@ -5,17 +5,21 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/model/travel_infor.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -34,17 +38,14 @@ class PostcardDetailPage extends StatefulWidget {
 class _PostcardDetailPageState extends State<PostcardDetailPage> {
   late Locale locale;
   late DistanceFormatter distanceFormatter;
-  late List<TravelInfo> travelInfo;
 
   @override
   void initState() {
     super.initState();
-    travelInfo = [];
   }
 
   @override
   Widget build(BuildContext context) {
-    _getTravelInfo(widget.asset);
     locale = Localizations.localeOf(context);
     distanceFormatter = DistanceFormatter(locale: locale);
     final theme = Theme.of(context);
@@ -108,41 +109,56 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
                   fit: BoxFit.fitWidth,
                 ),
                 const SizedBox(height: 24.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "total_distance_traveled".tr(),
-                      style: theme.textTheme.ppMori700White14,
-                    ),
-                    Text(
-                      distanceFormatter.format(
-                          distance: travelInfo.totalDistance),
-                      style: theme.textTheme.ppMori700White14,
-                    ),
-                  ],
-                ),
-
-                addDivider(color: AppColor.greyMedium),
-
-                ...travelInfo
-                    .mapIndexed((index, el) => [
-                          _tripItem(context, el),
-                          addDivider(color: AppColor.greyMedium)
-                        ])
-                    .flattened
-                    .toList(),
+                travelInfoWidget(asset),
               ],
             ),
           ),
         ));
   }
 
-  Future<void> _getTravelInfo(AssetToken assetToken) async {
-    final travelInfo = await assetToken.listTravelInfo;
-    setState(() {
-      this.travelInfo = travelInfo;
-    });
+  Widget travelInfoWidget(AssetToken asset) {
+    final theme = Theme.of(context);
+    return BlocConsumer<TravelInfoBloc, TravelInfoState>(
+      listener: (context, state) {},
+      builder: (context, state) {
+        final travelInfo = state.listTravelInfo;
+
+        if (travelInfo == null) {
+          return const SizedBox();
+        }
+        return Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // travel distance row
+              Row(
+                children: [
+                  Text(
+                    "travel_distance".tr(),
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                  const Spacer(),
+                  Text(
+                    distanceFormatter.format(
+                        distance: travelInfo.totalDistance),
+                    style: theme.textTheme.ppMori700White14,
+                  ),
+                ],
+              ),
+              addDivider(height: 30, color: AppColor.auGreyBackground),
+              ...travelInfo
+                  .mapIndexed((index, el) => [
+                        _tripItem(context, el),
+                        addDivider(color: AppColor.greyMedium)
+                      ])
+                  .flattened
+                  .toList(),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _tripItem(BuildContext context, TravelInfo travelInfo) {

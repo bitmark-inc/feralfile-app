@@ -55,17 +55,17 @@ class _PostcardExplainState extends State<PostcardExplain> {
             PrimaryButton(
               text: "continue".tr(),
               onTap: () async {
-                if(isGetLocation) {
+                if (isGetLocation) {
                   final location = await getGeoLocationWithPermission();
                   if (!mounted || location == null) return;
                   Navigator.of(context).pushNamed(AppRouter.designStamp,
-                      arguments: DesignStampPayload(widget.payload.asset, location));
+                      arguments:
+                          DesignStampPayload(widget.payload.asset, location));
                 } else {
                   Navigator.of(context).pushNamed(AppRouter.designStamp,
-                      arguments: DesignStampPayload(widget.payload.asset, null));
+                      arguments:
+                          DesignStampPayload(widget.payload.asset, null));
                 }
-
-
               },
             ),
           ],

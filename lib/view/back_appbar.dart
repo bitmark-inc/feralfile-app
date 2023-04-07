@@ -113,5 +113,3 @@ AppBar getCloseAppBar(BuildContext context,
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart
-
-
