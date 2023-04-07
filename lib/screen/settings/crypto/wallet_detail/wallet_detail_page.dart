@@ -485,10 +485,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       },
                       child: isCopied
                           ? Text(
-                              'Copied',
+                              'copied'.tr(),
                               style: theme.textTheme.ppMori400Black14,
                             )
-                          : Text('Copy',
+                          : Text('copy'.tr(),
                               style: theme.textTheme.ppMori400Grey14),
                     ),
                   ));
