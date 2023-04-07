@@ -40,6 +40,29 @@ abstract class CloudDatabase extends FloorDatabase {
     await auditDao.removeAll();
     await addressDao.removeAll();
   }
+
+  Future<void> copyDataFrom(CloudDatabase source) async {
+    await source.personaDao.getPersonas().then((personas) async {
+      for (var persona in personas) {
+        await personaDao.insertPersona(persona);
+      }
+    });
+    await source.connectionDao.getConnections().then((connections) async {
+      for (var connection in connections) {
+        await connectionDao.insertConnection(connection);
+      }
+    });
+    await source.auditDao.getAudits().then((audits) async {
+      for (var audit in audits) {
+        await auditDao.insertAudit(audit);
+      }
+    });
+    await source.addressDao.getAllAddresses().then((addresses) async {
+      for (var address in addresses) {
+        await addressDao.insertAddress(address);
+      }
+    });
+  }
 }
 
 final migrateCloudV1ToV2 = Migration(1, 2, (database) async {
@@ -106,27 +129,34 @@ final migrateCloudV5ToV6 = Migration(5, 6, (database) async {
     tezIndexesStr.removeWhere((element) => element.isEmpty);
     final tezIndexes = tezIndexesStr.map((e) => int.parse(e)).toList();
     for (var index in tezIndexes) {
-      await database.insert("WalletAddress", {
-        "address": await persona.wallet().getTezosAddress(index: index),
-        "uuid": persona.uuid,
-        "index": index,
-        "cryptoType": CryptoType.XTZ.source,
-        "createdAt": persona.createdAt.millisecondsSinceEpoch,
-        "isHidden": 0,
-      });
+      await database.insert(
+          "WalletAddress",
+          {
+            "address": await persona.wallet().getTezosAddress(index: index),
+            "uuid": persona.uuid,
+            "index": index,
+            "cryptoType": CryptoType.XTZ.source,
+            "createdAt": persona.createdAt.millisecondsSinceEpoch,
+            "isHidden": 0,
+          },
+          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
     }
     List<String>? ethIndexesStr = (persona.ethereumIndexes ?? "").split(',');
+
     ethIndexesStr.removeWhere((element) => element.isEmpty);
     final ethIndexes = ethIndexesStr.map((e) => int.parse(e)).toList();
     for (var index in ethIndexes) {
-      await database.insert("WalletAddress", {
-        "address": await persona.wallet().getETHEip55Address(index: index),
-        "uuid": persona.uuid,
-        "index": index,
-        "cryptoType": CryptoType.ETH.source,
-        "createdAt": persona.createdAt.millisecondsSinceEpoch,
-        "isHidden": 0,
-      });
+      await database.insert(
+          "WalletAddress",
+          {
+            "address": await persona.wallet().getETHEip55Address(index: index),
+            "uuid": persona.uuid,
+            "index": index,
+            "cryptoType": CryptoType.ETH.source,
+            "createdAt": persona.createdAt.millisecondsSinceEpoch,
+            "isHidden": 0,
+          },
+          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
     }
   }
 });
