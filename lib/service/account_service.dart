@@ -87,25 +87,17 @@ abstract class AccountService {
 
   Future linkIndexerTokenID(String indexerTokenID);
 
-  Future setHidePersonaInGallery(String personaUUID, bool isEnabled);
-
   Future setHideLinkedAccountInGallery(String address, bool isEnabled);
 
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled);
 
-  bool isPersonaHiddenInGallery(String personaUUID);
-
   bool isLinkedAccountHiddenInGallery(String address);
-
-  bool isAddressHiddenInGallery(String address);
 
   Future<List<String>> getAllAddresses();
 
   Future<List<AddressIndex>> getAllAddressIndexes();
 
   Future<List<String>> getAddress(String blockchain);
-
-  Future<List<String>> getHiddenAddresses();
 
   Future<List<AddressIndex>> getHiddenAddressIndexes();
 
@@ -361,10 +353,6 @@ class AccountServiceImpl extends AccountService {
       for (var peer in bcPeers) {
         await _tezosBeaconService.removePeer(peer);
       }
-
-      if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
-        await setHidePersonaInGallery(persona.uuid, false);
-      }
     } catch (exception) {
       Sentry.captureException(exception);
     }
@@ -483,25 +471,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  bool isPersonaHiddenInGallery(String personaUUID) {
-    return _configurationService.isPersonaHiddenInGallery(personaUUID);
-  }
-
-  @override
   bool isLinkedAccountHiddenInGallery(String address) {
     return _configurationService.isLinkedAccountHiddenInGallery(address);
-  }
-
-  @override
-  bool isAddressHiddenInGallery(String address) {
-    return _configurationService.isAddressHiddenInGallery(address);
-  }
-
-  @override
-  Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
-    await _configurationService
-        .setHidePersonaInGallery([personaUUID], isEnabled);
-    injector<SettingsDataService>().backup();
   }
 
   @override
@@ -518,7 +489,6 @@ class AccountServiceImpl extends AccountService {
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled) async {
     Future.wait(addresses
         .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
-    await _configurationService.setHideAddressInGallery(addresses, isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.hideAddresses,
@@ -699,35 +669,6 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<List<String>> getHiddenAddresses() async {
-    List<String> hiddenAddresses = [];
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-    final hiddenPersonaUUIDs =
-        _configurationService.getPersonaUUIDsHiddenInGallery();
-
-    for (var persona in personas) {
-      if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      hiddenAddresses.addAll(await persona.getAddresses());
-    }
-
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
-
-    for (final linkedAccount in linkedAccounts) {
-      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
-        hiddenAddresses.addAll(linkedAccount.accountNumbers);
-      }
-    }
-
-    return hiddenAddresses;
-  }
-
-  @override
   Future<List<String>> getShowedAddresses() async {
     if (_configurationService.isDemoArtworksMode()) {
       return [await getDemoAccount()];
@@ -735,21 +676,8 @@ class AccountServiceImpl extends AccountService {
 
     List<String> addresses = [];
 
-    final personas = await _cloudDB.personaDao.getPersonas();
-    final hiddenPersonaUUIDs =
-        _configurationService.getPersonaUUIDsHiddenInGallery();
-
-    for (var persona in personas) {
-      if (hiddenPersonaUUIDs.contains(persona.uuid)) continue;
-
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-
-      addresses.addAll(await persona.getAddresses());
-    }
+    final walletAddress = await _cloudDB.addressDao.findHiddenAddresses(false);
+    addresses.addAll(walletAddress.map((e) => e.address).toList());
 
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();

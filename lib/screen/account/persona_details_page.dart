@@ -427,6 +427,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             wallet: LibAukDart.getWallet(persona.uuid),
             personaName: persona.name,
             index: walletAddress.index,
+            isHideGalleryEnabled: walletAddress.isHidden,
             //personaName: widget.persona.name,
           );
           Navigator.of(context)
