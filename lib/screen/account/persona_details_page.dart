@@ -57,11 +57,13 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   WalletType _walletTypeSelecting = WalletType.Ethereum;
   String? title;
   late Persona persona;
+  late bool isDefaultWallet;
 
   @override
   void initState() {
     super.initState();
     persona = widget.persona;
+    isDefaultWallet = persona.defaultAccount == 1;
     _callBloc(persona);
 
     if (persona.name.isNotEmpty) {
@@ -109,7 +111,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   @override
   Widget build(BuildContext context) {
     final uuid = persona.uuid;
-    final isDefaultAccount = persona.defaultAccount == 1;
     return Scaffold(
       appBar: getBackAppBar(
         context,
@@ -126,7 +127,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            isDefaultAccount
+            isDefaultWallet
                 ? Column(
                     children: [
                       const SizedBox(height: 30),
@@ -167,13 +168,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               ),
               onTap: () {
                 Navigator.of(context).pop();
-                Future.wait(walletAddresses.map((e) async {
-                  await injector<CloudDatabase>()
-                      .addressDao
-                      .updateAddress(e.copyWith(isHidden: false));
-                })).then((_) {
-                  _callBloc(persona);
-                });
+                setIsHiddenAll(walletAddresses, false);
               },
             )
           : OptionItem(
@@ -184,15 +179,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               ),
               onTap: () {
                 Navigator.of(context).pop();
-                Future.wait(walletAddresses.map((e) async {
-                  if (e.isHidden == false) {
-                    await injector<CloudDatabase>()
-                        .addressDao
-                        .updateAddress(e.copyWith(isHidden: true));
-                  }
-                })).then((_) {
-                  _callBloc(persona);
-                });
+                setIsHiddenAll(walletAddresses, true);
               },
             ),
       OptionItem(
@@ -320,6 +307,17 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         }),
       ],
     );
+  }
+
+  Future<void> setIsHiddenAll(
+      List<WalletAddress> walletAddresses, bool isHide) async {
+    final addresses = walletAddresses
+        .where((element) => element.isHidden == !isHide)
+        .toList()
+        .map((e) => e.address)
+        .toList();
+    await injector<AccountService>().setHideAddressInGallery(addresses, isHide);
+    _callBloc(persona);
   }
 
   Widget _walletTypeOption(
@@ -517,28 +515,27 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           child: SvgPicture.asset(
               isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
         ),
-        onPressed: (_) async {
-          await injector<CloudDatabase>()
-              .addressDao
-              .updateAddress(walletAddress.copyWith(isHidden: !isHidden));
+        onPressed: (_) {
           injector<AccountService>()
-              .setHideAddressInGallery(walletAddress.address, !isHidden);
+              .setHideAddressInGallery([walletAddress.address], !isHidden);
           _callBloc(persona);
         },
       ),
-      CustomSlidableAction(
-        backgroundColor: Colors.red,
-        foregroundColor: theme.colorScheme.secondary,
-        child: Semantics(
-            label: "${walletAddress.address}_delete",
-            child: SvgPicture.asset('assets/images/trash.svg')),
-        onPressed: (_) async {
-          await injector<AccountService>()
-              .deleteAddressPersona(persona, walletAddress);
-          _callBloc(persona);
-          setState(() {});
-        },
-      )
+      if (!isDefaultWallet || walletAddress.index != 0) ...[
+        CustomSlidableAction(
+          backgroundColor: Colors.red,
+          foregroundColor: theme.colorScheme.secondary,
+          child: Semantics(
+              label: "${walletAddress.address}_delete",
+              child: SvgPicture.asset('assets/images/trash.svg')),
+          onPressed: (_) async {
+            await injector<AccountService>()
+                .deleteAddressPersona(persona, walletAddress);
+            _callBloc(persona);
+            setState(() {});
+          },
+        )
+      ]
     ];
   }
 }

@@ -671,7 +671,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               ),
               onTap: () {
                 injector<AccountService>().setHideAddressInGallery(
-                    widget.payload.address, !isHideGalleryEnabled);
+                    [widget.payload.address], !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -686,7 +686,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               ),
               onTap: () {
                 injector<AccountService>().setHideAddressInGallery(
-                    widget.payload.address, !isHideGalleryEnabled);
+                    [widget.payload.address], !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });

@@ -22,6 +22,10 @@ abstract class WalletAddressDao {
       'SELECT * FROM WalletAddress WHERE uuid = (:uuid) AND cryptoType = (:cryptoType)')
   Future<List<WalletAddress>> getAddresses(String uuid, String cryptoType);
 
+  @Query(
+      'UPDATE WalletAddress SET isHidden = :isHidden WHERE address = :address')
+  Future<void> setAddressIsHidden(String address, bool isHidden);
+
   @update
   Future<void> updateAddress(WalletAddress address);
 

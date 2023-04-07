@@ -604,6 +604,16 @@ class _$WalletAddressDao extends WalletAddressDao {
   }
 
   @override
+  Future<void> setAddressIsHidden(
+    String address,
+    bool isHidden,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE WalletAddress SET isHidden = ?2 WHERE address = ?1',
+        arguments: [address, isHidden ? 1 : 0]);
+  }
+
+  @override
   Future<void> removeAll() async {
     await _queryAdapter.queryNoReturn('DELETE FROM WalletAddress');
   }
