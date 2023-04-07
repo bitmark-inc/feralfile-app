@@ -100,7 +100,8 @@ class _StampPreviewState extends State<StampPreview> {
               ),
             ),
             Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+              padding:
+                  ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
               child: Column(
                 children: [
                   Text("finalize_note".tr(),

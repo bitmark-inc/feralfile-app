@@ -129,10 +129,11 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     UIHelper.hideInfoDialog(context);
     Navigator.of(context).pushNamed(StampPreview.tag,
         arguments: StampPreviewPayload(
-          image, widget.payload.asset, widget.payload.location,
+          image,
+          widget.payload.asset,
+          widget.payload.location,
         ));
   }
-
 }
 
 class HandSignaturePayload {

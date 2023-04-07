@@ -1,4 +1,3 @@
-
 import 'package:geocoding/geocoding.dart';
 
 String getLocationName(Placemark placeMark) {
