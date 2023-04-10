@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -278,6 +279,10 @@ extension AssetTokenExtension on AssetToken {
 
   String get twitterCaption {
     return "Here is Twitter Caption From Asset";
+  }
+
+  bool get canShare {
+    return owner == postcardMetadata.lastOwner;
   }
 }
 
