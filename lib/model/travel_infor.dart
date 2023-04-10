@@ -129,4 +129,13 @@ extension ListTravelInfo on List<TravelInfo> {
     }
     return totalDistance;
   }
+
+  TravelInfo get notSentTravelInfo {
+    if (this.isEmpty) {
+      return TravelInfo(LocationInformation(), null, 0, sentLocation: "MoMA");
+    }
+    final lastTravelInfo = this.last;
+    return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
+        sentLocation: lastTravelInfo.receivedLocation, receivedLocation: null);
+  }
 }

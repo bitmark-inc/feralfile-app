@@ -45,7 +45,6 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -429,24 +428,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _actionButton(BuildContext context) {
-    return Container(
-      color: Colors.amber,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            child: Text(
-              "action",
-              style: Theme.of(context).textTheme.ppMori400Grey14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _tabBar() {
     return Row(
       children: [
@@ -457,8 +438,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _tab(String text, bool isSelected) {
-    final theme = Theme.of(context);
-    final activeBackground = Color.fromRGBO(240, 148, 62, 1);
+    const activeBackground = Color.fromRGBO(240, 148, 62, 1);
     return Expanded(
         child: PostcardButton(
             color: isSelected ? activeBackground : AppColor.auGreyBackground,
@@ -643,22 +623,17 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
-              ...travelInfo
-                  .map((TravelInfo e) {
-                    if (e.receivedLocation == null) {
-                      if (asset.isSending) {
-                        return _sendingTripItem(context, asset, e);
-                      } else {
-                        if (asset.owner == asset.lastOwner) {
-                          return travelWidget(e);
-                        }
-                      }
-                    } else {
-                      return travelWidget(e);
-                    }
-                  })
-                  .whereNotNull()
-                  .toList(),
+              if (asset.isSending)
+                _sendingTripItem(context, asset, travelInfo.last)
+              else if (!asset.postcardMetadata.isStamped)
+                _notSentItem(travelInfo),
+
+              ...travelInfo.reversed.map((TravelInfo e) {
+                if (e.to == null) {
+                  return completeTravelWidget(e);
+                }
+                return travelWidget(e);
+              }).toList(),
             ],
           ),
         );
@@ -668,6 +643,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget travelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
+    NumberFormat formatter = NumberFormat("00");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -675,20 +651,23 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(travelInfo.index.toString(),
-                  style: theme.textTheme.ppMori400White12
+              Text(formatter.format(travelInfo.index),
+                  style: theme.textTheme.ppMori400Black12
                       .copyWith(color: AppColor.auQuickSilver)),
               Text(
                 travelInfo.sentLocation ?? "",
-                style: theme.textTheme.ppMori400White14,
+                style: theme.textTheme.ppMori400Black14,
               ),
               Row(
                 children: [
-                  SvgPicture.asset("assets/images/arrow_3.svg"),
+                  SvgPicture.asset(
+                    "assets/images/arrow_3.svg",
+                    color: AppColor.primaryBlack,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     travelInfo.receivedLocation ?? "Not sent",
-                    style: theme.textTheme.ppMori400White14,
+                    style: theme.textTheme.ppMori400Black14,
                   ),
                 ],
               ),
@@ -697,10 +676,33 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           const Spacer(),
           Text(
             distanceFormatter.format(distance: travelInfo.getDistance()),
-            style: theme.textTheme.ppMori400White14,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ]),
         addDivider(height: 30, color: AppColor.auGreyBackground),
+      ],
+    );
+  }
+
+  Widget completeTravelWidget(TravelInfo travelInfo) {
+    final theme = Theme.of(context);
+    NumberFormat formatter = NumberFormat("00");
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(formatter.format(travelInfo.index),
+                style: theme.textTheme.ppMori400Black12
+                    .copyWith(color: AppColor.auQuickSilver)),
+            Text(
+              travelInfo.sentLocation ?? "",
+              style: theme.textTheme.ppMori400Black14,
+            ),
+            addDivider(height: 30, color: AppColor.auGreyBackground),
+          ],
+        ),
       ],
     );
   }
@@ -750,6 +752,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
       ],
     );
+  }
+
+  Widget _notSentItem(List<TravelInfo> listTravelInfo) {
+    final notSentTravelInfo = listTravelInfo.notSentTravelInfo;
+    return travelWidget(notSentTravelInfo);
   }
 
   Widget leaderboard(AssetToken asset) {

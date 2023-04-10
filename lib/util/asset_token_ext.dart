@@ -284,6 +284,10 @@ extension AssetTokenExtension on AssetToken {
   bool get canShare {
     return owner == postcardMetadata.lastOwner;
   }
+
+  bool get isStamped {
+    return postcardMetadata.isStamped;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
