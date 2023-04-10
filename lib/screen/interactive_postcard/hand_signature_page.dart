@@ -1,8 +1,15 @@
+import 'dart:io';
 import 'dart:ui';
 
-import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'package:image/image.dart' as img;
 
@@ -27,6 +35,21 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   final GlobalKey<SfSignaturePadState> signatureGlobalKey = GlobalKey();
   bool didDraw = false;
   bool loading = false;
+  Uint8List? resizedStamp;
+
+  @override
+  void initState() {
+    super.initState();
+    resizeStamp();
+  }
+
+  Future<void> resizeStamp() async {
+    final image = await resizeImage(
+        ResizeImageParams(img.decodePng(widget.payload.image)!, 400, 400));
+    setState(() {
+      resizedStamp = img.encodePng(image);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +76,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                       ),
                       SfSignaturePad(
                         key: signatureGlobalKey,
-                        minimumStrokeWidth: 12,
-                        maximumStrokeWidth: 35,
+                        minimumStrokeWidth: 9,
+                        maximumStrokeWidth: 9,
                         strokeColor: Colors.black,
                         backgroundColor: Colors.transparent,
                         onDrawEnd: () {
@@ -67,38 +90,41 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  IconButton(
-                    padding: const EdgeInsets.all(0),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    color: Colors.blue,
-                    alignment: Alignment.centerLeft,
-                    icon: SvgPicture.asset(
-                      'assets/images/icon_back.svg',
-                      color: AppColor.white,
+              Container(
+                decoration: const BoxDecoration(
+                  color: AppColor.auGreyBackground,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      alignment: Alignment.center,
+                      icon: SvgPicture.asset(
+                        'assets/images/icon_back.svg',
+                        color: AppColor.white,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: OutlineButton(
-                      onTap: _handleClearButtonPressed,
-                      text: "start_over".tr(),
-                      color: Colors.transparent,
+                    Expanded(
+                      child: PostcardButton(
+                        onTap: _handleClearButtonPressed,
+                        text: "clear".tr(),
+                        color: AppColor.white,
+                        textColor: AppColor.auGrey,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: PrimaryButton(
-                      isProcessing: loading,
-                      enabled: didDraw,
-                      onTap: _handleSaveButtonPressed,
-                      text: "sign_postcard".tr(),
+                    Expanded(
+                      child: PostcardButton(
+                        isProcessing: loading,
+                        enabled: didDraw && resizedStamp != null,
+                        onTap: _handleSaveButtonPressed,
+                        text: "sign_postcard".tr(),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               )
             ],
           ),
@@ -116,23 +142,52 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
   void _handleSaveButtonPressed() async {
     UIHelper.showLoadingScreen(context, text: "loading...".tr());
-    final stampWidth = MediaQuery.of(context).size.width.toInt();
-    final signatureWith = MediaQuery.of(context).size.height.toInt() - 65;
-    final ratio = signatureWith.toDouble() / stampWidth.toDouble();
+    final signatureWith = MediaQuery.of(context).size.height.toInt();
+    final ratio = 400.0 / signatureWith.toDouble();
     final data =
-        await signatureGlobalKey.currentState!.toImage(pixelRatio: ratio * 1.5);
+        await signatureGlobalKey.currentState!.toImage(pixelRatio: ratio * 0.9);
     final bytes = await data.toByteData(format: ImageByteFormat.png);
 
-    final image = await compositeImage(
-        [widget.payload.image, bytes!.buffer.asUint8List()]);
+    final image =
+        await compositeImage([resizedStamp!, bytes!.buffer.asUint8List()]);
+
+    String dir = (await getTemporaryDirectory()).path;
+    File imageFile = File('$dir/postcardImage.png');
+    final imageData = await imageFile.writeAsBytes(img.encodePng(image));
+    final owner =
+        await widget.payload.asset.getOwnerWallet(checkContract: false);
     if (!mounted) return;
     UIHelper.hideInfoDialog(context);
+    Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+        arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
+    if (owner == null) {
+      if (!mounted) return;
+      UIHelper.hideInfoDialog(context);
+      return;
+    }
+    final result = await injector<PostcardService>().stampPostcard(
+        widget.payload.asset.tokenId ?? "",
+        owner.first,
+        owner.second,
+        imageData,
+        widget.payload.location);
+    if (!mounted) return;
+    if (result) {
+      Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+          arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
+    }
+
+    UIHelper.hideInfoDialog(context);
+    /*
+    if (!mounted) return;
     Navigator.of(context).pushNamed(StampPreview.tag,
         arguments: StampPreviewPayload(
           image,
           widget.payload.asset,
           widget.payload.location,
         ));
+
+     */
   }
 }
 
@@ -142,14 +197,4 @@ class HandSignaturePayload {
   final Position? location;
 
   HandSignaturePayload(this.image, this.asset, this.location);
-}
-
-Future<img.Image> compositeImage(List<Uint8List> images) async {
-  return await compute(compositeImages, images);
-}
-
-img.Image compositeImages(List<Uint8List> images) {
-  return img.compositeImage(
-      img.decodePng(images.first)!, img.decodePng(images.last)!,
-      center: true);
 }
