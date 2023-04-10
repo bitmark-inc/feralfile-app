@@ -100,7 +100,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
       'postcard_explain_7',
     ];
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       color: AppColor.white,
       child: Column(
         children: explainTextList
