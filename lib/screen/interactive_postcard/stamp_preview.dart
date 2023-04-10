@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -124,17 +125,16 @@ class _StampPreviewState extends State<StampPreview> {
 
   Future<void> pasteStamp() async {
     final postcardImage = await decodeFuture(postcardData!);
-    final stampImageResized =
-        await resizeImage(ResizeImageParams(widget.payload.image, 520, 546));
 
     var image = await compositeImageAt(CompositeImageParams(
-        postcardImage, stampImageResized, 210, 212, index, 490, 546));
+        postcardImage, widget.payload.image, 210, 212, index, 490, 546));
     stamped = true;
     stampedPostcardData = await encodeImage(image);
     setState(() {});
   }
 
   Future<void> _sendPostcard() async {
+    /*
     if (!stamped) return;
     String dir = (await getTemporaryDirectory()).path;
     File imageFile = File('$dir/postcardImage.png');
@@ -152,46 +152,11 @@ class _StampPreviewState extends State<StampPreview> {
       if (!mounted) return;
       injector<NavigationService>().popUntilHomeOrSettings();
     }
+
+     */
   }
 }
 
-Future<img.Image> compositeImageAt(CompositeImageParams compositeImages) async {
-  return await compute(compositeImagesAt, compositeImages);
-}
-
-img.Image compositeImagesAt(CompositeImageParams param) {
-  final row = param.index ~/ 9;
-  final col = param.index % 9;
-  final dstX = param.x + col * param.w;
-  final dstY = param.y + row * param.h;
-
-  return img.compositeImage(param.dst, param.src, dstX: dstX - 10, dstY: dstY);
-}
-
-Future<img.Image> resizeImage(ResizeImageParams resizeImageParams) async {
-  return await compute(resizeImageAt, resizeImageParams);
-}
-
-img.Image resizeImageAt(ResizeImageParams param) {
-  return img.copyResize(param.image, width: param.width, height: param.height);
-}
-
-Future<img.Image> decodeFuture(Uint8List data) async {
-  return await compute(_decodeImage, data);
-}
-
-img.Image _decodeImage(Uint8List data) {
-  return img.decodeImage(data)!;
-}
-
-// isolate encodeImage
-Future<Uint8List> encodeImage(img.Image image) async {
-  return await compute(_encodeImage, image);
-}
-
-Uint8List _encodeImage(img.Image image) {
-  return img.encodePng(image);
-}
 
 class StampPreviewPayload {
   final img.Image image;
@@ -201,23 +166,4 @@ class StampPreviewPayload {
   StampPreviewPayload(this.image, this.asset, this.location);
 }
 
-class CompositeImageParams {
-  final img.Image dst;
-  final img.Image src;
-  final int x;
-  final int y;
-  final int index;
-  final int w;
-  final int h;
 
-  CompositeImageParams(
-      this.dst, this.src, this.x, this.y, this.index, this.w, this.h);
-}
-
-class ResizeImageParams {
-  final img.Image image;
-  final int width;
-  final int height;
-
-  ResizeImageParams(this.image, this.width, this.height);
-}

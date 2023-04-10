@@ -118,8 +118,8 @@ class _PostcardApi implements PostcardApi {
   Future<dynamic> updatePostcard({
     required tokenId,
     required data,
+    required metadata,
     required signature,
-    required timestamp,
     required address,
     required publicKey,
     lat,
@@ -137,13 +137,16 @@ class _PostcardApi implements PostcardApi {
         filename: data.path.split(Platform.pathSeparator).last,
       ),
     ));
+    _data.files.add(MapEntry(
+      'metadata',
+      MultipartFile.fromFileSync(
+        metadata.path,
+        filename: metadata.path.split(Platform.pathSeparator).last,
+      ),
+    ));
     _data.fields.add(MapEntry(
       'signature',
       signature,
-    ));
-    _data.fields.add(MapEntry(
-      'timestamp',
-      timestamp.toString(),
     ));
     _data.fields.add(MapEntry(
       'address',
