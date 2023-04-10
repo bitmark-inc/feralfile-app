@@ -108,6 +108,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   String _status = '';
   bool _isRated = false;
+  bool _isFileAttached = false;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -175,7 +176,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         Future.delayed(const Duration(milliseconds: 300), () {
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
-              _addAppLogs();
+              _addDebugLog();
             } else {
               UIHelper.hideInfoDialog(context);
             }
@@ -193,7 +194,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       Future.delayed(const Duration(milliseconds: 300), () {
         _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
           if (attachCrashLog) {
-            _addAppLogs();
+            _addDebugLog();
           } else {
             UIHelper.hideInfoDialog(context);
           }
@@ -217,6 +218,13 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final isAvailable = await device.isSupportOS();
     setState(() {
       isCustomerSupportAvailable = isAvailable;
+    });
+  }
+
+  void _addDebugLog() {
+    Navigator.of(context).pop();
+    setState(() {
+      _isFileAttached = true;
     });
   }
 
@@ -768,15 +776,19 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   void _handleSendPressed(types.PartialText message) async {
-    _submit(
-      CSMessageType.PostMessage.rawValue,
-      DraftCustomerSupportData(
-          text: message.text,
-          announcementId: widget.payload.announcement?.announcementContextId),
-    );
+    if (_isFileAttached) {
+      _addAppLogs(message);
+    } else {
+      _submit(
+        CSMessageType.PostMessage.rawValue,
+        DraftCustomerSupportData(
+            text: message.text,
+            announcementId: widget.payload.announcement?.announcementContextId),
+      );
+    }
   }
 
-  Future _addAppLogs() async {
+  Future _addAppLogs(types.PartialText message) async {
     const fileMaxSize = 1024 * 1024;
     final file = await log_util.getLogFile();
     final bytes = await file.readAsBytes();
@@ -794,16 +806,23 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     await _submit(
       CSMessageType.PostLogs.rawValue,
       DraftCustomerSupportData(
+        text: message.text,
         attachments: [LocalAttachment(fileName: filename, path: localPath)],
         announcementId: widget.payload.announcement?.announcementContextId,
       ),
     );
-
-    if (!mounted) return;
-    Navigator.pop(context);
+    setState(() {
+      _isFileAttached = false;
+    });
   }
 
   void _handleAttachmentPressed() {
+    if (_isFileAttached) {
+      setState(() {
+        _isFileAttached = false;
+      });
+      return;
+    }
     UIHelper.showDialog(
       context,
       "attach_file".tr(),
@@ -821,8 +840,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             height: 10,
           ),
           PrimaryButton(
-            onTap: () async {
-              await _addAppLogs();
+            onTap: () {
+              _addDebugLog();
             },
             text: 'debug_log'.tr(),
           ),
@@ -949,16 +968,18 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       } else {
         final sizeAndRealTitle =
             ReceiveAttachment.extractSizeAndRealTitle(titles[i]);
-        result.add(types.FileMessage(
-          id: '$id${sizeAndRealTitle[1]}',
-          author: author,
-          createdAt: createdAt.millisecondsSinceEpoch,
-          status: status,
-          showStatus: true,
-          name: sizeAndRealTitle[1],
-          size: sizeAndRealTitle[0] ?? 0,
-          uri: uris[i],
-        ));
+        result.insert(
+            0,
+            types.FileMessage(
+              id: '$id${sizeAndRealTitle[1]}',
+              author: author,
+              createdAt: createdAt.millisecondsSinceEpoch,
+              status: status,
+              showStatus: true,
+              name: sizeAndRealTitle[1],
+              size: sizeAndRealTitle[0] ?? 0,
+              uri: uris[i],
+            ));
       }
     }
 
@@ -986,10 +1007,12 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       inputBackgroundColor: theme.colorScheme.primary,
       inputTextStyle: theme.textTheme.ppMori400White14,
       inputTextColor: theme.colorScheme.secondary,
-      attachmentButtonIcon: SvgPicture.asset(
-        "assets/images/joinFile.svg",
-        color: theme.colorScheme.secondary,
-      ),
+      attachmentButtonIcon: _isFileAttached
+          ? SvgPicture.asset("assets/images/file_attached.svg")
+          : SvgPicture.asset(
+              "assets/images/joinFile.svg",
+              color: theme.colorScheme.secondary,
+            ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(
         _sendIcon,
