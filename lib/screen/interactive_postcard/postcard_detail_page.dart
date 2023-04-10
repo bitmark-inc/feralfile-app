@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -287,27 +288,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           token: asset,
                         ),
                       ),
-                      _actionButton(context),
-                      Visibility(
-                        visible: CHECK_WEB3_CONTRACT_ADDRESS
-                            .contains(asset.contractAddress),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 16.0, right: 16.0, top: 40),
-                            child: OutlineButton(
-                              color: Colors.transparent,
-                              text: "web3_glossary".tr(),
-                              onTap: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
+                      _postcardAction(asset),
                       const SizedBox(
                         height: 10,
                       ),
@@ -317,7 +298,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   ),
                 ),
               ),
-              Visibility(visible: viewJourney, child: _postcardAction(asset)),
             ],
           ),
         );
@@ -331,25 +311,19 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final isStamped = asset.postcardMetadata.isStamped;
     if (asset.canShare) {
       if (!isStamped) {
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: PrimaryButton(
-            text: "stamp_postcard".tr(),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.postcardExplain,
-                  arguments: PostcardExplainPayload(asset));
-            },
-          ),
+        return PostcardButton(
+          text: "stamp_postcard".tr(),
+          onTap: () {
+            Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+                arguments: PostcardExplainPayload(asset));
+          },
         );
       } else if (!asset.isSending) {
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: PrimaryButton(
-            text: "invite_to_collaborate".tr(),
-            onTap: () {
-              _sharePostcard(asset);
-            },
-          ),
+        return PostcardButton(
+          text: "invite_to_collaborate".tr(),
+          onTap: () {
+            _sharePostcard(asset);
+          },
         );
       }
     }
@@ -484,27 +458,19 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _tab(String text, bool isSelected) {
     final theme = Theme.of(context);
+    final activeBackground = Color.fromRGBO(240, 148, 62, 1);
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (!isSelected) {
-            setState(() {
-              viewJourney = !viewJourney;
-            });
-          }
-        },
-        child: Container(
-          color: isSelected ? AppColor.auSuperTeal : AppColor.greyMedium,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: theme.textTheme.ppMori400Black14
-                .copyWith(color: isSelected ? null : AppColor.auLightGrey),
-          ),
-        ),
-      ),
-    );
+        child: PostcardButton(
+            color: isSelected ? activeBackground : AppColor.auGreyBackground,
+            textColor: isSelected ? null : AppColor.white,
+            text: text,
+            onTap: () {
+              if (!isSelected) {
+                setState(() {
+                  viewJourney = !viewJourney;
+                });
+              }
+            }));
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -666,13 +632,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 children: [
                   Text(
                     "travel_distance".tr(),
-                    style: theme.textTheme.ppMori700White14,
+                    style: theme.textTheme.ppMori700Black14,
                   ),
                   const Spacer(),
                   Text(
                     distanceFormatter.format(
                         distance: travelInfo.totalDistance),
-                    style: theme.textTheme.ppMori700White14,
+                    style: theme.textTheme.ppMori700Black14,
                   ),
                 ],
               ),

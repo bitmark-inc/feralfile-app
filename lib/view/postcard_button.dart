@@ -8,6 +8,7 @@ class PostcardButton extends StatelessWidget {
   final double? width;
   final bool isProcessing;
   final bool enabled;
+  final Color? textColor;
 
   const PostcardButton({
     Key? key,
@@ -17,6 +18,7 @@ class PostcardButton extends StatelessWidget {
     this.width,
     this.enabled = true,
     this.isProcessing = false,
+    this.textColor,
   }) : super(key: key);
 
   @override
@@ -57,7 +59,8 @@ class PostcardButton extends StatelessWidget {
                     : const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.ppMori400Black14,
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: textColor),
                 ),
               ],
             ),
