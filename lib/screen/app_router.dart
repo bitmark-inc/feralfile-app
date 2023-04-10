@@ -84,6 +84,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -845,6 +846,7 @@ class AppRouter {
                   BlocProvider(
                       create: (_) => IdentityBloc(injector(), injector())),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
