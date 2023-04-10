@@ -81,7 +81,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
-    final cellSize = ((size - 30.0) / 10.0).floor();
+    final cellSize = ((size - 60.0) / 10.0).floor();
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar: getBackAppBar(
@@ -361,17 +361,16 @@ class StampPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cellSize = size.width / 10.0;
+    final cellSize = min(size.width, size.width) / 10.0;
 
     // draw 9 vertical lines and 9 horizontal lines
-
     if (line) {
       final paint = Paint()
         ..color = AppColor.auLightGrey
         ..strokeWidth = 0.3;
-      for (var i = 1; i < 10; i++) {
-        canvas.drawLine(
-            Offset(i * cellSize, 0), Offset(i * cellSize, size.height), paint);
+      for (var i = 0; i <= 10; i++) {
+        canvas.drawLine(Offset(i * cellSize, 0),
+            Offset(i * cellSize, cellSize * 10), paint);
         canvas.drawLine(
             Offset(0, i * cellSize), Offset(size.width, i * cellSize), paint);
       }
