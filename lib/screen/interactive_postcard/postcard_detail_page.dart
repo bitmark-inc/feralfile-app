@@ -272,28 +272,31 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           body: Column(
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        height: 40,
-                      ),
-                      Hero(
-                        tag: "detail_${asset.id}",
-                        child: ArtworkView(
-                          payload: widget.payload,
-                          token: asset,
+                child: Padding(
+                  padding: ResponsiveLayout.getPadding,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          height: 40,
                         ),
-                      ),
-                      _postcardAction(asset),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      _postcardInfor(asset),
-                      _artworkInfo(asset, state, artistNames),
-                    ],
+                        Hero(
+                          tag: "detail_${asset.id}",
+                          child: ArtworkView(
+                            payload: widget.payload,
+                            token: asset,
+                          ),
+                        ),
+                        _postcardAction(asset),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        _postcardInfor(asset),
+                        _artworkInfo(asset, state, artistNames),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -383,46 +386,40 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         const SizedBox(height: 20),
         Visibility(
           visible: editionSubTitle.isNotEmpty,
-          child: Padding(
-            padding: ResponsiveLayout.getPadding,
-            child: Text(
-              editionSubTitle,
-              style: theme.textTheme.ppMori400Grey14,
-            ),
+          child: Text(
+            editionSubTitle,
+            style: theme.textTheme.ppMori400Grey14,
           ),
         ),
         debugInfoWidget(context, currentAsset),
         const SizedBox(height: 16.0),
-        Padding(
-          padding: ResponsiveLayout.getPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Semantics(
-                label: 'Desc',
-                child: HtmlWidget(
-                  asset.description ?? "",
-                  textStyle: theme.textTheme.ppMori400White14,
-                ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              label: 'Desc',
+              child: HtmlWidget(
+                asset.description ?? "",
+                textStyle: theme.textTheme.ppMori400White14,
               ),
-              const SizedBox(height: 40.0),
-              postcardDetailsMetadataSection(context, asset, artistNames),
-              if (asset.fungible == true) ...[
-                BlocBuilder<AccountsBloc, AccountsState>(
-                  builder: (context, state) {
-                    final addresses = state.addresses;
-                    return postcardOwnership(context, asset, addresses);
-                  },
-                ),
-              ] else ...[
-                state.provenances.isNotEmpty
-                    ? _provenanceView(context, state.provenances)
-                    : const SizedBox()
-              ],
-              artworkDetailsRightSection(context, asset),
-              const SizedBox(height: 80.0),
+            ),
+            const SizedBox(height: 40.0),
+            postcardDetailsMetadataSection(context, asset, artistNames),
+            if (asset.fungible == true) ...[
+              BlocBuilder<AccountsBloc, AccountsState>(
+                builder: (context, state) {
+                  final addresses = state.addresses;
+                  return postcardOwnership(context, asset, addresses);
+                },
+              ),
+            ] else ...[
+              state.provenances.isNotEmpty
+                  ? _provenanceView(context, state.provenances)
+                  : const SizedBox()
             ],
-          ),
+            artworkDetailsRightSection(context, asset),
+            const SizedBox(height: 80.0),
+          ],
         )
       ],
     );

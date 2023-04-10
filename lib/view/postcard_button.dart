@@ -59,7 +59,7 @@ class PostcardButton extends StatelessWidget {
                     : const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.ppMori400Black14
+                  style: theme.textTheme.ppMori700Black14
                       .copyWith(color: textColor),
                 ),
               ],
