@@ -283,8 +283,9 @@ Future<void> setup() async {
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
-  injector.registerLazySingleton<PostcardApi>(
-      () => PostcardApi(dio, baseUrl: Environment.auClaimAPITestnetURL));
+  injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
+      _postcardDio(dioOptions),
+      baseUrl: Environment.auClaimAPITestnetURL));
 
   injector.registerLazySingleton<EthereumService>(
       () => EthereumServiceImpl(injector(), injector()));
@@ -350,6 +351,16 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
+  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
+  dio.addSentry(captureFailedRequests: true);
+  dio.options = options;
+  return dio;
+}
+
+Dio _postcardDio(BaseOptions options) {
+  final dio = Dio(); // Default a dio instance
+  dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(PostcardAuthInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
   dio.options = options;

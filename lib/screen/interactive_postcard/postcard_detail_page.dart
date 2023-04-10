@@ -35,11 +35,13 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -215,13 +217,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
 
-        final artistName =
-            asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
-        var subTitle = "";
-        if (artistName != null && artistName.isNotEmpty) {
-          subTitle = "by".tr(args: [artistName]);
-        }
+        final artistNames = asset.postcardMetadata.listOwner
+            .map((e) => e.toIdentityOrMask(identityState.identityMap))
+            .toList();
 
         return Scaffold(
           backgroundColor: theme.colorScheme.primary,
@@ -235,12 +233,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 Text(
                   asset.title ?? '',
                   style: theme.textTheme.ppMori400White16,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subTitle,
-                  style: theme.textTheme.ppMori400White14,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -296,44 +288,16 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           token: asset,
                         ),
                       ),
-                      Visibility(
-                        visible: CHECK_WEB3_CONTRACT_ADDRESS
-                            .contains(asset.contractAddress),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 16.0, right: 16.0, top: 40),
-                            child: OutlineButton(
-                              color: Colors.transparent,
-                              text: "web3_glossary".tr(),
-                              onTap: () {
-                                Navigator.pushNamed(
-                                    context, AppRouter.previewPrimerPage,
-                                    arguments: asset);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
+                      _postcardAction(asset),
                       const SizedBox(
-                        height: 30,
+                        height: 10,
                       ),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _tabBar(),
-                      ),
-                      const SizedBox(
-                        height: 40,
-                      ),
-                      viewJourney
-                          ? travelInfoWidget(asset)
-                          : _artworkInfo(asset, state, artistName),
+                      _postcardInfor(asset),
+                      _artworkInfo(asset, state, artistNames),
                     ],
                   ),
                 ),
               ),
-              Visibility(visible: viewJourney, child: _postcardAction(asset)),
             ],
           ),
         );
@@ -347,25 +311,19 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final isStamped = asset.postcardMetadata.isStamped;
     if (asset.canShare) {
       if (!isStamped) {
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: PrimaryButton(
-            text: "stamp_postcard".tr(),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.postcardExplain,
-                  arguments: PostcardExplainPayload(asset));
-            },
-          ),
+        return PostcardButton(
+          text: "stamp_postcard".tr(),
+          onTap: () {
+            Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+                arguments: PostcardExplainPayload(asset));
+          },
         );
       } else if (!asset.isSending) {
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: PrimaryButton(
-            text: "invite_to_collaborate".tr(),
-            onTap: () {
-              _sharePostcard(asset);
-            },
-          ),
+        return PostcardButton(
+          text: "invite_to_collaborate".tr(),
+          onTap: () {
+            _sharePostcard(asset);
+          },
         );
       }
     }
@@ -402,8 +360,23 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
+  Widget _postcardInfor(AssetToken asset) {
+    return Container(
+      color: AppColor.white,
+      child: Column(
+        children: [
+          _tabBar(),
+          const SizedBox(
+            height: 10,
+          ),
+          viewJourney ? travelInfoWidget(asset) : leaderboard(asset),
+        ],
+      ),
+    );
+  }
+
   Widget _artworkInfo(
-      AssetToken asset, ArtworkDetailState state, String? artistName) {
+      AssetToken asset, ArtworkDetailState state, List<String?> artistNames) {
     final theme = Theme.of(context);
     final editionSubTitle = getEditionSubTitle(asset);
     return Column(
@@ -434,12 +407,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
               ),
               const SizedBox(height: 40.0),
-              artworkDetailsMetadataSection(context, asset, artistName),
+              postcardDetailsMetadataSection(context, asset, artistNames),
               if (asset.fungible == true) ...[
                 BlocBuilder<AccountsBloc, AccountsState>(
                   builder: (context, state) {
                     final addresses = state.addresses;
-                    return tokenOwnership(context, asset, addresses);
+                    return postcardOwnership(context, asset, addresses);
                   },
                 ),
               ] else ...[
@@ -456,45 +429,48 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Widget _actionButton(BuildContext context) {
+    return Container(
+      color: Colors.amber,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: Text(
+              "action",
+              style: Theme.of(context).textTheme.ppMori400Grey14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _tabBar() {
     return Row(
       children: [
         _tab("journey".tr(), viewJourney),
-        const SizedBox(width: 10),
-        _tab("info".tr(), !viewJourney),
+        _tab("leaderboard", !viewJourney),
       ],
     );
   }
 
   Widget _tab(String text, bool isSelected) {
     final theme = Theme.of(context);
+    final activeBackground = Color.fromRGBO(240, 148, 62, 1);
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (!isSelected) {
-            setState(() {
-              viewJourney = !viewJourney;
-            });
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.only(top: 5),
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                  width: 2,
-                  color:
-                      isSelected ? AppColor.auSuperTeal : AppColor.greyMedium),
-            ),
-          ),
-          child: Text(
-            text,
-            style: theme.textTheme.ppMori400White14
-                .copyWith(color: isSelected ? null : AppColor.greyMedium),
-          ),
-        ),
-      ),
-    );
+        child: PostcardButton(
+            color: isSelected ? activeBackground : AppColor.auGreyBackground,
+            textColor: isSelected ? null : AppColor.white,
+            text: text,
+            onTap: () {
+              if (!isSelected) {
+                setState(() {
+                  viewJourney = !viewJourney;
+                });
+              }
+            }));
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -656,13 +632,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 children: [
                   Text(
                     "travel_distance".tr(),
-                    style: theme.textTheme.ppMori700White14,
+                    style: theme.textTheme.ppMori700Black14,
                   ),
                   const Spacer(),
                   Text(
                     distanceFormatter.format(
                         distance: travelInfo.totalDistance),
-                    style: theme.textTheme.ppMori700White14,
+                    style: theme.textTheme.ppMori700Black14,
                   ),
                 ],
               ),
@@ -774,6 +750,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
       ],
     );
+  }
+
+  Widget leaderboard(AssetToken asset) {
+    return const Text("Here is leader boeard");
   }
 }
 
