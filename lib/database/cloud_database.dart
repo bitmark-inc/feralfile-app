@@ -32,6 +32,24 @@ abstract class CloudDatabase extends FloorDatabase {
     await connectionDao.removeAll();
     await auditDao.removeAll();
   }
+
+  Future<void> copyDataFrom(CloudDatabase source) async {
+    await source.personaDao.getPersonas().then((personas) async {
+      for (var persona in personas) {
+        await personaDao.insertPersona(persona);
+      }
+    });
+    await source.connectionDao.getConnections().then((connections) async {
+      for (var connection in connections) {
+        await connectionDao.insertConnection(connection);
+      }
+    });
+    await source.auditDao.getAudits().then((audits) async {
+      for (var audit in audits) {
+        await auditDao.insertAudit(audit);
+      }
+    });
+  }
 }
 
 final migrateCloudV1ToV2 = Migration(1, 2, (database) async {
