@@ -143,6 +143,8 @@ class Environment {
 
   static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 
+  static String get auClaimSecretKeyTestnet =>
+      dotenv.env['AU_CLAIM_SECRET_KEY_TESTNET'] ?? '';
   static String get auClaimAPITestnetURL =>
       dotenv.env['AU_CLAIM_API_TESTNET_URL'] ?? '';
 
@@ -151,9 +153,6 @@ class Environment {
 
   static String get postcardContractAddress =>
       dotenv.env['POSTCARD_CONTRACT_ADDRESS'] ?? '';
-
-  static String get postcardSecretKey =>
-      dotenv.env['POSTCARD_SECRET_KEY'] ?? '';
 }
 
 class Secret {
