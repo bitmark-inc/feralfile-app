@@ -166,8 +166,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 15),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   PostcardCustomOutlineButton(
                                     onTap: !_undoController.canUndo
@@ -189,30 +187,36 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                       color: AppColor.greyMedium,
                                     ),
                                   ),
-                                  PostcardOutlineButton(
-                                    onTap: () {
-                                      setState(() {
-                                        fillRandomColor();
-                                      });
-                                    },
-                                    text: "randomize".tr(),
-                                    textColor: AppColor.greyMedium,
-                                    color: AppColor.white,
-                                    borderColor: AppColor.greyMedium,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: PostcardOutlineButton(
+                                      onTap: () {
+                                        setState(() {
+                                          fillRandomColor();
+                                        });
+                                      },
+                                      text: "randomize".tr(),
+                                      textColor: AppColor.greyMedium,
+                                      color: AppColor.white,
+                                      borderColor: AppColor.greyMedium,
+                                    ),
                                   ),
-                                  PostcardOutlineButton(
-                                    onTap: () {
-                                      setState(() {
-                                        line = true;
-                                        rectColors =
-                                            List<Color?>.filled(100, null);
-                                      });
-                                      _undoController.modify(rectColors);
-                                    },
-                                    text: "clear_all".tr(),
-                                    textColor: AppColor.greyMedium,
-                                    borderColor: AppColor.greyMedium,
-                                    color: AppColor.white,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: PostcardOutlineButton(
+                                      onTap: () {
+                                        setState(() {
+                                          line = true;
+                                          rectColors =
+                                              List<Color?>.filled(100, null);
+                                        });
+                                        _undoController.modify(rectColors);
+                                      },
+                                      text: "clear_all".tr(),
+                                      textColor: AppColor.greyMedium,
+                                      borderColor: AppColor.greyMedium,
+                                      color: AppColor.white,
+                                    ),
                                   ),
                                 ],
                               ),

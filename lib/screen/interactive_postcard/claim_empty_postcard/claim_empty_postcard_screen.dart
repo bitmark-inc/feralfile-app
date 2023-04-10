@@ -1,17 +1,18 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'claim_empty_postcard_state.dart';
+
 import 'claim_empty_postcard_bloc.dart';
+import 'claim_empty_postcard_state.dart';
 
 class ClaimEmptyPostCardScreen extends StatefulWidget {
   final String id;
@@ -52,6 +53,10 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
           final theme = Theme.of(context);
           return Scaffold(
             backgroundColor: theme.colorScheme.primary,
+            appBar: AppBar(
+              systemOverlayStyle: SystemUiOverlayStyle.light,
+              toolbarHeight: 0,
+            ),
             body: Container(
               padding: const EdgeInsets.fromLTRB(14, 28, 14, 40),
               child: Column(
@@ -123,110 +128,92 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                             color: theme.colorScheme.secondary,
                           ),
                           const SizedBox(
-                            height: 30,
+                            height: 15,
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: theme.auSuperTeal,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 15),
-                                  child: Text(
-                                    'how_it_works'.tr(),
-                                    style: theme.textTheme.ppMori700Black14,
-                                  ),
-                                ),
-                                RichText(
-                                  maxLines: 10,
-                                  overflow: TextOverflow.ellipsis,
-                                  text: TextSpan(
-                                    text: "introducing_the".tr(),
-                                    style: theme.textTheme.ppMori400Black14,
-                                    children: [
-                                      TextSpan(
-                                        text: 'moma_postcard_project'.tr(),
-                                        style: theme.textTheme.ppMori400Black14
-                                            .copyWith(
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: 'a_collaborative'.tr(),
-                                        style: theme.textTheme.ppMori400Black14,
-                                      ),
-                                      TextSpan(
-                                        text: "your_objective".tr(),
-                                        style: theme.textTheme.ppMori400Black14,
-                                      ),
-                                      TextSpan(
-                                        text:
-                                            "tap_accept_postcard_to_begin".tr(),
-                                        style: theme.textTheme.ppMori400Black14,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          Text(
-                            "accept_ownership_desc".tr(),
-                            style: theme.primaryTextTheme.ppMori400White14,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          PrimaryButton(
-                            text: "accept_ownership".tr(),
+                          const HowItWorksView(),
+
+                          // const SizedBox(
+                          //   height: 30,
+                          // ),
+                          // Text(
+                          //   "accept_ownership_desc".tr(),
+                          //   style: theme.primaryTextTheme.ppMori400White14,
+                          // ),
+                          // const SizedBox(
+                          //   height: 16,
+                          // ),
+                          // PrimaryButton(
+                          //   text: "accept_ownership".tr(),
+                          //   enabled: state.isClaiming != true,
+                          //   isProcessing: state.isClaiming == true,
+                          //   onTap: () {
+                          //     bloc.add(AcceptGiftEvent());
+                          //   },
+                          // ),
+                          // const SizedBox(
+                          //   height: 30,
+                          // ),
+                          // RichText(
+                          //   text: TextSpan(
+                          //     text: "airdrop_accept_privacy_policy".tr(),
+                          //     style: theme.textTheme.ppMori400Grey12,
+                          //     children: [
+                          //       TextSpan(
+                          //           text: "airdrop_privacy_policy".tr(),
+                          //           style: makeLinkStyle(
+                          //             theme.textTheme.ppMori400Grey12,
+                          //           ),
+                          //           recognizer: TapGestureRecognizer()
+                          //             ..onTap = () {}),
+                          //       TextSpan(
+                          //         text: ".",
+                          //         style: theme.primaryTextTheme.bodyLarge
+                          //             ?.copyWith(fontSize: 14),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          // const SizedBox(
+                          //   height: 10,
+                          // ),
+                          // OutlineButton(
+                          //   text: "decline".tr(),
+                          //   color: theme.colorScheme.primary,
+                          //   onTap: () {
+                          //     Navigator.of(context).pop(false);
+                          //   },
+                          // ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.bottomCenter,
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.only(top: 15),
+                    child: Row(
+                      children: [
+                        OutlineButton(
+                          text: "cancel".tr(),
+                          color: theme.colorScheme.primary,
+                          onTap: () {
+                            Navigator.of(context).pop(false);
+                          },
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                          child: PrimaryButton(
+                            text: "mint_postcard".tr(),
                             enabled: state.isClaiming != true,
                             isProcessing: state.isClaiming == true,
                             onTap: () {
                               bloc.add(AcceptGiftEvent());
                             },
                           ),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          RichText(
-                            text: TextSpan(
-                              text: "airdrop_accept_privacy_policy".tr(),
-                              style: theme.textTheme.ppMori400Grey12,
-                              children: [
-                                TextSpan(
-                                    text: "airdrop_privacy_policy".tr(),
-                                    style: makeLinkStyle(
-                                      theme.textTheme.ppMori400Grey12,
-                                    ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {}),
-                                TextSpan(
-                                  text: ".",
-                                  style: theme.primaryTextTheme.bodyLarge
-                                      ?.copyWith(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          OutlineButton(
-                            text: "decline".tr(),
-                            color: theme.colorScheme.primary,
-                            onTap: () {
-                              Navigator.of(context).pop(false);
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

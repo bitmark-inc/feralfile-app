@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/view/postcard_explain.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,50 +8,31 @@ class HowItWorksView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = AppColor.white;
+    final dividerColor = AppColor.primaryBlack;
+    final backgroundColor = AppColor.auGreyBackground;
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: theme.auSuperTeal,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 15),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
             child: Text(
               'how_it_works'.tr(),
-              style: theme.textTheme.ppMori700Black14,
+              style: theme.textTheme.ppMori700Black14.copyWith(
+                color: textColor,
+              ),
             ),
           ),
-          RichText(
-            maxLines: 10,
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              text: "introducing_the".tr(),
-              style: theme.textTheme.ppMori400Black14,
-              children: [
-                TextSpan(
-                  text: 'moma_postcard_project'.tr(),
-                  style: theme.textTheme.ppMori400Black14.copyWith(
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                TextSpan(
-                  text: 'a_collaborative'.tr(),
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-                TextSpan(
-                  text: "your_objective".tr(),
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-                TextSpan(
-                  text: "tap_accept_postcard_to_begin".tr(),
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-              ],
-            ),
+          PostcardExplainView(
+            textColor: textColor,
+            backgroundColor: backgroundColor,
+            dividerColor: dividerColor,
           ),
         ],
       ),
