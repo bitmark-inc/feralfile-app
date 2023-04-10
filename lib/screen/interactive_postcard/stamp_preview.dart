@@ -134,6 +134,7 @@ class _StampPreviewState extends State<StampPreview> {
   }
 
   Future<void> _sendPostcard() async {
+    /*
     if (!stamped) return;
     String dir = (await getTemporaryDirectory()).path;
     File imageFile = File('$dir/postcardImage.png');
@@ -151,6 +152,8 @@ class _StampPreviewState extends State<StampPreview> {
       if (!mounted) return;
       injector<NavigationService>().popUntilHomeOrSettings();
     }
+
+     */
   }
 }
 

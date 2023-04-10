@@ -240,7 +240,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                                   bytes!,
                                                   widget.payload.asset,
                                                   widget.payload.location
-                                                      ?.position));
+                                                      ?.position,
+                                                  location));
                                         },
                                       );
                                     },

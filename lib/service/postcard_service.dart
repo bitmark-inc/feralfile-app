@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -39,7 +40,7 @@ abstract class PostcardService {
   Future<bool> isReceived(String tokenId);
 
   Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
-      File image, Position? location);
+      File image, File metadata, Position? location, int counter);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -110,10 +111,11 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
-      File image, Position? location) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      File image, File metadata, Position? location, int counter) async {
+    final message2sign =
+        [Environment.postcardContractAddress, tokenId, counter].join("|");
     final signature = await _tezosService.signMessage(
-        wallet, index, Uint8List.fromList(utf8.encode(timestamp.toString())));
+        wallet, index, Uint8List.fromList(utf8.encode(message2sign)));
     final address = await wallet.getTezosAddress(index: index);
     final publicKey = await wallet.getTezosPublicKey(index: index);
     final lat = location?.latitude;
@@ -121,8 +123,8 @@ class PostcardServiceImpl extends PostcardService {
     final result = await _postcardApi.updatePostcard(
         tokenId: tokenId,
         data: image,
+        metadata: metadata,
         signature: signature,
-        timestamp: timestamp,
         address: address,
         publicKey: publicKey,
         lat: lat,

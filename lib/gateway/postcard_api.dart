@@ -30,8 +30,8 @@ abstract class PostcardApi {
   Future<dynamic> updatePostcard({
     @Path("token_id") required String tokenId,
     @Part(name: "image") required File data,
+    @Part(name: "metadata") required File metadata,
     @Part(name: "signature") required String signature,
-    @Part(name: "timestamp") required int timestamp,
     @Part(name: "address") required String address,
     @Part(name: "publicKey") required String publicKey,
     @Part(name: "lat") double? lat,

@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
@@ -142,6 +142,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
   void _handleSaveButtonPressed() async {
     UIHelper.showLoadingScreen(context, text: "loading...".tr());
+    final asset = widget.payload.asset;
     final signatureWith = MediaQuery.of(context).size.height.toInt();
     final ratio = 400.0 / signatureWith.toDouble();
     final data =
@@ -153,29 +154,39 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
     String dir = (await getTemporaryDirectory()).path;
     File imageFile = File('$dir/postcardImage.png');
+    File metadataFile = File('$dir/metadata.json');
+    final Map<String, dynamic> metadata = {
+      "address": widget.payload.location,
+      "stampedAt": DateTime.now().toIso8601String()
+    };
+    await metadataFile.writeAsString(jsonEncode(metadata));
     final imageData = await imageFile.writeAsBytes(img.encodePng(image));
-    final owner =
-        await widget.payload.asset.getOwnerWallet(checkContract: false);
+    final owner = await asset.getOwnerWallet(checkContract: false);
     if (!mounted) return;
     UIHelper.hideInfoDialog(context);
     Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-        arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
+        arguments: ArtworkDetailPayload([asset.identity], 0));
     if (owner == null) {
       if (!mounted) return;
       UIHelper.hideInfoDialog(context);
       return;
     }
-    final result = await injector<PostcardService>().stampPostcard(
-        widget.payload.asset.tokenId ?? "",
+    final counter = 0; //asset.postcardMetadata.counter;
+    final result = injector<PostcardService>().stampPostcard(
+        asset.tokenId ?? "",
         owner.first,
         owner.second,
         imageData,
-        widget.payload.location);
+        metadataFile,
+        widget.payload.location,
+        counter);
+    imageFile.delete();
+    metadataFile.delete();
     if (!mounted) return;
-    if (result) {
+    // save tokenID to reference
       Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
           arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
-    }
+
 
     UIHelper.hideInfoDialog(context);
     /*
@@ -195,6 +206,7 @@ class HandSignaturePayload {
   final Uint8List image;
   final AssetToken asset;
   final Position? location;
+  final String address;
 
-  HandSignaturePayload(this.image, this.asset, this.location);
+  HandSignaturePayload(this.image, this.asset, this.location, this.address);
 }
