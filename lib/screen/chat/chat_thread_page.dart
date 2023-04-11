@@ -42,6 +42,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   int? lastMessageTimestamp;
   bool didFetchAllMessages = false;
   String? historyRequestId;
+  var _sendIcon = "assets/images/sendMessage.svg";
 
   @override
   void initState() {
@@ -200,7 +201,18 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
               onSendPressed: _handleSendPressed,
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-                  onTextChanged: (text) {}),
+                  onTextChanged: (text) {
+                    if (_sendIcon == "assets/images/sendMessageFilled.svg" &&
+                            text.trim() == '' ||
+                        _sendIcon == "assets/images/sendMessage.svg" &&
+                            text.trim() != '') {
+                      setState(() {
+                        _sendIcon = text.trim() != ''
+                            ? "assets/images/sendMessageFilled.svg"
+                            : "assets/images/sendMessage.svg";
+                      });
+                    }
+                  }),
               user: types.User(id: const Uuid().v4()),
             )));
   }
@@ -301,9 +313,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           ),
         ),
       ),
-      sendButtonIcon: SvgPicture.asset(
-        "assets/images/sendMessage.svg",
-      ),
+      sendButtonIcon: SvgPicture.asset(_sendIcon),
       inputTextCursorColor: theme.colorScheme.secondary,
       emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400White14
           .copyWith(color: AppColor.auQuickSilver),
@@ -321,10 +331,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           : theme.textTheme.receivedMessageBodyTextStyle16,
       receivedMessageDocumentIconColor: Colors.transparent,
       sentMessageDocumentIconColor: Colors.transparent,
-      documentIcon: SvgPicture.asset(
-        "assets/images/bug_icon.svg",
-        width: 20,
-      ),
       sentMessageCaptionTextStyle: ResponsiveLayout.isMobile
           ? theme.textTheme.sentMessageCaptionTextStyle
           : theme.textTheme.sentMessageCaptionTextStyle16,
