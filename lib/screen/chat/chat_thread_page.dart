@@ -243,7 +243,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       final body = message.text;
       String you = "";
       if (message.author.id == user.id) {
-        you = " (you)".tr();
+        you = " (${"you".tr()})";
       }
       final time = message.createdAt ?? 0;
       return Padding(
