@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -54,6 +55,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
     setState(() {
       _isSending = true;
     });
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      setState(() {
+        _isSending = false;
+      });
+      return;
+    }
 
     try {
       final assetToken = widget.payload.assetToken;
@@ -202,6 +210,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         Navigator.of(context).pop(payload);
       }
     } catch (e) {
+      if (!mounted) return;
       UIHelper.showMessageAction(
         context,
         'transaction_failed'.tr(),

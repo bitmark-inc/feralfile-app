@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -119,6 +120,33 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
     setState(() {});
   }
 
+  void _sign() async {
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      return;
+    }
+    final signature = await _currentWallet!.signMessage(
+      chain: widget.payload.chain,
+      message: widget.payload.payload,
+    );
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop(signature);
+    final notificationEnabled =
+        injector<ConfigurationService>().isNotificationEnabled() ?? false;
+    if (notificationEnabled) {
+      showInfoNotification(
+        const Key("signed"),
+        "signed".tr(),
+        frontWidget: SvgPicture.asset(
+          "assets/images/checkbox_icon.svg",
+          width: 24,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.payload.payload);
@@ -195,31 +223,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
                       child: PrimaryButton(
                         text: "sign".tr(),
                         onTap: _currentWallet != null
-                            ? () => withDebounce(() async {
-                                  final signature =
-                                      await _currentWallet!.signMessage(
-                                    chain: widget.payload.chain,
-                                    message: widget.payload.payload,
-                                  );
-
-                                  if (!mounted) return;
-
-                                  Navigator.of(context).pop(signature);
-                                  final notificationEnabled =
-                                      injector<ConfigurationService>()
-                                              .isNotificationEnabled() ??
-                                          false;
-                                  if (notificationEnabled) {
-                                    showInfoNotification(
-                                      const Key("signed"),
-                                      "signed".tr(),
-                                      frontWidget: SvgPicture.asset(
-                                        "assets/images/checkbox_icon.svg",
-                                        width: 24,
-                                      ),
-                                    );
-                                  }
-                                })
+                            ? () => withDebounce(_sign)
                             : null,
                       ),
                     )
