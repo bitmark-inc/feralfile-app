@@ -210,6 +210,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         Navigator.of(context).pop(payload);
       }
     } catch (e) {
+      if (!mounted) return;
       UIHelper.showMessageAction(
         context,
         'transaction_failed'.tr(),

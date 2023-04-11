@@ -7,13 +7,10 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
-import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -29,7 +26,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:web3dart/web3dart.dart';
 
