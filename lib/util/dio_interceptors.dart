@@ -193,36 +193,30 @@ class FeralfileAuthInterceptor extends Interceptor {
 }
 
 class PostcardAuthInterceptor extends Interceptor {
-  Future<String> getData(RequestOptions options) async {
-    if (options.data is FormData) {
-      final formData = options.data as FormData;
-      final formDataInBytes = await formData.readAsBytes();
-      final hexBody = bytesToHex(sha256.convert(formDataInBytes).bytes);
-      return hexBody;
-    }
-    return jsonEncode(options.data);
-  }
-
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (options.headers["X-Api-Signature"] == null &&
         options.method.toUpperCase() == "POST") {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      Future.wait([getData(options)]).then((values) {
-        final body = values[0];
-        final canonicalString = List<String>.of([
-          options.uri.toString(),
-          body,
-          timestamp,
-        ]).join("|");
-        final hmacSha256 =
-            Hmac(sha256, utf8.encode(Environment.auClaimSecretKey));
-        final digest = hmacSha256.convert(utf8.encode(canonicalString));
-        final sig = bytesToHex(digest.bytes);
-        options.headers["X-Api-Signature"] = sig;
-        options.headers["X-Api-Timestamp"] = timestamp;
-      });
+      String body = "";
+      if (options.data is FormData) {
+        body = "";
+      } else {
+        body = bytesToHex(
+            sha256.convert(utf8.encode(json.encode(options.data))).bytes);
+      }
+      final canonicalString = List<String>.of([
+        options.path,
+        body,
+        timestamp,
+      ]).join("|");
+      final hmacSha256 =
+          Hmac(sha256, utf8.encode(Environment.auClaimSecretKey));
+      final digest = hmacSha256.convert(utf8.encode(canonicalString));
+      final sig = bytesToHex(digest.bytes);
+      options.headers["X-Api-Signature"] = sig;
+      options.headers["X-Api-Timestamp"] = timestamp;
     }
     handler.next(options);
   }
