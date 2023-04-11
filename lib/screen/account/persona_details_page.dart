@@ -13,9 +13,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
@@ -429,16 +431,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               style: theme.textTheme.ppMori400Black14,
             ),
             onTap: () async {
-              final configurationService = injector<ConfigurationService>();
+              final didAuthenticate =
+                  await LocalAuthenticationService.checkLocalAuth();
 
-              if (configurationService.isDevicePasscodeEnabled() &&
-                  await authenticateIsAvailable()) {
-                final localAuth = LocalAuthentication();
-                final didAuthenticate = await localAuth.authenticate(
-                    localizedReason: "authen_for_autonomy".tr());
-                if (!didAuthenticate) {
-                  return;
-                }
+              if (!didAuthenticate) {
+                return;
               }
 
               final words = await persona.wallet().exportMnemonicWords();

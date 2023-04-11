@@ -7,9 +7,11 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -51,19 +53,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
     });
 
     try {
-      final configurationService = injector<ConfigurationService>();
-
-      if (configurationService.isDevicePasscodeEnabled() &&
-          await authenticateIsAvailable()) {
-        final localAuth = LocalAuthentication();
-        final didAuthenticate = await localAuth.authenticate(
-            localizedReason: "authen_for_autonomy".tr());
-        if (!didAuthenticate) {
-          setState(() {
-            _isSending = false;
-          });
-          return;
-        }
+      final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+      if (!didAuthenticate) {
+        setState(() {
+          _isSending = false;
+        });
+        return;
       }
 
       switch (widget.payload.type) {

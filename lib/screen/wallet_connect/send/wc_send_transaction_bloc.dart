@@ -10,10 +10,12 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -62,18 +64,13 @@ class WCSendTransactionBloc
       sendingState.isSending = true;
       emit(sendingState);
 
-      if (_configurationService.isDevicePasscodeEnabled() &&
-          await authenticateIsAvailable()) {
-        final localAuth = LocalAuthentication();
-        final didAuthenticate = await localAuth.authenticate(
-            localizedReason: "authen_for_autonomy".tr());
+      final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
 
-        if (!didAuthenticate) {
-          final newState = sendingState.clone();
-          newState.isSending = false;
-          emit(newState);
-          return;
-        }
+      if (!didAuthenticate) {
+        final newState = sendingState.clone();
+        newState.isSending = false;
+        emit(newState);
+        return;
       }
 
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
