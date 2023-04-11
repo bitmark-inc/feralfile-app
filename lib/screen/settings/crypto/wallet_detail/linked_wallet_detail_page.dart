@@ -9,22 +9,17 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
-import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -42,34 +37,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class WalletDetailPage extends StatefulWidget {
-  final WalletDetailsPayload payload;
+class LinkedWalletDetailPage extends StatefulWidget {
+  final LinkedWalletDetailsPayload payload;
 
-  const WalletDetailPage({Key? key, required this.payload}) : super(key: key);
+  const LinkedWalletDetailPage({Key? key, required this.payload})
+      : super(key: key);
 
   @override
-  State<WalletDetailPage> createState() => _WalletDetailPageState();
+  State<LinkedWalletDetailPage> createState() => _LinkedWalletDetailPageState();
 }
 
-class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
+class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
+    with RouteAware {
   late ScrollController controller;
   bool hideConnection = false;
-  bool hideSend = false;
-  bool hideAddress = false;
-  bool hideBalance = false;
   bool isHideGalleryEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    final personUUID = widget.payload.personaUUID;
-    isHideGalleryEnabled = injector<ConfigurationService>()
-        .isAddressHiddenInGallery(widget.payload.address);
-    context.read<AccountsBloc>().add(
-        FindAccount(personUUID, widget.payload.address, widget.payload.type));
+    isHideGalleryEnabled = injector<AccountService>()
+        .isLinkedAccountHiddenInGallery(widget.payload.address);
+
+    context.read<AccountsBloc>().add(FindLinkedAccount(
+        widget.payload.connectionKey,
+        widget.payload.address,
+        widget.payload.type));
     switch (widget.payload.type) {
       case CryptoType.ETH:
         context
@@ -100,7 +95,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    _callFetchConnections();
     super.didChangeDependencies();
   }
 
@@ -121,7 +115,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     if (cryptoType == CryptoType.ETH) {
       context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
     }
-    _callFetchConnections();
   }
 
   void _listener() {
@@ -136,26 +129,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     }
   }
 
-  void _callFetchConnections() {
-    final personUUID = widget.payload.personaUUID;
-
-    switch (widget.payload.type) {
-      case CryptoType.ETH:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
-        break;
-      case CryptoType.XTZ:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
-        break;
-      default:
-        // do nothing
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final cryptoType = widget.payload.type;
@@ -165,8 +138,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         .add(WalletDetailBalanceEvent(cryptoType, address));
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-    final showConnection = (widget.payload.type == CryptoType.ETH ||
-        widget.payload.type == CryptoType.XTZ);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -178,7 +149,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           color: AppColor.primaryBlack,
         ),
         action: _showOptionDialog,
-        //showConnection ? _connectionIconTap : null,
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -251,13 +221,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                     })
                                   ],
                                   addDivider(),
-                                  if (showConnection) ...[
-                                    Padding(
-                                      padding: padding,
-                                      child: _connectionsSection(),
-                                    ),
-                                    addDivider(),
-                                  ],
                                 ],
                               ),
                             ),
@@ -351,15 +314,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           style: balanceStyle,
         ),
         onTap: () {
-          final payload = WalletDetailsPayload(
-              type: CryptoType.USDC,
-              wallet: widget.payload.wallet,
-              personaUUID: widget.payload.personaUUID,
-              address: widget.payload.address,
-              personaName: widget.payload.personaName,
-              index: widget.payload.index);
+          final payload = LinkedWalletDetailsPayload(
+            connectionKey: widget.payload.connectionKey,
+            type: CryptoType.USDC,
+            address: widget.payload.address,
+            personaName: widget.payload.personaName,
+          );
           Navigator.of(context)
-              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
+              .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
         });
   }
 
@@ -499,47 +461,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     );
   }
 
-  Widget _connectionsSection() {
-    final theme = Theme.of(context);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      BlocBuilder<ConnectionsBloc, ConnectionsState>(builder: (context, state) {
-        final connectionItems = state.connectionItems;
-        //if (connectionItems == null) return const SizedBox();
-        return TappableForwardRow(
-          padding: EdgeInsets.zero,
-          leftWidget: Text(
-            "connection_with_dApps".tr(),
-            style: theme.textTheme.ppMori400Black14,
-          ),
-          rightWidget: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              border: Border.all(color: AppColor.auGrey),
-            ),
-            width: 24,
-            height: 24,
-            child: Text(
-              '${connectionItems?.length ?? 0}',
-              style: theme.textTheme.ppMori400Black14
-                  .copyWith(color: AppColor.auGrey),
-            ),
-          ),
-          onTap: () {
-            final payload = PersonaConnectionsPayload(
-              personaUUID: widget.payload.personaUUID,
-              index: widget.payload.index,
-              address: widget.payload.address,
-              type: widget.payload.type,
-            );
-            Navigator.of(context).pushNamed(AppRouter.personaConnectionsPage,
-                arguments: payload);
-          },
-        );
-      }),
-    ]);
-  }
-
   String _txURL(String address) {
     return "https://tzkt.io/$address/operations";
   }
@@ -551,62 +472,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         widget.payload.type == CryptoType.USDC) {
       return Row(
         children: [
-          Expanded(
-            child: AuCustomButton(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/Send.svg',
-                    width: 18,
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Text(
-                    '${"send".tr()} ${widget.payload.type.name}',
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                ],
-              ),
-              onPressed: () async {
-                final payload = await Navigator.of(context).pushNamed(
-                    SendCryptoPage.tag,
-                    arguments: SendData(
-                        LibAukDart.getWallet(widget.payload.personaUUID),
-                        widget.payload.type,
-                        null,
-                        widget.payload.index)) as Map?;
-                if (payload == null || !payload["isTezos"]) {
-                  return;
-                }
-
-                if (!mounted) return;
-                final tx = payload['tx'] as TZKTOperation;
-                tx.sender = TZKTActor(address: widget.payload.address);
-                UIHelper.showMessageAction(
-                  context,
-                  'success'.tr(),
-                  'send_success_des'.tr(),
-                  onAction: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed(
-                      AppRouter.tezosTXDetailPage,
-                      arguments: {
-                        "current_address": tx.sender?.address,
-                        "tx": tx,
-                      },
-                    );
-                  },
-                  actionButton: 'see_transaction_detail'.tr(),
-                  closeButton: "close".tr(),
-                );
-              },
-            ),
-          ),
-          const SizedBox(
-            width: 16.0,
-          ),
           Expanded(
             child: BlocConsumer<AccountsBloc, AccountsState>(
               listener: (context, accountState) async {},
@@ -670,7 +535,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 color: AppColor.primaryBlack,
               ),
               onTap: () {
-                injector<AccountService>().setHideAddressInGallery(
+                injector<AccountService>().setHideLinkedAccountInGallery(
                     widget.payload.address, !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
@@ -685,7 +550,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 color: AppColor.primaryBlack,
               ),
               onTap: () {
-                injector<AccountService>().setHideAddressInGallery(
+                injector<AccountService>().setHideLinkedAccountInGallery(
                     widget.payload.address, !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
@@ -706,20 +571,16 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   }
 }
 
-class WalletDetailsPayload {
+class LinkedWalletDetailsPayload {
+  final String connectionKey;
   final CryptoType type;
-  final WalletStorage wallet;
-  final String personaUUID;
   final String address;
   final String personaName;
-  final int index;
 
-  WalletDetailsPayload({
+  LinkedWalletDetailsPayload({
+    required this.connectionKey,
     required this.type,
-    required this.wallet,
-    required this.personaUUID,
     required this.address,
     required this.personaName,
-    required this.index,
   });
 }
