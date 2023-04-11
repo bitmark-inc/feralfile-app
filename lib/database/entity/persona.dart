@@ -111,15 +111,18 @@ class Persona {
   bool isDefault() => defaultAccount == 1;
 
   Future<List<String>> getAddresses() async {
-    return (await getWalletAddresses()).map((e) => e.address).toList();
+    final walletAddress = await getWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
   }
 
   Future<List<String>> getEthAddresses() async {
-    return (await getEthWalletAddresses()).map((e) => e.address).toList();
+    final walletAddress = await getEthWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
   }
 
   Future<List<String>> getTezosAddresses() async {
-    return (await getTezWalletAddresses()).map((e) => e.address).toList();
+    final walletAddress = await getTezWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
   }
 
   Future<int?> getAddressIndex(String address) async {

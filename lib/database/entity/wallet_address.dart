@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:floor/floor.dart';
+import 'package:nft_collection/models/address_index.dart';
 
 @entity
 class WalletAddress {
@@ -41,4 +42,7 @@ class WalletAddress {
       isHidden: isHidden ?? this.isHidden,
     );
   }
+
+  AddressIndex get addressIndex =>
+      AddressIndex(address: address, createdAt: createdAt);
 }
