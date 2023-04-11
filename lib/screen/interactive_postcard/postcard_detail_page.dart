@@ -41,10 +41,12 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +75,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
+  late ConfettiController _confettiController;
 
   late Locale locale;
   late DistanceFormatter distanceFormatter;
@@ -85,6 +88,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
+    _confettiController = ConfettiController(duration: Duration(seconds: 5));
     super.initState();
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
@@ -99,6 +103,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
+    if (true) {
+      _confettiController.play();
+    }
   }
 
   void _manualShare(String caption, String url) async {
@@ -177,6 +184,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       },
     );
     _scrollController.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -220,88 +228,93 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
 
-        return Scaffold(
-          backgroundColor: theme.colorScheme.primary,
-          resizeToAvoidBottomInset: !hasKeyboard,
-          appBar: AppBar(
-            leadingWidth: 0,
-            centerTitle: false,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  asset.title ?? '',
-                  style: theme.textTheme.ppMori400White16,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        return Stack(
+          children: [
+            Scaffold(
+              backgroundColor: theme.colorScheme.primary,
+              resizeToAvoidBottomInset: !hasKeyboard,
+              appBar: AppBar(
+                leadingWidth: 0,
+                centerTitle: false,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      asset.title ?? '',
+                      style: theme.textTheme.ppMori400White16,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            actions: [
-              Semantics(
-                label: 'artworkDotIcon',
-                child: IconButton(
-                  onPressed: () => _showArtworkOptionsDialog(asset),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                  ),
-                  icon: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
-                  ),
-                ),
-              ),
-              Semantics(
-                label: 'close_icon',
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                  ),
-                  icon: Icon(
-                    AuIcon.close,
-                    color: theme.colorScheme.secondary,
-                    size: 20,
-                  ),
-                ),
-              )
-            ],
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          height: 40,
-                        ),
-                        Hero(
-                          tag: "detail_${asset.id}",
-                          child: ArtworkView(
-                            payload: widget.payload,
-                            token: asset,
-                          ),
-                        ),
-                        _postcardAction(asset),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        _postcardInfor(asset),
-                        _artworkInfo(asset, state, artistNames),
-                      ],
+                actions: [
+                  Semantics(
+                    label: 'artworkDotIcon',
+                    child: IconButton(
+                      onPressed: () => _showArtworkOptionsDialog(asset),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                      ),
+                      icon: SvgPicture.asset(
+                        'assets/images/more_circle.svg',
+                        width: 22,
+                      ),
                     ),
                   ),
-                ),
+                  Semantics(
+                    label: 'close_icon',
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                      ),
+                      icon: Icon(
+                        AuIcon.close,
+                        color: theme.colorScheme.secondary,
+                        size: 20,
+                      ),
+                    ),
+                  )
+                ],
               ),
-            ],
-          ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 40,
+                            ),
+                            Hero(
+                              tag: "detail_${asset.id}",
+                              child: ArtworkView(
+                                payload: widget.payload,
+                                token: asset,
+                              ),
+                            ),
+                            _postcardAction(asset),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            _postcardInfor(asset),
+                            _artworkInfo(asset, state, artistNames),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AllConfettiWidget(controller: _confettiController),
+          ],
         );
       } else {
         return const SizedBox();

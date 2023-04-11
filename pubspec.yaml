@@ -27,6 +27,7 @@ dependencies:
   carousel_slider: ^4.2.1
   cast: ^1.1.0
   collection: ^1.15.0
+  confetti: ^0.7.0
   connectivity_plus: ^2.2.1
   crypto: ^3.0.1
   device_info_plus: ^3.2.1
