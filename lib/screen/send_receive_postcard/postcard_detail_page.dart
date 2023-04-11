@@ -135,7 +135,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
               Row(
                 children: [
                   Text(
-                    "travel_distance".tr(),
+                    "total_distance_traveled".tr(),
                     style: theme.textTheme.ppMori700White14,
                   ),
                   const Spacer(),

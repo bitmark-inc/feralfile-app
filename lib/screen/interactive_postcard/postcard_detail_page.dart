@@ -88,7 +88,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
-    _confettiController = ConfettiController(duration: Duration(seconds: 5));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 5));
     super.initState();
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
@@ -134,6 +135,39 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       "title": token.title,
       "artistID": token.artistID,
     });
+  }
+
+  Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
+    final listTravelInfo = await asset.listTravelInfo;
+    final totalDistance = listTravelInfo.totalDistance;
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "your_postcard_completed".tr(namedArgs: {
+            'distance': totalDistance.toString(),
+          }),
+          style: Theme.of(context).textTheme.ppMori400Grey14,
+        ),
+        const SizedBox(height: 24),
+        PrimaryButton(
+          text: "share_on_".tr(),
+          onTap: () {
+            _shareTwitter(asset);
+            Navigator.of(context).pop();
+
+          },
+        ),
+        const SizedBox(height: 8),
+        OutlineButton(
+          text: "close".tr(),
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+    return UIHelper.showDialog(context, "you_did_it".tr(), content);
   }
 
   Future<void> _socialShare(BuildContext context, AssetToken asset) {
@@ -214,6 +248,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           withSharing = false;
         });
       }
+      _youDidIt(context, state.assetToken!);
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
@@ -362,7 +397,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       final sharePostcardRespone =
           await injector<PostcardService>().sharePostcard(asset, signature);
       if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
-        Share.share(sharePostcardRespone.deeplink!);
+        final shareMessage = "postcard_share_message".tr(namedArgs: {
+          'deepLink': sharePostcardRespone.deeplink!,
+        });
+        Share.share(shareMessage);
       }
       injector<ConfigurationService>()
           .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
@@ -621,7 +659,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               Row(
                 children: [
                   Text(
-                    "travel_distance".tr(),
+                    "total_distance_traveled".tr(),
                     style: theme.textTheme.ppMori700Black14,
                   ),
                   const Spacer(),
