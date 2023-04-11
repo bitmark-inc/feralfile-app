@@ -255,12 +255,6 @@ extension AssetTokenExtension on AssetToken {
   }
 
   PostcardMetadata get postcardMetadata {
-    return PostcardMetadata(
-        lastOwner: owner,
-        isStamped: false,
-        locationInformation: [
-          LocationInformation(claimedLocation: Location(lat: 0, lon: 0))
-        ]);
     return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
   }
 

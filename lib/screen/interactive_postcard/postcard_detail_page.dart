@@ -75,6 +75,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late Locale locale;
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
+  PostcardMetadata? postcardMetadata;
   List<TravelInfo> travelInfo = [];
 
   HashSet<String> _accountNumberHash = HashSet.identity();
@@ -195,7 +196,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
-
       if (state.assetToken != null) {
         _getInfo(state.assetToken!);
       }
@@ -346,11 +346,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future<void> _getInfo(AssetToken asset) async {
-    await _getTravelInfo(asset);
+    postcardMetadata =
+        PostcardMetadata.fromJson(jsonDecode(asset.asset!.artworkMetadata!));
+    await _getTravelInfo();
   }
 
   Widget _postcardAction(AssetToken asset) {
-    final isStamped = asset.postcardMetadata.isStamped;
+    final isStamped = postcardMetadata?.isStamped ?? false;
     if (_canShare(asset)) {
       if (!isStamped) {
         return Padding(
@@ -643,7 +645,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   bool _canShare(AssetToken asset) {
-    return asset.owner == asset.postcardMetadata.lastOwner;
+    return asset.owner == postcardMetadata!.lastOwner;
   }
 
   Widget travelInfoWidget(AssetToken asset) {
@@ -734,8 +736,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Future<void> _getTravelInfo(AssetToken asset) async {
-    final stamps = asset.postcardMetadata.locationInformation;
+  Future<void> _getTravelInfo() async {
+    final stamps = postcardMetadata!.locationInformation;
 
     final travelInfo = <TravelInfo>[];
     for (int i = 0; i < stamps.length - 1; i++) {
