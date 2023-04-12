@@ -29,6 +29,7 @@ const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
+const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     "https://github.com/bitmark-inc/autonomy-client";
 const DEEP_LINKS = [
@@ -58,7 +59,8 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
   "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
-  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr"
+  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
+  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
 ];
 
 const REMOVE_CUSTOMER_SUPPORT =

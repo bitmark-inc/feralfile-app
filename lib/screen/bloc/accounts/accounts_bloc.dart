@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -104,11 +105,30 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       emit(AccountsState(accounts: accounts));
     });
 
+    on<GetAccountsIRLEvent>((event, emit) async {
+      final personas = await _cloudDB.personaDao.getPersonas();
+
+      List<Account> accounts = (await Future.wait(
+              personas.map((persona) => getAccountPersona(persona))))
+          .whereNotNull()
+          .toList();
+
+      accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final defaultAccount = accounts.firstWhereOrNull((element) =>
+          element.persona != null ? element.persona!.isDefault() : false);
+      if (defaultAccount != null) {
+        accounts.remove(defaultAccount);
+        accounts.insert(0, defaultAccount);
+      }
+      emit(AccountsState(accounts: accounts));
+    });
+
     on<GetCategorizedAccountsEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-
+      logger.info(
+          'GetCategorizedAccountsEvent: personas: ${personas.map((e) => e.uuid).toList()}');
       if (personas.isEmpty &&
           ((event.includeLinkedAccount && connections.isEmpty) ||
               !event.includeLinkedAccount)) {
@@ -369,6 +389,22 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
             blockchain: event.type.source,
             accountNumber: event.address,
             createdAt: persona.createdAt));
+      }
+      emit(AccountsState(accounts: accounts));
+    });
+
+    on<FindLinkedAccount>((event, emit) async {
+      final connection =
+          await _cloudDB.connectionDao.findById(event.connectionKey);
+      List<Account> accounts = [];
+      if (connection != null) {
+        accounts.add(Account(
+            key: connection.key,
+            name: connection.name,
+            blockchain: event.type.source,
+            accountNumber: event.address,
+            connections: [connection],
+            createdAt: connection.createdAt));
       }
       emit(AccountsState(accounts: accounts));
     });

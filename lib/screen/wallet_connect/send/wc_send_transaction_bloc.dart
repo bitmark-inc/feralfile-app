@@ -11,18 +11,15 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
 
 class WCSendTransactionBloc
@@ -31,7 +28,6 @@ class WCSendTransactionBloc
   final EthereumService _ethereumService;
   final WalletConnectService _walletConnectService;
   final Wc2Service _wc2Service;
-  final ConfigurationService _configurationService;
   final CurrencyService _currencyService;
 
   WCSendTransactionBloc(
@@ -39,7 +35,6 @@ class WCSendTransactionBloc
     this._ethereumService,
     this._wc2Service,
     this._walletConnectService,
-    this._configurationService,
     this._currencyService,
   ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
@@ -62,18 +57,13 @@ class WCSendTransactionBloc
       sendingState.isSending = true;
       emit(sendingState);
 
-      if (_configurationService.isDevicePasscodeEnabled() &&
-          await authenticateIsAvailable()) {
-        final localAuth = LocalAuthentication();
-        final didAuthenticate = await localAuth.authenticate(
-            localizedReason: "authen_for_autonomy".tr());
+      final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
 
-        if (!didAuthenticate) {
-          final newState = sendingState.clone();
-          newState.isSending = false;
-          emit(newState);
-          return;
-        }
+      if (!didAuthenticate) {
+        final newState = sendingState.clone();
+        newState.isSending = false;
+        emit(newState);
+        return;
       }
 
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
@@ -87,11 +77,14 @@ class WCSendTransactionBloc
         final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
         final signature = await _ethereumService.signPersonalMessage(
             persona, index, Uint8List.fromList(utf8.encode(timestamp)));
-        if (event.isWalletConnect2) {
-          await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
-        } else {
-          _walletConnectService.approveRequest(
-              event.peerMeta, event.requestId, txHash);
+
+        if (!event.isIRL) {
+          if (event.isWalletConnect2) {
+            await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
+          } else {
+            _walletConnectService.approveRequest(
+                event.peerMeta, event.requestId, txHash);
+          }
         }
         injector<PendingTokenService>()
             .checkPendingEthereumTokens(
@@ -106,7 +99,7 @@ class WCSendTransactionBloc
                 .add(UpdateTokensEvent(tokens: tokens));
           }
         });
-        _navigationService.goBack();
+        _navigationService.goBack(result: txHash);
       } catch (e) {
         final newState = sendingState.clone();
         newState.balance = balance.getInWei;
@@ -118,10 +111,12 @@ class WCSendTransactionBloc
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {
-      if (event.isWalletConnect2) {
-        _wc2Service.respondOnReject(event.topic ?? "");
-      } else {
-        _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
+      if (!event.isIRL) {
+        if (event.isWalletConnect2) {
+          _wc2Service.respondOnReject(event.topic ?? "");
+        } else {
+          _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
+        }
       }
       _navigationService.goBack();
     });

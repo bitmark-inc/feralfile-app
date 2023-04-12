@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -117,6 +118,33 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     }
   }
 
+  _sign(Uint8List message) async {
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      return;
+    }
+    final signature = await injector<TezosService>()
+        .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
+    await _approveRequest(signature: signature);
+    if (!mounted) return;
+
+    final metricClient = injector.get<MetricClientService>();
+
+    metricClient.addEvent(
+      "Sign In",
+      hashedData: {"uuid": widget.request.id},
+    );
+    Navigator.of(context).pop(true);
+    showInfoNotification(
+      const Key("signed"),
+      "signed".tr(),
+      frontWidget: SvgPicture.asset(
+        "assets/images/checkbox_icon.svg",
+        width: 24,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.request.payload!);
@@ -175,10 +203,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                               vertical: 20, horizontal: 22),
                           decoration: BoxDecoration(
                             color: AppColor.auLightGrey,
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
                             messageInUtf8,
@@ -198,31 +223,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       child: PrimaryButton(
                         text: "sign".tr(),
                         onTap: _currentPersona != null
-                            ? () => withDebounce(() async {
-                                  final signature =
-                                      await injector<TezosService>()
-                                          .signMessage(_currentPersona!.wallet,
-                                              _currentPersona!.index, message);
-                                  await _approveRequest(signature: signature);
-                                  if (!mounted) return;
-
-                                  final metricClient =
-                                      injector.get<MetricClientService>();
-
-                                  metricClient.addEvent(
-                                    "Sign In",
-                                    hashedData: {"uuid": widget.request.id},
-                                  );
-                                  Navigator.of(context).pop(true);
-                                  showInfoNotification(
-                                    const Key("signed"),
-                                    "signed".tr(),
-                                    frontWidget: SvgPicture.asset(
-                                      "assets/images/checkbox_icon.svg",
-                                      width: 24,
-                                    ),
-                                  );
-                                })
+                            ? () => withDebounce(() => _sign(message))
                             : null,
                       ),
                     )

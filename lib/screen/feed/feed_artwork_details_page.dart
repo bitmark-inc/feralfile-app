@@ -197,7 +197,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                     padding: ResponsiveLayout.getPadding,
                     child: Text(
                       editionSubTitle,
-                      style: theme.textTheme.ppMori400Grey12,
+                      style: theme.textTheme.ppMori400Grey14,
                     ),
                   ),
                 ),
@@ -253,7 +253,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                       const SizedBox(height: 40.0),
                       HtmlWidget(
                         assetToken?.description ?? "",
-                        textStyle: theme.textTheme.ppMori400White12,
+                        textStyle: theme.textTheme.ppMori400White14,
                       ),
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(

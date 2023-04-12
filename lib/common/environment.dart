@@ -156,6 +156,9 @@ class Environment {
   static String get auClaimAPITestnetURL =>
       dotenv.env['AU_CLAIM_API_TESTNET_URL'] ?? '';
 
+  static List<String> get irlWhitelistUrls =>
+      dotenv.env['IRL_WHITELIST_URL']?.split(',') ?? [];
+
   static String get cloudFlareImageUrlPrefix =>
       dotenv.env['CLOUD_FLARE_IMAGE_URL_PREFIX'] ?? '';
 

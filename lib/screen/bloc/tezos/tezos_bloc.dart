@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 
 part 'tezos_state.dart';
@@ -20,6 +21,8 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     on<GetTezosAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
       final persona = await _cloudDB.personaDao.findById(event.uuid);
+      logger.info('GetTezosAddressEvent: persona: ${persona?.uuid}');
+
       if (persona == null || persona.getTezIndexes.isEmpty) return;
       final addresses = await persona.getTezosAddresses();
       var personaAddresses = state.personaAddresses ?? {};

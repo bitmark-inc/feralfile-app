@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -37,7 +37,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:local_auth/local_auth.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -429,16 +428,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               style: theme.textTheme.ppMori400Black14,
             ),
             onTap: () async {
-              final configurationService = injector<ConfigurationService>();
+              final didAuthenticate =
+                  await LocalAuthenticationService.checkLocalAuth();
 
-              if (configurationService.isDevicePasscodeEnabled() &&
-                  await authenticateIsAvailable()) {
-                final localAuth = LocalAuthentication();
-                final didAuthenticate = await localAuth.authenticate(
-                    localizedReason: "authen_for_autonomy".tr());
-                if (!didAuthenticate) {
-                  return;
-                }
+              if (!didAuthenticate) {
+                return;
               }
 
               final words = await persona.wallet().exportMnemonicWords();

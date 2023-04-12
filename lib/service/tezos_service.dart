@@ -79,6 +79,9 @@ class TezosServiceImpl extends TezosService {
         operationList.prependOperation(RevealOperation());
       }
 
+      log.info(
+          "TezosService.estimateOperationFee: ${operationList.operations.map((e) => e.toJson()).toList()}");
+
       await operationList.estimate(
           baseOperationCustomFee: baseOperationCustomFee);
 
