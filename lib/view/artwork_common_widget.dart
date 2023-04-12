@@ -1622,6 +1622,10 @@ class PostcardRightsView extends StatefulWidget {
 }
 
 class _PostcardRightsViewState extends State<PostcardRightsView> {
+  final dio = Dio(BaseOptions(
+    connectTimeout: 2000,
+  ));
+
   @override
   void initState() {
     super.initState();
@@ -1629,12 +1633,6 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 
   @override
   Widget build(BuildContext context) {
-    final dio = Dio(BaseOptions(
-      connectTimeout: 2000,
-    ));
-    final theme = Theme.of(context);
-    final githubLink =
-        "https://raw.githubusercontent.com/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
     return FutureBuilder<Response<String>>(
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data?.statusCode == 200) {
@@ -1666,7 +1664,7 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
           }
         },
         future: dio.get<String>(
-          githubLink,
+          POSTCARD_RIGHTS_DOCS,
         ));
   }
 }

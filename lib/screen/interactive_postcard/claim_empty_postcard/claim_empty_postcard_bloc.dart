@@ -99,55 +99,52 @@ class ClaimEmptyPostCardBloc
               Uint8List.fromList(utf8.encode(timestamp.toString())));
           final publicKey =
               await account.wallet.getTezosPublicKey(index: account.index);
-          try {
-            final claimRequest = ClaimPostCardRequest(
-              address: address,
-              id: 'postcard',
-              timestamp: timestamp,
-              publicKey: publicKey,
-              signature: signature,
-            );
-            final result =
-                await _postcardService.claimEmptyPostcard(claimRequest);
-            final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
-            final token = AssetToken(
-              asset: Asset.init(
-                indexID: tokenID,
-                artistName: 'MoMa',
-                maxEdition: 1,
-                mimeType: 'image/png',
-                title: 'Postcard 001',
-                thumbnailURL: result.imageCID,
-                previewURL: result.imageCID,
-                source: 'postcard',
-              ),
-              blockchain: "tezos",
-              fungible: false,
-              contractType: '',
-              tokenId: result.tokenID,
-              contractAddress: result.contractAddress,
-              edition: 0,
-              editionName: "",
-              id: tokenID,
-              balance: 1,
-              owner: address,
-              lastActivityTime: DateTime.now(),
-              lastRefreshedTime: DateTime(1),
-              pending: true,
-              originTokenInfo: [],
-              provenance: [],
-              owners: {},
-            );
-            await _tokenService.setCustomTokens([token]);
-            await _tokenService.reindexAddresses([address]);
-            injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
-            NftCollectionBloc.eventController.add(
-              GetTokensByOwnerEvent(pageKey: PageKey.init()),
-            );
-          } catch (e) {
-            rethrow;
-          }
-          emit(state.copyWith(isClaiming: false, isClaimed: true));
+          final claimRequest = ClaimPostCardRequest(
+            address: address,
+            id: 'postcard',
+            timestamp: timestamp,
+            publicKey: publicKey,
+            signature: signature,
+          );
+          final result =
+              await _postcardService.claimEmptyPostcard(claimRequest);
+          final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
+          final token = AssetToken(
+            asset: Asset.init(
+              indexID: tokenID,
+              artistName: 'MoMa',
+              maxEdition: 1,
+              mimeType: 'image/png',
+              title: 'Postcard 001',
+              thumbnailURL: result.imageCID,
+              previewURL: result.imageCID,
+              source: 'postcard',
+            ),
+            blockchain: "tezos",
+            fungible: false,
+            contractType: '',
+            tokenId: result.tokenID,
+            contractAddress: result.contractAddress,
+            edition: 0,
+            editionName: "",
+            id: tokenID,
+            balance: 1,
+            owner: address,
+            lastActivityTime: DateTime.now(),
+            lastRefreshedTime: DateTime(1),
+            pending: true,
+            originTokenInfo: [],
+            provenance: [],
+            owners: {},
+          );
+          await _tokenService.setCustomTokens([token]);
+          await _tokenService.reindexAddresses([address]);
+          injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
+          NftCollectionBloc.eventController.add(
+            GetTokensByOwnerEvent(pageKey: PageKey.init()),
+          );
+          emit(state.copyWith(
+              isClaiming: false, isClaimed: true, assetToken: token));
         }
       } on DioError catch (e) {
         emit(

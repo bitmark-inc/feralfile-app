@@ -84,9 +84,12 @@ import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_stated_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -135,11 +138,9 @@ import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.da
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -237,6 +238,7 @@ class AppRouter {
   static const irlWebview = 'irl_web_claim';
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
+  static const postcardStartedPage = 'postcard_started';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1323,6 +1325,16 @@ class AppRouter {
             builder: (context) {
               return IRLSignMessageScreen(payload: payload);
             });
+
+      case postcardStartedPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return PostcardStartedPage(
+              assetToken: settings.arguments as AssetToken,
+            );
+          },
+        );
 
       default:
         throw Exception('Invalid route: ${settings.name}');
