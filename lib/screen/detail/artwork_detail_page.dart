@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -499,6 +500,31 @@ class ArtworkView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mimeType = token.getMimeType;
+    if (token.isPostcard) {
+      return AspectRatio(
+        aspectRatio: 1405 / 981,
+        child: Stack(
+          children: [
+            PostcardViewWidget(
+              assetToken: token,
+            ),
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    AppRouter.artworkPreviewPage,
+                    arguments: payload,
+                  );
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     switch (mimeType) {
       case "image":
       case "svg":
