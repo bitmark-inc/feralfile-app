@@ -174,8 +174,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       lastMessageTimestamp = newMessages.last.timestamp;
       historyRequestId = null;
     } else {
-      final otherPeopleMessages   =_convertMessages(newMessages);
-      otherPeopleMessages.removeWhere((element) => element.author.id == user.id);
+      final otherPeopleMessages = _convertMessages(newMessages);
+      otherPeopleMessages
+          .removeWhere((element) => element.author.id == user.id);
       messages.insertAll(0, otherPeopleMessages);
       messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
