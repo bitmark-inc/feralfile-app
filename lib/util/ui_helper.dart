@@ -1045,10 +1045,7 @@ class UIHelper {
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadiusGeometry.lerp(
-                      const BorderRadius.all(Radius.circular(5)),
-                      const BorderRadius.all(Radius.circular(5)),
-                      5),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),

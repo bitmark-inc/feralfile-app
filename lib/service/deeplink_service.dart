@@ -123,7 +123,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
-          await _handleBranchDeeplink(link);
+          await _handleBranchDeeplink(link) ||
+          _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
     });
@@ -198,6 +199,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       // maybe something wrong with WC register; fix by this for now
       "https://autonomy.io/apps/wc?uri=",
       "https://autonomy.io/apps/wc/wc?uri=",
+      "autonomy://wc?uri=",
     ];
 
     final tzPrefixes = [
@@ -248,14 +250,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
+      final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, "wc:");
       _addScanQREvent(
           link: link,
           linkType: LinkType.dAppConnect,
           prefix: callingWCDeeplinkPrefix);
       if (link.isAutonomyConnectUri) {
-        await _walletConnect2Service.connect(link);
+        await _walletConnect2Service.connect(wcLink);
       } else {
-        await _walletConnectService.connect(link);
+        await _walletConnectService.connect(wcLink);
       }
       return true;
     }
@@ -287,6 +290,29 @@ class DeeplinkServiceImpl extends DeeplinkService {
           prefix: FF_TOKEN_DEEPLINK_PREFIX);
       await _linkFeralFileToken(
           link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _handleIRL(String link) {
+    log.info("[DeeplinkService] _handleIRL");
+
+    if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
+      final urlDecode =
+          Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
+
+      final uri = Uri.tryParse(urlDecode);
+      if (uri == null) return false;
+
+      if (Environment.irlWhitelistUrls.isNotEmpty) {
+        final validUrl = Environment.irlWhitelistUrls.any(
+          (element) => uri.host.contains(element),
+        );
+        if (!validUrl) return false;
+      }
+      _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
       return true;
     }
 

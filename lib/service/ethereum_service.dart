@@ -92,7 +92,7 @@ class EthereumServiceImpl extends EthereumService {
         value: amount,
         maxFeePerGas: fee.maxFeePerGas,
         maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-        data: data != null ? hexToBytes(data) : null,
+        data: (data != null && data.isNotEmpty) ? hexToBytes(data) : null,
       );
       return gasPrice.multipleBy(gas);
     } catch (err) {

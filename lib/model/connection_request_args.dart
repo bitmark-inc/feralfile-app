@@ -39,10 +39,10 @@ class WCConnectPageArgs extends ConnectionRequest {
 
 class BeaconRequest extends ConnectionRequest {
   final String _id;
-  final String senderID;
-  final String version;
-  final String originID;
-  final String type;
+  final String? senderID;
+  final String? version;
+  final String? originID;
+  final String? type;
   final String? appName;
   final String? icon;
 
@@ -65,14 +65,17 @@ class BeaconRequest extends ConnectionRequest {
   String? get url => null;
 
   BeaconRequest(
-    this._id,
+    this._id, {
     this.senderID,
     this.version,
     this.originID,
     this.type,
     this.appName,
-    this.icon, {
+    this.icon,
     this.wc2Topic,
+    this.operations,
+    this.payload,
+    this.sourceAddress,
   });
 }
 
@@ -97,7 +100,7 @@ class Wc2Proposal extends ConnectionRequest {
   String? get name => proposer.name;
 
   @override
-  String? get url => proposer.name;
+  String? get url => proposer.url;
 }
 
 class AppMetadata {

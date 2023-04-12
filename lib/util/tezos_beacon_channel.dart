@@ -107,7 +107,14 @@ class TezosBeaconChannel {
           final String? icon = params["icon"];
 
           final request = BeaconRequest(
-              id, senderID, version, originID, type, appName, icon);
+            id,
+            senderID: senderID,
+            version: version,
+            originID: originID,
+            type: type,
+            appName: appName,
+            icon: icon,
+          );
           switch (type) {
             case "signPayload":
               final String? payload = params["payload"];

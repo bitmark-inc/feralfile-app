@@ -34,6 +34,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:gif_view/gif_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -446,10 +447,11 @@ Widget placeholder(BuildContext context) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              "assets/images/loading_white_tran.gif",
+            GifView.asset(
+              "assets/images/loading_white.gif",
               width: 52,
               height: 52,
+              frameRate: 12,
             ),
             const SizedBox(
               height: 12,
@@ -727,10 +729,11 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              "assets/images/loading_white_tran.gif",
+            GifView.asset(
+              "assets/images/loading_white.gif",
               width: 52,
               height: 52,
+              frameRate: 12,
             ),
             const SizedBox(
               height: 13,
@@ -1325,7 +1328,7 @@ Widget tokenOwnership(
       children: [
         Text(
           "how_many_editions_you_own".tr(),
-          style: theme.textTheme.ppMori400White12,
+          style: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 32.0),
         MetaDataItem(

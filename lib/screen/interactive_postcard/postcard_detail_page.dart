@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
@@ -138,8 +139,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
-    final listTravelInfo = await asset.listTravelInfo;
+    final listTravelInfo = asset.listTravelInfoWithoutLocationName;
     final totalDistance = listTravelInfo.totalDistance;
+    final theme = Theme.of(context);
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -147,7 +149,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           "your_postcard_completed".tr(namedArgs: {
             'distance': totalDistance.toString(),
           }),
-          style: Theme.of(context).textTheme.ppMori400Grey14,
+          style: theme.textTheme.ppMori400Grey14,
         ),
         const SizedBox(height: 24),
         PrimaryButton(
@@ -155,7 +157,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           onTap: () {
             _shareTwitter(asset);
             Navigator.of(context).pop();
-
           },
         ),
         const SizedBox(height: 8),
@@ -283,6 +284,36 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   ],
                 ),
                 actions: [
+                  Semantics(
+                    label: 'chat',
+                    child: IconButton(
+                      onPressed: () async {
+                        final wallet = await asset.getOwnerWallet();
+                        if (wallet == null || !mounted) return;
+                        Navigator.of(context).pushNamed(
+                          ChatThreadPage.tag,
+                          arguments: ChatThreadPagePayload(
+                              tokenId: asset.id,
+                              wallet: wallet.first,
+                              address: asset.owner,
+                              index: wallet.second,
+                              cryptoType: asset.blockchain == "ethereum"
+                                  ? CryptoType.ETH
+                                  : CryptoType.XTZ,
+                              name: asset.title ?? ''),
+                        );
+                      },
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                      ),
+                      icon: SvgPicture.asset(
+                        'assets/images/icon_chat.svg',
+                        width: 22,
+                        color: AppColor.white,
+                      ),
+                    ),
+                  ),
                   Semantics(
                     label: 'artworkDotIcon',
                     child: IconButton(

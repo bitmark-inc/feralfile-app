@@ -86,6 +86,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 widget.args.id,
                 isWalletConnect2: widget.args.isWalletConnect2,
                 topic: widget.args.topic,
+                isIRL: widget.args.isIRL,
               ),
             );
         return true;
@@ -102,6 +103,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                     widget.args.id,
                     isWalletConnect2: widget.args.isWalletConnect2,
                     topic: widget.args.topic,
+                    isIRL: widget.args.isIRL,
                   ),
                 );
           },
@@ -261,6 +263,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                                     .args.isWalletConnect2,
                                                 topic: widget.args
                                                     .topic, // Used for wallet Connect 2.0 only
+                                                isIRL: widget.args.isIRL,
                                               ),
                                             );
                                       }
@@ -473,6 +476,7 @@ class WCSendTransactionPageArgs {
   final int index;
   final String? topic; // For Wallet Connect 2.0
   final bool isWalletConnect2;
+  final bool isIRL;
 
   WCSendTransactionPageArgs(
     this.id,
@@ -482,5 +486,6 @@ class WCSendTransactionPageArgs {
     this.index, {
     this.topic,
     this.isWalletConnect2 = false,
+    this.isIRL = false,
   });
 }

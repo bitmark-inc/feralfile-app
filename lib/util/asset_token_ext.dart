@@ -277,6 +277,20 @@ extension AssetTokenExtension on AssetToken {
     return travelInfo;
   }
 
+  List<TravelInfo> get listTravelInfoWithoutLocationName {
+    final stamps = postcardMetadata.locationInformation;
+
+    final travelInfo = <TravelInfo>[];
+    for (int i = 0; i < stamps.length - 1; i++) {
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
+    }
+
+    if (travelInfo.length > 44) {
+      travelInfo.removeLast();
+    }
+    return travelInfo;
+  }
+
   String get twitterCaption {
     return "Here is Twitter Caption From Asset";
   }

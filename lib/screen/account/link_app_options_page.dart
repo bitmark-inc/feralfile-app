@@ -73,10 +73,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadiusGeometry.lerp(
-                      const BorderRadius.all(Radius.circular(5)),
-                      const BorderRadius.all(Radius.circular(5)),
-                      5),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(15.0),

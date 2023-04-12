@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -89,6 +90,10 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
       address: address,
     );
     final wc2Service = injector<Wc2Service>();
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      return;
+    }
     try {
       final signature = await account.signMessage(
         chain: chain,
@@ -153,10 +158,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                               vertical: 20, horizontal: 22),
                           decoration: BoxDecoration(
                             color: AppColor.auLightGrey,
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
                             viewMessage,

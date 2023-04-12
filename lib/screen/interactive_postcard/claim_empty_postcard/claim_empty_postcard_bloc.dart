@@ -79,7 +79,7 @@ class ClaimEmptyPostCardBloc
           arguments: {
             'blockchain': 'Tezos',
             'onConfirm': (String address) async {
-              navigationService.goBack(arguments: address);
+              navigationService.goBack(result: address);
             }
           },
         );

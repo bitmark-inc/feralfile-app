@@ -140,6 +140,7 @@ class Environment {
       dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == "TRUE";
 
   static String get metricEndpoint => dotenv.env['METRIC_ENDPOINT'] ?? '';
+
   static String get metricSecretKey => dotenv.env['METRIC_SECRET_KEY'] ?? '';
 
   static String get branchKey => dotenv.env['BRANCH_KEY'] ?? '';
@@ -155,11 +156,20 @@ class Environment {
   static String get auClaimAPITestnetURL =>
       dotenv.env['AU_CLAIM_API_TESTNET_URL'] ?? '';
 
+  static List<String> get irlWhitelistUrls =>
+      dotenv.env['IRL_WHITELIST_URL']?.split(',') ?? [];
+
   static String get cloudFlareImageUrlPrefix =>
       dotenv.env['CLOUD_FLARE_IMAGE_URL_PREFIX'] ?? '';
 
   static String get postcardContractAddress =>
       dotenv.env['POSTCARD_CONTRACT_ADDRESS'] ?? '';
+
+  static String get chatServerHmacKey =>
+      dotenv.env['CHAT_SERVER_HMAC_KEY'] ?? '';
+
+  static String get postcardChatServerUrl =>
+      dotenv.env['CHAT_SERVER_URL'] ?? '';
 }
 
 class Secret {
