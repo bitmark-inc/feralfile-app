@@ -9,6 +9,9 @@ abstract class WalletAddressDao {
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAddress(WalletAddress address);
 
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> insertAddresses(List<WalletAddress> addresses);
+
   @Query('SELECT * FROM WalletAddress WHERE address = :address')
   Future<WalletAddress?> findByAddress(String address);
 

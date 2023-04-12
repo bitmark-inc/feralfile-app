@@ -246,6 +246,12 @@ class _$PersonaDao extends PersonaDao {
   }
 
   @override
+  Future<void> insertPersonas(List<Persona> personas) async {
+    await _personaInsertionAdapter.insertList(
+        personas, OnConflictStrategy.replace);
+  }
+
+  @override
   Future<void> updatePersona(Persona persona) async {
     await _personaUpdateAdapter.update(persona, OnConflictStrategy.abort);
   }
@@ -257,8 +263,10 @@ class _$PersonaDao extends PersonaDao {
 }
 
 class _$ConnectionDao extends ConnectionDao {
-  _$ConnectionDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$ConnectionDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _connectionInsertionAdapter = InsertionAdapter(
             database,
             'Connection',
@@ -424,8 +432,10 @@ class _$ConnectionDao extends ConnectionDao {
 }
 
 class _$AuditDao extends AuditDao {
-  _$AuditDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$AuditDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _auditInsertionAdapter = InsertionAdapter(
             database,
             'Audit',
@@ -457,7 +467,10 @@ class _$AuditDao extends AuditDao {
   }
 
   @override
-  Future<List<Audit>> getAuditsBy(String category, String action) async {
+  Future<List<Audit>> getAuditsBy(
+    String category,
+    String action,
+  ) async {
     return _queryAdapter.queryList(
         'SELECT * FROM Audit WHERE category = (?1) AND action = (?2)',
         mapper: (Map<String, Object?> row) => Audit(
@@ -477,6 +490,11 @@ class _$AuditDao extends AuditDao {
   @override
   Future<void> insertAudit(Audit audit) async {
     await _auditInsertionAdapter.insert(audit, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAudits(List<Audit> audits) async {
+    await _auditInsertionAdapter.insertList(audits, OnConflictStrategy.replace);
   }
 }
 
@@ -622,6 +640,12 @@ class _$WalletAddressDao extends WalletAddressDao {
   Future<void> insertAddress(WalletAddress address) async {
     await _walletAddressInsertionAdapter.insert(
         address, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAddresses(List<WalletAddress> addresses) async {
+    await _walletAddressInsertionAdapter.insertList(
+        addresses, OnConflictStrategy.replace);
   }
 
   @override

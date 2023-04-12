@@ -710,13 +710,16 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
-    Future.wait(addresses.map((e) => _cloudDB.addressDao.insertAddress(
-        WalletAddress(
+    final timestamp = DateTime.now();
+    final walletAddresses = addresses
+        .map((e) => WalletAddress(
             address: e.address,
             uuid: newPersona.uuid,
             index: e.index,
             cryptoType: e.getCryptoType().source,
-            createdAt: DateTime.now()))));
+            createdAt: timestamp))
+        .toList();
+    await _cloudDB.addressDao.insertAddresses(walletAddresses);
 
     return newPersona;
   }

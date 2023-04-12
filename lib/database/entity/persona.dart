@@ -155,8 +155,9 @@ class Persona {
         await injector<CloudDatabase>().addressDao.insertAddress(tezAddress);
         break;
       default:
-        await injector<CloudDatabase>().addressDao.insertAddress(ethAddress);
-        await injector<CloudDatabase>().addressDao.insertAddress(tezAddress);
+        await injector<CloudDatabase>()
+            .addressDao
+            .insertAddresses([ethAddress, tezAddress]);
     }
   }
 

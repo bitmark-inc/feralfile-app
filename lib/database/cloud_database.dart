@@ -43,24 +43,16 @@ abstract class CloudDatabase extends FloorDatabase {
 
   Future<void> copyDataFrom(CloudDatabase source) async {
     await source.personaDao.getPersonas().then((personas) async {
-      for (var persona in personas) {
-        await personaDao.insertPersona(persona);
-      }
+      await personaDao.insertPersonas(personas);
     });
     await source.connectionDao.getConnections().then((connections) async {
-      for (var connection in connections) {
-        await connectionDao.insertConnection(connection);
-      }
+      await connectionDao.insertConnections(connections);
     });
     await source.auditDao.getAudits().then((audits) async {
-      for (var audit in audits) {
-        await auditDao.insertAudit(audit);
-      }
+      await auditDao.insertAudits(audits);
     });
     await source.addressDao.getAllAddresses().then((addresses) async {
-      for (var address in addresses) {
-        await addressDao.insertAddress(address);
-      }
+      await addressDao.insertAddresses(addresses);
     });
   }
 }
