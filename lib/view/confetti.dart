@@ -42,14 +42,10 @@ class _AllConfettiWidgetState extends State<AllConfettiWidget> {
       child: ConfettiWidget(
         confettiController: widget.controller,
         colors: moMAColors,
-        // blastDirection: blastDirection,
         blastDirectionality: BlastDirectionality.explosive,
         shouldLoop: true,
         emissionFrequency: 0.0,
         numberOfParticles: 30,
-        // maxBlastForce: 2,
-        // minBlastForce: 1,
-        // particleDrag: 0.1,
       ),
     );
   }
