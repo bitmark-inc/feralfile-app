@@ -73,10 +73,10 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         switch (response.command) {
           case 'NEW_MESSAGE':
             try {
-              final newMessages =
-                  (response.payload as List<Map<String, dynamic>>)
-                      .map((e) => app.Message.fromJson(e))
-                      .toList();
+              final newMessages = (response.payload["messages"]
+                      as List<dynamic>)
+                  .map((e) => app.Message.fromJson(e as Map<String, dynamic>))
+                  .toList();
               _handleNewMessages(newMessages);
             } catch (e) {
               log.info("[CHAT] NEW_MESSAGE error: $e");
