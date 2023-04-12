@@ -299,6 +299,8 @@ extension AssetTokenExtension on AssetToken {
     return owner == postcardMetadata.lastOwner;
   }
 
+  bool get isPostcard => source == "autonomy-postcard";
+
   bool get isStamped {
     return postcardMetadata.isStamped;
   }
@@ -310,6 +312,8 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   }
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
+
+  bool get isPostcard => source == "autonomy-postcard";
 
   String get getMimeType {
     switch (mimeType) {
