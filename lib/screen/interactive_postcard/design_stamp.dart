@@ -112,11 +112,11 @@ class _DesignStampPageState extends State<DesignStampPage> {
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(15),
-                              child: WidgetsToImage(
-                                controller: controller,
-                                child: Column(
-                                  children: [
-                                    GestureDetector(
+                              child: Column(
+                                children: [
+                                  WidgetsToImage(
+                                    controller: controller,
+                                    child: GestureDetector(
                                       onPanUpdate: (details) {
                                         // update rectColors using details.localPosition and selectedColor
                                         final x = details.localPosition.dx;
@@ -152,9 +152,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                         ),
                                       ),
                                     ),
-                                    _stampLocation(context, cellSize)
-                                  ],
-                                ),
+                                  ),
+                                  _stampLocation(context, cellSize)
+                                ],
                               ),
                             ),
                             Padding(

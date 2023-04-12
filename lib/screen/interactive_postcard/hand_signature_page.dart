@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
@@ -16,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
@@ -64,9 +67,15 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             children: [
               Expanded(
                 child: Container(
-                  color: AppColor.white,
+                  color: Colors.transparent,
                   child: Stack(
                     children: [
+                      Positioned.fill(
+                        child: Image.memory(
+                          widget.payload.image,
+                          fit: BoxFit.fitWidth,
+                        ),
+                      ),
                       Visibility(
                         visible: !didDraw,
                         child: Align(
@@ -141,26 +150,39 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   void _handleSaveButtonPressed() async {
-    UIHelper.showLoadingScreen(context, text: "loading...".tr());
+    setState(() {
+      loading = true;
+    });
     final asset = widget.payload.asset;
-    final signatureWith = MediaQuery.of(context).size.height.toInt();
-    final ratio = 400.0 / signatureWith.toDouble();
-    final data =
-        await signatureGlobalKey.currentState!.toImage(pixelRatio: ratio * 0.9);
+    final data = await signatureGlobalKey.currentState!.toImage();
     final bytes = await data.toByteData(format: ImageByteFormat.png);
-
+    final signature = img.decodePng(bytes!.buffer.asUint8List());
+    final newHeight = signature!.height * 400 ~/ signature.width;
+    final resizedSignature =
+        await resizeImage(ResizeImageParams(signature, 400, newHeight));
     final image =
-        await compositeImage([resizedStamp!, bytes!.buffer.asUint8List()]);
-
-    String dir = (await getTemporaryDirectory()).path;
-    File imageFile = File('$dir/postcardImage.png');
-    File metadataFile = File('$dir/metadata.json');
+        await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
+    final counter = 0; //asset.counter;
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    File imageFile = File('$dir/${Environment.postcardContractAddress}/${asset.id}_${asset.counter}_image.png');
+    File metadataFile = File('$dir/${Environment.postcardContractAddress}/${asset.id}_${asset.counter}_metadata.json');
     final Map<String, dynamic> metadata = {
       "address": widget.payload.location,
       "stampedAt": DateTime.now().toIso8601String()
     };
     await metadataFile.writeAsString(jsonEncode(metadata));
     final imageData = await imageFile.writeAsBytes(img.encodePng(image));
+    final tokens = await injector<IndexerApi>().getNftTokens({"ids": [asset.id]});
+    if (!mounted) return;
+    Navigator.of(context).pushNamed(StampPreview.tag,
+        arguments: StampPreviewPayload(
+          image,
+          widget.payload.asset,
+          widget.payload.location,
+        ));
+    return;
+
+
     final owner = await asset.getOwnerWallet(checkContract: false);
     if (!mounted) return;
     UIHelper.hideInfoDialog(context);
@@ -171,7 +193,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       UIHelper.hideInfoDialog(context);
       return;
     }
-    final counter = 0; //asset.postcardMetadata.counter;
+
     final result = injector<PostcardService>().stampPostcard(
         asset.tokenId ?? "",
         owner.first,
@@ -184,9 +206,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     metadataFile.delete();
     if (!mounted) return;
     // save tokenID to reference
-      Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-          arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
-
+    Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+        arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
 
     UIHelper.hideInfoDialog(context);
     /*

@@ -286,6 +286,10 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get isPostcard => source == "autonomy-postcard";
+
+  int? get counter {
+    return postcardMetadata.locationInformation.length;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
