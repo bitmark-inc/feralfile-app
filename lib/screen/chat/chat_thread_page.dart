@@ -42,14 +42,21 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   int? lastMessageTimestamp;
   bool didFetchAllMessages = false;
   String? historyRequestId;
-  var _sendIcon = "assets/images/sendMessage.svg";
+  bool isTyping = false;
+  bool stopConnect = false;
 
   @override
   void initState() {
     super.initState();
     payload = widget.payload;
     user = types.User(id: payload.address);
-    _websocketInit();
+    _websocketInitAndFetchHistory();
+  }
+
+  Future<void> _websocketInitAndFetchHistory() async {
+    await _websocketInit();
+    lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+    _getHistory();
   }
 
   Future<void> _websocketInit() async {
@@ -59,58 +66,82 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _websocketChannel = IOWebSocketChannel.connect(
         "${Environment.postcardChatServerUrl}$link",
         headers: header);
-
-    _websocketChannel?.stream.listen((event) {
-      log.info("[CHAT] event: $event");
-      final response = WebsocketMessage.fromJson(json.decode(event));
-      switch (response.command) {
-        case 'NEW_MESSAGE':
-          try {
-            final newMessages = (response.payload as List<Map<String, dynamic>>)
-                .map((e) => app.Message.fromJson(e))
-                .toList();
-            _handleNewMessages(newMessages);
-          } catch (e) {
-            log.info("[CHAT] NEW_MESSAGE error: $e");
-          }
-          break;
-        case 'RESP':
-          if (response.payload["ok"] != null &&
-              response.payload["ok"].toString() == "1") {
-            _handleSentMessageResp(response.id, types.Status.sent);
-          } else if (response.payload["error"] != null) {
-            _handleSentMessageResp(response.id, types.Status.error);
-          } else {
+    _websocketChannel?.stream.listen(
+      (event) {
+        log.info("[CHAT] event: $event");
+        final response = WebsocketMessage.fromJson(json.decode(event));
+        switch (response.command) {
+          case 'NEW_MESSAGE':
             try {
               final newMessages =
-                  (response.payload["messages"] as List<dynamic>)
+                  (response.payload as List<Map<String, dynamic>>)
                       .map((e) => app.Message.fromJson(e))
                       .toList();
-
-              _handleNewMessages(newMessages, id: response.id);
-              if (newMessages.length < 100) {
-                didFetchAllMessages = true;
-              }
+              _handleNewMessages(newMessages);
             } catch (e) {
-              log.info("[CHAT] RESP error: $e");
+              log.info("[CHAT] NEW_MESSAGE error: $e");
+            }
+            break;
+          case 'RESP':
+            if (response.payload["ok"] != null &&
+                response.payload["ok"].toString() == "1") {
+              _handleSentMessageResp(response.id, types.Status.sent);
+            } else if (response.payload["error"] != null) {
+              _handleSentMessageResp(response.id, types.Status.error);
+            } else {
+              try {
+                final newMessages =
+                    (response.payload["messages"] as List<dynamic>)
+                        .map((e) => app.Message.fromJson(e))
+                        .toList();
+
+                _handleNewMessages(newMessages, id: response.id);
+                if (newMessages.length < 100) {
+                  didFetchAllMessages = true;
+                }
+              } catch (e) {
+                log.info("[CHAT] RESP error: $e");
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      },
+      onDone: () async {
+        log.info(
+            "[CHAT] _websocketChannel disconnected. Reconnect _websocketChannel");
+        Future.delayed(const Duration(seconds: 5), () async {
+          if (!stopConnect) {
+            await _websocketInit();
+            _resentMessages();
+            if (historyRequestId != null) {
+              _getHistory(historyId: historyRequestId);
             }
           }
-          break;
-        default:
-          break;
-      }
-    });
-    lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
-    _getHistory();
+        });
+      },
+    );
   }
 
-  void _getHistory() {
-    if (historyRequestId != null) {
+  void _resentMessages() {
+    final unsentMessages = messages
+        .where((element) => element.status == types.Status.sending)
+        .toList();
+    if (unsentMessages.isEmpty) return;
+    unsentMessages.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+    for (var element in unsentMessages) {
+      _sendMessage(element as types.TextMessage);
+    }
+  }
+
+  void _getHistory({String? historyId}) {
+    if (historyRequestId != null && historyId == null) {
       return;
     }
     log.info(
         "[CHAT] getHistory ${DateTime.fromMillisecondsSinceEpoch(lastMessageTimestamp!)}");
-    final id = const Uuid().v4();
+    final id = historyId ?? const Uuid().v4();
     _websocketChannel?.sink.add(json.encode({
       "command": "HISTORY",
       "id": id,
@@ -171,6 +202,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   @override
   void dispose() {
     _websocketChannel?.sink.close();
+    _websocketChannel = null;
+    stopConnect = true;
     super.dispose();
   }
 
@@ -202,14 +235,10 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
                   onTextChanged: (text) {
-                    if (_sendIcon == "assets/images/sendMessageFilled.svg" &&
-                            text.trim() == '' ||
-                        _sendIcon == "assets/images/sendMessage.svg" &&
-                            text.trim() != '') {
+                    if (isTyping && text.trim() == '' ||
+                        !isTyping && text.trim() != '') {
                       setState(() {
-                        _sendIcon = text.trim() != ''
-                            ? "assets/images/sendMessageFilled.svg"
-                            : "assets/images/sendMessage.svg";
+                        isTyping = text.trim() != '';
                       });
                     }
                   }),
@@ -238,10 +267,17 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       messages.insert(0, sendingMessage);
     });
 
+    _sendMessage(sendingMessage);
+    setState(() {
+      isTyping = false;
+    });
+  }
+
+  _sendMessage(types.TextMessage message) {
     _websocketChannel?.sink.add(json.encode({
       "command": "SEND",
-      "id": messageId,
-      "payload": {"message": message}
+      "id": message.id,
+      "payload": {"message": message.text}
     }));
   }
 
@@ -313,7 +349,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           ),
         ),
       ),
-      sendButtonIcon: SvgPicture.asset(_sendIcon),
+      sendButtonIcon: SvgPicture.asset(isTyping
+          ? "assets/images/sendMessageFilled.svg"
+          : "assets/images/sendMessage.svg"),
       inputTextCursorColor: theme.colorScheme.secondary,
       emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400White14
           .copyWith(color: AppColor.auQuickSilver),
