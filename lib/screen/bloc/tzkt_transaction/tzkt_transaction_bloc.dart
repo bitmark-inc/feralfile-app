@@ -26,10 +26,12 @@ class TZKTTransactionBloc
       newTokenItems ??= tokenItems;
       emit(TZKTTransactionState(newItems: [], isLastPage: true));
 
+      bool isLastPage = newOperationItems.length < event.pageSize;
       int? tokenNum;
-      if (newOperationItems.isNotEmpty) {
+      if (isLastPage) {
+        tokenNum = (newTokenItems?.length ?? 0) - 1;
+      } else {
         int lastOperationID = newOperationItems.last.getID();
-
         tokenNum = newTokenItems
             ?.lastIndexWhere((element) => element.getID() >= lastOperationID);
       }
@@ -45,8 +47,6 @@ class TZKTTransactionBloc
 
         newTokenItems = newTokenItems?.sublist(tokenNum + 1);
       }
-
-      bool isLastPage = newOperationItems.length < event.pageSize;
 
       emit(TZKTTransactionState(newItems: newItems, isLastPage: isLastPage));
     });

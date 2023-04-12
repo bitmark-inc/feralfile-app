@@ -32,6 +32,24 @@ abstract class CloudDatabase extends FloorDatabase {
     await connectionDao.removeAll();
     await auditDao.removeAll();
   }
+
+  Future<void> copyDataFrom(CloudDatabase source) async {
+    await source.personaDao.getPersonas().then((personas) async {
+      for (var persona in personas) {
+        await personaDao.insertPersona(persona);
+      }
+    });
+    await source.connectionDao.getConnections().then((connections) async {
+      for (var connection in connections) {
+        await connectionDao.insertConnection(connection);
+      }
+    });
+    await source.auditDao.getAudits().then((audits) async {
+      for (var audit in audits) {
+        await auditDao.insertAudit(audit);
+      }
+    });
+  }
 }
 
 final migrateCloudV1ToV2 = Migration(1, 2, (database) async {
@@ -47,21 +65,39 @@ final migrateCloudV2ToV3 = Migration(2, 3, (database) async {
 });
 
 final migrateCloudV3ToV4 = Migration(3, 4, (database) async {
-  await database.execute("""
+  final countTezosIndex = sqflite.Sqflite.firstIntValue(await database.rawQuery(
+      "SELECT COUNT(*) FROM pragma_table_info('Persona') WHERE name='tezosIndex';"));
+  if (countTezosIndex == 0) {
+    await database.execute("""
       ALTER TABLE Persona ADD COLUMN tezosIndex INTEGER NOT NULL DEFAULT(1);
       """);
-  await database.execute("""
+  }
+
+  final countETHINdex = sqflite.Sqflite.firstIntValue(await database.rawQuery(
+      "SELECT COUNT(*) FROM pragma_table_info('Persona') WHERE name='ethereumIndex';"));
+  if (countETHINdex == 0) {
+    await database.execute("""
       ALTER TABLE Persona ADD COLUMN ethereumIndex INTEGER NOT NULL DEFAULT(1);
       """);
+  }
 });
 
 final migrateCloudV4ToV5 = Migration(4, 5, (database) async {
-  await database.execute("""
+  final countTezosIndexes = sqflite.Sqflite.firstIntValue(await database.rawQuery(
+      "SELECT COUNT(*) FROM pragma_table_info('Persona') WHERE name='tezosIndexes';"));
+  if (countTezosIndexes == 0) {
+    await database.execute("""
       ALTER TABLE Persona ADD COLUMN tezosIndexes TEXT;
       """);
-  await database.execute("""
+  }
+
+  final countETHIndexes = sqflite.Sqflite.firstIntValue(await database.rawQuery(
+      "SELECT COUNT(*) FROM pragma_table_info('Persona') WHERE name='ethereumIndexes';"));
+  if (countETHIndexes == 0) {
+    await database.execute("""
       ALTER TABLE Persona ADD COLUMN ethereumIndexes TEXT;
       """);
+  }
 
   await database.execute("""
       UPDATE Persona SET tezosIndexes = 
