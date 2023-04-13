@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -109,6 +110,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _status = '';
   bool _isRated = false;
   bool _isFileAttached = false;
+  Pair<String, List<int>>? debugLog;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -221,8 +223,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     });
   }
 
-  void _addDebugLog() {
+  Future<void> _addDebugLog() async {
     Navigator.of(context).pop();
+
+    const fileMaxSize = 1024 * 1024;
+    final file = await log_util.getLogFile();
+    final bytes = await file.readAsBytes();
+    final auditBytes = await injector<AuditService>().export();
+    var combinedBytes = bytes + auditBytes;
+    if (combinedBytes.length > fileMaxSize) {
+      combinedBytes = combinedBytes.sublist(combinedBytes.length - fileMaxSize);
+    }
+    final filename =
+        "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
+    debugLog = Pair(filename, combinedBytes);
     setState(() {
       _isFileAttached = true;
     });
@@ -346,22 +360,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               customMessageBuilder: _customMessageBuilder,
               emptyState: const CupertinoActivityIndicator(),
               messages: messages,
-              onAttachmentPressed: _handleAttachmentPressed,
               onSendPressed: _handleSendPressed,
-              inputOptions: InputOptions(
-                  sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-                  onTextChanged: (text) {
-                    if (_sendIcon == "assets/images/sendMessageFilled.svg" &&
-                            text.trim() == '' ||
-                        _sendIcon == "assets/images/sendMessage.svg" &&
-                            text.trim() != '') {
-                      setState(() {
-                        _sendIcon = text.trim() != ''
-                            ? "assets/images/sendMessageFilled.svg"
-                            : "assets/images/sendMessage.svg";
-                      });
-                    }
-                  }),
               user: _user,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
@@ -371,8 +370,75 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                                   DraftCustomerSupportData data,
                                   {bool isRating = false}) =>
                               _submit(messageType, data, isRating: isRating))
-                      : null,
+                      : Column(
+                          children: [
+                            if (_isFileAttached) debugLogView(),
+                            Input(
+                              onSendPressed: _handleSendPressed,
+                              onAttachmentPressed: _handleAttachmentPressed,
+                              options: _inputOption(),
+                            ),
+                          ],
+                        ),
             )));
+  }
+
+  InputOptions _inputOption() {
+    return InputOptions(
+        sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+        onTextChanged: (text) {
+          if (_sendIcon == "assets/images/sendMessageFilled.svg" &&
+                  text.trim() == '' ||
+              _sendIcon == "assets/images/sendMessage.svg" &&
+                  text.trim() != '') {
+            setState(() {
+              _sendIcon = text.trim() != ''
+                  ? "assets/images/sendMessageFilled.svg"
+                  : "assets/images/sendMessage.svg";
+            });
+          }
+        });
+  }
+
+  Widget debugLogView() {
+    final theme = Theme.of(context);
+    final fileSize = debugLog!.second.length;
+    final fileSizeInMB = fileSize / (1024 * 1024);
+    return Container(
+      color: AppColor.auGreyBackground,
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: [
+          const SizedBox(width: 10),
+          Text(
+            debugLog!.first.split("_").last,
+            style: theme.primaryTextTheme.ppMori400White14
+                .copyWith(color: AppColor.auSuperTeal),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            "(${fileSizeInMB.toStringAsFixed(2)} MB)",
+            style: theme.primaryTextTheme.ppMori400White14
+                .copyWith(color: AppColor.auQuickSilver),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isFileAttached = false;
+                debugLog = null;
+              });
+            },
+            child: SvgPicture.asset(
+              "assets/images/iconClose.svg",
+              width: 20,
+              height: 20,
+              color: AppColor.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _isRatingMessage(types.Message message) {
@@ -789,16 +855,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future _addAppLogs(types.PartialText message) async {
-    const fileMaxSize = 1024 * 1024;
-    final file = await log_util.getLogFile();
-    final bytes = await file.readAsBytes();
-    final auditBytes = await injector<AuditService>().export();
-    var combinedBytes = bytes + auditBytes;
-    if (combinedBytes.length > fileMaxSize) {
-      combinedBytes = combinedBytes.sublist(combinedBytes.length - fileMaxSize);
-    }
-    final filename =
-        "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
+    final filename = debugLog!.first;
+    final combinedBytes = debugLog!.second;
 
     final localPath =
         await _customerSupportService.storeFile(filename, combinedBytes);
@@ -818,9 +876,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   void _handleAttachmentPressed() {
     if (_isFileAttached) {
-      setState(() {
-        _isFileAttached = false;
-      });
       return;
     }
     UIHelper.showDialog(
@@ -1002,17 +1057,17 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
       errorIcon: const SizedBox(),
-      inputPadding: const EdgeInsets.fromLTRB(0, 24, 0, 40),
+      inputPadding: const EdgeInsets.fromLTRB(0, 10, 0, 40),
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,
       inputTextStyle: theme.textTheme.ppMori400White14,
       inputTextColor: theme.colorScheme.secondary,
-      attachmentButtonIcon: _isFileAttached
-          ? SvgPicture.asset("assets/images/file_attached.svg")
-          : SvgPicture.asset(
-              "assets/images/joinFile.svg",
-              color: theme.colorScheme.secondary,
-            ),
+      attachmentButtonIcon: SvgPicture.asset(
+        "assets/images/joinFile.svg",
+        color: _isFileAttached
+            ? AppColor.disabledColor
+            : theme.colorScheme.secondary,
+      ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(
         _sendIcon,
