@@ -10,7 +10,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
+import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
@@ -41,6 +44,17 @@ abstract class PostcardService {
 
   Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
       File image, File metadata, Position? location, int counter);
+
+  Future<bool> isReceivedSuccess(
+      {required contractAddress,
+      required String address,
+      required String tokenId,
+      required int counter});
+
+  Future<PostcardValue?> getPostcardValue({
+    required contractAddress,
+    required String tokenId,
+  });
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -131,5 +145,35 @@ class PostcardServiceImpl extends PostcardService {
         lon: lon) as Map<String, dynamic>;
     final ok = result["metadataCID"] as String;
     return ok.isNotEmpty;
+  }
+
+  @override
+  Future<bool> isReceivedSuccess(
+      {required contractAddress,
+      required String address,
+      required String tokenId,
+      required int counter}) async {
+    final postcardData = await getPostcardValue(
+        contractAddress: contractAddress, tokenId: tokenId);
+    if (postcardData == null) return false;
+    if (postcardData.counter == counter.toString() &&
+        postcardData.postman == address) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  Future<PostcardValue?> getPostcardValue({
+    required contractAddress,
+    required String tokenId,
+  }) async {
+    final postcardApi = injector<TZKTApi>();
+    final ptr = await postcardApi.getBigMapsId(contract: contractAddress);
+    if (ptr.isEmpty) return null;
+    final bigMapId = ptr.first;
+    final result = await postcardApi.getBigMaps(bigMapId, key: tokenId);
+    if (result.isEmpty) return null;
+    return result.first;
   }
 }

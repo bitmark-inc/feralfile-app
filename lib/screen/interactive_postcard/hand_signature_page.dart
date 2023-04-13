@@ -4,13 +4,10 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -18,11 +15,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'package:image/image.dart' as img;
+
+import '../../service/navigation_service.dart';
 
 class HandSignaturePage extends StatefulWidget {
   static const String handSignaturePage = "hand_signature_page";
@@ -154,6 +152,10 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       loading = true;
     });
     final asset = widget.payload.asset;
+    final tokenId = asset.tokenId ?? "";
+    final address = asset.owner;
+    final counter = 0; //asset.counter;
+    final contractAddress = Environment.postcardContractAddress;
     final data = await signatureGlobalKey.currentState!.toImage();
     final bytes = await data.toByteData(format: ImageByteFormat.png);
     final signature = img.decodePng(bytes!.buffer.asUint8List());
@@ -162,64 +164,47 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         await resizeImage(ResizeImageParams(signature, 400, newHeight));
     final image =
         await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
-    final counter = 0; //asset.counter;
     String dir = (await getApplicationDocumentsDirectory()).path;
-    File imageFile = File('$dir/${Environment.postcardContractAddress}/${asset.id}_${asset.counter}_image.png');
-    File metadataFile = File('$dir/${Environment.postcardContractAddress}/${asset.id}_${asset.counter}_metadata.json');
+    File imageFile =
+        File('$dir/${contractAddress}_${tokenId}_${counter}_image.png');
+    File metadataFile =
+        File('$dir/${contractAddress}_${tokenId}_${counter}_metadata.json');
+
     final Map<String, dynamic> metadata = {
       "address": widget.payload.location,
       "stampedAt": DateTime.now().toIso8601String()
     };
-    await metadataFile.writeAsString(jsonEncode(metadata));
     final imageData = await imageFile.writeAsBytes(img.encodePng(image));
-    final tokens = await injector<IndexerApi>().getNftTokens({"ids": [asset.id]});
-    if (!mounted) return;
-    Navigator.of(context).pushNamed(StampPreview.tag,
-        arguments: StampPreviewPayload(
-          image,
-          widget.payload.asset,
+    final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
+
+    final postcardService = injector<PostcardService>();
+    final isMinted = await postcardService.isReceivedSuccess(
+        contractAddress: contractAddress,
+        address: address,
+        tokenId: tokenId,
+        counter: counter);
+    if (isMinted) {
+      final walletIndex = await asset.getOwnerWallet();
+      if (walletIndex == null) return;
+      postcardService.stampPostcard(
+          tokenId,
+          walletIndex.first,
+          walletIndex.second,
+          imageData,
+          jsonData,
           widget.payload.location,
-        ));
-    return;
-
-
-    final owner = await asset.getOwnerWallet(checkContract: false);
-    if (!mounted) return;
-    UIHelper.hideInfoDialog(context);
-    Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-        arguments: ArtworkDetailPayload([asset.identity], 0));
-    if (owner == null) {
+          counter);
       if (!mounted) return;
-      UIHelper.hideInfoDialog(context);
+      injector<NavigationService>().popUntilHomeOrSettings();
+      Navigator.of(context)
+          .pushNamed(StampPreview.tag,
+              arguments: StampPreviewPayload(
+                image,
+                widget.payload.asset,
+                widget.payload.location,
+              ));
       return;
-    }
-
-    final result = injector<PostcardService>().stampPostcard(
-        asset.tokenId ?? "",
-        owner.first,
-        owner.second,
-        imageData,
-        metadataFile,
-        widget.payload.location,
-        counter);
-    imageFile.delete();
-    metadataFile.delete();
-    if (!mounted) return;
-    // save tokenID to reference
-    Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-        arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
-
-    UIHelper.hideInfoDialog(context);
-    /*
-    if (!mounted) return;
-    Navigator.of(context).pushNamed(StampPreview.tag,
-        arguments: StampPreviewPayload(
-          image,
-          widget.payload.asset,
-          widget.payload.location,
-        ));
-
-     */
+    } else {}
   }
 }
 

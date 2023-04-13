@@ -46,7 +46,7 @@ abstract class TZKTApi {
 
   @GET("/v1/bigmaps/{ptr}/keys")
   Future<List<PostcardValue>> getBigMaps(
-    @Path("ptr") String ptr, {
+    @Path("ptr") int ptr, {
     @Query("select") String select = "value",
     @Query("key") required String key,
   });
