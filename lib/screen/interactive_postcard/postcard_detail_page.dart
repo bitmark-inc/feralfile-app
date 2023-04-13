@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -81,6 +82,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late Locale locale;
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
+  Timer? timer;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -220,6 +222,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     _confettiController.dispose();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -243,13 +246,33 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         currentAsset = state.assetToken;
       });
       if (!mounted) return;
-      if (withSharing && state.assetToken != null) {
-        _socialShare(context, state.assetToken!);
-        setState(() {
-          withSharing = false;
-        });
+      if (state.assetToken != null) {
+        if (withSharing) {
+          _socialShare(context, state.assetToken!);
+          setState(() {
+            withSharing = false;
+          });
+        }
+        if (state.assetToken!.isCompleted) {
+          _youDidIt(context, state.assetToken!);
+          _confettiController.play();
+        }
+        if (state.assetToken!.isStamping) {
+          const duration = Duration(seconds: 10);
+          timer = Timer.periodic(duration, (timer) {
+            if (timer.tick == 2) {
+              injector<PostcardService>()
+                  .updateStampingPostcard([], override: true);
+            }
+            if (mounted) {
+              refreshToken();
+            }
+          });
+        } else {
+          timer?.cancel();
+        }
       }
-      _youDidIt(context, state.assetToken!);
+
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
@@ -388,10 +411,25 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     });
   }
 
+  void refreshToken() {
+    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
+        widget.payload.identities[widget.payload.currentIndex]));
+  }
+
   Widget _postcardAction(AssetToken asset) {
     final isStamped = asset.postcardMetadata.isStamped;
+    if (asset.isCompleted) {
+      return const SizedBox();
+    }
     if (asset.canShare) {
       if (!isStamped) {
+        if (asset.isStamping) {
+          return PostcardButton(
+            text: "updating_token".tr(),
+            enabled: false,
+            onTap: () {},
+          );
+        }
         return PostcardButton(
           text: "stamp_postcard".tr(),
           onTap: () {

@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -251,6 +252,16 @@ extension AssetTokenExtension on AssetToken {
         owner == lastOwner));
   }
 
+  bool get isStamping {
+    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    return stampingPostcard.any((element) {
+      final bool = (element.indexId == id &&
+          element.address == owner &&
+          owner == lastOwner);
+      return bool;
+    });
+  }
+
   String get lastOwner {
     return postcardMetadata.lastOwner;
   }
@@ -310,7 +321,7 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get isCompleted {
-    return false;
+    return isFinal && isStamped;
   }
 }
 

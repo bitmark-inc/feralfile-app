@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
@@ -16,10 +17,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
-import 'package:image/image.dart' as img;
 
 class HandSignaturePage extends StatefulWidget {
   static const String handSignaturePage = "hand_signature_page";
@@ -120,7 +121,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         isProcessing: loading,
                         enabled: didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
-                        text: "sign_postcard".tr(),
+                        text: "sign_and_stamp".tr(),
                       ),
                     ),
                   ],
@@ -141,7 +142,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   void _handleSaveButtonPressed() async {
-    UIHelper.showLoadingScreen(context, text: "loading...".tr());
+    setState(() {
+      loading = true;
+    });
     final asset = widget.payload.asset;
     final signatureWith = MediaQuery.of(context).size.height.toInt();
     final ratio = 400.0 / signatureWith.toDouble();
@@ -182,14 +185,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         counter);
     imageFile.delete();
     metadataFile.delete();
-    if (!mounted) return;
-    // save tokenID to reference
-      Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-          arguments: ArtworkDetailPayload([widget.payload.asset.identity], 0));
 
-
-    UIHelper.hideInfoDialog(context);
-    /*
     if (!mounted) return;
     Navigator.of(context).pushNamed(StampPreview.tag,
         arguments: StampPreviewPayload(
@@ -197,8 +193,6 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
           widget.payload.asset,
           widget.payload.location,
         ));
-
-     */
   }
 }
 
