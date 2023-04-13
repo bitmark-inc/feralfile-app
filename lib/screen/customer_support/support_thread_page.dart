@@ -406,10 +406,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final fileSizeInMB = fileSize / (1024 * 1024);
     return Container(
       color: AppColor.auGreyBackground,
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
       child: Row(
         children: [
-          const SizedBox(width: 10),
           Text(
             debugLog!.first.split("_").last,
             style: theme.primaryTextTheme.ppMori400White14
