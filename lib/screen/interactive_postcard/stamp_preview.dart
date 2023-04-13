@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -11,9 +10,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 
 class StampPreview extends StatefulWidget {
@@ -36,22 +32,6 @@ class _StampPreviewState extends State<StampPreview> {
   @override
   void initState() {
     super.initState();
-    /*
-    fetchPostcard();
-    final postcardMetadata = PostcardMetadata.fromJson(
-        jsonDecode(widget.payload.asset.artworkMetadata!));
-    index = postcardMetadata.locationInformation.length - 1;
-
-     */
-  }
-
-  Future<void> fetchPostcard() async {
-    String emptyPostcardUrl = widget.payload.asset.getPreviewUrl()!;
-
-    http.Response response = await http.get(Uri.parse(emptyPostcardUrl));
-    final bytes = response.bodyBytes;
-    postcardData = bytes;
-    await pasteStamp();
   }
 
   @override
@@ -87,16 +67,6 @@ class _StampPreviewState extends State<StampPreview> {
     );
   }
 
-  Future<void> pasteStamp() async {
-    final postcardImage = await decodeFuture(postcardData!);
-
-    var image = await compositeImageAt(CompositeImageParams(
-        postcardImage, widget.payload.image, 210, 212, index, 490, 546));
-    stamped = true;
-    stampedPostcardData = await encodeImage(image);
-    setState(() {});
-  }
-
   Future<void> _sendPostcard() async {
     final asset = widget.payload.asset;
     Navigator.of(context).pushNamed(
@@ -107,11 +77,16 @@ class _StampPreviewState extends State<StampPreview> {
 }
 
 class StampPreviewPayload {
-  final img.Image image;
   final AssetToken asset;
-  final Position? location;
+  final String imagePath;
+  final String metadataPath;
 
-  StampPreviewPayload(this.image, this.asset, this.location);
+  // constructor
+  StampPreviewPayload({
+    required this.asset,
+    required this.imagePath,
+    required this.metadataPath,
+  });
 }
 
 class StampingPostcard {

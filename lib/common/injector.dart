@@ -199,7 +199,11 @@ Future<void> setup() async {
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() =>
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
-  injector.registerLazySingleton(() => TZKTApi(dio));
+
+  final tzktUrl = Environment.appTestnetConfig
+      ? Environment.tzktTestnetURL
+      : Environment.tzktMainnetURL;
+  injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(

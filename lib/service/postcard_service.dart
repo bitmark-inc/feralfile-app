@@ -45,7 +45,7 @@ abstract class PostcardService {
   Future<bool> isReceived(String tokenId);
 
   Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
-      File image, File metadata, Position? location, int counter);
+      File image, File metadata, Position? location, int counter, String contractAddress);
 
   Future<bool> isReceivedSuccess(
       {required contractAddress,
@@ -132,26 +132,31 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
-      File image, File metadata, Position? location, int counter) async {
-    final message2sign =
-        [Environment.postcardContractAddress, tokenId, counter].join("|");
-    final signature = await _tezosService.signMessage(
-        wallet, index, Uint8List.fromList(utf8.encode(message2sign)));
-    final address = await wallet.getTezosAddress(index: index);
-    final publicKey = await wallet.getTezosPublicKey(index: index);
-    final lat = location?.latitude;
-    final lon = location?.longitude;
-    final result = await _postcardApi.updatePostcard(
-        tokenId: tokenId,
-        data: image,
-        metadata: metadata,
-        signature: signature,
-        address: address,
-        publicKey: publicKey,
-        lat: lat,
-        lon: lon) as Map<String, dynamic>;
-    final ok = result["metadataCID"] as String;
-    return ok.isNotEmpty;
+      File image, File metadata, Position? location, int counter, String contractAddress) async {
+    try {
+      final message2sign =
+      [contractAddress, tokenId, counter].join("|");
+      final signature = await _tezosService.signMessage(
+          wallet, index, Uint8List.fromList(utf8.encode(message2sign)));
+      final address = await wallet.getTezosAddress(index: index);
+      final publicKey = await wallet.getTezosPublicKey(index: index);
+      final lat = location?.latitude;
+      final lon = location?.longitude;
+      final result = await _postcardApi.updatePostcard(
+          tokenId: tokenId,
+          data: image,
+          metadata: metadata,
+          signature: signature,
+          address: address,
+          publicKey: publicKey,
+          lat: lat,
+          lon: lon) as Map<String, dynamic>;
+      final ok = result["metadataCID"] as String;
+      return ok.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+
   }
 
   @override

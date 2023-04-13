@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +10,7 @@ class PostcardViewWidget extends StatefulWidget {
   final AssetToken assetToken;
   final String? imagePath;
   final String? jsonPath;
+
   const PostcardViewWidget({
     super.key,
     required this.assetToken,
@@ -36,10 +37,11 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
   _convertFileToBase64() async {
     if (widget.imagePath == null || widget.jsonPath == null) return;
 
-    final bytes = await rootBundle.load('assets/images/loading_white_tran.gif');
-    base64Json =
-        'eyJhZGRyZXNzIjogImNvbW1pbmciLCAic3RhbXBlZEF0IjogIjIwMjMtMDItMTJUMTk6MjU6MTRaIn0=';
-    base64Image = base64Encode(bytes.buffer.asUint8List());
+    final image = await File(widget.imagePath!).readAsBytes();
+    final json = await File(widget.jsonPath!).readAsBytes();
+    base64Json = base64Encode(json);
+    //'eyJhZGRyZXNzIjogImNvbW1pbmciLCAic3RhbXBlZEF0IjogIjIwMjMtMDItMTJUMTk6MjU6MTRaIn0=';
+    base64Image = base64Encode(image);
     // base64Image =
     //     'iVBORw0KGgoAAAANSUhEUgAAAVkAAAFYCAYAAAD5ro9+AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAVVSURBVHgB7di9kY5hGIbhe3kxEptIVwNUoAJCEkJF6IA+tCGUEEkMTcgw42d3vx+yrwHnzPvtHEfwFPAE59xzncyzt28GgMKn5d/zYgD4/07m3bUBICOyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChJYBjtqDzW5Od/vh4PONa/Pj5GTWQGThyL36dj4Pz7fDwdO7t+f9reuzBuYCgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgNAycERefz+fR382w8HpblgxkeWo3NnPnG32A8fCXAAQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCy7Baj39v5sFmNxzcv9gOHBORXbHH59t59vNygONlLgAIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgChZVbibLufe9vdcHC28R9w7FYT2ee/Luflj4sBuErMBQAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgCh5ePXn7MGp7sBuHKWs81+AGiYCwBCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWILQ8uXt7AK6SLzfXcz8uH25dHwAa5gKAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWIPQX2B45BdAPrLcAAAAASUVORK5CYII=';
     if (base64Image != null && base64Json != null) {
