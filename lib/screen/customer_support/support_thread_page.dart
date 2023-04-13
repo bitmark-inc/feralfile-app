@@ -110,7 +110,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   String _status = '';
   bool _isRated = false;
   bool _isFileAttached = false;
-  Pair<String, List<int>>? debugLog;
+  Pair<String, List<int>>? _debugLog;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -236,7 +236,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
     final filename =
         "${combinedBytes.length}_${DateTime.now().microsecondsSinceEpoch}.logs";
-    debugLog = Pair(filename, combinedBytes);
+    _debugLog = Pair(filename, combinedBytes);
     setState(() {
       _isFileAttached = true;
     });
@@ -401,8 +401,10 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Widget debugLogView() {
+    if (_debugLog == null) return const SizedBox();
+    final debugLog = _debugLog!;
     final theme = Theme.of(context);
-    final fileSize = debugLog!.second.length;
+    final fileSize = debugLog.second.length;
     final fileSizeInMB = fileSize / (1024 * 1024);
     return Container(
       color: AppColor.auGreyBackground,
@@ -410,7 +412,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
       child: Row(
         children: [
           Text(
-            debugLog!.first.split("_").last,
+            debugLog.first.split("_").last,
             style: theme.primaryTextTheme.ppMori400White14
                 .copyWith(color: AppColor.auSuperTeal),
           ),
@@ -425,7 +427,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             onTap: () {
               setState(() {
                 _isFileAttached = false;
-                debugLog = null;
+                _debugLog = null;
               });
             },
             child: SvgPicture.asset(
@@ -854,8 +856,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   }
 
   Future _addAppLogs(types.PartialText message) async {
-    final filename = debugLog!.first;
-    final combinedBytes = debugLog!.second;
+    if (_debugLog == null) return;
+    final filename = _debugLog!.first;
+    final combinedBytes = _debugLog!.second;
 
     final localPath =
         await _customerSupportService.storeFile(filename, combinedBytes);
