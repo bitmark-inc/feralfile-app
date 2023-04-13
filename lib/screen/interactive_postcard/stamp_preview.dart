@@ -51,6 +51,8 @@ class _StampPreviewState extends State<StampPreview> {
               aspectRatio: 1405 / 981,
               child: PostcardViewWidget(
                 assetToken: widget.payload.asset,
+                imagePath: widget.payload.imagePath,
+                jsonPath: widget.payload.metadataPath,
               ),
             ),
             PostcardButton(
