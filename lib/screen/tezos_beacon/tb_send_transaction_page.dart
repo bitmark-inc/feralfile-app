@@ -56,6 +56,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   int? _fee;
   WalletIndex? _currentWallet;
   bool _isSending = false;
+  String? _estimateMessage;
   late Wc2Service _wc2Service;
   late FeeOption feeOption;
   FeeOptionValue? feeOptionValue;
@@ -125,6 +126,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   Future _estimateFee(WalletStorage wallet, int index) async {
+    setState(() {
+      _estimateMessage = null;
+    });
     try {
       exchangeRate = await injector<CurrencyService>().getExchangeRates();
       final fee = await injector<TezosService>().estimateOperationFee(
@@ -147,19 +151,53 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         _fee = fee;
       });
     } on TezartNodeError catch (err) {
+      final message = getTezosErrorMessage(err);
+      final tezosError = getTezosError(err);
       log.info(err);
       if (!mounted) return;
+      setState(() {
+        _estimateMessage = 'estimation_failed'.tr();
+      });
+      if (tezosError == TezosError.other) {
+        setState(() {
+          _estimateMessage = 'estimation_failed'.tr();
+        });
+      }
       UIHelper.showInfoDialog(
         context,
         "estimation_failed".tr(),
-        getTezosErrorMessage(err),
+        message,
         isDismissible: true,
       );
-    } catch (err) {
+    } on TezartHttpError catch (err) {
+      log.info(err);
       if (!mounted) return;
-      showErrorDialogFromException(err);
+      _handleShowErrorEstimationFailed(wallet, index);
+    } catch (err) {
+      final handleDialog = await showErrorDialogFromException(err);
+      if (!mounted) return;
+      if (!handleDialog) {
+        _handleShowErrorEstimationFailed(wallet, index);
+      }
       log.warning(err);
     }
+  }
+
+  void _handleShowErrorEstimationFailed(WalletStorage wallet, int index) {
+    setState(() {
+      _estimateMessage = 'estimation_failed'.tr();
+    });
+    UIHelper.showInfoDialog(
+      context,
+      "estimation_failed".tr(),
+      'cannot_connect_to_rpc'.tr(),
+      isDismissible: true,
+      closeButton: 'try_again'.tr(),
+      onClose: () {
+        _estimateFee(wallet, index);
+        Navigator.of(context).pop();
+      },
+    );
   }
 
   @override
@@ -280,7 +318,50 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                       if (feeOptionValue != null) ...[
                                         feeTable(context)
                                       ],
-                                      gasFeeStatus(theme),
+                                      Visibility(
+                                        visible: !(_estimateMessage != null &&
+                                            _estimateMessage!.isNotEmpty),
+                                        child: gasFeeStatus(theme),
+                                      ),
+                                      Visibility(
+                                        visible: _estimateMessage != null &&
+                                            _estimateMessage!.isNotEmpty &&
+                                            _currentWallet != null,
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              _estimateMessage ?? '',
+                                              style: theme
+                                                  .textTheme.ppMori400Grey14
+                                                  .copyWith(color: Colors.red),
+                                            ),
+                                            const Spacer(),
+                                            GestureDetector(
+                                              onTap: () {
+                                                _estimateFee(
+                                                  _currentWallet!.wallet,
+                                                  _currentWallet!.index,
+                                                );
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    "try_again"
+                                                        .tr()
+                                                        .toLowerCase(),
+                                                    style: theme.textTheme
+                                                        .ppMori400White14
+                                                        .copyWith(
+                                                      decoration: TextDecoration
+                                                          .underline,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
                                     ],
                                   ),
                                 ),
@@ -293,98 +374,91 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                   ),
                   Container(
                     padding: padding,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            text: "sendH".tr(),
-                            onTap: (_currentWallet != null &&
-                                    _fee != null &&
-                                    !_isSending)
-                                ? () async {
-                                    setState(() {
-                                      _isSending = true;
-                                    });
-                                    metricClient.addEvent(
-                                        MixpanelEvent.confirmTransaction);
+                    child: PrimaryButton(
+                      text: "sendH".tr(),
+                      onTap: (_currentWallet != null &&
+                              _fee != null &&
+                              !_isSending)
+                          ? () async {
+                              setState(() {
+                                _isSending = true;
+                              });
+                              metricClient
+                                  .addEvent(MixpanelEvent.confirmTransaction);
 
-                                    final configurationService =
-                                        injector<ConfigurationService>();
+                              final configurationService =
+                                  injector<ConfigurationService>();
 
-                                    if (configurationService
-                                            .isDevicePasscodeEnabled() &&
-                                        await authenticateIsAvailable()) {
-                                      final localAuth = LocalAuthentication();
-                                      final didAuthenticate =
-                                          await localAuth.authenticate(
-                                              localizedReason:
-                                                  "authen_for_autonomy".tr());
-                                      if (!didAuthenticate) {
-                                        setState(() {
-                                          _isSending = false;
-                                        });
-                                        return;
-                                      }
+                              if (configurationService
+                                      .isDevicePasscodeEnabled() &&
+                                  await authenticateIsAvailable()) {
+                                final localAuth = LocalAuthentication();
+                                final didAuthenticate =
+                                    await localAuth.authenticate(
+                                        localizedReason:
+                                            "authen_for_autonomy".tr());
+                                if (!didAuthenticate) {
+                                  setState(() {
+                                    _isSending = false;
+                                  });
+                                  return;
+                                }
+                              }
+
+                              try {
+                                final txHash = await injector<TezosService>()
+                                    .sendOperationTransaction(
+                                        _currentWallet!.wallet,
+                                        _currentWallet!.index,
+                                        widget.request.operations!,
+                                        baseOperationCustomFee: feeOption
+                                            .tezosBaseOperationCustomFee);
+
+                                if (wc2Topic != null) {
+                                  _wc2Service.respondOnApprove(
+                                    wc2Topic,
+                                    txHash ?? "",
+                                  );
+                                } else {
+                                  injector<TezosBeaconService>()
+                                      .operationResponse(
+                                          widget.request.id, txHash);
+                                }
+
+                                final address = widget.request.sourceAddress;
+                                if (address != null) {
+                                  injector<PendingTokenService>()
+                                      .checkPendingTezosTokens(address)
+                                      .then((tokens) {
+                                    if (tokens.isNotEmpty) {
+                                      NftCollectionBloc.eventController.add(
+                                          UpdateTokensEvent(tokens: tokens));
                                     }
+                                  });
+                                }
+                                if (!mounted) return;
+                                Navigator.of(context).pop(txHash);
+                              } on TezartNodeError catch (err) {
+                                log.info(err);
+                                final message = getTezosErrorMessage(err);
 
-                                    try {
-                                      final txHash = await injector<
-                                              TezosService>()
-                                          .sendOperationTransaction(
-                                              _currentWallet!.wallet,
-                                              _currentWallet!.index,
-                                              widget.request.operations!,
-                                              baseOperationCustomFee: feeOption
-                                                  .tezosBaseOperationCustomFee);
+                                if (!mounted) return;
+                                UIHelper.showInfoDialog(
+                                  context,
+                                  "operation_failed".tr(),
+                                  message,
+                                  isDismissible: true,
+                                );
+                              } catch (err) {
+                                showErrorDialogFromException(err);
+                                log.warning(err);
+                              }
 
-                                      if (wc2Topic != null) {
-                                        _wc2Service.respondOnApprove(
-                                          wc2Topic,
-                                          txHash ?? "",
-                                        );
-                                      } else {
-                                        injector<TezosBeaconService>()
-                                            .operationResponse(
-                                                widget.request.id, txHash);
-                                      }
-
-                                      final address =
-                                          widget.request.sourceAddress;
-                                      if (address != null) {
-                                        injector<PendingTokenService>()
-                                            .checkPendingTezosTokens(address)
-                                            .then((tokens) {
-                                          if (tokens.isNotEmpty) {
-                                            NftCollectionBloc.eventController
-                                                .add(UpdateTokensEvent(
-                                                    tokens: tokens));
-                                          }
-                                        });
-                                      }
-                                      if (!mounted) return;
-                                      Navigator.of(context).pop(txHash);
-                                    } on TezartNodeError catch (err) {
-                                      log.info(err);
-                                      if (!mounted) return;
-                                      UIHelper.showInfoDialog(
-                                        context,
-                                        "operation_failed".tr(),
-                                        getTezosErrorMessage(err),
-                                        isDismissible: true,
-                                      );
-                                    } catch (err) {
-                                      showErrorDialogFromException(err);
-                                      log.warning(err);
-                                    }
-
-                                    setState(() {
-                                      _isSending = false;
-                                    });
-                                  }
-                                : null,
-                          ),
-                        )
-                      ],
+                              setState(() {
+                                _isSending = false;
+                              });
+                            }
+                          : null,
                     ),
                   ),
                 ],

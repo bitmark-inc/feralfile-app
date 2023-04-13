@@ -257,32 +257,32 @@ void showErrorDiablog(
       defaultAction, cancelButton, cancelAction);
 }
 
-void showErrorDialogFromException(Object exception,
+Future<bool> showErrorDialogFromException(Object exception,
     {StackTrace? stackTrace, String? library}) async {
   final navigationService = injector<NavigationService>();
   final context = navigationService.navigatorKey.currentContext;
 
   if (exception is PlatformException) {
     if (lastException != null && lastException?.message == exception.message) {
-      return;
+      return true;
     }
     lastException = exception;
   } else if (context != null) {
     if (exception is AbortedException) {
       UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
           isDismissible: true, autoDismissAfter: 3);
-      return;
+      return true;
     } else if (exception is RequiredPremiumFeature) {
       UIHelper.showFeatureRequiresSubscriptionDialog(
           context, exception.feature, exception.peerMeta, exception.id);
-      return;
+      return true;
     } else if (exception is AlreadyLinkedException) {
       UIHelper.showAlreadyLinked(context, exception.connection);
-      return;
+      return true;
     } else if (exception is InvalidDeeplink) {
       UIHelper.showInfoDialog(context, "😵", "link_not_valid".tr(),
           isDismissible: true, autoDismissAfter: 3);
-      return;
+      return true;
     }
   }
 
@@ -295,7 +295,7 @@ void showErrorDialogFromException(Object exception,
     Sentry.captureException(exception,
         stackTrace: stackTrace,
         withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
-    return;
+    return true;
   }
 
   log.warning("Unhandled error: $exception", exception);
@@ -309,7 +309,7 @@ void showErrorDialogFromException(Object exception,
     Sentry.captureException(exception,
         stackTrace: stackTrace,
         withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
-    return;
+    return true;
   }
 
   final event = translateError(exception);
@@ -331,13 +331,16 @@ void showErrorDialogFromException(Object exception,
               sentryID: sentryID, metadata: sentryMetadata),
         ),
       );
+      return true;
     } else {
       navigationService.showErrorDialog(event);
+      return true;
     }
   } else {
     Sentry.captureException(exception,
         stackTrace: stackTrace,
         withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
+    return false;
   }
 }
 
@@ -346,16 +349,34 @@ void hideInfoDialog(BuildContext context) {
 }
 
 String getTezosErrorMessage(TezartNodeError err) {
-  var message = "";
-  if (err.message.contains("empty_implicit_contract") ||
-      err.message.contains("balance_too_low")) {
+  String message = "";
+  final tezosError = getTezosError(err);
+  if (tezosError == TezosError.notEnoughMoney) {
     message = "not_enough_tz".tr();
     //"Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
-  } else if (err.message.contains("script_rejected")) {
+  } else if (tezosError == TezosError.contractMalformed) {
     message = "contract_malformed"
         .tr(); // "The operation failed. Contract malformed or deprecated.";
   } else {
     message = "operation_failed_with".tr(args: [err.message]);
   }
+
   return message;
+}
+
+TezosError getTezosError(TezartNodeError err) {
+  if (err.message.contains("empty_implicit_contract") ||
+      err.message.contains("balance_too_low")) {
+    return TezosError.notEnoughMoney;
+  } else if (err.message.contains("script_rejected")) {
+    return TezosError.contractMalformed;
+  } else {
+    return TezosError.other;
+  }
+}
+
+enum TezosError {
+  notEnoughMoney,
+  contractMalformed,
+  other,
 }
