@@ -312,6 +312,10 @@ extension AssetTokenExtension on AssetToken {
 
   bool get isPostcard => source == "autonomy-postcard";
 
+  int? get counter {
+    return postcardMetadata.locationInformation.length;
+  }
+
   bool get isStamped {
     return postcardMetadata.isStamped;
   }

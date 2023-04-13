@@ -34,9 +34,9 @@ class ClaimEmptyPostCardBloc
           title: 'Postcard 001',
           medium: 'image',
           thumbnailURL:
-              'https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw',
+              'https://ipfs.io/ipfs/QmY5tRfq2SbVth5U1Dh6cHXXbAG8hia7QDHBAxQbuveFBW',
           previewURL:
-              'https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw',
+              'https://ipfs.io/ipfs/QmY5tRfq2SbVth5U1Dh6cHXXbAG8hia7QDHBAxQbuveFBW',
         ),
         blockchain: "tezos",
         fungible: false,
