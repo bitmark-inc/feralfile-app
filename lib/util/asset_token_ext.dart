@@ -336,7 +336,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
-  bool get isPostcard => source == "autonomy-postcard";
+  bool get isPostcard => source == "Autonomy Dev";
 
   String get getMimeType {
     switch (mimeType) {

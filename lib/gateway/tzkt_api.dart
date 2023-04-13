@@ -12,7 +12,7 @@ import 'package:retrofit/retrofit.dart';
 
 part 'tzkt_api.g.dart';
 
-@RestApi(baseUrl: "https://api.tzkt.io")
+@RestApi(baseUrl: "")
 abstract class TZKTApi {
   factory TZKTApi(Dio dio, {String baseUrl}) = _TZKTApi;
 
