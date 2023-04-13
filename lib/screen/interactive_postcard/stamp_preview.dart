@@ -1,12 +1,7 @@
-import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -61,7 +56,6 @@ class _StampPreviewState extends State<StampPreview> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar:
@@ -71,46 +65,21 @@ class _StampPreviewState extends State<StampPreview> {
       body: Padding(
         padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AspectRatio(
-                    aspectRatio: 1405 / 981,
-                    child: PostcardViewWidget(
-                      assetToken: widget.payload.asset,
-                    ),
-                  ),
-                  PostcardButton(
-                    text: widget.payload.asset.isCompleted
-                        ? "complete_postcard_journey".tr()
-                        : "close".tr(),
-                    onTap: () async {
-                      await _sendPostcard();
-                    },
-                  ),
-                ],
+            AspectRatio(
+              aspectRatio: 1405 / 981,
+              child: PostcardViewWidget(
+                assetToken: widget.payload.asset,
               ),
             ),
-            Padding(
-              padding:
-                  ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-              child: Column(
-                children: [
-                  Text("finalize_note".tr(),
-                      style: theme.textTheme.ppMori400Black14
-                          .copyWith(color: AppColor.auQuickSilver)),
-                  const SizedBox(height: 20),
-                  PrimaryButton(
-                    text: "finalize_postcard".tr(),
-                    enabled: stamped,
-                    onTap: () async {
-                      await _sendPostcard();
-                    },
-                  ),
-                ],
-              ),
+            PostcardButton(
+              text: widget.payload.asset.isCompleted
+                  ? "complete_postcard_journey".tr()
+                  : "close".tr(),
+              onTap: () async {
+                await _sendPostcard();
+              },
             ),
           ],
         ),
@@ -130,35 +99,10 @@ class _StampPreviewState extends State<StampPreview> {
 
   Future<void> _sendPostcard() async {
     final asset = widget.payload.asset;
-    final postcardService = injector<PostcardService>();
-    await postcardService.updateStampingPostcard(
-        [StampingPostcard(indexId: asset.id, address: asset.owner)],
-        override: true);
     Navigator.of(context).pushNamed(
       AppRouter.claimedPostcardDetailsPage,
       arguments: ArtworkDetailPayload([asset.identity], 0),
     );
-
-    /*
-    if (!stamped) return;
-    String dir = (await getTemporaryDirectory()).path;
-    File imageFile = File('$dir/postcardImage.png');
-    final imageData = await imageFile.writeAsBytes(stampedPostcardData!);
-    final owner =
-        await widget.payload.asset.getOwnerWallet(checkContract: false);
-    if (owner == null) return;
-    final result = await injector<PostcardService>().stampPostcard(
-        widget.payload.asset.tokenId ?? "",
-        owner.first,
-        owner.second,
-        imageData,
-        widget.payload.location);
-    if (result) {
-      if (!mounted) return;
-      injector<NavigationService>().popUntilHomeOrSettings();
-    }
-
-     */
   }
 }
 
