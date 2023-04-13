@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -251,6 +252,16 @@ extension AssetTokenExtension on AssetToken {
         owner == lastOwner));
   }
 
+  bool get isStamping {
+    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    return stampingPostcard.any((element) {
+      final bool = (element.indexId == id &&
+          element.address == owner &&
+          owner == lastOwner);
+      return bool;
+    });
+  }
+
   String get lastOwner {
     return postcardMetadata.lastOwner;
   }
@@ -277,6 +288,20 @@ extension AssetTokenExtension on AssetToken {
     return travelInfo;
   }
 
+  List<TravelInfo> get listTravelInfoWithoutLocationName {
+    final stamps = postcardMetadata.locationInformation;
+
+    final travelInfo = <TravelInfo>[];
+    for (int i = 0; i < stamps.length - 1; i++) {
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
+    }
+
+    if (travelInfo.length > 44) {
+      travelInfo.removeLast();
+    }
+    return travelInfo;
+  }
+
   String get twitterCaption {
     return "Here is Twitter Caption From Asset";
   }
@@ -286,6 +311,18 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get isPostcard => source == "autonomy-postcard";
+
+  bool get isStamped {
+    return postcardMetadata.isStamped;
+  }
+
+  bool get isFinal {
+    return false;
+  }
+
+  bool get isCompleted {
+    return isFinal && isStamped;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {

@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_explain.dart';
@@ -25,10 +25,10 @@ class PostcardExplain extends StatefulWidget {
 
 class _PostcardExplainState extends State<PostcardExplain> {
   bool isGetLocation = true;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar: getBackAppBar(
@@ -47,8 +47,13 @@ class _PostcardExplainState extends State<PostcardExplain> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    addTitleSpace(),
-                    const PostcardExplainView(),
+                    const SizedBox(height: 20),
+                    PostcardExplainView(
+                      message: widget.payload.asset.isFinal
+                          ? "you_are_the_final_receiver".tr()
+                          : "",
+                      isFinal: widget.payload.asset.isFinal,
+                    ),
                     PostcardButton(
                       text: "next_design_your_stamp".tr(),
                       onTap: () async {
@@ -65,7 +70,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                         }
                       },
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

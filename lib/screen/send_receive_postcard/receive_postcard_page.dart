@@ -204,7 +204,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           ),
                           Padding(
                             padding: padding,
-                            child: const HowItWorksView(),
+                            child: HowItWorksView(isFinal: asset.isFinal),
                           ),
                           const SizedBox(height: 30),
                           Padding(

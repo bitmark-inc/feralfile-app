@@ -10,13 +10,14 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:dio/dio.dart';
-import 'package:nft_collection/models/models.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+
 import 'claim_empty_postcard_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClaimEmptyPostCardBloc
     extends Bloc<ClaimEmptyPostCardEvent, ClaimEmptyPostCardState> {
@@ -98,7 +99,6 @@ class ClaimEmptyPostCardBloc
               Uint8List.fromList(utf8.encode(timestamp.toString())));
           final publicKey =
               await account.wallet.getTezosPublicKey(index: account.index);
-
           final claimRequest = ClaimPostCardRequest(
             address: address,
             id: 'postcard',
@@ -143,7 +143,8 @@ class ClaimEmptyPostCardBloc
           NftCollectionBloc.eventController.add(
             GetTokensByOwnerEvent(pageKey: PageKey.init()),
           );
-          emit(state.copyWith(isClaiming: false, isClaimed: true));
+          emit(state.copyWith(
+              isClaiming: false, isClaimed: true, assetToken: token));
         }
       } on DioError catch (e) {
         emit(

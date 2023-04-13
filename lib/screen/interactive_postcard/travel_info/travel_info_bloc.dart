@@ -18,6 +18,7 @@ class TravelInfoBloc extends Bloc<TravelInfoEvent, TravelInfoState> {
       final stamps = asset.postcardMetadata.locationInformation;
 
       final travelInfo = <TravelInfo>[];
+
       for (int i = 0; i < stamps.length - 1; i++) {
         travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
       }

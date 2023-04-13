@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
@@ -36,7 +37,8 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
     return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
         listener: (context, state) {
           if (state.isClaimed == true) {
-            Navigator.pop(context);
+            Navigator.of(context).popAndPushNamed(AppRouter.postcardStartedPage,
+                arguments: state.assetToken!);
           }
           if (state.error != null && state.error!.isNotEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -130,59 +132,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           const SizedBox(
                             height: 15,
                           ),
-                          const HowItWorksView(),
-
-                          // const SizedBox(
-                          //   height: 30,
-                          // ),
-                          // Text(
-                          //   "accept_ownership_desc".tr(),
-                          //   style: theme.primaryTextTheme.ppMori400White14,
-                          // ),
-                          // const SizedBox(
-                          //   height: 16,
-                          // ),
-                          // PrimaryButton(
-                          //   text: "accept_ownership".tr(),
-                          //   enabled: state.isClaiming != true,
-                          //   isProcessing: state.isClaiming == true,
-                          //   onTap: () {
-                          //     bloc.add(AcceptGiftEvent());
-                          //   },
-                          // ),
-                          // const SizedBox(
-                          //   height: 30,
-                          // ),
-                          // RichText(
-                          //   text: TextSpan(
-                          //     text: "airdrop_accept_privacy_policy".tr(),
-                          //     style: theme.textTheme.ppMori400Grey12,
-                          //     children: [
-                          //       TextSpan(
-                          //           text: "airdrop_privacy_policy".tr(),
-                          //           style: makeLinkStyle(
-                          //             theme.textTheme.ppMori400Grey12,
-                          //           ),
-                          //           recognizer: TapGestureRecognizer()
-                          //             ..onTap = () {}),
-                          //       TextSpan(
-                          //         text: ".",
-                          //         style: theme.primaryTextTheme.bodyLarge
-                          //             ?.copyWith(fontSize: 14),
-                          //       ),
-                          //     ],
-                          //   ),
-                          // ),
-                          // const SizedBox(
-                          //   height: 10,
-                          // ),
-                          // OutlineButton(
-                          //   text: "decline".tr(),
-                          //   color: theme.colorScheme.primary,
-                          //   onTap: () {
-                          //     Navigator.of(context).pop(false);
-                          //   },
-                          // ),
+                          const HowItWorksView(isFinal: false),
                         ],
                       ),
                     ),
