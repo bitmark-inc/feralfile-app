@@ -132,7 +132,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                           const SizedBox(
                             height: 15,
                           ),
-                          const HowItWorksView(),
+                          const HowItWorksView(isFinal: false),
                         ],
                       ),
                     ),

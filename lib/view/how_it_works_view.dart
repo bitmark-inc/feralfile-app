@@ -4,13 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class HowItWorksView extends StatelessWidget {
-  const HowItWorksView({super.key});
+  final bool isFinal;
+  const HowItWorksView({super.key, required this.isFinal});
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppColor.white;
-    final dividerColor = AppColor.primaryBlack;
-    final backgroundColor = AppColor.auGreyBackground;
+    const textColor = AppColor.white;
+    const dividerColor = AppColor.primaryBlack;
+    const backgroundColor = AppColor.auGreyBackground;
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -33,6 +34,7 @@ class HowItWorksView extends StatelessWidget {
             textColor: textColor,
             backgroundColor: backgroundColor,
             dividerColor: dividerColor,
+            isFinal: isFinal,
           ),
         ],
       ),

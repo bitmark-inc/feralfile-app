@@ -304,6 +304,14 @@ extension AssetTokenExtension on AssetToken {
   bool get isStamped {
     return postcardMetadata.isStamped;
   }
+
+  bool get isFinal {
+    return false;
+  }
+
+  bool get isCompleted {
+    return false;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {

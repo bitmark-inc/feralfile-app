@@ -16,7 +16,7 @@ class AllConfettiWidget extends StatefulWidget {
 }
 
 class _AllConfettiWidgetState extends State<AllConfettiWidget> {
-  final double blastDirection = pi / 2;
+  final double blastDirection = -pi / 2;
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +39,14 @@ class _AllConfettiWidgetState extends State<AllConfettiWidget> {
       MomaPallet.purple,
     ];
     return Align(
+      alignment: Alignment.topCenter,
       child: ConfettiWidget(
         confettiController: widget.controller,
         colors: moMAColors,
         blastDirectionality: BlastDirectionality.explosive,
         shouldLoop: true,
         emissionFrequency: 0.0,
-        numberOfParticles: 30,
+        numberOfParticles: 50,
       ),
     );
   }

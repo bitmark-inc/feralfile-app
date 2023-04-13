@@ -8,8 +8,12 @@ class PostcardExplainView extends StatelessWidget {
   final Color? textColor;
   final Color? dividerColor;
   final Color? backgroundColor;
+  final bool isFinal;
+  final String message;
   const PostcardExplainView(
       {Key? key,
+      required this.isFinal,
+      this.message = "",
       this.textColor = AppColor.primaryBlack,
       this.backgroundColor = AppColor.white,
       this.dividerColor = AppColor.auGrey})
@@ -41,35 +45,72 @@ class PostcardExplainView extends StatelessWidget {
     );
   }
 
+  List<String> postcardExplainTexts(bool isComplete) {
+    if (!isComplete) {
+      return [
+        'mint_your_postcard'.tr(),
+        'design_your_MoMA_stamp'.tr(),
+        'sign_your_stamp'.tr(),
+        'add_your_stamp'.tr(),
+        'send_the_postcard'.tr(),
+        'the_distance_traveled_between'.tr(),
+        'each_receiver_adds_then_sends'.tr(),
+        'your_postcard_journey_ends'.tr(),
+        'the_postcard_win'.tr(),
+      ];
+    } else {
+      return [
+        'mint_your_postcard'.tr(),
+        'design_your_MoMA_stamp'.tr(),
+        'sign_your_stamp'.tr(),
+        'add_your_stamp'.tr(),
+        'complete_postcard_journey'.tr(),
+        'the_distance_traveled_all'.tr(),
+        'the_postcard_win'.tr(),
+      ];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final explainTextList = [
-      'postcard_explain_1',
-      'postcard_explain_2',
-      'postcard_explain_3',
-      'postcard_explain_4',
-      'postcard_explain_5',
-      'postcard_explain_6',
-      'postcard_explain_7',
-    ];
+    final theme = Theme.of(context);
+    final explainTexts = postcardExplainTexts(isFinal);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       color: backgroundColor,
       child: Column(
-        children: explainTextList
-            .mapIndexed((index, text) {
-              return [
-                _explainRow(
-                  context,
-                  "${index + 1}",
-                  text.tr(),
+        children: [
+          if (message.isNotEmpty)
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 15),
+                    child: Text(
+                      message,
+                      style: theme.textTheme.ppMori400Black14,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
-                if (index != explainTextList.length - 1)
-                  addOnlyDivider(color: dividerColor)
-              ];
-            })
-            .flattened
-            .toList(),
+              ],
+            ),
+          ...explainTexts
+              .mapIndexed((index, text) {
+                return [
+                  _explainRow(
+                    context,
+                    "${index + 1}",
+                    text.tr(),
+                  ),
+                  if (index != explainTexts.length - 1)
+                    addOnlyDivider(color: dividerColor)
+                ];
+              })
+              .flattened
+              .toList()
+        ],
       ),
     );
   }

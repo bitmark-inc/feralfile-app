@@ -90,7 +90,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void initState() {
     _scrollController = ScrollController();
     _confettiController =
-        ConfettiController(duration: const Duration(seconds: 5));
+        ConfettiController(duration: const Duration(seconds: 10));
     super.initState();
     context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
