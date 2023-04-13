@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -254,6 +255,11 @@ abstract class ConfigurationService {
   List<String> getListPostcardMint();
   Future<void> setListPostcardMint(List<String> tokenID,
       {bool override = false, bool isRemoved = false});
+
+  List<StampingPostcard> getStampingPostcard();
+
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false});
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -334,6 +340,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
       "show_link_or_import_tip";
+
+  static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1104,6 +1112,37 @@ class ConfigurationServiceImpl implements ConfigurationService {
         currentPortcardMints.addAll(tokenID);
       }
       await _preferences.setStringList(POSTCARD_MINT, currentPortcardMints);
+    }
+  }
+
+  @override
+  List<StampingPostcard> getStampingPostcard() {
+    return _preferences
+            .getStringList(KEY_STAMPING_POSTCARD)
+            ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false}) async {
+    const key = KEY_STAMPING_POSTCARD;
+    final updatePostcards = values.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updatePostcards);
+    } else {
+      var currentStampingPostcard = _preferences.getStringList(key) ?? [];
+
+      if (isRemove) {
+        currentStampingPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        currentStampingPostcard.addAll(updatePostcards);
+      }
+      await _preferences.setStringList(
+          key, currentStampingPostcard.toSet().toList());
     }
   }
 }

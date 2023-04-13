@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -9,7 +10,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,7 +20,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:path_provider/path_provider.dart';
 
 class StampPreview extends StatefulWidget {
   static const String tag = "stamp_preview";
@@ -63,11 +63,14 @@ class _StampPreviewState extends State<StampPreview> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-        backgroundColor: AppColor.primaryBlack,
-        appBar: getBackAppBar(context, title: "send".tr(), onBack: () {
-          Navigator.of(context).pop();
-        }, isWhite: false),
-        body: Column(
+      backgroundColor: AppColor.primaryBlack,
+      appBar:
+          getBackAppBar(context, title: "preview_postcard".tr(), onBack: () {
+        Navigator.of(context).pop();
+      }, isWhite: false),
+      body: Padding(
+        padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+        child: Column(
           children: [
             Expanded(
               child: Column(
@@ -78,7 +81,15 @@ class _StampPreviewState extends State<StampPreview> {
                     child: PostcardViewWidget(
                       assetToken: widget.payload.asset,
                     ),
-                  )
+                  ),
+                  PostcardButton(
+                    text: widget.payload.asset.isCompleted
+                        ? "complete_postcard_journey".tr()
+                        : "close".tr(),
+                    onTap: () async {
+                      await _sendPostcard();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -100,9 +111,11 @@ class _StampPreviewState extends State<StampPreview> {
                   ),
                 ],
               ),
-            )
+            ),
           ],
-        ));
+        ),
+      ),
+    );
   }
 
   Future<void> pasteStamp() async {
@@ -116,6 +129,16 @@ class _StampPreviewState extends State<StampPreview> {
   }
 
   Future<void> _sendPostcard() async {
+    final asset = widget.payload.asset;
+    final postcardService = injector<PostcardService>();
+    await postcardService.updateStampingPostcard(
+        [StampingPostcard(indexId: asset.id, address: asset.owner)],
+        override: true);
+    Navigator.of(context).pushNamed(
+      AppRouter.claimedPostcardDetailsPage,
+      arguments: ArtworkDetailPayload([asset.identity], 0),
+    );
+
     /*
     if (!stamped) return;
     String dir = (await getTemporaryDirectory()).path;
@@ -145,4 +168,33 @@ class StampPreviewPayload {
   final Position? location;
 
   StampPreviewPayload(this.image, this.asset, this.location);
+}
+
+class StampingPostcard {
+  final String indexId;
+  final String address;
+
+  StampingPostcard({required this.indexId, required this.address});
+
+  static StampingPostcard fromJson(Map<String, dynamic> json) {
+    return StampingPostcard(
+      indexId: json['indexId'],
+      address: json['address'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'indexId': indexId,
+      'address': address,
+    };
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StampingPostcard &&
+          runtimeType == other.runtimeType &&
+          indexId == other.indexId &&
+          address == other.address;
 }

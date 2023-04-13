@@ -15,8 +15,10 @@ import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:geolocator/geolocator.dart';
@@ -55,6 +57,11 @@ abstract class PostcardService {
     required contractAddress,
     required String tokenId,
   });
+
+  List<StampingPostcard> getStampingPostcard();
+
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false});
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -175,5 +182,17 @@ class PostcardServiceImpl extends PostcardService {
     final result = await postcardApi.getBigMaps(bigMapId, key: tokenId);
     if (result.isEmpty) return null;
     return result.first;
+  }
+
+  @override
+  List<StampingPostcard> getStampingPostcard() {
+    return injector<ConfigurationService>().getStampingPostcard();
+  }
+
+  @override
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false}) async {
+    await injector<ConfigurationService>()
+        .updateStampingPostcard(values, override: override, isRemove: isRemove);
   }
 }
