@@ -30,9 +30,10 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
 abstract class FeralFileService {
@@ -292,10 +293,9 @@ class FeralFileServiceImpl extends FeralFileService {
     required String receiver,
   }) async {
     try {
-      final indexerApi = injector<IndexerApi>();
-      final assets = await indexerApi.getNftTokens({
-        "ids": [indexerId]
-      });
+      final indexerService = injector<IndexerService>();
+      final List<AssetToken> assets = await indexerService
+          .getNftTokens(QueryListTokensRequest(ids: [indexerId]));
       final tokens = assets
           .map((e) => e
             ..pending = true
