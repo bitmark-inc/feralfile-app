@@ -93,7 +93,7 @@ class Persona {
   }
 
   Future<List<WalletAddress>> getWalletAddresses() async {
-    return injector<CloudDatabase>().addressDao.findById(uuid);
+    return injector<CloudDatabase>().addressDao.findByWalletID(uuid);
   }
 
   Future<List<WalletAddress>> getEthWalletAddresses() async {

@@ -59,7 +59,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
         _configurationService.getTempStorageHiddenTokenIDs();
 
     final hiddenAddressesFromGallery =
-        (await _cloudDB.addressDao.findHiddenAddresses(true))
+        (await _cloudDB.addressDao.findAddressesWithHiddenStatus(true))
             .map((e) => e.address)
             .toList();
 

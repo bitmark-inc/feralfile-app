@@ -16,13 +16,13 @@ abstract class WalletAddressDao {
   Future<WalletAddress?> findByAddress(String address);
 
   @Query('SELECT * FROM WalletAddress WHERE uuid = :uuid')
-  Future<List<WalletAddress>> findById(String uuid);
+  Future<List<WalletAddress>> findByWalletID(String uuid);
 
   @Query('SELECT * FROM WalletAddress WHERE isHidden = :isHidden')
-  Future<List<WalletAddress>> findHiddenAddresses(bool isHidden);
+  Future<List<WalletAddress>> findAddressesWithHiddenStatus(bool isHidden);
 
   @Query(
-      'SELECT * FROM WalletAddress WHERE uuid = (:uuid) AND cryptoType = (:cryptoType)')
+      'SELECT * FROM WalletAddress WHERE uuid = :uuid AND cryptoType = :cryptoType')
   Future<List<WalletAddress>> getAddresses(String uuid, String cryptoType);
 
   @Query(

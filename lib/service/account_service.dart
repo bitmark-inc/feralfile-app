@@ -674,7 +674,8 @@ class AccountServiceImpl extends AccountService {
 
     List<String> addresses = [];
 
-    final walletAddress = await _cloudDB.addressDao.findHiddenAddresses(false);
+    final walletAddress =
+        await _cloudDB.addressDao.findAddressesWithHiddenStatus(false);
     addresses.addAll(walletAddress.map((e) => e.address).toList());
 
     final linkedAccounts =
@@ -728,7 +729,7 @@ class AccountServiceImpl extends AccountService {
   Future<List<AddressIndex>> getHiddenAddressIndexes() async {
     List<AddressIndex> hiddenAddresses = [];
     final hiddenWalletAddresses =
-        await _cloudDB.addressDao.findHiddenAddresses(true);
+        await _cloudDB.addressDao.findAddressesWithHiddenStatus(true);
     hiddenAddresses
         .addAll(hiddenWalletAddresses.map((e) => e.addressIndex).toList());
 

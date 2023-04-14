@@ -577,7 +577,7 @@ class _$WalletAddressDao extends WalletAddressDao {
   }
 
   @override
-  Future<List<WalletAddress>> findById(String uuid) async {
+  Future<List<WalletAddress>> findByWalletID(String uuid) async {
     return _queryAdapter.queryList(
         'SELECT * FROM WalletAddress WHERE uuid = ?1',
         mapper: (Map<String, Object?> row) => WalletAddress(
@@ -591,7 +591,8 @@ class _$WalletAddressDao extends WalletAddressDao {
   }
 
   @override
-  Future<List<WalletAddress>> findHiddenAddresses(bool isHidden) async {
+  Future<List<WalletAddress>> findAddressesWithHiddenStatus(
+      bool isHidden) async {
     return _queryAdapter.queryList(
         'SELECT * FROM WalletAddress WHERE isHidden = ?1',
         mapper: (Map<String, Object?> row) => WalletAddress(
@@ -610,7 +611,7 @@ class _$WalletAddressDao extends WalletAddressDao {
     String cryptoType,
   ) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM WalletAddress WHERE uuid = (?1) AND cryptoType = (?2)',
+        'SELECT * FROM WalletAddress WHERE uuid = ?1 AND cryptoType = ?2',
         mapper: (Map<String, Object?> row) => WalletAddress(
             address: row['address'] as String,
             uuid: row['uuid'] as String,

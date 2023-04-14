@@ -152,7 +152,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
   _showOptionDialog() async {
     final theme = Theme.of(context);
     final walletAddresses =
-        await injector<CloudDatabase>().addressDao.findById(persona.uuid);
+        await injector<CloudDatabase>().addressDao.findByWalletID(persona.uuid);
     final isAllHidden =
         walletAddresses.every((element) => element.isHidden == true);
     if (!mounted) return;
