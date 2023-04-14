@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -191,7 +192,8 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                 builder: (context, state) {
                                   return Text(
                                     "you_have_received".tr(namedArgs: {
-                                      "address": asset.lastOwner
+                                      "address": asset
+                                              .postcardMetadata.lastOwner
                                               .toIdentityOrMask({}) ??
                                           "Unknown"
                                     }),
@@ -204,7 +206,8 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           ),
                           Padding(
                             padding: padding,
-                            child: HowItWorksView(isFinal: asset.isFinal),
+                            child: HowItWorksView(
+                                isFinal: asset.postcardMetadata.isFinal),
                           ),
                           const SizedBox(height: 30),
                           Padding(
@@ -430,6 +433,7 @@ class ReceivePostcardResponse {
   final String blockchain;
   final String owner;
   final String contractAddress;
+
   ReceivePostcardResponse(this.tokenID, this.imageCID, this.blockchain,
       this.owner, this.contractAddress);
 

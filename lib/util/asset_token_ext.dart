@@ -5,14 +5,14 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/travel_infor.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -248,8 +248,8 @@ extension AssetTokenExtension on AssetToken {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
     return sharedPostcards.any((element) => (element.tokenID == id &&
-        element.owner == lastOwner &&
-        owner == lastOwner));
+        element.owner == postcardMetadata.lastOwner &&
+        owner == postcardMetadata.lastOwner));
   }
 
   bool get isStamping {
@@ -257,76 +257,24 @@ extension AssetTokenExtension on AssetToken {
     return stampingPostcard.any((element) {
       final bool = (element.indexId == id &&
           element.address == owner &&
-          owner == lastOwner);
+          owner == postcardMetadata.lastOwner);
       return bool;
     });
-  }
-
-  String get lastOwner {
-    return postcardMetadata.lastOwner;
   }
 
   PostcardMetadata get postcardMetadata {
     return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
   }
 
-  Future<List<TravelInfo>> get listTravelInfo async {
-    final stamps = postcardMetadata.locationInformation;
-
-    final travelInfo = <TravelInfo>[];
-    for (int i = 0; i < stamps.length - 1; i++) {
-      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
-    }
-
-    await Future.wait(travelInfo.map((e) async {
-      await e.getLocationName();
-    }));
-
-    if (travelInfo.length > 44) {
-      travelInfo.removeLast();
-    }
-    return travelInfo;
-  }
-
-  List<TravelInfo> get listTravelInfoWithoutLocationName {
-    final stamps = postcardMetadata.locationInformation;
-
-    final travelInfo = <TravelInfo>[];
-    for (int i = 0; i < stamps.length - 1; i++) {
-      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
-    }
-
-    if (travelInfo.length > 44) {
-      travelInfo.removeLast();
-    }
-    return travelInfo;
+  bool get canShare {
+    return owner == postcardMetadata.lastOwner;
   }
 
   String get twitterCaption {
     return "Here is Twitter Caption From Asset";
   }
 
-  bool get canShare {
-    return owner == postcardMetadata.lastOwner;
-  }
-
   bool get isPostcard => source == "autonomy-postcard";
-
-  int? get counter {
-    return postcardMetadata.locationInformation.length;
-  }
-
-  bool get isStamped {
-    return postcardMetadata.isStamped;
-  }
-
-  bool get isFinal {
-    return false;
-  }
-
-  bool get isCompleted {
-    return isFinal && isStamped;
-  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {

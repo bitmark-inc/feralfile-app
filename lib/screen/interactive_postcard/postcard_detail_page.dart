@@ -141,7 +141,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
-    final listTravelInfo = asset.listTravelInfoWithoutLocationName;
+    final listTravelInfo =
+        asset.postcardMetadata.listTravelInfoWithoutLocationName;
     final totalDistance = listTravelInfo.totalDistance;
     final theme = Theme.of(context);
     Widget content = Column(
@@ -253,7 +254,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             withSharing = false;
           });
         }
-        if (state.assetToken!.isCompleted) {
+        if (state.assetToken!.postcardMetadata.isCompleted) {
           _youDidIt(context, state.assetToken!);
           _confettiController.play();
         }
@@ -283,7 +284,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
 
-        final artistNames = asset.postcardMetadata.listOwner
+        final artistNames = asset.postcardMetadata.creators
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
 
@@ -418,7 +419,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardAction(AssetToken asset) {
     final isStamped = asset.postcardMetadata.isStamped;
-    if (asset.isCompleted) {
+    if (asset.postcardMetadata.isCompleted) {
       return const SizedBox();
     }
     if (asset.canShare) {
@@ -877,39 +878,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget leaderboard(AssetToken asset) {
-    return const Text("Here is leader boeard");
-  }
-}
-
-class PostcardMetadata {
-  final String lastOwner;
-  final bool isStamped;
-  final List<LocationInformation> locationInformation;
-
-  //constructor
-  PostcardMetadata(
-      {required this.lastOwner,
-      required this.isStamped,
-      required this.locationInformation});
-
-  // factory constructor
-  factory PostcardMetadata.fromJson(Map<String, dynamic> json) {
-    return PostcardMetadata(
-      lastOwner: json['lastOwner'] as String,
-      isStamped: json['isStamped'] as bool,
-      locationInformation: (json['locationInformation'] as List<dynamic>)
-          .map((e) => LocationInformation.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'lastOwner': lastOwner,
-      'isStamped': isStamped,
-      'locationInformation':
-          locationInformation.map((e) => e.toJson()).toList(),
-    };
+    return const Text("Here is leader board");
   }
 }
