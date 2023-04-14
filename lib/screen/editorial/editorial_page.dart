@@ -124,11 +124,6 @@ class EditorialPageState extends State<EditorialPage>
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          // Status bar color
-          statusBarColor: Colors.transparent,
-          systemNavigationBarDividerColor: Colors.transparent,
-        ),
       ),
       backgroundColor: theme.primaryColor,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
