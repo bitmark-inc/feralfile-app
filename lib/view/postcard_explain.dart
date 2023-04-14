@@ -10,6 +10,7 @@ class PostcardExplainView extends StatelessWidget {
   final Color? backgroundColor;
   final bool isFinal;
   final String message;
+
   const PostcardExplainView(
       {Key? key,
       required this.isFinal,
@@ -22,7 +23,7 @@ class PostcardExplainView extends StatelessWidget {
   Widget _explainRow(BuildContext context, String title, String content) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 13),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

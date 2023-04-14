@@ -12,8 +12,9 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_sta
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
-import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/database/dao/dao.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 
 abstract class PostcardDetailEvent {}
 
@@ -39,19 +40,20 @@ class PostcardDetailBloc
   final AssetTokenDao _assetTokenDao;
   final AssetDao _assetDao;
   final ProvenanceDao _provenanceDao;
-  final IndexerApi _indexerApi;
+  final IndexerService _indexerService;
 
   PostcardDetailBloc(
     this._assetTokenDao,
     this._assetDao,
     this._provenanceDao,
-    this._indexerApi,
+    this._indexerService,
   ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
-        final assetToken = await _indexerApi.getNftTokens({
-          "ids": [event.identity.id]
-        });
+        final request = QueryListTokensRequest(
+          ids: [event.identity.id],
+        );
+        final assetToken = await _indexerService.getNftTokens(request);
         if (assetToken.isNotEmpty) {
           emit(state.copyWith(
               assetToken: assetToken.first,

@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,10 +34,9 @@ class ClaimEmptyPostCardBloc
           mimeType: 'image/png',
           title: 'Postcard 001',
           medium: 'image',
-          thumbnailURL:
-              'https://ipfs.io/ipfs/QmY5tRfq2SbVth5U1Dh6cHXXbAG8hia7QDHBAxQbuveFBW',
-          previewURL:
-              'https://ipfs.io/ipfs/QmY5tRfq2SbVth5U1Dh6cHXXbAG8hia7QDHBAxQbuveFBW',
+          thumbnailURL: EMPTY_POSTCARD_PREVIEW_URL,
+          galleryThumbnailURL: EMPTY_POSTCARD_PREVIEW_URL,
+          previewURL: EMPTY_POSTCARD_PREVIEW_URL,
         ),
         blockchain: "tezos",
         fungible: false,
