@@ -1,8 +1,8 @@
-
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -54,7 +54,7 @@ class _StampPreviewState extends State<StampPreview> {
               ),
             ),
             PostcardButton(
-              text: widget.payload.asset.isCompleted
+              text: widget.payload.asset.postcardMetadata.isCompleted
                   ? "complete_postcard_journey".tr()
                   : "close".tr(),
               onTap: () async {

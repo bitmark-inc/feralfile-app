@@ -7,11 +7,12 @@
 
 import 'dart:math';
 
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
 
 class TravelInfo {
-  final LocationInformation from;
-  final LocationInformation? to;
+  final UserLocations from;
+  final UserLocations? to;
   final int index;
   String? sentLocation;
   String? receivedLocation;
@@ -70,57 +71,6 @@ class TravelInfo {
   }
 }
 
-class LocationInformation {
-  final Location? claimedLocation;
-  final Location? stampedLocation;
-
-  // constructor
-  LocationInformation({this.claimedLocation, this.stampedLocation});
-
-  // factory constructor
-  factory LocationInformation.fromJson(Map<String, dynamic> json) {
-    return LocationInformation(
-      claimedLocation: json['claimedLocation'] == null
-          ? null
-          : Location.fromJson(json['claimedLocation'] as Map<String, dynamic>),
-      stampedLocation: json['stampedLocation'] == null
-          ? null
-          : Location.fromJson(json['stampedLocation'] as Map<String, dynamic>),
-    );
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'claimedLocation': claimedLocation?.toJson(),
-      'stampedLocation': stampedLocation?.toJson(),
-    };
-  }
-}
-
-class Location {
-  final double lat;
-  final double lon;
-
-  // constructor
-  Location({required this.lat, required this.lon});
-
-  // factory constructor
-  factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-        lat: double.parse(json['lat'].toString()),
-        lon: double.parse(json['lon'].toString()));
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'lat': lat,
-      'lon': lon,
-    };
-  }
-}
-
 extension ListTravelInfo on List<TravelInfo> {
   double get totalDistance {
     double totalDistance = 0;
@@ -131,11 +81,11 @@ extension ListTravelInfo on List<TravelInfo> {
   }
 
   TravelInfo get notSentTravelInfo {
-    if (this.isEmpty) {
-      return TravelInfo(LocationInformation(), null, 0, sentLocation: "MoMA");
+    if (isEmpty) {
+      return TravelInfo(UserLocations(), null, 0, sentLocation: "MoMA");
     }
-    final lastTravelInfo = this.last;
+    final lastTravelInfo = last;
     return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
-        sentLocation: lastTravelInfo.receivedLocation, receivedLocation: null);
+        sentLocation: lastTravelInfo.receivedLocation);
   }
 }

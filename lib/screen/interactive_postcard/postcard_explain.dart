@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_explain.dart';
@@ -49,10 +50,10 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   children: [
                     const SizedBox(height: 20),
                     PostcardExplainView(
-                      message: widget.payload.asset.isFinal
+                      message: widget.payload.asset.postcardMetadata.isFinal
                           ? "you_are_the_final_receiver".tr()
                           : "",
-                      isFinal: widget.payload.asset.isFinal,
+                      isFinal: widget.payload.asset.postcardMetadata.isFinal,
                     ),
                     PostcardButton(
                       text: "next_design_your_stamp".tr(),
@@ -97,5 +98,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
 class PostcardExplainPayload {
   final AssetToken asset;
+
   PostcardExplainPayload(this.asset);
 }
