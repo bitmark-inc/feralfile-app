@@ -193,10 +193,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                   return Text(
                                     "you_have_received".tr(namedArgs: {
                                       // FIXME
-                                      "address": asset
-                                              .owner
-                                              .toIdentityOrMask({}) ??
-                                          "Unknown"
+                                      "address":
+                                          asset.owner.toIdentityOrMask({}) ??
+                                              "Unknown"
                                     }),
                                     style: theme.textTheme.ppMori400White14,
                                   );
