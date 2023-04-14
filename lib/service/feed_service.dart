@@ -23,7 +23,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/clients/indexer_client.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -133,8 +136,7 @@ class FeedServiceImpl extends FeedService {
       _receivePort!.sendPort,
       jwtToken,
       Environment.feedURL,
-      Environment.indexerMainnetURL,
-      Environment.indexerTestnetURL,
+      Environment.indexerURL,
       dotenv,
     ]);
   }
@@ -231,12 +233,16 @@ class FeedServiceImpl extends FeedService {
 
   static void _isolateEntry(List<dynamic> arguments) async {
     SendPort sendPort = arguments[0];
-    dotenv = arguments[5];
+    dotenv = arguments[4];
 
     final receivePort = ReceivePort();
     receivePort.listen(_handleMessageInIsolate);
 
-    _setupInjector(arguments[1], arguments[2], arguments[3], arguments[4]);
+    _setupInjector(
+      arguments[1],
+      arguments[2],
+      arguments[3],
+    );
     sendPort.send(receivePort.sendPort);
     _isolateSendPort = sendPort;
   }
@@ -319,8 +325,8 @@ class FeedServiceImpl extends FeedService {
     }
   }
 
-  static void _setupInjector(String jwtToken, String feedURL,
-      String indexerMainnetURL, String indexerTestnetURL) {
+  static void _setupInjector(
+      String jwtToken, String feedURL, String indexerURL) {
     _quickAuthInterceptor = QuickAuthInterceptor(jwtToken);
 
     final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
@@ -333,10 +339,14 @@ class FeedServiceImpl extends FeedService {
         () => FeedApi(authenticatedDio, baseUrl: feedURL));
 
     final dio = Dio();
-    injector.registerLazySingleton(
-        () => IndexerApi(dio, baseUrl: indexerMainnetURL));
-    testnetInjector.registerLazySingleton(
-        () => IndexerApi(dio, baseUrl: indexerTestnetURL));
+    injector.registerLazySingleton(() => IndexerApi(dio, baseUrl: indexerURL));
+    testnetInjector
+        .registerLazySingleton(() => IndexerApi(dio, baseUrl: indexerURL));
+
+    final indexerClient = IndexerClient(indexerURL);
+
+    injector.registerLazySingleton<IndexerService>(
+        () => IndexerService(indexerClient));
   }
 
   static void _refreshFollowings(String uuid, List<String> followings) async {
@@ -407,11 +417,11 @@ class FeedServiceImpl extends FeedService {
         indexerIDs.add(feed.indexerID);
       }
 
-      final indexerAPI =
-          isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
+      final indexerService = injector<IndexerService>();
 
       final List<AssetToken> tokens = indexerIDs.isNotEmpty
-          ? (await indexerAPI.getNftTokens({"ids": indexerIDs}))
+          ? (await indexerService
+              .getNftTokens(QueryListTokensRequest(ids: indexerIDs)))
           : [];
 
       // Get missing tokens
@@ -447,10 +457,11 @@ class FeedServiceImpl extends FeedService {
   static void _fetchTokensByIndexerID(
       String uuid, bool isTestnet, List<String> indexerIDs) async {
     try {
-      final indexerAPI =
-          isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
+      final indexerService = injector<IndexerService>();
+
       final List<AssetToken> tokens = indexerIDs.isNotEmpty
-          ? (await indexerAPI.getNftTokens({"ids": indexerIDs}))
+          ? (await indexerService
+              .getNftTokens(QueryListTokensRequest(ids: indexerIDs)))
           : [];
       _isolateSendPort?.send(FetchTokensByIndexerIDSuccess(uuid, tokens));
     } catch (exception) {
