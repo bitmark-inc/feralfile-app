@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
@@ -21,9 +22,10 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
@@ -94,7 +96,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 10));
     super.initState();
-    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
+    context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
@@ -236,7 +238,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
-    return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
+    return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
         listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
@@ -258,7 +260,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           _youDidIt(context, state.assetToken!);
           _confettiController.play();
         }
-        if (state.assetToken!.isStamping) {
+        if (state.assetToken!.isStamping()) {
           const duration = Duration(seconds: 10);
           timer = Timer.periodic(duration, (timer) {
             if (timer.tick == 2) {
@@ -393,8 +395,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 10,
                             ),
-                            _postcardInfor(asset),
-                            _artworkInfo(asset, state, artistNames),
+                            _postcardInfor(asset, state.postcardValue),
+                            _artworkInfo(asset, state.toArtworkDetailState(),
+                                artistNames),
                           ],
                         ),
                       ),
@@ -413,7 +416,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   void refreshToken() {
-    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
+    context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
   }
 
@@ -424,7 +427,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
     if (asset.canShare) {
       if (!isStamped) {
-        if (asset.isStamping) {
+        if (asset.isStamping()) {
           return PostcardButton(
             text: "updating_token".tr(),
             enabled: false,
@@ -438,7 +441,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 arguments: PostcardExplainPayload(asset));
           },
         );
-      } else if (!asset.isSending) {
+      } else if (!asset.isSending()) {
         return PostcardButton(
           text: "invite_to_collaborate".tr(),
           onTap: () {
@@ -483,7 +486,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Widget _postcardInfor(AssetToken asset) {
+  Widget _postcardInfor(AssetToken asset, PostcardValue? postcardValue) {
     return Container(
       color: AppColor.white,
       child: Column(
@@ -492,7 +495,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           const SizedBox(
             height: 10,
           ),
-          viewJourney ? travelInfoWidget(asset) : leaderboard(asset),
+          viewJourney
+              ? travelInfoWidget(asset, postcardValue)
+              : leaderboard(asset),
         ],
       ),
     );
@@ -710,7 +715,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget travelInfoWidget(AssetToken asset) {
+  Widget travelInfoWidget(AssetToken asset, PostcardValue? postcardValue) {
     final theme = Theme.of(context);
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
       listener: (context, state) {},
@@ -720,6 +725,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (travelInfo == null) {
           return const SizedBox();
         }
+        final isStamped = postcardValue?.stamped ?? false;
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
@@ -741,9 +747,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
-              if (asset.isSending)
+              if (asset.isSending())
                 _sendingTripItem(context, asset, travelInfo.last)
-              else if (!asset.postcardMetadata.isStamped)
+              else if (!isStamped)
                 _notSentItem(travelInfo),
 
               ...travelInfo.reversed.map((TravelInfo e) {

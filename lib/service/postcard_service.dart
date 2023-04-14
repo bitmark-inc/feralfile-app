@@ -166,6 +166,7 @@ class PostcardServiceImpl extends PostcardService {
           publicKey: publicKey,
           lat: lat,
           lon: lon) as Map<String, dynamic>;
+
       final ok = result["metadataCID"] as String;
       return ok.isNotEmpty;
     } catch (e) {

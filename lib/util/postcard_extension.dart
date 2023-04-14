@@ -38,4 +38,8 @@ extension PostcardMetadataExtension on PostcardMetadata {
   String get lastOwner {
     return creators.last;
   }
+
+  List<String> get listOwner {
+    return List.generate(12, (index) => "Owner $index");
+  }
 }

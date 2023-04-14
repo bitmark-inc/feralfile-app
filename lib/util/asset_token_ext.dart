@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
@@ -241,7 +242,7 @@ extension AssetTokenExtension on AssetToken {
     return balance! - totalSentQuantity;
   }
 
-  bool get isSending {
+  bool isSending() {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
     return sharedPostcards.any((element) => (element.tokenID == id &&
@@ -249,7 +250,7 @@ extension AssetTokenExtension on AssetToken {
         owner == postcardMetadata.lastOwner));
   }
 
-  bool get isStamping {
+  bool isStamping() {
     final stampingPostcard = injector<PostcardService>().getStampingPostcard();
     return stampingPostcard.any((element) {
       final bool = (element.indexId == id &&
@@ -290,6 +291,15 @@ extension AssetTokenExtension on AssetToken {
 
   String get twitterCaption {
     return "Here is Twitter Caption From Asset";
+  }
+
+  bool get isFinal {
+    return false;
+  }
+
+  bool isCompleted(PostcardValue? postcardValue) {
+    final isStamped = postcardValue?.stamped ?? false;
+    return isFinal && isStamped;
   }
 
   bool get isPostcard => source == "autonomy-postcard";

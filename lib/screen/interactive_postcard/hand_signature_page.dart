@@ -18,10 +18,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
-import 'package:image/image.dart' as img;
 
 import '../../service/navigation_service.dart';
 
@@ -179,15 +179,15 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       "stampedAt": DateTime.now().toIso8601String()
     };
 
-    setState(() {
-      loading = false;
-    });
     final postcardService = injector<PostcardService>();
     final isMinted = await postcardService.isReceivedSuccess(
         contractAddress: contractAddress,
         address: address,
         tokenId: tokenId,
         counter: counter);
+    setState(() {
+      loading = false;
+    });
     if (isMinted) {
       final walletIndex = await asset.getOwnerWallet();
       if (walletIndex == null) return;

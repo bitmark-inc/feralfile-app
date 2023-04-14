@@ -238,6 +238,7 @@ abstract class ConfigurationService {
       {bool override = false});
 
   List<String> getListPostcardMint();
+
   Future<void> setListPostcardMint(List<String> tokenID,
       {bool override = false, bool isRemoved = false});
 
@@ -245,6 +246,8 @@ abstract class ConfigurationService {
 
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
+
+  Future<void> removeExpiredStampingPostcard();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -1042,6 +1045,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
     return _preferences
             .getStringList(KEY_STAMPING_POSTCARD)
             ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
+            .toList()
+            .where((element) => element.timestamp
+                .isAfter(DateTime.now().subtract(STAMPING_POSTCARD_LIMIT_TIME)))
             .toList() ??
         [];
   }
@@ -1055,6 +1061,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
     } else {
+      await removeExpiredStampingPostcard();
       var currentStampingPostcard = _preferences.getStringList(key) ?? [];
 
       if (isRemove) {
@@ -1066,5 +1073,17 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           key, currentStampingPostcard.toSet().toList());
     }
+  }
+
+  @override
+  Future<void> removeExpiredStampingPostcard() async {
+    final currentStampingPostcard = getStampingPostcard();
+    final now = DateTime.now();
+    final unexpiredStampingPostcard = currentStampingPostcard
+        .where((element) => element.timestamp
+            .isAfter(now.subtract(STAMPING_POSTCARD_LIMIT_TIME)))
+        .toList();
+    _preferences.setStringList(KEY_STAMPING_POSTCARD,
+        unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
   }
 }

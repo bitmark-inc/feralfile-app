@@ -1,6 +1,8 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -71,7 +73,18 @@ class _StampPreviewState extends State<StampPreview> {
 
   Future<void> _sendPostcard() async {
     final asset = widget.payload.asset;
-    Navigator.of(context).pushNamed(
+    await injector<PostcardService>().updateStampingPostcard([
+      StampingPostcard(
+          indexId: asset.id,
+          address: asset.owner,
+          imagePath: '',
+          metadataPath: '',
+          counter: asset.postcardMetadata.counter)
+    ]);
+    if (!mounted) {
+      return;
+    }
+    Navigator.of(context).popAndPushNamed(
       AppRouter.claimedPostcardDetailsPage,
       arguments: ArtworkDetailPayload([asset.identity], 0),
     );
@@ -94,6 +107,7 @@ class StampPreviewPayload {
 class StampingPostcard {
   final String indexId;
   final String address;
+  final DateTime timestamp;
   final String imagePath;
   final String metadataPath;
   final int counter;
@@ -105,12 +119,16 @@ class StampingPostcard {
     required this.imagePath,
     required this.metadataPath,
     required this.counter,
-  });
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+
+  //constructor
 
   static StampingPostcard fromJson(Map<String, dynamic> json) {
     return StampingPostcard(
       indexId: json['indexId'],
       address: json['address'],
+      timestamp: DateTime.parse(json['timestamp']),
       imagePath: json['imagePath'],
       metadataPath: json['metadataPath'],
       counter: json['counter'],
@@ -121,6 +139,7 @@ class StampingPostcard {
     return {
       'indexId': indexId,
       'address': address,
+      'timestamp': timestamp.toIso8601String(),
       'imagePath': imagePath,
       'metadataPath': metadataPath,
       'counter': counter,
@@ -137,8 +156,5 @@ class StampingPostcard {
           counter == other.counter;
 
   @override
-  int get hashCode =>
-      indexId.hashCode ^
-      address.hashCode ^
-      counter.hashCode;
+  int get hashCode => indexId.hashCode ^ address.hashCode ^ counter.hashCode;
 }
