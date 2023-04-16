@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
@@ -156,7 +157,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     final asset = widget.payload.asset;
     final tokenId = asset.tokenId ?? "";
     final address = asset.owner;
-    final counter = 0; //asset.counter;
+    final counter = asset.postcardMetadata.counter;
     final contractAddress = Environment.postcardContractAddress;
     final data = await signatureGlobalKey.currentState!.toImage();
     final bytes = await data.toByteData(format: ImageByteFormat.png);
@@ -205,6 +206,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
           .then((value) => () {
                 if (!value) {
                   log.info("[POSTCARD] Stamp failed");
+                } else {
+                  postcardService.updateStampingPostcard(
+                      [StampingPostcard(indexId: asset.id, address: address)]);
                 }
               });
       if (!mounted) return;

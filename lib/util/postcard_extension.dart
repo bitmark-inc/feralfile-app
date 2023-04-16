@@ -2,7 +2,7 @@ import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
 
 extension PostcardMetadataExtension on PostcardMetadata {
-  int? get counter {
+  int get counter {
     return artworkData.locationInformation.length;
   }
 
