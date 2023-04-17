@@ -9,17 +9,18 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/model/identity.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 
 part 'identity_state.dart';
 
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
   final AppDatabase _appDB;
-  final IndexerApi _indexerApi;
+  final IndexerService _indexerService;
 
   static const localIdentityCacheDuration = Duration(days: 1);
 
-  IdentityBloc(this._appDB, this._indexerApi) : super(IdentityState({})) {
+  IdentityBloc(this._appDB, this._indexerService) : super(IdentityState({})) {
     on<GetIdentityEvent>((event, emit) async {
       try {
         Map<String, String> resultFromDB = {};
@@ -62,7 +63,8 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
         // Get from the API
         await Future.forEach(unknownIdentities, (address) async {
           try {
-            final identity = await _indexerApi.getIdentity(address as String);
+            final request = QueryIdentityRequest(account: address as String);
+            final identity = await _indexerService.getIdentity(request);
             resultFromAPI[address] = identity.name;
             _appDB.identityDao.insertIdentity(Identity(
                 identity.accountNumber, identity.blockchain, identity.name));
@@ -88,7 +90,8 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
       // Get from the API
       await Future.forEach(event.addresses, (address) async {
         try {
-          final identity = await _indexerApi.getIdentity(address as String);
+          final request = QueryIdentityRequest(account: address as String);
+          final identity = await _indexerService.getIdentity(request);
           _appDB.identityDao.insertIdentity(Identity(
               identity.accountNumber, identity.blockchain, identity.name));
         } catch (_) {

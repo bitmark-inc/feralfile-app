@@ -388,6 +388,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.waitTooLongDialog();
         }
         break;
+      case "autonomy_irl":
+        final url = data["irl_url"];
+        if (url != null) {
+          log.info("[DeeplinkService] _handleIRL $url");
+          _handleIRL(url);
+        }
+        break;
       default:
         memoryValues.airdropFFExhibitionId.value = null;
     }

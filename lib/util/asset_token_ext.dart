@@ -74,21 +74,15 @@ extension AssetTokenExtension on AssetToken {
         !(blockchain == "tezos" && contractType == "fa2")) return null;
 
     //check asset is able to send
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
 
     Pair<WalletStorage, int>? result;
-    for (final persona in personas) {
-      int? index;
-      if (blockchain == "ethereum") {
-        index = await persona.getEthAddressIndex(owner);
-      } else {
-        index = await persona.getTezAddressIndex(owner);
-      }
-      if (index != null) {
-        result = Pair<WalletStorage, int>(persona.wallet(), index);
-        break;
-      }
+    final walletAddress =
+        await injector<CloudDatabase>().addressDao.findByAddress(owner);
+    if (walletAddress != null) {
+      result = Pair<WalletStorage, int>(
+          WalletStorage(walletAddress.uuid), walletAddress.index);
     }
+
     return result;
   }
 

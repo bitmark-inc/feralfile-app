@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_tran
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -66,8 +65,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   void initState() {
     super.initState();
     final personUUID = widget.payload.personaUUID;
-    isHideGalleryEnabled = injector<ConfigurationService>()
-        .isAddressHiddenInGallery(widget.payload.address);
+    isHideGalleryEnabled = widget.payload.isHideGalleryEnabled;
     context.read<AccountsBloc>().add(
         FindAccount(personUUID, widget.payload.address, widget.payload.type));
     switch (widget.payload.type) {
@@ -357,7 +355,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               personaUUID: widget.payload.personaUUID,
               address: widget.payload.address,
               personaName: widget.payload.personaName,
-              index: widget.payload.index);
+              index: widget.payload.index,
+              isHideGalleryEnabled: isHideGalleryEnabled);
           Navigator.of(context)
               .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
         });
@@ -671,7 +670,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               ),
               onTap: () {
                 injector<AccountService>().setHideAddressInGallery(
-                    widget.payload.address, !isHideGalleryEnabled);
+                    [widget.payload.address], !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -686,7 +685,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               ),
               onTap: () {
                 injector<AccountService>().setHideAddressInGallery(
-                    widget.payload.address, !isHideGalleryEnabled);
+                    [widget.payload.address], !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -713,6 +712,7 @@ class WalletDetailsPayload {
   final String address;
   final String personaName;
   final int index;
+  final bool isHideGalleryEnabled;
 
   WalletDetailsPayload({
     required this.type,
@@ -721,5 +721,6 @@ class WalletDetailsPayload {
     required this.address,
     required this.personaName,
     required this.index,
+    required this.isHideGalleryEnabled,
   });
 }
