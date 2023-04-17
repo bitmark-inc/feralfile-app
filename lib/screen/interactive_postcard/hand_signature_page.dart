@@ -167,7 +167,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         await resizeImage(ResizeImageParams(signature, 400, newHeight));
     final image =
         await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
-    String dir = (await getApplicationDocumentsDirectory()).path;
+    final dir = (await getApplicationDocumentsDirectory()).path;
     final imagePath = '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
     final metadataPath =
         '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';

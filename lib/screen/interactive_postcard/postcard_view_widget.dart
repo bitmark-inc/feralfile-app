@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +68,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             _convertFileToBase64();
           },
           initialUrlRequest: URLRequest(
-            url: Uri.parse('http://192.168.31.237:8080/'),
+            url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
           ),
         ),
         if (isLoading)
