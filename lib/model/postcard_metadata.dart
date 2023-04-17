@@ -1,56 +1,15 @@
 class PostcardMetadata {
-  final String artifactUri;
-  final String displayUri;
-  final List<Attribute> attributes;
-  final List<String> creators;
-  final int decimals;
-  final String name;
-  final String description;
-  final String rights;
-  final List<Format> formats;
-  final Royalties royalties;
-  final ArtworkData artworkData;
-  final String symbols;
-  final List<String> tags;
+  final List<UserLocations> locationInformation;
 
   // constructor
-  PostcardMetadata(
-      {required this.artifactUri,
-      required this.displayUri,
-      required this.attributes,
-      required this.creators,
-      required this.decimals,
-      required this.name,
-      required this.description,
-      required this.rights,
-      required this.formats,
-      required this.royalties,
-      required this.artworkData,
-      required this.symbols,
-      required this.tags});
+  PostcardMetadata({required this.locationInformation});
 
-  // from json factory
-  factory PostcardMetadata.fromJson(Map<String, dynamic> map) {
+  // from json method
+  factory PostcardMetadata.fromJson(Map<String, dynamic> json) {
     return PostcardMetadata(
-      artifactUri: map['artifactUri'] as String,
-      displayUri: map['displayUri'] as String,
-      attributes: (map['attributes'] as List<dynamic>)
-          .map((e) => Attribute.fromJson(e as Map<String, dynamic>))
+      locationInformation: (json['locationInformation'] as List<dynamic>)
+          .map((e) => UserLocations.fromJson(e as Map<String, dynamic>))
           .toList(),
-      creators:
-          (map['creators'] as List<dynamic>).map((e) => e as String).toList(),
-      decimals: map['decimals'] as int,
-      name: map['name'] as String,
-      description: map['description'] as String,
-      rights: map['rights'] as String,
-      formats: (map['formats'] as List<dynamic>)
-          .map((e) => Format.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      royalties: Royalties.fromJson(map['royalties'] as Map<String, dynamic>),
-      artworkData:
-          ArtworkData.fromJson(map['artworkData'] as Map<String, dynamic>),
-      symbols: map['symbols'] as String,
-      tags: (map['tags'] as List<dynamic>).map((e) => e as String).toList(),
     );
   }
 }

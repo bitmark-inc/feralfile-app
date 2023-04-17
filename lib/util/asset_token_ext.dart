@@ -245,17 +245,19 @@ extension AssetTokenExtension on AssetToken {
   bool isSending() {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
+    //FIXME
     return sharedPostcards.any((element) => (element.tokenID == id &&
-        element.owner == postcardMetadata.lastOwner &&
-        owner == postcardMetadata.lastOwner));
+        element.owner == element.owner &&
+        owner == element.owner));
   }
 
   bool isStamping() {
     final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    //FIXME
     return stampingPostcard.any((element) {
       final bool = (element.indexId == id &&
           element.address == owner &&
-          owner == postcardMetadata.lastOwner);
+          owner == owner);
       return bool;
     });
   }
@@ -286,7 +288,8 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get canShare {
-    return owner == postcardMetadata.lastOwner;
+    //FIXME
+    return owner == owner;
   }
 
   String get twitterCaption {

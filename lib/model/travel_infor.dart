@@ -82,7 +82,7 @@ extension ListTravelInfo on List<TravelInfo> {
 
   TravelInfo get notSentTravelInfo {
     if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 0, sentLocation: "MoMA");
+      return TravelInfo(UserLocations(), null, 1, sentLocation: "MoMA");
     }
     final lastTravelInfo = last;
     return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,

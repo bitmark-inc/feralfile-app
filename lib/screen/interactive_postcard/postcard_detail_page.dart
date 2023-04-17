@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
@@ -286,7 +287,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
 
-        final artistNames = asset.postcardMetadata.creators
+        // FIXME
+        final artistNames = ["creator1", "creator2"]
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
 
@@ -386,9 +388,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             ),
                             Hero(
                               tag: "detail_${asset.id}",
-                              child: ArtworkView(
-                                payload: widget.payload,
-                                token: asset,
+                              child: AspectRatio(
+                                aspectRatio: 1405 / 981,
+                                child: PostcardViewWidget(
+                                  assetToken: state.assetToken!,
+                                ),
                               ),
                             ),
                             _postcardAction(asset),

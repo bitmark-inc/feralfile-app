@@ -192,8 +192,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                 builder: (context, state) {
                                   return Text(
                                     "you_have_received".tr(namedArgs: {
+                                      // FIXME
                                       "address": asset
-                                              .postcardMetadata.lastOwner
+                                              .owner
                                               .toIdentityOrMask({}) ??
                                           "Unknown"
                                     }),

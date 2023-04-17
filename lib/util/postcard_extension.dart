@@ -3,15 +3,15 @@ import 'package:autonomy_flutter/model/travel_infor.dart';
 
 extension PostcardMetadataExtension on PostcardMetadata {
   int get counter {
-    return artworkData.locationInformation.length;
+    return locationInformation.length;
   }
 
   bool get isStamped {
-    return artworkData.locationInformation.last.claimedLocation != null;
+    return locationInformation.last.stampedLocation != null;
   }
 
   bool get isFinal {
-    return artworkData.locationInformation.length == 15;
+    return locationInformation.length == 15;
   }
 
   bool get isCompleted {
@@ -19,7 +19,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
   }
 
   List<TravelInfo> get listTravelInfoWithoutLocationName {
-    final stamps = artworkData.locationInformation;
+    final stamps = locationInformation;
     final travelInfo = <TravelInfo>[];
     for (int i = 0; i < stamps.length - 1; i++) {
       travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
@@ -33,10 +33,6 @@ extension PostcardMetadataExtension on PostcardMetadata {
       travelInfo.removeLast();
     }
     return travelInfo;
-  }
-
-  String get lastOwner {
-    return creators.last;
   }
 
   List<String> get listOwner {
