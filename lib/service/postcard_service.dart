@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
@@ -23,8 +22,9 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 
 abstract class PostcardService {
   Future<ReceivePostcardResponse> receivePostcard(
@@ -44,8 +44,15 @@ abstract class PostcardService {
 
   Future<bool> isReceived(String tokenId);
 
-  Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
-      File image, File metadata, Position? location, int counter, String contractAddress);
+  Future<bool> stampPostcard(
+      String tokenId,
+      WalletStorage wallet,
+      int index,
+      File image,
+      File metadata,
+      Position? location,
+      int counter,
+      String contractAddress);
 
   Future<bool> isReceivedSuccess(
       {required contractAddress,
@@ -66,10 +73,11 @@ abstract class PostcardService {
 
 class PostcardServiceImpl extends PostcardService {
   final PostcardApi _postcardApi;
-  final IndexerApi _indexerApi;
   final TezosService _tezosService;
+  final IndexerService _indexerService;
 
-  PostcardServiceImpl(this._postcardApi, this._indexerApi, this._tezosService);
+  PostcardServiceImpl(
+      this._postcardApi, this._tezosService, this._indexerService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -111,9 +119,10 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<AssetToken> getPostcard(String tokenId) async {
-    final assets = await _indexerApi.getNftTokens({
-      "ids": [tokenId]
-    });
+    final request = QueryListTokensRequest(
+      ids: [tokenId],
+    );
+    final assets = await _indexerService.getNftTokens(request);
     return assets.first;
   }
 
@@ -131,11 +140,17 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<bool> stampPostcard(String tokenId, WalletStorage wallet, int index,
-      File image, File metadata, Position? location, int counter, String contractAddress) async {
+  Future<bool> stampPostcard(
+      String tokenId,
+      WalletStorage wallet,
+      int index,
+      File image,
+      File metadata,
+      Position? location,
+      int counter,
+      String contractAddress) async {
     try {
-      final message2sign =
-      [contractAddress, tokenId, counter].join("|");
+      final message2sign = [contractAddress, tokenId, counter].join("|");
       final signature = await _tezosService.signMessage(
           wallet, index, Uint8List.fromList(utf8.encode(message2sign)));
       final address = await wallet.getTezosAddress(index: index);
@@ -156,7 +171,6 @@ class PostcardServiceImpl extends PostcardService {
     } catch (e) {
       return false;
     }
-
   }
 
   @override
