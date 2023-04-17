@@ -211,6 +211,19 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false}) async {
+    if (isRemove) {
+      for (var element in values) {
+        final imageFile = File(element.imagePath);
+        if (imageFile.existsSync()) {
+          imageFile.deleteSync();
+        }
+        final metadataFile = File(element.metadataPath);
+        if (metadataFile.existsSync()) {
+          metadataFile.deleteSync();
+        }
+      }
+      return;
+    }
     await injector<ConfigurationService>()
         .updateStampingPostcard(values, override: override, isRemove: isRemove);
   }

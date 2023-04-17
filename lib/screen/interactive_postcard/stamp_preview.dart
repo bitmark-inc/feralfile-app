@@ -51,6 +51,8 @@ class _StampPreviewState extends State<StampPreview> {
               aspectRatio: 1405 / 981,
               child: PostcardViewWidget(
                 assetToken: widget.payload.asset,
+                imagePath: widget.payload.imagePath,
+                jsonPath: widget.payload.metadataPath,
               ),
             ),
             PostcardButton(
@@ -92,13 +94,26 @@ class StampPreviewPayload {
 class StampingPostcard {
   final String indexId;
   final String address;
+  final String imagePath;
+  final String metadataPath;
+  final int counter;
 
-  StampingPostcard({required this.indexId, required this.address});
+  // constructor
+  StampingPostcard({
+    required this.indexId,
+    required this.address,
+    required this.imagePath,
+    required this.metadataPath,
+    required this.counter,
+  });
 
   static StampingPostcard fromJson(Map<String, dynamic> json) {
     return StampingPostcard(
       indexId: json['indexId'],
       address: json['address'],
+      imagePath: json['imagePath'],
+      metadataPath: json['metadataPath'],
+      counter: json['counter'],
     );
   }
 
@@ -106,6 +121,9 @@ class StampingPostcard {
     return {
       'indexId': indexId,
       'address': address,
+      'imagePath': imagePath,
+      'metadataPath': metadataPath,
+      'counter': counter,
     };
   }
 
@@ -115,5 +133,12 @@ class StampingPostcard {
       other is StampingPostcard &&
           runtimeType == other.runtimeType &&
           indexId == other.indexId &&
-          address == other.address;
+          address == other.address &&
+          counter == other.counter;
+
+  @override
+  int get hashCode =>
+      indexId.hashCode ^
+      address.hashCode ^
+      counter.hashCode;
 }

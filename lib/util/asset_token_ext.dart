@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -19,6 +20,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -67,8 +69,9 @@ extension AssetTokenExtension on AssetToken {
 
   Future<Pair<WalletStorage, int>?> getOwnerWallet(
       {bool checkContract = true}) async {
-    if ((checkContract && contractAddress == null) || tokenId == null)
+    if ((checkContract && contractAddress == null) || tokenId == null) {
       return null;
+    }
     if (!(blockchain == "ethereum" &&
             (contractType == "erc721" || contractType == "erc1155")) &&
         !(blockchain == "tezos" && contractType == "fa2")) return null;
@@ -254,6 +257,27 @@ extension AssetTokenExtension on AssetToken {
           owner == postcardMetadata.lastOwner);
       return bool;
     });
+  }
+
+  Future<StampingPostcard?> get stampingPostcard async {
+    if (asset?.artworkMetadata == null) {
+      return null;
+    }
+    final tokenId = this.tokenId ?? "";
+    final address = owner;
+    final counter = postcardMetadata.counter;
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    final contractAddress = Environment.postcardContractAddress;
+    final imagePath = '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
+    final metadataPath =
+        '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';
+    return StampingPostcard(
+      indexId: id,
+      address: address,
+      imagePath: imagePath,
+      metadataPath: metadataPath,
+      counter: counter,
+    );
   }
 
   PostcardMetadata get postcardMetadata {
