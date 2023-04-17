@@ -75,8 +75,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         }
 
         if (tezosAddress != null) {
-          contextAddresses
-              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          contextAddresses.add(ContextedAddress(CryptoType.XTZ, tezosAddress));
           fetchXtzBalance(tezosAddress);
         }
 
@@ -116,8 +115,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         }
 
         if (tezosAddress != null) {
-          contextAddresses
-              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          contextAddresses.add(ContextedAddress(CryptoType.XTZ, tezosAddress));
           fetchXtzBalance(tezosAddress);
         }
         break;
