@@ -114,6 +114,7 @@ Future<void> setup() async {
     migrateCloudV2ToV3,
     migrateCloudV3ToV4,
     migrateCloudV4ToV5,
+    migrateCloudV5ToV6,
   ]).build();
 
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
@@ -228,6 +229,7 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
+            injector(),
             injector(),
             injector(),
             injector(),

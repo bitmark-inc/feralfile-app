@@ -25,6 +25,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'package:sqflite/sqflite.dart' as sqflite;
+
 class BackupService {
   static const _dbFileName = "cloud_database.db";
   static const _dbEncryptedFileName = "cloud_database.db.encrypted";
@@ -155,6 +157,7 @@ class BackupService {
             migrateCloudV2ToV3,
             migrateCloudV3ToV4,
             migrateCloudV4ToV5,
+            migrateCloudV5ToV6,
           ]);
         }
 
@@ -163,7 +166,8 @@ class BackupService {
         await injector<CloudDatabase>().copyDataFrom(tempDb);
         await tempFile.delete();
         await File(dbFilePath).delete();
-        log.info("[BackupService] Cloud database is restored");
+        log.info(
+            "[BackupService] Cloud database is restored $backUpVersion to $version");
         return;
       } catch (e) {
         log.info("[BackupService] Failed to restore Cloud Database $e");

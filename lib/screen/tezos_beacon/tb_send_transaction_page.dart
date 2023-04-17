@@ -152,16 +152,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   Future fetchPersona() async {
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      for (final persona in personas) {
-        final index =
-            await persona.getTezAddressIndex(widget.request.sourceAddress!);
-        if (index != null) {
-          currentWallet = WalletIndex(persona.wallet(), index);
-          break;
-        }
+      final walletAddress = await injector<CloudDatabase>()
+          .addressDao
+          .findByAddress(widget.request.sourceAddress!);
+      if (walletAddress != null) {
+        currentWallet =
+            WalletIndex(WalletStorage(walletAddress.uuid), walletAddress.index);
       }
     }
 

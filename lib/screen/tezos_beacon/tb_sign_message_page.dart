@@ -30,6 +30,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 
 class TBSignMessagePage extends StatefulWidget {
@@ -60,16 +61,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future fetchPersona() async {
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      for (final persona in personas) {
-        final index =
-            await persona.getTezAddressIndex(widget.request.sourceAddress!);
-        if (index != null) {
-          currentWallet = WalletIndex(persona.wallet(), index);
-          break;
-        }
+      final walletAddress = await injector<CloudDatabase>()
+          .addressDao
+          .findByAddress(widget.request.sourceAddress!);
+      if (walletAddress != null) {
+        currentWallet =
+            WalletIndex(WalletStorage(walletAddress.uuid), walletAddress.index);
       }
     }
 
