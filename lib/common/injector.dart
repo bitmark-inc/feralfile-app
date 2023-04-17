@@ -70,7 +70,9 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -116,6 +118,7 @@ Future<void> setup() async {
     migrateCloudV2ToV3,
     migrateCloudV3ToV4,
     migrateCloudV4ToV5,
+    migrateCloudV5ToV6,
   ]).build();
 
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
@@ -237,6 +240,7 @@ Future<void> setup() async {
             injector(),
             injector(),
             injector(),
+            injector(),
           ));
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
@@ -290,6 +294,10 @@ Future<void> setup() async {
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
       _postcardDio(dioOptions),
       baseUrl: Environment.auClaimAPITestnetURL));
+
+  final indexerClient = IndexerClient(Environment.indexerURL);
+  injector.registerLazySingleton<IndexerService>(
+      () => IndexerService(indexerClient));
 
   injector.registerLazySingleton<EthereumService>(
       () => EthereumServiceImpl(injector(), injector()));

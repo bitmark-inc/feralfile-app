@@ -22,6 +22,9 @@ abstract class PersonaDao {
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertPersona(Persona persona);
 
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> insertPersonas(List<Persona> personas);
+
   @Query('SELECT * FROM Persona WHERE uuid = :uuid')
   Future<Persona?> findById(String uuid);
 

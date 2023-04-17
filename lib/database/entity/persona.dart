@@ -5,7 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
@@ -69,57 +74,91 @@ class Persona {
         tezosIndexes: tezosIndexes ?? this.tezosIndexes);
   }
 
+  // fromJson method
+  factory Persona.fromJson(Map<String, dynamic> json) {
+    return Persona(
+      uuid: json['uuid'],
+      name: json['name'],
+      createdAt: DateTimeConverter().decode(json['createdAt']),
+      defaultAccount: json['defaultAccount'],
+      ethereumIndex: json['ethereumIndex'],
+      tezosIndex: json['tezosIndex'],
+      ethereumIndexes: json['ethereumIndexes'],
+      tezosIndexes: json['tezosIndexes'],
+    );
+  }
+
   WalletStorage wallet() {
     return LibAukDart.getWallet(uuid);
+  }
+
+  Future<List<WalletAddress>> getWalletAddresses() async {
+    return injector<CloudDatabase>().addressDao.findByWalletID(uuid);
+  }
+
+  Future<List<WalletAddress>> getEthWalletAddresses() async {
+    return injector<CloudDatabase>()
+        .addressDao
+        .getAddresses(uuid, CryptoType.ETH.source);
+  }
+
+  Future<List<WalletAddress>> getTezWalletAddresses() async {
+    return injector<CloudDatabase>()
+        .addressDao
+        .getAddresses(uuid, CryptoType.XTZ.source);
   }
 
   bool isDefault() => defaultAccount == 1;
 
   Future<List<String>> getAddresses() async {
-    final List<String> addresses = [];
-    addresses.addAll(await getEthAddresses());
-    addresses.addAll(await getTezosAddresses());
-    return addresses;
+    final walletAddress = await getWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
   }
 
   Future<List<String>> getEthAddresses() async {
-    return Future.wait(
-        getEthIndexes.map((e) => wallet().getETHEip55Address(index: e)));
+    final walletAddress = await getEthWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
   }
 
   Future<List<String>> getTezosAddresses() async {
-    return Future.wait(
-        getTezIndexes.map((e) => wallet().getTezosAddress(index: e)));
+    final walletAddress = await getTezWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
   }
 
-  List<int> get getEthIndexes => _getIndexes(ethereumIndexes ?? "");
-
-  List<int> get getTezIndexes => _getIndexes(tezosIndexes ?? "");
-
-  Future<int?> getEthAddressIndex(String address) async {
-    final listIndex = getEthIndexes;
-    for (int i = 0; i < listIndex.length; i++) {
-      if ((await wallet().getETHEip55Address(index: listIndex[i])) == address) {
-        return listIndex[i];
-      }
+  Future<int?> getAddressIndex(String address) async {
+    final walletAddress =
+        await injector<CloudDatabase>().addressDao.findByAddress(address);
+    if (walletAddress != null) {
+      return walletAddress.index;
     }
     return null;
   }
 
-  Future<int?> getTezAddressIndex(String address) async {
-    final listIndex = getTezIndexes;
-    for (int i = 0; i < listIndex.length; i++) {
-      if ((await wallet().getTezosAddress(index: listIndex[i])) == address) {
-        return listIndex[i];
-      }
+  Future insertAddress(WalletType walletType, {int index = 0}) async {
+    final ethAddress = WalletAddress(
+        address: await wallet().getETHEip55Address(index: index),
+        uuid: uuid,
+        index: index,
+        cryptoType: CryptoType.ETH.source,
+        createdAt: DateTime.now());
+    final tezAddress = WalletAddress(
+        address: await wallet().getTezosAddress(index: index),
+        uuid: uuid,
+        index: index,
+        cryptoType: CryptoType.XTZ.source,
+        createdAt: DateTime.now());
+    switch (walletType) {
+      case WalletType.Ethereum:
+        await injector<CloudDatabase>().addressDao.insertAddress(ethAddress);
+        break;
+      case WalletType.Tezos:
+        await injector<CloudDatabase>().addressDao.insertAddress(tezAddress);
+        break;
+      default:
+        await injector<CloudDatabase>()
+            .addressDao
+            .insertAddresses([ethAddress, tezAddress]);
     }
-    return null;
-  }
-
-  List<int> _getIndexes(String str) {
-    List<String> indexes = str.split(',');
-    indexes.removeWhere((element) => element.isEmpty);
-    return indexes.map((e) => int.parse(e)).toList();
   }
 
   @override

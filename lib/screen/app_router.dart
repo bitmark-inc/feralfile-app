@@ -836,9 +836,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider(
-                          create: (_) => GalleryBloc(
-                                injector(),
-                              )),
+                          create: (_) => GalleryBloc(injector(), injector())),
                       BlocProvider(
                           create: (_) => IdentityBloc(injector(), injector())),
                     ],

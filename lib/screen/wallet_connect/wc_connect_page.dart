@@ -378,7 +378,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                           }
                         }
                         categorizedAccounts = stateCategorizedAccounts;
-                        _autoSelectDefault(categorizedAccounts);
+                        await _autoSelectDefault(categorizedAccounts);
                         setState(() {});
                       }, builder: (context, state) {
                         return _selectAccount();
@@ -395,7 +395,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  _autoSelectDefault(List<CategorizedAccounts>? categorizedAccounts) {
+  Future _autoSelectDefault(
+      List<CategorizedAccounts>? categorizedAccounts) async {
     if (categorizedAccounts == null) return;
     if (categorizedAccounts.length != 1) return;
     final persona = categorizedAccounts.first.persona;
@@ -406,14 +407,14 @@ class _WCConnectPageState extends State<WCConnectPage>
 
     if (ethAccounts.length == 1) {
       ethSelectedAddress = ethAccounts.first.accountNumber;
-      selectedPersona =
-          WalletIndex(persona.wallet(), persona.getEthIndexes.first);
+      selectedPersona = WalletIndex(persona.wallet(),
+          (await persona.getEthWalletAddresses()).first.index);
     }
 
     if (xtzAccounts.length == 1) {
       tezSelectedAddress = xtzAccounts.first.accountNumber;
-      selectedPersona =
-          WalletIndex(persona.wallet(), persona.getTezIndexes.first);
+      selectedPersona = WalletIndex(persona.wallet(),
+          (await persona.getTezWalletAddresses()).first.index);
     }
   }
 
@@ -595,18 +596,18 @@ class _WCConnectPageState extends State<WCConnectPage>
                 ethSelectedAddress: ethSelectedAddress,
                 tezSelectedAddress: tezSelectedAddress,
                 isExpand: true,
-                onSelectEth: (value) {
-                  int index = account.ethAccounts
-                      .indexWhere((e) => e.accountNumber == value);
+                onSelectEth: (value) async {
+                  int index =
+                      await account.persona?.getAddressIndex(value) ?? 0;
                   setState(() {
                     ethSelectedAddress = value;
                     selectedPersona =
                         WalletIndex(account.persona!.wallet(), index);
                   });
                 },
-                onSelectTez: (value) {
-                  int index = account.xtzAccounts
-                      .indexWhere((e) => e.accountNumber == value);
+                onSelectTez: (value) async {
+                  int index =
+                      await account.persona?.getAddressIndex(value) ?? 0;
                   setState(() {
                     tezSelectedAddress = value;
                     selectedPersona =
