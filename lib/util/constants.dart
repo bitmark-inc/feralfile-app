@@ -99,6 +99,8 @@ const TV_APP_STORE_URL =
 const POSRCARD_GAME_START = "4.09.23";
 const POSRCARD_GAME_END = "5.09.23";
 
+const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");

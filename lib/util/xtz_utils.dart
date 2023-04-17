@@ -7,11 +7,14 @@
 
 // ignore_for_file: implementation_imports
 
+import 'dart:math';
+
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
+import 'package:web3dart/crypto.dart';
 
 class XtzAmountFormatter {
   final int amount;
@@ -44,6 +47,51 @@ String xtzAddress(List<int> publicKey) => crypto.catchUnhandledErrors(() {
 List<int> _compressPublicKey(List<int> publicKey) {
   publicKey[0] = 0x00;
   return publicKey;
+}
+
+class TezosPack {
+  static Uint8List packInteger(int input) {
+    var binaryString = input.toRadixString(2);
+    var pad = 6;
+    if ((binaryString.length - 6) % 7 == 0) {
+      pad = binaryString.length;
+    } else if (binaryString.length > 6) {
+      pad = binaryString.length + 7 - ((binaryString.length - 6) % 7);
+    }
+
+    binaryString = binaryString.padLeft(pad, '0');
+
+    var septets = [];
+    for (var i = 0; i <= (pad / 7).floor(); i++) {
+      var val =
+          binaryString.substring(7 * i, 7 * i + [7, pad - 7 * i].reduce(min));
+      septets.add(val);
+    }
+
+    septets = septets.reversed.toList();
+    septets[0] = (input >= 0 ? '0' : '1') + septets[0];
+
+    var res = Uint8List(septets.length + 1);
+    for (var i = 0; i < septets.length; i++) {
+      var prefix = i == septets.length - 1 ? '0' : '1';
+      res[i + 1] = int.parse(prefix + septets[i], radix: 2);
+    }
+
+    // Add type indication for integer = 0x00
+    res[0] = 0;
+
+    return res;
+  }
+
+  static Uint8List packAddress(String input) {
+    if (!input.isValidTezosAddress) {
+      throw Error();
+    }
+
+    var bytes = Base58Decode(input);
+
+    return hexToBytes('0a00000016')..addAll(bytes);
+  }
 }
 
 extension TezosExtension on String {

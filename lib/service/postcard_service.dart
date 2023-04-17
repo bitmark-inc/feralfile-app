@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -19,7 +18,9 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_p
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -150,9 +151,28 @@ class PostcardServiceImpl extends PostcardService {
       int counter,
       String contractAddress) async {
     try {
-      final message2sign = [contractAddress, tokenId, counter].join("|");
+      final prefix = TezosPack.packAddress(POSTCARD_SIGN_PREFIX);
+      final sep = TezosPack.packAddress("|");
+      final lst = [contractAddress, tokenId, counter].map((e) {
+        if (e is int) {
+          return TezosPack.packInteger(e);
+        }
+        return TezosPack.packAddress(e.toString());
+      }).toList();
+
+      final message2sign = prefix
+        ..addAll(
+          lst.reduce(
+            (value, element) {
+              return value
+                ..addAll(element)
+                ..addAll(sep);
+            },
+          ),
+        );
+
       final signature = await _tezosService.signMessage(
-          wallet, index, Uint8List.fromList(utf8.encode(message2sign)));
+          wallet, index, Uint8List.fromList(message2sign));
       final address = await wallet.getTezosAddress(index: index);
       final publicKey = await wallet.getTezosPublicKey(index: index);
       final lat = location?.latitude;
