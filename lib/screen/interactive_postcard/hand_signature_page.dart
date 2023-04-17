@@ -178,8 +178,6 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       "address": widget.payload.address,
       "stampedAt": DateTime.now().toIso8601String()
     };
-    final imageData = await imageFile.writeAsBytes(img.encodePng(image));
-    final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
 
     setState(() {
       loading = false;
@@ -193,6 +191,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     if (isMinted) {
       final walletIndex = await asset.getOwnerWallet();
       if (walletIndex == null) return;
+      final imageData = await imageFile.writeAsBytes(img.encodePng(image));
+      final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
       postcardService
           .stampPostcard(
               tokenId,
@@ -207,8 +207,15 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                 if (!value) {
                   log.info("[POSTCARD] Stamp failed");
                 } else {
-                  postcardService.updateStampingPostcard(
-                      [StampingPostcard(indexId: asset.id, address: address)]);
+                  postcardService.updateStampingPostcard([
+                    StampingPostcard(
+                      indexId: asset.id,
+                      address: address,
+                      imagePath: imagePath,
+                      metadataPath: metadataPath,
+                      counter: counter,
+                    )
+                  ]);
                 }
               });
       if (!mounted) return;
