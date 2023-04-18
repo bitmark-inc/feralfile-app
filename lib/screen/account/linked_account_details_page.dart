@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -307,8 +306,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
 
   List<CustomSlidableAction> slidableActions(String address) {
     final theme = Theme.of(context);
-    final isHidden = injector<ConfigurationService>()
-        .isLinkedAccountHiddenInGallery(address);
+    final isHidden =
+        injector<AccountService>().isLinkedAccountHiddenInGallery(address);
     return [
       CustomSlidableAction(
         backgroundColor: AppColor.secondarySpanishGrey,
@@ -319,8 +318,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
         ),
         onPressed: (_) async {
-          await injector<ConfigurationService>()
-              .setHideLinkedAccountInGallery([address], !isHidden);
+          await injector<AccountService>()
+              .setHideLinkedAccountInGallery(address, !isHidden);
           setState(() {});
         },
       ),
