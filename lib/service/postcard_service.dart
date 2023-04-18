@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:collection/collection.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -151,22 +153,25 @@ class PostcardServiceImpl extends PostcardService {
       int counter,
       String contractAddress) async {
     try {
-      final prefix = TezosPack.packAddress(POSTCARD_SIGN_PREFIX);
-      final sep = TezosPack.packAddress("|");
-      final lst = [contractAddress, tokenId, counter].map((e) {
-        if (e is int) {
-          return TezosPack.packInteger(e);
+      final prefix = utf8.encode(POSTCARD_SIGN_PREFIX);
+      final sep = utf8.encode("|");
+      final data = [
+        TezosPack.packAddress(contractAddress),
+        TezosPack.packInteger(int.parse(tokenId)),
+        TezosPack.packInteger(counter)
+      ].toList();
+      final lst = data.mapIndexed((index, e) {
+        if (index == data.length - 1) {
+          return e;
         }
-        return TezosPack.packAddress(e.toString());
+        return e.toList()..addAll(sep);
       }).toList();
 
-      final message2sign = prefix
+      final message2sign = prefix.toList()
         ..addAll(
           lst.reduce(
             (value, element) {
-              return value
-                ..addAll(element)
-                ..addAll(sep);
+              return value + element;
             },
           ),
         );
@@ -185,7 +190,8 @@ class PostcardServiceImpl extends PostcardService {
           address: address,
           publicKey: publicKey,
           lat: lat,
-          lon: lon) as Map<String, dynamic>;
+          lon: lon,
+          counter: counter) as Map<String, dynamic>;
 
       final ok = result["metadataCID"] as String;
       return ok.isNotEmpty;

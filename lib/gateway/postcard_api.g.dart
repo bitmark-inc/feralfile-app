@@ -124,6 +124,7 @@ class _PostcardApi implements PostcardApi {
     required publicKey,
     lat,
     lon,
+    required counter,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -168,6 +169,10 @@ class _PostcardApi implements PostcardApi {
         lon.toString(),
       ));
     }
+    _data.fields.add(MapEntry(
+      'counter',
+      counter.toString(),
+    ));
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'POST',
       headers: _headers,

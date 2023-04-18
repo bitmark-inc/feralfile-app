@@ -9,6 +9,7 @@
 
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fast_base58/fast_base58.dart';
@@ -80,17 +81,31 @@ class TezosPack {
     // Add type indication for integer = 0x00
     res[0] = 0;
 
-    return res;
+    return Uint8List.fromList(hexToBytes('05').toList() + res);
   }
 
+  List<int> _hash(List<int> b) => sha256.convert(sha256.convert(b).bytes).bytes;
+
   static Uint8List packAddress(String input) {
-    if (!input.isValidTezosAddress) {
-      throw Error();
+    var bytes = Base58Decode(input);
+    if (bytes.length < 5) {
+      throw new FormatException(
+          "Invalid Base58Check encoded string: must be at least size 5");
     }
 
-    var bytes = Base58Decode(input);
+    List<int> subBytes = bytes.sublist(0, bytes.length - 4);
+    List<int> checksum = sha256.convert(sha256.convert(subBytes).bytes).bytes;
+    List<int> providedChecksum = bytes.sublist(bytes.length - 4, bytes.length);
+    if (!new ListEquality().equals(providedChecksum, checksum.sublist(0, 4))) {
+      throw new FormatException("Invalid checksum in Base58Check encoding.");
+    }
 
-    return hexToBytes('0a00000016')..addAll(bytes);
+    subBytes = hexToBytes('01') +
+        bytes.sublist(3, bytes.length - 4) +
+        hexToBytes('00');
+
+    final res = hexToBytes('050a00000016').toList()..addAll(subBytes);
+    return Uint8List.fromList(res);
   }
 }
 
