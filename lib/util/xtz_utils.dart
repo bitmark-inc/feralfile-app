@@ -88,6 +88,7 @@ class TezosPack {
 
   static Uint8List packAddress(String input) {
     var bytes = Base58Decode(input);
+    final addressFixedLength = 22;
     if (bytes.length < 5) {
       throw new FormatException(
           "Invalid Base58Check encoded string: must be at least size 5");
@@ -100,9 +101,10 @@ class TezosPack {
       throw new FormatException("Invalid checksum in Base58Check encoding.");
     }
 
-    subBytes = hexToBytes('01') +
-        bytes.sublist(3, bytes.length - 4) +
-        hexToBytes('00');
+    subBytes = hexToBytes('01') + bytes.sublist(3, bytes.length - 4);
+    for (var i = 0; i < addressFixedLength - subBytes.length; i++) {
+      subBytes += hexToBytes('00');
+    }
 
     final res = hexToBytes('050a00000016').toList()..addAll(subBytes);
     return Uint8List.fromList(res);
