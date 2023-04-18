@@ -39,12 +39,10 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +71,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
-  late ConfettiController _confettiController;
 
   late Locale locale;
   late DistanceFormatter distanceFormatter;
@@ -87,8 +84,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
-    _confettiController =
-        ConfettiController(duration: const Duration(seconds: 10));
     super.initState();
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
@@ -103,9 +98,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
-    if (true) {
-      _confettiController.play();
-    }
   }
 
   void _manualShare(String caption, String url) async {
@@ -167,7 +159,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
       ],
     );
-    return UIHelper.showDialog(context, "you_did_it".tr(), content);
+
+    return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
   }
 
   Future<void> _socialShare(BuildContext context, AssetToken asset) {
@@ -218,7 +211,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       },
     );
     _scrollController.dispose();
-    _confettiController.dispose();
     timer?.cancel();
     super.dispose();
   }
@@ -252,7 +244,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
         if (state.assetToken!.postcardMetadata.isCompleted) {
           _youDidIt(context, state.assetToken!);
-          _confettiController.play();
         }
         if (state.isStamping()) {
           const duration = Duration(seconds: 10);
@@ -403,7 +394,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
             ),
-            AllConfettiWidget(controller: _confettiController),
           ],
         );
       } else {

@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -55,13 +56,12 @@ class PostcardDetailBloc
         );
         final assetToken = await _indexerService.getNftTokens(request);
         if (assetToken.isNotEmpty) {
+          final postcardValue = await getPostcardValue(
+              assetToken.first.contractType, assetToken.first.tokenId ?? "");
           emit(state.copyWith(
               assetToken: assetToken.first,
-              provenances: assetToken.first.provenance));
-          final asset = assetToken.first;
-          add(PostcardDetailGetValueEvent(
-              contractAddress: asset.contractType,
-              tokenId: asset.tokenId ?? ""));
+              provenances: assetToken.first.provenance,
+              postcardValue: postcardValue));
         }
         return;
       } else {
@@ -83,14 +83,13 @@ class PostcardDetailBloc
         }
         final provenances =
             await _provenanceDao.findProvenanceByTokenID(event.identity.id);
-
+        final postcardValue = await getPostcardValue(
+            assetToken?.contractAddress ?? "", assetToken?.tokenId ?? "");
         emit(state.copyWith(
           assetToken: assetToken,
           provenances: provenances,
+          postcardValue: postcardValue,
         ));
-        add(PostcardDetailGetValueEvent(
-            contractAddress: assetToken?.contractAddress ?? "",
-            tokenId: assetToken?.tokenId ?? ""));
       }
     });
 
@@ -100,5 +99,13 @@ class PostcardDetailBloc
           contractAddress: event.contractAddress, tokenId: event.tokenId);
       emit(state.copyWith(postcardValue: postcardValue));
     });
+  }
+
+  Future<PostcardValue?> getPostcardValue(
+      String contractAddress, String tokenId) async {
+    final postcardService = injector<PostcardService>();
+    final postcardValue = await postcardService.getPostcardValue(
+        contractAddress: contractAddress, tokenId: tokenId);
+    return postcardValue;
   }
 }

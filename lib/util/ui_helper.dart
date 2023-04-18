@@ -33,11 +33,14 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
+import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -185,6 +188,94 @@ class UIHelper {
           ),
         );
       },
+    );
+  }
+
+  static Future<void> showDialogWithConfetti(
+    BuildContext context,
+    String title,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+    EdgeInsets? padding,
+    EdgeInsets? paddingTitle,
+  }) async {
+    log.info("[UIHelper] showInfoDialog: $title");
+    currentDialogTitle = title;
+    final theme = Theme.of(context);
+    final confettiController =
+        ConfettiController(duration: const Duration(seconds: 15));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      confettiController.play();
+    });
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    await Navigator.push(
+      context,
+      TransparentRoute(
+        color: AppColor.primaryBlack.withOpacity(0.4),
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    color: Colors.transparent,
+                    child: ClipPath(
+                      clipper: isRoundCorner
+                          ? null
+                          : AutonomyTopRightRectangleClipper(),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: backgroundColor ?? theme.auGreyBackground,
+                          borderRadius: isRoundCorner
+                              ? const BorderRadius.only(
+                                  topRight: Radius.circular(20),
+                                )
+                              : null,
+                        ),
+                        padding: padding ??
+                            const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 32),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding:
+                                    paddingTitle ?? const EdgeInsets.all(0),
+                                child: Text(title,
+                                    style: theme
+                                        .primaryTextTheme.ppMori700White24),
+                              ),
+                              const SizedBox(height: 40),
+                              content,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                AllConfettiWidget(controller: confettiController),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
