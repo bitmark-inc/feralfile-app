@@ -13,10 +13,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
-import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -29,7 +27,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.da
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -42,7 +39,6 @@ import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -590,10 +586,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future _showArtworkOptionsDialog(AssetToken asset) async {
-    final owner = await asset.getOwnerWallet();
-    final ownerWallet = owner?.first;
-    final addressIndex = owner?.second;
-
     if (!mounted) return;
     final isHidden = _isHidden(asset);
     UIHelper.showDrawerAction(
@@ -617,74 +609,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             });
           },
         ),
-        if (ownerWallet != null) ...[
-          OptionItem(
-            title: "send_artwork".tr(),
-            icon: const Icon(AuIcon.send),
-            onTap: () async {
-              final payload = await Navigator.of(context).popAndPushNamed(
-                  AppRouter.sendArtworkPage,
-                  arguments: SendArtworkPayload(
-                      asset,
-                      ownerWallet,
-                      addressIndex!,
-                      ownerWallet.getOwnedQuantity(asset))) as Map?;
-              if (payload == null) {
-                return;
-              }
-
-              final sentQuantity = payload['sentQuantity'] as int;
-              final isSentAll = payload['isSentAll'] as bool;
-
-              if (isSentAll) {
-                injector<ConfigurationService>().updateRecentlySentToken([
-                  SentArtwork(asset.id, asset.owner, DateTime.now(),
-                      sentQuantity, isSentAll)
-                ]);
-                if (isHidden) {
-                  await injector<ConfigurationService>()
-                      .updateTempStorageHiddenTokenIDs([asset.id], false);
-                  injector<SettingsDataService>().backup();
-                }
-              }
-              if (!mounted) return;
-
-              if (!payload["isTezos"]) {
-                if (isSentAll) {
-                  Navigator.of(context).popAndPushNamed(AppRouter.homePage);
-                }
-                return;
-              }
-
-              final tx = payload['tx'] as TZKTOperation;
-
-              if (!mounted) return;
-              UIHelper.showMessageAction(
-                context,
-                'success'.tr(),
-                'send_success_des'.tr(),
-                onAction: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushNamed(
-                    AppRouter.tezosTXDetailPage,
-                    arguments: {
-                      "current_address": tx.sender?.address,
-                      "tx": tx,
-                      "isBackHome": isSentAll,
-                    },
-                  );
-                },
-                actionButton: 'see_transaction_detail'.tr(),
-                closeButton: "close".tr(),
-                onClose: () => isSentAll
-                    ? Navigator.of(context).popAndPushNamed(
-                        AppRouter.homePage,
-                      )
-                    : null,
-              );
-            },
-          ),
-        ],
         OptionItem(
           title: 'share_on_'.tr(),
           icon: SvgPicture.asset(
