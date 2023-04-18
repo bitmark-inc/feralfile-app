@@ -5,12 +5,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -242,26 +240,6 @@ extension AssetTokenExtension on AssetToken {
     return balance! - totalSentQuantity;
   }
 
-  bool isSending() {
-    final sharedPostcards =
-        injector<ConfigurationService>().getSharedPostcard();
-    //FIXME
-    return sharedPostcards.any((element) => (element.tokenID == id &&
-        element.owner == element.owner &&
-        owner == element.owner));
-  }
-
-  bool isStamping() {
-    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
-    //FIXME
-    return stampingPostcard.any((element) {
-      final bool = (element.indexId == id &&
-          element.address == owner &&
-          owner == owner);
-      return bool;
-    });
-  }
-
   Future<StampingPostcard?> get stampingPostcard async {
     if (asset?.artworkMetadata == null) {
       return null;
@@ -287,22 +265,8 @@ extension AssetTokenExtension on AssetToken {
     return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
   }
 
-  bool get canShare {
-    //FIXME
-    return owner == owner;
-  }
-
   String get twitterCaption {
     return "Here is Twitter Caption From Asset";
-  }
-
-  bool get isFinal {
-    return false;
-  }
-
-  bool isCompleted(PostcardValue? postcardValue) {
-    final isStamped = postcardValue?.stamped ?? false;
-    return isFinal && isStamped;
   }
 
   bool get isPostcard => source == "autonomy-postcard";

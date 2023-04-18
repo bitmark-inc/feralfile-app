@@ -5,8 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
@@ -38,5 +41,55 @@ class PostcardDetailState {
       provenances: provenances ?? this.provenances,
       postcardValue: postcardValue ?? this.postcardValue,
     );
+  }
+}
+
+extension PostcardDetailStateExtension on PostcardDetailState {
+  bool get isLoaded => assetToken != null && postcardValue != null;
+
+  bool get isFinal {
+    return isLoaded && postcardValue!.counter >= 14;
+  }
+
+  bool isCompleted(PostcardValue? postcardValue) {
+    final isStamped = postcardValue?.stamped ?? false;
+    return isFinal && isStamped;
+  }
+
+  bool isSending() {
+    if (!isLoaded) {
+      return false;
+    }
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    final lastOwner = postcardValue?.postman;
+    final owner = assetToken?.owner;
+    final id = assetToken?.id;
+    return sharedPostcards.any((element) => (element.tokenID == id &&
+        element.owner == lastOwner &&
+        owner == element.owner));
+  }
+
+  bool isStamping() {
+    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    final lastOwner = postcardValue?.postman;
+    final owner = assetToken?.owner;
+    final id = assetToken?.id;
+    return stampingPostcard.any((element) {
+      final bool = (element.indexId == id &&
+          element.address == owner &&
+          lastOwner == owner);
+      return bool;
+    });
+  }
+
+  bool get isStamped {
+    return postcardValue?.stamped ?? false;
+  }
+
+  bool get canShare {
+    final lastOwner = postcardValue?.postman;
+    final owner = assetToken?.owner;
+    return lastOwner == owner;
   }
 }

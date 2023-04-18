@@ -216,8 +216,7 @@ class PostcardServiceImpl extends PostcardService {
     final postcardData = await getPostcardValue(
         contractAddress: contractAddress, tokenId: tokenId);
     if (postcardData == null) return false;
-    if (postcardData.counter == counter.toString() &&
-        postcardData.postman == address) {
+    if (postcardData.counter == counter && postcardData.postman == address) {
       return true;
     }
     return false;
