@@ -311,6 +311,10 @@ class AccountServiceImpl extends AccountService {
     log.info("[AccountService] deletePersona start - ${persona.uuid}");
     await _cloudDB.personaDao.deletePersona(persona);
     await _auditService.auditPersonaAction('delete', persona);
+    final addresses = await _cloudDB.addressDao.findByWalletID(persona.uuid);
+    Future.wait(addresses.map((address) async {
+      await _cloudDB.addressDao.deleteAddress(address);
+    }));
 
     await androidBackupKeys();
     await LibAukDart.getWallet(persona.uuid).removeKeys();
