@@ -36,5 +36,6 @@ abstract class PostcardApi {
     @Part(name: "publicKey") required String publicKey,
     @Part(name: "lat") double? lat,
     @Part(name: "lon") double? lon,
+    @Part(name: "counter") required int counter,
   });
 }

@@ -19,7 +19,12 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_p
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:collection/collection.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -35,8 +40,7 @@ abstract class PostcardService {
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request);
 
-  Future<SharePostcardResponse> sharePostcard(
-      AssetToken asset, String signature);
+  Future<SharePostcardResponse> sharePostcard(AssetToken asset);
 
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode);
 
@@ -100,12 +104,33 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<SharePostcardResponse> sharePostcard(
-      AssetToken asset, String signature) async {
+  Future<SharePostcardResponse> sharePostcard(AssetToken asset) async {
+    final tezosService = injector<TezosService>();
+    final owner = await asset.getOwnerWallet();
+    final ownerWallet = owner?.first;
+    final addressIndex = owner?.second;
+    if (ownerWallet == null) {
+      throw Exception("Owner wallet is null");
+    }
+    final counter = asset.postcardMetadata.counter;
+    final contractAddress = asset.contractAddress ?? '';
     final tokenId = asset.tokenId ?? '';
+    final data = [
+      TezosPack.packAddress(contractAddress),
+      TezosPack.packInteger(int.parse(tokenId)),
+      TezosPack.packInteger(counter),
+    ].toList();
+
+    final message2sign = getMessage2Sign(data);
+    final publicKey = await ownerWallet.getTezosPublicKey(index: addressIndex!);
+    final signature = await tezosService.signMessage(
+        ownerWallet, addressIndex, Uint8List.fromList(message2sign));
     final body = {
       "address": asset.owner,
-      "contractAddress": asset.contractAddress
+      "contractAddress": asset.contractAddress,
+      "signature": signature,
+      "publicKey": publicKey,
+      "counter": counter,
     };
     try {
       final response = await _postcardApi.share(tokenId, body);
@@ -150,9 +175,16 @@ class PostcardServiceImpl extends PostcardService {
       int counter,
       String contractAddress) async {
     try {
-      final message2sign = [contractAddress, tokenId, counter].join("|");
+      final data = [
+        TezosPack.packAddress(contractAddress),
+        TezosPack.packInteger(int.parse(tokenId)),
+        TezosPack.packInteger(counter)
+      ].toList();
+
+      final message2sign = getMessage2Sign(data);
+
       final signature = await _tezosService.signMessage(
-          wallet, index, Uint8List.fromList(utf8.encode(message2sign)));
+          wallet, index, Uint8List.fromList(message2sign));
       final address = await wallet.getTezosAddress(index: index);
       final publicKey = await wallet.getTezosPublicKey(index: index);
       final lat = location?.latitude;
@@ -165,7 +197,8 @@ class PostcardServiceImpl extends PostcardService {
           address: address,
           publicKey: publicKey,
           lat: lat,
-          lon: lon) as Map<String, dynamic>;
+          lon: lon,
+          counter: counter) as Map<String, dynamic>;
 
       final ok = result["metadataCID"] as String;
       return ok.isNotEmpty;
@@ -183,8 +216,7 @@ class PostcardServiceImpl extends PostcardService {
     final postcardData = await getPostcardValue(
         contractAddress: contractAddress, tokenId: tokenId);
     if (postcardData == null) return false;
-    if (postcardData.counter == counter.toString() &&
-        postcardData.postman == address) {
+    if (postcardData.counter == counter && postcardData.postman == address) {
       return true;
     }
     return false;
@@ -227,5 +259,26 @@ class PostcardServiceImpl extends PostcardService {
     }
     await injector<ConfigurationService>()
         .updateStampingPostcard(values, override: override, isRemove: isRemove);
+  }
+
+  List<int> getMessage2Sign(List<Uint8List> data) {
+    final prefix = utf8.encode(POSTCARD_SIGN_PREFIX);
+    final sep = utf8.encode("|");
+    final lst = data.mapIndexed((index, e) {
+      if (index == data.length - 1) {
+        return e;
+      }
+      return e.toList()..addAll(sep);
+    }).toList();
+
+    final message2sign = prefix.toList()
+      ..addAll(
+        lst.reduce(
+          (value, element) {
+            return value + element;
+          },
+        ),
+      );
+    return message2sign;
   }
 }
