@@ -8,7 +8,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -35,7 +34,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -459,20 +457,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future<void> _sharePostcard(AssetToken asset) async {
-    final tezosService = injector<TezosService>();
-    final owner = await asset.getOwnerWallet();
-    final ownerWallet = owner?.first;
-    final addressIndex = owner?.second;
-    if (ownerWallet == null) {
-      return;
-    }
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final message = Uint8List.fromList(utf8.encode(timestamp));
-    final signature =
-        await tezosService.signMessage(ownerWallet, addressIndex!, message);
     try {
       final sharePostcardRespone =
-          await injector<PostcardService>().sharePostcard(asset, signature);
+          await injector<PostcardService>().sharePostcard(asset);
       if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
           'deepLink': sharePostcardRespone.deeplink!,
