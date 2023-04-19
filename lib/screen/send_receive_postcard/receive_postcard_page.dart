@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_state.dart';
@@ -14,18 +14,14 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -87,7 +83,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         bloc: bloc,
         builder: (context, state) {
           final asset = widget.asset;
-          final artworkThumbnail = asset.getPreviewUrl() ?? "";
           final theme = Theme.of(context);
           final padding =
               ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
@@ -113,33 +108,40 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           const SizedBox(
                             height: 24,
                           ),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            child: Container(
-                              color: theme.auQuickSilver,
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 60,
-                                      horizontal: 15,
-                                    ),
-                                    child: CachedNetworkImage(
-                                      imageUrl: artworkThumbnail,
-                                      placeholder: (context, url) =>
-                                          const Center(
-                                        child: PreviewPlaceholder(),
-                                      ),
+                          Container(
+                            color: theme.auQuickSilver,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 60,
+                                    horizontal: 15,
+                                  ),
+                                  child: AspectRatio(
+                                    aspectRatio: 1405 / 981,
+                                    child: Stack(
+                                      children: [
+                                        PostcardViewWidget(
+                                          assetToken: asset,
+                                        ),
+                                        Positioned.fill(
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.pushNamed(context,
+                                                  AppRouter.postcardDetailPage,
+                                                  arguments: asset);
+                                            },
+                                            child: Container(
+                                              color: Colors.transparent,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            onTap: () {
-                              Navigator.pushNamed(
-                                  context, AppRouter.postcardDetailPage,
-                                  arguments: asset);
-                            },
                           ),
                           Padding(
                             padding: padding.copyWith(top: 15, bottom: 15),
@@ -187,236 +189,42 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           ),
                           Padding(
                             padding: padding,
-                            child: BlocConsumer<IdentityBloc, IdentityState>(
-                                listener: (context, state) {},
-                                builder: (context, state) {
-                                  return Text(
-                                    "you_have_received".tr(namedArgs: {
-                                      // FIXME
-                                      "address":
-                                          asset.owner.toIdentityOrMask({}) ??
-                                              "Unknown"
-                                    }),
-                                    style: theme.textTheme.ppMori400White14,
-                                  );
-                                }),
-                          ),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          Padding(
-                            padding: padding,
                             child: HowItWorksView(
                                 isFinal: asset.postcardMetadata.isFinal),
-                          ),
-                          const SizedBox(height: 30),
-                          Padding(
-                            padding: padding,
-                            child: PrimaryButton(
-                              text: "accept_postcard".tr(),
-                              enabled: !(_isProcessing),
-                              isProcessing: _isProcessing,
-                              onTap: () async {
-                                setState(() {
-                                  _isProcessing = true;
-                                });
-                                final isReceived =
-                                    await injector<PostcardService>()
-                                        .isReceived(asset.tokenId ?? "");
-                                if (isReceived) {
-                                  if (!mounted) return;
-                                  await UIHelper.showAlreadyDelivered(context);
-                                  if (!mounted) return;
-                                  Navigator.pop(context);
-                                  return;
-                                }
-
-                                //bloc.add(GetLocationEvent());
-                                Position? location;
-                                final permissions =
-                                    await checkLocationPermissions();
-                                if (!permissions) {
-                                  if (!mounted) return;
-                                  await UIHelper.showDeclinedGeolocalization(
-                                      context);
-                                  return;
-                                } else {
-                                  try {
-                                    location = await getGeoLocation(
-                                        timeout: const Duration(seconds: 2));
-                                  } catch (e) {
-                                    if (!mounted) return;
-                                    await UIHelper.showWeakGPSSignal(context);
-                                    return;
-                                  }
-                                }
-
-                                final blockchain = asset.blockchain;
-                                final accountService =
-                                    injector<AccountService>();
-                                final addresses = await accountService
-                                    .getAddress(asset.blockchain);
-                                String? address;
-                                if (addresses.isEmpty) {
-                                  final defaultAccount =
-                                      await accountService.getDefaultAccount();
-                                  address = blockchain == CryptoType.XTZ.source
-                                      ? await defaultAccount.getTezosAddress()
-                                      : await defaultAccount
-                                          .getETHEip55Address();
-                                } else if (addresses.length == 1) {
-                                  address = addresses.first;
-                                } else {
-                                  if (!mounted) return;
-                                  final response =
-                                      await Navigator.of(context).pushNamed(
-                                    AppRouter.receivePostcardSelectAccountPage,
-                                    arguments:
-                                        ReceivePostcardSelectAccountPageArgs(
-                                      blockchain,
-                                    ),
-                                  );
-                                  address = response as String?;
-                                }
-                                if (address != null) {
-                                  // bloc.add(AcceptPostcardEvent(
-                                  //   address,
-                                  //   widget.sharedCode,
-                                  //   location,
-                                  // ));
-                                  try {
-                                    final response =
-                                        await injector<PostcardService>()
-                                            .receivePostcard(
-                                                shareCode: widget.shareCode,
-                                                location: location,
-                                                address: address);
-                                    final indexID =
-                                        'tez-${response.contractAddress}-${response.tokenID}';
-
-                                    final pendingToken = AssetToken(
-                                      asset: Asset.init(
-                                        indexID: indexID,
-                                        artistName: 'MoMa',
-                                        maxEdition: 1,
-                                        mimeType: 'image/png',
-                                        title: 'Postcard 001',
-                                        thumbnailURL: "",
-                                        previewURL: "",
-                                        source: 'postcard',
-                                        medium: 'software',
-                                      ),
-                                      blockchain: "tezos",
-                                      fungible: false,
-                                      contractType: '',
-                                      tokenId: response.tokenID,
-                                      contractAddress: "",
-                                      edition: 0,
-                                      editionName: "",
-                                      id: indexID,
-                                      balance: 1,
-                                      owner: response.owner,
-                                      lastActivityTime: DateTime.now(),
-                                      lastRefreshedTime: DateTime(1),
-                                      pending: true,
-                                      originTokenInfo: [],
-                                      provenance: [],
-                                      owners: {},
-                                    );
-
-                                    final tokenService =
-                                        injector<TokensService>();
-                                    await tokenService
-                                        .setCustomTokens([pendingToken]);
-                                    await tokenService
-                                        .reindexAddresses([address]);
-                                    injector
-                                        .get<ConfigurationService>()
-                                        .setListPostcardMint([indexID]);
-                                    NftCollectionBloc.eventController.add(
-                                      GetTokensByOwnerEvent(
-                                          pageKey: PageKey.init()),
-                                    );
-                                    setState(() {
-                                      _isProcessing = false;
-                                    });
-                                    if (!mounted) return;
-                                    await UIHelper.showReceivePostcardSuccess(
-                                        context);
-                                    if (mounted) {
-                                      Navigator.of(context)
-                                          .pushNamedAndRemoveUntil(
-                                        AppRouter.homePage,
-                                        (route) => false,
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (e is DioError) {
-                                      if (!mounted) return;
-                                      await UIHelper.showReceivePostcardFailed(
-                                        context,
-                                        e,
-                                      );
-                                      // emit(state.copyWith(isReceiving: false, error: e));
-                                    }
-                                  }
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          Padding(
-                            padding: padding,
-                            child: Text(
-                              "accept_ownership_desc".tr(),
-                              style: theme.primaryTextTheme.ppMori400White14,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Padding(
-                            padding: padding,
-                            child: RichText(
-                              text: TextSpan(
-                                text: "airdrop_accept_privacy_policy".tr(),
-                                style: theme.textTheme.ppMori400Grey12,
-                                children: [
-                                  TextSpan(
-                                      text: "airdrop_privacy_policy".tr(),
-                                      style: makeLinkStyle(
-                                        theme.textTheme.ppMori400Grey12,
-                                      ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {}),
-                                  TextSpan(
-                                    text: ".",
-                                    style: theme.primaryTextTheme.bodyLarge
-                                        ?.copyWith(fontSize: 14),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: padding,
-                    child: OutlineButton(
-                      text: "decline".tr(),
-                      enabled: !(state.isReceiving ?? false),
-                      color: theme.colorScheme.primary,
-                      onTap: () {
-                        memoryValues.airdropFFExhibitionId.value = null;
-                        Navigator.of(context).pop(false);
-                      },
+                  Container(
+                    alignment: Alignment.bottomCenter,
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Row(
+                      children: [
+                        OutlineButton(
+                          text: "cancel".tr(),
+                          color: theme.colorScheme.primary,
+                          onTap: () {
+                            Navigator.of(context).pop(false);
+                          },
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                            child: PrimaryButton(
+                          text: "accept_postcard".tr(),
+                          enabled: !(_isProcessing),
+                          isProcessing: _isProcessing,
+                          onTap: () async {
+                            setState(() {
+                              _isProcessing = true;
+                            });
+                            await _receivePostcard(asset);
+                          },
+                        )),
+                      ],
                     ),
                   ),
                 ],
@@ -425,6 +233,127 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
           );
         },
         listener: (context, state) {});
+  }
+
+  Future<void> _receivePostcard(AssetToken asset) async {
+    final isReceived =
+        await injector<PostcardService>().isReceived(asset.tokenId ?? "");
+    if (isReceived) {
+      if (!mounted) return;
+      await UIHelper.showAlreadyDelivered(context);
+      if (!mounted) return;
+      Navigator.pop(context);
+      return;
+    }
+
+    //bloc.add(GetLocationEvent());
+    Position? location;
+    final permissions = await checkLocationPermissions();
+    if (!permissions) {
+      if (!mounted) return;
+      await UIHelper.showDeclinedGeolocalization(context);
+      return;
+    } else {
+      try {
+        location = await getGeoLocation(timeout: const Duration(seconds: 2));
+      } catch (e) {
+        if (!mounted) return;
+        await UIHelper.showWeakGPSSignal(context);
+        return;
+      }
+    }
+
+    final blockchain = asset.blockchain;
+    final accountService = injector<AccountService>();
+    final addresses = await accountService.getAddress(asset.blockchain);
+    String? address;
+    if (addresses.isEmpty) {
+      final defaultAccount = await accountService.getDefaultAccount();
+      address = blockchain == CryptoType.XTZ.source
+          ? await defaultAccount.getTezosAddress()
+          : await defaultAccount.getETHEip55Address();
+    } else if (addresses.length == 1) {
+      address = addresses.first;
+    } else {
+      if (!mounted) return;
+      final response = await Navigator.of(context).pushNamed(
+        AppRouter.receivePostcardSelectAccountPage,
+        arguments: ReceivePostcardSelectAccountPageArgs(
+          blockchain,
+        ),
+      );
+      address = response as String?;
+    }
+    if (address != null) {
+      // bloc.add(AcceptPostcardEvent(
+      //   address,
+      //   widget.sharedCode,
+      //   location,
+      // ));
+      try {
+        final response = await injector<PostcardService>().receivePostcard(
+            shareCode: widget.shareCode, location: location, address: address);
+        final indexID = 'tez-${response.contractAddress}-${response.tokenID}';
+
+        final pendingToken = AssetToken(
+          asset: Asset.init(
+            indexID: indexID,
+            artistName: 'MoMa',
+            maxEdition: 1,
+            mimeType: 'image/png',
+            title: 'Postcard 001',
+            thumbnailURL: "",
+            previewURL: "",
+            source: 'postcard',
+            medium: 'software',
+          ),
+          blockchain: "tezos",
+          fungible: false,
+          contractType: '',
+          tokenId: response.tokenID,
+          contractAddress: "",
+          edition: 0,
+          editionName: "",
+          id: indexID,
+          balance: 1,
+          owner: response.owner,
+          lastActivityTime: DateTime.now(),
+          lastRefreshedTime: DateTime(1),
+          pending: true,
+          originTokenInfo: [],
+          provenance: [],
+          owners: {},
+        );
+
+        final tokenService = injector<TokensService>();
+        await tokenService.setCustomTokens([pendingToken]);
+        await tokenService.reindexAddresses([address]);
+        injector.get<ConfigurationService>().setListPostcardMint([indexID]);
+        NftCollectionBloc.eventController.add(
+          GetTokensByOwnerEvent(pageKey: PageKey.init()),
+        );
+        setState(() {
+          _isProcessing = false;
+        });
+        if (!mounted) return;
+        await UIHelper.showReceivePostcardSuccess(context);
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (e is DioError) {
+          if (!mounted) return;
+          await UIHelper.showReceivePostcardFailed(
+            context,
+            e,
+          );
+          // emit(state.copyWith(isReceiving: false, error: e));
+        }
+      }
+    }
   }
 }
 
