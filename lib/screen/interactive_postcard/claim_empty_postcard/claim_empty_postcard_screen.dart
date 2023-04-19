@@ -1,11 +1,9 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +15,7 @@ import 'claim_empty_postcard_state.dart';
 
 class ClaimEmptyPostCardScreen extends StatefulWidget {
   final String id;
+
   const ClaimEmptyPostCardScreen({super.key, required this.id});
 
   @override
@@ -26,6 +25,7 @@ class ClaimEmptyPostCardScreen extends StatefulWidget {
 
 class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
   final bloc = injector.get<ClaimEmptyPostCardBloc>();
+
   @override
   void initState() {
     super.initState();
@@ -90,10 +90,10 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                     vertical: 60,
                                     horizontal: 15,
                                   ),
-                                  child: CachedNetworkImage(
-                                    imageUrl: artwork.getPreviewUrl() ?? '',
-                                    placeholder: (context, url) => const Center(
-                                      child: PreviewPlaceholder(),
+                                  child: AspectRatio(
+                                    aspectRatio: 1,
+                                    child: PostcardViewWidget(
+                                      assetToken: artwork,
                                     ),
                                   ),
                                 ),

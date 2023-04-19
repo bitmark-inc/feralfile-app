@@ -669,12 +669,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
-              if (postcardDetailState.isSending())
-                _sendingTripItem(context, asset!, travelInfo)
-              else if (!isStamped)
-                _notSentItem(travelInfo),
+              if (!isStamped) _notSentItem(travelInfo),
 
               ...travelInfo.reversed.map((TravelInfo e) {
+                if (postcardDetailState.isSending()) {
+                  return _sendingTripItem(context, asset!, travelInfo);
+                }
                 if (e.to == null) {
                   return completeTravelWidget(e);
                 }
@@ -783,19 +783,23 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
         Row(
           children: [
-            SvgPicture.asset("assets/images/arrow_3.svg"),
+            SvgPicture.asset(
+              "assets/images/arrow_3.svg",
+              color: AppColor.primaryBlack,
+            ),
             const SizedBox(width: 6),
             Text(
               "Unknown",
-              style: theme.textTheme.ppMori400White14,
+              style: theme.textTheme.ppMori400Black14,
             ),
             const Spacer(),
             Text(
               "waiting".tr(),
-              style: theme.textTheme.ppMori400White14,
+              style: theme.textTheme.ppMori400Black14,
             )
           ],
         ),
+        addDivider(height: 30, color: AppColor.auGreyBackground),
       ],
     );
   }
