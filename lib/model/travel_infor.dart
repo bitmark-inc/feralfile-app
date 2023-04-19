@@ -20,6 +20,22 @@ class TravelInfo {
   TravelInfo(this.from, this.to, this.index,
       {this.sentLocation, this.receivedLocation});
 
+  TravelInfo copyWith({
+    UserLocations? from,
+    UserLocations? to,
+    int? index,
+    String? sentLocation,
+    String? receivedLocation,
+  }) {
+    return TravelInfo(
+      from ?? this.from,
+      to ?? this.to,
+      index ?? this.index,
+      sentLocation: sentLocation ?? this.sentLocation,
+      receivedLocation: receivedLocation ?? this.receivedLocation,
+    );
+  }
+
   double? getDistance() {
     if (to == null) {
       return null;

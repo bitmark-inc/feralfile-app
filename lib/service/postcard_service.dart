@@ -98,12 +98,17 @@ class PostcardServiceImpl extends PostcardService {
     required Position location,
     required String address,
   }) async {
-    final body = {
-      "shareCode": shareCode,
-      "location": [location.latitude, location.longitude],
-      "address": address,
-    };
-    return _postcardApi.receive(body);
+    try {
+      final body = {
+        "shareCode": shareCode,
+        "location": [location.latitude, location.longitude],
+        "address": address,
+      };
+      final respone = await _postcardApi.receive(body);
+      return respone;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -156,10 +161,14 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode) async {
-    final response = await _postcardApi.claimShareCode(shareCode);
-    response["shareCode"] = shareCode;
-    final sharedPostcardInfor = SharedPostcardInfor.fromJson(response);
-    return sharedPostcardInfor;
+    try {
+      final response = await _postcardApi.claimShareCode(shareCode);
+      response["shareCode"] = shareCode;
+      final sharedPostcardInfor = SharedPostcardInfor.fromJson(response);
+      return sharedPostcardInfor;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override

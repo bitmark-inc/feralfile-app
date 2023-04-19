@@ -447,6 +447,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           },
         );
       } else if (!state.isSending()) {
+        timer?.cancel();
         return PostcardButton(
           text: "invite_to_collaborate".tr(),
           onTap: () {
@@ -465,7 +466,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           await injector<PostcardService>().sharePostcard(asset);
       if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
-          'deepLink': sharePostcardRespone.deeplink!,
+          'deeplink': sharePostcardRespone.deeplink!,
         });
         Share.share(shareMessage);
       }

@@ -195,12 +195,11 @@ class FeralfileAuthInterceptor extends Interceptor {
 class PostcardAuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (options.headers["X-Api-Signature"] == null &&
-        options.method.toUpperCase() == "POST") {
+    if (options.headers["X-Api-Signature"] == null) {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       String body = "";
-      if (options.data is FormData) {
+      if (options.data is FormData || options.method.toUpperCase() == "GET") {
         body = "";
       } else {
         body = bytesToHex(

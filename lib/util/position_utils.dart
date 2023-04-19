@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:geocoding/geocoding.dart';
 
 String getLocationName(Placemark placeMark) {
@@ -41,6 +42,9 @@ Future<Placemark?> getPlaceMarkFromCoordinates(
 // get location name from longitude and latitude
 Future<String> getLocationNameFromCoordinates(
     double latitude, double longitude) async {
+  if (latitude == moMALocation.lat && longitude == moMALocation.lon) {
+    return "MoMA";
+  }
   final placeMark = await getPlaceMarkFromCoordinates(latitude, longitude);
   if (placeMark == null) {
     return "";

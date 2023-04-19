@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 
 extension PostcardMetadataExtension on PostcardMetadata {
   int get counter {
@@ -27,6 +28,10 @@ extension PostcardMetadataExtension on PostcardMetadata {
     if (stamps[stamps.length - 1].stampedLocation != null) {
       travelInfo
           .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
+    }
+    if (travelInfo.isNotEmpty) {
+      travelInfo[0] = travelInfo[0]
+          .copyWith(from: stamps[0].copyWith(stampedLocation: moMALocation));
     }
 
     if (travelInfo.length > 14) {

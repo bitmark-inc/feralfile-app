@@ -148,6 +148,17 @@ class UserLocations {
       'stampedLocation': stampedLocation?.toJson(),
     };
   }
+
+  //copyWith method
+  UserLocations copyWith({
+    Location? claimedLocation,
+    Location? stampedLocation,
+  }) {
+    return UserLocations(
+      claimedLocation: claimedLocation ?? this.claimedLocation,
+      stampedLocation: stampedLocation ?? this.stampedLocation,
+    );
+  }
 }
 
 class Location {
