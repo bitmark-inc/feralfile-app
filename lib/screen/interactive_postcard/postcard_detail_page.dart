@@ -248,12 +248,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (state.isStamping()) {
           const duration = Duration(seconds: 10);
           timer = Timer.periodic(duration, (timer) {
-            if (timer.tick == 2) {
-              injector<PostcardService>()
-                  .updateStampingPostcard([], override: true);
-            }
             if (mounted) {
-              refreshToken();
+              refreshPostcard();
             }
           });
         } else {
@@ -402,14 +398,14 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     });
   }
 
-  void refreshToken() {
+  void refreshPostcard() {
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
   }
 
   Widget _postcardAction(PostcardDetailState state) {
     final asset = state.assetToken!;
-    final isStamped = asset.postcardMetadata.isStamped;
+    final isStamped = state.isStamped;
     if (asset.postcardMetadata.isCompleted) {
       return const SizedBox();
     }

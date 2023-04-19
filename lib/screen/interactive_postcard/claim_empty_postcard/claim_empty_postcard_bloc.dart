@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -109,6 +110,16 @@ class ClaimEmptyPostCardBloc
           final result =
               await _postcardService.claimEmptyPostcard(claimRequest);
           final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
+          final postcardMetadata = PostcardMetadata(
+            locationInformation: [
+              UserLocations(
+                claimedLocation: Location(
+                  lat: -73.978271,
+                  lon: 40.761509,
+                ),
+              )
+            ],
+          );
           final token = AssetToken(
             asset: Asset.init(
               indexID: tokenID,
@@ -119,10 +130,11 @@ class ClaimEmptyPostCardBloc
               thumbnailURL: result.imageCID,
               previewURL: result.imageCID,
               source: 'postcard',
+              artworkMetadata: jsonEncode(postcardMetadata.toJson()),
             ),
             blockchain: "tezos",
             fungible: false,
-            contractType: '',
+            contractType: 'fa2',
             tokenId: result.tokenID,
             contractAddress: result.contractAddress,
             edition: 0,

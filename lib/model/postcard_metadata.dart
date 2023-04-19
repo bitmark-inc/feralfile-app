@@ -12,6 +12,14 @@ class PostcardMetadata {
           .toList(),
     );
   }
+
+  // to json method
+  Map<String, dynamic> toJson() {
+    return {
+      'locationInformation':
+          locationInformation.map((e) => e.toJson()).toList(),
+    };
+  }
 }
 
 class Attribute {
@@ -132,6 +140,14 @@ class UserLocations {
           : Location.fromJson(json['stampedLocation'] as Map<String, dynamic>),
     );
   }
+
+  // toJson method
+  Map<String, dynamic> toJson() {
+    return {
+      'claimedLocation': claimedLocation?.toJson(),
+      'stampedLocation': stampedLocation?.toJson(),
+    };
+  }
 }
 
 class Location {
@@ -147,5 +163,13 @@ class Location {
       lat: json['lat'] as double,
       lon: json['lon'] as double,
     );
+  }
+
+  // toJson method
+  Map<String, dynamic> toJson() {
+    return {
+      'lat': lat,
+      'lon': lon,
+    };
   }
 }
