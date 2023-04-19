@@ -247,8 +247,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                 const SizedBox(height: 10.0),
                 Text(
                   widget.post.content["title"],
-                  style:
-                      theme.textTheme.ppMori400White16.adjustSize(adjustSize),
+                  style: theme.textTheme.ppMori400White16,
                   maxLines: 3,
                 ),
               ],

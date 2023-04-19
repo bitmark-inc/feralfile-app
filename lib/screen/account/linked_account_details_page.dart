@@ -294,11 +294,11 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         if (_source == 'FeralFile') ...[
           Text("ba_the_keys_for_thisFf".tr(),
               //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
-              style: theme.textTheme.ppMori400Black12),
+              style: theme.textTheme.ppMori400Black14),
         ] else ...[
           Text("ba_the_keys_for_this".tr(args: [_source]),
               //"The keys for this account are in $_source. You should manage your key backups there.",
-              style: theme.textTheme.ppMori400Black12),
+              style: theme.textTheme.ppMori400Black14),
         ],
       ],
     );
