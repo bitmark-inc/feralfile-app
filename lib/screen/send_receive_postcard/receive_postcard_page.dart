@@ -305,6 +305,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                         thumbnailURL: "",
                                         previewURL: "",
                                         source: 'postcard',
+                                        medium: 'software',
                                       ),
                                       blockchain: "tezos",
                                       fungible: false,
