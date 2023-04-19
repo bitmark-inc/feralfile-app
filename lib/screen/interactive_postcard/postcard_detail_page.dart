@@ -669,13 +669,15 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
-              if (!isStamped) _notSentItem(travelInfo),
+              if (!isStamped && postcardDetailState.isLastOwner)
+                _notSentItem(travelInfo),
 
               ...travelInfo.reversed.map((TravelInfo e) {
-                if (postcardDetailState.isSending()) {
-                  return _sendingTripItem(context, asset!, travelInfo);
-                }
                 if (e.to == null) {
+                  if (postcardDetailState.isSending() &&
+                      postcardDetailState.isLastOwner) {
+                    return _sendingTripItem(context, asset!, travelInfo);
+                  }
                   return completeTravelWidget(e);
                 }
                 return travelWidget(e);

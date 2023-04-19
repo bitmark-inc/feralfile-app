@@ -18,8 +18,10 @@ import 'package:crypto/crypto.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/attributes.dart';
+import 'package:nft_collection/models/origin_token_info.dart';
+import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -261,6 +263,10 @@ extension AssetTokenExtension on AssetToken {
   }
 
   PostcardMetadata get postcardMetadata {
+    // return PostcardMetadata(locationInformation: [
+    //   UserLocations(
+    //       claimedLocation: moMALocation, stampedLocation: moMALocation)
+    // ]);
     return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
   }
 
@@ -268,7 +274,67 @@ extension AssetTokenExtension on AssetToken {
     return "Here is Twitter Caption From Asset";
   }
 
-  bool get isPostcard => source == "autonomy-postcard";
+  bool get isPostcard => source == "autonomy-postcard" || true;
+
+  // copyWith method
+  AssetToken copyWith({
+    String? id,
+    int? edition,
+    String? editionName,
+    String? blockchain,
+    bool? fungible,
+    DateTime? mintedAt,
+    String? contractType,
+    String? tokenId,
+    String? contractAddress,
+    int? balance,
+    String? owner,
+    Map<String, int>?
+        owners, // Map from owner's address to number of owned tokens.
+    ProjectMetadata? projectMetadata,
+    DateTime? lastActivityTime,
+    DateTime? lastRefreshedTime,
+    List<Provenance>? provenance,
+    List<OriginTokenInfo>? originTokenInfo,
+    bool? swapped,
+    Attributes? attributes,
+    bool? burned,
+    bool? pending,
+    bool? isDebugged,
+    bool? scrollable,
+    String? originTokenInfoId,
+    bool? ipfsPinned,
+    Asset? asset,
+  }) {
+    return AssetToken(
+      id: id ?? this.id,
+      edition: edition ?? this.edition,
+      editionName: editionName ?? this.editionName,
+      blockchain: blockchain ?? this.blockchain,
+      fungible: fungible ?? this.fungible,
+      mintedAt: mintedAt ?? this.mintedAt,
+      contractType: contractType ?? this.contractType,
+      tokenId: tokenId ?? this.tokenId,
+      contractAddress: contractAddress ?? this.contractAddress,
+      balance: balance ?? this.balance,
+      owner: owner ?? this.owner,
+      owners: owners ?? this.owners,
+      projectMetadata: projectMetadata ?? this.projectMetadata,
+      lastActivityTime: lastActivityTime ?? this.lastActivityTime,
+      lastRefreshedTime: lastRefreshedTime ?? this.lastRefreshedTime,
+      provenance: provenance ?? this.provenance,
+      originTokenInfo: originTokenInfo ?? this.originTokenInfo,
+      swapped: swapped ?? this.swapped,
+      attributes: attributes ?? this.attributes,
+      burned: burned ?? this.burned,
+      pending: pending ?? this.pending,
+      isDebugged: isDebugged ?? this.isDebugged,
+      scrollable: scrollable ?? this.scrollable,
+      originTokenInfoId: originTokenInfoId ?? this.originTokenInfoId,
+      ipfsPinned: ipfsPinned ?? this.ipfsPinned,
+      asset: asset ?? this.asset,
+    );
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
@@ -278,7 +344,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
-  bool get isPostcard => source == "Autonomy Dev";
+  bool get isPostcard => source == "Autonomy Dev" || true;
 
   String get getMimeType {
     switch (mimeType) {

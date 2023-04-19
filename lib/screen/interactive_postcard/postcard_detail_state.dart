@@ -87,6 +87,12 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     return postcardValue?.stamped ?? false;
   }
 
+  bool get isLastOwner {
+    final lastOwner = postcardValue?.postman;
+    final owner = assetToken?.owner;
+    return lastOwner == owner;
+  }
+
   bool get canShare {
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;

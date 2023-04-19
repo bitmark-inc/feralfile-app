@@ -294,35 +294,12 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         final response = await injector<PostcardService>().receivePostcard(
             shareCode: widget.shareCode, location: location, address: address);
         final indexID = 'tez-${response.contractAddress}-${response.tokenID}';
-
-        final pendingToken = AssetToken(
-          asset: Asset.init(
-            indexID: indexID,
-            artistName: 'MoMa',
-            maxEdition: 1,
-            mimeType: 'image/png',
-            title: 'Postcard 001',
-            thumbnailURL: "",
-            previewURL: "",
-            source: 'postcard',
-            medium: 'software',
-          ),
-          blockchain: "tezos",
-          fungible: false,
-          contractType: '',
-          tokenId: response.tokenID,
-          contractAddress: "",
-          edition: 0,
-          editionName: "",
-          id: indexID,
-          balance: 1,
-          owner: response.owner,
-          lastActivityTime: DateTime.now(),
-          lastRefreshedTime: DateTime(1),
-          pending: true,
-          originTokenInfo: [],
-          provenance: [],
-          owners: {},
+        final postcardValue = await injector<PostcardService>()
+            .getPostcardValue(
+                contractAddress: asset.contractAddress,
+                tokenId: asset.tokenId ?? "");
+        final pendingToken = asset.copyWith(
+          owner: postcardValue?.postman,
         );
 
         final tokenService = injector<TokensService>();
@@ -342,6 +319,8 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             AppRouter.homePage,
             (route) => false,
           );
+          Navigator.of(context).popAndPushNamed(AppRouter.postcardStartedPage,
+              arguments: pendingToken);
         }
       } catch (e) {
         if (e is DioError) {
