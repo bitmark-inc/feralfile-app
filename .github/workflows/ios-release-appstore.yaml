@@ -93,7 +93,7 @@ jobs:
           echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
           echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
-          ${{ github.event.inputs.testnet == 'true' }} && echo POSTCARD_CONTRACT_ADDRESS_TESTNET=${{ secrets.POSTCARD_CONTRACT_ADDRESS_TESTNET }} >> .env || echo POSTCARD_CONTRACT_ADDRESS_MAINNET=${{ secrets.POSTCARD_CONTRACT_ADDRESS_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_TESTNET }} >> .env || echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_MAINNET }} >> .env
           
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
