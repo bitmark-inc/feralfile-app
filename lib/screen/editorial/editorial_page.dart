@@ -256,7 +256,7 @@ class EditorialPageState extends State<EditorialPage>
                       itemCount: state.editorial.length,
                       itemBuilder: (BuildContext context, int index) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 64),
+                          padding: const EdgeInsets.only(top: 32, bottom: 32),
                           child: _postSection(state.editorial[index]),
                         );
                       },

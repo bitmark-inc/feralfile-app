@@ -132,7 +132,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     ],
                   )
                 : const SizedBox(
-                    height: 48,
+                    height: 16,
                   ),
             const SizedBox(height: 32),
             _addressesSection(uuid),
@@ -240,7 +240,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             ],
           ),
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 16),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
           final ethAddresses = state.personaAddresses?[uuid];
           if (ethAddresses == null || ethAddresses.isEmpty) {
