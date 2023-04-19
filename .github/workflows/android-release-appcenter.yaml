@@ -73,6 +73,8 @@ jobs:
           echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
           echo AU_CLAIM_API_TESTNET_URL=${{ secrets.AU_CLAIM_API_TESTNET_URL }} >> .env
           echo AU_CLAIM_SECRET_KEY_TESTNET=${{ secrets.AU_CLAIM_SECRET_KEY_TESTNET }} >> .env
+          echo TZKT_TESTNET_URL=${{ secrets.TZKT_TESTNET_URL }} >> .env
+          echo TZKT_MAINNET_URL=${{ secrets.TZKT_MAINNET_URL }} >> .env
 
           echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
           echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
