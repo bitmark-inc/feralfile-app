@@ -71,6 +71,8 @@ abstract class PostcardService {
 
   List<StampingPostcard> getStampingPostcard();
 
+  StampingPostcard? getStampingPostcardWithPath(StampingPostcard stampingPostcard);
+
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
 }
@@ -280,5 +282,12 @@ class PostcardServiceImpl extends PostcardService {
         ),
       );
     return message2sign;
+  }
+
+  @override
+  StampingPostcard? getStampingPostcardWithPath(StampingPostcard stampingPostcard) {
+    final stampingPostcards = getStampingPostcard();
+    return stampingPostcards.firstWhereOrNull(
+        (element) => element == stampingPostcard);
   }
 }

@@ -271,6 +271,25 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final artistNames = ["creator1", "creator2"]
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
+        String? imagePath;
+        String? metadataPath;
+        final postcardService = injector<PostcardService>();
+        final stampingPostcard = postcardService
+            .getStampingPostcardWithPath(state.assetToken!.stampingPostcard!);
+        if (stampingPostcard != null) {
+          if (state.canShare) {
+            final isStamped = asset.postcardMetadata.isStamped;
+            if (!isStamped) {
+              if (state.isStamping()) {
+                imagePath = stampingPostcard.imagePath;
+                metadataPath = stampingPostcard.metadataPath;
+              }
+            } else {
+              postcardService
+                  .updateStampingPostcard([stampingPostcard], isRemove: true);
+            }
+          }
+        }
 
         return Stack(
           children: [
@@ -372,6 +391,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 aspectRatio: 1405 / 981,
                                 child: PostcardViewWidget(
                                   assetToken: state.assetToken!,
+                                  imagePath: imagePath,
+                                  jsonPath: metadataPath,
                                 ),
                               ),
                             ),
