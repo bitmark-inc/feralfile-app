@@ -29,7 +29,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
       travelInfo
           .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
     }
-    if (travelInfo.isNotEmpty) {
+    if (travelInfo.isNotEmpty && travelInfo[0].from.stampedLocation != null) {
       travelInfo[0] = travelInfo[0]
           .copyWith(from: stamps[0].copyWith(stampedLocation: moMALocation));
     }
