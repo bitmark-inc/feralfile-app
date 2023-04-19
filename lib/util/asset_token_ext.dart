@@ -240,18 +240,17 @@ extension AssetTokenExtension on AssetToken {
     return balance! - totalSentQuantity;
   }
 
-  Future<StampingPostcard?> get stampingPostcard async {
+  StampingPostcard? get stampingPostcard {
     if (asset?.artworkMetadata == null) {
       return null;
     }
     final tokenId = this.tokenId ?? "";
     final address = owner;
     final counter = postcardMetadata.counter;
-    String dir = (await getApplicationDocumentsDirectory()).path;
     final contractAddress = Environment.postcardContractAddress;
-    final imagePath = '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
+    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
     final metadataPath =
-        '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';
+        '${contractAddress}_${tokenId}_${counter}_metadata.json';
     return StampingPostcard(
       indexId: id,
       address: address,
