@@ -349,6 +349,7 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
 
 class GalleryNoThumbnailWidget extends StatelessWidget {
   final CompactedAssetToken assetToken;
+
   const GalleryNoThumbnailWidget({Key? key, required this.assetToken})
       : super(key: key);
 
@@ -836,16 +837,18 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
 
   Widget unexpanedWidget(BuildContext context) {
     final theme = Theme.of(context);
-    final expandText = TextSpan(
-      text: " +${widget.children.length - widget.unexpandedCount}",
-      style: theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
-      recognizer: TapGestureRecognizer()
-        ..onTap = () {
-          setState(() {
-            _isExpanded = true;
-          });
-        },
-    );
+    final expandText = (widget.children.length - widget.unexpandedCount > 0)
+        ? TextSpan(
+            text: " +${widget.children.length - widget.unexpandedCount}",
+            style: theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                setState(() {
+                  _isExpanded = true;
+                });
+              },
+          )
+        : const TextSpan();
     final subList = widget.children.sublist(0, widget.unexpandedCount);
     return RichText(
       text: TextSpan(
@@ -990,14 +993,17 @@ Widget postcardDetailsMetadataSection(
           ),
           CustomMetaDataItem(
             title: "artists".tr(),
-            content: ListItemExpandedWidget(children: [
-              ...ownersList
-                  .mapIndexed((index, artistName) => TextSpan(
-                        text: artistName,
-                        style: theme.textTheme.ppMori400White14,
-                      ))
-                  .toList(),
-            ], unexpandedCount: 2),
+            content: ListItemExpandedWidget(
+              children: [
+                ...ownersList
+                    .mapIndexed((index, artistName) => TextSpan(
+                          text: artistName,
+                          style: theme.textTheme.ppMori400White14,
+                        ))
+                    .toList(),
+              ],
+              unexpandedCount: 2,
+            ),
           ),
         ],
         (assetToken.fungible == false)

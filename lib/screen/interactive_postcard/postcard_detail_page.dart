@@ -670,7 +670,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
               if (postcardDetailState.isSending())
-                _sendingTripItem(context, asset!, travelInfo.last)
+                _sendingTripItem(context, asset!, travelInfo)
               else if (!isStamped)
                 _notSentItem(travelInfo),
 
@@ -754,22 +754,22 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _sendingTripItem(
-      BuildContext context, AssetToken asset, TravelInfo travelInfo) {
+      BuildContext context, AssetToken asset, List<TravelInfo> travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-
+    final sendingTrip = travelInfo.sendingTravelInfo;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(travelInfo.index),
+          formatter.format(sendingTrip.index),
           style: theme.textTheme.ppMori400Grey12,
         ),
         Row(
           children: [
             Text(
-              travelInfo.sentLocation ?? "",
-              style: theme.textTheme.ppMori400White14,
+              sendingTrip.sentLocation ?? "",
+              style: theme.textTheme.ppMori400Black14,
             ),
             const Spacer(),
             GestureDetector(
