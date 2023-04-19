@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
@@ -22,8 +23,6 @@ import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
-
-import '../../service/navigation_service.dart';
 
 class HandSignaturePage extends StatefulWidget {
   static const String handSignaturePage = "hand_signature_page";

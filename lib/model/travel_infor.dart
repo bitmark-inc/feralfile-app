@@ -110,7 +110,6 @@ extension ListTravelInfo on List<TravelInfo> {
       return TravelInfo(UserLocations(), null, 1, sentLocation: "MoMA");
     }
     final lastTravelInfo = last;
-    return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
-        sentLocation: lastTravelInfo.receivedLocation);
+    return lastTravelInfo;
   }
 }
