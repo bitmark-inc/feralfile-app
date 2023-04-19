@@ -230,7 +230,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
               : "linked_address".tr(),
           style: theme.textTheme.ppMori400Black16,
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 20),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
