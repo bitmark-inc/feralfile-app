@@ -49,13 +49,10 @@ class _StampPreviewState extends State<StampPreview> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AspectRatio(
-              aspectRatio: 1405 / 981,
-              child: PostcardViewWidget(
-                assetToken: widget.payload.asset,
-                imagePath: widget.payload.imagePath,
-                jsonPath: widget.payload.metadataPath,
-              ),
+            PostcardRatio(
+              assetToken: widget.payload.asset,
+              imagePath: widget.payload.imagePath,
+              jsonPath: widget.payload.metadataPath,
             ),
             PostcardButton(
               text: widget.payload.asset.postcardMetadata.isCompleted

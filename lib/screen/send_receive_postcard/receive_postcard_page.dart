@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_b
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -309,7 +308,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         final tokenService = injector<TokensService>();
         await tokenService.setCustomTokens([pendingToken]);
         await tokenService.reindexAddresses([address]);
-        injector.get<ConfigurationService>().setListPostcardMint([indexID]);
         NftCollectionBloc.eventController.add(
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
@@ -333,6 +331,12 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             context,
             e,
           );
+          if (!mounted) return;
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          );
+
           // emit(state.copyWith(isReceiving: false, error: e));
         }
       }

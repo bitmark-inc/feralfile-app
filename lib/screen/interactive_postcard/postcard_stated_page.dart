@@ -58,14 +58,7 @@ class PostcardStartedPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: Stack(
-                  children: [
-                    PostcardViewWidget(assetToken: assetToken),
-                  ],
-                ),
-              ),
+              PostcardRatio(assetToken: assetToken),
               PostcardButton(
                 text: "get_started".tr(),
                 onTap: () {
