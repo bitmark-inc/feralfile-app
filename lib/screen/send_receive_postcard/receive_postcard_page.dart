@@ -297,10 +297,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         final response = await injector<PostcardService>().receivePostcard(
             shareCode: widget.shareCode, location: location, address: address);
         final indexID = 'tez-${response.contractAddress}-${response.tokenID}';
-        final postcardValue = await injector<PostcardService>()
-            .getPostcardValue(
-                contractAddress: asset.contractAddress,
-                tokenId: asset.tokenId ?? "");
         var postcardMetadata = asset.postcardMetadata;
         postcardMetadata.locationInformation.add(UserLocations(
             claimedLocation:
@@ -308,7 +304,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
         final pendingToken =
-            asset.copyWith(owner: postcardValue?.postman, asset: newAsset);
+            asset.copyWith(owner: response.owner, asset: newAsset);
 
         final tokenService = injector<TokensService>();
         await tokenService.setCustomTokens([pendingToken]);
@@ -327,7 +323,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             AppRouter.homePage,
             (route) => false,
           );
-          Navigator.of(context).popAndPushNamed(AppRouter.postcardStartedPage,
+          Navigator.of(context).pushNamed(AppRouter.postcardStartedPage,
               arguments: pendingToken);
         }
       } catch (e) {

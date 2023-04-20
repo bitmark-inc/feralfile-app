@@ -452,6 +452,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           text: "invite_to_collaborate".tr(),
           onTap: () {
             _sharePostcard(asset);
+            setState(() {});
           },
         );
       }
