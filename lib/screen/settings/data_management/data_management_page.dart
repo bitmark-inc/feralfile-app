@@ -168,7 +168,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
       //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
       "rebuild".tr(),
       () async {
-        await injector<TokensService>().purgeCachedGallery();
+        await injector<NftCollectionBloc>().database.removeAll();
         NftCollectionBloc.eventController
             .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
         await injector<CacheManager>().emptyCache();
