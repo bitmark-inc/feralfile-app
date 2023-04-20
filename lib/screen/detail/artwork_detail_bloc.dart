@@ -38,27 +38,32 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       }
       final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
           event.identity.id, event.identity.owner);
+      final provenances =
+          await _provenanceDao.findProvenanceByTokenID(event.identity.id);
+      emit(ArtworkDetailState(
+        assetToken: assetToken,
+        provenances: provenances,
+      ));
       if (assetToken != null &&
           assetToken.asset != null &&
           (assetToken.mimeType?.isEmpty ?? true)) {
         final uri = Uri.tryParse(assetToken.previewURL ?? '');
         if (uri != null) {
           try {
-            final res = await http.head(uri);
+            final res = await http
+                .head(uri)
+                .timeout(const Duration(milliseconds: 10000));
             assetToken.asset!.mimeType = res.headers["content-type"];
             _assetDao.updateAsset(assetToken.asset!);
+            emit(ArtworkDetailState(
+              assetToken: assetToken,
+              provenances: provenances,
+            ));
           } catch (error) {
             log.info("ArtworkDetailGetInfoEvent: preview url error", error);
           }
         }
       }
-      final provenances =
-          await _provenanceDao.findProvenanceByTokenID(event.identity.id);
-
-      emit(ArtworkDetailState(
-        assetToken: assetToken,
-        provenances: provenances,
-      ));
     });
   }
 }
