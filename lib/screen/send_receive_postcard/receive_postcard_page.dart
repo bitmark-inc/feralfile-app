@@ -304,7 +304,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
         final pendingToken =
-            asset.copyWith(owner: response.owner, asset: newAsset);
+            asset.copyWith(owner: response.owner, asset: newAsset, balance: 1);
 
         final tokenService = injector<TokensService>();
         await tokenService.setCustomTokens([pendingToken]);
