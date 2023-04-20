@@ -171,10 +171,9 @@ class Environment {
   static String get postcardChatServerUrl =>
       dotenv.env['CHAT_SERVER_URL'] ?? '';
 
-  static String get tzktMainnetURL =>
-      dotenv.env['TZKT_MAINNET_URL'] ?? '';
-  static String get tzktTestnetURL =>
-      dotenv.env['TZKT_TESTNET_URL'] ?? '';
+  static String get tzktMainnetURL => dotenv.env['TZKT_MAINNET_URL'] ?? '';
+
+  static String get tzktTestnetURL => dotenv.env['TZKT_TESTNET_URL'] ?? '';
 }
 
 class Secret {

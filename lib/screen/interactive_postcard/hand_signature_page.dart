@@ -203,20 +203,20 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               counter,
               contractAddress)
           .then((value) {
-                if (!value) {
-                  log.info("[POSTCARD] Stamp failed");
-                } else {
-                  postcardService.updateStampingPostcard([
-                    StampingPostcard(
-                      indexId: asset.id,
-                      address: address,
-                      imagePath: imagePath,
-                      metadataPath: metadataPath,
-                      counter: counter,
-                    )
-                  ]);
-                }
-              });
+        if (!value) {
+          log.info("[POSTCARD] Stamp failed");
+        } else {
+          postcardService.updateStampingPostcard([
+            StampingPostcard(
+              indexId: asset.id,
+              address: address,
+              imagePath: imagePath,
+              metadataPath: metadataPath,
+              counter: counter,
+            )
+          ]);
+        }
+      });
       if (!mounted) return;
       injector<NavigationService>().popUntilHomeOrSettings();
       Navigator.of(context).pushNamed(StampPreview.tag,

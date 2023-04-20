@@ -1,4 +1,3 @@
-
 import 'package:image/image.dart' as img;
 import 'package:flutter/foundation.dart';
 
@@ -32,7 +31,6 @@ class ResizeImageParams {
 
   ResizeImageParams(this.image, this.width, this.height);
 }
-
 
 Future<img.Image> compositeImageAt(CompositeImageParams compositeImages) async {
   return await compute(compositeImagesAt, compositeImages);

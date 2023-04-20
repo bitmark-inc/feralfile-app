@@ -295,7 +295,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       try {
         final response = await injector<PostcardService>().receivePostcard(
             shareCode: widget.shareCode, location: location, address: address);
-        final indexID = 'tez-${response.contractAddress}-${response.tokenID}';
         var postcardMetadata = asset.postcardMetadata;
         postcardMetadata.locationInformation.add(UserLocations(
             claimedLocation:

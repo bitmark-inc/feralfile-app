@@ -1,17 +1,16 @@
-
-
 class Message {
   String id;
   int timestamp;
   String sender;
   String message;
 
-Message({
+  Message({
     required this.id,
     required this.timestamp,
     required this.sender,
     required this.message,
   });
+
   // from json method
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
@@ -21,6 +20,7 @@ Message({
       message: json['message'] as String,
     );
   }
+
   // to json method
   Map<String, dynamic> toJson() {
     return {
