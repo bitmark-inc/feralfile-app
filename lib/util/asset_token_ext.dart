@@ -379,6 +379,7 @@ AssetToken createPendingAssetToken({
       "airdrop",
       null,
       null,
+      null,
     ),
     blockchain: exhibition?.mintBlockchain.toLowerCase() ?? "tezos",
     fungible: false,
