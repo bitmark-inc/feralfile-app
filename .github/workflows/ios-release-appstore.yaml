@@ -72,8 +72,8 @@ jobs:
           echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
           echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
-          echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY }} >> .env
-          echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_TEST }} >> .env || echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_PRODUCTION }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_TEST }} >> .env || echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_PRODUCTION }} >> .env
 
           ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} >> .env || echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_STAGING_URL }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_DEV_URL }} >> .env || echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_STAGING_URL }} >> .env
