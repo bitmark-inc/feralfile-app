@@ -1,5 +1,5 @@
 class PostcardMetadata {
-  final List<UserLocations> locationInformation;
+  List<UserLocations> locationInformation;
 
   // constructor
   PostcardMetadata({required this.locationInformation});

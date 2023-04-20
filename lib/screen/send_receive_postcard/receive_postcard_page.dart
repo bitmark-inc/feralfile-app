@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
@@ -298,9 +301,14 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             .getPostcardValue(
                 contractAddress: asset.contractAddress,
                 tokenId: asset.tokenId ?? "");
-        final pendingToken = asset.copyWith(
-          owner: postcardValue?.postman,
-        );
+        var postcardMetadata = asset.postcardMetadata;
+        postcardMetadata.locationInformation.add(UserLocations(
+            claimedLocation:
+                Location(lat: location.latitude, lon: location.longitude)));
+        var newAsset = asset.asset;
+        newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+        final pendingToken =
+            asset.copyWith(owner: postcardValue?.postman, asset: newAsset);
 
         final tokenService = injector<TokensService>();
         await tokenService.setCustomTokens([pendingToken]);

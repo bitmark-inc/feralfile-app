@@ -23,7 +23,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
     final stamps = locationInformation;
     final travelInfo = <TravelInfo>[];
     for (int i = 0; i < stamps.length - 1; i++) {
-      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i));
+      travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i + 1));
     }
     if (stamps[stamps.length - 1].stampedLocation != null) {
       travelInfo

@@ -84,6 +84,7 @@ jobs:
           echo AU_CLAIM_SECRET_KEY_TESTNET=${{ secrets.AU_CLAIM_SECRET_KEY_TESTNET }} >> .env
           echo TZKT_TESTNET_URL=${{ secrets.TZKT_TESTNET_URL }} >> .env
           echo TZKT_MAINNET_URL=${{ secrets.TZKT_MAINNET_URL }} >> .env
+          ${{ github.event.inputs.testnet == ‘true’ }} && echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_TESTNET }} >> .env || echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_MAINNET }} >> .env
 
           echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
           echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
@@ -97,7 +98,7 @@ jobs:
           echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
           echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
-
+          
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
 
