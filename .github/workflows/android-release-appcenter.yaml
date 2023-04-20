@@ -87,7 +87,9 @@ jobs:
           echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
           echo MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }} >> .env
           echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
-          echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env
+          echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env       
+          ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_TEST }} >> .env || echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_PRODUCTION }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_TEST }} >> .env || echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_PRODUCTION }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env

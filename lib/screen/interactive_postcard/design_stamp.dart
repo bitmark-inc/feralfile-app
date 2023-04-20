@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -40,7 +42,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
     super.initState();
     if (widget.payload.location != null) {
       final placeMark = widget.payload.location!.placeMark;
-      location = getLocationName(placeMark);
+      if (widget.payload.asset.postcardMetadata.counter != 1) {
+        location = getLocationName(placeMark);
+      }
     }
 
     _undoController = SimpleStack<List<Color?>>(
