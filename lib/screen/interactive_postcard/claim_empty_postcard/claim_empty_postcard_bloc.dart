@@ -131,6 +131,7 @@ class ClaimEmptyPostCardBloc
               previewURL: result.imageCID,
               source: 'postcard',
               artworkMetadata: jsonEncode(postcardMetadata.toJson()),
+              medium: 'image',
             ),
             blockchain: "tezos",
             fungible: false,
