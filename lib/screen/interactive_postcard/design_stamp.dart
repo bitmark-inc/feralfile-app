@@ -42,7 +42,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     super.initState();
     if (widget.payload.location != null) {
       final placeMark = widget.payload.location!.placeMark;
-      if (widget.payload.asset.postcardMetadata.counter == 1) {
+      if (widget.payload.asset.postcardMetadata.counter != 1) {
         location = getLocationName(placeMark);
       }
     }
