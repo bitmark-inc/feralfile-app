@@ -84,21 +84,20 @@ class TezosPack {
     return Uint8List.fromList(hexToBytes('05').toList() + res);
   }
 
-  List<int> _hash(List<int> b) => sha256.convert(sha256.convert(b).bytes).bytes;
-
   static Uint8List packAddress(String input) {
     var bytes = Base58Decode(input);
-    final addressFixedLength = 22;
+    const addressFixedLength = 22;
     if (bytes.length < 5) {
-      throw new FormatException(
+      throw const FormatException(
           "Invalid Base58Check encoded string: must be at least size 5");
     }
 
     List<int> subBytes = bytes.sublist(0, bytes.length - 4);
     List<int> checksum = sha256.convert(sha256.convert(subBytes).bytes).bytes;
     List<int> providedChecksum = bytes.sublist(bytes.length - 4, bytes.length);
-    if (!new ListEquality().equals(providedChecksum, checksum.sublist(0, 4))) {
-      throw new FormatException("Invalid checksum in Base58Check encoding.");
+    if (!const ListEquality()
+        .equals(providedChecksum, checksum.sublist(0, 4))) {
+      throw const FormatException("Invalid checksum in Base58Check encoding.");
     }
 
     subBytes = hexToBytes('01') + bytes.sublist(3, bytes.length - 4);

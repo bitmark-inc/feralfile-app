@@ -33,7 +33,7 @@ class ReceivePostcardBloc
       try {
         final sharedPostcardInfor =
             await _postcardService.getSharedPostcardInfor(event.shareCode);
-        final contractAddress = "KT1MeB8Wntrx4fjksZkCWUwmGDQTGs6DsMwp";
+        const contractAddress = "KT1MeB8Wntrx4fjksZkCWUwmGDQTGs6DsMwp";
         final tokenId = 'tez-$contractAddress-${sharedPostcardInfor.tokenID}';
         final postcard = await _postcardService.getPostcard(tokenId);
         // emit(state.copyWith(postcard: postcard));
