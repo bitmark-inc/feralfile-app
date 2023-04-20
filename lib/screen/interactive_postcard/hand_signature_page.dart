@@ -202,7 +202,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               widget.payload.location,
               counter,
               contractAddress)
-          .then((value) => () {
+          .then((value) {
                 if (!value) {
                   log.info("[POSTCARD] Stamp failed");
                 } else {

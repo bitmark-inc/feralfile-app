@@ -73,17 +73,6 @@ class _StampPreviewState extends State<StampPreview> {
 
   Future<void> _sendPostcard() async {
     final asset = widget.payload.asset;
-    await injector<PostcardService>().updateStampingPostcard([
-      StampingPostcard(
-          indexId: asset.id,
-          address: asset.owner,
-          imagePath: '',
-          metadataPath: '',
-          counter: asset.postcardMetadata.counter)
-    ]);
-    if (!mounted) {
-      return;
-    }
     Navigator.of(context).popAndPushNamed(
       AppRouter.claimedPostcardDetailsPage,
       arguments: ArtworkDetailPayload([asset.identity], 0),
