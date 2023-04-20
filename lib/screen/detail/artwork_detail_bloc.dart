@@ -43,7 +43,6 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
           event.identity.id, event.identity.owner);
       final provenances =
           await _provenanceDao.findProvenanceByTokenID(event.identity.id);
-
       emit(ArtworkDetailState(
         assetToken: assetToken,
         provenances: provenances,

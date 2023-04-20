@@ -60,7 +60,7 @@ class BeaconConnectService {
                         self.startBeacon(retryOnFailure: false)
                     } else {
                         logger.info("[TezosBeaconService] Could not create Beacon client")
-                        logger.error("Error: \(error)")
+//                        logger.error("Error: \(error)")
                     }
                 }
             }

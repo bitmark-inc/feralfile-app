@@ -192,7 +192,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
       _isPageInactive = true;
       if (!mounted) return;
       Navigator.of(context)
-          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
+          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask')
+          .then((value) => _isPageInactive = false);
     }
   }
 }

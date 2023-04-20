@@ -109,7 +109,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 20f95d18eb749a795d9bb2026d5de19842772d1f
+      ref: 0cd68a902c8d2554227738594c62046571e57b4c
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
@@ -135,7 +135,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: cd27fb3b8ea274b57a30e39f22bbc9f03d89b49f
+      ref: 4acb41ccc7f4313b12dd6cbe5ccd58fa1da14fe4
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:

@@ -136,7 +136,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     ],
                   )
                 : const SizedBox(
-                    height: 48,
+                    height: 16,
                   ),
             const SizedBox(height: 32),
             _addressesSection(uuid),

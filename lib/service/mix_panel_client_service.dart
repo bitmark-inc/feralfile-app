@@ -24,7 +24,7 @@ class MixPanelClientService {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
     await initIfDefaultAccount();
-    mixpanel.setLoggingEnabled(true);
+    mixpanel.setLoggingEnabled(false);
     mixpanel.setUseIpAddressForGeolocation(true);
 
     mixpanel

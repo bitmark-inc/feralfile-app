@@ -44,7 +44,7 @@ class LinkedAccountDetailsPage extends StatefulWidget {
 class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
     with RouteAware {
   final Map<String, String> _balances = {};
-  List<ContextedAddress> contextedAddresses = [];
+  List<ContextedAddress> contextAddresses = [];
   String _source = '';
 
   @override
@@ -71,14 +71,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
         final tezosAddress = ffAccount?.tezosAddress;
 
         if (ethereumAddress != null) {
-          contextedAddresses
+          contextAddresses
               .add(ContextedAddress(CryptoType.ETH, ethereumAddress));
           fetchETHBalance(ethereumAddress);
         }
 
         if (tezosAddress != null) {
-          contextedAddresses
-              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          contextAddresses.add(ContextedAddress(CryptoType.XTZ, tezosAddress));
           fetchXtzBalance(tezosAddress);
         }
 
@@ -87,7 +86,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
       case "walletBeacon":
         _source = widget.connection.walletBeaconConnection?.peer.name ??
             "tezos_wallet".tr();
-        contextedAddresses.add(ContextedAddress(CryptoType.XTZ, address));
+        contextAddresses.add(ContextedAddress(CryptoType.XTZ, address));
         fetchXtzBalance(address);
         break;
 
@@ -95,13 +94,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
         _source = widget.connection.wcConnectedSession?.sessionStore
                 .remotePeerMeta.name ??
             "ethereum_wallet".tr();
-        contextedAddresses.add(ContextedAddress(CryptoType.ETH, address));
+        contextAddresses.add(ContextedAddress(CryptoType.ETH, address));
         fetchETHBalance(address);
         break;
 
       case "walletBrowserConnect":
         _source = widget.connection.data;
-        contextedAddresses.add(ContextedAddress(CryptoType.ETH, address));
+        contextAddresses.add(ContextedAddress(CryptoType.ETH, address));
         fetchETHBalance(address);
         break;
 
@@ -112,19 +111,18 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
         final tezosAddress = data?.tezosAddress.firstOrNull;
 
         if (ethereumAddress != null) {
-          contextedAddresses
+          contextAddresses
               .add(ContextedAddress(CryptoType.ETH, ethereumAddress));
           fetchETHBalance(ethereumAddress);
         }
 
         if (tezosAddress != null) {
-          contextedAddresses
-              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          contextAddresses.add(ContextedAddress(CryptoType.XTZ, tezosAddress));
           fetchXtzBalance(tezosAddress);
         }
         break;
       case "manuallyAddress":
-        contextedAddresses.add(ContextedAddress(
+        contextAddresses.add(ContextedAddress(
             CryptoType.UNKNOWN, widget.connection.accountNumber));
         break;
 
@@ -225,16 +223,16 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          contextedAddresses.length > 1
+          contextAddresses.length > 1
               ? "linked_addresses".tr()
               : "linked_address".tr(),
           style: theme.textTheme.ppMori400Black16,
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 20),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...contextedAddresses.map(
+            ...contextAddresses.map(
               (e) => Column(
                 children: [
                   _addressRow(e.cryptoType,
@@ -242,7 +240,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
                       balanceString: e.cryptoType != CryptoType.UNKNOWN
                           ? _balances[e.address] ?? '-- ${e.cryptoType.code}'
                           : ""),
-                  e == contextedAddresses.last
+                  e == contextAddresses.last
                       ? const SizedBox()
                       : addOnlyDivider(),
                 ],
@@ -310,11 +308,11 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
         if (_source == 'FeralFile') ...[
           Text("ba_the_keys_for_thisFf".tr(),
               //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
-              style: theme.textTheme.ppMori400Black12),
+              style: theme.textTheme.ppMori400Black14),
         ] else ...[
           Text("ba_the_keys_for_this".tr(args: [_source]),
               //"The keys for this account are in $_source. You should manage your key backups there.",
-              style: theme.textTheme.ppMori400Black12),
+              style: theme.textTheme.ppMori400Black14),
         ],
       ],
     );
