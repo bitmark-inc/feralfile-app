@@ -670,8 +670,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
-              if (!isStamped && postcardDetailState.isLastOwner)
-                _notSentItem(travelInfo),
+              if (postcardDetailState.isLastOwner)
+                if (postcardDetailState.isSending())
+                  _sendingTripItem(context, asset!, travelInfo)
+                else
+                  _notSentItem(travelInfo),
 
               ...travelInfo.reversed.map((TravelInfo e) {
                 if (e.to == null) {

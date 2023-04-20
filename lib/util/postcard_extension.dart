@@ -25,10 +25,6 @@ extension PostcardMetadataExtension on PostcardMetadata {
     for (int i = 0; i < stamps.length - 1; i++) {
       travelInfo.add(TravelInfo(stamps[i], stamps[i + 1], i + 1));
     }
-    if (stamps[stamps.length - 1].stampedLocation != null) {
-      travelInfo
-          .add(TravelInfo(stamps[stamps.length - 1], null, stamps.length - 1));
-    }
     if (travelInfo.isNotEmpty && travelInfo[0].from.stampedLocation != null) {
       travelInfo[0] = travelInfo[0]
           .copyWith(from: stamps[0].copyWith(stampedLocation: moMALocation));
