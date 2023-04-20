@@ -388,13 +388,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             ),
                             Hero(
                               tag: "detail_${asset.id}",
-                              child: AspectRatio(
-                                aspectRatio: 1405 / 981,
-                                child: PostcardViewWidget(
-                                  assetToken: state.assetToken!,
-                                  imagePath: imagePath,
-                                  jsonPath: metadataPath,
-                                ),
+                              child: PostcardRatio(
+                                assetToken: state.assetToken!,
+                                imagePath: imagePath,
+                                jsonPath: metadataPath,
                               ),
                             ),
                             _postcardAction(state),

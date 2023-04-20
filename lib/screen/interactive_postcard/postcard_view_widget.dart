@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:gif_view/gif_view.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/models.dart';
 
 class PostcardViewWidget extends StatefulWidget {
   final AssetToken assetToken;
@@ -81,6 +82,27 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             ),
           )
       ],
+    );
+  }
+}
+
+class PostcardRatio extends StatelessWidget {
+  final AssetToken assetToken;
+  final String? imagePath;
+  final String? jsonPath;
+
+  const PostcardRatio(
+      {super.key, required this.assetToken, this.imagePath, this.jsonPath});
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1405 / 981,
+      child: PostcardViewWidget(
+        assetToken: assetToken,
+        imagePath: imagePath,
+        jsonPath: jsonPath,
+      ),
     );
   }
 }
