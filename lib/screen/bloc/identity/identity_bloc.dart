@@ -39,6 +39,10 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
                     .add(localIdentityCacheDuration)
                     .compareTo(DateTime.now()) >=
                 0) {
+              if (identity.name.isEmpty) {
+                unknownIdentities.add(address);
+                return;
+              }
               // If the identity cache are still ok, add to the map
               resultFromDB[address] = identity.name;
             } else {
