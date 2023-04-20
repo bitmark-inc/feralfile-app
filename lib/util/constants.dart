@@ -79,7 +79,7 @@ const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 5);
 final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 
 const String EMPTY_POSTCARD_PREVIEW_URL =
-    "https://ipfs.io/ipfs/QmUGYjpdwXP85XGEWfYUDA21zx9hHW1wTML3Qzc6ZhsLxw";
+    "https://ipfs.io/ipfs/Qme16T1QokrDvTbgFoSi5pWZw8FvBoWZFg1BL7JiFeBqy6";
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
