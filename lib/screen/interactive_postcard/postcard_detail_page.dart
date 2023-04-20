@@ -450,8 +450,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         timer?.cancel();
         return PostcardButton(
           text: "invite_to_collaborate".tr(),
-          onTap: () {
-            _sharePostcard(asset);
+          onTap: () async {
+            await _sharePostcard(asset);
             setState(() {});
           },
         );
