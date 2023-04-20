@@ -247,6 +247,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
         if (state.isStamping()) {
           const duration = Duration(seconds: 10);
+          timer?.cancel();
           timer = Timer.periodic(duration, (timer) {
             if (mounted) {
               refreshPostcard();
@@ -648,7 +649,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (travelInfo == null) {
           return const SizedBox();
         }
-        final isStamped = postcardDetailState.isStamped;
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
