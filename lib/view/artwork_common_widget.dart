@@ -812,7 +812,7 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
       editionID: editionID,
     );
   }
-  if (assetToken.source == "autonomy-postcard") {
+  if (assetToken.source == "MoMA Postcard Project") {
     return PostcardRightsView(
       editionID: editionID,
     );

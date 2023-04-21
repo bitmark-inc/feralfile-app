@@ -119,6 +119,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                     Expanded(
                       child: PostcardButton(
                         onTap: _handleClearButtonPressed,
+                        enabled: !loading,
                         text: "clear".tr(),
                         color: AppColor.white,
                         textColor: AppColor.auGrey,

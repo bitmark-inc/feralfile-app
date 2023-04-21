@@ -278,7 +278,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final stampingPostcard = postcardService
             .getStampingPostcardWithPath(state.assetToken!.stampingPostcard!);
         if (stampingPostcard != null) {
-          if (state.canShare) {
+          if (state.canShare &&
+              stampingPostcard.counter == asset.postcardMetadata.counter) {
             final isStamped = asset.postcardMetadata.isStamped;
             if (!isStamped) {
               if (state.isStamping()) {
