@@ -1280,11 +1280,28 @@ class AppRouter {
               );
             });
       case postcardDetailPage:
-        return CupertinoPageRoute(builder: (context) {
-          return PostcardDetailPage(
-            asset: settings.arguments as AssetToken,
-          );
-        });
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => TravelInfoBloc()),
+                    BlocProvider(
+                        create: (_) => PostcardDetailBloc(
+                              injector(),
+                              injector(),
+                              injector(),
+                              injector(),
+                            )),
+                    BlocProvider.value(value: accountsBloc),
+                    BlocProvider(
+                        create: (_) =>
+                            IdentityBloc(injector<AppDatabase>(), injector())),
+                  ],
+                  child: PostcardDetailPage(
+                    asset: settings.arguments as AssetToken,
+                  ));
+            });
       case receivePostcardSelectAccountPage:
         return CupertinoPageRoute(builder: (context) {
           final args =

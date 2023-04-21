@@ -198,35 +198,38 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                       ),
                     ),
                   ),
-                  Container(
-                    alignment: Alignment.bottomCenter,
-                    color: Colors.transparent,
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Row(
-                      children: [
-                        OutlineButton(
-                          text: "cancel".tr(),
-                          color: theme.colorScheme.primary,
-                          onTap: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        const SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                            child: PrimaryButton(
-                          text: "accept_postcard".tr(),
-                          enabled: !(_isProcessing),
-                          isProcessing: _isProcessing,
-                          onTap: () async {
-                            setState(() {
-                              _isProcessing = true;
-                            });
-                            await _receivePostcard(asset);
-                          },
-                        )),
-                      ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Container(
+                      alignment: Alignment.bottomCenter,
+                      color: Colors.transparent,
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Row(
+                        children: [
+                          OutlineButton(
+                            text: "cancel".tr(),
+                            color: theme.colorScheme.primary,
+                            onTap: () {
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
+                          const SizedBox(
+                            width: 15,
+                          ),
+                          Expanded(
+                              child: PrimaryButton(
+                            text: "accept_postcard".tr(),
+                            enabled: !(_isProcessing),
+                            isProcessing: _isProcessing,
+                            onTap: () async {
+                              setState(() {
+                                _isProcessing = true;
+                              });
+                              await _receivePostcard(asset);
+                            },
+                          )),
+                        ],
+                      ),
                     ),
                   ),
                 ],

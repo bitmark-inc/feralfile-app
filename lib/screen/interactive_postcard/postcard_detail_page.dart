@@ -388,10 +388,27 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             ),
                             Hero(
                               tag: "detail_${asset.id}",
-                              child: PostcardRatio(
-                                assetToken: state.assetToken!,
-                                imagePath: imagePath,
-                                jsonPath: metadataPath,
+                              child: Stack(
+                                children: [
+                                  PostcardRatio(
+                                    assetToken: state.assetToken!,
+                                    imagePath: imagePath,
+                                    jsonPath: metadataPath,
+                                  ),
+                                  Positioned.fill(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                          AppRouter.artworkPreviewPage,
+                                          arguments: widget.payload,
+                                        );
+                                      },
+                                      child: Container(
+                                        color: Colors.transparent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             _postcardAction(state),
@@ -765,7 +782,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(sendingTrip.index + 1),
+          formatter.format(sendingTrip.index),
           style: theme.textTheme.ppMori400Grey12,
         ),
         Row(

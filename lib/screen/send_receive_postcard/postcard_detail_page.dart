@@ -6,16 +6,15 @@
 //
 
 import 'package:autonomy_flutter/model/travel_infor.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -104,9 +103,8 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
               children: [
                 const SizedBox(height: 30),
                 // Show artwork here.
-                CachedNetworkImage(
-                  imageUrl: asset.getPreviewUrl() ?? "",
-                  fit: BoxFit.fitWidth,
+                Center(
+                  child: PostcardRatio(assetToken: widget.asset),
                 ),
                 const SizedBox(height: 24.0),
                 travelInfoWidget(asset),
