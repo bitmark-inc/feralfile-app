@@ -205,7 +205,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
           .then((value) {
         if (!value) {
           log.info("[POSTCARD] Stamp failed");
+          injector<NavigationService>().popUntilHomeOrSettings();
         } else {
+          log.info("[POSTCARD] Stamp success");
           postcardService.updateStampingPostcard([
             StampingPostcard(
               indexId: asset.id,
