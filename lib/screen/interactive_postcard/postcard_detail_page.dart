@@ -283,9 +283,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               stampingPostcard.counter == asset.postcardMetadata.counter) {
             final isStamped = asset.postcardMetadata.isStamped;
             if (!isStamped) {
-                log.info("[PostcardDetail] Stamping...");
-                imagePath = stampingPostcard.imagePath;
-                metadataPath = stampingPostcard.metadataPath;
+              log.info("[PostcardDetail] Stamping...");
+              imagePath = stampingPostcard.imagePath;
+              metadataPath = stampingPostcard.metadataPath;
             } else {
               postcardService
                   .updateStampingPostcard([stampingPostcard], isRemove: true);
