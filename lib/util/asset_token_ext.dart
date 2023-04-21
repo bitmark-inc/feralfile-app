@@ -274,7 +274,7 @@ extension AssetTokenExtension on AssetToken {
     return "Here is Twitter Caption From Asset";
   }
 
-  bool get isPostcard => source == "MoMA Postcard Project";
+  bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
   // copyWith method
   AssetToken copyWith({
@@ -344,7 +344,8 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
-  bool get isPostcard => source == "MoMA Postcard Project";
+  bool get isPostcard =>
+      id.split('-')[1] == Environment.postcardContractAddress;
 
   String get getMimeType {
     switch (mimeType) {
