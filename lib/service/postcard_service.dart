@@ -256,21 +256,22 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false}) async {
-    if (isRemove) {
-      for (var element in values) {
-        final imageFile = File(element.imagePath);
-        if (imageFile.existsSync()) {
-          imageFile.deleteSync();
-        }
-        final metadataFile = File(element.metadataPath);
-        if (metadataFile.existsSync()) {
-          metadataFile.deleteSync();
-        }
-      }
-      return;
-    }
     await injector<ConfigurationService>()
         .updateStampingPostcard(values, override: override, isRemove: isRemove);
+    if (isRemove) {
+      Future.delayed(const Duration(seconds: 2), () async {
+        for (var element in values) {
+          final imageFile = File(element.imagePath);
+          if (await imageFile.exists()) {
+            imageFile.deleteSync();
+          }
+          final metadataFile = File(element.metadataPath);
+          if (await metadataFile.exists()) {
+            metadataFile.deleteSync();
+          }
+        }
+      });
+    }
   }
 
   List<int> getMessage2Sign(List<Uint8List> data) {
