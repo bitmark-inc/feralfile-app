@@ -765,7 +765,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(sendingTrip.index),
+          formatter.format(sendingTrip.index + 1),
           style: theme.textTheme.ppMori400Grey12,
         ),
         Row(

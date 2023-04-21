@@ -310,9 +310,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         NftCollectionBloc.eventController.add(
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
-        setState(() {
-          _isProcessing = false;
-        });
         if (!mounted) return;
         await UIHelper.showReceivePostcardSuccess(context);
         if (mounted) {
@@ -340,6 +337,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         }
       }
     }
+    setState(() {
+      _isProcessing = false;
+    });
   }
 }
 

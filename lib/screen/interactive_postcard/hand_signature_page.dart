@@ -129,7 +129,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         isProcessing: loading,
                         enabled: didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
-                        text: "sign_postcard".tr(),
+                        text: "sign_and_stamp".tr(),
                       ),
                     ),
                   ],
@@ -227,7 +227,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       return;
     } else {
       if (!mounted) return;
-      UIHelper.showInfoDialog(context, "toke_minting", "token_minting_desc",
+      UIHelper.showInfoDialog(
+          context, "toke_minting".tr(), "token_minting_desc".tr(),
           isDismissible: true, closeButton: "close".tr());
     }
   }
