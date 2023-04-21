@@ -78,8 +78,10 @@ const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
 final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 
-const String EMPTY_POSTCARD_PREVIEW_URL =
-    "https://ipfs.io/ipfs/Qme16T1QokrDvTbgFoSi5pWZw8FvBoWZFg1BL7JiFeBqy6";
+const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
+    "https://gateway.autonomy.io/ipfs/Qma6WKe6gwmVgmG447ipwCH1itniwM8ahyszL4XtqgY7EE";
+const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
+    "https://gateway.autonomy.io/ipfs/QmbFsuVXfQ8PbZorj6HSkjFm6qrg28o1CM5LzGv9mnkCEu";
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";

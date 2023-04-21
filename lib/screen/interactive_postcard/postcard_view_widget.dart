@@ -101,7 +101,7 @@ class PostcardRatio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1405 / 981,
+      aspectRatio: 485 / 343,
       child: PostcardViewWidget(
         assetToken: assetToken,
         imagePath: imagePath,

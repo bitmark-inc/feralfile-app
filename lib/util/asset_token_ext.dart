@@ -222,7 +222,7 @@ extension AssetTokenExtension on AssetToken {
           galleryThumbnailURL!, thumbnailID!, "thumbnail");
     }
 
-    return _replaceIPFS(galleryThumbnailURL!);
+    return replaceIPFS(galleryThumbnailURL!);
   }
 
   int? get getCurrentBalance {
@@ -418,13 +418,13 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
     if (usingThumbnailID) {
       if (thumbnailID == null || thumbnailID!.isEmpty) {
-        return _replaceIPFS(galleryThumbnailURL!); // return null;
+        return replaceIPFS(galleryThumbnailURL!); // return null;
       }
       return _refineToCloudflareURL(
           galleryThumbnailURL!, thumbnailID!, "thumbnail");
     }
 
-    return _replaceIPFS(galleryThumbnailURL!);
+    return replaceIPFS(galleryThumbnailURL!);
   }
 }
 
@@ -441,7 +441,7 @@ String _replaceIPFSPreviewURL(String url, String medium) {
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
-String _replaceIPFS(String url) {
+String replaceIPFS(String url) {
   url =
       url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
@@ -450,7 +450,7 @@ String _replaceIPFS(String url) {
 String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
   final cloudFlareImageUrlPrefix = Environment.cloudFlareImageUrlPrefix;
   return thumbnailID.isEmpty
-      ? _replaceIPFS(url)
+      ? replaceIPFS(url)
       : "$cloudFlareImageUrlPrefix$thumbnailID/$variant";
 }
 
