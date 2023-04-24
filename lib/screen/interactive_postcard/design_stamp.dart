@@ -196,10 +196,10 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                     child: PostcardOutlineButton(
                                       onTap: () {
                                         setState(() {
-                                          fillRandomColor();
+                                          fillSelectedColor();
                                         });
                                       },
-                                      text: "randomize".tr(),
+                                      text: "fill".tr(),
                                       textColor: AppColor.greyMedium,
                                       color: AppColor.white,
                                       borderColor: AppColor.greyMedium,
@@ -310,12 +310,12 @@ class _DesignStampPageState extends State<DesignStampPage> {
     MomaPallet.purple,
   ];
 
-  // function to fill rectColors with random color from stampColors
-  void fillRandomColor() {
-    stampColors.shuffle();
+  // function to fill rectColors with selectedColor
+  void fillSelectedColor() {
     for (var i = 0; i < rectColors.length; i++) {
-      final m = Random().nextInt(stampColors.length - 1);
-      rectColors[i] = stampColors[m];
+      if (rectColors[i] == null) {
+        rectColors[i] = selectedColor;
+      }
     }
     _undoController.modify(rectColors);
   }
