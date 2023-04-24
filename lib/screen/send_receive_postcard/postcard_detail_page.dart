@@ -41,6 +41,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
   @override
   void initState() {
     super.initState();
+    context.read<TravelInfoBloc>().add(GetTravelInfoEvent(asset: widget.asset));
   }
 
   @override
