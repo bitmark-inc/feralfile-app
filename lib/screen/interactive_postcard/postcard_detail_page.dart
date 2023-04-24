@@ -743,7 +743,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           const Spacer(),
           Text(
             distanceFormatter.format(distance: travelInfo.getDistance()),
-            style: theme.textTheme.ppMori400Black14,
+            style: theme.textTheme.ppMori400Black12
+                .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
           ),
         ]),
         addDivider(height: 30, color: AppColor.auGreyBackground),
@@ -783,7 +784,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(sendingTrip.index),
+          formatter.format(sendingTrip.index + 1),
           style: theme.textTheme.ppMori400Grey12,
         ),
         Row(

@@ -17,7 +17,8 @@ class DistanceFormatter {
 
   // check is miles or km
   bool isMiles() {
-    return locale.languageCode == 'en';
+    final imperialSystemCountries = ['us', 'gb', 'lr', 'mm'];
+    return imperialSystemCountries.contains(locale.countryCode);
   }
 
   DistanceFormatter({required this.locale});

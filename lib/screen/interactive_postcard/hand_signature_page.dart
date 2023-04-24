@@ -133,7 +133,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                     Expanded(
                       child: PostcardButton(
                         isProcessing: loading,
-                        enabled: didDraw && resizedStamp != null,
+                        enabled: !loading && didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
                         text: "sign_and_stamp".tr(),
                       ),
