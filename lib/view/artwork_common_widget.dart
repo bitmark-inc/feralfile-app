@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -189,64 +188,6 @@ Widget tokenGalleryThumbnailWidget(
   );
 }
 
-class GalleryUnSupportWidget extends StatelessWidget {
-  final String type;
-  final Function()? onHideArtwork;
-
-  const GalleryUnSupportWidget(
-      {Key? key, this.type = '.svg', this.onHideArtwork})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return ClipPath(
-      clipper: AutonomyTopRightRectangleClipper(),
-      child: Container(
-        width: size.width,
-        height: size.width,
-        padding: const EdgeInsets.all(13),
-        color: theme.auLightGrey,
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'unsupported_token'.tr(),
-                    style: theme.textTheme.atlasGreyNormal14,
-                  ),
-                  Visibility(
-                    visible: onHideArtwork != null,
-                    child: GestureDetector(
-                      onTap: onHideArtwork,
-                      child: Text(
-                        'hide_it_from_collection'.tr(),
-                        style: theme.textTheme.atlasGreyNormal14.copyWith(
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: Text(
-                type.toUpperCase(),
-                style: theme.textTheme.ibmGreyNormal12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class GalleryUnSupportThumbnailWidget extends StatelessWidget {
   final String type;
 
@@ -346,6 +287,13 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
             child: SvgPicture.asset(
               getAssetDefault(),
               width: 24,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Text(
+              "no_thumbnail".tr(),
+              style: theme.textTheme.ppMori700QuickSilver8,
             ),
           ),
         ],
@@ -541,6 +489,56 @@ class RetryCubit extends Cubit<int> {
   }
 }
 
+class PreviewUnSupportedTokenWidget extends StatelessWidget {
+  final AssetToken token;
+
+  const PreviewUnSupportedTokenWidget({Key? key, required this.token})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: AppColor.auGreyBackground,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/unsupported_token.svg',
+              width: 40,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Row(
+              children: [
+                Text(
+                  'unsupported_token'.tr(),
+                  style: theme.textTheme.ppMori700QuickSilver8
+                      .copyWith(fontSize: 12),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text(
+                    "hide_from_collection".tr(),
+                    style: theme.textTheme.ppMori400Black12
+                        .copyWith(color: AppColor.auSuperTeal),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class BrokenTokenWidget extends StatefulWidget {
   final AssetToken token;
 
@@ -568,38 +566,48 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(
-            "unable_to_load_artwork_preview_from_ipfs".tr(),
-            style: ResponsiveLayout.isMobile
-                ? theme.textTheme.atlasGreyNormal12
-                : theme.textTheme.atlasGreyNormal14,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: AppColor.auGreyBackground,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/ipfs_error_icon.svg',
+              width: 40,
+            ),
           ),
-          TextButton(
-            onPressed: () {
-              metricClient.addEvent(
-                MixpanelEvent.clickLoadIPFSAgain,
-                data: {'id': widget.token.id},
-              );
-              context.read<RetryCubit>().refresh();
-            },
-            style: TextButton.styleFrom(
-                minimumSize: Size.zero,
-                padding: const EdgeInsets.all(8),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-            child: Text("please_try_again".tr(),
-                style: makeLinkStyle(
-                  ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasGreyNormal12
-                      : theme.textTheme.atlasGreyNormal14,
-                )),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Row(
+              children: [
+                Text(
+                  'unable_to_load_artwork_preview_from_ipfs'.tr(),
+                  style: theme.textTheme.ppMori700QuickSilver8
+                      .copyWith(fontSize: 12),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    metricClient.addEvent(
+                      MixpanelEvent.clickLoadIPFSAgain,
+                      data: {'id': widget.token.id},
+                    );
+                    context.read<RetryCubit>().refresh();
+                  },
+                  child: Text(
+                    "reload".tr(),
+                    style: theme.textTheme.ppMori400Black12
+                        .copyWith(color: AppColor.auSuperTeal),
+                  ),
+                )
+              ],
+            ),
           ),
-        ]),
+        ],
       ),
     );
   }
