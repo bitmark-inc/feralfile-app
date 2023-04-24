@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
@@ -187,7 +188,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             return EditorialPage(
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
-      HomePage(key: _homePageKey),
+      // HomePage(key: _homePageKey),
+      const CollectionProScreen(),
       MultiBlocProvider(
         providers: [
           BlocProvider.value(

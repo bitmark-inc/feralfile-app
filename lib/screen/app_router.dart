@@ -88,6 +88,7 @@ import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
@@ -214,6 +215,7 @@ class AppRouter {
   static const irlWebview = 'irl_web_claim';
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
+  static const collectionProPage = 'collection_pro_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1175,6 +1177,13 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return IRLSignMessageScreen(payload: payload);
+            });
+
+      case collectionProPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return const CollectionProScreen();
             });
 
       default:

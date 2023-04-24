@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
@@ -131,6 +132,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.tokenDao);
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
+  injector.registerLazySingleton(() => NftCollection.database.albumDao);
   injector.registerLazySingleton(() => cloudDB);
 
   final BaseOptions dioOptions = BaseOptions(
@@ -324,6 +326,7 @@ Future<void> setup() async {
   injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
+  injector.registerFactory<CollectionProBloc>(() => CollectionProBloc());
 }
 
 Dio _feralFileDio(BaseOptions options) {
