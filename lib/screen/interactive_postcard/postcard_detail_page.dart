@@ -792,14 +792,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               sendingTrip.sentLocation ?? "",
               style: theme.textTheme.ppMori400Black14,
             ),
-            const Spacer(),
-            GestureDetector(
-              child: Text("invite_to_collaborate".tr(),
-                  style: theme.textTheme.ppMori400SupperTeal12),
-              onTap: () {
-                _sharePostcard(asset);
-              },
-            )
           ],
         ),
         Row(
@@ -810,13 +802,18 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ),
             const SizedBox(width: 6),
             Text(
-              "Unknown",
-              style: theme.textTheme.ppMori400Black14,
+              "waiting_for_recipient".tr(),
+              style: theme.textTheme.ppMori400Black14
+                  .copyWith(color: AppColor.auQuickSilver),
             ),
             const Spacer(),
-            Text(
-              "waiting".tr(),
-              style: theme.textTheme.ppMori400Black14,
+            GestureDetector(
+              child: Text("resend_".tr(),
+                  style: theme.textTheme.ppMori400SupperTeal12
+                      .copyWith(color: const Color.fromRGBO(131, 79, 196, 1))),
+              onTap: () {
+                _sharePostcard(asset);
+              },
             )
           ],
         ),

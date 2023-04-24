@@ -76,12 +76,17 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                           fit: BoxFit.fitWidth,
                         ),
                       ),
-                      Visibility(
-                        visible: !didDraw,
-                        child: Align(
-                            child: SvgPicture.asset(
-                                "assets/images/sign_here.svg",
-                                fit: BoxFit.scaleDown)),
+                      Positioned.fill(
+                        child: Container(
+                          color: AppColor.white.withOpacity(0.3),
+                          child: Visibility(
+                            visible: !didDraw,
+                            child: Align(
+                                child: SvgPicture.asset(
+                                    "assets/images/sign_here.svg",
+                                    fit: BoxFit.scaleDown)),
+                          ),
+                        ),
                       ),
                       SfSignaturePad(
                         key: signatureGlobalKey,

@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -51,6 +52,10 @@ class PostcardStartedPage extends StatelessWidget {
             ),
           )
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: addOnlyDivider(color: AppColor.auGreyBackground),
+        ),
       ),
       body: Center(
         child: Padding(

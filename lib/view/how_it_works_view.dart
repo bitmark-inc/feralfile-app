@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class HowItWorksView extends StatelessWidget {
   final bool isFinal;
+
   const HowItWorksView({super.key, required this.isFinal});
 
   @override
@@ -22,7 +23,7 @@ class HowItWorksView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
             child: Text(
               'how_it_works'.tr(),
               style: theme.textTheme.ppMori700Black14.copyWith(
@@ -36,6 +37,7 @@ class HowItWorksView extends StatelessWidget {
             dividerColor: dividerColor,
             isFinal: isFinal,
           ),
+          const SizedBox(height: 10),
         ],
       ),
     );
