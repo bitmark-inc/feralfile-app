@@ -8,9 +8,17 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
+    as accounts;
+import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -22,9 +30,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -34,7 +42,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:slidable_button/slidable_button.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -56,7 +63,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   var _isLoading = false;
   bool cameraPermission = false;
   String? currentCode;
-  AnimationController? _controller;
+  late TabController _tabController;
 
   final metricClient = injector<MetricClientService>();
 
@@ -67,8 +74,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     if (Platform.isIOS) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
     }
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
+    _tabController = TabController(length: 2, vsync: this);
     checkPermission();
   }
 
@@ -100,12 +106,6 @@ class _ScanQRPageState extends State<ScanQRPage>
         });
       }
     }
-  }
-
-  void _navigateShowMyCode() {
-    Navigator.of(context).pushNamed(AppRouter.globalReceivePage).then((value) {
-      _controller?.reverse();
-    });
   }
 
   @override
@@ -146,132 +146,140 @@ class _ScanQRPageState extends State<ScanQRPage>
       child: Scaffold(
         body: Stack(
           children: <Widget>[
-            QRView(
-              key: qrKey,
-              overlay: QrScannerOverlayShape(
-                borderColor: isScanDataError
-                    ? AppColor.red
-                    : theme.colorScheme.secondary,
-                overlayColor: (cameraPermission || Platform.isIOS)
-                    ? const Color.fromRGBO(0, 0, 0, 80)
-                    : const Color.fromRGBO(255, 255, 255, 60),
-                cutOutSize: qrSize,
-                borderWidth: 8,
-                borderRadius: 40,
-                // borderLength: qrSize / 2,
-                cutOutBottomOffset: 32 + cutPaddingTop,
-              ),
-              onQRViewCreated: _onQRViewCreated,
-              onPermissionSet: (ctrl, p) {
-                if (ctrl.hasPermissions) {
-                  setState(() {
-                    cameraPermission = true;
-                  });
-                }
-              },
-            ),
-            Positioned(
-              right: 0,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () => Navigator.of(context).pop(),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 55, 15, 15),
-                  child: closeIcon(color: theme.colorScheme.secondary),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                0,
-                MediaQuery.of(context).size.height / 2 +
-                    qrSize / 2 -
-                    cutPaddingTop,
-                0,
-                30,
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (cameraPermission) ...[
-                      _instructionView(),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0.0),
-                        child: HorizontalSlidableButton(
-                          controller: _controller,
-                          width: MediaQuery.of(context).size.width,
-                          height: 50,
-                          buttonWidth: MediaQuery.of(context).size.width / 2,
-                          color: theme.auLightGrey,
-                          buttonColor: theme.auLightGrey,
-                          label: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary,
-                                borderRadius: BorderRadius.circular(50),
+            if (!cameraPermission)
+              _noPermissionView()
+            else
+              Stack(
+                children: [
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        Stack(
+                          children: [
+                            _qrView(),
+                            // Positioned(
+                            //   right: 0,
+                            //   child: GestureDetector(
+                            //     behavior: HitTestBehavior.translucent,
+                            //     onTap: () => Navigator.of(context).pop(),
+                            //     child: Padding(
+                            //       padding:
+                            //       const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                            //       child: closeIcon(
+                            //           color: theme.colorScheme.secondary),
+                            //     ),
+                            //   ),
+                            // ),
+                            Scaffold(
+                              backgroundColor: Colors.transparent,
+                              appBar: getCloseAppBar(context,
+                                  onClose: () => Navigator.of(context).pop()),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                0,
+                                MediaQuery.of(context).size.height / 2 +
+                                    qrSize / 2 -
+                                    cutPaddingTop,
+                                0,
+                                30,
                               ),
                               child: Center(
-                                child: Text(
-                                  'scan_code'.tr(),
-                                  style: theme.textTheme.ppMori400White14,
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _instructionView(),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  'scan_code'.tr(),
-                                  style: theme.textTheme.ppMori400White14,
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    _controller?.forward();
-                                    _navigateShowMyCode();
-                                  },
-                                  child: Text(
-                                    'show_my_code'.tr(),
-                                    style: theme.textTheme.ppMori400White14
-                                        .copyWith(
-                                      color: theme.disabledColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          ],
+                        ),
+                        MultiBlocProvider(providers: [
+                          BlocProvider(
+                              create: (_) => accounts.AccountsBloc(
+                                  injector(),
+                                  injector<CloudDatabase>(),
+                                  injector(),
+                                  injector<AuditService>(),
+                                  injector())),
+                          BlocProvider(
+                            create: (_) => PersonaBloc(
+                              injector<CloudDatabase>(),
+                              injector(),
+                              injector(),
+                              injector<AuditService>(),
                             ),
                           ),
-                          onChanged: (position) {
-                            if (position == SlidableButtonPosition.end) {
-                              _navigateShowMyCode();
-                            }
-                          },
+                          BlocProvider(
+                              create: (_) =>
+                                  EthereumBloc(injector(), injector())),
+                          BlocProvider(
+                            create: (_) => TezosBloc(injector(), injector()),
+                          ),
+                        ], child: const GlobalReceivePage()),
+                      ],
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 10, 16.0, 40),
+                      child: Container(
+                        height: 55,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: theme.auLightGrey,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: OutlineButton(
+                                onTap: () {
+                                  _tabController.animateTo(0,
+                                      duration:
+                                          const Duration(milliseconds: 300));
+                                  setState(() {});
+                                },
+                                text: 'show_my_code'.tr(),
+                                color: _tabController.index == 0
+                                    ? theme.colorScheme.primary
+                                    : theme.auLightGrey,
+                                borderColor: Colors.transparent,
+                                textColor: _tabController.index == 1
+                                    ? AppColor.disabledColor
+                                    : AppColor.white,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: OutlineButton(
+                                onTap: () {
+                                  _tabController.animateTo(1,
+                                      duration:
+                                          const Duration(milliseconds: 300));
+                                  setState(() {});
+                                },
+                                text: 'scan_code'.tr(),
+                                color: _tabController.index == 1
+                                    ? theme.colorScheme.primary
+                                    : theme.auLightGrey,
+                                borderColor: Colors.transparent,
+                                textColor: _tabController.index == 0
+                                    ? AppColor.disabledColor
+                                    : AppColor.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ] else ...[
-                      _instructionViewNoPermission(),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: PrimaryButton(
-                          text: "open_setting".tr(
-                            namedArgs: {
-                              "device": Platform.isAndroid ? "Device" : "iOS",
-                            },
-                          ),
-                          onTap: () {
-                            openAppSettings();
-                          },
-                        ),
-                      )
-                    ],
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ),
             if (_isLoading) ...[
               Center(
                 child: CupertinoActivityIndicator(
@@ -283,6 +291,80 @@ class _ScanQRPageState extends State<ScanQRPage>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _qrView() {
+    final theme = Theme.of(context);
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final qrSize = size1 < 240.0 ? size1 : 240.0;
+
+    var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
+    if (cutPaddingTop < 0) cutPaddingTop = 0;
+    return QRView(
+      key: qrKey,
+      overlay: QrScannerOverlayShape(
+        borderColor:
+            isScanDataError ? AppColor.red : theme.colorScheme.secondary,
+        overlayColor: (cameraPermission || Platform.isIOS)
+            ? const Color.fromRGBO(0, 0, 0, 80)
+            : const Color.fromRGBO(255, 255, 255, 60),
+        cutOutSize: qrSize,
+        borderWidth: 8,
+        borderRadius: 40,
+        // borderLength: qrSize / 2,
+        cutOutBottomOffset: 32 + cutPaddingTop,
+      ),
+      onQRViewCreated: _onQRViewCreated,
+      onPermissionSet: (ctrl, p) {
+        if (ctrl.hasPermissions) {
+          setState(() {
+            cameraPermission = true;
+          });
+        }
+      },
+    );
+  }
+
+  Widget _noPermissionView() {
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final qrSize = size1 < 240.0 ? size1 : 240.0;
+
+    var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
+    if (cutPaddingTop < 0) cutPaddingTop = 0;
+    return Stack(
+      children: [
+        _qrView(),
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            0,
+            MediaQuery.of(context).size.height / 2 + qrSize / 2 - cutPaddingTop,
+            0,
+            30,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _instructionViewNoPermission(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: PrimaryButton(
+                    text: "open_setting".tr(
+                      namedArgs: {
+                        "device": Platform.isAndroid ? "Device" : "iOS",
+                      },
+                    ),
+                    onTap: () {
+                      openAppSettings();
+                    },
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

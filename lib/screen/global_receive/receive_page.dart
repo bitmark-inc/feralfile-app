@@ -34,10 +34,10 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "select_wallet_tt".tr(),
-        onBack: () => Navigator.of(context).pop(),
+        onClose: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
         final categorizedAccounts = state.categorizedAccounts;
