@@ -190,9 +190,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         address: address,
         tokenId: tokenId,
         counter: counter);
-    setState(() {
-      loading = false;
-    });
+
     if (isMinted) {
       final walletIndex = await asset.getOwnerWallet();
       if (walletIndex == null) return;
@@ -237,6 +235,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
           context, "toke_minting".tr(), "token_minting_desc".tr(),
           isDismissible: true, closeButton: "close".tr());
     }
+    setState(() {
+      loading = false;
+    });
   }
 }
 
