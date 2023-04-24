@@ -20,7 +20,7 @@ extension StringExtension on String {
     } else if (length <= number) {
       return this;
     }
-    return "[${maskOnly(number)}]";
+    return maskOnly(number);
   }
 
   String maskOnly(int number) {

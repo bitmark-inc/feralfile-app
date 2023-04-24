@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
@@ -455,19 +456,22 @@ class AddressItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        color: Colors.transparent,
+        color: AppColor.auLightGrey.withOpacity(0.5),
         padding: ResponsiveLayout.paddingAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
+                const SizedBox(
+                  width: 25,
+                ),
                 LogoCrypto(
                   cryptoType: cryptoType,
                   size: 24,
                 ),
                 const SizedBox(
-                  width: 34,
+                  width: 10,
                 ),
                 Text(
                   cryptoType == CryptoType.ETH
@@ -478,6 +482,13 @@ class AddressItem extends StatelessWidget {
                   style: theme.textTheme.ppMori700Black14,
                 ),
                 const Spacer(),
+                Text(
+                  address.toIdentityOrMask({}) ?? '',
+                  style: theme.textTheme.ibmBlackNormal14,
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
                 Visibility(
                   visible: !isAutoSelect,
                   child: RadioSelectAddress(
@@ -487,13 +498,6 @@ class AddressItem extends StatelessWidget {
                 )
               ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            Text(
-              address,
-              style: theme.textTheme.ibmBlackNormal14,
-            )
           ],
         ),
       ),

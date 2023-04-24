@@ -46,28 +46,31 @@ Widget accountWithConnectionItem(
             ],
           ),
         ),
-        child: Column(
-          children: categorizedAccounts.accounts
-              .map(
-                (a) => [
-                  addOnlyDivider(),
-                  _blockchainAddressView(
-                    context,
-                    GlobalReceivePayload(
-                        address: a.accountNumber,
-                        blockchain: a.blockchain!,
-                        account: a),
-                    onTap: () => Navigator.of(context).pushNamed(
-                        GlobalReceiveDetailPage.tag,
-                        arguments: GlobalReceivePayload(
-                            address: a.accountNumber,
-                            blockchain: a.blockchain!,
-                            account: a)),
-                  ),
-                ],
-              )
-              .flattened
-              .toList(),
+        child: Container(
+          color: AppColor.auLightGrey.withOpacity(0.5),
+          child: Column(
+            children: categorizedAccounts.accounts
+                .map(
+                  (a) => [
+                    addOnlyDivider(),
+                    _blockchainAddressView(
+                      context,
+                      GlobalReceivePayload(
+                          address: a.accountNumber,
+                          blockchain: a.blockchain!,
+                          account: a),
+                      onTap: () => Navigator.of(context).pushNamed(
+                          GlobalReceiveDetailPage.tag,
+                          arguments: GlobalReceivePayload(
+                              address: a.accountNumber,
+                              blockchain: a.blockchain!,
+                              account: a)),
+                    ),
+                  ],
+                )
+                .flattened
+                .toList(),
+          ),
         ),
       );
     case 'Connection':
@@ -194,12 +197,14 @@ Widget _blockchainAddressView(
 }) {
   final theme = Theme.of(context);
   return Container(
-    padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
+    color: AppColor.auLightGrey.withOpacity(0.5),
+    padding:
+        ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0, left: 42),
     child: TappableForwardRowWithContent(
       leftWidget: Row(
         children: [
           _blockchainLogo(receiver.blockchain),
-          const SizedBox(width: 32),
+          const SizedBox(width: 10),
           Text(
             _blockchainName(receiver.blockchain),
             style: theme.textTheme.ppMori700Black14,
