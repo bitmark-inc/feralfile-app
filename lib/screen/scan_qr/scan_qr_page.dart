@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -151,65 +152,73 @@ class _ScanQRPageState extends State<ScanQRPage>
             else
               Stack(
                 children: [
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        Stack(
+                  Column(
+                    children: [
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
                           children: [
-                            _qrView(),
-                            Scaffold(
-                              backgroundColor: Colors.transparent,
-                              appBar: getCloseAppBar(context,
-                                  onClose: () => Navigator.of(context).pop(),
-                                  withBottomDivider: false),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                0,
-                                MediaQuery.of(context).size.height / 2 +
-                                    qrSize / 2 -
-                                    cutPaddingTop,
-                                0,
-                                30,
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _instructionView(),
-                                  ],
+                            Stack(
+                              children: [
+                                _qrView(),
+                                Scaffold(
+                                  backgroundColor: Colors.transparent,
+                                  appBar: getCloseAppBar(
+                                    context,
+                                    onClose: () => Navigator.of(context).pop(),
+                                    withBottomDivider: false,
+                                    icon: closeIcon(color: AppColor.white),
+                                  ),
                                 ),
-                              ),
+                                Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    0,
+                                    MediaQuery.of(context).size.height / 2 +
+                                        qrSize / 2 -
+                                        cutPaddingTop,
+                                    0,
+                                    30,
+                                  ),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        _instructionView(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        MultiBlocProvider(providers: [
-                          BlocProvider(
-                              create: (_) => accounts.AccountsBloc(
-                                  injector(),
+                            MultiBlocProvider(providers: [
+                              BlocProvider(
+                                  create: (_) => accounts.AccountsBloc(
+                                      injector(),
+                                      injector<CloudDatabase>(),
+                                      injector(),
+                                      injector<AuditService>(),
+                                      injector())),
+                              BlocProvider(
+                                create: (_) => PersonaBloc(
                                   injector<CloudDatabase>(),
                                   injector(),
+                                  injector(),
                                   injector<AuditService>(),
-                                  injector())),
-                          BlocProvider(
-                            create: (_) => PersonaBloc(
-                              injector<CloudDatabase>(),
-                              injector(),
-                              injector(),
-                              injector<AuditService>(),
-                            ),
-                          ),
-                          BlocProvider(
-                              create: (_) =>
-                                  EthereumBloc(injector(), injector())),
-                          BlocProvider(
-                            create: (_) => TezosBloc(injector(), injector()),
-                          ),
-                        ], child: const GlobalReceivePage()),
-                      ],
-                    ),
+                                ),
+                              ),
+                              BlocProvider(
+                                  create: (_) =>
+                                      EthereumBloc(injector(), injector())),
+                              BlocProvider(
+                                create: (_) =>
+                                    TezosBloc(injector(), injector()),
+                              ),
+                            ], child: const GlobalReceivePage()),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   Align(
                     alignment: Alignment.bottomCenter,
