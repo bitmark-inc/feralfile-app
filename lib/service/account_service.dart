@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -40,7 +41,6 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
@@ -87,25 +87,17 @@ abstract class AccountService {
 
   Future linkIndexerTokenID(String indexerTokenID);
 
-  Future setHidePersonaInGallery(String personaUUID, bool isEnabled);
-
   Future setHideLinkedAccountInGallery(String address, bool isEnabled);
 
-  Future setHideAddressInGallery(String address, bool isEnabled);
-
-  bool isPersonaHiddenInGallery(String personaUUID);
+  Future setHideAddressInGallery(List<String> addresses, bool isEnabled);
 
   bool isLinkedAccountHiddenInGallery(String address);
-
-  bool isAddressHiddenInGallery(String address);
 
   Future<List<String>> getAllAddresses();
 
   Future<List<AddressIndex>> getAllAddressIndexes();
 
   Future<List<String>> getAddress(String blockchain);
-
-  Future<List<String>> getHiddenAddresses();
 
   Future<List<AddressIndex>> getHiddenAddressIndexes();
 
@@ -115,6 +107,9 @@ abstract class AccountService {
 
   Future<Persona> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses);
+
+  Future<void> deleteAddressPersona(
+      Persona persona, WalletAddress walletAddress);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -155,6 +150,7 @@ class AccountServiceImpl extends AccountService {
     final persona =
         Persona.newPersona(uuid: uuid, defaultAccount: isDefault ? 1 : null);
     await _cloudDB.personaDao.insertPersona(persona);
+    await persona.insertAddress(WalletType.Autonomy);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     final metricClient = injector.get<MetricClientService>();
@@ -181,8 +177,8 @@ class AccountServiceImpl extends AccountService {
     await walletStorage.importKey(
         words, "", DateTime.now().microsecondsSinceEpoch);
 
-    String tezosIndexes = ",0";
-    String ethereumIndexes = ",0";
+    String tezosIndexes = "0";
+    String ethereumIndexes = "0";
     switch (walletType) {
       case WalletType.Ethereum:
         tezosIndexes = "";
@@ -193,18 +189,16 @@ class AccountServiceImpl extends AccountService {
       default:
         break;
     }
-    final persona = Persona.newPersona(
-        uuid: uuid,
-        ethereumIndexes: ethereumIndexes,
-        tezosIndexes: tezosIndexes);
+    final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
+    await persona.insertAddress(walletType);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
       "id": uuid,
-      "tezosIndex": persona.getTezIndexes,
-      "ethereumIndex": persona.getEthIndexes
+      "tezosIndex": tezosIndexes,
+      "ethereumIndex": ethereumIndexes
     });
     _autonomyService.postLinkedAddresses();
 
@@ -258,28 +252,23 @@ class AccountServiceImpl extends AccountService {
     required String chain,
     required String address,
   }) async {
-    var personas = await _cloudDB.personaDao.getPersonas();
-    for (Persona p in personas) {
-      switch (chain.caip2Namespace) {
-        case Wc2Chain.ethereum:
-          final eip55Address = EthereumAddress.fromHex(address).hexEip55;
-          final index = await p.getEthAddressIndex(eip55Address);
-          if (index != null) {
-            return WalletIndex(p.wallet(), index);
-          }
-          break;
-        case Wc2Chain.tezos:
-          final index = await p.getTezAddressIndex(address);
-          if (index != null) {
-            return WalletIndex(p.wallet(), index);
-          }
-          break;
-        case Wc2Chain.autonomy:
+    switch (chain.caip2Namespace) {
+      case Wc2Chain.ethereum:
+      case Wc2Chain.tezos:
+        final walletAddress = await _cloudDB.addressDao.findByAddress(address);
+        if (walletAddress != null) {
+          return WalletIndex(
+              WalletStorage(walletAddress.uuid), walletAddress.index);
+        }
+        break;
+      case Wc2Chain.autonomy:
+        var personas = await _cloudDB.personaDao.getPersonas();
+        for (Persona p in personas) {
           final wallet = p.wallet();
           if (await wallet.getAccountDID() == address) {
             return WalletIndex(wallet, -1);
           }
-      }
+        }
     }
     throw AccountException(
       message: "Wallet not found. Chain $chain, address: $address",
@@ -322,6 +311,10 @@ class AccountServiceImpl extends AccountService {
     log.info("[AccountService] deletePersona start - ${persona.uuid}");
     await _cloudDB.personaDao.deletePersona(persona);
     await _auditService.auditPersonaAction('delete', persona);
+    final addresses = await _cloudDB.addressDao.findByWalletID(persona.uuid);
+    Future.wait(addresses.map((address) async {
+      await _cloudDB.addressDao.deleteAddress(address);
+    }));
 
     await androidBackupKeys();
     await LibAukDart.getWallet(persona.uuid).removeKeys();
@@ -363,10 +356,6 @@ class AccountServiceImpl extends AccountService {
 
       for (var peer in bcPeers) {
         await _tezosBeaconService.removePeer(peer);
-      }
-
-      if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
-        await setHidePersonaInGallery(persona.uuid, false);
       }
     } catch (exception) {
       Sentry.captureException(exception);
@@ -486,25 +475,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  bool isPersonaHiddenInGallery(String personaUUID) {
-    return _configurationService.isPersonaHiddenInGallery(personaUUID);
-  }
-
-  @override
   bool isLinkedAccountHiddenInGallery(String address) {
     return _configurationService.isLinkedAccountHiddenInGallery(address);
-  }
-
-  @override
-  bool isAddressHiddenInGallery(String address) {
-    return _configurationService.isAddressHiddenInGallery(address);
-  }
-
-  @override
-  Future setHidePersonaInGallery(String personaUUID, bool isEnabled) async {
-    await _configurationService
-        .setHidePersonaInGallery([personaUUID], isEnabled);
-    injector<SettingsDataService>().backup();
   }
 
   @override
@@ -518,12 +490,13 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future setHideAddressInGallery(String address, bool isEnabled) async {
-    await _configurationService.setHideAddressInGallery([address], isEnabled);
+  Future setHideAddressInGallery(List<String> addresses, bool isEnabled) async {
+    Future.wait(addresses
+        .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
-    metricClient
-        .addEvent(MixpanelEvent.hideAddress, hashedData: {"address": address});
+    metricClient.addEvent(MixpanelEvent.hideAddresses,
+        hashedData: {"address": addresses});
   }
 
   @override
@@ -649,21 +622,8 @@ class AccountServiceImpl extends AccountService {
     }
 
     List<AddressIndex> addresses = [];
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-
-    for (var persona in personas) {
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-      final tezosAddress = await personaWallet.getTezosAddress();
-      if (ethAddress.isEmpty) continue;
-
-      addresses
-          .add(AddressIndex(address: ethAddress, createdAt: persona.createdAt));
-      addresses.add(
-          AddressIndex(address: tezosAddress, createdAt: persona.createdAt));
-    }
+    final walletAddress = await _cloudDB.addressDao.getAllAddresses();
+    addresses.addAll(walletAddress.map((e) => e.addressIndex).toList());
 
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
@@ -711,35 +671,6 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<List<String>> getHiddenAddresses() async {
-    List<String> hiddenAddresses = [];
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-    final hiddenPersonaUUIDs =
-        _configurationService.getPersonaUUIDsHiddenInGallery();
-
-    for (var persona in personas) {
-      if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      hiddenAddresses.addAll(await persona.getAddresses());
-    }
-
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    final hiddenLinkedAccounts =
-        _configurationService.getLinkedAccountsHiddenInGallery();
-
-    for (final linkedAccount in linkedAccounts) {
-      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
-        hiddenAddresses.addAll(linkedAccount.accountNumbers);
-      }
-    }
-
-    return hiddenAddresses;
-  }
-
-  @override
   Future<List<String>> getShowedAddresses() async {
     if (_configurationService.isDemoArtworksMode()) {
       return [await getDemoAccount()];
@@ -747,21 +678,9 @@ class AccountServiceImpl extends AccountService {
 
     List<String> addresses = [];
 
-    final personas = await _cloudDB.personaDao.getPersonas();
-    final hiddenPersonaUUIDs =
-        _configurationService.getPersonaUUIDsHiddenInGallery();
-
-    for (var persona in personas) {
-      if (hiddenPersonaUUIDs.contains(persona.uuid)) continue;
-
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-
-      if (ethAddress.isEmpty) continue;
-
-      addresses.addAll(await persona.getAddresses());
-    }
+    final walletAddress =
+        await _cloudDB.addressDao.findAddressesWithHiddenStatus(false);
+    addresses.addAll(walletAddress.map((e) => e.address).toList());
 
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
@@ -796,45 +715,27 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
-    final ethereumIndexes = newPersona.getEthIndexes;
-    final tezosIndexes = newPersona.getTezIndexes;
-    for (var address in addresses) {
-      if (address.getCryptoType() == CryptoType.ETH) {
-        ethereumIndexes.add(address.index);
-      } else if (address.getCryptoType() == CryptoType.XTZ) {
-        tezosIndexes.add(address.index);
-      }
-    }
-    newPersona.ethereumIndexes = ethereumIndexes.toSet().toList().join(",");
-    newPersona.tezosIndexes = tezosIndexes.toSet().toList().join(",");
+    final timestamp = DateTime.now();
+    final walletAddresses = addresses
+        .map((e) => WalletAddress(
+            address: e.address,
+            uuid: newPersona.uuid,
+            index: e.index,
+            cryptoType: e.getCryptoType().source,
+            createdAt: timestamp))
+        .toList();
+    await _cloudDB.addressDao.insertAddresses(walletAddresses);
 
-    await _cloudDB.personaDao.updatePersona(newPersona);
     return newPersona;
   }
 
   @override
   Future<List<AddressIndex>> getHiddenAddressIndexes() async {
-    List<AddressIndex> hiddenAddresses = _configurationService
-        .getAddressesHiddenInGallery()
-        .map((e) => AddressIndex(address: e, createdAt: DateTime.now()))
-        .toList();
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-    final hiddenPersonaUUIDs =
-        _configurationService.getPersonaUUIDsHiddenInGallery();
-    for (var persona in personas) {
-      if (!hiddenPersonaUUIDs.contains(persona.uuid)) continue;
-      final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
-      final ethAddress = await personaWallet.getETHEip55Address();
-      final tezosAddress = await personaWallet.getTezosAddress();
-      final createdAt = persona.createdAt;
-      if (ethAddress.isEmpty) continue;
-      hiddenAddresses
-          .add(AddressIndex(address: ethAddress, createdAt: createdAt));
-      hiddenAddresses
-          .add(AddressIndex(address: tezosAddress, createdAt: createdAt));
-    }
+    List<AddressIndex> hiddenAddresses = [];
+    final hiddenWalletAddresses =
+        await _cloudDB.addressDao.findAddressesWithHiddenStatus(true);
+    hiddenAddresses
+        .addAll(hiddenWalletAddresses.map((e) => e.addressIndex).toList());
 
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
@@ -848,6 +749,40 @@ class AccountServiceImpl extends AccountService {
     }
 
     return hiddenAddresses.toSet().toList();
+  }
+
+  @override
+  Future<void> deleteAddressPersona(
+      Persona persona, WalletAddress walletAddress) async {
+    _cloudDB.addressDao.deleteAddress(walletAddress);
+    switch (CryptoType.fromSource(walletAddress.cryptoType)) {
+      case CryptoType.ETH:
+        final connections = await _cloudDB.connectionDao
+            .getConnectionsByType(ConnectionType.dappConnect.rawValue);
+        for (var connection in connections) {
+          final wcConnection = connection.wcConnection;
+          if (wcConnection == null) continue;
+          if (wcConnection.personaUuid == persona.uuid &&
+              wcConnection.index == walletAddress.index) {
+            _cloudDB.connectionDao.deleteConnection(connection);
+          }
+        }
+        return;
+      case CryptoType.XTZ:
+        final connections = await _cloudDB.connectionDao
+            .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
+
+        for (var connection in connections) {
+          if (connection.beaconConnectConnection?.personaUuid == persona.uuid &&
+              connection.beaconConnectConnection?.index ==
+                  walletAddress.index) {
+            _cloudDB.connectionDao.deleteConnection(connection);
+          }
+        }
+        return;
+      default:
+        return;
+    }
   }
 }
 

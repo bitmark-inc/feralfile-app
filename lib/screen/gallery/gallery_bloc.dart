@@ -3,15 +3,20 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 
 part 'gallery_state.dart';
 
 class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
+  final IndexerService _indexerService;
   final IndexerApi _indexerApi;
 
-  GalleryBloc(this._indexerApi)
-      : super(GalleryState(
+  GalleryBloc(
+    this._indexerApi,
+    this._indexerService,
+  ) : super(GalleryState(
           tokens: null,
           nextPageKey: 0,
           isLastPage: false,
@@ -23,9 +28,13 @@ class GalleryBloc extends AuBloc<GalleryEvent, GalleryState> {
       emit(state.copyWith(isLoading: true));
 
       try {
-        final tokens = (await _indexerApi.getNftTokensByOwner(
-                event.address, state.nextPageKey, INDEXER_TOKENS_MAXIMUM, 0))
-            .toList();
+        final request = QueryListTokensRequest(
+          owners: [event.address],
+          offset: state.nextPageKey,
+          // ignore: avoid_redundant_argument_values
+          size: INDEXER_TOKENS_MAXIMUM,
+        );
+        final tokens = (await _indexerService.getNftTokens(request)).toList();
         // reload if tokensLength's 0 because it might be indexing case
         final isLastPage =
             tokens.isEmpty ? false : tokens.length < INDEXER_TOKENS_MAXIMUM;

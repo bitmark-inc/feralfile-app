@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -163,33 +164,37 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       padding: const EdgeInsets.all(15),
                       child: Row(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                child: Text(
-                                  artwork.title,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  child: AutoSizeText(
+                                    artwork.title,
+                                    style: theme.textTheme.ppMori400White14,
+                                    maxFontSize: 14,
+                                    minFontSize: 14,
+                                    maxLines: 2,
+                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PreviewTokenClaim(
+                                          artwork: widget.artwork,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Text(
+                                  "by $artistName",
                                   style: theme.textTheme.ppMori400White14,
                                 ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PreviewTokenClaim(
-                                        artwork: widget.artwork,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              Text(
-                                "by $artistName",
-                                style: theme.textTheme.ppMori400White14,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          const Spacer(),
                           SvgPicture.asset(
                             "assets/images/penrose_moma.svg",
                             color: theme.colorScheme.secondary,

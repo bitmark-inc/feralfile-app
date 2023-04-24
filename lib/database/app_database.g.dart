@@ -364,7 +364,8 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
   }
 
   @override
-  Future<AnnouncementLocal?> getAnnouncement(String announcementID) async {
+  Future<AnnouncementLocal?> getAnnouncement(
+      String announcementContextId) async {
     return _queryAdapter.query(
         'SELECT * FROM AnnouncementLocal WHERE announcementContextId = ?1',
         mapper: (Map<String, Object?> row) => AnnouncementLocal(
@@ -375,17 +376,17 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
             announceAt: row['announceAt'] as int,
             type: row['type'] as String,
             unread: (row['unread'] as int) != 0),
-        arguments: [announcementID]);
+        arguments: [announcementContextId]);
   }
 
   @override
   Future<void> updateRead(
-    String announcementID,
+    String announcementContextId,
     bool unread,
   ) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE AnnouncementLocal SET unread = ?2 WHERE announcementContextId = ?1',
-        arguments: [announcementID, unread ? 1 : 0]);
+        arguments: [announcementContextId, unread ? 1 : 0]);
   }
 
   @override

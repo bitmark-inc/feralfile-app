@@ -1003,21 +1003,27 @@ Widget tokenOwnership(
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
-  final totalSentQuantity = sentTokens
-      .where((element) =>
-          element.tokenID == assetToken.id &&
-          element.timestamp.isAfter(expiredTime))
-      .fold<int>(
-          0, (previousValue, element) => previousValue + element.sentQuantity);
+  List<String> ownerAddresses = [assetToken.owner];
 
   int ownedTokens = assetToken.balance ?? 0;
+
   if (ownedTokens == 0) {
     ownedTokens =
         addresses.map((address) => assetToken.owners[address] ?? 0).sum;
+    ownerAddresses = addresses;
     if (ownedTokens == 0) {
       ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
+      ownerAddresses = [assetToken.owner];
     }
   }
+
+  final totalSentQuantity = sentTokens
+      .where((element) =>
+          element.tokenID == assetToken.id &&
+          ownerAddresses.contains(element.address) &&
+          element.timestamp.isAfter(expiredTime))
+      .fold<int>(
+          0, (previousValue, element) => previousValue + element.sentQuantity);
 
   if (ownedTokens > 0) {
     ownedTokens -= totalSentQuantity;

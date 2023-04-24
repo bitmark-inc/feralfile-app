@@ -7,9 +7,9 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/onboarding_page.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:web3dart/web3dart.dart';
 
 part 'ethereum_state.dart';
@@ -22,16 +22,10 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
       : super(EthereumState(null, {})) {
     on<GetEthereumAddressEvent>((event, emit) async {
       if (state.personaAddresses?[event.uuid] != null) return;
-      final persona = await _cloudDB.personaDao.findById(event.uuid);
-
-      logger.info('GetEthereumAddressEvent: persona: ${persona?.uuid}');
-
-      if (persona == null || persona.getEthIndexes.isEmpty) return;
-      final addresses = await persona.getEthAddresses();
-      final indexes = persona.getEthIndexes;
+      final walletAddresses = await _cloudDB.addressDao
+          .getAddresses(event.uuid, CryptoType.ETH.source);
       var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] =
-          addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
+      personaAddresses[event.uuid] = walletAddresses;
 
       emit(state.copyWith(personaAddresses: personaAddresses));
     });
@@ -45,15 +39,18 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
     });
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
-      final persona = await _cloudDB.personaDao.findById(event.uuid);
-      if (persona == null || persona.getEthIndexes.isEmpty) return;
-      final addresses = await persona.getEthAddresses();
-      final indexes = persona.getEthIndexes;
+      final walletAddresses = await _cloudDB.addressDao
+          .getAddresses(event.uuid, CryptoType.ETH.source);
+
+      if (walletAddresses.isEmpty) {
+        emit(state.copyWith(personaAddresses: {}));
+        return;
+      }
       var listAddresses = state.personaAddresses ?? {};
-      listAddresses[event.uuid] =
-          addresses.map((e) => Pair(e, indexes[addresses.indexOf(e)])).toList();
+      listAddresses[event.uuid] = walletAddresses;
       emit(state.copyWith(personaAddresses: listAddresses));
-      add(GetEthereumBalanceWithAddressEvent(addresses));
+      add(GetEthereumBalanceWithAddressEvent(
+          walletAddresses.map((e) => e.address).toList()));
     });
   }
 }

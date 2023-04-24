@@ -124,11 +124,6 @@ class EditorialPageState extends State<EditorialPage>
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          // Status bar color
-          statusBarColor: Colors.transparent,
-          systemNavigationBarDividerColor: Colors.transparent,
-        ),
       ),
       backgroundColor: theme.primaryColor,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -261,7 +256,7 @@ class EditorialPageState extends State<EditorialPage>
                       itemCount: state.editorial.length,
                       itemBuilder: (BuildContext context, int index) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 64),
+                          padding: const EdgeInsets.only(top: 32, bottom: 32),
                           child: _postSection(state.editorial[index]),
                         );
                       },

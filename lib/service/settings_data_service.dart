@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -22,6 +23,7 @@ part 'settings_data_service.g.dart';
 
 abstract class SettingsDataService {
   Future backup();
+
   Future restoreSettingsData();
 }
 
@@ -29,6 +31,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final IAPApi _iapApi;
+  final CloudDatabase _cloudDB;
 
   var latestDataHash = '';
 
@@ -36,6 +39,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     this._configurationService,
     this._accountService,
     this._iapApi,
+    this._cloudDB,
   );
 
   final _requester =
@@ -54,14 +58,18 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final hiddenMainnetTokenIDs =
         _configurationService.getTempStorageHiddenTokenIDs();
 
+    final hiddenAddressesFromGallery =
+        (await _cloudDB.addressDao.findAddressesWithHiddenStatus(true))
+            .map((e) => e.address)
+            .toList();
+
     final data = SettingsDataBackup(
       addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
       hiddenTestnetTokenIDs: [],
-      hiddenAddressesFromGallery:
-          _configurationService.getAddressesHiddenInGallery(),
+      hiddenAddressesFromGallery: hiddenAddressesFromGallery,
       hiddenLinkedAccountsFromGallery:
           _configurationService.getLinkedAccountsHiddenInGallery(),
       playlists: _configurationService.getPlayList(),
@@ -115,9 +123,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
         data.hiddenMainnetTokenIDs, true,
         override: true);
 
-    await _configurationService.setHideAddressInGallery(
-        data.hiddenAddressesFromGallery ?? [], true,
-        override: true);
+    await Future.wait((data.hiddenAddressesFromGallery ?? [])
+        .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
 
     await _configurationService.setHideLinkedAccountInGallery(
         data.hiddenLinkedAccountsFromGallery, true,
