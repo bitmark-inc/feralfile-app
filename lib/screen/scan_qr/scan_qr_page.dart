@@ -158,23 +158,11 @@ class _ScanQRPageState extends State<ScanQRPage>
                         Stack(
                           children: [
                             _qrView(),
-                            // Positioned(
-                            //   right: 0,
-                            //   child: GestureDetector(
-                            //     behavior: HitTestBehavior.translucent,
-                            //     onTap: () => Navigator.of(context).pop(),
-                            //     child: Padding(
-                            //       padding:
-                            //       const EdgeInsets.fromLTRB(15, 15, 15, 15),
-                            //       child: closeIcon(
-                            //           color: theme.colorScheme.secondary),
-                            //     ),
-                            //   ),
-                            // ),
                             Scaffold(
                               backgroundColor: Colors.transparent,
                               appBar: getCloseAppBar(context,
-                                  onClose: () => Navigator.of(context).pop()),
+                                  onClose: () => Navigator.of(context).pop(),
+                                  withBottomDivider: false),
                             ),
                             Padding(
                               padding: EdgeInsets.fromLTRB(
