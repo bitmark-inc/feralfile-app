@@ -38,6 +38,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/text_theme_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -141,7 +142,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           "your_postcard_completed".tr(namedArgs: {
             'distance': totalDistance.toString(),
           }),
-          style: theme.textTheme.ppMori400Grey14,
+          style: theme.textTheme.moMASans400Grey14,
         ),
         const SizedBox(height: 24),
         PrimaryButton(
@@ -674,13 +675,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 children: [
                   Text(
                     "total_distance_traveled".tr(),
-                    style: theme.textTheme.ppMori700Black14,
+                    style: theme.textTheme.moMASans700Black14,
                   ),
                   const Spacer(),
                   Text(
                     distanceFormatter.format(
                         distance: travelInfo.totalDistance),
-                    style: theme.textTheme.ppMori700Black14,
+                    style: theme.textTheme.moMASans700Black14,
                   ),
                 ],
               ),
@@ -719,11 +720,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(formatter.format(travelInfo.index),
-                  style: theme.textTheme.ppMori400Black12
+                  style: theme.textTheme.moMASans400Black12
                       .copyWith(color: AppColor.auQuickSilver)),
               Text(
                 travelInfo.sentLocation ?? "",
-                style: theme.textTheme.ppMori400Black14,
+                style: theme.textTheme.moMASans400Black14,
               ),
               Row(
                 children: [
@@ -734,7 +735,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   const SizedBox(width: 6),
                   Text(
                     travelInfo.receivedLocation ?? "Not sent",
-                    style: theme.textTheme.ppMori400Black14,
+                    style: theme.textTheme.moMASans400Black14,
                   ),
                 ],
               ),
@@ -743,7 +744,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           const Spacer(),
           Text(
             distanceFormatter.format(distance: travelInfo.getDistance()),
-            style: theme.textTheme.ppMori400Black12
+            style: theme.textTheme.moMASans400Black12
                 .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
           ),
         ]),
@@ -762,11 +763,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(formatter.format(travelInfo.index),
-                style: theme.textTheme.ppMori400Black12
+                style: theme.textTheme.moMASans400Black12
                     .copyWith(color: AppColor.auQuickSilver)),
             Text(
               travelInfo.sentLocation ?? "",
-              style: theme.textTheme.ppMori400Black14,
+              style: theme.textTheme.moMASans400Black14,
             ),
             addDivider(height: 30, color: AppColor.auGreyBackground),
           ],
@@ -785,13 +786,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       children: [
         Text(
           formatter.format(sendingTrip.index + 1),
-          style: theme.textTheme.ppMori400Grey12,
+          style: theme.textTheme.moMASans400Grey12,
         ),
         Row(
           children: [
             Text(
               sendingTrip.sentLocation ?? "",
-              style: theme.textTheme.ppMori400Black14,
+              style: theme.textTheme.moMASans400Black14,
             ),
           ],
         ),
@@ -804,13 +805,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(width: 6),
             Text(
               "waiting_for_recipient".tr(),
-              style: theme.textTheme.ppMori400Black14
+              style: theme.textTheme.moMASans400Black14
                   .copyWith(color: AppColor.auQuickSilver),
             ),
             const Spacer(),
             GestureDetector(
               child: Text("resend_".tr(),
-                  style: theme.textTheme.ppMori400SupperTeal12
+                  style: theme.textTheme.moMASans400Black12
                       .copyWith(color: const Color.fromRGBO(131, 79, 196, 1))),
               onTap: () {
                 _sharePostcard(asset);

@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/text_theme_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -281,12 +282,12 @@ class _DesignStampPageState extends State<DesignStampPage> {
             children: [
               Text(
                 location,
-                style: theme.textTheme.ppMori400White14,
+                style: theme.textTheme.moMASans400White14,
               ),
               const Spacer(),
               Text(
                 date,
-                style: theme.textTheme.ppMori400White14,
+                style: theme.textTheme.moMASans400White14,
               ),
             ],
           ),

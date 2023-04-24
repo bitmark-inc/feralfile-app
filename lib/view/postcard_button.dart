@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/text_theme_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -59,7 +60,7 @@ class PostcardButton extends StatelessWidget {
                     : const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.ppMori700Black14
+                  style: theme.textTheme.moMASans700Black14
                       .copyWith(color: textColor),
                 ),
               ],
@@ -129,7 +130,7 @@ class PostcardOutlineButton extends StatelessWidget {
                     : const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.ppMori400White14.copyWith(
+                  style: theme.textTheme.moMASans400White14.copyWith(
                       color: textColor ??
                           (!enabled ? AppColor.disabledColor : null)),
                 ),

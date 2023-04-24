@@ -248,3 +248,10 @@ flutter:
     - family: AuIcon
       fonts:
         - asset: assets/fonts/AuIcon.ttf
+
+    - family: MoMASans
+      fonts:
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold-Italic.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular-Italic.otf
