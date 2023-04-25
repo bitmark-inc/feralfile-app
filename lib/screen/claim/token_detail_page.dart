@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -72,6 +73,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: HtmlWidget(
+                  customStylesBuilder: auHtmlStyle,
                   artwork.description ?? '',
                   textStyle: theme.primaryTextTheme.bodyLarge,
                 ),
