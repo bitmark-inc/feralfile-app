@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -84,6 +85,8 @@ class HomePageState extends State<HomePage>
   late ScrollController _controller;
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
+
+  final _collectionProKey = GlobalKey<CollectionProState>();
 
   late Timer _timer;
 
@@ -243,17 +246,28 @@ class HomePageState extends State<HomePage>
         return true;
       },
       builder: (context, state) {
-        return NftCollectionGrid(
-          state: state.state,
-          tokens: _updateTokens(state.tokens.items),
-          loadingIndicatorBuilder: _loadingView,
-          emptyGalleryViewBuilder: _emptyGallery,
-          customGalleryViewBuilder: (context, tokens) =>
-              _assetsWidget(context, tokens),
+        return FutureBuilder(
+          future: injector.get<IAPService>().isSubscribed(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data == true) {
+              return CollectionPro(
+                key: _collectionProKey,
+              );
+            }
+            return NftCollectionGrid(
+              state: state.state,
+              tokens: _updateTokens(state.tokens.items),
+              loadingIndicatorBuilder: _loadingView,
+              emptyGalleryViewBuilder: _emptyGallery,
+              customGalleryViewBuilder: (context, tokens) =>
+                  _assetsWidget(context, tokens),
+            );
+          },
         );
       },
       listener: (context, state) async {
         log.info("[NftCollectionBloc] State update $state");
+        _collectionProKey.currentState?.loadCollection();
         if (state.state == NftLoadingState.done) {
           _onTokensUpdate(state.tokens.items);
         }

@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/album/album_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
@@ -106,6 +107,7 @@ Future<void> setup() async {
     migrateV12ToV13,
     migrateV13ToV14,
     migrateV14ToV15,
+    migrateV15ToV16,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -327,6 +329,7 @@ Future<void> setup() async {
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector.registerFactory<CollectionProBloc>(() => CollectionProBloc());
+  injector.registerFactory<AlbumBloc>(() => AlbumBloc());
 }
 
 Dio _feralFileDio(BaseOptions options) {

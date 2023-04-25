@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
@@ -35,6 +34,7 @@ import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
+import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -133,6 +133,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
@@ -216,6 +217,7 @@ class AppRouter {
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const collectionProPage = 'collection_pro_page';
+  static const albumPage = 'album_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -281,7 +283,7 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                        IdentityBloc(NftCollection.database, injector())),
               ],
               child: PreviewPrimerPage(
                 token: settings.arguments as AssetToken,
@@ -735,7 +737,7 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (_) => IdentityBloc(
-                    injector<AppDatabase>(),
+                    NftCollection.database,
                     injector(),
                   ),
                 ),
@@ -764,8 +766,11 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
-                      create: (_) =>
-                          IdentityBloc(injector<AppDatabase>(), injector())),
+                    create: (_) => IdentityBloc(
+                      NftCollection.database,
+                      injector(),
+                    ),
+                  ),
                 ],
                 child: FeedArtworkDetailsPage(
                   payload: settings.arguments as FeedDetailPayload,
@@ -998,8 +1003,11 @@ class AppRouter {
                         injector(),
                         (settings.arguments as SendArtworkPayload).asset)),
                 BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                  create: (_) => IdentityBloc(
+                    NftCollection.database,
+                    injector(),
+                  ),
+                ),
               ],
               child: SendArtworkPage(
                   payload: settings.arguments as SendArtworkPayload)),
@@ -1009,8 +1017,10 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) =>
-                      IdentityBloc(injector<AppDatabase>(), injector()),
+                  create: (_) => IdentityBloc(
+                    NftCollection.database,
+                    injector(),
+                  ),
                   child: SendArtworkReviewPage(
                       payload: settings.arguments as SendArtworkReviewPayload),
                 ));
@@ -1136,7 +1146,7 @@ class AppRouter {
               return MultiBlocProvider(providers: [
                 BlocProvider(
                     create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                        IdentityBloc(NftCollection.database, injector())),
               ], child: const DataManagementPage());
             });
       case helpUsPage:
@@ -1183,7 +1193,17 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
-              return const CollectionProScreen();
+              return const CollectionPro();
+            });
+
+      case albumPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              final payload = settings.arguments as AlbumScreenPayload;
+              return AlbumScreen(
+                payload: payload,
+              );
             });
 
       default:

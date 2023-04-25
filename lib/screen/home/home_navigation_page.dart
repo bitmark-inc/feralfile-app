@@ -188,8 +188,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             return EditorialPage(
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
           }),
-      // HomePage(key: _homePageKey),
-      const CollectionProScreen(),
+      HomePage(key: _homePageKey),
       MultiBlocProvider(
         providers: [
           BlocProvider.value(

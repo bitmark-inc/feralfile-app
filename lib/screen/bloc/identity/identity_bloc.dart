@@ -6,21 +6,22 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/graphql/model/identity.dart';
+import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 part 'identity_state.dart';
 
 class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
-  final AppDatabase _appDB;
+  final NftCollectionDatabase _nftCollectionDatabase;
   final IndexerService _indexerService;
 
   static const localIdentityCacheDuration = Duration(days: 1);
 
-  IdentityBloc(this._appDB, this._indexerService) : super(IdentityState({})) {
+  IdentityBloc(this._nftCollectionDatabase, this._indexerService)
+      : super(IdentityState({})) {
     on<GetIdentityEvent>((event, emit) async {
       try {
         Map<String, String> resultFromDB = {};
@@ -32,8 +33,8 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
             return;
           }
 
-          final identity =
-              await _appDB.identityDao.findByAccountNumber(address);
+          final identity = await _nftCollectionDatabase.identityDao
+              .findByAccountNumber(address);
           if (identity != null) {
             if (identity.queriedAt
                     .add(localIdentityCacheDuration)
@@ -47,7 +48,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
               resultFromDB[address] = identity.name;
             } else {
               // Remove those item from the database
-              await _appDB.identityDao.deleteIdentity(identity);
+              await _nftCollectionDatabase.identityDao.deleteIdentity(identity);
               // Re-query from the API
               unknownIdentities.add(address);
             }
@@ -70,8 +71,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
             final request = QueryIdentityRequest(account: address as String);
             final identity = await _indexerService.getIdentity(request);
             resultFromAPI[address] = identity.name;
-            _appDB.identityDao.insertIdentity(Identity(
-                identity.accountNumber, identity.blockchain, identity.name));
+            _nftCollectionDatabase.identityDao.insertIdentity(identity);
           } catch (_) {
             // Ignore bad API responses
             return;
@@ -96,7 +96,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
         try {
           final request = QueryIdentityRequest(account: address as String);
           final identity = await _indexerService.getIdentity(request);
-          _appDB.identityDao.insertIdentity(Identity(
+          _nftCollectionDatabase.identityDao.insertIdentity(Identity(
               identity.accountNumber, identity.blockchain, identity.name));
         } catch (_) {
           // Ignore bad API responses
@@ -106,7 +106,7 @@ class IdentityBloc extends AuBloc<IdentityEvent, IdentityState> {
     });
 
     on<RemoveAllEvent>((event, emit) async {
-      await _appDB.identityDao.removeAll();
+      await _nftCollectionDatabase.identityDao.removeAll();
     });
   }
 }

@@ -61,8 +61,6 @@ class _$AppDatabase extends AppDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
-  IdentityDao? _identityDaoInstance;
-
   DraftCustomerSupportDao? _draftCustomerSupportDaoInstance;
 
   AnnouncementLocalDao? _announcementDaoInstance;
@@ -73,7 +71,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 15,
+      version: 16,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -89,8 +87,6 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Identity` (`accountNumber` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `name` TEXT NOT NULL, `queriedAt` INTEGER NOT NULL, PRIMARY KEY (`accountNumber`))');
-        await database.execute(
             'CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementContextId`))');
@@ -99,11 +95,6 @@ class _$AppDatabase extends AppDatabase {
       },
     );
     return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
-  }
-
-  @override
-  IdentityDao get identityDao {
-    return _identityDaoInstance ??= _$IdentityDao(database, changeListener);
   }
 
   @override
@@ -119,96 +110,11 @@ class _$AppDatabase extends AppDatabase {
   }
 }
 
-class _$IdentityDao extends IdentityDao {
-  _$IdentityDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
-        _identityInsertionAdapter = InsertionAdapter(
-            database,
-            'Identity',
-            (Identity item) => <String, Object?>{
-                  'accountNumber': item.accountNumber,
-                  'blockchain': item.blockchain,
-                  'name': item.name,
-                  'queriedAt': _dateTimeConverter.encode(item.queriedAt)
-                }),
-        _identityUpdateAdapter = UpdateAdapter(
-            database,
-            'Identity',
-            ['accountNumber'],
-            (Identity item) => <String, Object?>{
-                  'accountNumber': item.accountNumber,
-                  'blockchain': item.blockchain,
-                  'name': item.name,
-                  'queriedAt': _dateTimeConverter.encode(item.queriedAt)
-                }),
-        _identityDeletionAdapter = DeletionAdapter(
-            database,
-            'Identity',
-            ['accountNumber'],
-            (Identity item) => <String, Object?>{
-                  'accountNumber': item.accountNumber,
-                  'blockchain': item.blockchain,
-                  'name': item.name,
-                  'queriedAt': _dateTimeConverter.encode(item.queriedAt)
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<Identity> _identityInsertionAdapter;
-
-  final UpdateAdapter<Identity> _identityUpdateAdapter;
-
-  final DeletionAdapter<Identity> _identityDeletionAdapter;
-
-  @override
-  Future<List<Identity>> getIdentities() async {
-    return _queryAdapter.queryList('SELECT * FROM Identity',
-        mapper: (Map<String, Object?> row) => Identity(
-            row['accountNumber'] as String,
-            row['blockchain'] as String,
-            row['name'] as String));
-  }
-
-  @override
-  Future<Identity?> findByAccountNumber(String accountNumber) async {
-    return _queryAdapter.query(
-        'SELECT * FROM Identity WHERE accountNumber = ?1',
-        mapper: (Map<String, Object?> row) => Identity(
-            row['accountNumber'] as String,
-            row['blockchain'] as String,
-            row['name'] as String),
-        arguments: [accountNumber]);
-  }
-
-  @override
-  Future<void> removeAll() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM Identity');
-  }
-
-  @override
-  Future<void> insertIdentity(Identity identity) async {
-    await _identityInsertionAdapter.insert(
-        identity, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> updateIdentity(Identity identity) async {
-    await _identityUpdateAdapter.update(identity, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> deleteIdentity(Identity identity) async {
-    await _identityDeletionAdapter.delete(identity);
-  }
-}
-
 class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
-  _$DraftCustomerSupportDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$DraftCustomerSupportDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _draftCustomerSupportInsertionAdapter = InsertionAdapter(
             database,
             'DraftCustomerSupport',
@@ -300,7 +206,10 @@ class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
   }
 
   @override
-  Future<void> updateIssueID(String oldIssueID, String newIssueID) async {
+  Future<void> updateIssueID(
+    String oldIssueID,
+    String newIssueID,
+  ) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE DraftCustomerSupport SET issueID = ?2 WHERE issueID = ?1',
         arguments: [oldIssueID, newIssueID]);

@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -35,7 +34,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gif_view/gif_view.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -62,7 +61,11 @@ class FeedPreviewPage extends StatelessWidget {
             ),
           ),
           BlocProvider(
-              create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
+            create: (_) => IdentityBloc(
+              NftCollection.database,
+              injector(),
+            ),
+          ),
         ],
         child: FeedPreviewScreen(
           controller: controller,
@@ -185,7 +188,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
           height: 15,
         ),
         BlocProvider(
-          create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
+          create: (_) => IdentityBloc(
+            NftCollection.database,
+            injector(),
+          ),
           child: Align(
               alignment: Alignment.topCenter,
               child:
