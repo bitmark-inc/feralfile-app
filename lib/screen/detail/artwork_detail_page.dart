@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -318,6 +319,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       Semantics(
                         label: 'Desc',
                         child: HtmlWidget(
+                          customStylesBuilder: auHtmlStyle,
                           asset.description ?? "",
                           textStyle: theme.textTheme.ppMori400White14,
                         ),

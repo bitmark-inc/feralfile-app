@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:html/dom.dart' as dom;
 
 TextStyle makeLinkStyle(TextStyle style) {
   final color = style.color ?? AppColor.primaryBlack;
@@ -603,4 +604,17 @@ void disableLandscapeMode() {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+}
+
+Map<String, String>? auHtmlStyle(dom.Element element) {
+  if (element.localName == "a") {
+    const linkColor = AppColor.auSuperTeal;
+    // convert linkColor to hex string
+    String hexColor = linkColor.value.toRadixString(16);
+    return {
+      "color": "#${hexColor.substring(2, hexColor.length)}",
+      "text-decoration": "none",
+    };
+  }
+  return null;
 }

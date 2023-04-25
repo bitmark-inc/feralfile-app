@@ -32,6 +32,8 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
+import '../../util/style.dart';
+
 class FeedArtworkDetailsPage extends StatefulWidget {
   final FeedDetailPayload payload;
 
@@ -252,6 +254,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
                       debugInfoWidget(context, assetToken),
                       const SizedBox(height: 40.0),
                       HtmlWidget(
+                        customStylesBuilder: auHtmlStyle,
                         assetToken?.description ?? "",
                         textStyle: theme.textTheme.ppMori400White14,
                       ),
