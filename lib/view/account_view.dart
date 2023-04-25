@@ -332,7 +332,7 @@ Widget _appLogo(Connection connection) {
   }
 }
 
-Widget linkedBox(BuildContext context) {
+Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
   final theme = Theme.of(context);
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
@@ -343,9 +343,7 @@ Widget linkedBox(BuildContext context) {
         )),
     child: Text(
       "linked".tr(),
-      style: ResponsiveLayout.isMobile
-          ? theme.textTheme.ppMori400Grey12
-          : theme.textTheme.ppMori400Grey14,
+      style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
     ),
   );
 }
