@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -29,6 +30,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 
 class TBSignMessagePage extends StatefulWidget {
@@ -59,16 +61,14 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future fetchPersona() async {
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      for (final persona in personas) {
-        final index =
-            await persona.getTezAddressIndex(widget.request.sourceAddress!);
-        if (index != null) {
-          currentWallet = WalletIndex(persona.wallet(), index);
-          break;
-        }
+      final walletAddress = await injector<CloudDatabase>()
+          .addressDao
+          .findByAddress(widget.request.sourceAddress!);
+      if (walletAddress != null) {
+        currentWallet =
+            WalletIndex(WalletStorage(walletAddress.uuid), walletAddress.index);
       }
     }
 
@@ -115,6 +115,33 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         signature,
       );
     }
+  }
+
+  _sign(Uint8List message) async {
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      return;
+    }
+    final signature = await injector<TezosService>()
+        .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
+    await _approveRequest(signature: signature);
+    if (!mounted) return;
+
+    final metricClient = injector.get<MetricClientService>();
+
+    metricClient.addEvent(
+      "Sign In",
+      hashedData: {"uuid": widget.request.id},
+    );
+    Navigator.of(context).pop(true);
+    showInfoNotification(
+      const Key("signed"),
+      "signed".tr(),
+      frontWidget: SvgPicture.asset(
+        "assets/images/checkbox_icon.svg",
+        width: 24,
+      ),
+    );
   }
 
   @override
@@ -195,31 +222,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       child: PrimaryButton(
                         text: "sign".tr(),
                         onTap: _currentPersona != null
-                            ? () => withDebounce(() async {
-                                  final signature =
-                                      await injector<TezosService>()
-                                          .signMessage(_currentPersona!.wallet,
-                                              _currentPersona!.index, message);
-                                  await _approveRequest(signature: signature);
-                                  if (!mounted) return;
-
-                                  final metricClient =
-                                      injector.get<MetricClientService>();
-
-                                  metricClient.addEvent(
-                                    "Sign In",
-                                    hashedData: {"uuid": widget.request.id},
-                                  );
-                                  Navigator.of(context).pop(true);
-                                  showInfoNotification(
-                                    const Key("signed"),
-                                    "signed".tr(),
-                                    frontWidget: SvgPicture.asset(
-                                      "assets/images/checkbox_icon.svg",
-                                      width: 24,
-                                    ),
-                                  );
-                                })
+                            ? () => withDebounce(() => _sign(message))
                             : null,
                       ),
                     )

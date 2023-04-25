@@ -232,7 +232,20 @@ enum CryptoType {
   ETH,
   XTZ,
   USDC,
-  UNKNOWN,
+  UNKNOWN;
+
+  static CryptoType fromSource(String source) {
+    switch (source) {
+      case "Ethereum":
+        return CryptoType.ETH;
+      case "Tezos":
+        return CryptoType.XTZ;
+      case "USDC":
+        return CryptoType.USDC;
+      default:
+        return CryptoType.UNKNOWN;
+    }
+  }
 }
 
 enum AnnouncementID {
@@ -378,6 +391,7 @@ class MixpanelEvent {
   static const pressTipcard = "press_tip_card";
   static const tapLinkInTipCard = "tap_link_in_tip_card";
   static const hideAddress = "hide_address";
+  static const hideAddresses = "hide_addresses";
 }
 
 class MixpanelProp {

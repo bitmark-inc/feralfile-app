@@ -9,14 +9,13 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -35,7 +34,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -73,6 +71,71 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     });
   }
 
+  void _send() async {
+    setState(() {
+      _isSending = true;
+    });
+    metricClient.addEvent(MixpanelEvent.confirmTransaction);
+
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      setState(() {
+        _isSending = false;
+      });
+      return;
+    }
+
+    try {
+      final wc2Topic = widget.request.wc2Topic;
+
+      final txHash = await injector<TezosService>().sendOperationTransaction(
+          _currentWallet!.wallet,
+          _currentWallet!.index,
+          widget.request.operations!,
+          baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
+
+      if (wc2Topic != null) {
+        _wc2Service.respondOnApprove(
+          wc2Topic,
+          txHash ?? "",
+        );
+      } else {
+        injector<TezosBeaconService>()
+            .operationResponse(widget.request.id, txHash);
+      }
+
+      final address = widget.request.sourceAddress;
+      if (address != null) {
+        injector<PendingTokenService>()
+            .checkPendingTezosTokens(address)
+            .then((tokens) {
+          if (tokens.isNotEmpty) {
+            NftCollectionBloc.eventController
+                .add(UpdateTokensEvent(tokens: tokens));
+          }
+        });
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop(txHash);
+    } on TezartNodeError catch (err) {
+      log.info(err);
+      if (!mounted) return;
+      UIHelper.showInfoDialog(
+        context,
+        "operation_failed".tr(),
+        getTezosErrorMessage(err),
+        isDismissible: true,
+      );
+    } catch (err) {
+      showErrorDialogFromException(err);
+      log.warning(err);
+    }
+
+    setState(() {
+      _isSending = false;
+    });
+  }
+
   int _totalAmount = 0;
 
   @override
@@ -90,16 +153,14 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   Future fetchPersona() async {
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      for (final persona in personas) {
-        final index =
-            await persona.getTezAddressIndex(widget.request.sourceAddress!);
-        if (index != null) {
-          currentWallet = WalletIndex(persona.wallet(), index);
-          break;
-        }
+      final walletAddress = await injector<CloudDatabase>()
+          .addressDao
+          .findByAddress(widget.request.sourceAddress!);
+      if (walletAddress != null) {
+        currentWallet =
+            WalletIndex(WalletStorage(walletAddress.uuid), walletAddress.index);
       }
     }
 
@@ -374,91 +435,19 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                   ),
                   Container(
                     padding: padding,
-                    child: PrimaryButton(
-                      text: "sendH".tr(),
-                      onTap: (_currentWallet != null &&
-                              _fee != null &&
-                              !_isSending)
-                          ? () async {
-                              setState(() {
-                                _isSending = true;
-                              });
-                              metricClient
-                                  .addEvent(MixpanelEvent.confirmTransaction);
-
-                              final configurationService =
-                                  injector<ConfigurationService>();
-
-                              if (configurationService
-                                      .isDevicePasscodeEnabled() &&
-                                  await authenticateIsAvailable()) {
-                                final localAuth = LocalAuthentication();
-                                final didAuthenticate =
-                                    await localAuth.authenticate(
-                                        localizedReason:
-                                            "authen_for_autonomy".tr());
-                                if (!didAuthenticate) {
-                                  setState(() {
-                                    _isSending = false;
-                                  });
-                                  return;
-                                }
-                              }
-
-                              try {
-                                final txHash = await injector<TezosService>()
-                                    .sendOperationTransaction(
-                                        _currentWallet!.wallet,
-                                        _currentWallet!.index,
-                                        widget.request.operations!,
-                                        baseOperationCustomFee: feeOption
-                                            .tezosBaseOperationCustomFee);
-
-                                if (wc2Topic != null) {
-                                  _wc2Service.respondOnApprove(
-                                    wc2Topic,
-                                    txHash ?? "",
-                                  );
-                                } else {
-                                  injector<TezosBeaconService>()
-                                      .operationResponse(
-                                          widget.request.id, txHash);
-                                }
-
-                                final address = widget.request.sourceAddress;
-                                if (address != null) {
-                                  injector<PendingTokenService>()
-                                      .checkPendingTezosTokens(address)
-                                      .then((tokens) {
-                                    if (tokens.isNotEmpty) {
-                                      NftCollectionBloc.eventController.add(
-                                          UpdateTokensEvent(tokens: tokens));
-                                    }
-                                  });
-                                }
-                                if (!mounted) return;
-                                Navigator.of(context).pop(txHash);
-                              } on TezartNodeError catch (err) {
-                                log.info(err);
-                                final message = getTezosErrorMessage(err);
-
-                                if (!mounted) return;
-                                UIHelper.showInfoDialog(
-                                  context,
-                                  "operation_failed".tr(),
-                                  message,
-                                  isDismissible: true,
-                                );
-                              } catch (err) {
-                                showErrorDialogFromException(err);
-                                log.warning(err);
-                              }
-
-                              setState(() {
-                                _isSending = false;
-                              });
-                            }
-                          : null,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            text: "sendH".tr(),
+                            onTap: (_currentWallet != null &&
+                                    _fee != null &&
+                                    !_isSending)
+                                ? _send
+                                : null,
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ],

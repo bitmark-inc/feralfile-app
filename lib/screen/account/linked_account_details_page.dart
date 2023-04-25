@@ -7,23 +7,25 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/svg.dart';
@@ -39,7 +41,8 @@ class LinkedAccountDetailsPage extends StatefulWidget {
       _LinkedAccountDetailsPageState();
 }
 
-class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
+class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
+    with RouteAware {
   final Map<String, String> _balances = {};
   List<ContextedAddress> contextAddresses = [];
   String _source = '';
@@ -144,6 +147,24 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     switch (widget.connection.connectionType) {
       case 'feralFileWeb3':
@@ -207,7 +228,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               : "linked_address".tr(),
           style: theme.textTheme.ppMori400Black16,
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 20),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -235,7 +256,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       {required String address, required balanceString}) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400Grey14;
-    final isHidden =
+    final isHideGalleryEnabled =
         injector<AccountService>().isLinkedAccountHiddenInGallery(address);
     return Slidable(
       endActionPane: ActionPane(
@@ -243,43 +264,36 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         dragDismissible: false,
         children: slidableActions(address),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(type.source, style: theme.textTheme.ppMori700Black14),
-              const Expanded(child: SizedBox()),
-              if (isHidden) ...[
-                SvgPicture.asset(
-                  'assets/images/hide.svg',
-                  color: theme.colorScheme.surface,
-                ),
-                const SizedBox(width: 10),
-              ],
-              Text(balanceString, style: balanceStyle),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    showInfoNotification(
-                        const Key("address"), "copied_to_clipboard".tr());
-                    Clipboard.setData(ClipboardData(text: address));
-                  },
-                  child: Text(
-                    address,
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                ),
+      child: TappableForwardRowWithContent(
+        leftWidget: Text(type.source, style: theme.textTheme.ppMori700Black14),
+        rightWidget: Row(
+          children: [
+            if (isHideGalleryEnabled) ...[
+              SvgPicture.asset(
+                'assets/images/hide.svg',
+                color: theme.colorScheme.surface,
               ),
+              const SizedBox(width: 10),
             ],
-          )
-        ]),
+            Text(balanceString, style: balanceStyle),
+          ],
+        ),
+        bottomWidget: Text(
+          address,
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        onTap: () async {
+          final payload = LinkedWalletDetailsPayload(
+            connectionKey: widget.connection.key,
+            address: address,
+            type: type,
+            personaName: widget.connection.name.isNotEmpty
+                ? widget.connection.name.maskIfNeeded()
+                : widget.connection.accountNumber,
+          );
+          Navigator.of(context)
+              .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
+        },
       ),
     );
   }

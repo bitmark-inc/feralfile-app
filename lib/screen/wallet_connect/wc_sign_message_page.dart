@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -230,6 +231,11 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             child: PrimaryButton(
               text: "sign".tr(),
               onTap: () => withDebounce(() async {
+                final didAuthenticate =
+                    await LocalAuthenticationService.checkLocalAuth();
+                if (!didAuthenticate) {
+                  return;
+                }
                 final args = widget.args;
                 final wc2Params = args.wc2Params;
                 final WalletIndex wallet;

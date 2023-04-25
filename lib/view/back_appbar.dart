@@ -74,7 +74,10 @@ AppBar getBackAppBar(BuildContext context,
 }
 
 AppBar getCloseAppBar(BuildContext context,
-    {String title = "", required Function()? onClose, Widget? icon}) {
+    {String title = "",
+    required Function()? onClose,
+    Widget? icon,
+    bool withBottomDivider = true}) {
   final theme = Theme.of(context);
 
   return AppBar(
@@ -102,9 +105,11 @@ AppBar getCloseAppBar(BuildContext context,
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
-    bottom: PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(),
-    ),
+    bottom: withBottomDivider
+        ? PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: addOnlyDivider(),
+          )
+        : null,
   );
 }

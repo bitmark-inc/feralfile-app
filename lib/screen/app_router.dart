@@ -96,6 +96,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
@@ -174,6 +175,7 @@ class AppRouter {
   static const connectionDetailsPage = 'connection_details';
   static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
+  static const linkedWalletDetailsPage = 'linked_wallet_detail';
   static const scanQRPage = 'qr_scanner';
   static const globalReceivePage = 'global_receive';
   static const recoveryPhrasePage = 'recovery_phrase';
@@ -560,7 +562,6 @@ class AppRouter {
               injector(),
               injector(),
               injector(),
-              injector(),
             ),
             child: WCSendTransactionPage(
                 args: settings.arguments as WCSendTransactionPageArgs),
@@ -683,6 +684,24 @@ class AppRouter {
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
                 ));
+      case linkedWalletDetailsPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider.value(value: accountsBloc),
+                    BlocProvider.value(value: ethereumBloc),
+                    BlocProvider.value(value: tezosBloc),
+                    BlocProvider.value(value: usdcBloc),
+                    BlocProvider(
+                        create: (_) => WalletDetailBloc(
+                            injector(), injector(), injector())),
+                    BlocProvider(create: (_) => TZKTTransactionBloc()),
+                  ],
+                  child: LinkedWalletDetailPage(
+                      payload:
+                          settings.arguments as LinkedWalletDetailsPayload),
+                ));
       case SendCryptoPage.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -756,9 +775,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider(
-                          create: (_) => GalleryBloc(
-                                injector(),
-                              )),
+                          create: (_) => GalleryBloc(injector(), injector())),
                       BlocProvider(
                           create: (_) => IdentityBloc(injector(), injector())),
                     ],
