@@ -16,7 +16,8 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -119,21 +120,19 @@ class VersionService {
           return false;
         },
         child: Column(children: [
-          Text("newer_version".tr(), style: theme.primaryTextTheme.bodyLarge),
+          Text("newer_version".tr(), style: theme.textTheme.ppMori400White14),
           const SizedBox(height: 35),
           Row(
             children: [
               Expanded(
-                child: AuFilledButton(
+                child: PrimaryButton(
                   text: "update".tr(),
-                  onPress: () {
+                  onTap: () {
                     final uri = Uri.tryParse(link);
                     if (uri != null) {
                       launchUrl(uri, mode: LaunchMode.externalApplication);
                     }
                   },
-                  color: theme.colorScheme.secondary,
-                  textStyle: theme.textTheme.labelLarge,
                 ),
               ),
             ],
