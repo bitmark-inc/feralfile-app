@@ -610,9 +610,10 @@ Map<String, String>? auHtmlStyle(dom.Element element) {
   if (element.localName == "a") {
     const linkColor = AppColor.auSuperTeal;
     // convert linkColor to hex string
-    String hexColor = linkColor.value.toRadixString(16);
+    String hexColor =
+        "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";
     return {
-      "color": "#${hexColor.substring(2, hexColor.length)}",
+      "color": hexColor,
       "text-decoration": "none",
     };
   }
