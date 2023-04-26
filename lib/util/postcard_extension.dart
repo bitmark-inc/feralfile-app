@@ -12,7 +12,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
   }
 
   bool get isFinal {
-    return locationInformation.length == 15;
+    return locationInformation.length == MAX_STAMP_IN_POSTCARD;
   }
 
   bool get isCompleted {
@@ -30,8 +30,8 @@ extension PostcardMetadataExtension on PostcardMetadata {
           .copyWith(from: stamps[0].copyWith(stampedLocation: moMALocation));
     }
 
-    if (travelInfo.length > 14) {
-      travelInfo.removeLast();
+    if (isCompleted) {
+      travelInfo.add(TravelInfo(stamps.last, null, stamps.length));
     }
     return travelInfo;
   }

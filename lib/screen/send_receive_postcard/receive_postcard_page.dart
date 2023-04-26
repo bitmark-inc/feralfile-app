@@ -120,7 +120,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                     horizontal: 15,
                                   ),
                                   child: AspectRatio(
-                                    aspectRatio: 1405 / 981,
+                                    aspectRatio: 355 / 265,
                                     child: Stack(
                                       children: [
                                         PostcardViewWidget(

@@ -38,14 +38,10 @@ class SharePostcardRequest {
 class SharedPostcardInfor {
   String shareCode;
   String tokenID;
-  String imageCID;
   String id;
 
   SharedPostcardInfor(
-      {required this.shareCode,
-      required this.tokenID,
-      required this.imageCID,
-      required this.id});
+      {required this.shareCode, required this.tokenID, required this.id});
 
   factory SharedPostcardInfor.fromJson(Map<String, dynamic> json) =>
       _$SharedPostcardInforFromJson(json);

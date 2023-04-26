@@ -123,8 +123,8 @@ class ArtworkData {
 }
 
 class UserLocations {
-  final Location? claimedLocation;
-  final Location? stampedLocation;
+  Location? claimedLocation;
+  Location? stampedLocation;
 
   // constructor
   UserLocations({this.claimedLocation, this.stampedLocation});

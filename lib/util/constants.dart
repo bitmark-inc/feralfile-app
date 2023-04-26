@@ -78,6 +78,8 @@ const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
 final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 
+const int MAX_STAMP_IN_POSTCARD = 15;
+
 const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
     "https://gateway.autonomy.io/ipfs/Qma6WKe6gwmVgmG447ipwCH1itniwM8ahyszL4XtqgY7EE";
 const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =

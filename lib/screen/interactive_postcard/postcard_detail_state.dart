@@ -10,6 +10,9 @@ import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
@@ -48,10 +51,10 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   bool get isLoaded => assetToken != null && postcardValue != null;
 
   bool get isFinal {
-    return isLoaded && postcardValue!.counter >= 14;
+    return isLoaded && postcardValue!.counter == MAX_STAMP_IN_POSTCARD;
   }
 
-  bool isCompleted(PostcardValue? postcardValue) {
+  bool get isCompleted {
     final isStamped = postcardValue?.stamped ?? false;
     return isFinal && isStamped;
   }
@@ -83,6 +86,10 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     });
   }
 
+  bool get isPostcardUpdating {
+    return isStamped != assetToken?.postcardMetadata.isStamped || isStamping();
+  }
+
   bool get isStamped {
     return postcardValue?.stamped ?? false;
   }
@@ -93,9 +100,9 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     return lastOwner == owner;
   }
 
-  bool get canShare {
+  bool get canDoAction {
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;
-    return lastOwner == owner;
+    return lastOwner == owner && !isCompleted;
   }
 }

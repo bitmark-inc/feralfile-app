@@ -227,7 +227,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
     return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
-        listener: (context, state) async {
+        listenWhen: (previous, current) {
+      if (previous.isCompleted != true && current.isCompleted == true) {
+        _youDidIt(context, current.assetToken!);
+      }
+      return true;
+    }, listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
@@ -244,9 +249,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             withSharing = false;
           });
         }
-        if (state.assetToken!.postcardMetadata.isCompleted) {
-          _youDidIt(context, state.assetToken!);
-        }
+
         if (state.isStamping()) {
           const duration = Duration(seconds: 10);
           timer?.cancel();
@@ -280,7 +283,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final stampingPostcard = postcardService
             .getStampingPostcardWithPath(state.assetToken!.stampingPostcard!);
         if (stampingPostcard != null) {
-          if (state.canShare &&
+          if (state.canDoAction &&
               stampingPostcard.counter == asset.postcardMetadata.counter) {
             final isStamped = asset.postcardMetadata.isStamped;
             if (!isStamped) {
@@ -444,35 +447,34 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _postcardAction(PostcardDetailState state) {
     final asset = state.assetToken!;
     final isStamped = state.isStamped;
-    if (asset.postcardMetadata.isCompleted) {
+    if (asset.postcardMetadata.isCompleted || !state.isLastOwner) {
       return const SizedBox();
     }
-    if (state.canShare) {
-      if (!isStamped) {
-        if (state.isStamping()) {
-          return PostcardButton(
-            text: "updating_token".tr(),
-            enabled: false,
-            onTap: () {},
-          );
-        }
-        return PostcardButton(
-          text: "stamp_postcard".tr(),
-          onTap: () {
-            Navigator.of(context).pushNamed(AppRouter.postcardExplain,
-                arguments: PostcardExplainPayload(asset));
-          },
-        );
-      } else if (!state.isSending()) {
-        timer?.cancel();
-        return PostcardButton(
-          text: "invite_to_collaborate".tr(),
-          onTap: () async {
-            await _sharePostcard(asset);
-            setState(() {});
-          },
-        );
-      }
+    if (state.isPostcardUpdating) {
+      return PostcardButton(
+        text: "updating_token".tr(),
+        enabled: false,
+        onTap: () {},
+      );
+    }
+    if (!isStamped) {
+      return PostcardButton(
+        text: "stamp_postcard".tr(),
+        onTap: () {
+          Navigator.of(context).pushNamed(AppRouter.postcardExplain,
+              arguments: PostcardExplainPayload(asset));
+        },
+      );
+    }
+    if (!state.isSending()) {
+      timer?.cancel();
+      return PostcardButton(
+        text: "invite_to_collaborate".tr(),
+        onTap: () async {
+          await _sharePostcard(asset);
+          setState(() {});
+        },
+      );
     }
 
     return const SizedBox();
@@ -686,7 +688,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ],
               ),
               addDivider(height: 30, color: AppColor.auGreyBackground),
-              if (postcardDetailState.isLastOwner)
+              if (postcardDetailState.canDoAction)
                 if (postcardDetailState.isSending())
                   _sendingTripItem(context, asset!, travelInfo)
                 else

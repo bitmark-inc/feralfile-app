@@ -11,6 +11,7 @@ class AllConfettiWidget extends StatefulWidget {
     Key? key,
     required this.controller,
   }) : super(key: key);
+
   @override
   State<AllConfettiWidget> createState() => _AllConfettiWidgetState();
 }
@@ -44,7 +45,6 @@ class _AllConfettiWidgetState extends State<AllConfettiWidget> {
         confettiController: widget.controller,
         colors: moMAColors,
         blastDirectionality: BlastDirectionality.explosive,
-        shouldLoop: true,
         emissionFrequency: 0.0,
         numberOfParticles: 50,
       ),
