@@ -61,7 +61,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                 ),
               ),
               const SizedBox(height: 24),
-              ListView.separated(
+              ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: ((context, index) => Container(
@@ -69,9 +69,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                         child: accountWithConnectionItem(
                             context, categorizedAccounts[index]),
                       )),
-                  separatorBuilder: ((context, index) => addOnlyDivider()),
                   itemCount: categorizedAccounts.length),
-              addOnlyDivider(),
             ],
           ),
         );
