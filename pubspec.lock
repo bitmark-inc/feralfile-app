@@ -2597,6 +2597,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  version_check:
+    dependency: "direct main"
+    description:
+      name: version_check
+      sha256: e75605bbffbcc1a72a97414cbbca63e88fd970d4fcbb0b740dc59bb88d354e70
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
   video_player:
     dependency: transitive
     description:
