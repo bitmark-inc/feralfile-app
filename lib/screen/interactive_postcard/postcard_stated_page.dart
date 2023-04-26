@@ -1,6 +1,8 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -9,16 +11,35 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
-class PostcardStartedPage extends StatelessWidget {
+class PostcardStartedPage extends StatefulWidget {
   final AssetToken assetToken;
 
-  const PostcardStartedPage({Key? key, required this.assetToken})
-      : super(key: key);
+  const PostcardStartedPage({super.key, required this.assetToken});
+
+  @override
+  State<StatefulWidget> createState() {
+    return _PostcardStartedPageState();
+  }
+}
+
+class _PostcardStartedPageState extends State<PostcardStartedPage>
+    with RouteAware {
+  @override
+  void initState() {
+    super.initState();
+    injector<ConfigurationService>().setAutoShowPostcard(false);
+  }
+
+  @override
+  void dispose() {
+    injector<ConfigurationService>().setAutoShowPostcard(true);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final asset = assetToken;
+    final asset = widget.assetToken;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       appBar: AppBar(
@@ -39,7 +60,9 @@ class PostcardStartedPage extends StatelessWidget {
           Semantics(
             label: 'close_icon',
             child: IconButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context);
+              },
               constraints: const BoxConstraints(
                 maxWidth: 44,
                 maxHeight: 44,
@@ -63,7 +86,7 @@ class PostcardStartedPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              PostcardRatio(assetToken: assetToken),
+              PostcardRatio(assetToken: widget.assetToken),
               PostcardButton(
                 text: "get_started".tr(),
                 onTap: () {
@@ -79,6 +102,6 @@ class PostcardStartedPage extends StatelessWidget {
 
   void _onStarted(BuildContext context) {
     Navigator.of(context).pushNamed(AppRouter.postcardExplain,
-        arguments: PostcardExplainPayload(assetToken));
+        arguments: PostcardExplainPayload(widget.assetToken));
   }
 }

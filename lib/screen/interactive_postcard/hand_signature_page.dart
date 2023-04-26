@@ -49,6 +49,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   Future<void> resizeStamp() async {
     final image = await resizeImage(
         ResizeImageParams(img.decodePng(widget.payload.image)!, 400, 400));
+    log.info('resized image: ${image.toString()}');
     setState(() {
       resizedStamp = img.encodePng(image);
     });
@@ -159,81 +160,94 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     setState(() {
       loading = true;
     });
-    final asset = widget.payload.asset;
-    final tokenId = asset.tokenId ?? "";
-    final address = asset.owner;
-    final counter = asset.postcardMetadata.counter;
-    final contractAddress = Environment.postcardContractAddress;
-    final data = await signatureGlobalKey.currentState!.toImage();
-    final bytes = await data.toByteData(format: ImageByteFormat.png);
-    final signature = img.decodePng(bytes!.buffer.asUint8List());
-    final newHeight = signature!.height * 400 ~/ signature.width;
-    final resizedSignature =
-        await resizeImage(ResizeImageParams(signature, 400, newHeight));
-    final image =
-        await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
-    final dir = (await getApplicationDocumentsDirectory()).path;
-    final imagePath = '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
-    final metadataPath =
-        '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';
-    File imageFile = File(imagePath);
-    File metadataFile = File(metadataPath);
+    try {
+      final asset = widget.payload.asset;
+      final tokenId = asset.tokenId ?? "";
+      final address = asset.owner;
+      final counter = asset.postcardMetadata.counter;
+      final contractAddress = Environment.postcardContractAddress;
+      final data = await signatureGlobalKey.currentState!.toImage();
+      log.info(['[_handleSaveButtonPressed] [data] [${data.toString()} ]']);
+      final bytes = await data.toByteData(format: ImageByteFormat.png);
+      final signature = img.decodePng(bytes!.buffer.asUint8List());
+      final newHeight = signature!.height * 400 ~/ signature.width;
+      final resizedSignature =
+          await resizeImage(ResizeImageParams(signature, 400, newHeight));
+      if (resizedStamp == null) {
+        await resizeStamp();
+      }
+      final image = await compositeImage(
+          [resizedStamp!, img.encodePng(resizedSignature)]);
+      log.info('[_handleSaveButtonPressed] [image] [${image.toString()}');
+      final dir = (await getApplicationDocumentsDirectory()).path;
+      final imagePath =
+          '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
+      final metadataPath =
+          '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';
+      File imageFile = File(imagePath);
+      File metadataFile = File(metadataPath);
 
-    final Map<String, dynamic> metadata = {
-      "address": widget.payload.address,
-      "stampedAt": DateTime.now().toIso8601String()
-    };
+      final Map<String, dynamic> metadata = {
+        "address": widget.payload.address,
+        "stampedAt": DateTime.now().toIso8601String()
+      };
 
-    final postcardService = injector<PostcardService>();
-    final isMinted = await postcardService.isReceivedSuccess(
-        contractAddress: contractAddress,
-        address: address,
-        tokenId: tokenId,
-        counter: counter);
+      final postcardService = injector<PostcardService>();
+      final isMinted = await postcardService.isReceivedSuccess(
+          contractAddress: contractAddress,
+          address: address,
+          tokenId: tokenId,
+          counter: counter);
 
-    if (isMinted) {
-      final walletIndex = await asset.getOwnerWallet();
-      if (walletIndex == null) return;
-      final imageData = await imageFile.writeAsBytes(img.encodePng(image));
-      final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
-      postcardService
-          .stampPostcard(
-              tokenId,
-              walletIndex.first,
-              walletIndex.second,
-              imageData,
-              jsonData,
-              widget.payload.location,
-              counter,
-              contractAddress)
-          .then((value) {
-        if (!value) {
-          log.info("[POSTCARD] Stamp failed");
-          injector<NavigationService>().popUntilHomeOrSettings();
-        } else {
-          log.info("[POSTCARD] Stamp success");
-          postcardService.updateStampingPostcard([
-            StampingPostcard(
-              indexId: asset.id,
-              address: address,
-              imagePath: imagePath,
-              metadataPath: metadataPath,
-              counter: counter,
-            )
-          ]);
-        }
-      });
-      if (!mounted) return;
-      injector<NavigationService>().popUntilHomeOrSettings();
-      Navigator.of(context).pushNamed(StampPreview.tag,
-          arguments: StampPreviewPayload(
-              imagePath: imagePath, metadataPath: metadataPath, asset: asset));
-      return;
-    } else {
-      if (!mounted) return;
-      UIHelper.showInfoDialog(
-          context, "toke_minting".tr(), "token_minting_desc".tr(),
-          isDismissible: true, closeButton: "close".tr());
+      if (isMinted) {
+        final walletIndex = await asset.getOwnerWallet();
+        if (walletIndex == null) return;
+        final imageData = await imageFile.writeAsBytes(img.encodePng(image));
+        final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
+        postcardService
+            .stampPostcard(
+                tokenId,
+                walletIndex.first,
+                walletIndex.second,
+                imageData,
+                jsonData,
+                widget.payload.location,
+                counter,
+                contractAddress)
+            .then((value) {
+          if (!value) {
+            log.info("[POSTCARD] Stamp failed");
+            injector<NavigationService>().popUntilHomeOrSettings();
+          } else {
+            log.info("[POSTCARD] Stamp success");
+            postcardService.updateStampingPostcard([
+              StampingPostcard(
+                indexId: asset.id,
+                address: address,
+                imagePath: imagePath,
+                metadataPath: metadataPath,
+                counter: counter,
+              )
+            ]);
+          }
+        });
+        if (!mounted) return;
+        injector<NavigationService>().popUntilHomeOrSettings();
+        Navigator.of(context).pushNamed(StampPreview.tag,
+            arguments: StampPreviewPayload(
+                imagePath: imagePath,
+                metadataPath: metadataPath,
+                asset: asset));
+        return;
+      } else {
+        if (!mounted) return;
+        UIHelper.showInfoDialog(
+            context, "toke_minting".tr(), "token_minting_desc".tr(),
+            isDismissible: true, closeButton: "close".tr());
+      }
+    } catch (e) {
+      log.info(['[_handleSaveButtonPressed] [error] [${e.toString()} ]']);
+      rethrow;
     }
     setState(() {
       loading = false;

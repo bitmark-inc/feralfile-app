@@ -248,6 +248,10 @@ abstract class ConfigurationService {
       {bool override = false, bool isRemove = false});
 
   Future<void> removeExpiredStampingPostcard();
+
+  Future<void> setAutoShowPostcard(bool value);
+
+  bool isAutoShowPostcard();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -326,6 +330,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "show_link_or_import_tip";
 
   static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
+
+  static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1085,5 +1091,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
         .toList();
     _preferences.setStringList(KEY_STAMPING_POSTCARD,
         unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
+  }
+
+  @override
+  bool isAutoShowPostcard() {
+    return _preferences.getBool(KEY_AUTO_SHOW_POSTCARD) ?? false;
+  }
+
+  @override
+  Future<void> setAutoShowPostcard(bool value) async {
+    await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
   }
 }

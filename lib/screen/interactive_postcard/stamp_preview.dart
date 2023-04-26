@@ -2,8 +2,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -33,6 +35,8 @@ class _StampPreviewState extends State<StampPreview> {
 
   @override
   void initState() {
+    log.info('[StampPreview] payload: ${widget.payload}');
+
     super.initState();
   }
 
@@ -59,7 +63,7 @@ class _StampPreviewState extends State<StampPreview> {
                   ? "complete_postcard_journey".tr()
                   : "close".tr(),
               onTap: () async {
-                await _sendPostcard();
+                await _close();
               },
             ),
           ],
@@ -68,13 +72,14 @@ class _StampPreviewState extends State<StampPreview> {
     );
   }
 
-  Future<void> _sendPostcard() async {
+  Future<void> _close() async {
     final asset = widget.payload.asset;
     injector<NavigationService>().popUntilHomeOrSettings();
     Navigator.of(context).pushNamed(
       AppRouter.claimedPostcardDetailsPage,
       arguments: ArtworkDetailPayload([asset.identity], 0),
     );
+    injector<ConfigurationService>().setAutoShowPostcard(true);
   }
 }
 
