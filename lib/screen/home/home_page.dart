@@ -216,12 +216,13 @@ class HomePageState extends State<HomePage>
           )
           .map((e) => e.identity)
           .toList();
-      //TODO
-      // final payload = ArtworkDetailPayload(tokenMints, 0);
-      // Navigator.of(context).pushNamed(
-      //   AppRouter.claimedPostcardDetailsPage,
-      //   arguments: payload,
-      // );
+      if (config.isAutoShowPostcard()) {
+        final payload = ArtworkDetailPayload(tokenMints, 0);
+        Navigator.of(context).pushNamed(
+          AppRouter.claimedPostcardDetailsPage,
+          arguments: payload,
+        );
+      }
 
       config.setListPostcardMint(
         tokenMints.map((e) => e.id).toList(),
