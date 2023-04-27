@@ -11,6 +11,10 @@ extension PostcardMetadataExtension on PostcardMetadata {
     return locationInformation.last.stampedLocation != null;
   }
 
+  bool get isFinalClaimed {
+    return locationInformation.length == MAX_STAMP_IN_POSTCARD - 1;
+  }
+
   bool get isFinal {
     return locationInformation.length == MAX_STAMP_IN_POSTCARD;
   }

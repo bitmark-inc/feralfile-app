@@ -60,7 +60,7 @@ class _StampPreviewState extends State<StampPreview> {
             ),
             PostcardButton(
               text: widget.payload.asset.postcardMetadata.isCompleted
-                  ? "complete_postcard_journey".tr()
+                  ? "complete_postcard_journey_".tr()
                   : "close".tr(),
               onTap: () async {
                 await _close();

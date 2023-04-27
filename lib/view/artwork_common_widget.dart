@@ -869,31 +869,31 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
   }
 
   Widget expanedWidget(BuildContext context) {
-    final hideText = TextSpan(
-      text: " -",
-      style: Theme.of(context).textTheme.ppMori400White14,
-      recognizer: TapGestureRecognizer()
-        ..onTap = () {
-          setState(() {
-            _isExpanded = false;
-          });
-        },
-    );
+    // final hideText = TextSpan(
+    //   text: " -",
+    //   style: Theme.of(context).textTheme.ppMori400White14,
+    //   recognizer: TapGestureRecognizer()
+    //     ..onTap = () {
+    //       setState(() {
+    //         _isExpanded = false;
+    //       });
+    //     },
+    // );
     return RichText(
       text: TextSpan(
-        children: widget.children
-            .mapIndexed((index, child) => [
-                  child,
-                  if (index != widget.children.length - 1)
-                    TextSpan(
-                      text: ", ",
-                      style: Theme.of(context).textTheme.ppMori400White14,
-                    ),
-                ])
-            .flattened
-            .toList()
-          ..add(hideText),
-      ),
+          children: widget.children
+              .mapIndexed((index, child) => [
+                    child,
+                    if (index != widget.children.length - 1)
+                      TextSpan(
+                        text: ", ",
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                  ])
+              .flattened
+              .toList()
+          // ..add(hideText),
+          ),
     );
   }
 

@@ -23,10 +23,17 @@ class DistanceFormatter {
 
   DistanceFormatter({required this.locale});
 
-  String format({double? distance}) {
+  String format({double? distance, withFullName = false}) {
     if (distance == null) {
       return '-';
     }
+    if (withFullName) {
+      if (isMiles()) {
+        return '${convertKmToMiles(distance).toStringAsFixed(0)} miles';
+      }
+      return '${distance.toStringAsFixed(0)} kilometers';
+    }
+
     if (isMiles()) {
       return '${convertKmToMiles(distance).toStringAsFixed(0)} mi';
     }

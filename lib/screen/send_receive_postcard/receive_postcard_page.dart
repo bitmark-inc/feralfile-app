@@ -192,7 +192,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           Padding(
                             padding: padding,
                             child: HowItWorksView(
-                                isFinal: asset.postcardMetadata.isFinal),
+                                isFinal: asset.postcardMetadata.isFinalClaimed),
                           ),
                         ],
                       ),

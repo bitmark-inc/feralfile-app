@@ -140,7 +140,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       children: [
         Text(
           "your_postcard_completed".tr(namedArgs: {
-            'distance': totalDistance.toString(),
+            'distance': distanceFormatter.format(
+                distance: totalDistance, withFullName: true),
           }),
           style: theme.textTheme.moMASans400Grey14,
         ),
@@ -238,6 +239,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
+      if (state.assetToken?.artists != null) {
+        identitiesList.addAll(state.assetToken!.artists.map((e) => e.name));
+      }
       setState(() {
         currentAsset = state.assetToken;
       });
@@ -274,7 +278,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final asset = state.assetToken!;
 
         // FIXME
-        final artistNames = ["creator1", "creator2"]
+        final artistNames = asset.artists
+            .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
         String? imagePath;

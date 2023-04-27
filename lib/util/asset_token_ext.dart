@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/model/artist.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -271,7 +272,7 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String get twitterCaption {
-    return "Here is Twitter Caption From Asset";
+    return "#MoMaPostcardProject";
   }
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
@@ -334,6 +335,14 @@ extension AssetTokenExtension on AssetToken {
       ipfsPinned: ipfsPinned ?? this.ipfsPinned,
       asset: asset ?? this.asset,
     );
+  }
+
+  List<Artist> get artists {
+    return [
+      Artist(name: "Artist1"),
+      Artist(name: "Artist2"),
+      Artist(name: "Artist3")
+    ];
   }
 }
 

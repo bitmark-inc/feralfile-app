@@ -38,7 +38,7 @@ class PostcardExplainView extends StatelessWidget {
               style:
                   theme.textTheme.ppMori400Black14.copyWith(color: textColor),
               overflow: TextOverflow.visible,
-              maxLines: 3,
+              maxLines: 4,
             ),
           ),
         ],
@@ -90,7 +90,7 @@ class PostcardExplainView extends StatelessWidget {
                     child: Text(
                       message,
                       style: theme.textTheme.ppMori400Black14,
-                      maxLines: 3,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
