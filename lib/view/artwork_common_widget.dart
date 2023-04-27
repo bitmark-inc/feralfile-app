@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -849,7 +850,8 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
               },
           )
         : const TextSpan();
-    final subList = widget.children.sublist(0, widget.unexpandedCount);
+    final subList = widget.children
+        .sublist(0, min(widget.unexpandedCount, widget.children.length));
     return RichText(
       text: TextSpan(
         children: subList

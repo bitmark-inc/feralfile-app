@@ -338,11 +338,11 @@ extension AssetTokenExtension on AssetToken {
   }
 
   List<Artist> get artists {
-    return [
-      Artist(name: "Artist1"),
-      Artist(name: "Artist2"),
-      Artist(name: "Artist3")
-    ];
+    final lst =
+        List.generate(postcardMetadata.locationInformation.length, (index) {
+      return Artist(name: "Artist$index");
+    });
+    return lst;
   }
 }
 
