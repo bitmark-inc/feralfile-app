@@ -35,7 +35,7 @@ class _StampPreviewState extends State<StampPreview> {
 
   @override
   void initState() {
-    log.info('[StampPreview] payload: ${widget.payload}');
+    log.info('[POSTCARD][StampPreview] payload: ${widget.payload.toString()}');
 
     super.initState();
   }

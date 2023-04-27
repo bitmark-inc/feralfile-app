@@ -53,7 +53,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   Future<void> resizeStamp() async {
     final image = await resizeImage(
         ResizeImageParams(img.decodePng(widget.payload.image)!, 400, 400));
-    log.info('resized image: ${image.toString()}');
+    log.info('[POSTCARD] resized image: ${image.toString()}');
     setState(() {
       resizedStamp = img.encodePng(image);
     });
@@ -171,7 +171,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       final counter = asset.postcardMetadata.counter;
       final contractAddress = Environment.postcardContractAddress;
       final data = await signatureGlobalKey.currentState!.toImage();
-      log.info(['[_handleSaveButtonPressed] [data] [${data.toString()} ]']);
+      log.info([
+        '[POSTCARD][_handleSaveButtonPressed] [data] [${data.toString()} ]'
+      ]);
       final bytes = await data.toByteData(format: ImageByteFormat.png);
       final signature = img.decodePng(bytes!.buffer.asUint8List());
       final newHeight = signature!.height * 400 ~/ signature.width;
@@ -182,7 +184,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       }
       final image = await compositeImage(
           [resizedStamp!, img.encodePng(resizedSignature)]);
-      log.info('[_handleSaveButtonPressed] [image] [${image.toString()}');
+      log.info(
+          '[POSTCARD][_handleSaveButtonPressed] [image] [${image.toString()}');
       final dir = (await getApplicationDocumentsDirectory()).path;
       final imagePath =
           '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
@@ -267,7 +270,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             isDismissible: true, closeButton: "close".tr());
       }
     } catch (e) {
-      log.info(['[_handleSaveButtonPressed] [error] [${e.toString()} ]']);
+      log.info(
+          ['[POSTCARD][_handleSaveButtonPressed] [error] [${e.toString()} ]']);
       rethrow;
     }
     setState(() {
