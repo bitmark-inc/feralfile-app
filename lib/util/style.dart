@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:html/dom.dart' as dom;
 
 TextStyle makeLinkStyle(TextStyle style) {
   final color = style.color ?? AppColor.primaryBlack;
@@ -618,4 +619,18 @@ class MomaPallet {
   static const cloudBlue = Color.fromRGBO(0, 175, 215, 1);
   static const blue = Color.fromRGBO(0, 87, 184, 1);
   static const purple = Color.fromRGBO(117, 59, 189, 1);
+}
+
+Map<String, String>? auHtmlStyle(dom.Element element) {
+  if (element.localName == "a") {
+    const linkColor = AppColor.auSuperTeal;
+    // convert linkColor to hex string
+    String hexColor =
+        "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";
+    return {
+      "color": hexColor,
+      "text-decoration": "none",
+    };
+  }
+  return null;
 }

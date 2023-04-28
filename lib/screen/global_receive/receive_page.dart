@@ -34,10 +34,10 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "select_wallet_tt".tr(),
-        onBack: () => Navigator.of(context).pop(),
+        onClose: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
         final categorizedAccounts = state.categorizedAccounts;
@@ -61,7 +61,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                 ),
               ),
               const SizedBox(height: 24),
-              ListView.separated(
+              ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: ((context, index) => Container(
@@ -69,9 +69,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                         child: accountWithConnectionItem(
                             context, categorizedAccounts[index]),
                       )),
-                  separatorBuilder: ((context, index) => addOnlyDivider()),
                   itemCount: categorizedAccounts.length),
-              addOnlyDivider(),
             ],
           ),
         );

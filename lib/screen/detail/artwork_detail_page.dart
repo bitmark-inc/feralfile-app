@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -29,6 +28,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -202,6 +202,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           subTitle = "by".tr(args: [artistName]);
         }
 
+        final editionSubTitle = getEditionSubTitle(asset);
+
         return Scaffold(
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
@@ -269,7 +271,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 ),
                 Hero(
                   tag: "detail_${asset.id}",
-                  child: ArtworkView(
+                  child: _ArtworkView(
                     payload: widget.payload,
                     token: asset,
                   ),
@@ -297,7 +299,50 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 const SizedBox(
                   height: 40,
                 ),
-                _artworkInfo(asset, state, artistName),
+                Visibility(
+                  visible: editionSubTitle.isNotEmpty,
+                  child: Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Text(
+                      editionSubTitle,
+                      style: theme.textTheme.ppMori400Grey14,
+                    ),
+                  ),
+                ),
+                debugInfoWidget(context, currentAsset),
+                const SizedBox(height: 16.0),
+                Padding(
+                  padding: ResponsiveLayout.getPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        label: 'Desc',
+                        child: HtmlWidget(
+                          customStylesBuilder: auHtmlStyle,
+                          asset.description ?? "",
+                          textStyle: theme.textTheme.ppMori400White14,
+                        ),
+                      ),
+                      const SizedBox(height: 40.0),
+                      artworkDetailsMetadataSection(context, asset, artistName),
+                      if (asset.fungible == true) ...[
+                        BlocBuilder<AccountsBloc, AccountsState>(
+                          builder: (context, state) {
+                            final addresses = state.addresses;
+                            return tokenOwnership(context, asset, addresses);
+                          },
+                        ),
+                      ] else ...[
+                        state.provenances.isNotEmpty
+                            ? _provenanceView(context, state.provenances)
+                            : const SizedBox()
+                      ],
+                      artworkDetailsRightSection(context, asset),
+                      const SizedBox(height: 80.0),
+                    ],
+                  ),
+                )
               ],
             ),
           ),
@@ -306,60 +351,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         return const SizedBox();
       }
     });
-  }
-
-  Widget _artworkInfo(
-      AssetToken asset, ArtworkDetailState state, String? artistName) {
-    final theme = Theme.of(context);
-    final editionSubTitle = getEditionSubTitle(asset);
-    return Column(
-      children: [
-        const SizedBox(height: 20),
-        Visibility(
-          visible: editionSubTitle.isNotEmpty,
-          child: Padding(
-            padding: ResponsiveLayout.getPadding,
-            child: Text(
-              editionSubTitle,
-              style: theme.textTheme.ppMori400Grey14,
-            ),
-          ),
-        ),
-        debugInfoWidget(context, currentAsset),
-        const SizedBox(height: 16.0),
-        Padding(
-          padding: ResponsiveLayout.getPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Semantics(
-                label: 'Desc',
-                child: HtmlWidget(
-                  asset.description ?? "",
-                  textStyle: theme.textTheme.ppMori400White14,
-                ),
-              ),
-              const SizedBox(height: 40.0),
-              artworkDetailsMetadataSection(context, asset, artistName),
-              if (asset.fungible == true) ...[
-                BlocBuilder<AccountsBloc, AccountsState>(
-                  builder: (context, state) {
-                    final addresses = state.addresses;
-                    return tokenOwnership(context, asset, addresses);
-                  },
-                ),
-              ] else ...[
-                state.provenances.isNotEmpty
-                    ? _provenanceView(context, state.provenances)
-                    : const SizedBox()
-              ],
-              artworkDetailsRightSection(context, asset),
-              const SizedBox(height: 80.0),
-            ],
-          ),
-        )
-      ],
-    );
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -487,8 +478,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 }
 
-class ArtworkView extends StatelessWidget {
-  const ArtworkView({
+class _ArtworkView extends StatelessWidget {
+  const _ArtworkView({
     Key? key,
     required this.payload,
     required this.token,
@@ -500,31 +491,6 @@ class ArtworkView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mimeType = token.getMimeType;
-    if (token.isPostcard) {
-      return AspectRatio(
-        aspectRatio: 1405 / 981,
-        child: Stack(
-          children: [
-            PostcardViewWidget(
-              assetToken: token,
-            ),
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed(
-                    AppRouter.artworkPreviewPage,
-                    arguments: payload,
-                  );
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
     switch (mimeType) {
       case "image":
       case "svg":

@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
+import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -193,7 +194,14 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                           child: _erc20Tag(),
                                         )
                                       : SizedBox(
-                                          height: hideConnection ? 84 : 52),
+                                          height: hideConnection ? 48 : 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      linkedBox(context, fontSize: 14)
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
                                   Padding(
                                     padding: padding,
                                     child: _addressSection(),

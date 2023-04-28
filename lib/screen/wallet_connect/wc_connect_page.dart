@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -590,32 +591,38 @@ class _WCConnectPageState extends State<WCConnectPage>
         const SizedBox(height: 16.0),
         Column(
           children: [
-            ...accounts.map(
-              (account) => PersonalConnectItem(
-                categorizedAccount: account,
-                ethSelectedAddress: ethSelectedAddress,
-                tezSelectedAddress: tezSelectedAddress,
-                isExpand: true,
-                onSelectEth: (value) async {
-                  int index =
-                      await account.persona?.getAddressIndex(value) ?? 0;
-                  setState(() {
-                    ethSelectedAddress = value;
-                    selectedPersona =
-                        WalletIndex(account.persona!.wallet(), index);
-                  });
-                },
-                onSelectTez: (value) async {
-                  int index =
-                      await account.persona?.getAddressIndex(value) ?? 0;
-                  setState(() {
-                    tezSelectedAddress = value;
-                    selectedPersona =
-                        WalletIndex(account.persona!.wallet(), index);
-                  });
-                },
-              ),
-            ),
+            ...accounts
+                .map((account) => [
+                      PersonalConnectItem(
+                        categorizedAccount: account,
+                        ethSelectedAddress: ethSelectedAddress,
+                        tezSelectedAddress: tezSelectedAddress,
+                        isExpand: true,
+                        onSelectEth: (value) async {
+                          int index =
+                              await account.persona?.getAddressIndex(value) ??
+                                  0;
+                          setState(() {
+                            ethSelectedAddress = value;
+                            selectedPersona =
+                                WalletIndex(account.persona!.wallet(), index);
+                          });
+                        },
+                        onSelectTez: (value) async {
+                          int index =
+                              await account.persona?.getAddressIndex(value) ??
+                                  0;
+                          setState(() {
+                            tezSelectedAddress = value;
+                            selectedPersona =
+                                WalletIndex(account.persona!.wallet(), index);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 15.0)
+                    ])
+                .flattened
+                .toList(),
           ],
         ),
       ],
