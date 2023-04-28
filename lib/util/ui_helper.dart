@@ -45,6 +45,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:gif_view/gif_view.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
@@ -1386,10 +1387,11 @@ Widget loadingScreen(ThemeData theme, String text) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
+          GifView.asset(
             "assets/images/loading.gif",
             width: 52,
             height: 52,
+            frameRate: 12,
           ),
           const SizedBox(height: 20),
           Text(
