@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
@@ -280,11 +281,15 @@ class _DesignStampPageState extends State<DesignStampPage> {
           margin: const EdgeInsets.symmetric(horizontal: 15),
           child: Row(
             children: [
-              Text(
-                location,
-                style: theme.textTheme.moMASans400White14,
+              Expanded(
+                child: AutoSizeText(
+                  location,
+                  style: theme.textTheme.moMASans400White14,
+                  maxFontSize: 14,
+                  minFontSize: 1,
+                  maxLines: 1,
+                ),
               ),
-              const Spacer(),
               Text(
                 date,
                 style: theme.textTheme.moMASans400White14,
