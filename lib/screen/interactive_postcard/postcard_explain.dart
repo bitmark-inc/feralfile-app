@@ -1,4 +1,6 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -26,6 +28,12 @@ class PostcardExplain extends StatefulWidget {
 
 class _PostcardExplainState extends State<PostcardExplain> {
   bool isGetLocation = true;
+
+  @override
+  void initState() {
+    super.initState();
+    injector<ConfigurationService>().setAutoShowPostcard(false);
+  }
 
   @override
   Widget build(BuildContext context) {
