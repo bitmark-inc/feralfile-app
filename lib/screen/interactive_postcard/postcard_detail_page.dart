@@ -241,7 +241,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         identitiesList.add(state.assetToken!.artistName!);
       }
       if (state.assetToken?.artists != null) {
-        identitiesList.addAll(state.assetToken!.artists.map((e) => e.name));
+        identitiesList.addAll(state.assetToken!.getArtists.map((e) => e.name));
       }
       setState(() {
         currentAsset = state.assetToken;
@@ -279,7 +279,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final asset = state.assetToken!;
 
         // FIXME
-        final artistNames = asset.artists
+        final artistNames = asset.getArtists
             .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();

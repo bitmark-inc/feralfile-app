@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/artist.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -337,12 +336,12 @@ extension AssetTokenExtension on AssetToken {
     );
   }
 
-  List<Artist> get artists {
-    final lst =
-        List.generate(postcardMetadata.locationInformation.length, (index) {
-      return Artist(name: "Artist$index");
-    });
-    return lst;
+  List<Artist> get getArtists {
+    final lst = jsonDecode(artists ?? "[]") as List<dynamic>;
+    if (lst.isEmpty) {
+      return [];
+    }
+    return lst.map((e) => Artist.fromJson(e)).toList();
   }
 }
 
@@ -483,6 +482,7 @@ AssetToken createPendingAssetToken({
       null,
       artwork.title,
       artwork.description,
+      null,
       null,
       null,
       artwork.maxEdition,
