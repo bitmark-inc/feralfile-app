@@ -408,7 +408,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final fileSizeInMB = fileSize / (1024 * 1024);
     return Container(
       color: AppColor.auGreyBackground,
-      padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
+      padding: const EdgeInsets.fromLTRB(25, 5, 25, 5),
       child: Row(
         children: [
           Text(
@@ -1055,11 +1055,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   DefaultChatTheme get _chatTheme {
     final theme = Theme.of(context);
+    bool isKeyboardShowing = MediaQuery.of(context).viewInsets.vertical > 0;
+    final inputPadding = isKeyboardShowing
+        ? const EdgeInsets.fromLTRB(0, 20, 0, 20)
+        : const EdgeInsets.fromLTRB(0, 10, 0, 32);
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
       errorIcon: const SizedBox(),
-      inputPadding: const EdgeInsets.fromLTRB(0, 10, 0, 40),
+      inputPadding: inputPadding,
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,
       inputTextStyle: theme.textTheme.ppMori400White14,

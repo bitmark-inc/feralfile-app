@@ -800,7 +800,7 @@ class SectionExpandedWidget extends StatefulWidget {
 }
 
 class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {

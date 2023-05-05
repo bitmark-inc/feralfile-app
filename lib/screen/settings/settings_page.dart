@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:version_check/version_check.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -35,6 +36,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage>
     with RouteAware, WidgetsBindingObserver, TickerProviderStateMixin {
   PackageInfo? _packageInfo;
+  VersionCheck? _versionCheck;
   late ScrollController _controller;
   int _lastTap = 0;
   int _consecutiveTaps = 0;
@@ -47,6 +49,7 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
+    _checkVersion();
     injector<SettingsDataService>().backup();
     injector<VersionService>().checkForUpdate();
     _controller = ScrollController();
@@ -222,6 +225,14 @@ class _SettingsPageState extends State<SettingsPage>
     });
   }
 
+  Future<void> _checkVersion() async {
+    final versionCheck = VersionCheck();
+    await versionCheck.checkVersion(context);
+    setState(() {
+      _versionCheck = versionCheck;
+    });
+  }
+
   Widget _versionSection() {
     final theme = Theme.of(context);
     return Column(children: [
@@ -285,8 +296,9 @@ class _SettingsPageState extends State<SettingsPage>
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLastestVersion =
-            injector<ConfigurationService>().isLastestVersion();
+        final isLastestVersion = _versionCheck?.storeVersion
+                ?.compareTo(_versionCheck?.packageVersion ?? "") ==
+            0;
         return GestureDetector(
           onTap: () async {
             if (isLastestVersion) {
