@@ -432,8 +432,5 @@ class KeyChain {
 }
 
 class IrlWebviewFunction {
-  static String getAddress = "_getAddress";
-  static String signMessage = "_signMessage";
-  static String sendTransaction = "_sendTransaction";
   static String closeWebview = "_closeWebview";
 }
