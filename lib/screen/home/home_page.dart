@@ -637,7 +637,8 @@ class HomePageState extends State<HomePage>
             data: {"title": "enjoy_your_collection".tr()});
       }
       if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowCreatePlaylistTip()) {
+          !configurationService.getAlreadyShowCreatePlaylistTip() &&
+          configurationService.getPlayList()?.isEmpty != false) {
         configurationService.showCreatePlaylistTip.value = true;
         configurationService.setAlreadyShowCreatePlaylistTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
