@@ -257,6 +257,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     if (!permissions) {
       if (!mounted) return;
       await UIHelper.showDeclinedGeolocalization(context);
+      setState(() {
+        _isProcessing = false;
+      });
       return;
     } else {
       try {
@@ -264,6 +267,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       } catch (e) {
         if (!mounted) return;
         await UIHelper.showWeakGPSSignal(context);
+        setState(() {
+          _isProcessing = false;
+        });
         return;
       }
     }

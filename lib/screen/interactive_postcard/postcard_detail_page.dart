@@ -255,7 +255,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           });
         }
 
-        if (state.isStamping()) {
+        if (state.isPostcardUpdating) {
           const duration = Duration(seconds: 10);
           timer?.cancel();
           timer = Timer.periodic(duration, (timer) {
@@ -447,12 +447,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   void refreshPostcard() {
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
-        widget.payload.identities[widget.payload.currentIndex]));
+        widget.payload.identities[widget.payload.currentIndex],
+        useIndexer: true));
   }
 
   Widget _postcardAction(PostcardDetailState state) {
     final asset = state.assetToken!;
-    final isStamped = state.isStamped;
     if (asset.postcardMetadata.isCompleted || !state.isLastOwner) {
       return const SizedBox();
     }
@@ -460,10 +460,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return PostcardButton(
         text: "updating_token".tr(),
         enabled: false,
-        onTap: () {},
       );
     }
-    if (!isStamped) {
+    if (!state.isStamped) {
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
@@ -512,7 +511,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       color: AppColor.white,
       child: Column(
         children: [
-          _tabBar(),
+          //TODO: remove IF
+          if (!viewJourney) _tabBar(),
           const SizedBox(
             height: 10,
           ),
@@ -574,7 +574,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return Row(
       children: [
         _tab("journey".tr(), viewJourney),
-        _tab("leaderboard", !viewJourney),
+        _tab("leaderboard".tr(), !viewJourney),
       ],
     );
   }
@@ -793,7 +793,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(sendingTrip.index + 1),
+          formatter.format(sendingTrip.index),
           style: theme.textTheme.moMASans400Grey12,
         ),
         Row(

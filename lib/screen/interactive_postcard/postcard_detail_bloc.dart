@@ -52,16 +52,20 @@ class PostcardDetailBloc
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
         final request = QueryListTokensRequest(
-          ids: [event.identity.id],
+          owners: [event.identity.owner],
         );
-        final assetToken = await _indexerService.getNftTokens(request);
+        final assetToken = (await _indexerService.getNftTokens(request))
+            .where((element) => element.id == event.identity.id)
+            .toList();
         if (assetToken.isNotEmpty) {
-          final postcardValue = await getPostcardValue(
-              assetToken.first.contractType, assetToken.first.tokenId ?? "");
           emit(state.copyWith(
-              assetToken: assetToken.first,
-              provenances: assetToken.first.provenance,
-              postcardValue: postcardValue));
+            assetToken: assetToken.first,
+            provenances: assetToken.first.provenance,
+          ));
+          final postcardValue = await getPostcardValue(
+              assetToken.first.contractAddress ?? "",
+              assetToken.first.tokenId ?? "");
+          emit(state.copyWith(postcardValue: postcardValue));
         }
         return;
       } else {
