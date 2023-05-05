@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 abstract class PostcardDetailEvent {}
 
@@ -69,6 +70,8 @@ class PostcardDetailBloc
         }
         return;
       } else {
+        final tokenService = injector<TokensService>();
+        await tokenService.reindexAddresses([event.identity.owner]);
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
         emit(state.copyWith(assetToken: assetToken));

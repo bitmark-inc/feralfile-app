@@ -42,8 +42,7 @@ class Environment {
       ? connectWebsocketTestnetURL
       : connectWebsocketMainnetURL;
 
-  static String get auClaimSecretKey =>
-      dotenv.env['AU_CLAIM_SECRET_KEY'] ?? '';
+  static String get auClaimSecretKey => dotenv.env['AU_CLAIM_SECRET_KEY'] ?? '';
 
   static String get tokenWebviewPrefix =>
       dotenv.env['TOKEN_WEBVIEW_PREFIX'] ?? '';
@@ -147,8 +146,7 @@ class Environment {
 
   static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 
-  static String get auClaimAPIURL =>
-      dotenv.env['AU_CLAIM_API_URL'] ?? '';
+  static String get auClaimAPIURL => dotenv.env['AU_CLAIM_API_URL'] ?? '';
 
   static List<String> get irlWhitelistUrls =>
       dotenv.env['IRL_WHITELIST_URL']?.split(',') ?? [];

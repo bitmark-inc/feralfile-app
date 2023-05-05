@@ -447,8 +447,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   void refreshPostcard() {
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
-        widget.payload.identities[widget.payload.currentIndex],
-        useIndexer: true));
+          widget.payload.identities[widget.payload.currentIndex],
+        ));
   }
 
   Widget _postcardAction(PostcardDetailState state) {
