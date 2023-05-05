@@ -314,15 +314,12 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
         if (!mounted) return;
-        await UIHelper.showReceivePostcardSuccess(context);
-        if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.homePage,
-            (route) => false,
-          );
-          Navigator.of(context).pushNamed(AppRouter.postcardStartedPage,
-              arguments: pendingToken);
-        }
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.homePage,
+          (route) => false,
+        );
+        Navigator.of(context)
+            .pushNamed(AppRouter.postcardStartedPage, arguments: pendingToken);
       } catch (e) {
         if (e is DioError) {
           if (!mounted) return;

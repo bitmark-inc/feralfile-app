@@ -1359,11 +1359,6 @@ class UIHelper {
     return showErrorDialog(context, title, description, "close".tr());
   }
 
-  static showReceivePostcardSuccess(BuildContext context) async {
-    return showErrorDialog(
-        context, "Receive Success", 'description', "close".tr());
-  }
-
   static showReceivePostcardFailed(BuildContext context, DioError error) async {
     return showErrorDialog(
         context, "already_delivered".tr(), "it_seems_that".tr(), "close".tr());
