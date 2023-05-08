@@ -81,9 +81,9 @@ final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
-    "https://gateway.autonomy.io/ipfs/Qma6WKe6gwmVgmG447ipwCH1itniwM8ahyszL4XtqgY7EE";
+    "https://ipfs.nftstorage.link/ipfs/QmPg8zS5g8LVS1XAiX3AM8UZBMorf9Cjo8p2a4ko1gDoaJ";
 const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
-    "https://gateway.autonomy.io/ipfs/QmbFsuVXfQ8PbZorj6HSkjFm6qrg28o1CM5LzGv9mnkCEu";
+    "https://ipfs.nftstorage.link/ipfs/QmPg8zS5g8LVS1XAiX3AM8UZBMorf9Cjo8p2a4ko1gDoaJ";
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";

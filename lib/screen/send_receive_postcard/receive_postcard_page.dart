@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -258,8 +260,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       return;
     } else {
       try {
-        location = await getGeoLocation(timeout: const Duration(seconds: 2));
+        location = await getGeoLocation(timeout: const Duration(seconds: 5));
       } catch (e) {
+        log.info("[Postcard] Error getting location: $e");
         if (!mounted) return;
         await UIHelper.showWeakGPSSignal(context);
         setState(() {

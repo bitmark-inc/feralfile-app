@@ -97,7 +97,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                     child: Stack(
                                       children: [
                                         AspectRatio(
-                                          aspectRatio: 301 / 246,
+                                          aspectRatio: 355 / 265,
                                           child: PostcardViewWidget(
                                             assetToken: artwork,
                                           ),

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
@@ -59,7 +60,7 @@ class PostcardExplainView extends StatelessWidget {
         'your_postcard_journey_ends'.tr(),
         'the_postcard_win'.tr(),
       ];
-    } else if (counter == 14) {
+    } else if (counter == MAX_STAMP_IN_POSTCARD - 1) {
       return [
         'accept_your_postcard'.tr(),
         'design_your_MoMA_stamp'.tr(),
