@@ -127,7 +127,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.1.1
+      ref: 9010ebc5d282391d174b90f3f1e3aa4f7f00388c
   marqueer: ^1.2.0
   markdown: ^6.0.1
   easy_localization: ^3.0.1

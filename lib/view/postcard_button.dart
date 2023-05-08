@@ -1,5 +1,5 @@
-import 'package:autonomy_flutter/util/text_theme_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:flutter/material.dart';
 
 class PostcardButton extends StatelessWidget {
