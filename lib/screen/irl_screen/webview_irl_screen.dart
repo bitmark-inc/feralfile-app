@@ -1,24 +1,27 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:wallet_connect/wallet_connect.dart';
-import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:tezart/tezart.dart';
-import 'package:autonomy_flutter/util/log.dart';
+import 'package:wallet_connect/wallet_connect.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final Uri url;
+
   const IRLWebScreen({Key? key, required this.url}) : super(key: key);
 
   @override
@@ -27,6 +30,7 @@ class IRLWebScreen extends StatefulWidget {
 
 class _IRLWebScreenState extends State<IRLWebScreen> {
   InAppWebViewController? _controller;
+  final _metricClient = injector<MetricClientService>();
 
   Future<WalletIndex?> getAccountByAddress(
       {required String chain, required String address}) async {
@@ -43,6 +47,11 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   JSResult _logAndReturnJSResult(String func, JSResult result) {
     log.info('[IRLWebScreen] $func: ${result.toJson()}');
+    _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+      'function': func,
+      'error': result.errorMessage,
+      'result': JSResult.result.toString(),
+    });
     return result;
   }
 
@@ -280,6 +289,9 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       handlerName: 'closeWebview',
       callback: (args) async {
         injector.get<NavigationService>().popUntilHomeOrSettings();
+        _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+          'function': IrlWebviewFunction.closeWebview,
+        });
       },
     );
   }
@@ -311,6 +323,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 class JSResult {
   String? errorMessage;
   dynamic result;
+
   JSResult({
     this.errorMessage,
     this.result,
@@ -330,11 +343,13 @@ class JSResult {
       result: map['result'] != null ? map['result'] as dynamic : null,
     );
   }
+
   factory JSResult.error(String error) {
     return JSResult(
       errorMessage: error,
     );
   }
+
   factory JSResult.result(dynamic result) {
     return JSResult(
       result: result,

@@ -256,6 +256,7 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
 
 class GalleryNoThumbnailWidget extends StatelessWidget {
   final CompactedAssetToken assetToken;
+
   const GalleryNoThumbnailWidget({Key? key, required this.assetToken})
       : super(key: key);
 
@@ -1543,8 +1544,11 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
 class ExpandedWidget extends StatefulWidget {
   final Widget? header;
   final Widget? child;
+  final Widget? unexpendedChild;
 
-  const ExpandedWidget({Key? key, this.header, this.child}) : super(key: key);
+  const ExpandedWidget(
+      {Key? key, this.header, this.child, this.unexpendedChild})
+      : super(key: key);
 
   @override
   State<ExpandedWidget> createState() => _ExpandedWidgetState();
@@ -1582,10 +1586,10 @@ class _ExpandedWidgetState extends State<ExpandedWidget> {
           ),
         ),
         const SizedBox(height: 23.0),
-        Visibility(
-          visible: _isExpanded,
-          child: widget.child ?? const SizedBox(),
-        )
+        if (_isExpanded)
+          widget.child ?? const SizedBox()
+        else
+          widget.unexpendedChild ?? const SizedBox(),
       ],
     );
   }

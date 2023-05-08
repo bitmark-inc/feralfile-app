@@ -392,6 +392,7 @@ class MixpanelEvent {
   static const tapLinkInTipCard = "tap_link_in_tip_card";
   static const hideAddress = "hide_address";
   static const hideAddresses = "hide_addresses";
+  static const callIrlFunction = "call_irl_function";
 }
 
 class MixpanelProp {
@@ -428,4 +429,8 @@ class SocialApp {
 class KeyChain {
   static String device = "device_keychain".tr();
   static String cloud = "cloud_keychain".tr();
+}
+
+class IrlWebviewFunction {
+  static String closeWebview = "_closeWebview";
 }

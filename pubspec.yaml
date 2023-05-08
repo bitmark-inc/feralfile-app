@@ -116,7 +116,7 @@ dependencies:
   wallet_connect:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
-      ref: 763516f2013982c8723e1ab1478f52a5ba0699c8
+      ref: 71c4409ecc309ef6488e4dbc2175fba321dbf8f8
   web3dart: ^2.5.1
   web_socket_channel: ^2.1.0
   webview_flutter: ^3.0.0
@@ -134,7 +134,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: c17eaae23195b992c81138d3349b4f37188d9eb3
+      ref: d6152b1239381dd0abb8820a2e64de15d9d6bfe1
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:
