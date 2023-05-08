@@ -53,124 +53,130 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
           final artwork = state.assetToken;
           if (artwork == null) return Container();
           final theme = Theme.of(context);
-          return Scaffold(
-            backgroundColor: theme.colorScheme.primary,
-            appBar: AppBar(
-              systemOverlayStyle: SystemUiOverlayStyle.light,
-              toolbarHeight: 0,
-            ),
-            body: Container(
-              padding: const EdgeInsets.fromLTRB(14, 28, 14, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child:
-                        NotificationListener<OverscrollIndicatorNotification>(
-                      onNotification: (overScroll) {
-                        overScroll.disallowIndicator();
-                        return false;
-                      },
-                      child: ListView(
-                        padding: const EdgeInsets.all(0),
-                        shrinkWrap: true,
-                        children: [
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Container(
-                            color: theme.auQuickSilver,
-                            child: Column(
-                              children: [
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 60,
-                                    horizontal: 15,
+          return SafeArea(
+            child: Scaffold(
+              backgroundColor: theme.colorScheme.primary,
+              appBar: AppBar(
+                systemOverlayStyle: const SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.light,
+                ),
+                toolbarHeight: 0,
+              ),
+              body: Container(
+                padding: const EdgeInsets.fromLTRB(14, 28, 14, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child:
+                          NotificationListener<OverscrollIndicatorNotification>(
+                        onNotification: (overScroll) {
+                          overScroll.disallowIndicator();
+                          return false;
+                        },
+                        child: ListView(
+                          padding: const EdgeInsets.all(0),
+                          shrinkWrap: true,
+                          children: [
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            Container(
+                              color: theme.auQuickSilver,
+                              child: Column(
+                                children: [
+                                  const SizedBox(
+                                    height: 10,
                                   ),
-                                  child: Stack(
-                                    children: [
-                                      AspectRatio(
-                                        aspectRatio: 301 / 246,
-                                        child: PostcardViewWidget(
-                                          assetToken: artwork,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 60,
+                                      horizontal: 15,
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        AspectRatio(
+                                          aspectRatio: 301 / 246,
+                                          child: PostcardViewWidget(
+                                            assetToken: artwork,
+                                          ),
                                         ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(15),
+                              child: Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        artwork.title ?? '',
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
+                                      Text(
+                                        "by ${artwork.artistName}",
+                                        style: theme.textTheme.ppMori400White14,
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
+                                  const Spacer(),
+                                  SvgPicture.asset(
+                                    "assets/images/penrose_moma.svg",
+                                    color: theme.colorScheme.secondary,
+                                    width: 27,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(15),
-                            child: Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      artwork.title ?? '',
-                                      style: theme.textTheme.ppMori400White14,
-                                    ),
-                                    Text(
-                                      "by ${artwork.artistName}",
-                                      style: theme.textTheme.ppMori400White14,
-                                    ),
-                                  ],
-                                ),
-                                const Spacer(),
-                                SvgPicture.asset(
-                                  "assets/images/penrose_moma.svg",
-                                  color: theme.colorScheme.secondary,
-                                  width: 27,
-                                ),
-                              ],
+                            Divider(
+                              color: theme.colorScheme.secondary,
                             ),
-                          ),
-                          Divider(
-                            color: theme.colorScheme.secondary,
+                            const SizedBox(
+                              height: 15,
+                            ),
+                            const HowItWorksView(isFinal: false),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.bottomCenter,
+                      color: Colors.transparent,
+                      padding: const EdgeInsets.only(top: 15),
+                      child: Row(
+                        children: [
+                          OutlineButton(
+                            text: "cancel".tr(),
+                            color: theme.colorScheme.primary,
+                            onTap: () {
+                              Navigator.of(context).pop(false);
+                            },
                           ),
                           const SizedBox(
-                            height: 15,
+                            width: 15,
                           ),
-                          const HowItWorksView(isFinal: false),
+                          Expanded(
+                            child: PrimaryButton(
+                              text: "mint_postcard".tr(),
+                              enabled: state.isClaiming != true,
+                              isProcessing: state.isClaiming == true,
+                              onTap: () {
+                                bloc.add(AcceptGiftEvent());
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  Container(
-                    alignment: Alignment.bottomCenter,
-                    color: Colors.transparent,
-                    padding: const EdgeInsets.only(top: 15),
-                    child: Row(
-                      children: [
-                        OutlineButton(
-                          text: "cancel".tr(),
-                          color: theme.colorScheme.primary,
-                          onTap: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                        const SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                          child: PrimaryButton(
-                            text: "mint_postcard".tr(),
-                            enabled: state.isClaiming != true,
-                            isProcessing: state.isClaiming == true,
-                            onTap: () {
-                              bloc.add(AcceptGiftEvent());
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );

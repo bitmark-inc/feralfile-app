@@ -123,11 +123,14 @@ class EditorialPageState extends State<EditorialPage>
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 0,
-      ),
+          toolbarHeight: 0,
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+          )),
       backgroundColor: theme.primaryColor,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
+        value: SystemUiOverlayStyle.dark,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
