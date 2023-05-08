@@ -261,8 +261,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                                 widget.args.index,
                                                 isWalletConnect2: widget
                                                     .args.isWalletConnect2,
-                                                topic: widget.args
-                                                    .topic, // Used for wallet Connect 2.0 only
+                                                topic: widget.args.topic,
+                                                // Used for wallet Connect 2.0 only
                                                 isIRL: widget.args.isIRL,
                                               ),
                                             );
@@ -315,15 +315,17 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        GestureDetector(
-          onTap: onValueTap,
-          child: Text(
-            content,
-            style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+        Expanded(
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              content,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                  decoration:
+                      (onValueTap != null) ? TextDecoration.underline : null),
+            ),
           ),
-        )
+        ),
       ],
     );
   }
