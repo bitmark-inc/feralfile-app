@@ -618,7 +618,8 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<List<AddressIndex>> getAllAddressIndexes() async {
     if (_configurationService.isDemoArtworksMode()) {
-      return [];
+      final demoAccount = await getDemoAccount();
+      return [AddressIndex(address: demoAccount, createdAt: DateTime.now())];
     }
 
     List<AddressIndex> addresses = [];
