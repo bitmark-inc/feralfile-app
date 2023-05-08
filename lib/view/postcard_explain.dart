@@ -8,12 +8,12 @@ class PostcardExplainView extends StatelessWidget {
   final Color? textColor;
   final Color? dividerColor;
   final Color? backgroundColor;
-  final bool isFinal;
+  final int counter;
   final String message;
 
   const PostcardExplainView(
       {Key? key,
-      required this.isFinal,
+      required this.counter,
       this.message = "",
       this.textColor = AppColor.primaryBlack,
       this.backgroundColor = AppColor.white,
@@ -46,8 +46,8 @@ class PostcardExplainView extends StatelessWidget {
     );
   }
 
-  List<String> postcardExplainTexts(bool isComplete) {
-    if (!isComplete) {
+  List<String> postcardExplainTexts(int counter) {
+    if (counter == 0) {
       return [
         'mint_your_postcard'.tr(),
         'design_your_MoMA_stamp'.tr(),
@@ -59,14 +59,26 @@ class PostcardExplainView extends StatelessWidget {
         'your_postcard_journey_ends'.tr(),
         'the_postcard_win'.tr(),
       ];
-    } else {
+    } else if (counter == 14) {
       return [
-        'mint_your_postcard'.tr(),
+        'accept_your_postcard'.tr(),
         'design_your_MoMA_stamp'.tr(),
         'sign_your_stamp'.tr(),
         'add_your_stamp'.tr(),
         'complete_postcard_journey'.tr(),
         'the_distance_traveled_all'.tr(),
+        'the_postcard_win'.tr(),
+      ];
+    } else {
+      return [
+        'accept_your_postcard'.tr(),
+        'design_your_MoMA_stamp'.tr(),
+        'sign_your_stamp'.tr(),
+        'add_your_stamp'.tr(),
+        'send_the_postcard'.tr(),
+        'the_distance_traveled_between'.tr(),
+        'each_receiver_adds_then_sends'.tr(),
+        'your_postcard_journey_ends'.tr(),
         'the_postcard_win'.tr(),
       ];
     }
@@ -75,7 +87,7 @@ class PostcardExplainView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final explainTexts = postcardExplainTexts(isFinal);
+    final explainTexts = postcardExplainTexts(counter);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       color: backgroundColor,

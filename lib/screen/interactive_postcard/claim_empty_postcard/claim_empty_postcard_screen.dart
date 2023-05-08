@@ -109,7 +109,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(15),
+                              padding: const EdgeInsets.symmetric(vertical: 15),
                               child: Row(
                                 children: [
                                   Column(
@@ -117,11 +117,11 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        artwork.title ?? '',
+                                        "moma_postcard_project_".tr(),
                                         style: theme.textTheme.ppMori400White14,
                                       ),
                                       Text(
-                                        "by ${artwork.artistName}",
+                                        artwork.title ?? '',
                                         style: theme.textTheme.ppMori400White14,
                                       ),
                                     ],
@@ -141,7 +141,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                             const SizedBox(
                               height: 15,
                             ),
-                            const HowItWorksView(isFinal: false),
+                            const HowItWorksView(counter: 0),
                           ],
                         ),
                       ),

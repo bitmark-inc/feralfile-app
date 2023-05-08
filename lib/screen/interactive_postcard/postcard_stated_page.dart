@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class PostcardStartedPage extends StatefulWidget {
@@ -43,6 +44,10 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       appBar: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+        ),
         leadingWidth: 0,
         centerTitle: false,
         title: Column(

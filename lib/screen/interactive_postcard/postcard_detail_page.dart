@@ -817,14 +817,15 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   .copyWith(color: AppColor.auQuickSilver),
             ),
             const Spacer(),
-            GestureDetector(
-              child: Text("resend_".tr(),
-                  style: theme.textTheme.moMASans400Black12
-                      .copyWith(color: const Color.fromRGBO(131, 79, 196, 1))),
+            OutlineButton(
+              text: "share".tr(),
+              color: AppColor.auSuperTeal,
+              textColor: AppColor.primaryBlack,
+              padding: const EdgeInsets.symmetric(vertical: 4),
               onTap: () {
                 _sharePostcard(asset);
               },
-            )
+            ),
           ],
         ),
         addDivider(height: 30, color: AppColor.auGreyBackground),

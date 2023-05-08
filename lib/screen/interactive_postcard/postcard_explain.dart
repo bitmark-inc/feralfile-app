@@ -61,7 +61,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       message: widget.payload.asset.postcardMetadata.isFinal
                           ? "you_are_the_final_receiver".tr()
                           : "",
-                      isFinal: widget.payload.asset.postcardMetadata.isFinal,
+                      counter: widget.payload.asset.postcardMetadata.counter,
                     ),
                     PostcardButton(
                       text: "next_design_your_stamp".tr(),

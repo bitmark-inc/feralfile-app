@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
@@ -25,6 +24,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
@@ -90,6 +90,13 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
               ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
           return Scaffold(
             backgroundColor: theme.colorScheme.primary,
+            appBar: AppBar(
+              systemOverlayStyle: const SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.light,
+              ),
+              toolbarHeight: 0,
+            ),
             body: Container(
               padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton
                   .copyWith(left: 0, right: 0, top: 0),
@@ -152,26 +159,14 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      child: Text(
-                                        asset.title ?? "",
-                                        style: theme.textTheme.ppMori400White14,
-                                      ),
-                                      onTap: () {},
+                                    Text(
+                                      "moma_postcard_project_".tr(),
+                                      style: theme.textTheme.ppMori400White14,
                                     ),
-                                    BlocConsumer<IdentityBloc, IdentityState>(
-                                        listener: (context, state) {},
-                                        builder: (context, state) {
-                                          final artistName = asset.artistName
-                                              ?.toIdentityOrMask(
-                                                  state.identityMap);
-                                          return Text(
-                                            "by $artistName",
-                                            style: theme
-                                                .textTheme.ppMori400White14,
-                                          );
-                                        }),
+                                    Text(
+                                      asset.title ?? "",
+                                      style: theme.textTheme.ppMori400White14,
+                                    ),
                                   ],
                                 ),
                                 const Spacer(),
@@ -192,7 +187,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                           Padding(
                             padding: padding,
                             child: HowItWorksView(
-                                isFinal: asset.postcardMetadata.isFinalClaimed),
+                                counter: asset.postcardMetadata.counter),
                           ),
                         ],
                       ),

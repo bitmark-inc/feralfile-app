@@ -4,9 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class HowItWorksView extends StatelessWidget {
-  final bool isFinal;
+  final int counter;
 
-  const HowItWorksView({super.key, required this.isFinal});
+  const HowItWorksView({super.key, required this.counter});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class HowItWorksView extends StatelessWidget {
             textColor: textColor,
             backgroundColor: backgroundColor,
             dividerColor: dividerColor,
-            isFinal: isFinal,
+            counter: counter,
           ),
           const SizedBox(height: 10),
         ],
