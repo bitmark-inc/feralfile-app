@@ -1576,8 +1576,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: c17eaae23195b992c81138d3349b4f37188d9eb3
-      resolved-ref: c17eaae23195b992c81138d3349b4f37188d9eb3
+      ref: d6152b1239381dd0abb8820a2e64de15d9d6bfe1
+      resolved-ref: d6152b1239381dd0abb8820a2e64de15d9d6bfe1
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -2721,8 +2721,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
-      resolved-ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
+      ref: "71c4409ecc309ef6488e4dbc2175fba321dbf8f8"
+      resolved-ref: "71c4409ecc309ef6488e4dbc2175fba321dbf8f8"
       url: "https://github.com/autonomy-system/wallet-connect-dart.git"
     source: git
     version: "1.0.2"
