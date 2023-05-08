@@ -204,7 +204,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
             final args = WCSendTransactionPageArgs(
               1,
-              WCPeerMeta.fromJson(argument.metadata ?? {}),
+              WCPeerMeta.fromJson(argument.metadata ??
+                  {
+                    "name": "",
+                    "url": "",
+                    "icons": [""]
+                  }),
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
               account.index,
