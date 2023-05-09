@@ -283,4 +283,11 @@ class NavigationService {
       Future.value(0);
     }
   }
+
+  Future<void> showAlreadyDeliveredPostcard() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showAlreadyDelivered(navigatorKey.currentContext!);
+    }
+  }
 }

@@ -1358,8 +1358,8 @@ class UIHelper {
   }
 
   static showReceivePostcardFailed(BuildContext context, DioError error) async {
-    return showErrorDialog(
-        context, "accept_postcard_failed".tr(), error.message, "close".tr());
+    return showErrorDialog(context, "accept_postcard_failed".tr(),
+        error.response?.data['message'], "close".tr());
   }
 
   static showSharePostcardFailed(BuildContext context, DioError error) async {

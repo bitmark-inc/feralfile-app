@@ -31,18 +31,3 @@ Map<String, dynamic> _$SharePostcardRequestToJson(
       'tokenId': instance.tokenId,
       'signature': instance.signature,
     };
-
-SharedPostcardInfor _$SharedPostcardInforFromJson(Map<String, dynamic> json) =>
-    SharedPostcardInfor(
-      shareCode: json['shareCode'] as String,
-      tokenID: json['tokenID'] as String,
-      id: json['id'] as String,
-    );
-
-Map<String, dynamic> _$SharedPostcardInforToJson(
-        SharedPostcardInfor instance) =>
-    <String, dynamic>{
-      'shareCode': instance.shareCode,
-      'tokenID': instance.tokenID,
-      'id': instance.id,
-    };

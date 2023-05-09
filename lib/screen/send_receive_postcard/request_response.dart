@@ -39,12 +39,29 @@ class SharedPostcardInfor {
   String shareCode;
   String tokenID;
   String id;
+  String status;
 
   SharedPostcardInfor(
-      {required this.shareCode, required this.tokenID, required this.id});
+      {required this.shareCode,
+      required this.tokenID,
+      required this.id,
+      required this.status});
 
-  factory SharedPostcardInfor.fromJson(Map<String, dynamic> json) =>
-      _$SharedPostcardInforFromJson(json);
+  factory SharedPostcardInfor.fromJson(Map<String, dynamic> json) {
+    return SharedPostcardInfor(
+      shareCode: json['shareCode'] as String,
+      tokenID: json['tokenID'] as String,
+      id: json['id'] as String,
+      status: json['status'] as String,
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$SharedPostcardInforToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'shareCode': shareCode,
+      'tokenID': tokenID,
+      'id': id,
+      'status': status,
+    };
+  }
 }

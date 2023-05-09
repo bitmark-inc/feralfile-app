@@ -238,17 +238,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   }
 
   Future<void> _receivePostcard(AssetToken asset) async {
-    final isReceived =
-        asset.postcardMetadata.locationInformation.last.claimedLocation != null;
-    if (isReceived) {
-      if (!mounted) return;
-      await UIHelper.showAlreadyDelivered(context);
-      if (!mounted) return;
-      Navigator.pop(context);
-      return;
-    }
-
-    //bloc.add(GetLocationEvent());
     Position? location;
     final permissions = await checkLocationPermissions();
     if (!permissions) {

@@ -278,7 +278,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
 
-        // FIXME
         final artistNames = asset.getArtists
             .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))

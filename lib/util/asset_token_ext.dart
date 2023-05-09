@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -335,9 +336,9 @@ extension AssetTokenExtension on AssetToken {
   List<Artist> get getArtists {
     final lst = jsonDecode(artists ?? "[]") as List<dynamic>;
     if (lst.isEmpty) {
-      return [];
+      return [Artist(name: "no_artists".tr())];
     }
-    return lst.map((e) => Artist.fromJson(e)).toList();
+    return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
   }
 }
 

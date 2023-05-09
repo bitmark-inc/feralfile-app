@@ -535,6 +535,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   _handlePostcardDeeplink(String shareCode) async {
     final sharedInfor =
         await _postcardService.getSharedPostcardInfor(shareCode);
+    if (sharedInfor.status == SharedPostcardStatus.claimed) {
+      await _navigationService.showAlreadyDeliveredPostcard();
+      return;
+    }
     final contractAddress = Environment.postcardContractAddress;
     final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
     final postcard = await _postcardService.getPostcard(tokenId);
@@ -560,4 +564,9 @@ Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
     );
   }
   return null;
+}
+
+class SharedPostcardStatus {
+  static String available = "available";
+  static String claimed = "claimed";
 }
