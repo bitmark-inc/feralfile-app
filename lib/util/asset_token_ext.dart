@@ -335,7 +335,7 @@ extension AssetTokenExtension on AssetToken {
 
   List<Artist> get getArtists {
     final lst = jsonDecode(artists ?? "[]") as List<dynamic>;
-    if (lst.isEmpty) {
+    if (lst.length <= 1) {
       return [Artist(name: "no_artists".tr())];
     }
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
