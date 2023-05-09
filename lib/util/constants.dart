@@ -393,6 +393,7 @@ class MixpanelEvent {
   static const hideAddress = "hide_address";
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
+  static const numberNft = "number_nft";
 }
 
 class MixpanelProp {
@@ -401,6 +402,7 @@ class MixpanelProp {
   static const didKey = 'didKey';
   static const address = 'Address';
   static const subscription = 'Subscription';
+  static const numberNft = 'Number NFT';
 }
 
 class SubscriptionStatus {

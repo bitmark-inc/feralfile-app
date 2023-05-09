@@ -107,4 +107,8 @@ class MixPanelClientService {
       log(e.toString());
     }
   }
+
+  void setLabel(String prop, dynamic value) {
+    mixpanel.getPeople().set(prop, value);
+  }
 }
