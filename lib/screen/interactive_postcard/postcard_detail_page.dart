@@ -82,7 +82,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
-  Key postcardKey = UniqueKey();
 
   @override
   void initState() {
@@ -268,9 +267,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           timer?.cancel();
         }
       }
-      if ((state.imagePath == null) ^ !isUpdating) {
-        forceRebuild();
-      }
 
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
@@ -386,7 +382,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               child: Stack(
                                 children: [
                                   PostcardRatio(
-                                    key: postcardKey,
+                                    key: ValueKey(state.imagePath),
                                     assetToken: state.assetToken!,
                                     imagePath: state.imagePath,
                                     jsonPath: state.metadataPath,
@@ -411,7 +407,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 10,
                             ),
-                            _postcardInfor(state),
+                            _postcardInfo(state),
                             _artworkInfo(asset, state.toArtworkDetailState(),
                                 artistNames),
                           ],
@@ -427,13 +423,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       } else {
         return const SizedBox();
       }
-    });
-  }
-
-  void forceRebuild() {
-    setState(() {
-      postcardKey = UniqueKey();
-      isUpdating = !isUpdating;
     });
   }
 
@@ -479,11 +468,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Future<void> _sharePostcard(AssetToken asset) async {
     try {
-      final sharePostcardRespone =
+      final sharePostcardResponse =
           await injector<PostcardService>().sharePostcard(asset);
-      if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
+      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
-          'deeplink': sharePostcardRespone.deeplink!,
+          'deeplink': sharePostcardResponse.deeplink!,
         });
         Share.share(shareMessage);
       }
@@ -498,7 +487,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Widget _postcardInfor(PostcardDetailState state) {
+  Widget _postcardInfo(PostcardDetailState state) {
     return Container(
       color: AppColor.white,
       child: Column(
