@@ -35,33 +35,33 @@ class ChatThreadPage extends StatefulWidget {
 }
 
 class _ChatThreadPageState extends State<ChatThreadPage> {
-  final List<types.Message> messages = [];
-  late types.User user;
+  final List<types.Message> _messages = [];
+  late types.User _user;
   WebSocketChannel? _websocketChannel;
-  late ChatThreadPagePayload payload;
-  int? lastMessageTimestamp;
-  bool didFetchAllMessages = false;
-  String? historyRequestId;
-  bool isTyping = false;
-  bool stopConnect = false;
+  late ChatThreadPagePayload _payload;
+  int? _lastMessageTimestamp;
+  bool _didFetchAllMessages = false;
+  String? _historyRequestId;
+  bool _isTyping = false;
+  bool _stopConnect = false;
 
   @override
   void initState() {
     super.initState();
-    payload = widget.payload;
-    user = types.User(id: payload.address);
+    _payload = widget.payload;
+    _user = types.User(id: _payload.address);
     _websocketInitAndFetchHistory();
   }
 
   Future<void> _websocketInitAndFetchHistory() async {
     await _websocketInit();
-    lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+    _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
     _getHistory();
   }
 
   Future<void> _websocketInit() async {
     final link =
-        "/v1/chat/ws?index_id=${payload.tokenId}&address=${payload.address}";
+        "/v1/chat/ws?index_id=${_payload.tokenId}&address=${_payload.address}";
     final header = getHeader(link);
     _websocketChannel = IOWebSocketChannel.connect(
         "${Environment.postcardChatServerUrl}$link",
@@ -97,7 +97,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
                 _handleNewMessages(newMessages, id: response.id);
                 if (newMessages.length < 100) {
-                  didFetchAllMessages = true;
+                  _didFetchAllMessages = true;
                 }
               } catch (e) {
                 log.info("[CHAT] RESP error: $e");
@@ -112,11 +112,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         log.info(
             "[CHAT] _websocketChannel disconnected. Reconnect _websocketChannel");
         Future.delayed(const Duration(seconds: 5), () async {
-          if (!stopConnect) {
+          if (!_stopConnect) {
             await _websocketInit();
             _resentMessages();
-            if (historyRequestId != null) {
-              _getHistory(historyId: historyRequestId);
+            if (_historyRequestId != null) {
+              _getHistory(historyId: _historyRequestId);
             }
           }
         });
@@ -125,7 +125,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _resentMessages() {
-    final unsentMessages = messages
+    final unsentMessages = _messages
         .where((element) => element.status == types.Status.sending)
         .toList();
     if (unsentMessages.isEmpty) return;
@@ -136,20 +136,20 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _getHistory({String? historyId}) {
-    if (historyRequestId != null && historyId == null) {
+    if (_historyRequestId != null && historyId == null) {
       return;
     }
     log.info(
-        "[CHAT] getHistory ${DateTime.fromMillisecondsSinceEpoch(lastMessageTimestamp!)}");
+        "[CHAT] getHistory ${DateTime.fromMillisecondsSinceEpoch(_lastMessageTimestamp!)}");
     final id = historyId ?? const Uuid().v4();
     _websocketChannel?.sink.add(json.encode({
       "command": "HISTORY",
       "id": id,
       "payload": {
-        "lastTimestamp": lastMessageTimestamp,
+        "lastTimestamp": _lastMessageTimestamp,
       }
     }));
-    historyRequestId = id;
+    _historyRequestId = id;
   }
 
   Map<String, dynamic> getHeader(String link) {
@@ -169,31 +169,31 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _handleNewMessages(List<app.Message> newMessages, {String? id}) {
-    if (id != null && id == historyRequestId) {
-      messages.addAll(_convertMessages(newMessages));
-      lastMessageTimestamp = newMessages.last.timestamp;
-      historyRequestId = null;
+    if (id != null && id == _historyRequestId) {
+      _messages.addAll(_convertMessages(newMessages));
+      _lastMessageTimestamp = newMessages.last.timestamp;
+      _historyRequestId = null;
     } else {
       final otherPeopleMessages = _convertMessages(newMessages);
       otherPeopleMessages
-          .removeWhere((element) => element.author.id == user.id);
-      messages.insertAll(0, otherPeopleMessages);
-      messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
+          .removeWhere((element) => element.author.id == _user.id);
+      _messages.insertAll(0, otherPeopleMessages);
+      _messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
     setState(() {});
   }
 
   void _handleSentMessageResp(String messageId, types.Status type) {
-    final index = messages.indexWhere((element) => element.id == messageId);
+    final index = _messages.indexWhere((element) => element.id == messageId);
     if (index != -1) {
       setState(() {
         switch (type) {
           case types.Status.sent:
-            messages[index] =
-                messages[index].copyWith(status: types.Status.sent);
+            _messages[index] =
+                _messages[index].copyWith(status: types.Status.sent);
             break;
           case types.Status.error:
-            messages.removeAt(index);
+            _messages.removeAt(index);
             break;
           default:
             break;
@@ -206,7 +206,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   void dispose() {
     _websocketChannel?.sink.close();
     _websocketChannel = null;
-    stopConnect = true;
+    _stopConnect = true;
     super.dispose();
   }
 
@@ -216,7 +216,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         backgroundColor: AppColor.primaryBlack,
         appBar: getBackAppBar(
           context,
-          title: "${payload.name}\nChat".trim(),
+          title: "${_payload.name}\nChat".trim(),
           onBack: () => Navigator.of(context).pop(),
           isWhite: false,
         ),
@@ -233,15 +233,15 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
               isLastPage: false,
               theme: _chatTheme,
               emptyState: const CupertinoActivityIndicator(),
-              messages: messages,
+              messages: _messages,
               onSendPressed: _handleSendPressed,
               inputOptions: InputOptions(
                   sendButtonVisibilityMode: SendButtonVisibilityMode.always,
                   onTextChanged: (text) {
-                    if (isTyping && text.trim() == '' ||
-                        !isTyping && text.trim() != '') {
+                    if (_isTyping && text.trim() == '' ||
+                        !_isTyping && text.trim() != '') {
                       setState(() {
-                        isTyping = text.trim() != '';
+                        _isTyping = text.trim() != '';
                       });
                     }
                   }),
@@ -250,7 +250,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _onMessageVisibilityChanged(types.Message message, bool visible) {
-    if (message == messages.last && visible && !didFetchAllMessages) {
+    if (message == _messages.last && visible && !_didFetchAllMessages) {
       _getHistory();
     }
   }
@@ -261,18 +261,18 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
     final sendingMessage = types.TextMessage(
       id: messageId,
-      author: user,
+      author: _user,
       createdAt: timestamp,
       text: message,
       status: types.Status.sending,
     );
     setState(() {
-      messages.insert(0, sendingMessage);
+      _messages.insert(0, sendingMessage);
     });
 
     _sendMessage(sendingMessage);
     setState(() {
-      isTyping = false;
+      _isTyping = false;
     });
   }
 
@@ -293,7 +293,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (message is types.TextMessage) {
       final body = message.text;
       String you = "";
-      if (message.author.id == user.id) {
+      if (message.author.id == _user.id) {
         you = " (${"you".tr()})";
       }
       final time = message.createdAt ?? 0;
@@ -352,7 +352,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           ),
         ),
       ),
-      sendButtonIcon: SvgPicture.asset(isTyping
+      sendButtonIcon: SvgPicture.asset(_isTyping
           ? "assets/images/sendMessageFilled.svg"
           : "assets/images/sendMessage.svg"),
       inputTextCursorColor: theme.colorScheme.secondary,
