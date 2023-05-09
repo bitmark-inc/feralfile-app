@@ -170,9 +170,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
     if (memoryValues.homePageInitialTab != HomePageTab.DISCOVER) {
-      _selectedIndex = 1;
+      _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     } else {
-      _selectedIndex = 0;
+      _selectedIndex = HomeNavigatorTab.DISCOVER.index;
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
@@ -446,7 +446,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(1);
+        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
         break;
 
       case "customer_support_new_message":
@@ -476,7 +476,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(1);
+        memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
+        _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
         final metricClient = injector<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.tabNotification, data: {
           'type': notificationType,

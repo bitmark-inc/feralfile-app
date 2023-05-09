@@ -253,8 +253,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
               ],
             ),
           ),
-          const SizedBox(width: 50.0),
           IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () async {
               await showModalBottomSheet<dynamic>(
                 context: context,

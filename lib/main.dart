@@ -219,6 +219,12 @@ enum HomePageTab {
   EDITORIAL,
 }
 
+enum HomeNavigatorTab {
+  DISCOVER,
+  COLLECTION,
+  WALLET,
+}
+
 @pragma('vm:entry-point')
 void downloadCallback(String id, DownloadTaskStatus status, int progress) {
   final SendPort? send =

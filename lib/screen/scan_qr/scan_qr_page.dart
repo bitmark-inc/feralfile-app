@@ -241,7 +241,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                           const Duration(milliseconds: 300));
                                   setState(() {});
                                 },
-                                text: 'show_my_code'.tr(),
+                                text: 'scan_code'.tr(),
                                 color: _tabController.index == 0
                                     ? theme.colorScheme.primary
                                     : theme.auLightGrey,
@@ -260,7 +260,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                           const Duration(milliseconds: 300));
                                   setState(() {});
                                 },
-                                text: 'scan_code'.tr(),
+                                text: 'show_my_code'.tr(),
                                 color: _tabController.index == 1
                                     ? theme.colorScheme.primary
                                     : theme.auLightGrey,
