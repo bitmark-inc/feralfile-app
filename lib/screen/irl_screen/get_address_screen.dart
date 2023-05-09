@@ -65,13 +65,11 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
 
   void _callAccountEvent() {
     if (widget.payload?.blockchain?.toLowerCase() == "tezos") {
-      context
-          .read<AccountsBloc>()
-          .add(GetCategorizedAccountsEvent(getEth: false));
+      context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+          getEth: false, includeLinkedAccount: false));
     } else {
-      context
-          .read<AccountsBloc>()
-          .add(GetCategorizedAccountsEvent(getTezos: false));
+      context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+          getTezos: false, includeLinkedAccount: false));
     }
   }
 
