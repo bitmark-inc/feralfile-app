@@ -1,5 +1,9 @@
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:hive/hive.dart';
+
+import 'log.dart';
 
 String getLocationName(Placemark placeMark) {
   List<String> locationLevel = [];
@@ -45,9 +49,22 @@ Future<String> getLocationNameFromCoordinates(
   if (latitude == moMALocation.lat && longitude == moMALocation.lon) {
     return "MoMA";
   }
-  final placeMark = await getPlaceMarkFromCoordinates(latitude, longitude);
-  if (placeMark == null) {
+
+  final box = await Hive.openBox(POSTCARD_LOCATION_HIVE_BOX);
+  final key = "$latitude|$longitude";
+  if (box.containsKey(key)) {
+    return box.get(key) as String;
+  }
+  try {
+    final placeMark = await getPlaceMarkFromCoordinates(latitude, longitude);
+    if (placeMark == null) {
+      return "";
+    }
+    final location = getLocationName(placeMark);
+    box.put(key, location);
+    return location;
+  } catch (e) {
+    log.info("Error getting location name from coordinates: $e");
     return "";
   }
-  return getLocationName(placeMark);
 }

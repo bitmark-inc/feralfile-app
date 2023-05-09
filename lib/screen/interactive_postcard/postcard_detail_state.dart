@@ -20,11 +20,15 @@ class PostcardDetailState {
   AssetToken? assetToken;
   List<Provenance> provenances;
   PostcardValue? postcardValue;
+  String? imagePath;
+  String? metadataPath;
 
   PostcardDetailState({
     this.assetToken,
     required this.provenances,
     this.postcardValue,
+    this.imagePath,
+    this.metadataPath,
   });
 
   ArtworkDetailState toArtworkDetailState() {
@@ -38,11 +42,15 @@ class PostcardDetailState {
     AssetToken? assetToken,
     List<Provenance>? provenances,
     PostcardValue? postcardValue,
+    String? imagePath,
+    String? metadataPath,
   }) {
     return PostcardDetailState(
       assetToken: assetToken ?? this.assetToken,
       provenances: provenances ?? this.provenances,
       postcardValue: postcardValue ?? this.postcardValue,
+      imagePath: imagePath ?? this.imagePath,
+      metadataPath: metadataPath ?? this.metadataPath,
     );
   }
 }

@@ -38,8 +38,8 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
   }
 
   _convertFileToBase64() async {
-    if (widget.imagePath == null || widget.jsonPath == null) return;
     log.info("[Postcard] add stamp ${widget.imagePath}, ${widget.jsonPath}");
+    if (widget.imagePath == null || widget.jsonPath == null) return;
     final image = await File(widget.imagePath!).readAsBytes();
     final json = await File(widget.jsonPath!).readAsBytes();
     base64Json = base64Encode(json);

@@ -982,10 +982,6 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
 Widget postcardDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, List<String?> owners) {
   final theme = Theme.of(context);
-  final editionID =
-      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
-          ? assetToken.originTokenInfoId ?? ""
-          : assetToken.id.split("-").last;
   final ownersList = owners.whereNotNull().toList();
   return SectionExpandedWidget(
     header: "metadata".tr(),
@@ -1041,32 +1037,6 @@ Widget postcardDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        editionID.isNotEmpty
-            ? FutureBuilder<Exhibition?>(
-                future: injector<FeralFileService>()
-                    .getExhibitionFromTokenID(editionID),
-                builder: (context, snapshot) {
-                  if (snapshot.data != null) {
-                    return Column(
-                      children: [
-                        MetaDataItem(
-                          title: "exhibition".tr(),
-                          value: snapshot.data!.title,
-                          tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
-                          forceSafariVC: true,
-                        ),
-                        Divider(
-                          height: 32.0,
-                          color: theme.auLightGrey,
-                        ),
-                      ],
-                    );
-                  } else {
-                    return const SizedBox();
-                  }
-                },
-              )
-            : const SizedBox(),
         MetaDataItem(
           title: "contract".tr(),
           value: assetToken.blockchain.capitalize(),

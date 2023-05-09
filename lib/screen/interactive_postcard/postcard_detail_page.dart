@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -78,10 +77,12 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
   Timer? timer;
+  bool isUpdating = false;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
+  Key postcardKey = UniqueKey();
 
   @override
   void initState() {
@@ -267,6 +268,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           timer?.cancel();
         }
       }
+      if ((state.imagePath == null) ^ !isUpdating) {
+        forceRebuild();
+      }
 
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
@@ -283,26 +287,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
-        String? imagePath;
-        String? metadataPath;
-        final postcardService = injector<PostcardService>();
-        final stampingPostcard = postcardService
-            .getStampingPostcardWithPath(state.assetToken!.stampingPostcard!);
-        if (stampingPostcard != null) {
-          if (state.canDoAction &&
-              stampingPostcard.counter == asset.postcardMetadata.counter) {
-            final isStamped = asset.postcardMetadata.isStamped;
-            if (!isStamped) {
-              log.info("[PostcardDetail] Stamping...");
-              imagePath = stampingPostcard.imagePath;
-              metadataPath = stampingPostcard.metadataPath;
-            } else {
-              postcardService
-                  .updateStampingPostcard([stampingPostcard], isRemove: true);
-            }
-          }
-        }
-
         return Stack(
           children: [
             Scaffold(
@@ -402,9 +386,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               child: Stack(
                                 children: [
                                   PostcardRatio(
+                                    key: postcardKey,
                                     assetToken: state.assetToken!,
-                                    imagePath: imagePath,
-                                    jsonPath: metadataPath,
+                                    imagePath: state.imagePath,
+                                    jsonPath: state.metadataPath,
                                   ),
                                   Positioned.fill(
                                     child: GestureDetector(
@@ -442,6 +427,13 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       } else {
         return const SizedBox();
       }
+    });
+  }
+
+  void forceRebuild() {
+    setState(() {
+      postcardKey = UniqueKey();
+      isUpdating = !isUpdating;
     });
   }
 
