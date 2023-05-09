@@ -7,14 +7,18 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
@@ -59,9 +63,12 @@ class PostcardDetailBloc
             .where((element) => element.id == event.identity.id)
             .toList();
         if (assetToken.isNotEmpty) {
+          final paths = getUpdatingPath(state, assetToken.first);
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
+            imagePath: paths.first,
+            metadataPath: paths.second,
           ));
           final postcardValue = await getPostcardValue(
               assetToken.first.contractAddress ?? "",
@@ -74,7 +81,11 @@ class PostcardDetailBloc
         await tokenService.reindexAddresses([event.identity.owner]);
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
-        emit(state.copyWith(assetToken: assetToken));
+        final paths = getUpdatingPath(state, assetToken);
+        emit(state.copyWith(
+            assetToken: assetToken,
+            imagePath: paths.first,
+            metadataPath: paths.second));
 
         final provenances =
             await _provenanceDao.findProvenanceByTokenID(event.identity.id);
@@ -122,5 +133,31 @@ class PostcardDetailBloc
     } catch (e) {
       return null;
     }
+  }
+
+  Pair<String?, String?> getUpdatingPath(
+      PostcardDetailState state, AssetToken? asset) {
+    String? imagePath;
+    String? metadataPath;
+    if (asset != null) {
+      final postcardService = injector<PostcardService>();
+      final stampingPostcard =
+          postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
+      if (stampingPostcard != null) {
+        if (state.canDoAction &&
+            stampingPostcard.counter == asset.postcardMetadata.counter) {
+          final isStamped = asset.postcardMetadata.isStamped;
+          if (!isStamped) {
+            log.info("[PostcardDetail] Stamping... ");
+            imagePath = stampingPostcard.imagePath;
+            metadataPath = stampingPostcard.metadataPath;
+          } else {
+            postcardService
+                .updateStampingPostcard([stampingPostcard], isRemove: true);
+          }
+        }
+      }
+    }
+    return Pair(imagePath, metadataPath);
   }
 }

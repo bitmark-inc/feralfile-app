@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -78,6 +77,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
   Timer? timer;
+  bool isUpdating = false;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -282,26 +282,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
-        String? imagePath;
-        String? metadataPath;
-        final postcardService = injector<PostcardService>();
-        final stampingPostcard = postcardService
-            .getStampingPostcardWithPath(state.assetToken!.stampingPostcard!);
-        if (stampingPostcard != null) {
-          if (state.canDoAction &&
-              stampingPostcard.counter == asset.postcardMetadata.counter) {
-            final isStamped = asset.postcardMetadata.isStamped;
-            if (!isStamped) {
-              log.info("[PostcardDetail] Stamping...");
-              imagePath = stampingPostcard.imagePath;
-              metadataPath = stampingPostcard.metadataPath;
-            } else {
-              postcardService
-                  .updateStampingPostcard([stampingPostcard], isRemove: true);
-            }
-          }
-        }
-
         return Stack(
           children: [
             Scaffold(
@@ -401,9 +381,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               child: Stack(
                                 children: [
                                   PostcardRatio(
+                                    key: ValueKey(state.imagePath),
                                     assetToken: state.assetToken!,
-                                    imagePath: imagePath,
-                                    jsonPath: metadataPath,
+                                    imagePath: state.imagePath,
+                                    jsonPath: state.metadataPath,
                                   ),
                                   Positioned.fill(
                                     child: GestureDetector(
@@ -425,7 +406,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 10,
                             ),
-                            _postcardInfor(state),
+                            _postcardInfo(state),
                             _artworkInfo(asset, state.toArtworkDetailState(),
                                 artistNames),
                           ],
@@ -486,11 +467,11 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Future<void> _sharePostcard(AssetToken asset) async {
     try {
-      final sharePostcardRespone =
+      final sharePostcardResponse =
           await injector<PostcardService>().sharePostcard(asset);
-      if (sharePostcardRespone.deeplink?.isNotEmpty ?? false) {
+      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
-          'deeplink': sharePostcardRespone.deeplink!,
+          'deeplink': sharePostcardResponse.deeplink!,
         });
         Share.share(shareMessage);
       }
@@ -505,7 +486,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Widget _postcardInfor(PostcardDetailState state) {
+  Widget _postcardInfo(PostcardDetailState state) {
     return Container(
       color: AppColor.white,
       child: Column(
