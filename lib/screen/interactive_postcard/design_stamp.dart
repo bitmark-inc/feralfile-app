@@ -31,12 +31,12 @@ class DesignStampPage extends StatefulWidget {
 }
 
 class _DesignStampPageState extends State<DesignStampPage> {
-  List<Color?> rectColors = List<Color?>.filled(100, null);
-  Color selectedColor = AppColor.primaryBlack;
-  String location = "MoMA";
-  late String date;
-  WidgetsToImageController controller = WidgetsToImageController();
-  bool line = true;
+  List<Color?> _rectColors = List<Color?>.filled(100, null);
+  Color _selectedColor = AppColor.primaryBlack;
+  String _location = "MoMA";
+  late String _date;
+  final WidgetsToImageController _controller = WidgetsToImageController();
+  bool _line = true;
   late SimpleStack _undoController;
 
   @override
@@ -45,7 +45,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     if (widget.payload.location != null) {
       final placeMark = widget.payload.location!.placeMark;
       if (widget.payload.asset.postcardMetadata.counter != 1) {
-        location = getLocationName(placeMark);
+        _location = getLocationName(placeMark);
       }
     }
 
@@ -54,18 +54,18 @@ class _DesignStampPageState extends State<DesignStampPage> {
       onUpdate: (val) {
         setState(
           () {
-            rectColors = val.toList();
+            _rectColors = val.toList();
           },
         );
       },
     );
 
     // date now dd-mm-yy
-    date =
+    _date =
         "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}";
 
     stampColors.shuffle();
-    selectedColor = stampColors[0];
+    _selectedColor = stampColors[0];
   }
 
   @override
@@ -121,7 +121,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                               child: Column(
                                 children: [
                                   WidgetsToImage(
-                                    controller: controller,
+                                    controller: _controller,
                                     child: GestureDetector(
                                       onPanUpdate: (details) {
                                         // update rectColors using details.localPosition and selectedColor
@@ -138,12 +138,12 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                             (x ~/ cellSize) * 10;
                                         if (index >= 0 && index < 100) {
                                           setState(() {
-                                            rectColors[index] = selectedColor;
+                                            _rectColors[index] = _selectedColor;
                                           });
                                         }
                                       },
                                       onPanEnd: (details) {
-                                        _undoController.modify(rectColors);
+                                        _undoController.modify(_rectColors);
                                       },
                                       child: Container(
                                         color: AppColor.white,
@@ -152,8 +152,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                           height: cellSize * 10,
                                           child: CustomPaint(
                                             painter: StampPainter(
-                                                rectColors: rectColors,
-                                                line: line),
+                                                rectColors: _rectColors,
+                                                line: _line),
                                           ),
                                         ),
                                       ),
@@ -212,11 +212,11 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                     child: PostcardOutlineButton(
                                       onTap: () {
                                         setState(() {
-                                          line = true;
-                                          rectColors =
+                                          _line = true;
+                                          _rectColors =
                                               List<Color?>.filled(100, null);
                                         });
-                                        _undoController.modify(rectColors);
+                                        _undoController.modify(_rectColors);
                                       },
                                       text: "clear_all".tr(),
                                       textColor: AppColor.greyMedium,
@@ -230,18 +230,18 @@ class _DesignStampPageState extends State<DesignStampPage> {
                             const SizedBox(height: 16),
                             PostcardButton(
                               text: "stamp_postcard".tr(),
-                              onTap: rectColors
+                              onTap: _rectColors
                                       .any((element) => element == null)
                                   ? null
                                   : () async {
                                       setState(() {
-                                        line = false;
+                                        _line = false;
                                       });
                                       Future.delayed(
                                         const Duration(milliseconds: 200),
                                         () async {
                                           final bytes =
-                                              await controller.capture();
+                                              await _controller.capture();
                                           if (!mounted) return;
                                           Navigator.of(context).pushNamed(
                                               HandSignaturePage
@@ -251,7 +251,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                                   widget.payload.asset,
                                                   widget.payload.location
                                                       ?.position,
-                                                  location));
+                                                  _location));
                                         },
                                       );
                                     },
@@ -283,7 +283,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
             children: [
               Expanded(
                 child: AutoSizeText(
-                  location,
+                  _location,
                   style: theme.textTheme.moMASans400White14,
                   maxFontSize: 14,
                   minFontSize: 1,
@@ -291,7 +291,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                 ),
               ),
               Text(
-                date,
+                _date,
                 style: theme.textTheme.moMASans400White14,
               ),
             ],
@@ -319,11 +319,11 @@ class _DesignStampPageState extends State<DesignStampPage> {
   // function to fill rectColors with random color from stampColors
   void fillRandomColor() {
     stampColors.shuffle();
-    for (var i = 0; i < rectColors.length; i++) {
+    for (var i = 0; i < _rectColors.length; i++) {
       final m = Random().nextInt(stampColors.length - 1);
-      rectColors[i] = stampColors[m];
+      _rectColors[i] = stampColors[m];
     }
-    _undoController.modify(rectColors);
+    _undoController.modify(_rectColors);
   }
 
   // color picker update selectedColor using horizontal listview, each item is a circle with color, selectedColor is white border
@@ -338,7 +338,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
           return GestureDetector(
             onTap: () {
               setState(() {
-                selectedColor = color;
+                _selectedColor = color;
               });
             },
             child: Container(
@@ -348,7 +348,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selectedColor == color
+                  color: _selectedColor == color
                       ? AppColor.primaryBlack
                       : Colors.transparent,
                   width: 2,
