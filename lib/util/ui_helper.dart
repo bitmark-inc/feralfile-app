@@ -1345,8 +1345,6 @@ class UIHelper {
     return showErrorDialog(context, title, description, "close".tr());
   }
 
-  static Future showUnableToStamp(BuildContext context) async {}
-
   static Future showDeclinedGeolocalization(BuildContext context) async {
     final title = "unable_to_stamp_postcard".tr();
     final description = "sharing_your_geolocation".tr();
@@ -1361,7 +1359,7 @@ class UIHelper {
 
   static showReceivePostcardFailed(BuildContext context, DioError error) async {
     return showErrorDialog(
-        context, "already_delivered".tr(), "it_seems_that".tr(), "close".tr());
+        context, "accept_postcard_failed".tr(), error.message, "close".tr());
   }
 
   static showSharePostcardFailed(BuildContext context, DioError error) async {

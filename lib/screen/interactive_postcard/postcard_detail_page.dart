@@ -260,7 +260,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           timer?.cancel();
           timer = Timer.periodic(duration, (timer) {
             if (mounted) {
-              refreshPostcard();
+              _refreshPostcard();
             }
           });
         } else {
@@ -445,7 +445,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     });
   }
 
-  void refreshPostcard() {
+  void _refreshPostcard() {
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
           widget.payload.identities[widget.payload.currentIndex],
         ));
@@ -516,7 +516,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           const SizedBox(
             height: 10,
           ),
-          viewJourney ? travelInfoWidget(state) : leaderboard(state),
+          viewJourney ? _travelInfoWidget(state) : _leaderboard(state),
         ],
       ),
     );
@@ -662,7 +662,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget travelInfoWidget(PostcardDetailState postcardDetailState) {
+  Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
     final theme = Theme.of(context);
     final asset = postcardDetailState.assetToken;
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
@@ -706,9 +706,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       postcardDetailState.isLastOwner) {
                     return _sendingTripItem(context, asset!, travelInfo);
                   }
-                  return completeTravelWidget(e);
+                  return _completeTravelWidget(e);
                 }
-                return travelWidget(e);
+                return _travelWidget(e);
               }).toList(),
             ],
           ),
@@ -717,7 +717,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget travelWidget(TravelInfo travelInfo) {
+  Widget _travelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
     return Column(
@@ -761,7 +761,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget completeTravelWidget(TravelInfo travelInfo) {
+  Widget _completeTravelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
     return Column(
@@ -835,10 +835,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _notSentItem(List<TravelInfo> listTravelInfo) {
     final notSentTravelInfo = listTravelInfo.notSentTravelInfo;
-    return travelWidget(notSentTravelInfo);
+    return _travelWidget(notSentTravelInfo);
   }
 
-  Widget leaderboard(PostcardDetailState state) {
+  Widget _leaderboard(PostcardDetailState state) {
     return const Text("Here is leader board");
   }
 }

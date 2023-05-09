@@ -271,7 +271,7 @@ class NavigationService {
     }
   }
 
-  void openPostcardReceivedPage(
+  Future<void> openPostcardReceivedPage(
       {required AssetToken asset, required String shareCode}) async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {

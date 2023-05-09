@@ -239,7 +239,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
 
   Future<void> _receivePostcard(AssetToken asset) async {
     final isReceived =
-        await injector<PostcardService>().isReceived(asset.tokenId ?? "");
+        asset.postcardMetadata.locationInformation.last.claimedLocation != null;
     if (isReceived) {
       if (!mounted) return;
       await UIHelper.showAlreadyDelivered(context);
@@ -294,11 +294,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       address = response as String?;
     }
     if (address != null) {
-      // bloc.add(AcceptPostcardEvent(
-      //   address,
-      //   widget.sharedCode,
-      //   location,
-      // ));
       try {
         final response = await injector<PostcardService>().receivePostcard(
             shareCode: widget.shareCode, location: location, address: address);

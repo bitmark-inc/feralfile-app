@@ -46,8 +46,6 @@ abstract class PostcardService {
 
   Future<AssetToken> getPostcard(String tokenId);
 
-  Future<bool> isReceived(String tokenId);
-
   Future<bool> stampPostcard(
       String tokenId,
       WalletStorage wallet,
@@ -82,6 +80,8 @@ class PostcardServiceImpl extends PostcardService {
   final PostcardApi _postcardApi;
   final TezosService _tezosService;
   final IndexerService _indexerService;
+  final _tzktApi = injector<TZKTApi>();
+  final _configurationService = injector<ConfigurationService>();
 
   PostcardServiceImpl(
       this._postcardApi, this._tezosService, this._indexerService);
@@ -113,7 +113,6 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<SharePostcardResponse> sharePostcard(AssetToken asset) async {
-    final tezosService = injector<TezosService>();
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
@@ -131,7 +130,7 @@ class PostcardServiceImpl extends PostcardService {
 
     final message2sign = getMessage2Sign(data);
     final publicKey = await ownerWallet.getTezosPublicKey(index: addressIndex!);
-    final signature = await tezosService.signMessage(
+    final signature = await _tezosService.signMessage(
         ownerWallet, addressIndex, Uint8List.fromList(message2sign));
     final body = {
       "address": asset.owner,
@@ -169,11 +168,6 @@ class PostcardServiceImpl extends PostcardService {
     } catch (e) {
       rethrow;
     }
-  }
-
-  @override
-  Future<bool> isReceived(String tokenId) async {
-    return false;
   }
 
   @override
@@ -239,25 +233,24 @@ class PostcardServiceImpl extends PostcardService {
     required contractAddress,
     required String tokenId,
   }) async {
-    final postcardApi = injector<TZKTApi>();
-    final ptr = await postcardApi.getBigMapsId(contract: contractAddress);
+    final ptr = await _tzktApi.getBigMapsId(contract: contractAddress);
     if (ptr.isEmpty) return null;
     final bigMapId = ptr.first;
-    final result = await postcardApi.getBigMaps(bigMapId, key: tokenId);
+    final result = await _tzktApi.getBigMaps(bigMapId, key: tokenId);
     if (result.isEmpty) return null;
     return result.first;
   }
 
   @override
   List<StampingPostcard> getStampingPostcard() {
-    return injector<ConfigurationService>().getStampingPostcard();
+    return _configurationService.getStampingPostcard();
   }
 
   @override
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false}) async {
-    await injector<ConfigurationService>()
-        .updateStampingPostcard(values, override: override, isRemove: isRemove);
+    await _configurationService.updateStampingPostcard(values,
+        override: override, isRemove: isRemove);
     if (isRemove) {
       Future.delayed(const Duration(seconds: 2), () async {
         for (var element in values) {

@@ -61,9 +61,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
     );
 
     // date now dd-mm-yy
-    _date =
-        "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}";
-
+    final dateTimeFormater = DateFormat('dd-MM-yyyy');
+    _date = dateTimeFormater.format(DateTime.now());
     stampColors.shuffle();
     _selectedColor = stampColors[0];
   }

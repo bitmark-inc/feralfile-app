@@ -395,7 +395,7 @@ class HomePageState extends State<HomePage>
           (BuildContext context, int index) {
             final asset = tokens[index];
 
-            if (asset.pending == true && asset.source == 'postcard') {
+            if (asset.pending == true && asset.isPostcard) {
               return MintTokenWidget(
                 thumbnail: asset.galleryThumbnailURL,
                 tokenId: asset.tokenId,
