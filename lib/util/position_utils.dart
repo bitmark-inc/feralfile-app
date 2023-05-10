@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hive/hive.dart';
