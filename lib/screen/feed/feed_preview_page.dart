@@ -117,75 +117,63 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
-      body: BlocConsumer<FeedBloc, FeedState>(listener: (context, state) {
-        if (state.error != null) {
-          UIHelper.showDialog(
-              context,
-              "Load Discovery Failed",
-              isDismissible: true,
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Text("Can't load discovery, please try again later",
-                          style: theme.textTheme.ppMori400White14),
-                    ],
-                  ),
-                ],
-              ));
-        }
-      }, builder: (context, state) {
-        if (state.error != null) {
-          return Center(
-            child: Text(
-              "Can't load discovery, please try again later",
-              style: theme.textTheme.ppMori400White14,
-            ),
-          );
-        }
-        if (state.feedTokenEventsMap?.isEmpty ?? true) {
-          return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
-        }
-        _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
-        return Column(children: [
-          Expanded(
-            child: CustomScrollView(
-              controller: widget.controller,
-              shrinkWrap: true,
-              physics: const AlwaysScrollableScrollPhysics(),
-              cacheExtent: 1000,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 20),
-                    child: Tipcard(
-                      titleText: "want_to_receive_real_time".tr(),
-                      onPressed: () {
-                        Navigator.of(context)
-                            .pushNamed(AppRouter.preferencesPage);
-                      },
-                      buttonText: "turn_on_notif".tr(),
-                      content: Text(
-                        "turn_on_notif_to_get".tr(),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                      listener: injector<ConfigurationService>().showNotifTip,
-                    ),
-                  ),
+      body: BlocConsumer<FeedBloc, FeedState>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            if (state.error != null) {
+              return Padding(
+                padding:
+                    ResponsiveLayout.pageEdgeInsets.copyWith(top: 24, right: 5),
+                child: Text(
+                  "discover_unable_to_load".tr(),
+                  style: theme.textTheme.ppMori400White14,
                 ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _listItem(
-                        state.feedTokenEventsMap!.entries.elementAt(index)),
-                    childCount: state.feedTokenEventsMap?.length ?? 0,
-                  ),
-                )
-              ],
-            ),
-          )
-        ]);
-      }),
+              );
+            }
+            if (state.feedTokenEventsMap?.isEmpty ?? true) {
+              return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
+            }
+            _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
+            return Column(children: [
+              Expanded(
+                child: CustomScrollView(
+                  controller: widget.controller,
+                  shrinkWrap: true,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  cacheExtent: 1000,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 20),
+                        child: Tipcard(
+                          titleText: "want_to_receive_real_time".tr(),
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pushNamed(AppRouter.preferencesPage);
+                          },
+                          buttonText: "turn_on_notif".tr(),
+                          content: Text(
+                            "turn_on_notif_to_get".tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          listener:
+                              injector<ConfigurationService>().showNotifTip,
+                        ),
+                      ),
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _listItem(
+                            state.feedTokenEventsMap!.entries.elementAt(index)),
+                        childCount: state.feedTokenEventsMap?.length ?? 0,
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ]);
+          }),
     );
   }
 
