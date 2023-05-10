@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
@@ -300,6 +301,24 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   mainAxisSpacing: cellSpacing,
                 ),
                 itemBuilder: (context, index) {
+                  if (index == tokens.length) {
+                    return GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRouter.createPlayListPage,
+                        arguments: widget.playListModel,
+                      ).then((value) {
+                        if (value != null && value is PlayListModel) {
+                          bloc.add(SavePlaylist());
+                          nftBloc.add(RefreshNftCollectionByIDs(
+                            ids: isDemo ? [] : value.tokenIDs,
+                            debugTokenIds: isDemo ? value.tokenIDs : [],
+                          ));
+                        }
+                      }),
+                      child: const AddTokenWidget(),
+                    );
+                  }
                   final asset = tokens[index];
                   return GestureDetector(
                     child: asset.pending == true && !asset.hasMetadata
@@ -333,7 +352,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     },
                   );
                 },
-                itemCount: tokens.length,
+                itemCount: tokens.length + 1
               ),
             ),
             const SizedBox(
