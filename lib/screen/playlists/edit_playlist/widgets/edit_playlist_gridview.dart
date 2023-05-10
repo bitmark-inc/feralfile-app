@@ -14,6 +14,7 @@ class EditPlaylistGridView extends StatefulWidget {
   final List<String>? selectedTokens;
   final Function(List<CompactedAssetToken?>) onReorder;
   final Function()? onAddTap;
+
   const EditPlaylistGridView({
     Key? key,
     this.controller,
