@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -44,6 +45,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -80,6 +82,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void _onItemTapped(int index) {
     if (index != _pages.length) {
       final feedService = injector<FeedService>();
+      final editorialService = injector<EditorialService>();
       if (_selectedIndex == index) {
         if (index == 1) {
           _homePageKey.currentState?.scrollToTop();
@@ -93,13 +96,15 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       });
       _pageController.jumpToPage(_selectedIndex);
       if (index == 1) {
-        _homePageKey.currentState
-            ?.refreshTokens()
-            .then((value) => feedService.checkNewFeeds());
+        _homePageKey.currentState?.refreshTokens().then((value) {
+          feedService.checkNewFeeds();
+          editorialService.checkNewEditorial();
+        });
       } else if (index == 0) {
-        _homePageKey.currentState
-            ?.refreshTokens()
-            .then((value) => feedService.checkNewFeeds());
+        _homePageKey.currentState?.refreshTokens().then((value) {
+          feedService.checkNewFeeds();
+          editorialService.checkNewEditorial();
+        });
         final metricClient = injector<MetricClientService>();
         if (injector<ConfigurationService>().hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
@@ -108,6 +113,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           metricClient.addEvent(MixpanelEvent.viewDiscovery);
           metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
         } else {
+          final editorialBloc = context.read<EditorialBloc>();
+          editorialBloc.add(OpenEditorialEvent());
           metricClient.addEvent(MixpanelEvent.viewEditorial);
           metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
         }
@@ -177,9 +184,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _pageController = PageController(initialPage: _selectedIndex);
 
     final feedService = injector<FeedService>();
-    _homePageKey.currentState
-        ?.refreshTokens()
-        .then((value) => feedService.checkNewFeeds());
+    _homePageKey.currentState?.refreshTokens().then((value) {
+      feedService.checkNewFeeds();
+      injector<EditorialService>().checkNewEditorial();
+    });
     _pages = <Widget>[
       ValueListenableBuilder<bool>(
           valueListenable: injector<FeedService>().hasFeed,
@@ -199,10 +207,17 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     ];
     _bottomItems = [
       BottomNavigationBarItem(
-        icon: ValueListenableBuilder<int>(
-            valueListenable: injector<FeedService>().unviewedCount,
-            builder: (BuildContext context, int unreadCount, Widget? child) {
-              if (unreadCount > 0) {
+        icon: MultiValueListenableBuilder(
+            valueListenables: [
+              injector<FeedService>().unviewedCount,
+              injector<EditorialService>().unviewedCount
+            ],
+            builder:
+                (BuildContext context, List<dynamic> values, Widget? child) {
+              final feedUnviewCount = values[0] as int;
+              final editorialUnviewCount = values[1] as int;
+              final unviewCount = feedUnviewCount + editorialUnviewCount;
+              if (feedUnviewCount > 0) {
                 context.read<FeedBloc>().add(GetFeedsEvent());
               }
               return Stack(
@@ -214,7 +229,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                       size: 25,
                     ),
                   ),
-                  if (unreadCount > 0) ...[
+                  if (unviewCount > 0) ...[
                     Positioned(
                       left: 28,
                       top: 0,
@@ -231,7 +246,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                         constraints: const BoxConstraints(minWidth: 11),
                         child: Center(
                           child: Text(
-                            "$unreadCount",
+                            "$unviewCount",
                             style: Theme.of(context)
                                 .textTheme
                                 .ppMori700White12

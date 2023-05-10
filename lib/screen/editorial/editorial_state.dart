@@ -14,6 +14,10 @@ class GetEditorialEvent extends EditorialEvent {
   GetEditorialEvent();
 }
 
+class OpenEditorialEvent extends EditorialEvent {
+  OpenEditorialEvent();
+}
+
 class EditorialState {
   final List<EditorialPost> editorial;
   final Exhibition? exhibition;
