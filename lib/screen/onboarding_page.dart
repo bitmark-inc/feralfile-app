@@ -361,7 +361,8 @@ class _OnboardingPageState extends State<OnboardingPage>
               Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
               const Spacer(),
               if (fromBranchLink ||
-                  fromDeeplink || fromIrlLink ||
+                  fromDeeplink ||
+                  fromIrlLink ||
                   (state.onboardingStep == OnboardingStep.undefined)) ...[
                 PrimaryButton(
                   text: "h_loading...".tr(),
