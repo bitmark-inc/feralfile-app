@@ -81,7 +81,8 @@ class ClaimEmptyPostCardBloc
             'blockchain': 'Tezos',
             'onConfirm': (String address) async {
               navigationService.goBack(result: address);
-            }
+            },
+            'withLinked': false,
           },
         );
       }

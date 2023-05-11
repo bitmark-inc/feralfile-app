@@ -1248,6 +1248,7 @@ class AppRouter {
         final arguments = settings.arguments as Map;
         final blockchain = arguments['blockchain'] as String;
         final onConfirm = arguments['onConfirm'] as Future Function(String);
+        final withLinked = (arguments['withLinked'] ?? true) as bool;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) {
@@ -1258,6 +1259,7 @@ class AppRouter {
               child: SelectAccountScreen(
                 blockchain: blockchain,
                 onConfirm: onConfirm,
+                withLinked: withLinked,
               ),
             );
           },
@@ -1310,6 +1312,7 @@ class AppRouter {
             value: accountsBloc,
             child: ReceivePostcardSelectAccountPage(
               blockchain: args.blockchain,
+              withLinked: args.withLinked,
             ),
           );
         });

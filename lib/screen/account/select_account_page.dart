@@ -11,12 +11,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SelectAccountScreen extends StatefulWidget {
   final String blockchain;
+  final bool withLinked;
   final Future Function(String) onConfirm;
 
   const SelectAccountScreen({
     super.key,
     required this.blockchain,
     required this.onConfirm,
+    this.withLinked = true,
   });
 
   @override
@@ -115,28 +117,31 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
       final categorizedAccounts = state.categorizedAccounts ?? [];
       return Column(
         children: [
-          ...categorizedAccounts
-              .map((account) => PersonalConnectItem(
-                    categorizedAccount: account,
-                    ethSelectedAddress: _selectedAddress,
-                    tezSelectedAddress: _selectedAddress,
-                    isExpand: true,
-                    onSelectEth: (value) {
-                      setState(() {
-                        if (widget.blockchain.toLowerCase() != "tezos") {
-                          _selectedAddress = value;
-                        }
-                      });
-                    },
-                    onSelectTez: (value) {
-                      setState(() {
-                        if (widget.blockchain.toLowerCase() == "tezos") {
-                          _selectedAddress = value;
-                        }
-                      });
-                    },
-                  ))
-              .toList(),
+          ...categorizedAccounts.map((account) {
+            if (!widget.withLinked && !account.isPersona) {
+              return const SizedBox();
+            }
+            return PersonalConnectItem(
+              categorizedAccount: account,
+              ethSelectedAddress: _selectedAddress,
+              tezSelectedAddress: _selectedAddress,
+              isExpand: true,
+              onSelectEth: (value) {
+                setState(() {
+                  if (widget.blockchain.toLowerCase() != "tezos") {
+                    _selectedAddress = value;
+                  }
+                });
+              },
+              onSelectTez: (value) {
+                setState(() {
+                  if (widget.blockchain.toLowerCase() == "tezos") {
+                    _selectedAddress = value;
+                  }
+                });
+              },
+            );
+          }).toList(),
         ],
       );
     });

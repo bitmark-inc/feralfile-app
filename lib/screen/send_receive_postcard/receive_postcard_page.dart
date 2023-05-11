@@ -278,6 +278,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         AppRouter.receivePostcardSelectAccountPage,
         arguments: ReceivePostcardSelectAccountPageArgs(
           blockchain,
+          withLinked: false,
         ),
       );
       address = response as String?;
