@@ -86,6 +86,10 @@ const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
     "https://ipfs.nftstorage.link/ipfs/QmPg8zS5g8LVS1XAiX3AM8UZBMorf9Cjo8p2a4ko1gDoaJ";
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
+const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
+    "postcard software artwork loaded";
+const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
+
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";

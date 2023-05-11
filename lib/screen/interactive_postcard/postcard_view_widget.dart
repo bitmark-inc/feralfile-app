@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -71,6 +72,16 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
               isLoading = false;
             });
             _convertFileToBase64();
+          },
+          onConsoleMessage: (InAppWebViewController controller,
+              ConsoleMessage consoleMessage) {
+            log.info(
+                "[Postcard] Software artwork console log: ${consoleMessage.message}");
+            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
+              setState(() {
+                isLoading = false;
+              });
+            }
           },
           initialUrlRequest: URLRequest(
             url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
