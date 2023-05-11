@@ -23,7 +23,6 @@ class EditorialBloc extends AuBloc<EditorialEvent, EditorialState> {
       emit(
         EditorialState(editorial: editorial.editorial),
       );
-      await _configurationService.setLastTimeOpenEditorial(DateTime.now());
     });
 
     on<OpenEditorialEvent>((event, emit) async {

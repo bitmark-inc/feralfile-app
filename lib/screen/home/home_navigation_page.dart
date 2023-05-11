@@ -70,6 +70,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
   final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
+  final _configurationService = injector<ConfigurationService>();
+  final _feedService = injector<FeedService>();
+  final _editorialService = injector<EditorialService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -81,8 +84,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _onItemTapped(int index) {
     if (index != _pages.length) {
-      final feedService = injector<FeedService>();
-      final editorialService = injector<EditorialService>();
       if (_selectedIndex == index) {
         if (index == 1) {
           _homePageKey.currentState?.scrollToTop();
@@ -97,16 +98,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _pageController.jumpToPage(_selectedIndex);
       if (index == 1) {
         _homePageKey.currentState?.refreshTokens().then((value) {
-          feedService.checkNewFeeds();
-          editorialService.checkNewEditorial();
+          _feedService.checkNewFeeds();
+          _editorialService.checkNewEditorial();
         });
       } else if (index == 0) {
         _homePageKey.currentState?.refreshTokens().then((value) {
-          feedService.checkNewFeeds();
-          editorialService.checkNewEditorial();
+          _feedService.checkNewFeeds();
+          _editorialService.checkNewEditorial();
         });
         final metricClient = injector<MetricClientService>();
-        if (injector<ConfigurationService>().hasFeed()) {
+        if (_configurationService.hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
           feedBloc.add(OpenFeedEvent());
           feedBloc.add(GetFeedsEvent());
@@ -183,14 +184,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
-    final feedService = injector<FeedService>();
     _homePageKey.currentState?.refreshTokens().then((value) {
-      feedService.checkNewFeeds();
-      injector<EditorialService>().checkNewEditorial();
+      _feedService.checkNewFeeds();
+      _editorialService.checkNewEditorial();
     });
     _pages = <Widget>[
       ValueListenableBuilder<bool>(
-          valueListenable: injector<FeedService>().hasFeed,
+          valueListenable: _feedService.hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
             return EditorialPage(
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
@@ -209,8 +209,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       BottomNavigationBarItem(
         icon: MultiValueListenableBuilder(
             valueListenables: [
-              injector<FeedService>().unviewedCount,
-              injector<EditorialService>().unviewedCount
+              _feedService.unviewedCount,
+              _editorialService.unviewedCount
             ],
             builder:
                 (BuildContext context, List<dynamic> values, Widget? child) {
@@ -300,8 +300,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
     ];
 
-    final configService = injector<ConfigurationService>();
-    if (!configService.isReadRemoveSupport()) {
+    if (!_configurationService.isReadRemoveSupport()) {
       _showRemoveCustomerSupport();
     }
     OneSignal.shared
@@ -356,7 +355,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 actionButtonOnTap: () =>
                     launchUrl(uri, mode: LaunchMode.externalApplication),
                 exitButtonOnTap: () {
-                  injector<ConfigurationService>().readRemoveSupport(true);
+                  _configurationService.readRemoveSupport(true);
                   Navigator.of(context).pop();
                 },
                 exitButton: "i_understand_".tr());
@@ -401,9 +400,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     log.info("Receive notification: ${event.notification}");
     final data = event.notification.additionalData;
     if (data == null) return;
-    final configurationService = injector<ConfigurationService>();
-    if (configurationService.isNotificationEnabled() != true) {
-      injector<ConfigurationService>().showNotifTip.value = true;
+    if (_configurationService.isNotificationEnabled() != true) {
+      _configurationService.showNotifTip.value = true;
     }
 
     switch (data['notification_type']) {
@@ -424,7 +422,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
       case "artwork_created":
       case "artwork_received":
-        injector<FeedService>().checkNewFeeds();
+        _feedService.checkNewFeeds();
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
