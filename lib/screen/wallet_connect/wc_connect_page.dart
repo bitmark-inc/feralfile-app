@@ -465,7 +465,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 child: Padding(
                   padding: padding,
                   child: PrimaryButton(
-                    text: "connect".tr(),
+                    text: "h_confirm".tr(),
                     onTap: () => withDebounce(() => _approveThenNotify()),
                   ),
                 ),
@@ -483,7 +483,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             child: Padding(
               padding: padding,
               child: PrimaryButton(
-                text: "connect".tr(),
+                text: "h_confirm".tr(),
                 onTap: selectedPersona != null
                     ? () {
                         metricClient.addEvent(MixpanelEvent.connectMarket);
@@ -638,7 +638,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: "connect".tr(),
+                  text: "h_confirm".tr(),
                   onTap: () {
                     metricClient.addEvent(MixpanelEvent.connectMarket);
                     withDebounce(() => _createAccount());
