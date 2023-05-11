@@ -53,6 +53,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
   bool fromBranchLink = false;
   bool fromDeeplink = false;
+  bool fromIrlLink = false;
   bool creatingAccount = false;
 
   final metricClient = injector.get<MetricClientService>();
@@ -62,6 +63,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.initState();
     handleBranchLink();
     handleDeepLink();
+    handleIrlLink();
   }
 
   @override
@@ -98,6 +100,39 @@ class _OnboardingPageState extends State<OnboardingPage>
       } else {
         setState(() {
           fromDeeplink = false;
+        });
+      }
+    });
+  }
+
+  // make a function to handle irlLink like deepLink
+  void handleIrlLink() {
+    setState(() {
+      fromIrlLink = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      final link = memoryValues.irlLink.value;
+      if (link == null || link.isEmpty) {
+        if (mounted) {
+          setState(() {
+            fromIrlLink = false;
+          });
+        }
+      }
+    });
+    memoryValues.irlLink.addListener(() async {
+      if (memoryValues.irlLink.value != null) {
+        setState(() {
+          fromIrlLink = true;
+        });
+        Future.delayed(const Duration(seconds: 30), () {
+          setState(() {
+            fromIrlLink = false;
+          });
+        });
+      } else {
+        setState(() {
+          fromIrlLink = false;
         });
       }
     });
@@ -326,7 +361,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
               const Spacer(),
               if (fromBranchLink ||
-                  fromDeeplink ||
+                  fromDeeplink || fromIrlLink ||
                   (state.onboardingStep == OnboardingStep.undefined)) ...[
                 PrimaryButton(
                   text: "h_loading...".tr(),

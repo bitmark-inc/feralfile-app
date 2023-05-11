@@ -183,7 +183,9 @@ final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
 var memoryValues = MemoryValues(
-    airdropFFExhibitionId: ValueNotifier(null), deepLink: ValueNotifier(null));
+    airdropFFExhibitionId: ValueNotifier(null),
+    deepLink: ValueNotifier(null),
+    irlLink: ValueNotifier(null));
 
 class MemoryValues {
   String? scopedPersona;
@@ -193,6 +195,7 @@ class MemoryValues {
   ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
+  ValueNotifier<String?> irlLink;
   HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
 
   MemoryValues({
@@ -203,6 +206,7 @@ class MemoryValues {
     required this.airdropFFExhibitionId,
     this.linkedFFConnections,
     required this.deepLink,
+    required this.irlLink,
   });
 
   MemoryValues copyWith({
@@ -212,6 +216,7 @@ class MemoryValues {
       scopedPersona: scopedPersona ?? this.scopedPersona,
       airdropFFExhibitionId: airdropFFExhibitionId,
       deepLink: deepLink,
+      irlLink: irlLink,
     );
   }
 }

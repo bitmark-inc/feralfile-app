@@ -124,7 +124,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link) ||
-          _handleIRL(link);
+          await _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
     });
@@ -296,9 +296,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  bool _handleIRL(String link) {
+  Future<bool> _handleIRL(String link) async {
     log.info("[DeeplinkService] _handleIRL");
 
+    if (!_configurationService.isDoneOnboarding()) {
+      memoryValues.irlLink.value = link;
+      await _restoreIfNeeded(allowCreateNewPersona: true);
+      memoryValues.irlLink.value = null;
+    }
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
       final urlDecode =
           Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
@@ -496,7 +501,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
   }
 
-  Future<void> _restoreIfNeeded() async {
+  Future<void> _restoreIfNeeded({bool allowCreateNewPersona = false}) async {
     final configurationService = injector<ConfigurationService>();
     if (configurationService.isDoneOnboarding()) return;
 
@@ -529,6 +534,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition);
       }
+    } else if (allowCreateNewPersona) {
+      configurationService.setDoneOnboarding(true);
+      await accountService.createPersona();
+      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
   }
 
