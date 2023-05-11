@@ -7,7 +7,6 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:flutter/foundation.dart';
@@ -23,14 +22,15 @@ class EditorialServiceImpl extends EditorialService {
   ValueNotifier<int> unviewedCount = ValueNotifier(0);
 
   final ConfigurationService _configurationService;
+  final PubdocAPI _pubdocAPI;
 
-  EditorialServiceImpl(this._configurationService);
+  EditorialServiceImpl(this._configurationService, this._pubdocAPI);
 
   @override
   Future checkNewEditorial() async {
     final lastTimeOpenEditorial =
         _configurationService.getLastTimeOpenEditorial();
-    final editorial = await injector<PubdocAPI>().getEditorialInfo();
+    final editorial = await _pubdocAPI.getEditorialInfo();
     final unreadEditorial = editorial.editorial.where((element) {
       return element.publishedAt
               ?.isAfter(lastTimeOpenEditorial ?? DateTime(1970)) ??

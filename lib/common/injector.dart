@@ -316,7 +316,7 @@ Future<void> setup() async {
       () => PostcardServiceImpl(injector(), injector(), injector()));
 
   injector.registerLazySingleton<EditorialService>(
-      () => EditorialServiceImpl(injector()));
+      () => EditorialServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
