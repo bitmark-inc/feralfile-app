@@ -30,4 +30,5 @@ message CheckingStatus {
 
 message ResponseStatus {
   string status = 1;
+  string scene_id = 2;
 }

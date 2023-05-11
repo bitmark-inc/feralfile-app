@@ -45,8 +45,9 @@ const ResponseStatus$json = const {
   '1': 'ResponseStatus',
   '2': const [
     const {'1': 'status', '3': 1, '4': 1, '5': 9, '10': 'status'},
+    const {'1': 'scene_id', '3': 2, '4': 1, '5': 9, '10': 'sceneId'},
   ],
 };
 
 /// Descriptor for `ResponseStatus`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseStatusDescriptor = $convert.base64Decode('Cg5SZXNwb25zZVN0YXR1cxIWCgZzdGF0dXMYASABKAlSBnN0YXR1cw==');
+final $typed_data.Uint8List responseStatusDescriptor = $convert.base64Decode('Cg5SZXNwb25zZVN0YXR1cxIWCgZzdGF0dXMYASABKAlSBnN0YXR1cxIZCghzY2VuZV9pZBgCIAEoCVIHc2NlbmVJZA==');

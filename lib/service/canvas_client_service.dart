@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/canvas_device.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/src/generated/canvas_control/canvas_control.pbgrpc.dart';
@@ -7,9 +8,15 @@ import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:grpc/grpc.dart';
 
 class CanvasClientService {
+  final AppDatabase _db;
+
+  CanvasClientService(this._db);
+
   final List<CanvasDevice> _devices = [];
   late final String _deviceId;
   late final String _deviceName;
+
+  CallOptions get _callOptions => CallOptions(compression: const GzipCodec());
 
   Future<void> init() async {
     final device = DeviceInfo.instance;
@@ -46,11 +53,12 @@ class CanvasClientService {
           message: "connect_request");
       final response = await stub.connect(
         request,
-        options: CallOptions(compression: const GzipCodec()),
+        options: _callOptions,
       );
       log.info('CanvasClientService received: ${response.message}');
       if (response.message == "connect_accepted") {
         log.info('CanvasClientService: Connected to device');
+        await _db.canvasDeviceDao.insertCanvasDevice(device);
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -63,6 +71,8 @@ class CanvasClientService {
   }
 
   Future<void> disconnectToDevice(CanvasDevice device) async {
+    _devices.remove(device);
+    await _disconnectLocalDevice(device);
     final channel = _getChannel(device);
     await channel.shutdown();
   }
@@ -70,28 +80,68 @@ class CanvasClientService {
   Future<CanvasServerStatus> checkDeviceStatus(CanvasDevice device) async {
     final stub = _getStub(device);
     try {
-      final request = CheckingStatus();
+      final request = CheckingStatus(deviceId: _deviceId);
       final response = await stub.status(
         request,
-        options: CallOptions(compression: const GzipCodec()),
+        options: _callOptions,
       );
       log.info('CanvasClientService received: ${response.status}');
-      if (response.status == "occupied") {
-        return CanvasServerStatus.occupied;
-      } else if (response.status == "connected") {
-        return CanvasServerStatus.connected;
-      } else {
-        return CanvasServerStatus.notOpened;
+      switch (response.status) {
+        case "disconnected":
+          return CanvasServerStatus.disconnected;
+        case "connected":
+          return CanvasServerStatus.connected;
+        case "occupied":
+          return CanvasServerStatus.occupied;
+        default:
+          return CanvasServerStatus.error;
       }
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
-      return CanvasServerStatus.notOpened;
+      return CanvasServerStatus.error;
     }
+  }
+
+  Future<void> updateDevices() async {
+    // check if device is still connected, if not, disconnect and remove from list devices
+    for (final device in _devices) {
+      final status = await checkDeviceStatus(device);
+      if (status != CanvasServerStatus.connected) {
+        await disconnectToDevice(device);
+      }
+    }
+  }
+
+  Future<void> restoreDevices() async {
+    final devices = await _db.canvasDeviceDao.getCanvasDevices();
+    for (final device in devices) {
+      if (device.isConnecting) {
+        final status = await checkDeviceStatus(device);
+        switch (status) {
+          case CanvasServerStatus.connected:
+            _devices.add(device);
+            break;
+          case CanvasServerStatus.disconnected:
+          case CanvasServerStatus.occupied:
+            await _disconnectLocalDevice(device);
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  Future<void> _disconnectLocalDevice(CanvasDevice device) async {
+    final updatedDevice = device.copyWith(isConnecting: false);
+    updatedDevice.playingSceneId = null;
+    await _db.canvasDeviceDao.insertCanvasDevice(updatedDevice);
   }
 }
 
 enum CanvasServerStatus {
-  notOpened,
+  disconnected,
   connected,
   occupied,
+  error,
 }

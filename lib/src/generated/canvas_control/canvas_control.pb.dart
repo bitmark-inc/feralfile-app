@@ -181,16 +181,21 @@ class CheckingStatus extends $pb.GeneratedMessage {
 class ResponseStatus extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ResponseStatus', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'canvas_control'), createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'status')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sceneId')
     ..hasRequiredFields = false
   ;
 
   ResponseStatus._() : super();
   factory ResponseStatus({
     $core.String? status,
+    $core.String? sceneId,
   }) {
     final _result = create();
     if (status != null) {
       _result.status = status;
+    }
+    if (sceneId != null) {
+      _result.sceneId = sceneId;
     }
     return _result;
   }
@@ -223,5 +228,14 @@ class ResponseStatus extends $pb.GeneratedMessage {
   $core.bool hasStatus() => $_has(0);
   @$pb.TagNumber(1)
   void clearStatus() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get sceneId => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set sceneId($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasSceneId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSceneId() => clearField(2);
 }
 

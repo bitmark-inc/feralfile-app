@@ -99,9 +99,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementContextId`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `lastScenePlayed` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `playingSceneId` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `isPlaying` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -444,7 +444,7 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
                   'ip': item.ip,
                   'port': item.port,
                   'name': item.name,
-                  'lastScenePlayed': item.lastScenePlayed
+                  'playingSceneId': item.playingSceneId
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -463,17 +463,7 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
             ip: row['ip'] as String,
             port: row['port'] as int,
             name: row['name'] as String,
-            lastScenePlayed: row['lastScenePlayed'] as String?));
-  }
-
-  @override
-  Future<void> setLastScenePlayed(
-    String id,
-    String lastScenePlayed,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE CanvasDevice SET lastScenePlayed = ?2 WHERE id = ?1',
-        arguments: [id, lastScenePlayed]);
+            playingSceneId: row['playingSceneId'] as String?));
   }
 
   @override
@@ -505,6 +495,7 @@ class _$SceneDao extends SceneDao {
             (Scene item) => <String, Object?>{
                   'id': item.id,
                   'deviceId': item.deviceId,
+                  'isPlaying': item.isPlaying ? 1 : 0,
                   'metadata': item.metadata
                 });
 
@@ -522,7 +513,8 @@ class _$SceneDao extends SceneDao {
         mapper: (Map<String, Object?> row) => Scene(
             id: row['id'] as String,
             deviceId: row['deviceId'] as String,
-            metadata: row['metadata'] as String));
+            metadata: row['metadata'] as String,
+            isPlaying: (row['isPlaying'] as int) != 0));
   }
 
   @override
@@ -531,7 +523,8 @@ class _$SceneDao extends SceneDao {
         mapper: (Map<String, Object?> row) => Scene(
             id: row['id'] as String,
             deviceId: row['deviceId'] as String,
-            metadata: row['metadata'] as String),
+            metadata: row['metadata'] as String,
+            isPlaying: (row['isPlaying'] as int) != 0),
         arguments: [deviceId]);
   }
 
@@ -541,7 +534,8 @@ class _$SceneDao extends SceneDao {
         mapper: (Map<String, Object?> row) => Scene(
             id: row['id'] as String,
             deviceId: row['deviceId'] as String,
-            metadata: row['metadata'] as String),
+            metadata: row['metadata'] as String,
+            isPlaying: (row['isPlaying'] as int) != 0),
         arguments: [id]);
   }
 

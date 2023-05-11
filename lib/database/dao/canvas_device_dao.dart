@@ -6,10 +6,6 @@ abstract class CanvasDeviceDao {
   @Query('SELECT * FROM CanvasDevice')
   Future<List<CanvasDevice>> getCanvasDevices();
 
-  @Query(
-      'UPDATE CanvasDevice SET lastScenePlayed = :lastScenePlayed WHERE id = :id')
-  Future<void> setLastScenePlayed(String id, String lastScenePlayed);
-
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertCanvasDevice(CanvasDevice canvasDevice);
 
@@ -31,8 +27,7 @@ abstract class SceneDao {
   @Query('SELECT * FROM Scene WHERE id = :id')
   Future<Scene?> getSceneById(String id);
 
-  @Query(
-      'UPDATE Scene SET metadata = :metadata WHERE id = :id')
+  @Query('UPDATE Scene SET metadata = :metadata WHERE id = :id')
   Future<void> updateSceneMetadata(String id, String metadata);
 
   @Insert(onConflict: OnConflictStrategy.replace)

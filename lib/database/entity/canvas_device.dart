@@ -7,7 +7,8 @@ class CanvasDevice {
   final String ip;
   final int port;
   final String name;
-  final String? lastScenePlayed;
+  final bool isConnecting;
+  String? playingSceneId;
 
   // constructor
   CanvasDevice({
@@ -15,9 +16,9 @@ class CanvasDevice {
     required this.ip,
     required this.port,
     required this.name,
-    this.lastScenePlayed,
+    this.isConnecting = false,
+    this.playingSceneId,
   });
-
 
   //fromJson method
   factory CanvasDevice.fromJson(Map<String, dynamic> json) => CanvasDevice(
@@ -25,7 +26,8 @@ class CanvasDevice {
         ip: json["ip"] as String,
         port: json["port"] as int,
         name: json["name"] as String,
-        lastScenePlayed: json["lastScenePlayed"] as String?,
+        isConnecting: json["isConnecting"] as bool,
+        playingSceneId: json["playingSceneId"] as String?,
       );
 
   // toJson
@@ -34,8 +36,28 @@ class CanvasDevice {
         "ip": ip,
         "port": port,
         "name": name,
-        "lastScenePlayed": lastScenePlayed,
+        "isConnecting": isConnecting,
+        "playingSceneId": playingSceneId,
       };
+
+  // copyWith
+  CanvasDevice copyWith({
+    String? id,
+    String? ip,
+    int? port,
+    String? name,
+    bool? isConnecting,
+    String? playingSceneId,
+  }) {
+    return CanvasDevice(
+      id: id ?? this.id,
+      ip: ip ?? this.ip,
+      port: port ?? this.port,
+      name: name ?? this.name,
+      isConnecting: isConnecting ?? this.isConnecting,
+      playingSceneId: playingSceneId ?? this.playingSceneId,
+    );
+  }
 }
 
 @entity
@@ -43,6 +65,7 @@ class Scene {
   @primaryKey
   final String id;
   final String deviceId;
+  final bool isPlaying;
   final String metadata;
 
   // constructor
@@ -50,12 +73,14 @@ class Scene {
     required this.id,
     required this.deviceId,
     required this.metadata,
+    this.isPlaying = false,
   });
 
   // fromJson method
   factory Scene.fromJson(Map<String, dynamic> json) => Scene(
         id: json["id"] as String,
         deviceId: json["deviceId"] as String,
+        isPlaying: json["isPlaying"] as bool,
         metadata: json["metadata"] as String,
       );
 
@@ -63,6 +88,7 @@ class Scene {
   Map<String, dynamic> toJson() => {
         "id": id,
         "deviceId": deviceId,
+        "isPlaying": isPlaying,
         "metadata": metadata,
       };
 }
