@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
@@ -87,6 +86,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
     final cellSize = ((size - 60.0) / 10.0).floor();
+    _location = "MoMAMoMA MoMAMoMA MoMAMoMA MoMA";
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar: getBackAppBar(
@@ -281,12 +281,10 @@ class _DesignStampPageState extends State<DesignStampPage> {
           child: Row(
             children: [
               Expanded(
-                child: AutoSizeText(
+                child: Text(
                   _location,
                   style: theme.textTheme.moMASans400White14,
-                  maxFontSize: 14,
-                  minFontSize: 1,
-                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
