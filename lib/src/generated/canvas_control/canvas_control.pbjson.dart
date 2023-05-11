@@ -12,14 +12,14 @@ import 'dart:typed_data' as $typed_data;
 const ConnectRequest$json = const {
   '1': 'ConnectRequest',
   '2': const [
-    const {'1': 'deviceName', '3': 1, '4': 1, '5': 9, '10': 'deviceName'},
-    const {'1': 'connection_id', '3': 2, '4': 1, '5': 9, '10': 'connectionId'},
+    const {'1': 'device_name', '3': 1, '4': 1, '5': 9, '10': 'deviceName'},
+    const {'1': 'device_id', '3': 2, '4': 1, '5': 9, '10': 'deviceId'},
     const {'1': 'message', '3': 3, '4': 1, '5': 9, '10': 'message'},
   ],
 };
 
 /// Descriptor for `ConnectRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List connectRequestDescriptor = $convert.base64Decode('Cg5Db25uZWN0UmVxdWVzdBIeCgpkZXZpY2VOYW1lGAEgASgJUgpkZXZpY2VOYW1lEiMKDWNvbm5lY3Rpb25faWQYAiABKAlSDGNvbm5lY3Rpb25JZBIYCgdtZXNzYWdlGAMgASgJUgdtZXNzYWdl');
+final $typed_data.Uint8List connectRequestDescriptor = $convert.base64Decode('Cg5Db25uZWN0UmVxdWVzdBIfCgtkZXZpY2VfbmFtZRgBIAEoCVIKZGV2aWNlTmFtZRIbCglkZXZpY2VfaWQYAiABKAlSCGRldmljZUlkEhgKB21lc3NhZ2UYAyABKAlSB21lc3NhZ2U=');
 @$core.Deprecated('Use connectReplyDescriptor instead')
 const ConnectReply$json = const {
   '1': 'ConnectReply',
@@ -30,3 +30,23 @@ const ConnectReply$json = const {
 
 /// Descriptor for `ConnectReply`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List connectReplyDescriptor = $convert.base64Decode('CgxDb25uZWN0UmVwbHkSGAoHbWVzc2FnZRgBIAEoCVIHbWVzc2FnZQ==');
+@$core.Deprecated('Use checkingStatusDescriptor instead')
+const CheckingStatus$json = const {
+  '1': 'CheckingStatus',
+  '2': const [
+    const {'1': 'device_id', '3': 1, '4': 1, '5': 9, '10': 'deviceId'},
+  ],
+};
+
+/// Descriptor for `CheckingStatus`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List checkingStatusDescriptor = $convert.base64Decode('Cg5DaGVja2luZ1N0YXR1cxIbCglkZXZpY2VfaWQYASABKAlSCGRldmljZUlk');
+@$core.Deprecated('Use responseStatusDescriptor instead')
+const ResponseStatus$json = const {
+  '1': 'ResponseStatus',
+  '2': const [
+    const {'1': 'status', '3': 1, '4': 1, '5': 9, '10': 'status'},
+  ],
+};
+
+/// Descriptor for `ResponseStatus`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseStatusDescriptor = $convert.base64Decode('Cg5SZXNwb25zZVN0YXR1cxIWCgZzdGF0dXMYASABKAlSBnN0YXR1cw==');

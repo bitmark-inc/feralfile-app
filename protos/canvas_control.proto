@@ -11,15 +11,23 @@ package canvas_control;
 
 service CanvasControl {
   rpc Connect (ConnectRequest) returns (ConnectReply) {}
+  rpc Status (CheckingStatus) returns (ResponseStatus) {}
 }
 
 message ConnectRequest {
-  string deviceName = 1;
-  string connection_id = 2;
+  string device_name = 1;
+  string device_id = 2;
   string message = 3;
 }
 
-// The response message containing the greetings
 message ConnectReply {
   string message = 1;
+}
+
+message CheckingStatus {
+  string device_id = 1;
+}
+
+message ResponseStatus {
+  string status = 1;
 }
