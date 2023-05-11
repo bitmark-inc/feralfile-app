@@ -213,10 +213,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         : tr('untitled'),
                     style: theme.textTheme.ppMori400Black14,
                   ),
-            actions: const [
-              SizedBox(
-                width: 50,
-              )
+            actions: [
+              GestureDetector(
+                onTap: () => _onMoreTap(context, playList),
+                child: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  color: theme.primaryColor,
+                  width: 24,
+                ),
+              ),
+              const SizedBox(width: 15),
             ],
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
@@ -234,7 +240,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   accountIdentities: accountIdentities,
                   playControlModel:
                       playList?.playControlModel ?? PlayControlModel(),
-                  onMoreTap: () => _onMoreTap(context, playList),
                   onShuffleTap: () => _onShufferTap(playList),
                   onTimerTap: () => _onTimerTap(playList),
                 ),
@@ -250,12 +255,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     BuildContext context,
     List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
-    Function()? onMoreTap,
     Function()? onShuffleTap,
     Function()? onTimerTap,
     required PlayControlModel playControlModel,
   }) {
-    final theme = Theme.of(context);
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
@@ -267,32 +270,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                bottom: 24,
-                top: 24,
-                left: 14,
-                right: 14,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    tr(tokens.length != 1 ? 'artworks' : 'artwork',
-                        args: [tokens.length.toString()]),
-                    style: theme.textTheme.ppMori400Black12,
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: onMoreTap,
-                    child: SvgPicture.asset(
-                      'assets/images/more_circle.svg',
-                      color: theme.auQuickSilver,
-                      width: 24,
-                    ),
-                  )
-                ],
-              ),
-            ),
             Expanded(
               child: GridView.builder(
                   shrinkWrap: true,
