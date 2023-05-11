@@ -5,13 +5,20 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/models/asset.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 class HeaderView extends StatelessWidget {
   final double paddingTop;
@@ -56,6 +63,62 @@ class AutonomyLogo extends StatelessWidget {
 
   const AutonomyLogo({Key? key, this.isWhite = false}) : super(key: key);
 
+  void _onTap(BuildContext context) async {
+    log.info("Autonomy logo tapped");
+    final navigator = Navigator.of(context);
+    final assetToken = AssetToken(
+      asset: Asset(
+        "aesthetic_computer",
+        '',
+        DateTime.now(),
+        "",
+        "",
+        null,
+        null,
+        "",
+        "",
+        null,
+        null,
+        1,
+        "",
+        null,
+        AESTHIETIC_CONMPUTER_URL,
+        AESTHIETIC_CONMPUTER_URL,
+        AESTHIETIC_CONMPUTER_URL,
+        null,
+        null,
+        "",
+        null,
+        null,
+        null,
+      ),
+      blockchain: "tezos",
+      fungible: false,
+      contractType: '',
+      tokenId: "",
+      contractAddress: "",
+      edition: 0,
+      editionName: "",
+      id: "aesthetic_computer",
+      mintedAt: DateTime(1),
+      balance: 1,
+      owner: "owner",
+      owners: {},
+      lastActivityTime: DateTime(1),
+      lastRefreshedTime: DateTime(1),
+      pending: false,
+      originTokenInfo: [],
+      provenance: [],
+    );
+    final indexer = injector<TokensService>();
+    await indexer.setCustomTokens([assetToken]);
+    navigator.pushNamed(AppRouter.artworkPreviewPage,
+        arguments: ArtworkDetailPayload(
+          [ArtworkIdentity(assetToken.id, assetToken.owner)],
+          0,
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Pair<bool, bool>>(
@@ -65,14 +128,19 @@ class AutonomyLogo extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SvgPicture.asset(
-                isWhite
-                    ? "assets/images/autonomy_icon_white.svg"
-                    : snapshot.data!.first == true
-                        ? "assets/images/logo_dev.svg"
-                        : "assets/images/penrose_moma.svg",
-                width: 50,
-                height: 50,
+              GestureDetector(
+                onTap: () {
+                  _onTap(context);
+                },
+                child: SvgPicture.asset(
+                  isWhite
+                      ? "assets/images/autonomy_icon_white.svg"
+                      : snapshot.data!.first == true
+                          ? "assets/images/logo_dev.svg"
+                          : "assets/images/penrose_moma.svg",
+                  width: 50,
+                  height: 50,
+                ),
               ),
               const SizedBox(width: 15),
               snapshot.data!.second

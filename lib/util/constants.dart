@@ -88,6 +88,8 @@ const publicTezosNodes = [
 const TV_APP_STORE_URL =
     "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
 
+const AESTHIETIC_CONMPUTER_URL = "https://aesthetic.computer/prompt";
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
