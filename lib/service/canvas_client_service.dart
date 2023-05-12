@@ -3,10 +3,9 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/canvas_device.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/src/generated/canvas_control/canvas_control.pbgrpc.dart';
+import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
-import 'package:grpc/grpc.dart';
 
 class CanvasClientService {
   final AppDatabase _db;

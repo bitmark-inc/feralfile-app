@@ -98,6 +98,15 @@ packages:
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
+  autonomy_tv_proto:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: edd550688c581111a371dff8bd1b30341a3b3a81
+      resolved-ref: edd550688c581111a371dff8bd1b30341a3b3a81
+      url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
+    source: git
+    version: "0.0.1"
   background_fetch:
     dependency: "direct main"
     description:
@@ -1214,7 +1223,7 @@ packages:
     source: hosted
     version: "2.2.0"
   grpc:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: grpc
       sha256: a73c16e4f6a4a819be892bb2c73cc1d0b00e36095f69b0738cc91a733e3d27ba
@@ -2024,7 +2033,7 @@ packages:
     source: hosted
     version: "2.1.0"
   protoc_plugin:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: protoc_plugin
       sha256: e2be5014ba145dc0f8de20ac425afa2a513aff64fe350d338e481d40de0573df

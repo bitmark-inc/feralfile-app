@@ -137,6 +137,10 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/nft-collection
       ref: 5d685dce12d81e02ccd5dcd8debe23665fa77311
+  autonomy_tv_proto:
+    git:
+      url: https://github.com/autonomy-system/autonomy-tv-proto-communication
+      ref: edd550688c581111a371dff8bd1b30341a3b3a81
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:
@@ -169,8 +173,6 @@ dependencies:
   geocoding: ^2.1.0
   flutter_inappwebview: ^5.7.2+3
   html: ^0.15.1
-  grpc: ^3.1.0
-  protoc_plugin: ^20.0.1
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
