@@ -68,9 +68,6 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             _controller = controller;
           },
           onLoadStop: (controller, url) {
-            setState(() {
-              isLoading = false;
-            });
             _convertFileToBase64();
           },
           onConsoleMessage: (InAppWebViewController controller,
