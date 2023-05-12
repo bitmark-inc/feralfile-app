@@ -86,7 +86,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
     final cellSize = ((size - 60.0) / 10.0).floor();
-    _location = "MoMAMoMA MoMAMoMA MoMAMoMA MoMA";
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar: getBackAppBar(

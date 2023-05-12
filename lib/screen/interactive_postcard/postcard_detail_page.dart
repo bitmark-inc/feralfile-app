@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -704,32 +705,40 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(formatter.format(travelInfo.index),
-                  style: theme.textTheme.moMASans400Black12
-                      .copyWith(color: AppColor.auQuickSilver)),
-              Text(
-                travelInfo.sentLocation ?? "",
-                style: theme.textTheme.moMASans400Black14,
-              ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    "assets/images/arrow_3.svg",
-                    color: AppColor.primaryBlack,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    travelInfo.receivedLocation ?? "Not sent",
-                    style: theme.textTheme.moMASans400Black14,
-                  ),
-                ],
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(formatter.format(travelInfo.index),
+                    style: theme.textTheme.moMASans400Black12
+                        .copyWith(color: AppColor.auQuickSilver)),
+                AutoSizeText(
+                  travelInfo.sentLocation ?? "",
+                  style: theme.textTheme.moMASans400Black14,
+                  maxLines: 2,
+                  minFontSize: 14,
+                ),
+                Row(
+                  children: [
+                    SvgPicture.asset(
+                      "assets/images/arrow_3.svg",
+                      color: AppColor.primaryBlack,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: AutoSizeText(
+                        travelInfo.receivedLocation ?? "Not sent",
+                        style: theme.textTheme.moMASans400Black14,
+                        maxLines: 2,
+                        minFontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 10),
           Text(
             distanceFormatter.format(distance: travelInfo.getDistance()),
             style: theme.textTheme.moMASans400Black12

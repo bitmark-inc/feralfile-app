@@ -208,7 +208,13 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
       if (isMinted) {
         final walletIndex = await asset.getOwnerWallet();
-        if (walletIndex == null) return;
+        if (walletIndex == null) {
+          log.info("[POSTCARD] Wallet index not found");
+          setState(() {
+            loading = false;
+          });
+          return;
+        }
         final imageData = await imageFile.writeAsBytes(img.encodePng(image));
         final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
         postcardService
