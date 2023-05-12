@@ -5,10 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/canvas_device.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
@@ -19,6 +21,7 @@ import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -470,6 +473,8 @@ class _ScanQRPageState extends State<ScanQRPage>
             Text("scan_qr".tr(), style: theme.primaryTextTheme.labelLarge),
           ],
         );
+      case ScannerItem.CANVAS_DEVICE:
+        return const SizedBox();
     }
   }
 
@@ -551,6 +556,23 @@ class _ScanQRPageState extends State<ScanQRPage>
             }
             */
           } else {
+            _handleError(code);
+          }
+          break;
+        case ScannerItem.CANVAS_DEVICE:
+          try {
+            final device = CanvasDevice.fromJson(jsonDecode(code));
+            final canvasClient = injector<CanvasClientService>();
+            final result = await canvasClient.connectToDevice(device);
+            if (result != true) {
+              _handleError(code);
+              return;
+            }
+            await canvasClient.disconnectToDevice(device);
+            controller.dispose();
+            if(!mounted) return;
+            Navigator.pop(context, device);
+          } catch (err) {
             _handleError(code);
           }
           break;
@@ -669,5 +691,6 @@ enum ScannerItem {
   ETH_ADDRESS,
   XTZ_ADDRESS,
   FERALFILE_TOKEN,
+  CANVAS_DEVICE,
   GLOBAL
 }

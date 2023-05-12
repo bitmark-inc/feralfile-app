@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/canvas_device.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/src/generated/canvas_control/canvas_control.pbgrpc.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -59,6 +60,7 @@ class CanvasClientService {
       if (response.message == "connect_accepted") {
         log.info('CanvasClientService: Connected to device');
         await _db.canvasDeviceDao.insertCanvasDevice(device);
+        _devices.add(device);
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -77,8 +79,10 @@ class CanvasClientService {
     await channel.shutdown();
   }
 
-  Future<CanvasServerStatus> checkDeviceStatus(CanvasDevice device) async {
+  Future<Pair<CanvasServerStatus, String?>> checkDeviceStatus(
+      CanvasDevice device) async {
     final stub = _getStub(device);
+    late CanvasServerStatus status;
     try {
       final request = CheckingStatus(deviceId: _deviceId);
       final response = await stub.status(
@@ -88,37 +92,43 @@ class CanvasClientService {
       log.info('CanvasClientService received: ${response.status}');
       switch (response.status) {
         case "disconnected":
-          return CanvasServerStatus.disconnected;
+          status = CanvasServerStatus.disconnected;
+          break;
         case "connected":
-          return CanvasServerStatus.connected;
+          status = CanvasServerStatus.connected;
+          break;
         case "occupied":
-          return CanvasServerStatus.occupied;
+          status = CanvasServerStatus.occupied;
+          break;
         default:
-          return CanvasServerStatus.error;
+          status = CanvasServerStatus.error;
       }
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
-      return CanvasServerStatus.error;
+      status = CanvasServerStatus.error;
     }
+    return Pair(status, device.playingSceneId);
   }
 
   Future<void> updateDevices() async {
     // check if device is still connected, if not, disconnect and remove from list devices
     for (final device in _devices) {
       final status = await checkDeviceStatus(device);
-      if (status != CanvasServerStatus.connected) {
+      if (status.first != CanvasServerStatus.connected) {
         await disconnectToDevice(device);
       }
     }
   }
 
-  Future<void> restoreDevices() async {
+  Future<void> syncDevices() async {
     final devices = await _db.canvasDeviceDao.getCanvasDevices();
     for (final device in devices) {
       if (device.isConnecting) {
         final status = await checkDeviceStatus(device);
-        switch (status) {
+        switch (status.first) {
           case CanvasServerStatus.connected:
+            device.playingSceneId = status.second;
+            await _db.canvasDeviceDao.insertCanvasDevice(device);
             _devices.add(device);
             break;
           case CanvasServerStatus.disconnected:
@@ -130,6 +140,11 @@ class CanvasClientService {
         }
       }
     }
+  }
+
+  Future<List<CanvasDevice>> getAllDevices() async {
+    final devices = await _db.canvasDeviceDao.getCanvasDevices();
+    return devices;
   }
 
   Future<void> _disconnectLocalDevice(CanvasDevice device) async {

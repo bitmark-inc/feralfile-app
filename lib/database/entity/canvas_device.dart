@@ -7,7 +7,7 @@ class CanvasDevice {
   final String ip;
   final int port;
   final String name;
-  final bool isConnecting;
+  bool isConnecting;
   String? playingSceneId;
 
   // constructor

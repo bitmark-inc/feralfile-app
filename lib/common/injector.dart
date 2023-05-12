@@ -36,6 +36,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -307,6 +308,9 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
+
+  injector.registerLazySingleton<CanvasClientService>(
+      () => CanvasClientService(injector()));
 
   injector.registerLazySingleton<PostcardService>(
       () => PostcardServiceImpl(injector(), injector(), injector()));

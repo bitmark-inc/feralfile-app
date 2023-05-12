@@ -149,6 +149,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'detail/preview/canvas_device_bloc.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 
 class AppRouter {
@@ -796,6 +797,11 @@ class AppRouter {
                 BlocProvider(
                   create: (_) => IdentityBloc(
                     injector<AppDatabase>(),
+                    injector(),
+                  ),
+                ),
+                BlocProvider(
+                  create: (_) => CanvasDeviceBloc(
                     injector(),
                   ),
                 ),
