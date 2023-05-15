@@ -16,15 +16,17 @@ AppBar getBackAppBar(BuildContext context,
     String title = "",
     required Function()? onBack,
     Widget? icon,
-    Function()? action}) {
+    Function()? action,
+    bool isWhite = true}) {
   final theme = Theme.of(context);
 
+  final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
+  final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: theme.colorScheme.secondary,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ),
+        statusBarColor: secondaryColor,
+        statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
+        statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
     leadingWidth: 44,
     leading: onBack != null
@@ -35,7 +37,7 @@ AppBar getBackAppBar(BuildContext context,
               constraints: const BoxConstraints(maxWidth: 36.0),
               icon: SvgPicture.asset(
                 'assets/images/icon_back.svg',
-                color: theme.colorScheme.primary,
+                color: primaryColor,
               ),
             ),
           )
@@ -44,7 +46,7 @@ AppBar getBackAppBar(BuildContext context,
     title: Text(
       title,
       overflow: TextOverflow.ellipsis,
-      style: theme.textTheme.ppMori400Black16,
+      style: theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
       textAlign: TextAlign.center,
     ),
     actions: [
@@ -58,7 +60,7 @@ AppBar getBackAppBar(BuildContext context,
             icon: icon ??
                 Icon(
                   Icons.more_horiz,
-                  color: theme.colorScheme.primary,
+                  color: primaryColor,
                 ),
           ),
         )
@@ -68,7 +70,7 @@ AppBar getBackAppBar(BuildContext context,
     elevation: 0,
     bottom: PreferredSize(
       preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(),
+      child: addOnlyDivider(color: isWhite ? null : AppColor.auGreyBackground),
     ),
   );
 }
@@ -113,3 +115,6 @@ AppBar getCloseAppBar(BuildContext context,
         : null,
   );
 }
+
+// class MomaPallet to save colors
+// Path: lib/util/style.dart

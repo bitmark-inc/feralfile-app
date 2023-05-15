@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
+import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
@@ -49,6 +50,7 @@ import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
@@ -78,7 +80,17 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
@@ -90,6 +102,9 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.da
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
@@ -124,11 +139,9 @@ import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.da
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -136,6 +149,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'interactive_postcard/postcard_detail_page.dart';
 
 class AppRouter {
   static const createPlayListPage = "createPlayList";
@@ -166,6 +180,7 @@ class AppRouter {
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
+  static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
   static const feedPreviewPage = 'feedPreviewPage';
   static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
@@ -211,9 +226,20 @@ class AppRouter {
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
   static const inappWebviewPage = 'inapp_webview_page';
+  static const postcardExplain = 'postcard_explain_screen';
+  static const designStamp = 'design_stamp_screen';
+  static const handSignaturePage = "hand_signature_page";
+  static const stampPreview = "stamp_preview";
+  static const claimEmptyPostCard = "claim_empty_postcard";
+  static const selectAddressScreen = "select_address_screen";
+  static const receivePostcardPage = 'receive_postcard_page';
+  static const postcardDetailPage = 'postcard_detail_page';
+  static const receivePostcardSelectAccountPage =
+      'receive_postcard_select_account_page';
   static const irlWebview = 'irl_web_claim';
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
+  static const postcardStartedPage = 'postcard_started';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -350,6 +376,42 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => const BeOwnGalleryPage(),
+        );
+
+      case ChatThreadPage.tag:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ChatThreadPage(
+              payload: settings.arguments as ChatThreadPagePayload),
+        );
+
+      case postcardExplain:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => PostcardExplain(
+              payload: settings.arguments as PostcardExplainPayload),
+        );
+
+      case designStamp:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => DesignStampPage(
+              payload: settings.arguments as DesignStampPayload),
+        );
+
+      case handSignaturePage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => HandSignaturePage(
+            payload: settings.arguments as HandSignaturePayload,
+          ),
+        );
+
+      case AppRouter.stampPreview:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) =>
+              StampPreview(payload: settings.arguments as StampPreviewPayload),
         );
 
       case moreAutonomyPage:
@@ -805,6 +867,30 @@ class AppRouter {
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
+
+      case claimedPostcardDetailsPage:
+        return PageTransition(
+            type: PageTransitionType.fade,
+            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 250),
+            settings: settings,
+            child: MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => TravelInfoBloc()),
+                  BlocProvider(
+                      create: (_) => PostcardDetailBloc(
+                            injector(),
+                            injector(),
+                            injector(),
+                            injector(),
+                          )),
+                ],
+                child: ClaimedPostcardDetailPage(
+                    payload: settings.arguments as ArtworkDetailPayload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -1149,6 +1235,88 @@ class AppRouter {
             builder: (context) {
               return InappWebviewPage(url: settings.arguments as String);
             });
+      case claimEmptyPostCard:
+        final id = settings.arguments as String;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return ClaimEmptyPostCardScreen(id: id);
+          },
+        );
+
+      case selectAddressScreen:
+        final arguments = settings.arguments as Map;
+        final blockchain = arguments['blockchain'] as String;
+        final onConfirm = arguments['onConfirm'] as Future Function(String);
+        final withLinked = (arguments['withLinked'] ?? true) as bool;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+              ],
+              child: SelectAccountScreen(
+                blockchain: blockchain,
+                onConfirm: onConfirm,
+                withLinked: withLinked,
+              ),
+            );
+          },
+        );
+      case receivePostcardPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              final args = settings.arguments as ReceivePostcardPageArgs;
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                      create: (_) =>
+                          IdentityBloc(injector<AppDatabase>(), injector())),
+                ],
+                child: ReceivePostCardPage(
+                  asset: args.asset,
+                  shareCode: args.shareCode,
+                ),
+              );
+            });
+      case postcardDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => TravelInfoBloc()),
+                    BlocProvider(
+                        create: (_) => PostcardDetailBloc(
+                              injector(),
+                              injector(),
+                              injector(),
+                              injector(),
+                            )),
+                    BlocProvider.value(value: accountsBloc),
+                    BlocProvider(
+                        create: (_) =>
+                            IdentityBloc(injector<AppDatabase>(), injector())),
+                  ],
+                  child: PostcardDetailPage(
+                    asset: settings.arguments as AssetToken,
+                  ));
+            });
+      case receivePostcardSelectAccountPage:
+        return CupertinoPageRoute(builder: (context) {
+          final args =
+              settings.arguments as ReceivePostcardSelectAccountPageArgs;
+          return BlocProvider.value(
+            value: accountsBloc,
+            child: ReceivePostcardSelectAccountPage(
+              blockchain: args.blockchain,
+              withLinked: args.withLinked,
+            ),
+          );
+        });
+
       case irlWebview:
         final url = settings.arguments as Uri;
         return CupertinoPageRoute(
@@ -1176,6 +1344,16 @@ class AppRouter {
             builder: (context) {
               return IRLSignMessageScreen(payload: payload);
             });
+
+      case postcardStartedPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return PostcardStartedPage(
+              assetToken: settings.arguments as AssetToken,
+            );
+          },
+        );
 
       default:
         throw Exception('Invalid route: ${settings.name}');
