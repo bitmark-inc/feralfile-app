@@ -152,7 +152,7 @@ class ClaimEmptyPostCardBloc
             owners: {},
           );
           await _tokenService.setCustomTokens([token]);
-          await _tokenService.reindexAddresses([address]);
+          _tokenService.reindexAddresses([address]);
           injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
           NftCollectionBloc.eventController.add(
             GetTokensByOwnerEvent(pageKey: PageKey.init()),

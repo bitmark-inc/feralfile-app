@@ -306,7 +306,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
 
         final tokenService = injector<TokensService>();
         await tokenService.setCustomTokens([pendingToken]);
-        await tokenService.reindexAddresses([address]);
+        tokenService.reindexAddresses([address]);
         NftCollectionBloc.eventController.add(
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
