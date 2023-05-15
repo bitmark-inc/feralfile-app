@@ -24,12 +24,9 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
     this._feedService,
     this._configurationService,
     this._tokenDao,
-  ) : super(FeedState(
-          onBoardingStep:
-              _configurationService.isFinishedFeedOnBoarding() ? -1 : 0,
-        )) {
-    on<GetFeedsEvent>(
-      (event, emit) async {
+  ) : super(FeedState()) {
+    on<GetFeedsEvent>((event, emit) async {
+      try {
         if (state.appFeedData != null && state.appFeedData?.next == null) {
           log.info('[FeedBloc] break; no more feeds');
           return;
@@ -62,8 +59,16 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
             feedTokenEventsMap: tokenEventMap,
           ),
         );
-      },
-    );
+      } catch (e) {
+        emit(
+          state.copyWith(
+            appFeedData: state.appFeedData,
+            feedTokenEventsMap: state.feedTokenEventsMap,
+            error: e,
+          ),
+        );
+      }
+    });
 
     on<OpenFeedEvent>((event, emit) {
       _configurationService
@@ -89,7 +94,6 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
       emit(
         state.copyWith(
           appFeedData: insertedAppFeedData,
-          onBoardingStep: state.onBoardingStep,
         ),
       );
     });

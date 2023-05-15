@@ -22,26 +22,23 @@ class MoveToPreviousFeedEvent extends FeedBlocEvent {}
 class FeedState {
   AppFeedData? appFeedData;
   Map<AssetToken, List<FeedEvent>>? feedTokenEventsMap;
-  int onBoardingStep = -1;
+  Object? error;
 
   FeedState({
     this.appFeedData,
-    this.onBoardingStep = -1,
     this.feedTokenEventsMap,
+    this.error,
   });
 
   FeedState copyWith({
     AppFeedData? appFeedData,
-    int? viewingIndex,
-    int onBoardingStep = -1,
     Map<AssetToken, List<FeedEvent>>? feedTokenEventsMap,
+    Object? error,
   }) {
     return FeedState(
       appFeedData: appFeedData ?? this.appFeedData,
-      onBoardingStep: onBoardingStep,
       feedTokenEventsMap: feedTokenEventsMap ?? this.feedTokenEventsMap,
+      error: error ?? this.error,
     );
   }
-
-  bool isFinishedOnBoarding() => onBoardingStep == -1;
 }
