@@ -48,7 +48,7 @@ class CanvasDeviceState {
     return CanvasDeviceState(
       devices: devices ?? this.devices,
       sceneId: sceneId ?? this.sceneId,
-      isConnectError: isConnectError ?? this.isConnectError,
+      isConnectError: isConnectError ?? false,
     );
   }
 }
@@ -125,7 +125,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         finalState.devices[index].status = DeviceStatus.playing;
         emit(finalState);
       } else {
-        emit(state.copyWith(isConnectError: true));
+        final errorState = state.copyWith(
+            devices: state.devices,
+            sceneId: state.sceneId,
+            isConnectError: true);
+        errorState.devices[index].status = DeviceStatus.disconnected;
+        emit(errorState);
       }
     });
 
