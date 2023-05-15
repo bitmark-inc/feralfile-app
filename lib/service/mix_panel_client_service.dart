@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -15,8 +14,9 @@ import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
+  final ConfigurationService _configurationService;
 
-  MixPanelClientService(this._accountService);
+  MixPanelClientService(this._accountService, this._configurationService);
 
   late Mixpanel mixpanel;
 
@@ -31,7 +31,7 @@ class MixPanelClientService {
         .getPeople()
         .set(MixpanelProp.subscription, SubscriptionStatus.free);
     mixpanel.getPeople().set(MixpanelProp.enableNotification,
-        injector<ConfigurationService>().isNotificationEnabled() ?? false);
+        _configurationService.isNotificationEnabled() ?? false);
     mixpanel.registerSuperPropertiesOnce({
       MixpanelProp.client: "Autonomy Wallet",
     });
@@ -73,9 +73,7 @@ class MixPanelClientService {
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
-    final configurationService = injector.get<ConfigurationService>();
-
-    if (configurationService.isAnalyticsEnabled() == false) {
+    if (_configurationService.isAnalyticsEnabled() == false) {
       return;
     }
 
@@ -110,5 +108,13 @@ class MixPanelClientService {
 
   void setLabel(String prop, dynamic value) {
     mixpanel.getPeople().set(prop, value);
+  }
+
+  dynamic getConfig(String name) {
+    return _configurationService.getMixpanelConfig(name);
+  }
+
+  Future<void> setConfig(String name, dynamic value) async {
+    await _configurationService.setMixpanelConfig(name, value);
   }
 }

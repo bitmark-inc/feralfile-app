@@ -229,6 +229,10 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showCreatePlaylistTip;
 
   ValueNotifier<bool> get showLinkOrImportTip;
+
+  Future<void> setMixpanelConfig(String name, dynamic value);
+
+  dynamic getMixpanelConfig(String name);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -304,6 +308,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
       "show_link_or_import_tip";
+
+  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -965,5 +971,22 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future setSubscriptionTime(DateTime time) async {
     await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
+  }
+
+  @override
+  dynamic getMixpanelConfig(String name) {
+    final keyValue =
+        jsonDecode(_preferences.getString(KEY_MIXPANEL_PROPS) ?? "{}")
+            as Map<String, dynamic>;
+    return keyValue[name];
+  }
+
+  @override
+  Future<void> setMixpanelConfig(String name, value) async {
+    final keyValue =
+        jsonDecode(_preferences.getString(KEY_MIXPANEL_PROPS) ?? "{}")
+            as Map<String, dynamic>;
+    keyValue[name] = value;
+    await _preferences.setString(KEY_MIXPANEL_PROPS, jsonEncode(keyValue));
   }
 }

@@ -394,6 +394,7 @@ class MixpanelEvent {
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";
+  static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
 }
 
 class MixpanelProp {
@@ -403,6 +404,11 @@ class MixpanelProp {
   static const address = 'Address';
   static const subscription = 'Subscription';
   static const numberNft = 'Number NFT';
+}
+
+class MixpanelConfig {
+  static const EditorialPeriodStart = "editorialPeriodStart";
+  static const totalEditorialReading = 'totalEditorialReading';
 }
 
 class SubscriptionStatus {
