@@ -99,7 +99,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementContextId`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `playingSceneId` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `isConnecting` INTEGER NOT NULL, `playingSceneId` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `isPlaying` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
@@ -444,6 +444,19 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
                   'ip': item.ip,
                   'port': item.port,
                   'name': item.name,
+                  'isConnecting': item.isConnecting ? 1 : 0,
+                  'playingSceneId': item.playingSceneId
+                }),
+        _canvasDeviceUpdateAdapter = UpdateAdapter(
+            database,
+            'CanvasDevice',
+            ['id'],
+            (CanvasDevice item) => <String, Object?>{
+                  'id': item.id,
+                  'ip': item.ip,
+                  'port': item.port,
+                  'name': item.name,
+                  'isConnecting': item.isConnecting ? 1 : 0,
                   'playingSceneId': item.playingSceneId
                 });
 
@@ -455,6 +468,8 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
 
   final InsertionAdapter<CanvasDevice> _canvasDeviceInsertionAdapter;
 
+  final UpdateAdapter<CanvasDevice> _canvasDeviceUpdateAdapter;
+
   @override
   Future<List<CanvasDevice>> getCanvasDevices() async {
     return _queryAdapter.queryList('SELECT * FROM CanvasDevice',
@@ -463,6 +478,7 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
             ip: row['ip'] as String,
             port: row['port'] as int,
             name: row['name'] as String,
+            isConnecting: (row['isConnecting'] as int) != 0,
             playingSceneId: row['playingSceneId'] as String?));
   }
 
@@ -482,6 +498,12 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
     await _canvasDeviceInsertionAdapter.insertList(
         canvasDevices, OnConflictStrategy.replace);
   }
+
+  @override
+  Future<void> updateCanvasDevice(CanvasDevice canvasDevice) async {
+    await _canvasDeviceUpdateAdapter.update(
+        canvasDevice, OnConflictStrategy.abort);
+  }
 }
 
 class _$SceneDao extends SceneDao {
@@ -497,6 +519,16 @@ class _$SceneDao extends SceneDao {
                   'deviceId': item.deviceId,
                   'isPlaying': item.isPlaying ? 1 : 0,
                   'metadata': item.metadata
+                }),
+        _sceneUpdateAdapter = UpdateAdapter(
+            database,
+            'Scene',
+            ['id'],
+            (Scene item) => <String, Object?>{
+                  'id': item.id,
+                  'deviceId': item.deviceId,
+                  'isPlaying': item.isPlaying ? 1 : 0,
+                  'metadata': item.metadata
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -506,6 +538,8 @@ class _$SceneDao extends SceneDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<Scene> _sceneInsertionAdapter;
+
+  final UpdateAdapter<Scene> _sceneUpdateAdapter;
 
   @override
   Future<List<Scene>> getScenes() async {
@@ -562,6 +596,11 @@ class _$SceneDao extends SceneDao {
   @override
   Future<void> insertScenes(List<Scene> scenes) async {
     await _sceneInsertionAdapter.insertList(scenes, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateScene(Scene scene) async {
+    await _sceneUpdateAdapter.update(scene, OnConflictStrategy.abort);
   }
 }
 

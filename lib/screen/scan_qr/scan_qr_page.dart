@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/canvas_device.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
@@ -39,6 +38,7 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -560,17 +560,17 @@ class _ScanQRPageState extends State<ScanQRPage>
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
+          currentCode = code;
           try {
             final device = CanvasDevice.fromJson(jsonDecode(code));
             final canvasClient = injector<CanvasClientService>();
-            final result = await canvasClient.connectToDevice(device);
-            if (result != true) {
+            final result = await canvasClient.checkDeviceStatus(device);
+            if (result.first == CanvasServerStatus.error) {
               _handleError(code);
               return;
             }
-            await canvasClient.disconnectToDevice(device);
             controller.dispose();
-            if(!mounted) return;
+            if (!mounted) return;
             Navigator.pop(context, device);
           } catch (err) {
             _handleError(code);

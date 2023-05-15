@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/database/entity/canvas_device.dart';
+import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:floor/floor.dart';
 
 @dao
@@ -11,6 +11,9 @@ abstract class CanvasDeviceDao {
 
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertCanvasDevices(List<CanvasDevice> canvasDevices);
+
+  @update
+  Future<void> updateCanvasDevice(CanvasDevice canvasDevice);
 
   @Query('DELETE FROM CanvasDevice')
   Future<void> removeAll();
@@ -35,6 +38,9 @@ abstract class SceneDao {
 
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertScenes(List<Scene> scenes);
+
+  @update
+  Future<void> updateScene(Scene scene);
 
   @Query('DELETE FROM Scene')
   Future<void> removeAll();

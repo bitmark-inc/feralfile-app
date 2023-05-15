@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/entity/canvas_device.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_tv_proto/models/canvas_device.dart';
 
 abstract class CanvasDeviceEvent {}
 
@@ -12,15 +12,15 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
 }
 
 class CanvasDevicePlayEvent extends CanvasDeviceEvent {
-  final int index;
+  final CanvasDevice device;
 
-  CanvasDevicePlayEvent(this.index);
+  CanvasDevicePlayEvent(this.device);
 }
 
 class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
-  final int index;
+  final CanvasDevice device;
 
-  CanvasDeviceDisconnectEvent(this.index);
+  CanvasDeviceDisconnectEvent(this.device);
 }
 
 class CanvasDeviceAddEvent extends CanvasDeviceEvent {
@@ -32,26 +32,30 @@ class CanvasDeviceAddEvent extends CanvasDeviceEvent {
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final String sceneId;
+  final bool isConnectError;
 
   CanvasDeviceState({
     required this.devices,
     this.sceneId = "",
+    this.isConnectError = false,
   });
 
   CanvasDeviceState copyWith({
     List<DeviceState>? devices,
     String? sceneId,
+    bool? isConnectError,
   }) {
     return CanvasDeviceState(
       devices: devices ?? this.devices,
       sceneId: sceneId ?? this.sceneId,
+      isConnectError: isConnectError ?? this.isConnectError,
     );
   }
 }
 
 class DeviceState {
   final CanvasDevice device;
-  final DeviceStatus status;
+  DeviceStatus status;
 
   // constructor
   DeviceState({
@@ -88,15 +92,56 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       emit(CanvasDeviceState(devices: state.devices, sceneId: event.sceneId));
       final devices = await _canvasClientService.getAllDevices();
       emit(CanvasDeviceState(
-          devices: devices.map((e) => DeviceState(device: e)).toList()));
+          devices: devices
+              .map((e) => DeviceState(
+                  device: e,
+                  status: e.isConnecting
+                      ? DeviceStatus.playing
+                      : DeviceStatus.disconnected))
+              .toList()));
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {
       final newState = state.copyWith(
           devices: state.devices
-            ..removeWhere((element) => element.device.id == event.device.device.id)
+            ..removeWhere(
+                (element) => element.device.id == event.device.device.id)
             ..add(DeviceState(device: event.device.device)));
       emit(newState);
+    });
+
+    on<CanvasDevicePlayEvent>((event, emit) async {
+      final index = state.devices
+          .indexWhere((element) => element.device.id == event.device.id);
+      final loadingState =
+          state.copyWith(devices: state.devices, sceneId: state.sceneId);
+      loadingState.devices[index].status = DeviceStatus.connecting;
+      emit(loadingState);
+      final connectResult = await _canvasClientService
+          .connectToDevice(state.devices[index].device);
+      if (connectResult) {
+        final finalState =
+            state.copyWith(devices: state.devices, sceneId: state.sceneId);
+        finalState.devices[index].status = DeviceStatus.playing;
+        emit(finalState);
+      } else {
+        emit(state.copyWith(isConnectError: true));
+      }
+    });
+
+    on<CanvasDeviceDisconnectEvent>((event, emit) async {
+      final index = state.devices
+          .indexWhere((element) => element.device.id == event.device.id);
+      final loadingState =
+          state.copyWith(devices: state.devices, sceneId: state.sceneId);
+      loadingState.devices[index].status = DeviceStatus.connecting;
+      emit(loadingState);
+      await _canvasClientService
+          .disconnectToDevice(state.devices[index].device);
+      final finalState =
+          state.copyWith(devices: state.devices, sceneId: state.sceneId);
+      finalState.devices[index].status = DeviceStatus.disconnected;
+      emit(finalState);
     });
   }
 }

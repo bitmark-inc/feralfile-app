@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/entity/canvas_device.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
@@ -41,10 +40,6 @@ class CanvasClientService {
   }
 
   Future<bool> connectToDevice(CanvasDevice device) async {
-    if (_devices.contains(device)) {
-      log.info('CanvasClientService: Already connected to device');
-      return true;
-    }
     final stub = _getStub(device);
     try {
       final request = ConnectRequest(
@@ -58,6 +53,7 @@ class CanvasClientService {
       log.info('CanvasClientService received: ${response.message}');
       if (response.message == "connect_accepted") {
         log.info('CanvasClientService: Connected to device');
+        device.isConnecting = true;
         await _db.canvasDeviceDao.insertCanvasDevice(device);
         _devices.add(device);
         return true;
@@ -73,9 +69,13 @@ class CanvasClientService {
 
   Future<void> disconnectToDevice(CanvasDevice device) async {
     _devices.remove(device);
+    final request = DisconnectRequest(deviceId: _deviceId);
+    final stub = _getStub(device);
+    await stub.disconnect(request);
     await _disconnectLocalDevice(device);
     final channel = _getChannel(device);
     await channel.shutdown();
+    log.info('CanvasClientService: Disconnected to device');
   }
 
   Future<Pair<CanvasServerStatus, String?>> checkDeviceStatus(
@@ -149,7 +149,7 @@ class CanvasClientService {
   Future<void> _disconnectLocalDevice(CanvasDevice device) async {
     final updatedDevice = device.copyWith(isConnecting: false);
     updatedDevice.playingSceneId = null;
-    await _db.canvasDeviceDao.insertCanvasDevice(updatedDevice);
+    await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
   }
 }
 
