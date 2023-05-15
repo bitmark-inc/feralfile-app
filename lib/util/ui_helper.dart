@@ -1357,6 +1357,12 @@ class UIHelper {
     return showErrorDialog(context, title, description, "close".tr());
   }
 
+  static Future showMockedLocation(BuildContext context) async {
+    final title = "unable_to_stamp_postcard".tr();
+    final description = "gps_is_mocked".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
   static showReceivePostcardFailed(BuildContext context, DioError error) async {
     return showErrorDialog(context, "accept_postcard_failed".tr(),
         error.response?.data['message'], "close".tr());

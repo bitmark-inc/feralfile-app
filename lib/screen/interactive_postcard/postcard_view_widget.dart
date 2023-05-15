@@ -74,7 +74,8 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
               ConsoleMessage consoleMessage) {
             log.info(
                 "[Postcard] Software artwork console log: ${consoleMessage.message}");
-            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
+            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE ||
+                consoleMessage.message == "finish getNewStamp") {
               setState(() {
                 isLoading = false;
               });

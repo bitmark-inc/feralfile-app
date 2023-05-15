@@ -81,9 +81,9 @@ final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
-    "https://ipfs.nftstorage.link/ipfs/QmPg8zS5g8LVS1XAiX3AM8UZBMorf9Cjo8p2a4ko1gDoaJ";
+    "https://ipfs.test.bitmark.com/ipfs/QmXFqaUqP8wTvmrc4Y985sUAhUXGfMcn2LA1ATFnrGSDBE";
 const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
-    "https://ipfs.nftstorage.link/ipfs/QmPg8zS5g8LVS1XAiX3AM8UZBMorf9Cjo8p2a4ko1gDoaJ";
+    "https://ipfs.test.bitmark.com/ipfs/QmXFqaUqP8wTvmrc4Y985sUAhUXGfMcn2LA1ATFnrGSDBE";
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =

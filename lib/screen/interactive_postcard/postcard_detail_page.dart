@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -427,8 +428,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   void _refreshPostcard() {
+    log.info("Refresh postcard");
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
           widget.payload.identities[widget.payload.currentIndex],
+          useIndexer: true,
         ));
   }
 

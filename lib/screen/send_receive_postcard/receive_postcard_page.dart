@@ -250,6 +250,14 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     } else {
       try {
         location = await getGeoLocation(timeout: const Duration(seconds: 5));
+        if (location.isMocked) {
+          if (!mounted) return;
+          await UIHelper.showMockedLocation(context);
+          setState(() {
+            _isProcessing = false;
+          });
+          return;
+        }
       } catch (e) {
         log.info("[Postcard] Error getting location: $e");
         if (!mounted) return;
