@@ -67,17 +67,15 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
           onWebViewCreated: (controller) {
             _controller = controller;
           },
-          onLoadStop: (controller, url) {
-            _convertFileToBase64();
-          },
           onConsoleMessage: (InAppWebViewController controller,
               ConsoleMessage consoleMessage) {
             log.info(
                 "[Postcard] Software artwork console log: ${consoleMessage.message}");
-            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE ||
-                consoleMessage.message == "finish getNewStamp") {
-              setState(() {
-                isLoading = false;
+            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
+              _convertFileToBase64().then((value) {
+                setState(() {
+                  isLoading = false;
+                });
               });
             }
           },
@@ -86,12 +84,15 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
           ),
         ),
         if (isLoading)
-          Center(
-            child: GifView.asset(
-              "assets/images/loading_white_tran.gif",
-              width: 52,
-              height: 52,
-              frameRate: 12,
+          Container(
+            color: Colors.black,
+            child: Center(
+              child: GifView.asset(
+                "assets/images/loading_white_tran.gif",
+                width: 52,
+                height: 52,
+                frameRate: 12,
+              ),
             ),
           )
       ],
