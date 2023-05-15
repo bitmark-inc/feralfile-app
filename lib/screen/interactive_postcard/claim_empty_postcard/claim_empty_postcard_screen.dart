@@ -123,6 +123,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                       Text(
                                         artwork.title ?? '',
                                         style: theme.textTheme.ppMori400White14,
+                                        maxLines: 2,
                                       ),
                                     ],
                                   ),

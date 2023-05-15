@@ -168,6 +168,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                                     Text(
                                       asset.title ?? "",
                                       style: theme.textTheme.ppMori400White14,
+                                      maxLines: 2,
                                     ),
                                   ],
                                 ),

@@ -56,7 +56,7 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
             Text(
               asset.title ?? '',
               style: theme.textTheme.ppMori400White16,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],

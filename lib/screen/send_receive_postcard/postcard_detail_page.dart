@@ -66,7 +66,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
               Text(
                 asset.title ?? '',
                 style: theme.textTheme.ppMori400White16,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
