@@ -298,7 +298,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     Text(
                       asset.title ?? '',
                       style: theme.textTheme.ppMori400White16,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
