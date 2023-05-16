@@ -63,24 +63,28 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        InAppWebView(
-          onWebViewCreated: (controller) {
-            _controller = controller;
-          },
-          onConsoleMessage: (InAppWebViewController controller,
-              ConsoleMessage consoleMessage) {
-            log.info(
-                "[Postcard] Software artwork console log: ${consoleMessage.message}");
-            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
-              _convertFileToBase64().then((value) {
-                setState(() {
-                  isLoading = false;
+        Padding(
+          padding: const EdgeInsets.only(left: 1),
+          child: InAppWebView(
+            onWebViewCreated: (controller) {
+              _controller = controller;
+            },
+            onConsoleMessage: (InAppWebViewController controller,
+                ConsoleMessage consoleMessage) {
+              log.info(
+                  "[Postcard] Software artwork console log: ${consoleMessage.message}");
+              if (consoleMessage.message ==
+                  POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
+                _convertFileToBase64().then((value) {
+                  setState(() {
+                    isLoading = false;
+                  });
                 });
-              });
-            }
-          },
-          initialUrlRequest: URLRequest(
-            url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
+              }
+            },
+            initialUrlRequest: URLRequest(
+              url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
+            ),
           ),
         ),
         if (isLoading)
@@ -111,7 +115,7 @@ class PostcardRatio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 355 / 265,
+      aspectRatio: 350 / 265,
       child: PostcardViewWidget(
         assetToken: assetToken,
         imagePath: imagePath,
