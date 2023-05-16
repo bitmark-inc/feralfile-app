@@ -31,6 +31,8 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
+import 'account_service.dart';
+
 abstract class PostcardService {
   Future<ReceivePostcardResponse> receivePostcard(
       {required String shareCode,
@@ -99,13 +101,24 @@ class PostcardServiceImpl extends PostcardService {
     required String address,
   }) async {
     try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final accountService = injector<AccountService>();
+      final walletIndex = await accountService.getAccountByAddress(
+          chain: "tezos", address: address);
+      final publicKey =
+          await walletIndex.wallet.getTezosPublicKey(index: walletIndex.index);
+      final signature = await _tezosService.signMessage(walletIndex.wallet,
+          walletIndex.index, Uint8List.fromList(utf8.encode(timestamp)));
       final body = {
         "shareCode": shareCode,
         "location": [location.latitude, location.longitude],
         "address": address,
+        "publicKey": publicKey,
+        "signature": signature,
+        "timestamp": timestamp,
       };
-      final respone = await _postcardApi.receive(body);
-      return respone;
+      final response = await _postcardApi.receive(body);
+      return response;
     } catch (e) {
       rethrow;
     }
