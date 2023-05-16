@@ -104,7 +104,8 @@ class PostcardServiceImpl extends PostcardService {
     required String address,
   }) async {
     try {
-      final timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      final timestamp =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       final accountService = injector<AccountService>();
       final walletIndex = await accountService.getAccountByAddress(
           chain: "tezos", address: address);
