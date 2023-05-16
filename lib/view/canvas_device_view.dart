@@ -161,7 +161,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
   Widget _deviceStatus(DeviceState deviceState) {
     final theme = Theme.of(context);
     switch (deviceState.status) {
-      case DeviceStatus.connecting:
+      case DeviceStatus.loading:
         return loadingIndicator(
             size: 22,
             valueColor: AppColor.white,
@@ -169,7 +169,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       case DeviceStatus.playing:
         return GestureDetector(
           onTap: () {
-            _bloc.add(CanvasDeviceDisconnectEvent(deviceState.device));
+            //_bloc.add(CanvasDeviceStopPlayingEvent(deviceState.device));
           },
           child: Row(
             children: [
@@ -195,13 +195,23 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
             ],
           ),
         );
-      default:
+      case DeviceStatus.connected:
         return GestureDetector(
           onTap: () {
             _bloc.add(CanvasDevicePlayEvent(deviceState.device));
           },
           child: SvgPicture.asset(
             "assets/images/play_canvas_icon.svg",
+            color: AppColor.white,
+          ),
+        );
+      case DeviceStatus.error:
+        return GestureDetector(
+          onTap: () {
+            // Navigate to Autonomy Canvas page
+          },
+          child: SvgPicture.asset(
+            "assets/images/help_icon.svg",
             color: AppColor.white,
           ),
         );

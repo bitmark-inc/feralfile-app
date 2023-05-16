@@ -60,7 +60,7 @@ class DeviceState {
   // constructor
   DeviceState({
     required this.device,
-    this.status = DeviceStatus.disconnected,
+    this.status = DeviceStatus.connected,
   });
 
   //
@@ -76,9 +76,9 @@ class DeviceState {
 }
 
 enum DeviceStatus {
-  connecting,
+  connected,
+  loading,
   playing,
-  disconnected,
   error,
 }
 
@@ -90,14 +90,14 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
       emit(CanvasDeviceState(devices: state.devices, sceneId: event.sceneId));
-      final devices = await _canvasClientService.getAllDevices();
+      final devices = _canvasClientService.getConnectingDevices();
       emit(CanvasDeviceState(
           devices: devices
               .map((e) => DeviceState(
                   device: e,
-                  status: e.isConnecting
+                  status: e.isConnecting && e.playingSceneId != null
                       ? DeviceStatus.playing
-                      : DeviceStatus.disconnected))
+                      : DeviceStatus.connected))
               .toList()));
     });
 
@@ -111,27 +111,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     });
 
     on<CanvasDevicePlayEvent>((event, emit) async {
-      final index = state.devices
-          .indexWhere((element) => element.device.id == event.device.id);
-      final loadingState =
-          state.copyWith(devices: state.devices, sceneId: state.sceneId);
-      loadingState.devices[index].status = DeviceStatus.connecting;
-      emit(loadingState);
-      final connectResult = await _canvasClientService
-          .connectToDevice(state.devices[index].device);
-      if (connectResult) {
-        final finalState =
-            state.copyWith(devices: state.devices, sceneId: state.sceneId);
-        finalState.devices[index].status = DeviceStatus.playing;
-        emit(finalState);
-      } else {
-        final errorState = state.copyWith(
-            devices: state.devices,
-            sceneId: state.sceneId,
-            isConnectError: true);
-        errorState.devices[index].status = DeviceStatus.disconnected;
-        emit(errorState);
-      }
     });
 
     on<CanvasDeviceDisconnectEvent>((event, emit) async {
@@ -139,13 +118,13 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           .indexWhere((element) => element.device.id == event.device.id);
       final loadingState =
           state.copyWith(devices: state.devices, sceneId: state.sceneId);
-      loadingState.devices[index].status = DeviceStatus.connecting;
+      loadingState.devices[index].status = DeviceStatus.loading;
       emit(loadingState);
       await _canvasClientService
           .disconnectToDevice(state.devices[index].device);
       final finalState =
           state.copyWith(devices: state.devices, sceneId: state.sceneId);
-      finalState.devices[index].status = DeviceStatus.disconnected;
+      finalState.devices.removeAt(index);
       emit(finalState);
     });
   }
