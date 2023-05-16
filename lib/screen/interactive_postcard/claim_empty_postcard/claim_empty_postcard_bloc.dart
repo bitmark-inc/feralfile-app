@@ -33,7 +33,7 @@ class ClaimEmptyPostCardBloc
           artistName: 'MoMa',
           maxEdition: 1,
           mimeType: 'image/png',
-          title: 'Postcard 001',
+          title: event.claimRequest.name,
           medium: 'software',
           thumbnailURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
           galleryThumbnailURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
@@ -95,15 +95,14 @@ class ClaimEmptyPostCardBloc
             chain: 'tezos',
             address: address,
           );
-          final signature = await tezosService.signMessage(
-              account.wallet,
-              account.index,
-              Uint8List.fromList(utf8.encode(timestamp.toString())));
+          final signature = await tezosService.signMessage(account.wallet,
+              account.index, Uint8List.fromList(utf8.encode(timestamp)));
           final publicKey =
               await account.wallet.getTezosPublicKey(index: account.index);
+
           final claimRequest = ClaimPostCardRequest(
             address: address,
-            id: 'postcard',
+            claimID: event.claimRequest.claimID,
             timestamp: timestamp,
             publicKey: publicKey,
             signature: signature,
@@ -127,7 +126,7 @@ class ClaimEmptyPostCardBloc
               artistName: 'MoMa',
               maxEdition: 1,
               mimeType: 'image/png',
-              title: 'Postcard 001',
+              title: event.claimRequest.name,
               thumbnailURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
               previewURL: EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE,
               source: 'postcard',
@@ -151,6 +150,7 @@ class ClaimEmptyPostCardBloc
             provenance: [],
             owners: {},
           );
+
           await _tokenService.setCustomTokens([token]);
           _tokenService.reindexAddresses([address]);
           injector.get<ConfigurationService>().setListPostcardMint([tokenID]);

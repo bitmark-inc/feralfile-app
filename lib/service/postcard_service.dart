@@ -42,6 +42,9 @@ abstract class PostcardService {
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request);
 
+  Future<RequestPostcardResponse> requestPostcard(
+      RequestPostcardRequest request);
+
   Future<SharePostcardResponse> sharePostcard(AssetToken asset);
 
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode);
@@ -101,7 +104,7 @@ class PostcardServiceImpl extends PostcardService {
     required String address,
   }) async {
     try {
-      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       final accountService = injector<AccountService>();
       final walletIndex = await accountService.getAccountByAddress(
           chain: "tezos", address: address);
@@ -307,5 +310,11 @@ class PostcardServiceImpl extends PostcardService {
     final stampingPostcards = getStampingPostcard();
     return stampingPostcards
         .firstWhereOrNull((element) => element == stampingPostcard);
+  }
+
+  @override
+  Future<RequestPostcardResponse> requestPostcard(
+      RequestPostcardRequest request) async {
+    return await _postcardApi.request(request);
   }
 }
