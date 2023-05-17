@@ -460,14 +460,14 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
 }
 
 AssetToken createPendingAssetToken({
-  required FFSeries artwork,
+  required FFSeries series,
   required String owner,
   required String tokenId,
 }) {
-  final indexerId = artwork.airdropInfo?.getTokenIndexerId(tokenId);
-  final artist = artwork.artist;
-  final exhibition = artwork.exhibition;
-  final contract = artwork.contract;
+  final indexerId = series.airdropInfo?.getTokenIndexerId(tokenId);
+  final artist = series.artist;
+  final exhibition = series.exhibition;
+  final contract = series.contract;
   return AssetToken(
     asset: Asset(
       indexerId,
@@ -477,17 +477,17 @@ AssetToken createPendingAssetToken({
       artist?.fullName,
       null,
       null,
-      artwork.title,
-      artwork.description,
+      series.title,
+      series.description,
       null,
       null,
       null,
-      artwork.maxEdition,
+      series.maxEdition,
       "airdrop",
       null,
-      artwork.thumbnailURI,
-      artwork.thumbnailURI,
-      artwork.thumbnailURI,
+      series.thumbnailURI,
+      series.thumbnailURI,
+      series.thumbnailURI,
       null,
       null,
       "airdrop",
@@ -503,7 +503,7 @@ AssetToken createPendingAssetToken({
     edition: 0,
     editionName: "",
     id: indexerId ?? "",
-    mintedAt: artwork.createdAt ?? DateTime.now(),
+    mintedAt: series.createdAt ?? DateTime.now(),
     balance: 1,
     owner: owner,
     owners: {
