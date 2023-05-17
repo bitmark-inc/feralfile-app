@@ -460,7 +460,7 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
 }
 
 AssetToken createPendingAssetToken({
-  required FFArtwork artwork,
+  required FFSeries artwork,
   required String owner,
   required String tokenId,
 }) {
@@ -485,9 +485,9 @@ AssetToken createPendingAssetToken({
       artwork.maxEdition,
       "airdrop",
       null,
-      artwork.thumbnailFileURI,
-      artwork.thumbnailFileURI,
-      artwork.galleryThumbnailFileURI,
+      artwork.thumbnailURI,
+      artwork.thumbnailURI,
+      artwork.thumbnailURI,
       null,
       null,
       "airdrop",

@@ -1840,7 +1840,7 @@ class ArtworkRightWidget extends StatelessWidget {
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final FFArtwork artwork;
+  final FFSeries artwork;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,

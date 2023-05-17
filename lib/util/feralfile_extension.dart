@@ -39,11 +39,11 @@ extension FeralfileErrorExt on FeralfileError {
     }
   }
 
-  String getDialogTitle({required FFArtwork artwork}) {
+  String getDialogTitle({required FFSeries artwork}) {
     return dialogTitle;
   }
 
-  String getDialogMessage({required FFArtwork artwork}) {
+  String getDialogMessage({required FFSeries artwork}) {
     if (code == 3009 && artwork.maxEdition < 0) {
       return "We are running out of tokens. Come back later.";
     } else {

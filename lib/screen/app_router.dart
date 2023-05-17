@@ -1133,7 +1133,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                   create: (_) => RoyaltyBloc(injector()),
                   child: TokenDetailPage(
-                    artwork: settings.arguments as FFArtwork,
+                    artwork: settings.arguments as FFSeries,
                   ),
                 ));
 

@@ -749,7 +749,7 @@ class UIHelper {
 
   static Future showNoRemainingAirdropToken(
     BuildContext context, {
-    required FFArtwork artwork,
+    required FFSeries artwork,
   }) async {
     final error = FeralfileError(3009, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
@@ -777,7 +777,7 @@ class UIHelper {
   static Future showClaimTokenError(
     BuildContext context,
     Object e, {
-    required FFArtwork artwork,
+    required FFSeries artwork,
   }) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context, artwork.id);

@@ -45,16 +45,16 @@ abstract class FeralFileService {
 
   Future<FFAccount> getWeb3Account(WalletStorage wallet);
 
-  Future<FFArtwork> getAirdropArtworkFromExhibitionId(String id);
+  Future<FFSeries> getAirdropArtworkFromExhibitionId(String id);
 
-  Future<FFArtwork> getArtwork(String id);
+  Future<FFSeries> getArtwork(String id);
 
   Future<ClaimRespone?> claimToken({
     required String artworkId,
     String? address,
     Otp? otp,
     bool delayed = false,
-    Future<bool> Function(FFArtwork)? onConfirm,
+    Future<bool> Function(FFSeries)? onConfirm,
   });
 
   Future<Exhibition?> getExhibitionFromTokenID(String editionID);
@@ -191,14 +191,14 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FFArtwork> getAirdropArtworkFromExhibitionId(String id) async {
+  Future<FFSeries> getAirdropArtworkFromExhibitionId(String id) async {
     final resp = await _feralFileApi.getExhibition(id);
     final exhibition = resp.result;
-    final airdropArtworkId = exhibition.artworks
+    final airdropArtworkId = exhibition.series
         ?.firstWhereOrNull((e) => e.settings?.isAirdrop == true)
         ?.id;
     if (airdropArtworkId != null) {
-      final airdropArtwork = await _feralFileApi.getArtwork(airdropArtworkId);
+      final airdropArtwork = await _feralFileApi.getSeries(airdropArtworkId);
       return airdropArtwork.result;
     } else {
       throw Exception("Not airdrop exhibition");
@@ -206,8 +206,8 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FFArtwork> getArtwork(String id) async {
-    return (await _feralFileApi.getArtwork(id)).result;
+  Future<FFSeries> getArtwork(String id) async {
+    return (await _feralFileApi.getSeries(id)).result;
   }
 
   @override
@@ -216,7 +216,7 @@ class FeralFileServiceImpl extends FeralFileService {
       String? address,
       Otp? otp,
       bool delayed = false,
-      Future<bool> Function(FFArtwork)? onConfirm}) async {
+      Future<bool> Function(FFSeries)? onConfirm}) async {
     log.info(
         "[FeralFileService] Claim token - artwork: $artworkId, delayed: $delayed");
     if (delayed) {
@@ -253,12 +253,12 @@ class FeralFileServiceImpl extends FeralFileService {
         "address": receiver,
         if (otp != null) ...{"airdropTOTPPasscode": otp.code}
       };
-      final response = await _feralFileApi.claimArtwork(artwork.id, body);
+      final response = await _feralFileApi.claimSeries(artwork.id, body);
       final indexer = injector<TokensService>();
       await indexer.reindexAddresses([receiver]);
 
       final indexerId =
-          artwork.airdropInfo!.getTokenIndexerId(response.result.editionID);
+          artwork.airdropInfo!.getTokenIndexerId(response.result.artworkID);
       List<AssetToken> assetTokens = await _fetchTokens(
         indexerId: indexerId,
         receiver: receiver,
@@ -270,7 +270,7 @@ class FeralFileServiceImpl extends FeralFileService {
           createPendingAssetToken(
             artwork: artwork,
             owner: receiver,
-            tokenId: response.result.editionID,
+            tokenId: response.result.artworkID,
           )
         ];
         await indexer.setCustomTokens(assetTokens);
@@ -325,7 +325,7 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<Exhibition?> getExhibitionFromTokenID(String editionID) async {
-    final artworkEditions = await _feralFileApi.getArtworkEditions(editionID);
-    return artworkEditions.result.artwork?.exhibition;
+    final artworkEditions = await _feralFileApi.getArtworks(editionID);
+    return artworkEditions.result.series?.exhibition;
   }
 }

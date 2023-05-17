@@ -15,7 +15,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shake/shake.dart';
 
 class PreviewTokenClaim extends StatefulWidget {
-  final FFArtwork artwork;
+  final FFSeries artwork;
 
   const PreviewTokenClaim({
     Key? key,
