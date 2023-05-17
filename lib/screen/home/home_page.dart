@@ -650,7 +650,7 @@ class HomePageState extends State<HomePage>
         final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
         showTip = !iCloudAvailable.value;
       }
-      if (showTip) {
+      if (showTip && configurationService.showBackupSettingTip.value == false) {
         configurationService.showBackupSettingTip.value = true;
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "backup_failed".tr()});
