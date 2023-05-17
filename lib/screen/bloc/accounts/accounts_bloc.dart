@@ -145,7 +145,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         if (persona.isDefault()) {
           if (ethAddresses.isEmpty) {
             final address = await persona.wallet().getETHEip55Address();
-            final addressInfo = EthereumAddressInfo(0, address, EtherAmount.zero());
+            final addressInfo =
+                EthereumAddressInfo(0, address, EtherAmount.zero());
             await _accountService.addAddressPersona(persona, [addressInfo]);
             ethAddresses.add(address);
           }
