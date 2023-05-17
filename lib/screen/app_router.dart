@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
@@ -1242,11 +1243,11 @@ class AppRouter {
               return InappWebviewPage(url: settings.arguments as String);
             });
       case claimEmptyPostCard:
-        final id = settings.arguments as String;
+        final claimRequest = settings.arguments as RequestPostcardResponse;
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) {
-            return ClaimEmptyPostCardScreen(id: id);
+            return ClaimEmptyPostCardScreen(claimRequest: claimRequest);
           },
         );
 

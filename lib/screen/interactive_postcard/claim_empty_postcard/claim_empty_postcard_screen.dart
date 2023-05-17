@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
@@ -14,9 +15,9 @@ import 'claim_empty_postcard_bloc.dart';
 import 'claim_empty_postcard_state.dart';
 
 class ClaimEmptyPostCardScreen extends StatefulWidget {
-  final String id;
+  final RequestPostcardResponse claimRequest;
 
-  const ClaimEmptyPostCardScreen({super.key, required this.id});
+  const ClaimEmptyPostCardScreen({super.key, required this.claimRequest});
 
   @override
   State<ClaimEmptyPostCardScreen> createState() =>
@@ -29,7 +30,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
   @override
   void initState() {
     super.initState();
-    bloc.add(GetTokenEvent());
+    bloc.add(GetTokenEvent(widget.claimRequest));
   }
 
   @override
@@ -169,7 +170,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                               enabled: state.isClaiming != true,
                               isProcessing: state.isClaiming == true,
                               onTap: () {
-                                bloc.add(AcceptGiftEvent());
+                                bloc.add(AcceptGiftEvent(widget.claimRequest));
                               },
                             ),
                           ),
