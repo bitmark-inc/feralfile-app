@@ -203,6 +203,10 @@ abstract class ConfigurationService {
 
   bool getAlreadyShowLinkOrImportTip();
 
+  DateTime? getShowBackupSettingTip();
+
+  Future setShowBackupSettingTip(DateTime time);
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -229,6 +233,8 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showCreatePlaylistTip;
 
   ValueNotifier<bool> get showLinkOrImportTip;
+
+  ValueNotifier<bool> get showBackupSettingTip;
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -304,6 +310,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
       "show_link_or_import_tip";
+
+  static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
+      "show_back_up_settings_tip";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -966,4 +975,22 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future setSubscriptionTime(DateTime time) async {
     await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
+
+  @override
+  DateTime? getShowBackupSettingTip() {
+    final timeString = _preferences.getString(KEY_SHOW_BACK_UP_SETTINGS_TIP);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setShowBackupSettingTip(DateTime time) async {
+    await _preferences.setString(
+        KEY_SHOW_BACK_UP_SETTINGS_TIP, time.toIso8601String());
+  }
+
+  @override
+  ValueNotifier<bool> showBackupSettingTip = ValueNotifier(false);
 }
