@@ -749,15 +749,15 @@ class UIHelper {
 
   static Future showNoRemainingAirdropToken(
     BuildContext context, {
-    required FFSeries artwork,
+    required FFSeries series,
   }) async {
     final error = FeralfileError(3009, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": artwork.id});
+        data: {"message": error.dialogMessage, "id": series.id});
     return showErrorDialog(
       context,
-      error.getDialogTitle(artwork: artwork),
-      error.getDialogMessage(artwork: artwork),
+      error.getDialogTitle(series: series),
+      error.getDialogMessage(series: series),
       "close".tr(),
     );
   }
@@ -777,28 +777,28 @@ class UIHelper {
   static Future showClaimTokenError(
     BuildContext context,
     Object e, {
-    required FFSeries artwork,
+    required FFSeries series,
   }) async {
     if (e is AirdropExpired) {
-      await showAirdropExpired(context, artwork.id);
+      await showAirdropExpired(context, series.id);
     } else if (e is DioError) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
-          ? ffError.getDialogMessage(artwork: artwork)
+          ? ffError.getDialogMessage(series: series)
           : "${e.response?.data ?? e.message}";
 
       metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {"message": message, "id": artwork.id});
+          data: {"message": message, "id": series.id});
       await showErrorDialog(
         context,
-        ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),
+        ffError?.getDialogTitle(series: series) ?? "error".tr(),
         message,
         "close".tr(),
       );
     } else if (e is NoRemainingToken) {
       await showNoRemainingAirdropToken(
         context,
-        artwork: artwork,
+        series: series,
       );
     }
   }
