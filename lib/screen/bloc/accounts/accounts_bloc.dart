@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:web3dart/web3dart.dart';
 
 part 'accounts_state.dart';
 
@@ -140,6 +142,20 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         if (!await persona.wallet().isWalletCreated()) continue;
         final ethAddresses = await persona.getEthAddresses();
         final xtzAddresses = await persona.getTezosAddresses();
+        if (persona.isDefault()) {
+          if (ethAddresses.isEmpty) {
+            final address = await persona.wallet().getETHEip55Address();
+            final addressInfo = EthereumAddressInfo(0, address, EtherAmount.zero());
+            await _accountService.addAddressPersona(persona, [addressInfo]);
+            ethAddresses.add(address);
+          }
+          if (xtzAddresses.isEmpty) {
+            final address = await persona.wallet().getTezosAddress();
+            final addressInfo = TezosAddressInfo(0, address, 0);
+            await _accountService.addAddressPersona(persona, [addressInfo]);
+            xtzAddresses.add(address);
+          }
+        }
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
