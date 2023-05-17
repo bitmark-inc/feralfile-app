@@ -562,22 +562,20 @@ class _ScanQRPageState extends State<ScanQRPage>
         case ScannerItem.CANVAS_DEVICE:
           log.info("Canvas device scanned: $code");
           try {
+            controller.dispose();
             final device = CanvasDevice.fromJson(jsonDecode(code));
             final canvasClient = injector<CanvasClientService>();
             final result = await canvasClient.connectToDevice(device);
             if (result) {
               device.isConnecting = true;
               if (!mounted) return;
-              controller.dispose();
               Navigator.pop(context, device);
               return;
             } else {
-              print("Error connecting to device");
               _handleError(code);
               return;
             }
           } catch (err) {
-            print("Error connecting to device2");
             _handleError(code);
           }
           break;
