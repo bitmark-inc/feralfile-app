@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -557,9 +558,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   _handleClaimEmptyPostcardDeeplink(String? id) async {
+    if (id == null) {
+      return;
+    }
+    final claimRequest =
+        await _postcardService.requestPostcard(RequestPostcardRequest(id: id));
     _navigationService.navigatorKey.currentState?.pushNamed(
       AppRouter.claimEmptyPostCard,
-      arguments: id,
+      arguments: claimRequest,
     );
   }
 }

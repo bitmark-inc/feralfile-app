@@ -1,13 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 class ClaimPostCardRequest {
-  String? id;
+  String? claimID;
   String? timestamp;
   String? publicKey;
   String? address;
   String? signature;
   ClaimPostCardRequest({
-    this.id,
+    this.claimID,
     this.timestamp,
     this.publicKey,
     this.address,
@@ -15,14 +15,14 @@ class ClaimPostCardRequest {
   });
 
   ClaimPostCardRequest copyWith({
-    String? id,
+    String? claimID,
     String? timestamp,
     String? publicKey,
     String? address,
     String? signature,
   }) {
     return ClaimPostCardRequest(
-      id: id ?? this.id,
+      claimID: claimID ?? this.claimID,
       timestamp: timestamp ?? this.timestamp,
       publicKey: publicKey ?? this.publicKey,
       address: address ?? this.address,
@@ -32,7 +32,7 @@ class ClaimPostCardRequest {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'id': id,
+      'claimID': claimID,
       'timestamp': timestamp,
       'publicKey': publicKey,
       'address': address,
@@ -42,7 +42,7 @@ class ClaimPostCardRequest {
 
   factory ClaimPostCardRequest.fromJson(Map<String, dynamic> map) {
     return ClaimPostCardRequest(
-      id: map['id'] != null ? map['id'] as String : null,
+      claimID: map['claimID'] != null ? map['claimID'] as String : null,
       timestamp: map['timestamp'] != null ? map['timestamp'] as String : null,
       publicKey: map['publicKey'] != null ? map['publicKey'] as String : null,
       address: map['address'] != null ? map['address'] as String : null,
@@ -52,14 +52,14 @@ class ClaimPostCardRequest {
 
   @override
   String toString() {
-    return 'ClaimPostCardRequest(id: $id, timestamp: $timestamp, publicKey: $publicKey, address: $address, signature: $signature)';
+    return 'ClaimPostCardRequest(claimID: $claimID, timestamp: $timestamp, publicKey: $publicKey, address: $address, signature: $signature)';
   }
 
   @override
   bool operator ==(covariant ClaimPostCardRequest other) {
     if (identical(this, other)) return true;
 
-    return other.id == id &&
+    return other.claimID == claimID &&
         other.timestamp == timestamp &&
         other.publicKey == publicKey &&
         other.address == address &&
@@ -68,7 +68,7 @@ class ClaimPostCardRequest {
 
   @override
   int get hashCode {
-    return id.hashCode ^
+    return claimID.hashCode ^
         timestamp.hashCode ^
         publicKey.hashCode ^
         address.hashCode ^
@@ -152,5 +152,49 @@ class ClaimPostCardResponse {
         blockchain.hashCode ^
         owner.hashCode ^
         contractAddress.hashCode;
+  }
+}
+
+class RequestPostcardRequest {
+  final String id;
+  RequestPostcardRequest({
+    required this.id,
+  });
+  // fromJson method
+  factory RequestPostcardRequest.fromJson(Map<String, dynamic> json) {
+    return RequestPostcardRequest(
+      id: json['id'] as String,
+    );
+  }
+
+  // toJson method
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+    };
+  }
+}
+
+class RequestPostcardResponse {
+  final String claimID;
+  final String name;
+  // constructor
+  RequestPostcardResponse({
+    required this.claimID,
+    required this.name,
+  });
+  // fromJson method
+  factory RequestPostcardResponse.fromJson(Map<String, dynamic> json) {
+    return RequestPostcardResponse(
+      claimID: json['claimID'] as String,
+      name: json['name'] as String,
+    );
+  }
+  // toJson method
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'claimID': claimID,
+      'name': name,
+    };
   }
 }
