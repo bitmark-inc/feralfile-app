@@ -47,14 +47,9 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<ExhibitionResponse> getExhibition(
-    exhibitionId, {
-    includeArtwork = true,
-  }) async {
+  Future<ExhibitionResponse> getExhibition(exhibitionId) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'includeArtwork': includeArtwork
-    };
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio
@@ -75,31 +70,31 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<FFArtworkResponse> getArtwork(artworkId) async {
+  Future<FFSeriesResponse> getSeries(seriesId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio
-        .fetch<Map<String, dynamic>>(_setStreamType<FFArtworkResponse>(Options(
+        .fetch<Map<String, dynamic>>(_setStreamType<FFSeriesResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/api/artworks/${artworkId}',
+              '/api/series/${seriesId}',
               queryParameters: queryParameters,
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = FFArtworkResponse.fromJson(_result.data!);
+    final value = FFSeriesResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<TokenClaimResponse> claimArtwork(
-    artworkId,
+  Future<TokenClaimResponse> claimSeries(
+    seriesId,
     body,
   ) async {
     const _extra = <String, dynamic>{};
@@ -115,26 +110,13 @@ class _FeralFileApi implements FeralFileApi {
     )
             .compose(
               _dio.options,
-              '/api/artworks/${artworkId}/claim',
+              '/api/series/${seriesId}/claim',
               queryParameters: queryParameters,
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = TokenClaimResponse.fromJson(_result.data!);
     return value;
-  }
-
-  RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
-    if (T != dynamic &&
-        !(requestOptions.responseType == ResponseType.bytes ||
-            requestOptions.responseType == ResponseType.stream)) {
-      if (T == String) {
-        requestOptions.responseType = ResponseType.plain;
-      } else {
-        requestOptions.responseType = ResponseType.json;
-      }
-    }
-    return requestOptions;
   }
 
   @override
@@ -151,7 +133,7 @@ class _FeralFileApi implements FeralFileApi {
     )
             .compose(
               _dio.options,
-              '/api/exhibitions/${exhibitionID}/revenue-setting/resale/',
+              '/api/exhibitions/${exhibitionID}/revenue-setting/resale',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -161,34 +143,47 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<ArtworkEditionResponse> getArtworkEditions(
+  Future<ArtworkResponse> getArtworks(
     tokenID, {
-    includeArtwork = true,
+    includeSeries = true,
     includeExhibition = true,
     includeArtist = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'includeArtwork': includeArtwork,
+      r'includeSeries': includeSeries,
       r'includeExhibition': includeExhibition,
-      r'includeArtist': includeArtist
+      r'includeArtist': includeArtist,
     };
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<ArtworkEditionResponse>(Options(
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<ArtworkResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/api/artwork-editions/${tokenID}',
+              '/api/artworks/${tokenID}',
               queryParameters: queryParameters,
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = ArtworkEditionResponse.fromJson(_result.data!);
+    final value = ArtworkResponse.fromJson(_result.data!);
     return value;
+  }
+
+  RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
+    if (T != dynamic &&
+        !(requestOptions.responseType == ResponseType.bytes ||
+            requestOptions.responseType == ResponseType.stream)) {
+      if (T == String) {
+        requestOptions.responseType = ResponseType.plain;
+      } else {
+        requestOptions.responseType = ResponseType.json;
+      }
+    }
+    return requestOptions;
   }
 }

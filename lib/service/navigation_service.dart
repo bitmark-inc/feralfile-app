@@ -111,7 +111,7 @@ class NavigationService {
   }
 
   Future showNoRemainingToken({
-    required FFArtwork artwork,
+    required FFSeries artwork,
   }) async {
     log.info("NavigationService.showNoRemainingToken");
     if (navigatorKey.currentState?.mounted == true &&
@@ -136,7 +136,7 @@ class NavigationService {
   }
 
   Future openClaimTokenPage(
-    FFArtwork artwork, {
+    FFSeries artwork, {
     Otp? otp,
   }) async {
     log.info("NavigationService.openClaimTokenPage");

@@ -31,7 +31,7 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ClaimTokenPageArgs {
-  final FFArtwork artwork;
+  final FFSeries artwork;
   final Otp? otp;
 
   ClaimTokenPageArgs({
@@ -41,7 +41,7 @@ class ClaimTokenPageArgs {
 }
 
 class ClaimTokenPage extends StatefulWidget {
-  final FFArtwork artwork;
+  final FFSeries artwork;
   final Otp? otp;
 
   const ClaimTokenPage({

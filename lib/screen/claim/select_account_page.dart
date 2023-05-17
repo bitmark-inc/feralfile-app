@@ -24,7 +24,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class SelectAccountPageArgs {
   final String? blockchain;
 
-  final FFArtwork? artwork;
+  final FFSeries? artwork;
   final bool fromWebview;
 
   final Otp? otp;
@@ -39,7 +39,7 @@ class SelectAccountPageArgs {
 
 class SelectAccountPage extends StatefulWidget {
   final String? blockchain;
-  final FFArtwork? artwork;
+  final FFSeries? artwork;
   final bool? fromWebview;
   final Otp? otp;
 
