@@ -115,6 +115,8 @@ class TezosServiceImpl extends TezosService {
           (forgedHex) => wallet.tezosSignTransaction(forgedHex, index: index),
           baseOperationCustomFee: baseOperationCustomFee);
 
+      log.info(
+          "TezosService.sendOperationTransaction: ${operationList.result.id}");
       return operationList.result.id;
     });
   }
