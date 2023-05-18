@@ -5,13 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'tzkt_api.g.dart';
 
-@RestApi(baseUrl: "https://api.tzkt.io")
+@RestApi(baseUrl: "")
 abstract class TZKTApi {
   factory TZKTApi(Dio dio, {String baseUrl}) = _TZKTApi;
 
@@ -34,5 +35,19 @@ abstract class TZKTApi {
     @Query("limit") int? limit,
     @Query("lastId") int? lastId,
     @Query("timestamp.gt") String? lastTime,
+  });
+
+  @GET("/v1/bigmaps")
+  Future<List<int>> getBigMapsId({
+    @Query("contract") required String contract,
+    @Query("path") String path = "postcards",
+    @Query("select") String select = "ptr",
+  });
+
+  @GET("/v1/bigmaps/{ptr}/keys")
+  Future<List<PostcardValue>> getBigMaps(
+    @Path("ptr") int ptr, {
+    @Query("select") String select = "value",
+    @Query("key") required String key,
   });
 }

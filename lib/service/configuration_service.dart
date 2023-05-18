@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -235,6 +237,27 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showLinkOrImportTip;
 
   ValueNotifier<bool> get showBackupSettingTip;
+
+  List<SharedPostcard> getSharedPostcard();
+
+  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
+      {bool override = false});
+
+  List<String> getListPostcardMint();
+
+  Future<void> setListPostcardMint(List<String> tokenID,
+      {bool override = false, bool isRemoved = false});
+
+  List<StampingPostcard> getStampingPostcard();
+
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false});
+
+  Future<void> removeExpiredStampingPostcard();
+
+  Future<void> setAutoShowPostcard(bool value);
+
+  bool isAutoShowPostcard();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -264,6 +287,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
+  static const String KEY_SHARED_POSTCARD = "shared_postcard";
 
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
       "announcement_last_pull_time";
@@ -313,6 +337,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
       "show_back_up_settings_tip";
+
+  static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
+
+  static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -367,6 +395,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
       "sent_tezos_artwork_metric";
+
+  static const String POSTCARD_MINT = "postcard_mint";
 
   final SharedPreferences _preferences;
 
@@ -993,4 +1023,110 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   ValueNotifier<bool> showBackupSettingTip = ValueNotifier(false);
+
+  @override
+  List<SharedPostcard> getSharedPostcard() {
+    final sharedPostcardString =
+        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
+    return sharedPostcardString
+        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toList();
+  }
+
+  @override
+  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
+      {bool override = false}) async {
+    const key = KEY_SHARED_POSTCARD;
+    final updatePostcards =
+        sharedPostcards.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updatePostcards);
+    } else {
+      var sentPostcard = _preferences.getStringList(key) ?? [];
+
+      sentPostcard.addAll(updatePostcards);
+      await _preferences.setStringList(key, sentPostcard.toSet().toList());
+    }
+  }
+
+  @override
+  List<String> getListPostcardMint() {
+    return _preferences.getStringList(POSTCARD_MINT) ?? [];
+  }
+
+  @override
+  Future<void> setListPostcardMint(List<String> tokenID,
+      {bool override = false, bool isRemoved = false}) async {
+    if (override) {
+      await _preferences.setStringList(POSTCARD_MINT, tokenID);
+    } else {
+      var currentPortcardMints =
+          _preferences.getStringList(POSTCARD_MINT) ?? [];
+      if (isRemoved) {
+        currentPortcardMints
+            .removeWhere((element) => tokenID.contains(element));
+      } else {
+        currentPortcardMints.addAll(tokenID);
+      }
+      await _preferences.setStringList(POSTCARD_MINT, currentPortcardMints);
+    }
+  }
+
+  @override
+  List<StampingPostcard> getStampingPostcard() {
+    return _preferences
+            .getStringList(KEY_STAMPING_POSTCARD)
+            ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
+            .toList()
+            .where((element) => element.timestamp
+                .isAfter(DateTime.now().subtract(STAMPING_POSTCARD_LIMIT_TIME)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false}) async {
+    const key = KEY_STAMPING_POSTCARD;
+    final updatePostcards = values.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updatePostcards);
+    } else {
+      await removeExpiredStampingPostcard();
+      var currentStampingPostcard = _preferences.getStringList(key) ?? [];
+
+      if (isRemove) {
+        currentStampingPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        currentStampingPostcard.addAll(updatePostcards);
+      }
+      await _preferences.setStringList(
+          key, currentStampingPostcard.toSet().toList());
+    }
+  }
+
+  @override
+  Future<void> removeExpiredStampingPostcard() async {
+    final currentStampingPostcard = getStampingPostcard();
+    final now = DateTime.now();
+    final unexpiredStampingPostcard = currentStampingPostcard
+        .where((element) => element.timestamp
+            .isAfter(now.subtract(STAMPING_POSTCARD_LIMIT_TIME)))
+        .toList();
+    _preferences.setStringList(KEY_STAMPING_POSTCARD,
+        unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
+  }
+
+  @override
+  bool isAutoShowPostcard() {
+    return _preferences.getBool(KEY_AUTO_SHOW_POSTCARD) ?? false;
+  }
+
+  @override
+  Future<void> setAutoShowPostcard(bool value) async {
+    await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
+  }
 }

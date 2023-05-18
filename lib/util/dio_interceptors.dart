@@ -191,3 +191,32 @@ class FeralfileAuthInterceptor extends Interceptor {
     }
   }
 }
+
+class PostcardAuthInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (options.headers["X-Api-Signature"] == null) {
+      final timestamp =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      String body = "";
+      if (options.data is FormData || options.method.toUpperCase() == "GET") {
+        body = "";
+      } else {
+        body = bytesToHex(
+            sha256.convert(utf8.encode(json.encode(options.data))).bytes);
+      }
+      final canonicalString = List<String>.of([
+        options.path,
+        body,
+        timestamp,
+      ]).join("|");
+      final hmacSha256 =
+          Hmac(sha256, utf8.encode(Environment.auClaimSecretKey));
+      final digest = hmacSha256.convert(utf8.encode(canonicalString));
+      final sig = bytesToHex(digest.bytes);
+      options.headers["X-Api-Signature"] = sig;
+      options.headers["X-Api-Timestamp"] = timestamp;
+    }
+    handler.next(options);
+  }
+}

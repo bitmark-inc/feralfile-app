@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -53,6 +54,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final FeralFileService _feralFileService;
   final NavigationService _navigationService;
   final BranchApi _branchApi;
+  final PostcardService _postcardService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -67,6 +69,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._feralFileService,
     this._navigationService,
     this._branchApi,
+    this._postcardService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -375,6 +378,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
           );
         }
         break;
+      case "Postcard":
+        final String? type = data["type"];
+        final String? id = data["id"];
+        if (type == "claim_empty_postcard" && id != null) {
+          _handleClaimEmptyPostcardDeeplink(id);
+          return;
+        }
+        final String? sharedCode = data["share_code"];
+        if (sharedCode != null) {
+          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          await _handlePostcardDeeplink(sharedCode);
+        } else {
+          _navigationService.waitTooLongDialog();
+        }
+        break;
       case "autonomy_irl":
         final url = data["irl_url"];
         if (url != null) {
@@ -523,6 +541,27 @@ class DeeplinkServiceImpl extends DeeplinkService {
       injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
   }
+
+  _handlePostcardDeeplink(String shareCode) async {
+    final sharedInfor =
+        await _postcardService.getSharedPostcardInfor(shareCode);
+    if (sharedInfor.status == SharedPostcardStatus.claimed) {
+      await _navigationService.showAlreadyDeliveredPostcard();
+      return;
+    }
+    final contractAddress = Environment.postcardContractAddress;
+    final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
+    final postcard = await _postcardService.getPostcard(tokenId);
+    _navigationService.openPostcardReceivedPage(
+        asset: postcard, shareCode: sharedInfor.shareCode);
+  }
+
+  _handleClaimEmptyPostcardDeeplink(String? id) async {
+    _navigationService.navigatorKey.currentState?.pushNamed(
+      AppRouter.claimEmptyPostCard,
+      arguments: id,
+    );
+  }
 }
 
 Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
@@ -535,4 +574,9 @@ Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
     );
   }
   return null;
+}
+
+class SharedPostcardStatus {
+  static String available = "available";
+  static String claimed = "claimed";
 }

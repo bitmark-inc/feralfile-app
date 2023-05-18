@@ -21,12 +21,15 @@ import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -47,6 +50,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -198,7 +202,11 @@ Future<void> setup() async {
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() =>
       AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
-  injector.registerLazySingleton(() => TZKTApi(dio));
+
+  final tzktUrl = Environment.appTestnetConfig
+      ? Environment.tzktTestnetURL
+      : Environment.tzktMainnetURL;
+  injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
@@ -283,6 +291,10 @@ Future<void> setup() async {
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
+  injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
+      _postcardDio(dioOptions),
+      baseUrl: Environment.auClaimAPIURL));
+
   final indexerClient = IndexerClient(Environment.indexerURL);
   injector.registerLazySingleton<IndexerService>(
       () => IndexerService(indexerClient));
@@ -296,6 +308,9 @@ Future<void> setup() async {
   injector
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
 
+  injector.registerLazySingleton<PostcardService>(
+      () => PostcardServiceImpl(injector(), injector(), injector()));
+
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
         injector(),
@@ -304,6 +319,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+        injector(),
         injector(),
         injector(),
         injector(),
@@ -324,6 +340,11 @@ Future<void> setup() async {
   injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
   injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
+  injector
+      .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
+
+  injector
+      .registerLazySingleton<ReceivePostcardBloc>(() => ReceivePostcardBloc());
 }
 
 Dio _feralFileDio(BaseOptions options) {
@@ -342,6 +363,16 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
+  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
+  dio.addSentry(captureFailedRequests: true);
+  dio.options = options;
+  return dio;
+}
+
+Dio _postcardDio(BaseOptions options) {
+  final dio = Dio(); // Default a dio instance
+  dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(PostcardAuthInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
   dio.options = options;
