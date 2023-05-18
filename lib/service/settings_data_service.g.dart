@@ -28,9 +28,11 @@ SettingsDataBackup _$SettingsDataBackupFromJson(Map<String, dynamic> json) =>
           (json['hiddenAddressesFromGallery'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList(),
-      playlists: (json['playlists'] as List<dynamic>?)
-          ?.map((e) => PlayListModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      playlists: json['playlists'] == null
+          ? []
+          : (json['playlists'] as List<dynamic>)
+              .map((e) => PlayListModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
 
 Map<String, dynamic> _$SettingsDataBackupToJson(SettingsDataBackup instance) =>
