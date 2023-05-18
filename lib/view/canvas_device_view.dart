@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -140,17 +141,36 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets
               .copyWith(top: 20, bottom: 20),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  deviceState.device.name,
-                  style: theme.textTheme.ppMori700White14,
+          child: GestureDetector(
+            onTap: () {
+              switch (deviceState.status) {
+                case DeviceStatus.connected:
+                  _bloc.add(CanvasDeviceCastSingleEvent(
+                      deviceState.device, widget.sceneId));
+                  break;
+                case DeviceStatus.playing:
+                case DeviceStatus.loading:
+                  _bloc.add(
+                      CanvasDeviceUncastingSingleEvent(deviceState.device));
+                  break;
+                default:
+              }
+            },
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    deviceState.device.name,
+                    style: (deviceState.status == DeviceStatus.error)
+                        ? theme.textTheme.ppMori700Black14
+                            .copyWith(color: AppColor.disabledColor)
+                        : theme.textTheme.ppMori700White14,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              _deviceStatus(deviceState),
-            ],
+                const Spacer(),
+                _deviceStatus(deviceState),
+              ],
+            ),
           ),
         ),
         addOnlyDivider(),
@@ -208,11 +228,11 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       case DeviceStatus.error:
         return GestureDetector(
           onTap: () {
-            // Navigate to Autonomy Canvas page
+            Navigator.of(context).pushNamed(AppRouter.canvasHelpPage);
           },
           child: SvgPicture.asset(
             "assets/images/help_icon.svg",
-            color: AppColor.white,
+            color: AppColor.auSuperTeal,
           ),
         );
     }

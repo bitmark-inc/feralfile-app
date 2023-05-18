@@ -102,8 +102,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "77a4bfc7d0ae1c93653b97985499129a10d123e2"
-      resolved-ref: "77a4bfc7d0ae1c93653b97985499129a10d123e2"
+      ref: b63d736d882db7e09ab75d18f7a771e8e00f2aba
+      resolved-ref: b63d736d882db7e09ab75d18f7a771e8e00f2aba
       url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
     source: git
     version: "0.0.1"

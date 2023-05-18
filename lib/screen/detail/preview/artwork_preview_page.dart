@@ -20,8 +20,6 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dar
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/model/play_control_model.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -56,6 +54,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         WidgetsBindingObserver {
   late PageController controller;
   late ArtworkPreviewBloc _bloc;
+  late CanvasDeviceBloc _canvasDeviceBloc;
 
   ShakeDetector? _detector;
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
@@ -83,6 +82,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     final currentIdentity = tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
         useIndexer: widget.payload.useIndexer));
@@ -106,8 +106,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     }
   }
 
+  void uncasting() {
+    final canvasDeviceState = _canvasDeviceBloc.state;
+    for (var e in canvasDeviceState.devices) {
+      if (e.status == DeviceStatus.playing) {
+        _canvasDeviceBloc.add(CanvasDeviceUncastingSingleEvent(e.device));
+      }
+    }
+  }
+
   @override
   void dispose() {
+    uncasting();
     _focusNode.dispose();
     disableLandscapeMode();
     Wakelock.disable();
@@ -228,7 +238,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
-        value: context.read<CanvasDeviceBloc>(),
+        value: _canvasDeviceBloc,
         child: CanvasDeviceView(
           sceneId: assetToken?.id ?? "",
           onClose: () {

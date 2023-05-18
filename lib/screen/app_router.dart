@@ -66,6 +66,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
@@ -242,6 +243,7 @@ class AppRouter {
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
+  static const canvasHelpPage = 'CanvasHelpPage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1361,6 +1363,13 @@ class AppRouter {
             );
           },
         );
+
+      case canvasHelpPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return CanvasHelpPage();
+            });
 
       default:
         throw Exception('Invalid route: ${settings.name}');

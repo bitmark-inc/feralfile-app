@@ -2,9 +2,9 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
+import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:synchronized/synchronized.dart';
 
 class CanvasClientService {
@@ -190,6 +190,30 @@ class CanvasClientService {
     final updatedDevice = device.copyWith(isConnecting: false);
     updatedDevice.playingSceneId = null;
     await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
+  }
+
+  Future<void> castSingleArtwork(CanvasDevice device, String tokenId) async {
+    final stub = _getStub(device);
+    final castRequest = CastSingleRequest(id: tokenId);
+    final response = await stub.castSingleArtwork(castRequest);
+    if (response.status) {
+      final lst = _devices.firstWhere(
+        (element) {
+          final isEqual = element == device;
+          return isEqual;
+        },
+      );
+      lst.playingSceneId = tokenId;
+    }
+  }
+
+  Future<void> uncastSingleArtwork(CanvasDevice device) async {
+    final stub = _getStub(device);
+    final uncastRequest = UncastSingleRequest(id: "");
+    final response = await stub.uncastSingleArtwork(uncastRequest);
+    if (response.status) {
+      _devices.firstWhere((element) => element == device).playingSceneId = null;
+    }
   }
 }
 
