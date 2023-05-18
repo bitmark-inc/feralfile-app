@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
+import 'package:collection/collection.dart';
 
 abstract class CanvasDeviceEvent {}
 
@@ -75,6 +76,13 @@ class CanvasDeviceState {
       return e;
     }).toList();
     return copyWith(devices: newDeviceState);
+  }
+
+  bool get isCasting {
+    return devices.firstWhereOrNull((deviceState) {
+          return deviceState.status == DeviceStatus.playing;
+        }) !=
+        null;
   }
 }
 

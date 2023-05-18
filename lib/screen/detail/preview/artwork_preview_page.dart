@@ -363,50 +363,60 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 ),
                 Visibility(
                   visible: !isFullScreen,
-                  child: Container(
-                    color: theme.colorScheme.primary,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 15,
-                        bottom: 30,
-                        right: 20,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Visibility(
-                            visible: (assetToken?.medium == 'software' ||
-                                assetToken?.medium == 'other' ||
-                                (assetToken?.medium?.isEmpty ?? true)),
-                            child: KeyboardManagerWidget(
-                              key: keyboardManagerKey,
-                              focusNode: _focusNode,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          CastButton(
-                            assetToken: assetToken,
-                            onCastTap: () => onCastTap(assetToken),
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          GestureDetector(
-                            onTap: () => onClickFullScreen(assetToken),
-                            child: Semantics(
-                              label: "fullscreen_icon",
-                              child: SvgPicture.asset(
-                                'assets/images/fullscreen_icon.svg',
+                  child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                      builder: (context, state) {
+                    final isCasting = state.isCasting;
+                    return Container(
+                      color: theme.colorScheme.primary,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 15,
+                          bottom: 30,
+                          right: 20,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Visibility(
+                              visible: (assetToken?.medium == 'software' ||
+                                  assetToken?.medium == 'other' ||
+                                  (assetToken?.medium?.isEmpty ?? true)),
+                              child: KeyboardManagerWidget(
+                                key: keyboardManagerKey,
+                                focusNode: _focusNode,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            CastButton(
+                              assetToken: assetToken,
+                              onCastTap: () => onCastTap(assetToken),
+                              isCasting: isCasting,
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            GestureDetector(
+                              onTap: isCasting
+                                  ? null
+                                  : () => onClickFullScreen(assetToken),
+                              child: Semantics(
+                                label: "fullscreen_icon",
+                                child: SvgPicture.asset(
+                                  'assets/images/fullscreen_icon.svg',
+                                  color: isCasting
+                                      ? AppColor.disabledColor
+                                      : AppColor.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -421,8 +431,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 class CastButton extends StatelessWidget {
   final AssetToken? assetToken;
   final VoidCallback? onCastTap;
+  final bool isCasting;
 
-  const CastButton({Key? key, this.assetToken, this.onCastTap})
+  const CastButton(
+      {Key? key, this.assetToken, this.onCastTap, this.isCasting = false})
       : super(key: key);
 
   @override
@@ -438,7 +450,7 @@ class CastButton extends StatelessWidget {
         label: 'cast_icon',
         child: SvgPicture.asset(
           'assets/images/cast_icon.svg',
-          color: canCast ? theme.colorScheme.secondary : theme.disableColor,
+          color: isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
         ),
       ),
     );
