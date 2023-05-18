@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -48,15 +48,14 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
 
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
-      final config = injector.get<ConfigurationService>();
+      final service = injector.get<PlaylistService>();
       playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
-      final playlists = await config.getPlayList();
+      final playlists = await service.getPlayList();
       final index =
-          playlists?.indexWhere((element) => element.id == playListModel?.id) ??
-              -1;
+          playlists.indexWhere((element) => element.id == playListModel?.id);
       if (index != -1 && playListModel != null) {
-        playlists?[index] = playListModel;
-        config.setPlayList(playlists, override: true);
+        playlists[index] = playListModel;
+        service.setPlayList(playlists, override: true);
         injector.get<SettingsDataService>().backup();
         emit(state.copyWith(isAddSuccess: true));
       }

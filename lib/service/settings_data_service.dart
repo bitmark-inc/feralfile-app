@@ -72,7 +72,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
       hiddenAddressesFromGallery: hiddenAddressesFromGallery,
       hiddenLinkedAccountsFromGallery:
           _configurationService.getLinkedAccountsHiddenInGallery(),
-      playlists: await _configurationService.getPlayList(),
+      playlists: _configurationService.getPlayList(),
     );
 
     final dataBytes = utf8.encode(json.encode(data.toJson()));
@@ -145,7 +145,7 @@ class SettingsDataBackup {
   List<String> hiddenTestnetTokenIDs;
   List<String> hiddenLinkedAccountsFromGallery;
   List<String>? hiddenAddressesFromGallery;
-  List<PlayListModel>? playlists;
+  List<PlayListModel> playlists;
 
   SettingsDataBackup({
     required this.addresses,
@@ -155,7 +155,7 @@ class SettingsDataBackup {
     required this.hiddenTestnetTokenIDs,
     required this.hiddenLinkedAccountsFromGallery,
     this.hiddenAddressesFromGallery,
-    this.playlists,
+    this.playlists = const [],
   });
 
   factory SettingsDataBackup.fromJson(Map<String, dynamic> json) =>
