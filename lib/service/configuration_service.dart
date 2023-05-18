@@ -18,9 +18,12 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/database/dao/dao.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
+
+import 'account_service.dart';
 
 abstract class ConfigurationService {
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
@@ -133,7 +136,7 @@ abstract class ConfigurationService {
 
   Future<void> setPreviousBuildNumber(String value);
 
-  List<PlayListModel>? getPlayList();
+  Future<List<PlayListModel>?> getPlayList();
 
   Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
 
@@ -869,11 +872,27 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<PlayListModel>? getPlayList() {
+  Future<List<PlayListModel>?> getPlayList() async {
     final playListsString = _preferences.getStringList(PLAYLISTS) ?? [];
-    return playListsString
+    final playlists = playListsString
         .map((e) => PlayListModel.fromJson(jsonDecode(e)))
         .toList();
+    final hiddenTokens = getTempStorageHiddenTokenIDs();
+
+    final hiddenAddresses =
+        await injector.get<AccountService>().getHiddenAddressIndexes();
+    final tokens = await injector
+        .get<TokenDao>()
+        .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
+
+    hiddenTokens.addAll(tokens);
+
+    for (var playlist in playlists) {
+      playlist.tokenIDs
+          ?.removeWhere((tokenID) => hiddenTokens.contains(tokenID));
+    }
+    playlists.removeWhere((element) => element.tokenIDs?.isEmpty ?? true);
+    return playlists;
   }
 
   @override

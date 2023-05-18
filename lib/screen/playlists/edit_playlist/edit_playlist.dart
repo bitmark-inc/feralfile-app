@@ -25,6 +25,7 @@ import '../../../util/token_ext.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+
   const EditPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
@@ -50,8 +51,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
 
   final _configurationService = injector<ConfigurationService>();
 
-  deletePlayList() {
-    final listPlaylist = _configurationService.getPlayList();
+  Future<void> deletePlayList() async {
+    final listPlaylist = await _configurationService.getPlayList();
     listPlaylist
         ?.removeWhere((element) => element.id == widget.playListModel?.id);
     _configurationService.setPlayList(listPlaylist, override: true);

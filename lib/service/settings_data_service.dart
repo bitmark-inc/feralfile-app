@@ -72,7 +72,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
       hiddenAddressesFromGallery: hiddenAddressesFromGallery,
       hiddenLinkedAccountsFromGallery:
           _configurationService.getLinkedAccountsHiddenInGallery(),
-      playlists: _configurationService.getPlayList(),
+      playlists: await _configurationService.getPlayList(),
     );
 
     final dataBytes = utf8.encode(json.encode(data.toJson()));

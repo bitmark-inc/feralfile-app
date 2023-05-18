@@ -50,7 +50,7 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
       final playListModel = state.playListModel;
       final config = injector.get<ConfigurationService>();
       playListModel?.tokenIDs = state.playListModel?.tokenIDs?.toSet().toList();
-      final playlists = config.getPlayList();
+      final playlists = await config.getPlayList();
       final index =
           playlists?.indexWhere((element) => element.id == playListModel?.id) ??
               -1;
