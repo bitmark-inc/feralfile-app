@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 
@@ -13,7 +14,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import '../../../util/iterable_ext.dart';
@@ -25,6 +25,7 @@ import '../../../util/token_ext.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+
   const EditPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
@@ -48,13 +49,13 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     ));
   }
 
-  final _configurationService = injector<ConfigurationService>();
+  final _playlistService = injector<PlaylistService>();
 
-  deletePlayList() {
-    final listPlaylist = _configurationService.getPlayList();
+  Future<void> deletePlayList() async {
+    final listPlaylist = await _playlistService.getPlayList();
     listPlaylist
-        ?.removeWhere((element) => element.id == widget.playListModel?.id);
-    _configurationService.setPlayList(listPlaylist, override: true);
+        .removeWhere((element) => element.id == widget.playListModel?.id);
+    _playlistService.setPlayList(listPlaylist, override: true);
     injector.get<SettingsDataService>().backup();
     injector<NavigationService>().popUntilHomeOrSettings();
   }

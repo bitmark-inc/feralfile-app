@@ -133,7 +133,7 @@ abstract class ConfigurationService {
 
   Future<void> setPreviousBuildNumber(String value);
 
-  List<PlayListModel>? getPlayList();
+  List<PlayListModel> getPlayList();
 
   Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
 
@@ -869,8 +869,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<PlayListModel>? getPlayList() {
-    final playListsString = _preferences.getStringList(PLAYLISTS) ?? [];
+  List<PlayListModel> getPlayList() {
+    final playListsString = _preferences.getStringList(PLAYLISTS);
+    if (playListsString == null || playListsString.isEmpty) {
+      return [];
+    }
     return playListsString
         .map((e) => PlayListModel.fromJson(jsonDecode(e)))
         .toList();

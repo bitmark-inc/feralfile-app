@@ -663,7 +663,7 @@ class HomePageState extends State<HomePage>
       }
       if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowCreatePlaylistTip() &&
-          configurationService.getPlayList()?.isEmpty != false) {
+          injector<ConfigurationService>().getPlayList().isEmpty != false) {
         configurationService.showCreatePlaylistTip.value = true;
         configurationService.setAlreadyShowCreatePlaylistTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
