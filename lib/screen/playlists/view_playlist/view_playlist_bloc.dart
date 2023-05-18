@@ -24,7 +24,7 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
       playListModel?.name = event.name;
       final config = injector.get<ConfigurationService>();
 
-      final playlists = config.getPlayList();
+      final playlists = await config.getPlayList();
       final index =
           playlists?.indexWhere((element) => element.id == playListModel?.id) ??
               -1;
@@ -41,7 +41,7 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
       playListModel?.playControlModel = event.playControlModel;
       final config = injector.get<ConfigurationService>();
 
-      final playlists = config.getPlayList();
+      final playlists = await config.getPlayList();
       final index =
           playlists?.indexWhere((element) => element.id == playListModel?.id) ??
               -1;

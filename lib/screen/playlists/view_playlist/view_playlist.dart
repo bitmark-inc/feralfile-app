@@ -57,8 +57,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     bloc.add(GetPlayList(playListModel: widget.playListModel));
   }
 
-  deletePlayList() {
-    final listPlaylist = _configurationService.getPlayList();
+  Future<void> deletePlayList() async {
+    final listPlaylist = await _configurationService.getPlayList();
     listPlaylist
         ?.removeWhere((element) => element.id == widget.playListModel?.id);
     _configurationService.setPlayList(listPlaylist, override: true);
