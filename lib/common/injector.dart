@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -307,6 +308,8 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
+  injector.registerLazySingleton<PlaylistService>(
+      () => PlayListServiceImp(injector(), injector(), injector()));
 
   injector.registerLazySingleton<PostcardService>(
       () => PostcardServiceImpl(injector(), injector(), injector()));
@@ -337,8 +340,10 @@ Future<void> setup() async {
         NftCollection.database.tokenDao,
         NftCollection.database.assetDao,
       ));
-  injector.registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc());
-  injector.registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc());
+  injector.registerFactory<AddNewPlaylistBloc>(
+      () => AddNewPlaylistBloc(injector()));
+  injector
+      .registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc(injector()));
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
