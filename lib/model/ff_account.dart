@@ -429,11 +429,11 @@ class Artwork {
   final String name;
   final String category;
   final String ownerAccountID;
-  final bool virgin;
-  final bool burned;
+  final bool? virgin;
+  final bool? burned;
   final String blockchainStatus;
   final bool isExternal;
-  final DateTime issuedAt;
+  final DateTime mintedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool? isArchived;
@@ -450,7 +450,7 @@ class Artwork {
       this.burned,
       this.blockchainStatus,
       this.isExternal,
-      this.issuedAt,
+      this.mintedAt,
       this.createdAt,
       this.updatedAt,
       this.isArchived,

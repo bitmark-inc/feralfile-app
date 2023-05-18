@@ -811,19 +811,19 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId
           : assetToken.id.split("-").last;
   if (assetToken.source == "feralfile") {
     return ArtworkRightsView(
       contract: FFContract("", "", assetToken.contractAddress ?? ""),
-      editionID: editionID,
+      artworkID: artworkID,
     );
   }
   if (assetToken.isPostcard) {
     return PostcardRightsView(
-      editionID: editionID,
+      editionID: artworkID,
     );
   }
   return const SizedBox();
@@ -1664,14 +1664,14 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
   final FFContract contract;
-  final String? editionID;
+  final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
       {Key? key,
       this.linkStyle,
       required this.contract,
-      this.editionID,
+      this.artworkID,
       this.exhibitionID})
       : super(key: key);
 
@@ -1685,7 +1685,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     super.initState();
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
-        artworkID: widget.editionID,
+        artworkID: widget.artworkID,
         contractAddress: widget.contract.address));
   }
 
