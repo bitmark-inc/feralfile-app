@@ -88,7 +88,7 @@ class _NotificationOnboardingPageState
               children: [
                 AuFilledButton(
                   isProcessing: _isEnableNoti,
-                  text: "enable_noti".tr().toUpperCase(),
+                  text: "enable_noti".tr(),
                   onPress: () async {
                     if (Platform.isIOS &&
                         !await OneSignal.shared
