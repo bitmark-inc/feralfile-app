@@ -128,11 +128,11 @@ class MetricClientService {
     }
   }
 
-  dynamic getConfig(String name) {
-    return mixPanelClient.getConfig(name);
+  MixpanelConfig getConfig() {
+    return mixPanelClient.getConfig();
   }
 
-  Future<void> setConfig(String name, dynamic value) async {
-    await mixPanelClient.setConfig(name, value);
+  Future<void> setConfig(MixpanelConfig config) async {
+    await mixPanelClient.setConfig(config);
   }
 }

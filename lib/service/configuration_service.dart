@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
@@ -230,9 +231,9 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showLinkOrImportTip;
 
-  Future<void> setMixpanelConfig(String name, dynamic value);
+  Future<void> setMixpanelConfig(MixpanelConfig config);
 
-  dynamic getMixpanelConfig(String name);
+  dynamic getMixpanelConfig();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -974,19 +975,18 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  dynamic getMixpanelConfig(String name) {
-    final keyValue =
-        jsonDecode(_preferences.getString(KEY_MIXPANEL_PROPS) ?? "{}")
-            as Map<String, dynamic>;
-    return keyValue[name];
+  MixpanelConfig? getMixpanelConfig() {
+    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
+    if (data == null) {
+      return null;
+    }
+    final config = MixpanelConfig.fromJson(jsonDecode(data));
+    return config;
   }
 
   @override
-  Future<void> setMixpanelConfig(String name, value) async {
-    final keyValue =
-        jsonDecode(_preferences.getString(KEY_MIXPANEL_PROPS) ?? "{}")
-            as Map<String, dynamic>;
-    keyValue[name] = value;
-    await _preferences.setString(KEY_MIXPANEL_PROPS, jsonEncode(keyValue));
+  Future<void> setMixpanelConfig(MixpanelConfig config) async {
+    await _preferences.setString(
+        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
   }
 }

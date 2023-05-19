@@ -64,27 +64,26 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     final endReadingTime = DateTime.now();
     final readingTime =
         endReadingTime.difference(startReadingTime).inMilliseconds / 1000;
-    final periodStartConfig =
-        metricClient.getConfig(MixpanelConfig.EditorialPeriodStart);
+    final mixpanelConfig = metricClient.getConfig();
+    final periodStartConfig = mixpanelConfig.editorialPeriodStart;
     if (periodStartConfig == null) {
-      metricClient.setConfig(
-        MixpanelConfig.EditorialPeriodStart,
-        DateTime(endReadingTime.year, endReadingTime.month,
+      metricClient.setConfig(mixpanelConfig.copyWith(
+        editorialPeriodStart: DateTime(
+            endReadingTime.year,
+            endReadingTime.month,
             endReadingTime.day - (endReadingTime.weekday - 1)),
-      );
+      ));
     }
     final periodStart = periodStartConfig != null
         ? DateTime.parse(periodStartConfig as String)
         : DateTime(endReadingTime.year, endReadingTime.month,
             endReadingTime.day - (endReadingTime.weekday - 1));
 
-    final currentReadingTime =
-        (metricClient.getConfig(MixpanelConfig.totalEditorialReading) ?? 0.0)
-            as double;
+    final currentReadingTime = mixpanelConfig.totalEditorialReading ?? 0.0;
     if (endReadingTime.difference(periodStart).compareTo(periodDuration) < 0) {
       await metricClient.setConfig(
-        MixpanelConfig.totalEditorialReading,
-        currentReadingTime + readingTime,
+        mixpanelConfig.copyWith(
+            totalEditorialReading: currentReadingTime + readingTime),
       );
     } else {
       metricClient.addEvent(
@@ -93,14 +92,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           "reading_time": readingTime,
         },
       );
-      await metricClient.setConfig(
-        MixpanelConfig.EditorialPeriodStart,
-        periodStart.add(periodDuration),
-      );
-      await metricClient.setConfig(
-        MixpanelConfig.totalEditorialReading,
-        readingTime,
-      );
+      await metricClient.setConfig(mixpanelConfig.copyWith(
+          editorialPeriodStart: periodStart.add(periodDuration),
+          totalEditorialReading: readingTime));
     }
   }
 

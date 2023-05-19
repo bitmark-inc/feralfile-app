@@ -406,10 +406,10 @@ class MixpanelProp {
   static const numberNft = 'Number NFT';
 }
 
-class MixpanelConfig {
-  static const EditorialPeriodStart = "editorialPeriodStart";
-  static const totalEditorialReading = 'totalEditorialReading';
-}
+// class MixpanelConfig {
+//   static const EditorialPeriodStart = "editorialPeriodStart";
+//   static const totalEditorialReading = 'totalEditorialReading';
+// }
 
 class SubscriptionStatus {
   static const free = 'Free';
