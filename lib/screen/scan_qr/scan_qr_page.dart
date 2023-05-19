@@ -560,9 +560,9 @@ class _ScanQRPageState extends State<ScanQRPage>
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
+          controller.dispose();
           log.info("Canvas device scanned: $code");
           try {
-            controller.dispose();
             final device = CanvasDevice.fromJson(jsonDecode(code));
             final canvasClient = injector<CanvasClientService>();
             final result = await canvasClient.connectToDevice(device);
