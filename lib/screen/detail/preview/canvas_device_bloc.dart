@@ -78,6 +78,17 @@ class CanvasDeviceState {
     return copyWith(devices: newDeviceState);
   }
 
+  List<CanvasDevice> get playingDevice {
+    return devices
+        .map((e) {
+          if (e.status == DeviceStatus.playing) {
+            return e.device;
+          }
+        })
+        .whereNotNull()
+        .toList();
+  }
+
   bool get isCasting {
     return devices.firstWhereOrNull((deviceState) {
           return deviceState.status == DeviceStatus.playing;
@@ -167,7 +178,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             device: device,
             deviceState:
                 DeviceState(device: device, status: DeviceStatus.loading)));
-        await Future.delayed(const Duration(seconds: 5));
         await _canvasClientService.castSingleArtwork(device, event.tokenId);
         emit(state.replaceDeviceState(
             device: device,

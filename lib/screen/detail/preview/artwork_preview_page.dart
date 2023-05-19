@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -366,6 +367,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                       builder: (context, state) {
                     final isCasting = state.isCasting;
+                    final playingDevice = state.playingDevice;
                     return Container(
                       color: theme.colorScheme.primary,
                       child: Padding(
@@ -381,10 +383,21 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             Visibility(
                               visible: (assetToken?.medium == 'software' ||
                                   assetToken?.medium == 'other' ||
-                                  (assetToken?.medium?.isEmpty ?? true)),
+                                  (assetToken?.medium?.isEmpty ?? true) ||
+                                  isCasting),
                               child: KeyboardManagerWidget(
                                 key: keyboardManagerKey,
                                 focusNode: _focusNode,
+                                onTap: isCasting || true
+                                    ? () {
+                                        Navigator.of(context).pushNamed(
+                                            AppRouter.keyboardControlPage,
+                                            arguments:
+                                                KeyboardControlPagePayload(
+                                                    assetToken!,
+                                                    playingDevice[0]));
+                                      }
+                                    : null,
                               ),
                             ),
                             const SizedBox(
@@ -459,8 +472,10 @@ class CastButton extends StatelessWidget {
 
 class KeyboardManagerWidget extends StatefulWidget {
   final FocusNode? focusNode;
+  final Function()? onTap;
 
-  const KeyboardManagerWidget({Key? key, this.focusNode}) : super(key: key);
+  const KeyboardManagerWidget({Key? key, this.focusNode, this.onTap})
+      : super(key: key);
 
   @override
   State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
@@ -507,7 +522,10 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _isShowKeyboard ? hideKeyboard : showKeyboard,
+      onTap: () {
+        _isShowKeyboard ? hideKeyboard : showKeyboard;
+        widget.onTap?.call();
+      },
       child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
     );
   }

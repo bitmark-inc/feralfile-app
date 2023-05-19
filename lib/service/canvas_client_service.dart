@@ -215,6 +215,17 @@ class CanvasClientService {
       _devices.firstWhere((element) => element == device).playingSceneId = null;
     }
   }
+
+  Future<void> sendKeyBoard(CanvasDevice device, int code) async {
+    final stub = _getStub(device);
+    final sendKeyboardRequest = KeyboardEventRequest(code: code);
+    final response = await stub.keyboardEvent(sendKeyboardRequest);
+    if (response.status) {
+      log.info("Canvas Client Service: Keyboard Event Success $code");
+    } else {
+      log.info("Canvas Client Service: Keyboard Event Failed $code");
+    }
+  }
 }
 
 enum CanvasServerStatus {
