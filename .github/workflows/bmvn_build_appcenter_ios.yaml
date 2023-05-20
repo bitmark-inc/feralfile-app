@@ -1,4 +1,4 @@
-name: Deploy the iOS app
+name: MacMiniM2 Deploy appcenter iOS app
 on:
   # Enable manual run
   workflow_dispatch:
