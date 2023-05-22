@@ -121,24 +121,17 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                   WidgetsToImage(
                                     controller: _controller,
                                     child: GestureDetector(
+                                      onTapDown: (details) {
+                                        // update rectColors using details.localPosition and selectedColor
+                                        final x = details.localPosition.dx;
+                                        final y = details.localPosition.dy;
+                                        _paint(x, y, cellSize);
+                                      },
                                       onPanUpdate: (details) {
                                         // update rectColors using details.localPosition and selectedColor
                                         final x = details.localPosition.dx;
                                         final y = details.localPosition.dy;
-                                        if (x < 0 ||
-                                            x > cellSize * 10 ||
-                                            y < 0 ||
-                                            y > cellSize * 10) {
-                                          return;
-                                        }
-
-                                        final index = y ~/ cellSize +
-                                            (x ~/ cellSize) * 10;
-                                        if (index >= 0 && index < 100) {
-                                          setState(() {
-                                            _rectColors[index] = _selectedColor;
-                                          });
-                                        }
+                                        _paint(x, y, cellSize);
                                       },
                                       onPanEnd: (details) {
                                         _undoController.modify(_rectColors);
@@ -266,6 +259,23 @@ class _DesignStampPageState extends State<DesignStampPage> {
         ),
       ),
     );
+  }
+
+  void _paint(double x, double y, int cellSize) {
+    if (x < 0 ||
+        x > cellSize * 10 ||
+        y < 0 ||
+        y > cellSize * 10) {
+      return;
+    }
+
+    final index = y ~/ cellSize +
+        (x ~/ cellSize) * 10;
+    if (index >= 0 && index < 100) {
+      setState(() {
+        _rectColors[index] = _selectedColor;
+      });
+    }
   }
 
   Widget _stampLocation(BuildContext context, int cellSize) {
