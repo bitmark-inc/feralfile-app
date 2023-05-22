@@ -443,8 +443,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (doneOnboarding) {
         final seriesFuture = (seriesId?.isNotEmpty == true)
             ? _feralFileService.getSeries(seriesId!)
-            : _feralFileService
-                .getAirdropSeriesFromExhibitionId(exhibitionId!);
+            : _feralFileService.getAirdropSeriesFromExhibitionId(exhibitionId!);
 
         await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
