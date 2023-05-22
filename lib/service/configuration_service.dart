@@ -164,6 +164,10 @@ abstract class ConfigurationService {
 
   bool hasFeed();
 
+  Future setLastTimeOpenEditorial(DateTime time);
+
+  DateTime? getLastTimeOpenEditorial();
+
   // ----- App Setting -----
   bool isDemoArtworksMode();
 
@@ -307,6 +311,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
+  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
 
   static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
   static const String TV_CONNECT_ID = "tv_connect_id";
@@ -1131,5 +1136,20 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setAutoShowPostcard(bool value) async {
     await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
+  }
+
+  @override
+  DateTime? getLastTimeOpenEditorial() {
+    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setLastTimeOpenEditorial(DateTime time) {
+    return _preferences.setString(
+        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
   }
 }

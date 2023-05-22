@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -313,6 +314,9 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<PostcardService>(
       () => PostcardServiceImpl(injector(), injector(), injector()));
+
+  injector.registerLazySingleton<EditorialService>(
+      () => EditorialServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
