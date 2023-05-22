@@ -178,6 +178,7 @@ class TezosBeaconService implements BeaconHandler {
       _requestSignMessageForConnection();
       final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
           arguments: request);
+      log.info("TezosBeaconService: handle permission Request result: $result");
       if (result) {
         _showYouAllSet();
       }

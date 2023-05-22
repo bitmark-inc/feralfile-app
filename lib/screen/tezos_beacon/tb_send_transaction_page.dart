@@ -93,7 +93,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           _currentWallet!.index,
           widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
-
       if (wc2Topic != null) {
         _wc2Service.respondOnApprove(
           wc2Topic,

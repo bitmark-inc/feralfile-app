@@ -100,6 +100,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         message: params.message,
       );
       wc2Service.respondOnApprove(request.topic, signature);
+      log.info("[Wc2RequestPage] _handleAuSignRequest: $signature");
     } catch (e) {
       log.info("[Wc2RequestPage] _handleAuSignRequest $e");
     }

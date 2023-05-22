@@ -76,6 +76,7 @@ class OutlineButton extends StatelessWidget {
   final bool enabled;
   final Color? textColor;
   final Color? borderColor;
+  final EdgeInsets padding;
 
   const OutlineButton({
     Key? key,
@@ -87,6 +88,7 @@ class OutlineButton extends StatelessWidget {
     this.isProcessing = false,
     this.textColor,
     this.borderColor,
+    this.padding = const EdgeInsets.symmetric(vertical: 13),
   }) : super(key: key);
 
   @override
@@ -106,7 +108,7 @@ class OutlineButton extends StatelessWidget {
         ),
         onPressed: enabled ? onTap : null,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 13),
+          padding: padding,
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

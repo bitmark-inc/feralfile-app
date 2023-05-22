@@ -26,6 +26,7 @@ class IsolatedUtil {
   Isolate? _isolate;
   var _isolateReady = Completer<void>();
   static SendPort? _isolateSendPort;
+
   Future<void> get isolateReady => _isolateReady.future;
   final Map<String, Completer<bool>> _boolCompleters = {};
   final Map<String, Completer<dynamic>> _stringCompleters = {};

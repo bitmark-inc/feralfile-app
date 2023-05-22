@@ -68,7 +68,7 @@ class AuFilledButton extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 8.0), child: icon!)
                 : const SizedBox(),
             Text(
-              text.toUpperCase(),
+              text,
               style: textStyle ?? theme.primaryTextTheme.labelLarge,
               textAlign: textAlign,
             ),

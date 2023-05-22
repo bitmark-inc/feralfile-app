@@ -125,6 +125,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final signature = await injector<TezosService>()
         .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
     await _approveRequest(signature: signature);
+    log.info("[TBSignMessagePage] _sign: $signature");
     if (!mounted) return;
 
     final metricClient = injector.get<MetricClientService>();

@@ -62,7 +62,7 @@ class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
                     children: [
                       addTitleSpace(),
                       Text(
-                        "link_to_extension".tr(),
+                        "link_to_web_wallet".tr(),
                         style: theme.textTheme.ppMori700Black24,
                       ),
                       addTitleSpace(),

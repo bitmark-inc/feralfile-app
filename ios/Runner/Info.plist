@@ -85,11 +85,11 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Autonomy to use your location</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Autonomy to use your location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Autonomy to use your location</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
