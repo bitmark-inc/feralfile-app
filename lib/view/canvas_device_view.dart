@@ -160,20 +160,23 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 default:
               }
             },
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    deviceState.device.name,
-                    style: (deviceState.status == DeviceStatus.error)
-                        ? theme.textTheme.ppMori700Black14
-                            .copyWith(color: AppColor.disabledColor)
-                        : theme.textTheme.ppMori700White14,
+            child: Container(
+              decoration: const BoxDecoration(color: Colors.transparent),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      deviceState.device.name,
+                      style: (deviceState.status == DeviceStatus.error)
+                          ? theme.textTheme.ppMori700Black14
+                              .copyWith(color: AppColor.disabledColor)
+                          : theme.textTheme.ppMori700White14,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                _deviceStatus(deviceState),
-              ],
+                  const Spacer(),
+                  _deviceStatus(deviceState),
+                ],
+              ),
             ),
           ),
         ),

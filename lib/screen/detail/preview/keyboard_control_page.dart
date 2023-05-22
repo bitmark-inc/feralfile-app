@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
@@ -32,37 +34,40 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   final _focusNode = FocusNode();
   final _controller = KeyboardVisibilityController();
   final _textController = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus) {
-        Navigator.of(context).pop();
-      }
-    });
-    _textController.addListener(() {
-      print("Helo");
-    });
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     _textController.dispose();
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
     showKeyboard();
-  }
-
-  @override
-  void didChangeMetrics() {
-    print("");
-    super.didChangeMetrics();
+    _controller.onChange.listen((bool isVisible) {
+      if (!isVisible) {
+        Navigator.of(context).pop();
+      }
+    });
+    bool scrolledToTop = false;
+    Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (_scrollController.offset != 0) {
+        if (scrolledToTop) {
+          _scrollController.jumpTo(0);
+          timer.cancel();
+        } else {
+          scrolledToTop = true;
+        }
+      }
+    });
   }
 
   void showKeyboard() {
@@ -75,7 +80,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
     final assetToken = widget.payload.assetToken;
     final editionSubTitle = getEditionSubTitle(assetToken);
     return Scaffold(
-      backgroundColor: theme.colorScheme.primary,
+      backgroundColor: theme.colorScheme.primary.withOpacity(0.8),
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         toolbarHeight: 0,
@@ -83,60 +88,51 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
       body: Padding(
         padding: MediaQuery.of(context).viewInsets,
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              addTitleSpace(),
-              Visibility(
-                visible: editionSubTitle.isNotEmpty,
-                child: Padding(
-                  padding: ResponsiveLayout.getPadding,
+          physics: const ClampingScrollPhysics(),
+          controller: _scrollController,
+          child: Padding(
+            padding: ResponsiveLayout.getPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                addTitleSpace(),
+                const SizedBox(
+                  height: 30,
+                ),
+                Visibility(
+                  visible: editionSubTitle.isNotEmpty,
                   child: Text(
                     editionSubTitle,
                     style: theme.textTheme.ppMori400Grey14,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              HtmlWidget(
-                customStylesBuilder: auHtmlStyle,
-                assetToken.description ?? "",
-                textStyle: theme.textTheme.ppMori400White14,
-              ),
-              HtmlWidget(
-                customStylesBuilder: auHtmlStyle,
-                assetToken.description ?? "",
-                textStyle: theme.textTheme.ppMori400White14,
-              ),
-              HtmlWidget(
-                customStylesBuilder: auHtmlStyle,
-                assetToken.description ?? "",
-                textStyle: theme.textTheme.ppMori400White14,
-              ),
-              HtmlWidget(
-                customStylesBuilder: auHtmlStyle,
-                assetToken.description ?? "",
-                textStyle: theme.textTheme.ppMori400White14,
-              ),
-              TextField(
-                focusNode: _focusNode,
-                controller: _textController,
-                autofocus: true,
-                cursorColor: Colors.transparent,
-                showCursor: false,
-                autocorrect: false,
-                enableSuggestions: false,
-                enableInteractiveSelection: false,
-                decoration: const InputDecoration(border: InputBorder.none),
-                onChanged: (_) async {
-                  final text = _textController.text;
-                  final code = text[text.length - 1];
-                  _textController.text = "";
-                  final device = widget.payload.device;
-                  await injector<CanvasClientService>()
-                      .sendKeyBoard(device, 10);
-                },
-              ),
-            ],
+                const SizedBox(height: 16.0),
+                HtmlWidget(
+                  customStylesBuilder: auHtmlStyle,
+                  assetToken.description ?? "",
+                  textStyle: theme.textTheme.ppMori400White14,
+                ),
+                TextField(
+                  focusNode: _focusNode,
+                  controller: _textController,
+                  autofocus: true,
+                  cursorColor: Colors.transparent,
+                  showCursor: false,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  enableInteractiveSelection: false,
+                  decoration: const InputDecoration(border: InputBorder.none),
+                  onChanged: (_) async {
+                    final text = _textController.text;
+                    final code = text[text.length - 1];
+                    _textController.text = "";
+                    final device = widget.payload.device;
+                    await injector<CanvasClientService>()
+                        .sendKeyBoard(device, code.codeUnitAt(0));
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
