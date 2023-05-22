@@ -134,7 +134,10 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                         _paint(x, y, cellSize);
                                       },
                                       onPanEnd: (details) {
-                                        _undoController.modify(_rectColors);
+                                        _modifyStackUndo();
+                                      },
+                                      onTapUp: (details) {
+                                        _modifyStackUndo();
                                       },
                                       child: Container(
                                         color: AppColor.white,
@@ -207,7 +210,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                           _rectColors =
                                               List<Color?>.filled(100, null);
                                         });
-                                        _undoController.modify(_rectColors);
+                                        _modifyStackUndo();
                                       },
                                       text: "clear_all".tr(),
                                       textColor: AppColor.greyMedium,
@@ -322,6 +325,22 @@ class _DesignStampPageState extends State<DesignStampPage> {
     MomaPallet.purple,
   ];
 
+  void _modifyStackUndo() {
+    final oldState = _undoController.state as List<Color?>;
+    if (!_compareListColor(oldState, _rectColors)) {
+      _undoController.modify(_rectColors);
+    }
+  }
+
+  bool _compareListColor (List<Color?> oldState, List<Color?> newState) {
+    for (var i = 0; i < oldState.length; i++) {
+      if (oldState[i] != newState[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // function to fill rectColors with random color from stampColors
   void fillRandomColor() {
     stampColors.shuffle();
@@ -329,7 +348,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
       final m = Random().nextInt(stampColors.length - 1);
       _rectColors[i] = stampColors[m];
     }
-    _undoController.modify(_rectColors);
+    _modifyStackUndo();
   }
 
   // color picker update selectedColor using horizontal listview, each item is a circle with color, selectedColor is white border
