@@ -120,7 +120,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-
+    injector<ConfigurationService>().setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:

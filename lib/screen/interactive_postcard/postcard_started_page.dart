@@ -32,12 +32,6 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
   }
 
   @override
-  void dispose() {
-    injector<ConfigurationService>().setAutoShowPostcard(true);
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final asset = widget.assetToken;
