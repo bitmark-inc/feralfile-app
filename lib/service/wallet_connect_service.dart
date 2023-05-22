@@ -55,14 +55,12 @@ class WalletConnectService {
     _addedConnectionFlag = true;
     Future.delayed(const Duration(seconds: 10), () {
       _addedConnectionFlag = false;
-      _uriValid.value = false;
     });
   }
 
   void _clearConnectFlag() {
     _addedConnectionFlag = false;
     _requestSignMessageForConnectionFlag = false;
-    _uriValid.value = false;
   }
 
   void _requestSignMessageForConnection() {
@@ -119,6 +117,7 @@ class WalletConnectService {
       description: 'Autonomy Wallet',
       icons: [],
     );
+    _uriValid.value = false;
 
     final wcClient = _createWCClient(session.topic, null);
     if (wcClient == null) {
@@ -276,6 +275,8 @@ class WalletConnectService {
             WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid, index));
+        log.info(
+            "[WalletConnectService]: onEthSign id = $id, result = $result");
         if (result) {
           _showYouAllSet();
         }

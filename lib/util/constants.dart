@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,9 @@ const COLLECTOR_RIGHTS_MEMENTO_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
 const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
+
+const POSTCARD_RIGHTS_DOCS =
+    "https://raw.githubusercontent.com/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
@@ -70,6 +74,24 @@ const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
+const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
+
+final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
+
+const int MAX_STAMP_IN_POSTCARD = 15;
+
+const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
+    "https://ipfs.test.bitmark.com/ipfs/QmbVwRb9o2GPsSUmqmKfrQfhyhu6npzruGjeL5yxmhvyNJ";
+const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
+    "https://ipfs.test.bitmark.com/ipfs/QmbVwRb9o2GPsSUmqmKfrQfhyhu6npzruGjeL5yxmhvyNJ";
+const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
+
+const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
+    "postcard software artwork loaded";
+const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
+
+const double POSTCARD_ASPECT_RATIO = 365 / 265;
+
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
@@ -87,6 +109,11 @@ const publicTezosNodes = [
 
 const TV_APP_STORE_URL =
     "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
+
+const POSRCARD_GAME_START = "4.09.23";
+const POSRCARD_GAME_END = "5.09.23";
+
+const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 
 const TB_COPIED_IRL_LENGTH = 462;
 const CONNECT_FAILED_DURATION = Duration(seconds: 10);

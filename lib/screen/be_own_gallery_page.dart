@@ -59,7 +59,7 @@ class BeOwnGalleryPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "continue".tr().toUpperCase(),
+                    text: "continue".tr(),
                     onPress: () async {
                       await newAccountPageOrSkipInCondition(context);
                     },

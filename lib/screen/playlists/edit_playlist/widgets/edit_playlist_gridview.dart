@@ -2,11 +2,10 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class EditPlaylistGridView extends StatefulWidget {
   final List<CompactedAssetToken?> tokens;
@@ -15,6 +14,7 @@ class EditPlaylistGridView extends StatefulWidget {
   final List<String>? selectedTokens;
   final Function(List<CompactedAssetToken?>) onReorder;
   final Function()? onAddTap;
+
   const EditPlaylistGridView({
     Key? key,
     this.controller,
@@ -107,16 +107,9 @@ class AddTokenWidget extends StatelessWidget {
         height: double.infinity,
         color: Colors.transparent,
         child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: theme.primaryColor),
-              borderRadius: BorderRadius.circular(64),
-            ),
-            child: Text(
-              'add'.tr(),
-              style: theme.textTheme.ppMori400Black12,
-            ),
+          child: SvgPicture.asset(
+            "assets/images/joinFile.svg",
+            color: theme.primaryColor,
           ),
         ),
       ),

@@ -3,9 +3,11 @@ import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -28,6 +30,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+
   const ViewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
 
   @override
@@ -37,7 +40,7 @@ class ViewPlaylistScreen extends StatefulWidget {
 class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final bloc = injector.get<ViewPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>(param1: false);
-  final _configurationService = injector<ConfigurationService>();
+  final _playlistService = injector<PlaylistService>();
   List<ArtworkIdentity> accountIdentities = [];
   List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
@@ -55,11 +58,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     bloc.add(GetPlayList(playListModel: widget.playListModel));
   }
 
-  deletePlayList() {
-    final listPlaylist = _configurationService.getPlayList();
+  Future<void> deletePlayList() async {
+    final listPlaylist = await _playlistService.getPlayList();
     listPlaylist
-        ?.removeWhere((element) => element.id == widget.playListModel?.id);
-    _configurationService.setPlayList(listPlaylist, override: true);
+        .removeWhere((element) => element.id == widget.playListModel?.id);
+    _playlistService.setPlayList(listPlaylist, override: true);
     injector.get<SettingsDataService>().backup();
     injector<NavigationService>().popUntilHomeOrSettings();
   }
@@ -211,10 +214,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         : tr('untitled'),
                     style: theme.textTheme.ppMori400Black14,
                   ),
-            actions: const [
-              SizedBox(
-                width: 50,
-              )
+            actions: [
+              GestureDetector(
+                onTap: () => _onMoreTap(context, playList),
+                child: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  color: theme.primaryColor,
+                  width: 24,
+                ),
+              ),
+              const SizedBox(width: 15),
             ],
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
@@ -232,7 +241,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   accountIdentities: accountIdentities,
                   playControlModel:
                       playList?.playControlModel ?? PlayControlModel(),
-                  onMoreTap: () => _onMoreTap(context, playList),
                   onShuffleTap: () => _onShufferTap(playList),
                   onTimerTap: () => _onTimerTap(playList),
                 ),
@@ -248,12 +256,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     BuildContext context,
     List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
-    Function()? onMoreTap,
     Function()? onShuffleTap,
     Function()? onTimerTap,
     required PlayControlModel playControlModel,
   }) {
-    final theme = Theme.of(context);
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
@@ -265,76 +271,67 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                bottom: 24,
-                top: 24,
-                left: 14,
-                right: 14,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    tr(tokens.length != 1 ? 'artworks' : 'artwork',
-                        args: [tokens.length.toString()]),
-                    style: theme.textTheme.ppMori400Black12,
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: onMoreTap,
-                    child: SvgPicture.asset(
-                      'assets/images/more_circle.svg',
-                      color: theme.auQuickSilver,
-                      width: 24,
-                    ),
-                  )
-                ],
-              ),
-            ),
             Expanded(
               child: GridView.builder(
-                shrinkWrap: true,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: cellPerRow,
-                  crossAxisSpacing: cellSpacing,
-                  mainAxisSpacing: cellSpacing,
-                ),
-                itemBuilder: (context, index) {
-                  final asset = tokens[index];
-                  return GestureDetector(
-                    child: asset.pending == true && !asset.hasMetadata
-                        ? PendingTokenWidget(
-                            thumbnail: asset.galleryThumbnailURL,
-                            tokenId: asset.tokenId,
-                          )
-                        : tokenGalleryThumbnailWidget(
-                            context,
-                            asset,
-                            cachedImageSize,
-                            usingThumbnailID: index > 50,
-                            useHero: false,
-                          ),
-                    onTap: () {
-                      if (asset.pending == true && !asset.hasMetadata) return;
-
-                      final index = tokens
-                          .where((e) => e.pending != true || e.hasMetadata)
-                          .toList()
-                          .indexOf(asset);
-                      final payload = ArtworkDetailPayload(
-                        accountIdentities,
-                        index,
-                        playControl: playControlModel,
+                  shrinkWrap: true,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: cellPerRow,
+                    crossAxisSpacing: cellSpacing,
+                    mainAxisSpacing: cellSpacing,
+                  ),
+                  itemBuilder: (context, index) {
+                    if (index == tokens.length) {
+                      return GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppRouter.createPlayListPage,
+                          arguments: widget.playListModel,
+                        ).then((value) {
+                          if (value != null && value is PlayListModel) {
+                            bloc.add(SavePlaylist());
+                            nftBloc.add(RefreshNftCollectionByIDs(
+                              ids: isDemo ? [] : value.tokenIDs,
+                              debugTokenIds: isDemo ? value.tokenIDs : [],
+                            ));
+                          }
+                        }),
+                        child: const AddTokenWidget(),
                       );
+                    }
+                    final asset = tokens[index];
+                    return GestureDetector(
+                      child: asset.pending == true && !asset.hasMetadata
+                          ? PendingTokenWidget(
+                              thumbnail: asset.galleryThumbnailURL,
+                              tokenId: asset.tokenId,
+                            )
+                          : tokenGalleryThumbnailWidget(
+                              context,
+                              asset,
+                              cachedImageSize,
+                              usingThumbnailID: index > 50,
+                              useHero: false,
+                            ),
+                      onTap: () {
+                        if (asset.pending == true && !asset.hasMetadata) return;
 
-                      Navigator.of(context).pushNamed(
-                          AppRouter.artworkDetailsPage,
-                          arguments: payload);
-                    },
-                  );
-                },
-                itemCount: tokens.length,
-              ),
+                        final index = tokens
+                            .where((e) => e.pending != true || e.hasMetadata)
+                            .toList()
+                            .indexOf(asset);
+                        final payload = ArtworkDetailPayload(
+                          accountIdentities,
+                          index,
+                          playControl: playControlModel,
+                        );
+
+                        Navigator.of(context).pushNamed(
+                            AppRouter.artworkDetailsPage,
+                            arguments: payload);
+                      },
+                    );
+                  },
+                  itemCount: tokens.length + 1),
             ),
             const SizedBox(
               height: 50,

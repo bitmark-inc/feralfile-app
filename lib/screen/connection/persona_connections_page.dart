@@ -170,7 +170,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       _walletConnecService.connect(code);
     } else {
       final tezosUri = "tezos://?type=tzip10&data=$code";
-      flag = _tezosBeaconService.irlValid;
+      flag = _tezosBeaconService.uriValid;
       await _tezosBeaconService.addPeer(tezosUri);
       injector<NavigationService>().showContactingDialog();
     }

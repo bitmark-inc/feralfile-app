@@ -10,7 +10,10 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
+import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
+import 'package:autonomy_flutter/service/editorial_service.dart';
+import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -42,6 +45,8 @@ class EditorialPageState extends State<EditorialPage>
   late ScrollController _editorialController;
   late TabController _tabController;
   final _metricClient = injector<MetricClientService>();
+  final _feedService = injector<FeedService>();
+  final _editorialService = injector<EditorialService>();
 
   @override
   void initState() {
@@ -82,6 +87,13 @@ class EditorialPageState extends State<EditorialPage>
   void _handleTabChange() {
     if (_tabController.indexIsChanging) {
       _trackEvent(_tabController.index);
+      if (_tabController.index == 0 && widget.isShowDiscover) {
+        final feedBloc = context.read<FeedBloc>();
+        feedBloc.add(OpenFeedEvent());
+      } else {
+        final editorialBloc = context.read<EditorialBloc>();
+        editorialBloc.add(OpenEditorialEvent());
+      }
     }
   }
 
@@ -151,56 +163,20 @@ class EditorialPageState extends State<EditorialPage>
                       Hero(
                         tag: "discover_tab",
                         child: Stack(
-                          alignment: Alignment.topRight,
+                          alignment: Alignment.bottomRight,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 if (widget.isShowDiscover) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 5.0,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.only(top: 5),
-                                      decoration: const BoxDecoration(
-                                        border: Border(
-                                          top: BorderSide(
-                                              color: AppColor.greyMedium),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'discover'.tr(),
-                                        style: theme.textTheme.ppMori400Grey14
-                                            .copyWith(
-                                          height: 0.8,
-                                          color: Colors.transparent,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  _tabWidget(
+                                      title: 'discover'.tr(),
+                                      unread: _feedService.unviewedCount),
                                 ],
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5.0,
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.only(top: 5),
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(
-                                            color: AppColor.greyMedium),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'editorial'.tr(),
-                                      style: theme.textTheme.ppMori400Grey14
-                                          .copyWith(
-                                              height: 0.8,
-                                              color: Colors.transparent),
-                                    ),
-                                  ),
-                                ),
+                                _tabWidget(
+                                    title: 'editorial'.tr(),
+                                    unread: _editorialService.unviewedCount),
                               ],
                             ),
                             TabBar(
@@ -267,6 +243,77 @@ class EditorialPageState extends State<EditorialPage>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _unreadIcon(int unreadCount) {
+    if (unreadCount == 0) {
+      return const SizedBox();
+    }
+    return Container(
+      padding: const EdgeInsets.only(
+        left: 3,
+        right: 3,
+      ),
+      height: 11,
+      decoration: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(50),
+      ),
+      constraints: const BoxConstraints(minWidth: 11),
+      child: Center(
+        child: Text(
+          "$unreadCount",
+          style: Theme.of(context).textTheme.ppMori700White12.copyWith(
+                fontSize: 8,
+              ),
+          overflow: TextOverflow.visible,
+          maxLines: 1,
+        ),
+      ),
+    );
+  }
+
+  Widget _tabWidget(
+      {required String title, required ValueNotifier<int> unread}) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 5.0,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: ValueListenableBuilder(
+                valueListenable: unread,
+                builder: (BuildContext context, int value, Widget? child) {
+                  return _unreadIcon(value);
+                },
+              ),
+            ),
+          ),
+          Container(
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColor.greyMedium),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 5, bottom: 2),
+              child: Text(
+                title,
+                style: theme.textTheme.ppMori400Grey14
+                    .copyWith(height: 0.8, color: Colors.transparent),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

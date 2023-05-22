@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -53,6 +54,7 @@ class WCSendTransactionBloc
     });
 
     on<WCSendTransactionSendEvent>((event, emit) async {
+      log.info('[WCSendTransactionBloc][Start] send transaction');
       final sendingState = state.clone();
       sendingState.isSending = true;
       emit(sendingState);
@@ -86,6 +88,8 @@ class WCSendTransactionBloc
                 event.peerMeta, event.requestId, txHash);
           }
         }
+        log.info(
+            '[WCSendTransactionBloc][End] send transaction success, txHash: $txHash');
         injector<PendingTokenService>()
             .checkPendingEthereumTokens(
           await persona.getETHEip55Address(index: index),
@@ -101,6 +105,8 @@ class WCSendTransactionBloc
         });
         _navigationService.goBack(result: txHash);
       } catch (e) {
+        log.info(
+            '[WCSendTransactionBloc][End] send transaction error, error: $e');
         final newState = sendingState.clone();
         newState.balance = balance.getInWei;
         newState.isSending = false;
@@ -111,6 +117,7 @@ class WCSendTransactionBloc
     });
 
     on<WCSendTransactionRejectEvent>((event, emit) async {
+      log.info('[WCSendTransactionBloc][End] send transaction reject');
       if (!event.isIRL) {
         if (event.isWalletConnect2) {
           _wc2Service.respondOnReject(event.topic ?? "");

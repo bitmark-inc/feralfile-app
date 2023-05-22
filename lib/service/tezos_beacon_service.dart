@@ -44,9 +44,9 @@ class TezosBeaconService implements BeaconHandler {
 
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
-  final ValueNotifier<bool> _irlValid = ValueNotifier(false);
+  final ValueNotifier<bool> _uriValid = ValueNotifier(false);
 
-  ValueNotifier<bool> get irlValid => _irlValid;
+  ValueNotifier<bool> get uriValid => _uriValid;
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
@@ -57,14 +57,12 @@ class TezosBeaconService implements BeaconHandler {
     _addedConnectionFlag = true;
     Future.delayed(const Duration(seconds: 10), () {
       _addedConnectionFlag = false;
-      _irlValid.value = false;
     });
   }
 
   void _clearConnectFlag() {
     _addedConnectionFlag = false;
     _requestSignMessageForConnectionFlag = false;
-    _irlValid.value = false;
   }
 
   void _requestSignMessageForConnection() {
@@ -102,6 +100,7 @@ class TezosBeaconService implements BeaconHandler {
 
   Future addPeer(String link) async {
     const maxRetries = 3;
+    _uriValid.value = false;
     var retryCount = 0;
     do {
       try {
@@ -178,12 +177,13 @@ class TezosBeaconService implements BeaconHandler {
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
-      _irlValid.value = true;
+      _uriValid.value = true;
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _requestSignMessageForConnection();
       final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
           arguments: request);
+      log.info("TezosBeaconService: handle permission Request result: $result");
       if (result) {
         _showYouAllSet();
       }
