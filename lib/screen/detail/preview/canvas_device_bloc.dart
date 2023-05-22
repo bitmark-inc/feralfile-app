@@ -134,7 +134,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
       emit(CanvasDeviceState(devices: state.devices, sceneId: event.sceneId));
-      final devices = _canvasClientService.getConnectingDevices();
+      final devices = await _canvasClientService.getConnectingDevices();
       emit(CanvasDeviceState(
           devices: devices
               .map((e) => DeviceState(
@@ -153,8 +153,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             ..add(DeviceState(device: event.device.device)));
       emit(newState);
     });
-
-    on<CanvasDevicePlayEvent>((event, emit) async {});
 
     on<CanvasDeviceDisconnectEvent>((event, emit) async {
       final index = state.devices

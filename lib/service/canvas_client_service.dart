@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
@@ -182,7 +183,11 @@ class CanvasClientService {
     return devices;
   }
 
-  List<CanvasDevice> getConnectingDevices() {
+  Future<List<CanvasDevice>> getConnectingDevices() async {
+    for (var device in _devices) {
+      final status = await checkDeviceStatus(device);
+      device.playingSceneId = status.second;
+    }
     return _devices;
   }
 
@@ -233,5 +238,19 @@ enum CanvasServerStatus {
   connected,
   playing,
   notServing,
-  error,
+  error;
+
+  DeviceStatus get toDeviceStatus {
+    switch (this) {
+      case CanvasServerStatus.error:
+      case CanvasServerStatus.notServing:
+      case CanvasServerStatus.open:
+      case CanvasServerStatus.connected:
+        return DeviceStatus.connected;
+      case CanvasServerStatus.playing:
+        return DeviceStatus.playing;
+    }
+  }
 }
+
+extension CanvasServerStatusExt on CanvasServerStatus {}
