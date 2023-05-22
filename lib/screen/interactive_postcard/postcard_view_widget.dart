@@ -64,7 +64,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
       alignment: Alignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 1),
+          padding: const EdgeInsets.all(1),
           child: InAppWebView(
             onWebViewCreated: (controller) {
               _controller = controller;
