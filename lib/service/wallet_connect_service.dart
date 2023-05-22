@@ -10,10 +10,10 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -41,6 +41,7 @@ class WalletConnectService {
   final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
+  final ValueNotifier<bool> _uriValid = ValueNotifier(false);
 
   WalletConnectService(
     this._navigationService,
@@ -48,16 +49,20 @@ class WalletConnectService {
     this._configurationService,
   );
 
+  ValueNotifier<bool> get uriValid => _uriValid;
+
   void _addedConnection() {
     _addedConnectionFlag = true;
     Future.delayed(const Duration(seconds: 10), () {
       _addedConnectionFlag = false;
+      _uriValid.value = false;
     });
   }
 
   void _clearConnectFlag() {
     _addedConnectionFlag = false;
     _requestSignMessageForConnectionFlag = false;
+    _uriValid.value = false;
   }
 
   void _requestSignMessageForConnection() {
@@ -251,6 +256,7 @@ class WalletConnectService {
                 feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
           }
         } else {
+          _uriValid.value = true;
           _navigationService.navigateTo(AppRouter.wcConnectPage,
               arguments: WCConnectPageArgs(id, peerMeta));
         }

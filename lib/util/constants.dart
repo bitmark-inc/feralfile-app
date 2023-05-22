@@ -88,6 +88,9 @@ const publicTezosNodes = [
 const TV_APP_STORE_URL =
     "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
 
+const TB_COPIED_IRL_LENGTH = 462;
+const CONNECT_FAILED_DURATION = Duration(seconds: 10);
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");

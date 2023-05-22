@@ -11,13 +11,13 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -44,6 +44,9 @@ class TezosBeaconService implements BeaconHandler {
 
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
+  final ValueNotifier<bool> _irlValid = ValueNotifier(false);
+
+  ValueNotifier<bool> get irlValid => _irlValid;
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
@@ -54,12 +57,14 @@ class TezosBeaconService implements BeaconHandler {
     _addedConnectionFlag = true;
     Future.delayed(const Duration(seconds: 10), () {
       _addedConnectionFlag = false;
+      _irlValid.value = false;
     });
   }
 
   void _clearConnectFlag() {
     _addedConnectionFlag = false;
     _requestSignMessageForConnectionFlag = false;
+    _irlValid.value = false;
   }
 
   void _requestSignMessageForConnection() {
@@ -173,6 +178,7 @@ class TezosBeaconService implements BeaconHandler {
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
+      _irlValid.value = true;
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _requestSignMessageForConnection();

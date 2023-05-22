@@ -45,6 +45,9 @@ class PersonaConnectionsPage extends StatefulWidget {
 
 class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
+  final _tezosBeaconService = injector<TezosBeaconService>();
+  final _walletConnecService = injector<WalletConnectService>();
+
   @override
   void initState() {
     super.initState();
@@ -150,21 +153,39 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
   }
 
   bool _isUriValid(String uri) {
-    final prefixs = ["wc:", "tezos:"];
-    return prefixs.any((prefix) => uri.startsWith(prefix));
+    if (uri.startsWith("wc:") || uri.length == TB_COPIED_IRL_LENGTH) {
+      return true;
+    }
+    return false;
   }
 
-  void _processDeeplink(String code) {
+  void _processDeeplink(String code) async {
     if (!_isUriValid(code)) {
       throw ConnectionViaClipboardError("Invalid URI");
     }
+    bool isConnected = false;
+    ValueNotifier<bool> flag;
     if (code.startsWith("wc:")) {
-      injector<WalletConnectService>().connect(code);
-    }
-    if (code.startsWith("tezos:")) {
-      injector<TezosBeaconService>().addPeer(code);
+      flag = _walletConnecService.uriValid;
+      _walletConnecService.connect(code);
+    } else {
+      final tezosUri = "tezos://?type=tzip10&data=$code";
+      flag = _tezosBeaconService.irlValid;
+      await _tezosBeaconService.addPeer(tezosUri);
       injector<NavigationService>().showContactingDialog();
     }
+    flag.addListener(() {
+      if (flag.value) {
+        isConnected = flag.value;
+      }
+    });
+
+    Future.delayed(CONNECT_FAILED_DURATION, () {
+      if (!isConnected) {
+        UIHelper.hideInfoDialog(context);
+        UIHelper.showInvalidURI(context);
+      }
+    });
   }
 
   @override
