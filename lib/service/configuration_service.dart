@@ -1130,6 +1130,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setAutoShowPostcard(bool value) async {
+    log.info('setAutoShowPostcard: $value');
     await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
   }
 }
