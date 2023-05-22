@@ -134,7 +134,7 @@ class MixpanelConfig {
 
   factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
     return MixpanelConfig(
-      editorialPeriodStart: DateTime.parse(json['editorialPeriodStart']),
+      editorialPeriodStart: DateTime.tryParse(json['editorialPeriodStart']),
       totalEditorialReading: json['totalEditorialReading'],
     );
   }
