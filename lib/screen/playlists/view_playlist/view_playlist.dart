@@ -324,10 +324,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           index,
                           playControl: playControlModel,
                         );
+                        final pageName = asset.isPostcard
+                            ? AppRouter.claimedPostcardDetailsPage
+                            : AppRouter.artworkDetailsPage;
 
-                        Navigator.of(context).pushNamed(
-                            AppRouter.artworkDetailsPage,
-                            arguments: payload);
+                        Navigator.of(context)
+                            .pushNamed(pageName, arguments: payload);
                       },
                     );
                   },
