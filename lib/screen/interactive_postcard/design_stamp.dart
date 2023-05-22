@@ -265,15 +265,11 @@ class _DesignStampPageState extends State<DesignStampPage> {
   }
 
   void _paint(double x, double y, int cellSize) {
-    if (x < 0 ||
-        x > cellSize * 10 ||
-        y < 0 ||
-        y > cellSize * 10) {
+    if (x < 0 || x > cellSize * 10 || y < 0 || y > cellSize * 10) {
       return;
     }
 
-    final index = y ~/ cellSize +
-        (x ~/ cellSize) * 10;
+    final index = y ~/ cellSize + (x ~/ cellSize) * 10;
     if (index >= 0 && index < 100) {
       setState(() {
         _rectColors[index] = _selectedColor;
@@ -332,7 +328,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     }
   }
 
-  bool _compareListColor (List<Color?> oldState, List<Color?> newState) {
+  bool _compareListColor(List<Color?> oldState, List<Color?> newState) {
     for (var i = 0; i < oldState.length; i++) {
       if (oldState[i] != newState[i]) {
         return false;
