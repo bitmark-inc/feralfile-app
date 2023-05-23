@@ -218,7 +218,7 @@ class FeralFileServiceImpl extends FeralFileService {
       bool delayed = false,
       Future<bool> Function(FFSeries)? onConfirm}) async {
     log.info(
-        "[FeralFileService] Claim token - artwork: $seriesId, delayed: $delayed");
+        "[FeralFileService] Claim token - series: $seriesId, delayed: $delayed");
     if (delayed) {
       memoryValues.airdropFFExhibitionId.value = AirdropQrData(
         seriesId: seriesId,
