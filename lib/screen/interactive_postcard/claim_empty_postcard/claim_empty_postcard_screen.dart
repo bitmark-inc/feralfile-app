@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/how_it_works_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -97,7 +98,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                                     child: Stack(
                                       children: [
                                         AspectRatio(
-                                          aspectRatio: 355 / 265,
+                                          aspectRatio: POSTCARD_ASPECT_RATIO,
                                           child: PostcardViewWidget(
                                             assetToken: artwork,
                                           ),
