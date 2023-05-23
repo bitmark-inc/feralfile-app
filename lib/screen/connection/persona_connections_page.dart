@@ -141,6 +141,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
             } catch (e) {
               if (e is ConnectionViaClipboardError) {
                 if (!mounted) return;
+                UIHelper.hideInfoDialog(context);
                 UIHelper.showInvalidURI(context);
               } else {
                 rethrow;
@@ -182,8 +183,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
     Future.delayed(CONNECT_FAILED_DURATION, () {
       if (!isConnected) {
-        UIHelper.hideInfoDialog(context);
-        UIHelper.showInvalidURI(context);
+        throw ConnectionViaClipboardError("Connection timeout");
       }
     });
   }
