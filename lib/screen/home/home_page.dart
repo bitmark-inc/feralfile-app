@@ -264,13 +264,20 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      buildWhen: (previousState, currentState) {
+      listenWhen: (previousState, currentState) {
         final diffLength =
             currentState.tokens.length - previousState.tokens.length;
-        if (diffLength > 0) {
+        if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
           });
+        }
+        if (diffLength != 0) {
+          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
+            'number': currentState.tokens.length,
+          });
+          _metricClient.setLabel(
+              MixpanelProp.numberNft, currentState.tokens.length);
         }
         return true;
       },

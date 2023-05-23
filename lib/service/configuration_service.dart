@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
@@ -262,6 +263,10 @@ abstract class ConfigurationService {
   Future<void> setAutoShowPostcard(bool value);
 
   bool isAutoShowPostcard();
+
+  Future<void> setMixpanelConfig(MixpanelConfig config);
+
+  dynamic getMixpanelConfig();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -346,6 +351,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
 
   static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
+
+  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1152,5 +1159,21 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future setLastTimeOpenEditorial(DateTime time) {
     return _preferences.setString(
         KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
+  }
+
+  @override
+  MixpanelConfig? getMixpanelConfig() {
+    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
+    if (data == null) {
+      return null;
+    }
+    final config = MixpanelConfig.fromJson(jsonDecode(data));
+    return config;
+  }
+
+  @override
+  Future<void> setMixpanelConfig(MixpanelConfig config) async {
+    await _preferences.setString(
+        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
   }
 }

@@ -184,7 +184,7 @@ Future<void> setup() async {
   injector.registerLazySingleton<MetricClientService>(
       () => MetricClientService(injector()));
   injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector()));
+      () => MixPanelClientService(injector(), injector()));
   injector.registerLazySingleton(
       () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());

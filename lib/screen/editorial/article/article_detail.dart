@@ -44,10 +44,12 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   final metricClient = injector.get<MetricClientService>();
   late double _selectedSize;
   late double adjustSize;
+  late DateTime startReadingTime;
 
   @override
   void initState() {
     super.initState();
+    startReadingTime = DateTime.now();
     _selectedSize = 16.0;
     adjustSize = _selectedSize - 16;
     _controller = ScrollController();
@@ -56,12 +58,52 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
   }
 
+  Future<void> _updateEditorialReadingTime() async {
+    const periodDuration = Duration(days: 7);
+
+    final endReadingTime = DateTime.now();
+    final readingTime =
+        endReadingTime.difference(startReadingTime).inMilliseconds / 1000;
+    final mixpanelConfig = metricClient.getConfig();
+    final periodStartConfig = mixpanelConfig.editorialPeriodStart;
+    if (periodStartConfig == null) {
+      metricClient.setConfig(mixpanelConfig.copyWith(
+        editorialPeriodStart: DateTime(
+            endReadingTime.year,
+            endReadingTime.month,
+            endReadingTime.day - (endReadingTime.weekday - 1)),
+      ));
+    }
+    final periodStart = periodStartConfig ??
+        DateTime(endReadingTime.year, endReadingTime.month,
+            endReadingTime.day - (endReadingTime.weekday - 1));
+
+    final currentReadingTime = mixpanelConfig.totalEditorialReading ?? 0.0;
+    if (endReadingTime.difference(periodStart).compareTo(periodDuration) < 0) {
+      await metricClient.setConfig(
+        mixpanelConfig.copyWith(
+            totalEditorialReading: currentReadingTime + readingTime),
+      );
+    } else {
+      metricClient.addEvent(
+        MixpanelEvent.editorialReadingTimeByWeek,
+        data: {
+          "reading_time": readingTime,
+        },
+      );
+      await metricClient.setConfig(mixpanelConfig.copyWith(
+          editorialPeriodStart: periodStart.add(periodDuration),
+          totalEditorialReading: readingTime));
+    }
+  }
+
   @override
   void dispose() {
     metricClient.addEvent(MixpanelEvent.editorialReadingArticle, data: {
       "publisher": widget.post.publisher.name,
       "title": widget.post.content["title"],
     });
+    _updateEditorialReadingTime();
     _controller.dispose();
     super.dispose();
   }
