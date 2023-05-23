@@ -132,7 +132,7 @@ final migrateV14ToV15 = Migration(14, 15, (database) async {
 
 final migrateV15ToV16 = Migration(15, 16, (database) async {
   await database.execute(
-      'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `lastScenePlayed` TEXT,  PRIMARY KEY (`id`))');
+      'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL,`isConnecting` INTEGER NOT NULL ,`lastScenePlayed` TEXT,  PRIMARY KEY (`id`))');
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
 });
