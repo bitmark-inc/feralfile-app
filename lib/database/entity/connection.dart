@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:floor/floor.dart';
 
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -261,21 +262,25 @@ class Connection {
         }
 
         return addresses;
-
+      case 'ledger':
+        final data = ledgerConnection;
+        final ethereumAddress = data?.etheremAddress.firstOrNull;
+        final tezosAddress = data?.tezosAddress.firstOrNull;
+        List<AddressIndex> addresses = [];
+        if (ethereumAddress != null) {
+          addresses.add(
+              AddressIndex(address: ethereumAddress, createdAt: createdAt));
+        }
+        if (tezosAddress != null) {
+          addresses
+              .add(AddressIndex(address: tezosAddress, createdAt: createdAt));
+        }
+        return addresses;
       default:
         return accountNumber
             .split("||")
             .map((e) => AddressIndex(address: e, createdAt: createdAt))
             .toList();
-    }
-  }
-
-  String get hiddenGalleryKey {
-    switch (connectionType) {
-      case 'ledger':
-        return 'ledger_$key';
-      default:
-        return accountNumber;
     }
   }
 
