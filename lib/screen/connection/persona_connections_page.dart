@@ -142,12 +142,11 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               log.info("Connect via clipboard: $text");
               await _processDeeplink(text);
             } catch (e) {
+              log.info("Connect via clipboard: failed ${e.toString()}");
               if (e is ConnectionViaClipboardError) {
                 if (!mounted) return;
                 UIHelper.hideInfoDialog(context);
                 UIHelper.showInvalidURI(context);
-              } else {
-                rethrow;
               }
             }
           }),
