@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -200,89 +199,75 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       };
 
       final postcardService = injector<PostcardService>();
-      final isMinted = await postcardService.isReceivedSuccess(
-          contractAddress: contractAddress,
-          address: address,
-          tokenId: tokenId,
-          counter: counter);
 
-      if (isMinted) {
-        final walletIndex = await asset.getOwnerWallet();
-        if (walletIndex == null) {
-          log.info("[POSTCARD] Wallet index not found");
-          setState(() {
-            loading = false;
-          });
-          return;
-        }
-        final imageData = await imageFile.writeAsBytes(img.encodePng(image));
-        final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
-        postcardService
-            .stampPostcard(
-                tokenId,
-                walletIndex.first,
-                walletIndex.second,
-                imageData,
-                jsonData,
-                widget.payload.location,
-                counter,
-                contractAddress)
-            .then((value) {
-          if (!value) {
-            log.info("[POSTCARD] Stamp failed");
-            injector<NavigationService>().popUntilHomeOrSettings();
-          } else {
-            log.info("[POSTCARD] Stamp success");
-            postcardService.updateStampingPostcard([
-              StampingPostcard(
-                indexId: asset.id,
-                address: address,
-                imagePath: imagePath,
-                metadataPath: metadataPath,
-                counter: counter,
-              )
-            ]);
-          }
+      final walletIndex = await asset.getOwnerWallet();
+      if (walletIndex == null) {
+        log.info("[POSTCARD] Wallet index not found");
+        setState(() {
+          loading = false;
         });
-        if (widget.payload.location != null) {
-          var postcardMetadata = asset.postcardMetadata;
-          final stampedLocation = Location(
-              lat: widget.payload.location!.latitude,
-              lon: widget.payload.location!.longitude);
-          postcardMetadata.locationInformation.last.stampedLocation =
-              stampedLocation;
-          var newAsset = asset.asset;
-          newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-          final pendingToken = asset.copyWith(asset: newAsset);
-          final tokenService = injector<TokensService>();
-          await tokenService.setCustomTokens([pendingToken]);
-          tokenService.reindexAddresses([address]);
-          NftCollectionBloc.eventController.add(
-            GetTokensByOwnerEvent(pageKey: PageKey.init()),
-          );
-        }
-        if (!mounted) return;
-        injector<NavigationService>().popUntilHomeOrSettings();
-        Navigator.of(context).pushNamed(StampPreview.tag,
-            arguments: StampPreviewPayload(
-                imagePath: imagePath,
-                metadataPath: metadataPath,
-                asset: asset));
         return;
-      } else {
-        if (!mounted) return;
-        UIHelper.showInfoDialog(
-            context, "toke_minting".tr(), "token_minting_desc".tr(),
-            isDismissible: true, closeButton: "close".tr());
       }
+      final imageData = await imageFile.writeAsBytes(img.encodePng(image));
+      final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
+      postcardService
+          .stampPostcard(
+              tokenId,
+              walletIndex.first,
+              walletIndex.second,
+              imageData,
+              jsonData,
+              widget.payload.location,
+              counter,
+              contractAddress)
+          .then((value) {
+        if (!value) {
+          log.info("[POSTCARD] Stamp failed");
+          injector<NavigationService>().popUntilHomeOrSettings();
+        } else {
+          log.info("[POSTCARD] Stamp success");
+          postcardService.updateStampingPostcard([
+            StampingPostcard(
+              indexId: asset.id,
+              address: address,
+              imagePath: imagePath,
+              metadataPath: metadataPath,
+              counter: counter,
+            )
+          ]);
+        }
+      });
+      if (widget.payload.location != null) {
+        var postcardMetadata = asset.postcardMetadata;
+        final stampedLocation = Location(
+            lat: widget.payload.location!.latitude,
+            lon: widget.payload.location!.longitude);
+        postcardMetadata.locationInformation.last.stampedLocation =
+            stampedLocation;
+        var newAsset = asset.asset;
+        newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+        final pendingToken = asset.copyWith(asset: newAsset);
+        final tokenService = injector<TokensService>();
+        await tokenService.setCustomTokens([pendingToken]);
+        tokenService.reindexAddresses([address]);
+        NftCollectionBloc.eventController.add(
+          GetTokensByOwnerEvent(pageKey: PageKey.init()),
+        );
+      }
+      if (!mounted) return;
+      injector<NavigationService>().popUntilHomeOrSettings();
+      Navigator.of(context).pushNamed(StampPreview.tag,
+          arguments: StampPreviewPayload(
+              imagePath: imagePath, metadataPath: metadataPath, asset: asset));
+      return;
     } catch (e) {
+      setState(() {
+        loading = false;
+      });
       log.info(
           ['[POSTCARD][_handleSaveButtonPressed] [error] [${e.toString()} ]']);
       rethrow;
     }
-    setState(() {
-      loading = false;
-    });
   }
 }
 

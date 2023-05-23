@@ -95,7 +95,9 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool get isPostcardUpdating {
-    return isStamped != assetToken?.postcardMetadata.isStamped || isStamping();
+    return postcardValue == null ||
+        isStamped != assetToken?.postcardMetadata.isStamped ||
+        isStamping();
   }
 
   bool get isStamped {
@@ -103,12 +105,18 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool get isLastOwner {
+    if (postcardValue == null) {
+      return true;
+    }
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;
     return lastOwner == owner;
   }
 
   bool get canDoAction {
+    if (postcardValue == null) {
+      return true;
+    }
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;
     return lastOwner == owner && !isCompleted;

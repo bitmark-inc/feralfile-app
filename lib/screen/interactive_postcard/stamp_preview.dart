@@ -36,7 +36,7 @@ class _StampPreviewState extends State<StampPreview> {
   @override
   void initState() {
     log.info('[POSTCARD][StampPreview] payload: ${widget.payload.toString()}');
-
+    injector<ConfigurationService>().setAutoShowPostcard(false);
     super.initState();
   }
 
