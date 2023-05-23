@@ -107,7 +107,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     }
   }
 
-  void uncasting() {
+  void _uncasting() {
     final canvasDeviceState = _canvasDeviceBloc.state;
     for (var e in canvasDeviceState.devices) {
       if (e.status == DeviceStatus.playing) {
@@ -118,7 +118,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   @override
   void dispose() {
-    uncasting();
+    _uncasting();
     _focusNode.dispose();
     disableLandscapeMode();
     Wakelock.disable();
@@ -234,7 +234,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Future<void> onCastTap(AssetToken? assetToken) async {
+  Future<void> _onCastTap(AssetToken? assetToken) async {
     keyboardManagerKey.currentState?.hideKeyboard();
     UIHelper.showFlexibleDialog(
       context,
@@ -388,7 +388,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                               child: KeyboardManagerWidget(
                                 key: keyboardManagerKey,
                                 focusNode: _focusNode,
-                                onTap: isCasting || true
+                                onTap: isCasting
                                     ? () {
                                         Navigator.of(context).pushNamed(
                                             AppRouter.keyboardControlPage,
@@ -405,7 +405,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             ),
                             CastButton(
                               assetToken: assetToken,
-                              onCastTap: () => onCastTap(assetToken),
+                              onCastTap: () => _onCastTap(assetToken),
                               isCasting: isCasting,
                             ),
                             const SizedBox(
@@ -453,9 +453,6 @@ class CastButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canCast = assetToken?.medium == "video" ||
-        assetToken?.medium == "image" ||
-        assetToken?.mimeType?.startsWith("audio/") == true;
 
     return GestureDetector(
       onTap: onCastTap,

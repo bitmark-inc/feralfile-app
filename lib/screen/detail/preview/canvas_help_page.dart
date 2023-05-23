@@ -56,7 +56,7 @@ class CanvasHelpPage extends StatelessWidget {
           RichText(
             textAlign: TextAlign.justify,
             text: TextSpan(style: theme.textTheme.ppMori700Black16, children: [
-              TextSpan(text: "Q: "),
+              const TextSpan(text: "Q: "),
               TextSpan(
                 text: questions[index],
               )
@@ -70,7 +70,7 @@ class CanvasHelpPage extends StatelessWidget {
               text: TextSpan(
                   style: theme.textTheme.ppMori400Black16.copyWith(),
                   children: [
-                    TextSpan(text: "A: "),
+                    const TextSpan(text: "A: "),
                     TextSpan(
                       text: answers[index],
                     ),

@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:collection/collection.dart';
 
@@ -195,9 +194,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         await _canvasClientService.uncastSingleArtwork(device);
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
-      } catch (_) {
-        log.info("message");
-      }
+      } catch (_) {}
     });
   }
 }
