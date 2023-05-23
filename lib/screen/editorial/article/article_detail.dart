@@ -74,9 +74,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             endReadingTime.day - (endReadingTime.weekday - 1)),
       ));
     }
-    final periodStart = periodStartConfig != null
-        ? DateTime.parse(periodStartConfig as String)
-        : DateTime(endReadingTime.year, endReadingTime.month,
+    final periodStart = periodStartConfig ??
+        DateTime(endReadingTime.year, endReadingTime.month,
             endReadingTime.day - (endReadingTime.weekday - 1));
 
     final currentReadingTime = mixpanelConfig.totalEditorialReading ?? 0.0;
