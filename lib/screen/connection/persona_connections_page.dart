@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -24,6 +26,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,7 +140,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               }
               final text = clipboardData.text!;
               log.info("Connect via clipboard: $text");
-              _processDeeplink(text);
+              await _processDeeplink(text);
             } catch (e) {
               if (e is ConnectionViaClipboardError) {
                 if (!mounted) return;
@@ -153,14 +156,25 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     UIHelper.showDrawerAction(context, options: options);
   }
 
-  bool _isUriValid(String uri) {
-    if (uri.startsWith("wc:") || uri.length == TB_COPIED_IRL_LENGTH) {
-      return true;
+  bool _isTezosBeconUri(String uri) {
+    try {
+      final base58Decode = bs58check.decode(uri);
+      final uriData = jsonDecode(String.fromCharCodes(base58Decode));
+      return uriData['type'] == "p2p-pairing-request";
+    } catch (_) {
+      return false;
     }
-    return false;
   }
 
-  void _processDeeplink(String code) async {
+  bool _isWalletConnectUri(String uri) {
+    return uri.startsWith("wc:");
+  }
+
+  bool _isUriValid(String uri) {
+    return (_isWalletConnectUri(uri) || _isTezosBeconUri(uri));
+  }
+
+  Future<void> _processDeeplink(String code) async {
     if (!_isUriValid(code)) {
       throw ConnectionViaClipboardError("Invalid URI");
     }
@@ -181,7 +195,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       }
     });
 
-    Future.delayed(CONNECT_FAILED_DURATION, () {
+    await Future.delayed(CONNECT_FAILED_DURATION, () {
       if (!isConnected) {
         throw ConnectionViaClipboardError("Connection timeout");
       }
