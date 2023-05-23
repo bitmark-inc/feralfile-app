@@ -343,7 +343,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
               BigInt.from(10));
       if (!isValid) {
         return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.ppMori400Black12.copyWith(
               color: AppColor.red,
             ));
       }

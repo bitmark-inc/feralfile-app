@@ -105,7 +105,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "link".tr().toUpperCase(),
+                    text: "link".tr(),
                     enabled: _linkEnabled,
                     onPress: () => _link(),
                   ),

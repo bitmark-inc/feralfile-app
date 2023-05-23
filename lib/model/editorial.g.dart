@@ -20,6 +20,9 @@ EditorialPost _$EditorialPostFromJson(Map<String, dynamic> json) =>
     EditorialPost(
       type: json['type'] as String,
       publisher: Publisher.fromJson(json['publisher'] as Map<String, dynamic>),
+      publishedAt: json['publishedAt'] == null
+          ? null
+          : DateTime.parse(json['publishedAt'] as String),
       content: json['content'] as Map<String, dynamic>,
       reference: json['reference'] == null
           ? null
@@ -31,6 +34,7 @@ Map<String, dynamic> _$EditorialPostToJson(EditorialPost instance) =>
     <String, dynamic>{
       'type': instance.type,
       'publisher': instance.publisher,
+      'publishedAt': instance.publishedAt?.toIso8601String(),
       'content': instance.content,
       'reference': instance.reference,
       'tag': instance.tag,

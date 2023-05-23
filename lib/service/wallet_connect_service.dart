@@ -270,6 +270,8 @@ class WalletConnectService {
             WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid, index));
+        log.info(
+            "[WalletConnectService]: onEthSign id = $id, result = $result");
         if (result) {
           _showYouAllSet();
         }

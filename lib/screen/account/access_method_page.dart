@@ -11,6 +11,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
@@ -175,7 +176,7 @@ class _AccessMethodPageState extends State<AccessMethodPage>
   Widget _importWallet(BuildContext context) {
     return _addWalletItem(
         context: context,
-        title: "import_wallet".tr(),
+        title: "import_wallet".tr().capitalize(),
         content: "import_wallet_description".tr(),
         onTap: () {
           Navigator.of(context).pushNamed(AppRouter.importAccountPage);

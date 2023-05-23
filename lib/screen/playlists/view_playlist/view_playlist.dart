@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_pla
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -39,7 +40,7 @@ class ViewPlaylistScreen extends StatefulWidget {
 class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final bloc = injector.get<ViewPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>(param1: false);
-  final _configurationService = injector<ConfigurationService>();
+  final _playlistService = injector<PlaylistService>();
   List<ArtworkIdentity> accountIdentities = [];
   List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
@@ -57,11 +58,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     bloc.add(GetPlayList(playListModel: widget.playListModel));
   }
 
-  deletePlayList() {
-    final listPlaylist = _configurationService.getPlayList();
+  Future<void> deletePlayList() async {
+    final listPlaylist = await _playlistService.getPlayList();
     listPlaylist
-        ?.removeWhere((element) => element.id == widget.playListModel?.id);
-    _configurationService.setPlayList(listPlaylist, override: true);
+        .removeWhere((element) => element.id == widget.playListModel?.id);
+    _playlistService.setPlayList(listPlaylist, override: true);
     injector.get<SettingsDataService>().backup();
     injector<NavigationService>().popUntilHomeOrSettings();
   }
@@ -323,10 +324,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           index,
                           playControl: playControlModel,
                         );
+                        final pageName = asset.isPostcard
+                            ? AppRouter.claimedPostcardDetailsPage
+                            : AppRouter.artworkDetailsPage;
 
-                        Navigator.of(context).pushNamed(
-                            AppRouter.artworkDetailsPage,
-                            arguments: payload);
+                        Navigator.of(context)
+                            .pushNamed(pageName, arguments: payload);
                       },
                     );
                   },

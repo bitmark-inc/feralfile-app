@@ -1413,9 +1413,10 @@ class UIHelper {
   }
 
   static Future showMockedLocation(BuildContext context) async {
-    final title = "unable_to_stamp_postcard".tr();
+    final title = "gps_spoofing_detected".tr();
     final description = "gps_is_mocked".tr();
-    return showErrorDialog(context, title, description, "close".tr());
+    return showInfoDialog(context, title, description,
+        closeButton: "close".tr());
   }
 
   static showReceivePostcardFailed(BuildContext context, DioError error) async {

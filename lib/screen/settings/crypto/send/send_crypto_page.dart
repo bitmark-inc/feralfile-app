@@ -322,7 +322,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         return Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text("gas_fee_insufficient".tr(),
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.ppMori400Black12.copyWith(
                 color: AppColor.red,
               )),
         );

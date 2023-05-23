@@ -81,14 +81,16 @@ final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
-    "https://ipfs.test.bitmark.com/ipfs/QmXFqaUqP8wTvmrc4Y985sUAhUXGfMcn2LA1ATFnrGSDBE";
+    "https://ipfs.test.bitmark.com/ipfs/QmbVwRb9o2GPsSUmqmKfrQfhyhu6npzruGjeL5yxmhvyNJ";
 const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
-    "https://ipfs.test.bitmark.com/ipfs/QmXFqaUqP8wTvmrc4Y985sUAhUXGfMcn2LA1ATFnrGSDBE";
+    "https://ipfs.test.bitmark.com/ipfs/QmbVwRb9o2GPsSUmqmKfrQfhyhu6npzruGjeL5yxmhvyNJ";
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
     "postcard software artwork loaded";
 const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
+
+const double POSTCARD_ASPECT_RATIO = 365 / 265;
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
@@ -418,6 +420,8 @@ class MixpanelEvent {
   static const hideAddress = "hide_address";
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
+  static const numberNft = "number_nft";
+  static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
 }
 
 class MixpanelProp {
@@ -426,7 +430,13 @@ class MixpanelProp {
   static const didKey = 'didKey';
   static const address = 'Address';
   static const subscription = 'Subscription';
+  static const numberNft = 'Number NFT';
 }
+
+// class MixpanelConfig {
+//   static const EditorialPeriodStart = "editorialPeriodStart";
+//   static const totalEditorialReading = 'totalEditorialReading';
+// }
 
 class SubscriptionStatus {
   static const free = 'Free';

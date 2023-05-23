@@ -15,6 +15,9 @@ abstract class PostcardApi {
   @POST("/v1/postcard/claim")
   Future<ClaimPostCardResponse> claim(@Body() ClaimPostCardRequest body);
 
+  @POST("/v1/postcard/claim/request")
+  Future<RequestPostcardResponse> request(@Body() RequestPostcardRequest body);
+
   @POST("/v1/postcard/claim")
   Future<ReceivePostcardResponse> receive(@Body() Map<String, dynamic> body);
 

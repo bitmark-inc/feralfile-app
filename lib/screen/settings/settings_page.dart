@@ -333,6 +333,7 @@ class _SettingsPageState extends State<SettingsPage>
                   'update_to_the_latest_version'.tr(),
                   style: theme.textTheme.linkStyle14.copyWith(
                       fontWeight: FontWeight.w400,
+                      fontFamily: AppTheme.ppMori,
                       decorationColor: AppColor.disabledColor,
                       color: AppColor.disabledColor,
                       shadows: [const Shadow()]),

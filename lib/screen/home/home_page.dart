@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -26,6 +27,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
@@ -61,6 +63,8 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:open_settings/open_settings.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
@@ -116,7 +120,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-
+    injector<ConfigurationService>().setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -217,6 +221,7 @@ class HomePageState extends State<HomePage>
           .map((e) => e.identity)
           .toList();
       if (config.isAutoShowPostcard()) {
+        log.info("Auto show minted postcard");
         final payload = ArtworkDetailPayload(tokenMints, 0);
         Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
@@ -259,13 +264,20 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      buildWhen: (previousState, currentState) {
+      listenWhen: (previousState, currentState) {
         final diffLength =
             currentState.tokens.length - previousState.tokens.length;
-        if (diffLength > 0) {
+        if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
           });
+        }
+        if (diffLength != 0) {
+          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
+            'number': currentState.tokens.length,
+          });
+          _metricClient.setLabel(
+              MixpanelProp.numberNft, currentState.tokens.length);
         }
         return true;
       },
@@ -455,6 +467,7 @@ class HomePageState extends State<HomePage>
         configurationService.showTvAppTip,
         configurationService.showCreatePlaylistTip,
         configurationService.showLinkOrImportTip,
+        configurationService.showBackupSettingTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -469,6 +482,7 @@ class HomePageState extends State<HomePage>
     final isShowTvAppTip = values[0] as bool;
     final isShowCreatePlaylistTip = values[1] as bool;
     final isShowLinkOrImportTip = values[2] as bool;
+    final isShowBackupSettingTip = values[3] as bool;
     final configurationService = injector<ConfigurationService>();
     return [
       if (isShowLinkOrImportTip)
@@ -530,6 +544,25 @@ class HomePageState extends State<HomePage>
               ),
             ),
             listener: configurationService.showTvAppTip),
+      if (isShowBackupSettingTip)
+        Tipcard(
+            titleText: "backup_failed".tr(),
+            onPressed: Platform.isAndroid
+                ? () {
+                    OpenSettings.openAddAccountSetting();
+                  }
+                : () async {
+                    openAppSettings();
+                  },
+            buttonText: Platform.isAndroid
+                ? "open_device_setting".tr()
+                : "open_icloud_setting".tr(),
+            content: Text(
+                Platform.isAndroid
+                    ? "backup_tip_card_content_android".tr()
+                    : "backup_tip_card_content_ios".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showBackupSettingTip),
     ];
   }
 
@@ -638,11 +671,35 @@ class HomePageState extends State<HomePage>
       }
       if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowCreatePlaylistTip() &&
-          configurationService.getPlayList()?.isEmpty != false) {
+          injector<ConfigurationService>().getPlayList().isEmpty != false) {
         configurationService.showCreatePlaylistTip.value = true;
         configurationService.setAlreadyShowCreatePlaylistTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "create_your_first_playlist".tr()});
+      }
+    }
+
+    final remindTime = configurationService.getShowBackupSettingTip();
+    final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
+    if (shouldRemindNow) {
+      configurationService
+          .setShowBackupSettingTip(now.add(const Duration(days: 7)));
+      bool showTip = false;
+      if (Platform.isAndroid) {
+        final isAndroidEndToEndEncryptionAvailable =
+            await injector<AccountService>()
+                .isAndroidEndToEndEncryptionAvailable();
+        if (isAndroidEndToEndEncryptionAvailable == null) {
+          showTip = true;
+        }
+      } else {
+        final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
+        showTip = !iCloudAvailable.value;
+      }
+      if (showTip && configurationService.showBackupSettingTip.value == false) {
+        configurationService.showBackupSettingTip.value = true;
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "backup_failed".tr()});
       }
     }
     if (doneOnboardingTime != null) {

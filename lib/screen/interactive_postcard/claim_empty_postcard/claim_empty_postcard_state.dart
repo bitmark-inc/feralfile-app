@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:nft_collection/models/models.dart';
 
 abstract class ClaimEmptyPostCardEvent {}
@@ -31,6 +32,16 @@ class ClaimEmptyPostCardState {
   }
 }
 
-class GetTokenEvent extends ClaimEmptyPostCardEvent {}
+class GetTokenEvent extends ClaimEmptyPostCardEvent {
+  final RequestPostcardResponse claimRequest;
 
-class AcceptGiftEvent extends ClaimEmptyPostCardEvent {}
+  // constructor
+  GetTokenEvent(this.claimRequest);
+}
+
+class AcceptGiftEvent extends ClaimEmptyPostCardEvent {
+  final RequestPostcardResponse claimRequest;
+
+  // constructor
+  AcceptGiftEvent(this.claimRequest);
+}
