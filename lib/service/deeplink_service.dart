@@ -360,7 +360,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
-        final String? seriesId = data["artwork_id"];
+        final String? seriesId = data["series_id"];
         final String? expiredAt = data["expired_at"];
 
         if (expiredAt != null &&
