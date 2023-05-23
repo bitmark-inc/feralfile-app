@@ -93,7 +93,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           _currentWallet!.index,
           widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
-
       if (wc2Topic != null) {
         _wc2Service.respondOnApprove(
           wc2Topic,
@@ -511,7 +510,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     bool isValid = balance! > feeOptionValue!.getFee(feeOption).toInt() + 10;
     if (!isValid) {
       return Text("gas_fee_insufficient".tr(),
-          style: theme.textTheme.headlineSmall?.copyWith(
+          style: theme.textTheme.ppMori400Black12.copyWith(
             color: AppColor.red,
           ));
     }

@@ -70,7 +70,7 @@ class _WCDisconnectPageState extends State<WCDisconnectPage> {
               children: [
                 Expanded(
                   child: AuFilledButton(
-                    text: "disconnect".tr().toUpperCase(),
+                    text: "disconnect".tr(),
                     onPress: () async {
                       if (widget.client.remotePeerMeta != null) {
                         injector<WalletConnectService>()

@@ -133,7 +133,7 @@ abstract class ConfigurationService {
 
   Future<void> setPreviousBuildNumber(String value);
 
-  List<PlayListModel>? getPlayList();
+  List<PlayListModel> getPlayList();
 
   Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
 
@@ -163,6 +163,10 @@ abstract class ConfigurationService {
   Future<void> setHasFeed(bool value);
 
   bool hasFeed();
+
+  Future setLastTimeOpenEditorial(DateTime time);
+
+  DateTime? getLastTimeOpenEditorial();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -205,6 +209,10 @@ abstract class ConfigurationService {
 
   bool getAlreadyShowLinkOrImportTip();
 
+  DateTime? getShowBackupSettingTip();
+
+  Future setShowBackupSettingTip(DateTime time);
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -231,6 +239,8 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showCreatePlaylistTip;
 
   ValueNotifier<bool> get showLinkOrImportTip;
+
+  ValueNotifier<bool> get showBackupSettingTip;
 
   List<SharedPostcard> getSharedPostcard();
 
@@ -301,6 +311,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
+  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
 
   static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
   static const String TV_CONNECT_ID = "tv_connect_id";
@@ -328,6 +339,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
       "show_link_or_import_tip";
+
+  static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
+      "show_back_up_settings_tip";
 
   static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
 
@@ -860,8 +874,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<PlayListModel>? getPlayList() {
-    final playListsString = _preferences.getStringList(PLAYLISTS) ?? [];
+  List<PlayListModel> getPlayList() {
+    final playListsString = _preferences.getStringList(PLAYLISTS);
+    if (playListsString == null || playListsString.isEmpty) {
+      return [];
+    }
     return playListsString
         .map((e) => PlayListModel.fromJson(jsonDecode(e)))
         .toList();
@@ -998,6 +1015,24 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  DateTime? getShowBackupSettingTip() {
+    final timeString = _preferences.getString(KEY_SHOW_BACK_UP_SETTINGS_TIP);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setShowBackupSettingTip(DateTime time) async {
+    await _preferences.setString(
+        KEY_SHOW_BACK_UP_SETTINGS_TIP, time.toIso8601String());
+  }
+
+  @override
+  ValueNotifier<bool> showBackupSettingTip = ValueNotifier(false);
+
+  @override
   List<SharedPostcard> getSharedPostcard() {
     final sharedPostcardString =
         _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
@@ -1100,6 +1135,22 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setAutoShowPostcard(bool value) async {
+    log.info('setAutoShowPostcard: $value');
     await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
+  }
+
+  @override
+  DateTime? getLastTimeOpenEditorial() {
+    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setLastTimeOpenEditorial(DateTime time) {
+    return _preferences.setString(
+        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
   }
 }

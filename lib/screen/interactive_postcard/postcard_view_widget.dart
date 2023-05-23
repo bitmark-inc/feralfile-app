@@ -64,7 +64,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
       alignment: Alignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 1),
+          padding: const EdgeInsets.all(1),
           child: InAppWebView(
             onWebViewCreated: (controller) {
               _controller = controller;
@@ -115,7 +115,7 @@ class PostcardRatio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 350 / 265,
+      aspectRatio: POSTCARD_ASPECT_RATIO,
       child: PostcardViewWidget(
         assetToken: assetToken,
         imagePath: imagePath,
