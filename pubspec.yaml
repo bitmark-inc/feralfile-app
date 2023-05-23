@@ -170,6 +170,7 @@ dependencies:
   geocoding: ^2.1.0
   flutter_inappwebview: ^5.7.2+3
   html: ^0.15.1
+  flutter_swiper_view: ^1.1.8
 
 dependency_overrides:
   # Error using when import photo_view from dependencies:
