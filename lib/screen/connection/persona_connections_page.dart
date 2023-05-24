@@ -198,9 +198,13 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     flag.addListener(listener);
 
     Timer.periodic(const Duration(seconds: 1), (timer) {
-      flag.removeListener(listener);
-      timer.cancel();
-      if (!isConnected) {
+      if (isConnected) {
+        timer.cancel();
+        flag.removeListener(listener);
+      } else if (timer.tick > CONNECT_FAILED_DURATION.inSeconds &&
+          !isConnected) {
+        timer.cancel();
+        flag.removeListener(listener);
         if (!mounted) return;
         UIHelper.hideInfoDialog(context);
         UIHelper.showInvalidURI(context);
