@@ -190,11 +190,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       injector<NavigationService>().showContactingDialog();
     }
 
-    final listener = () {
+    listener() {
       if (flag.value) {
         isConnected = flag.value;
       }
-    };
+    }
+
     flag.addListener(listener);
 
     Timer.periodic(const Duration(seconds: 1), (timer) {
