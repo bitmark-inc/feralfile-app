@@ -1,4 +1,4 @@
-name: Deploy the android app
+name: MacMiniM2 Deploy appcenter Android app
 on:
   workflow_dispatch:
     inputs:
