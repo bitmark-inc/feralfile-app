@@ -72,16 +72,7 @@ class _WalletPageState extends State<WalletPage>
           color: AppColor.primaryBlack,
           height: 24,
         ),
-        onTap: () async {
-          if (!mounted) return;
-          // Navigator.of(context).pop();
-          if (_personaBloc.state.createAccountState == ActionState.loading) {
-            return;
-          }
-          _personaBloc.add(CreatePersonaEvent());
-        },
         builder: (context, child) {
-          // return child;
           return BlocProvider.value(
               value: _personaBloc,
               child: BlocConsumer<PersonaBloc, PersonaState>(
@@ -110,7 +101,16 @@ class _WalletPageState extends State<WalletPage>
                   }
                 },
                 builder: (context, state) {
-                  return child;
+                  return GestureDetector(
+                    child: child,
+                    onTap: () {
+                      if (_personaBloc.state.createAccountState ==
+                          ActionState.loading) {
+                        return;
+                      }
+                      _personaBloc.add(CreatePersonaEvent());
+                    },
+                  );
                 },
               ));
         },
