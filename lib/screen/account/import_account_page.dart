@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -27,7 +26,6 @@ import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
-import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -36,9 +34,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class ImportAccountPage extends StatefulWidget {
@@ -48,15 +44,13 @@ class ImportAccountPage extends StatefulWidget {
   State<ImportAccountPage> createState() => _ImportAccountPageState();
 }
 
-class _ImportAccountPageState extends State<ImportAccountPage>
-    with WidgetsBindingObserver {
+class _ImportAccountPageState extends State<ImportAccountPage> {
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
   bool _isImporting = false;
   bool _isScanning = false;
   int scanCount = 0;
   Persona? _persona;
-  bool? _isEncryptionAvailable;
 
   bool isError = false;
   WalletType _walletType = WalletType.Autonomy;
@@ -66,25 +60,13 @@ class _ImportAccountPageState extends State<ImportAccountPage>
   @override
   void initState() {
     metricClient.timerEvent(MixpanelEvent.backImportAccount);
-    _isEncryptionAvailable = false;
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     _phraseTextController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    if (state == AppLifecycleState.resumed) {
-      checkCloudBackup();
-    }
   }
 
   @override
@@ -153,8 +135,6 @@ class _ImportAccountPageState extends State<ImportAccountPage>
                       context,
                       title: 'learn_why_this_is_safe...'.tr(),
                     ),
-                    const SizedBox(height: 15),
-                    _cloudSection(),
                     const SizedBox(height: 15),
                     Text("1. ${"select_wallet_type".tr()}.",
                         style: theme.textTheme.ppMori400Black14),
@@ -346,62 +326,6 @@ class _ImportAccountPageState extends State<ImportAccountPage>
         ),
       ),
     );
-  }
-
-  Widget _iOSCloud() {
-    return ValueListenableBuilder(
-      valueListenable: injector<CloudService>().isAvailableNotifier,
-      builder: (BuildContext context, bool isAvailable, Widget? child) {
-        return ExternalAppInfoView(
-          icon: Image.asset("assets/images/iCloudDrive.png"),
-          appName: "icloud_drive".tr(),
-          status: isAvailable ? "turned_on".tr() : "turned_off".tr(),
-          statusColor: isAvailable ? AppColor.auQuickSilver : AppColor.red,
-        );
-      },
-    );
-  }
-
-  Future checkCloudBackup() async {
-    if (_isEncryptionAvailable == true) return;
-
-    final accountService = injector<AccountService>();
-    final isAndroidEndToEndEncryptionAvailable =
-        await accountService.isAndroidEndToEndEncryptionAvailable();
-
-    if (_isEncryptionAvailable == isAndroidEndToEndEncryptionAvailable) return;
-
-    if (_isEncryptionAvailable == null &&
-        isAndroidEndToEndEncryptionAvailable != null) {
-      await accountService.androidBackupKeys();
-    }
-
-    setState(() {
-      _isEncryptionAvailable = isAndroidEndToEndEncryptionAvailable;
-    });
-  }
-
-  Widget _androidCloud() {
-    return ExternalAppInfoView(
-      icon: Image.asset("assets/images/googleCloud.png"),
-      appName: "google_cloud".tr(),
-      status:
-          _isEncryptionAvailable == true ? "turned_on".tr() : "turned_off".tr(),
-      statusColor: _isEncryptionAvailable == true
-          ? AppColor.auQuickSilver
-          : AppColor.red,
-      actionIcon: _isEncryptionAvailable != true
-          ? SvgPicture.asset("assets/images/Settings.svg")
-          : null,
-      onTap: _isEncryptionAvailable != true ? openAppSettings : null,
-    );
-  }
-
-  Widget _cloudSection() {
-    if (Platform.isAndroid) {
-      return _androidCloud();
-    }
-    return _iOSCloud();
   }
 
   Widget _walletTypeOption(
