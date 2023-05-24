@@ -1298,34 +1298,39 @@ class UIHelper {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) =>
-                      GestureDetector(
-                    onTap: options?[index].onTap,
-                    child: Container(
-                      color: Colors.transparent,
-                      width: MediaQuery.of(context).size.width,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 13,
-                        ),
-                        child: Row(
-                          children: [
-                            if (options?[index].icon != null)
-                              options![index].icon!,
-                            if (options?[index].icon != null)
-                              const SizedBox(
-                                width: 40,
+                  itemBuilder: (BuildContext context, int index) {
+                    final widget = GestureDetector(
+                      onTap: options?[index].onTap,
+                      child: Container(
+                        color: Colors.transparent,
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16.0,
+                            horizontal: 13,
+                          ),
+                          child: Row(
+                            children: [
+                              if (options?[index].icon != null)
+                                options![index].icon!,
+                              if (options?[index].icon != null)
+                                const SizedBox(
+                                  width: 40,
+                                ),
+                              Text(
+                                options?[index].title ?? '',
+                                style: theme.textTheme.ppMori400Black14,
                               ),
-                            Text(
-                              options?[index].title ?? '',
-                              style: theme.textTheme.ppMori400Black14,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                    if (options?[index].builder != null) {
+                      return options?[index].builder!.call(context, widget);
+                    }
+                    return widget;
+                  },
                   itemCount: options?.length ?? 0,
                   separatorBuilder: (context, index) => Divider(
                     height: 1,
@@ -1573,10 +1578,12 @@ class OptionItem {
   String? title;
   Function()? onTap;
   Widget? icon;
+  Widget Function(BuildContext context, Widget child)? builder;
 
   OptionItem({
     this.title,
     this.onTap,
     this.icon,
+    this.builder,
   });
 }
