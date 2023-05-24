@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -41,15 +42,13 @@ class WalletConnectService {
   final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
-  final ValueNotifier<bool> _uriValid = ValueNotifier(false);
+  Timer? _timer;
 
   WalletConnectService(
     this._navigationService,
     this._cloudDB,
     this._configurationService,
   );
-
-  ValueNotifier<bool> get uriValid => _uriValid;
 
   void _addedConnection() {
     _addedConnectionFlag = true;
@@ -108,7 +107,7 @@ class WalletConnectService {
     }
   }
 
-  connect(String wcUri) {
+  connect(String wcUri, {Function()? onTimeout}) {
     log.info("WalletConnectService.connect: $wcUri");
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
@@ -117,7 +116,10 @@ class WalletConnectService {
       description: 'Autonomy Wallet',
       icons: [],
     );
-    _uriValid.value = false;
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
 
     final wcClient = _createWCClient(session.topic, null);
     if (wcClient == null) {
@@ -255,7 +257,7 @@ class WalletConnectService {
                 feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
           }
         } else {
-          _uriValid.value = true;
+          _timer?.cancel();
           _navigationService.navigateTo(AppRouter.wcConnectPage,
               arguments: WCConnectPageArgs(id, peerMeta));
         }

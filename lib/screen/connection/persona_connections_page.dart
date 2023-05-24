@@ -174,43 +174,23 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     return (_isWalletConnectUri(uri) || _isTezosBeconUri(uri));
   }
 
+  _onConnectTimeout() {
+    if (!mounted) return;
+    UIHelper.hideInfoDialog(context);
+    UIHelper.showInvalidURI(context);
+  }
+
   Future<void> _processDeeplink(String code) async {
     if (!_isUriValid(code)) {
       throw ConnectionViaClipboardError("Invalid URI");
     }
-    bool isConnected = false;
-    ValueNotifier<bool> flag;
     if (code.startsWith("wc:")) {
-      flag = _walletConnecService.uriValid;
-      _walletConnecService.connect(code);
+      _walletConnecService.connect(code, onTimeout: _onConnectTimeout);
     } else {
       final tezosUri = "tezos://?type=tzip10&data=$code";
-      flag = _tezosBeaconService.uriValid;
-      await _tezosBeaconService.addPeer(tezosUri);
+      await _tezosBeaconService.addPeer(tezosUri, onTimeout: _onConnectTimeout);
       injector<NavigationService>().showContactingDialog();
     }
-
-    listener() {
-      if (flag.value) {
-        isConnected = flag.value;
-      }
-    }
-
-    flag.addListener(listener);
-
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (isConnected) {
-        timer.cancel();
-        flag.removeListener(listener);
-      } else if (timer.tick > CONNECT_FAILED_DURATION.inSeconds &&
-          !isConnected) {
-        timer.cancel();
-        flag.removeListener(listener);
-        if (!mounted) return;
-        UIHelper.hideInfoDialog(context);
-        UIHelper.showInvalidURI(context);
-      }
-    });
   }
 
   @override

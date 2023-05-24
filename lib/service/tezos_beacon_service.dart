@@ -44,9 +44,7 @@ class TezosBeaconService implements BeaconHandler {
 
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
-  final ValueNotifier<bool> _uriValid = ValueNotifier(false);
-
-  ValueNotifier<bool> get uriValid => _uriValid;
+  Timer? _timer;
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
@@ -98,9 +96,12 @@ class TezosBeaconService implements BeaconHandler {
     return _beaconChannel.handlePostMessageMessage(extensionPublicKey, payload);
   }
 
-  Future addPeer(String link) async {
+  Future addPeer(String link, {Function()? onTimeout}) async {
     const maxRetries = 3;
-    _uriValid.value = false;
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
     var retryCount = 0;
     do {
       try {
@@ -177,7 +178,7 @@ class TezosBeaconService implements BeaconHandler {
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
-      _uriValid.value = true;
+      _timer?.cancel();
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _requestSignMessageForConnection();
