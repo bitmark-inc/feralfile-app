@@ -22,6 +22,7 @@ environment:
 
 dependencies:
   after_layout: ^1.2.0
+  bs58check: ^1.0.2
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   carousel_slider: ^4.2.1

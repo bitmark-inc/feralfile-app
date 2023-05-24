@@ -5,15 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -41,6 +42,7 @@ class WalletConnectService {
   final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
+  Timer? _timer;
 
   WalletConnectService(
     this._navigationService,
@@ -105,7 +107,7 @@ class WalletConnectService {
     }
   }
 
-  connect(String wcUri) {
+  connect(String wcUri, {Function()? onTimeout}) {
     log.info("WalletConnectService.connect: $wcUri");
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
@@ -114,6 +116,10 @@ class WalletConnectService {
       description: 'Autonomy Wallet',
       icons: [],
     );
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
 
     final wcClient = _createWCClient(session.topic, null);
     if (wcClient == null) {
@@ -251,6 +257,7 @@ class WalletConnectService {
                 feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
           }
         } else {
+          _timer?.cancel();
           _navigationService.navigateTo(AppRouter.wcConnectPage,
               arguments: WCConnectPageArgs(id, peerMeta));
         }
