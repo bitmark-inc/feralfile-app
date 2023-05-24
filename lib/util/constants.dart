@@ -115,8 +115,6 @@ const POSRCARD_GAME_END = "5.09.23";
 
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 
-const CONNECT_FAILED_DURATION = Duration(seconds: 10);
-
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");

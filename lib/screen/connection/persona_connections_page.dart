@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -188,15 +189,21 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       await _tezosBeaconService.addPeer(tezosUri);
       injector<NavigationService>().showContactingDialog();
     }
-    flag.addListener(() {
+
+    final listener = () {
       if (flag.value) {
         isConnected = flag.value;
       }
-    });
+    };
+    flag.addListener(listener);
 
-    await Future.delayed(CONNECT_FAILED_DURATION, () {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      flag.removeListener(listener);
+      timer.cancel();
       if (!isConnected) {
-        throw ConnectionViaClipboardError("Connection timeout");
+        if (!mounted) return;
+        UIHelper.hideInfoDialog(context);
+        UIHelper.showInvalidURI(context);
       }
     });
   }
