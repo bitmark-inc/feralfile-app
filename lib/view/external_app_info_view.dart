@@ -6,6 +6,8 @@ class ExternalAppInfoView extends StatelessWidget {
   final String appName;
   final String status;
   final Color? statusColor;
+  final Widget? actionIcon;
+  final Function()? onTap;
 
   const ExternalAppInfoView({
     Key? key,
@@ -13,6 +15,8 @@ class ExternalAppInfoView extends StatelessWidget {
     required this.appName,
     required this.status,
     this.statusColor,
+    this.actionIcon,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -53,6 +57,13 @@ class ExternalAppInfoView extends StatelessWidget {
               ),
             ),
           ),
+          if (actionIcon != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onTap,
+              child: actionIcon,
+            )
+          ]
         ],
       ),
     );
