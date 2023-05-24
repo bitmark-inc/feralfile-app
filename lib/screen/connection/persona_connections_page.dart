@@ -123,7 +123,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     }
   }
 
-  void _showConnectionOption() async {
+  void _showConnectionOption() {
     final options = [
       OptionItem(
           title: "connect_via_clipboard".tr(),
