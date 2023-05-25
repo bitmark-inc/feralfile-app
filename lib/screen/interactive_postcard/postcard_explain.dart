@@ -1,10 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -14,8 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:video_player/video_player.dart';
-
-import 'design_stamp.dart';
 
 class PostcardExplain extends StatefulWidget {
   static const String tag = 'postcard_explain_screen';
@@ -29,7 +24,6 @@ class PostcardExplain extends StatefulWidget {
 
 class _PostcardExplainState extends State<PostcardExplain> {
   bool _isLastPage = false;
-  bool _isGetLocation = true;
   final VideoPlayerController _controller =
       VideoPlayerController.asset("assets/videos/postcard_explain.mp4");
 
@@ -81,7 +75,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
           IconButton(
             tooltip: "CLOSE",
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(false);
             },
             icon: closeIcon(),
           )
@@ -120,22 +114,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: PostcardButton(
-                  text: "get_started".tr(),
-                  onTap: () async {
-                    if (_isGetLocation) {
-                      final location = await getGeoLocationWithPermission();
-                      if (!mounted || location == null) return;
-                      Navigator.of(context).pushNamed(AppRouter.designStamp,
-                          arguments: DesignStampPayload(
-                              widget.payload.asset, location));
-                    } else {
-                      Navigator.of(context).pushNamed(AppRouter.designStamp,
-                          arguments:
-                              DesignStampPayload(widget.payload.asset, null));
-                    }
-                  },
-                ),
+                child: widget.payload.startButton,
               ),
             )
           ],
@@ -222,6 +201,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
 class PostcardExplainPayload {
   final AssetToken asset;
+  final Widget startButton;
 
-  PostcardExplainPayload(this.asset);
+  PostcardExplainPayload(this.asset, this.startButton);
 }
