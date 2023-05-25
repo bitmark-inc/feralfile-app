@@ -156,7 +156,7 @@ packages:
     source: hosted
     version: "2.1.1"
   bs58check:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: bs58check
       sha256: c4a164d42b25c2f6bc88a8beccb9fc7d01440f3c60ba23663a20a70faf484ea9
@@ -1697,8 +1697,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "82ea238d0af7e6d5e5ce8d5ef7b7c4f8047f90d3"
-      resolved-ref: "82ea238d0af7e6d5e5ce8d5ef7b7c4f8047f90d3"
+      ref: "126e93c490558576f7efe9c66835d430645dc1cc"
+      resolved-ref: "126e93c490558576f7efe9c66835d430645dc1cc"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"

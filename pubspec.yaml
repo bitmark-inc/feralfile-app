@@ -22,6 +22,7 @@ environment:
 
 dependencies:
   after_layout: ^1.2.0
+  bs58check: ^1.0.2
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   carousel_slider: ^4.2.1
@@ -136,7 +137,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 82ea238d0af7e6d5e5ce8d5ef7b7c4f8047f90d3
+      ref: 126e93c490558576f7efe9c66835d430645dc1cc
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
