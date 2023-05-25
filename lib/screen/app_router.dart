@@ -345,6 +345,14 @@ class AppRouter {
                       ),
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
+                    BlocProvider(
+                      create: (_) => PersonaBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                        injector<AuditService>(),
+                      ),
+                    ),
                   ],
                   child: const HomeNavigationPage(fromOnboarding: true),
                 ),
@@ -376,6 +384,14 @@ class AppRouter {
                       ),
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
+                    BlocProvider(
+                      create: (_) => PersonaBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector(),
+                        injector<AuditService>(),
+                      ),
+                    ),
                   ],
                   child: const HomeNavigationPage(),
                 ));
@@ -1200,6 +1216,14 @@ class AppRouter {
               return MultiBlocProvider(
                 providers: [
                   BlocProvider.value(value: accountsBloc),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector(),
+                      injector<AuditService>(),
+                    ),
+                  ),
                 ],
                 child: const WalletPage(),
               );

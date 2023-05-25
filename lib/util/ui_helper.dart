@@ -1353,10 +1353,8 @@ class UIHelper {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) =>
-                      GestureDetector(
-                    onTap: options?[index].onTap,
-                    child: Container(
+                  itemBuilder: (BuildContext context, int index) {
+                    final child = Container(
                       color: Colors.transparent,
                       width: MediaQuery.of(context).size.width,
                       child: Padding(
@@ -1379,8 +1377,15 @@ class UIHelper {
                           ],
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                    if (options?[index].builder != null) {
+                      return options?[index].builder!.call(context, child);
+                    }
+                    return GestureDetector(
+                      onTap: options?[index].onTap,
+                      child: child,
+                    );
+                  },
                   itemCount: options?.length ?? 0,
                   separatorBuilder: (context, index) => Divider(
                     height: 1,
@@ -1628,10 +1633,12 @@ class OptionItem {
   String? title;
   Function()? onTap;
   Widget? icon;
+  Widget Function(BuildContext context, Widget child)? builder;
 
   OptionItem({
     this.title,
     this.onTap,
     this.icon,
+    this.builder,
   });
 }

@@ -8,26 +8,22 @@
 // ignore_for_file: unused_field
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../common/injector.dart';
 import '../../database/cloud_database.dart';
 import '../../database/entity/connection.dart';
 import '../../util/constants.dart';
-import '../bloc/persona/persona_bloc.dart';
 
 class AccessMethodPage extends StatefulWidget {
   const AccessMethodPage({Key? key}) : super(key: key);
@@ -52,7 +48,7 @@ class _AccessMethodPageState extends State<AccessMethodPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "add_wallet".tr(),
+        title: "add_existing_wallet".tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -62,19 +58,12 @@ class _AccessMethodPageState extends State<AccessMethodPage>
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             addTitleSpace(),
-            if (injector<ConfigurationService>().isDoneOnboarding()) ...[
-              Padding(
-                padding: padding,
-                child: _createAccountOption(context),
-              ),
-              addDivider(height: 48),
-            ],
+            Padding(padding: padding, child: _importWallet(context)),
+            addDivider(height: 48),
             Padding(
               padding: padding,
               child: _linkAccount(context),
             ),
-            addDivider(height: 48),
-            Padding(padding: padding, child: _importWallet(context)),
             addDivider(height: 48),
             injector<ConfigurationService>().isDoneOnboarding()
                 ? _linkDebugWidget(context)
@@ -121,45 +110,6 @@ class _AccessMethodPageState extends State<AccessMethodPage>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _createAccountOption(BuildContext context) {
-    return BlocConsumer<PersonaBloc, PersonaState>(
-      listener: (context, state) {
-        switch (state.createAccountState) {
-          case ActionState.loading:
-            UIHelper.showLoadingScreen(context, text: "generating_wallet".tr());
-            break;
-          case ActionState.done:
-            UIHelper.hideInfoDialog(context);
-            final createdPersona = state.persona;
-            if (createdPersona != null) {
-              Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                  arguments: NamePersonaPayload(
-                      uuid: createdPersona.uuid, allowBack: true));
-            }
-            break;
-
-          case ActionState.error:
-            UIHelper.hideInfoDialog(context);
-            break;
-          default:
-            break;
-        }
-      },
-      builder: (context, state) {
-        return _addWalletItem(
-          context: context,
-          title: "create_a_new_wallet".tr(),
-          content: "create_wallet_description".tr(),
-          onTap: () {
-            if (state.createAccountState == ActionState.loading) return;
-            context.read<PersonaBloc>().add(CreatePersonaEvent());
-          },
-          forward: false,
-        );
-      },
     );
   }
 
