@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/editorial/common/publisher_view.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -64,16 +65,18 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     final endReadingTime = DateTime.now();
     final readingTime =
         endReadingTime.difference(startReadingTime).inMilliseconds / 1000;
-    final mixpanelConfig = metricClient.getConfig();
-    final periodStartConfig = mixpanelConfig.editorialPeriodStart;
-    if (periodStartConfig == null) {
-      metricClient.setConfig(mixpanelConfig.copyWith(
+    MixpanelConfig? mixpanelConfig = metricClient.getConfig();
+    if (mixpanelConfig == null) {
+      mixpanelConfig = MixpanelConfig(
         editorialPeriodStart: DateTime(
             endReadingTime.year,
             endReadingTime.month,
             endReadingTime.day - (endReadingTime.weekday - 1)),
-      ));
+        totalEditorialReading: 0.0,
+      );
+      metricClient.setConfig(mixpanelConfig);
     }
+    final periodStartConfig = mixpanelConfig.editorialPeriodStart;
     final periodStart = periodStartConfig ??
         DateTime(endReadingTime.year, endReadingTime.month,
             endReadingTime.day - (endReadingTime.weekday - 1));
