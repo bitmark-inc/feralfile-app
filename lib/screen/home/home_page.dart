@@ -689,9 +689,8 @@ class HomePageState extends State<HomePage>
         final isAndroidEndToEndEncryptionAvailable =
             await injector<AccountService>()
                 .isAndroidEndToEndEncryptionAvailable();
-        if (isAndroidEndToEndEncryptionAvailable == null) {
-          showTip = true;
-        }
+        showTip = isAndroidEndToEndEncryptionAvailable == null ||
+            !isAndroidEndToEndEncryptionAvailable;
       } else {
         final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
         showTip = !iCloudAvailable.value;
