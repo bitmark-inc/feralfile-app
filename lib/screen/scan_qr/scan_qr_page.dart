@@ -555,32 +555,66 @@ class _ScanQRPageState extends State<ScanQRPage>
               log(err.toString());
             }
             */
+          } else if (_isCanvasQrCode(code)) {
+            controller.dispose();
+            if (await isPremium()) {
+              final result = await _handleCanvasQrCode(code);
+              if (result) {
+                if (!mounted) return;
+                await UIHelper.showInfoDialog(
+                  context,
+                  "connected".tr(),
+                  "canvas_connected".tr(),
+                  closeButton: "close".tr(),
+                  onClose: () => UIHelper.hideInfoDialog(
+                      injector<NavigationService>()
+                          .navigatorKey
+                          .currentContext!),
+                  autoDismissAfter: 3,
+                  isDismissible: true,
+                );
+              }
+            }
           } else {
             _handleError(code);
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
           controller.dispose();
-          log.info("Canvas device scanned: $code");
-          try {
-            final device = CanvasDevice.fromJson(jsonDecode(code));
-            final canvasClient = injector<CanvasClientService>();
-            final result = await canvasClient.connectToDevice(device);
-            if (result) {
-              device.isConnecting = true;
-              if (!mounted) return;
-              Navigator.pop(context, device);
-              return;
-            } else {
-              _handleError(code);
-              return;
-            }
-          } catch (err) {
-            _handleError(code);
-          }
+          await _handleCanvasQrCode(code);
           break;
       }
     });
+  }
+
+  bool _isCanvasQrCode(String code) {
+    try {
+      CanvasDevice.fromJson(jsonDecode(code));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  Future<bool> _handleCanvasQrCode(String code) async {
+    log.info("Canvas device scanned: $code");
+    try {
+      final device = CanvasDevice.fromJson(jsonDecode(code));
+      final canvasClient = injector<CanvasClientService>();
+      final result = await canvasClient.connectToDevice(device);
+      if (result) {
+        device.isConnecting = true;
+        if (!mounted) return false;
+        Navigator.pop(context, device);
+        return true;
+      } else {
+        _handleError(code);
+        return false;
+      }
+    } catch (err) {
+      _handleError(code);
+    }
+    return false;
   }
 
   Future _addScanQREvent(

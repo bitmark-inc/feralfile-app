@@ -66,6 +66,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   List<ArtworkIdentity> tokens = [];
   Timer? _timer;
   late int initialPage;
+  bool _isPremium = false;
 
   final metricClient = injector.get<MetricClientService>();
 
@@ -87,7 +88,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final currentIdentity = tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
         useIndexer: widget.payload.useIndexer));
+    _checkPremium();
     super.initState();
+  }
+
+  Future<void> _checkPremium() async {
+    _isPremium = await isPremium();
+    setState(() {
+    });
   }
 
   setTimer({int? time}) {
@@ -363,7 +371,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   ),
                 ),
                 Visibility(
-                  visible: !isFullScreen,
+                  visible: !isFullScreen && _isPremium,
                   child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                       builder: (context, state) {
                     final isCasting = state.isCasting;
