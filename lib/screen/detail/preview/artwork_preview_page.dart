@@ -94,16 +94,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<void> _checkPremium() async {
     _isPremium = await isPremium();
-    setState(() {
-    });
+    setState(() {});
   }
 
   setTimer({int? time}) {
     _timer?.cancel();
     if (playControl != null) {
-      final defauftDuration =
+      final defaultDuration =
           playControl!.timer == 0 ? time ?? 10 : playControl!.timer;
-      _timer = Timer.periodic(Duration(seconds: defauftDuration), (timer) {
+      _timer = Timer.periodic(Duration(seconds: defaultDuration), (timer) {
         if (!(_timer?.isActive ?? false)) return;
         if (controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
