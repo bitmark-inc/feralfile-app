@@ -683,7 +683,7 @@ class HomePageState extends State<HomePage>
     final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
     if (shouldRemindNow) {
       configurationService
-          .setShowBackupSettingTip(now.add(const Duration(days: 7)));
+          .setShowBackupSettingTip(now.add(const Duration(minutes: 1)));
       bool showTip = false;
       if (Platform.isAndroid) {
         final isAndroidEndToEndEncryptionAvailable =
