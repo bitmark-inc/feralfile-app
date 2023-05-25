@@ -117,10 +117,10 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                     ExternalAppInfoView(
                       icon: Image.asset("assets/images/googleCloud.png"),
                       appName: "google_cloud".tr(),
-                      status: isEncryptionAvailable != null
+                      status: isEncryptionAvailable == true
                           ? "turned_on".tr()
                           : "turned_off".tr(),
-                      statusColor: isEncryptionAvailable == null
+                      statusColor: isEncryptionAvailable != true
                           ? AppColor.red
                           : AppColor.auQuickSilver,
                     ),
