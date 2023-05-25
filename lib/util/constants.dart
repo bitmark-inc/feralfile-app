@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -90,7 +92,12 @@ const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
     "postcard software artwork loaded";
 const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
 
-const double POSTCARD_ASPECT_RATIO = 368 / 268;
+const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
+const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
+
+double get postcardAspectRatio => Platform.isAndroid
+    ? POSTCARD_ASPECT_RATIO_ANDROID
+    : POSTCARD_ASPECT_RATIO_IOS;
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
