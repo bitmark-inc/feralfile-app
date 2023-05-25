@@ -114,7 +114,7 @@ Map<String, dynamic> _$FFArtistToJson(FFArtist instance) => <String, dynamic>{
 FFSeries _$FFSeriesFromJson(Map<String, dynamic> json) => FFSeries(
       json['id'] as String,
       json['artistID'] as String,
-      json['assetID'] as String,
+      json['assetID'] as String?,
       json['title'] as String,
       json['slug'] as String,
       json['medium'] as String,
