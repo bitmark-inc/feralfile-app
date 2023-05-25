@@ -90,7 +90,7 @@ const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
     "postcard software artwork loaded";
 const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
 
-const double POSTCARD_ASPECT_RATIO = 365 / 265;
+const double POSTCARD_ASPECT_RATIO = 368 / 268;
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
