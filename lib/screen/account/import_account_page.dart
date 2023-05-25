@@ -232,7 +232,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         //"Enter recovery phrase with each word separated by a space",
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
-                        hintMaxLines: 2,
+                        hintMaxLines: 3,
                         controller: _phraseTextController,
                         isError: isError,
                         onChanged: (value) {
