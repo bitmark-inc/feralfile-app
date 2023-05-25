@@ -102,8 +102,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "77a4bfc7d0ae1c93653b97985499129a10d123e2"
-      resolved-ref: "77a4bfc7d0ae1c93653b97985499129a10d123e2"
+      ref: a26968876121fd2f0868bf45429fe104b527e474
+      resolved-ref: a26968876121fd2f0868bf45429fe104b527e474
       url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
     source: git
     version: "0.0.1"
@@ -781,10 +781,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_keyboard_visibility
-      sha256: "86b71bbaffa38e885f5c21b1182408b9be6951fd125432cf6652c636254cef2d"
+      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "5.4.1"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:

@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
+import 'package:collection/collection.dart';
 
 abstract class CanvasDeviceEvent {}
 
@@ -29,6 +30,19 @@ class CanvasDeviceAddEvent extends CanvasDeviceEvent {
   CanvasDeviceAddEvent(this.device);
 }
 
+class CanvasDeviceCastSingleEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+  final String tokenId;
+
+  CanvasDeviceCastSingleEvent(this.device, this.tokenId);
+}
+
+class CanvasDeviceUncastingSingleEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceUncastingSingleEvent(this.device);
+}
+
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final String sceneId;
@@ -50,6 +64,35 @@ class CanvasDeviceState {
       sceneId: sceneId ?? this.sceneId,
       isConnectError: isConnectError ?? false,
     );
+  }
+
+  CanvasDeviceState replaceDeviceState(
+      {required CanvasDevice device, required DeviceState deviceState}) {
+    final newDeviceState = devices.map((e) {
+      if (e.device == device) {
+        return deviceState;
+      }
+      return e;
+    }).toList();
+    return copyWith(devices: newDeviceState);
+  }
+
+  List<CanvasDevice> get playingDevice {
+    return devices
+        .map((e) {
+          if (e.status == DeviceStatus.playing) {
+            return e.device;
+          }
+        })
+        .whereNotNull()
+        .toList();
+  }
+
+  bool get isCasting {
+    return devices.firstWhereOrNull((deviceState) {
+          return deviceState.status == DeviceStatus.playing;
+        }) !=
+        null;
   }
 }
 
@@ -90,7 +133,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
       emit(CanvasDeviceState(devices: state.devices, sceneId: event.sceneId));
-      final devices = _canvasClientService.getConnectingDevices();
+      final devices = await _canvasClientService.getConnectingDevices();
       emit(CanvasDeviceState(
           devices: devices
               .map((e) => DeviceState(
@@ -125,6 +168,35 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           state.copyWith(devices: state.devices, sceneId: state.sceneId);
       finalState.devices.removeAt(index);
       emit(finalState);
+    });
+
+    on<CanvasDeviceCastSingleEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState:
+                DeviceState(device: device, status: DeviceStatus.loading)));
+        await _canvasClientService.castSingleArtwork(device, event.tokenId);
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState:
+                DeviceState(device: device, status: DeviceStatus.playing)));
+      } catch (_) {
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState:
+                DeviceState(device: device, status: DeviceStatus.error)));
+      }
+    });
+
+    on<CanvasDeviceUncastingSingleEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        await _canvasClientService.uncastSingleArtwork(device);
+        emit(state.replaceDeviceState(
+            device: device, deviceState: DeviceState(device: device)));
+      } catch (_) {}
     });
   }
 }

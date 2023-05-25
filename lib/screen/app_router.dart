@@ -66,6 +66,8 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
@@ -143,6 +145,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -242,6 +245,8 @@ class AppRouter {
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
+  static const canvasHelpPage = 'canvas_help_page';
+  static const keyboardControlPage = "keyboard_control_page";
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1362,6 +1367,22 @@ class AppRouter {
           },
         );
 
+      case canvasHelpPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return const CanvasHelpPage();
+            });
+
+      case keyboardControlPage:
+        return TransparentRoute(
+            settings: settings,
+            builder: (context) {
+              final payload = settings.arguments as KeyboardControlPagePayload;
+              return KeyboardControlPage(
+                payload: payload,
+              );
+            });
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

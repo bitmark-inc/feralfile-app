@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -54,6 +55,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         WidgetsBindingObserver {
   late PageController controller;
   late ArtworkPreviewBloc _bloc;
+  late CanvasDeviceBloc _canvasDeviceBloc;
 
   ShakeDetector? _detector;
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
@@ -81,6 +83,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     final currentIdentity = tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
         useIndexer: widget.payload.useIndexer));
@@ -104,8 +107,18 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     }
   }
 
+  void _uncasting() {
+    final canvasDeviceState = _canvasDeviceBloc.state;
+    for (var e in canvasDeviceState.devices) {
+      if (e.status == DeviceStatus.playing) {
+        _canvasDeviceBloc.add(CanvasDeviceUncastingSingleEvent(e.device));
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _uncasting();
     _focusNode.dispose();
     disableLandscapeMode();
     Wakelock.disable();
@@ -221,12 +234,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Future<void> onCastTap(AssetToken? assetToken) async {
+  Future<void> _onCastTap(AssetToken? assetToken) async {
     keyboardManagerKey.currentState?.hideKeyboard();
     UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
-        value: context.read<CanvasDeviceBloc>(),
+        value: _canvasDeviceBloc,
         child: CanvasDeviceView(
           sceneId: assetToken?.id ?? "",
           onClose: () {
@@ -351,50 +364,72 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 ),
                 Visibility(
                   visible: !isFullScreen,
-                  child: Container(
-                    color: theme.colorScheme.primary,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 15,
-                        bottom: 30,
-                        right: 20,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Visibility(
-                            visible: (assetToken?.medium == 'software' ||
-                                assetToken?.medium == 'other' ||
-                                (assetToken?.medium?.isEmpty ?? true)),
-                            child: KeyboardManagerWidget(
-                              key: keyboardManagerKey,
-                              focusNode: _focusNode,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          CastButton(
-                            assetToken: assetToken,
-                            onCastTap: () => onCastTap(assetToken),
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          GestureDetector(
-                            onTap: () => onClickFullScreen(assetToken),
-                            child: Semantics(
-                              label: "fullscreen_icon",
-                              child: SvgPicture.asset(
-                                'assets/images/fullscreen_icon.svg',
+                  child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                      builder: (context, state) {
+                    final isCasting = state.isCasting;
+                    final playingDevice = state.playingDevice;
+                    return Container(
+                      color: theme.colorScheme.primary,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 15,
+                          bottom: 30,
+                          right: 20,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Visibility(
+                              visible: (assetToken?.medium == 'software' ||
+                                  assetToken?.medium == 'other' ||
+                                  (assetToken?.medium?.isEmpty ?? true) ||
+                                  isCasting),
+                              child: KeyboardManagerWidget(
+                                key: keyboardManagerKey,
+                                focusNode: _focusNode,
+                                onTap: isCasting
+                                    ? () {
+                                        Navigator.of(context).pushNamed(
+                                            AppRouter.keyboardControlPage,
+                                            arguments:
+                                                KeyboardControlPagePayload(
+                                                    assetToken!,
+                                                    playingDevice[0]));
+                                      }
+                                    : null,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            CastButton(
+                              assetToken: assetToken,
+                              onCastTap: () => _onCastTap(assetToken),
+                              isCasting: isCasting,
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            GestureDetector(
+                              onTap: isCasting
+                                  ? null
+                                  : () => onClickFullScreen(assetToken),
+                              child: Semantics(
+                                label: "fullscreen_icon",
+                                child: SvgPicture.asset(
+                                  'assets/images/fullscreen_icon.svg',
+                                  color: isCasting
+                                      ? AppColor.disabledColor
+                                      : AppColor.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -409,16 +444,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 class CastButton extends StatelessWidget {
   final AssetToken? assetToken;
   final VoidCallback? onCastTap;
+  final bool isCasting;
 
-  const CastButton({Key? key, this.assetToken, this.onCastTap})
+  const CastButton(
+      {Key? key, this.assetToken, this.onCastTap, this.isCasting = false})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canCast = assetToken?.medium == "video" ||
-        assetToken?.medium == "image" ||
-        assetToken?.mimeType?.startsWith("audio/") == true;
 
     return GestureDetector(
       onTap: onCastTap,
@@ -426,7 +460,7 @@ class CastButton extends StatelessWidget {
         label: 'cast_icon',
         child: SvgPicture.asset(
           'assets/images/cast_icon.svg',
-          color: canCast ? theme.colorScheme.secondary : theme.disableColor,
+          color: isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
         ),
       ),
     );
@@ -435,8 +469,10 @@ class CastButton extends StatelessWidget {
 
 class KeyboardManagerWidget extends StatefulWidget {
   final FocusNode? focusNode;
+  final Function()? onTap;
 
-  const KeyboardManagerWidget({Key? key, this.focusNode}) : super(key: key);
+  const KeyboardManagerWidget({Key? key, this.focusNode, this.onTap})
+      : super(key: key);
 
   @override
   State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
@@ -483,7 +519,10 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _isShowKeyboard ? hideKeyboard : showKeyboard,
+      onTap: () {
+        _isShowKeyboard ? hideKeyboard : showKeyboard;
+        widget.onTap?.call();
+      },
       child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
     );
   }

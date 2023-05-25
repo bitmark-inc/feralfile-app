@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -8,6 +9,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -71,6 +73,9 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                     TextSpan(
                       text: "compatible_platforms".tr(),
                       style: theme.textTheme.ppMori400Green14,
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => Navigator.of(context)
+                            .pushNamed(AppRouter.canvasHelpPage),
                     ),
                     TextSpan(
                       text: "for_a_better_viewing".tr(),
@@ -140,17 +145,39 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets
               .copyWith(top: 20, bottom: 20),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  deviceState.device.name,
-                  style: theme.textTheme.ppMori700White14,
-                ),
+          child: GestureDetector(
+            onTap: () {
+              switch (deviceState.status) {
+                case DeviceStatus.connected:
+                  _bloc.add(CanvasDeviceCastSingleEvent(
+                      deviceState.device, widget.sceneId));
+                  break;
+                case DeviceStatus.playing:
+                case DeviceStatus.loading:
+                  _bloc.add(
+                      CanvasDeviceUncastingSingleEvent(deviceState.device));
+                  break;
+                default:
+              }
+            },
+            child: Container(
+              decoration: const BoxDecoration(color: Colors.transparent),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      deviceState.device.name,
+                      style: (deviceState.status == DeviceStatus.error)
+                          ? theme.textTheme.ppMori700Black14
+                              .copyWith(color: AppColor.disabledColor)
+                          : theme.textTheme.ppMori700White14,
+                    ),
+                  ),
+                  const Spacer(),
+                  _deviceStatus(deviceState),
+                ],
               ),
-              const Spacer(),
-              _deviceStatus(deviceState),
-            ],
+            ),
           ),
         ),
         addOnlyDivider(),
@@ -167,52 +194,42 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
             valueColor: AppColor.white,
             backgroundColor: AppColor.greyMedium);
       case DeviceStatus.playing:
-        return GestureDetector(
-          onTap: () {
-            //_bloc.add(CanvasDeviceStopPlayingEvent(deviceState.device));
-          },
-          child: Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border.all(color: AppColor.auSuperTeal),
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                child: Text("playing".tr(),
-                    style: theme.textTheme.ppMori400Green12),
+        return Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(color: AppColor.auSuperTeal),
+                borderRadius: BorderRadius.circular(15.0),
               ),
-              const SizedBox(width: 20),
-              SvgPicture.asset(
-                "assets/images/stop_icon.svg",
-                width: 30,
-                height: 30,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 5,
               ),
-            ],
-          ),
+              child:
+                  Text("playing".tr(), style: theme.textTheme.ppMori400Green12),
+            ),
+            const SizedBox(width: 20),
+            SvgPicture.asset(
+              "assets/images/stop_icon.svg",
+              width: 30,
+              height: 30,
+            ),
+          ],
         );
       case DeviceStatus.connected:
-        return GestureDetector(
-          onTap: () {
-            _bloc.add(CanvasDevicePlayEvent(deviceState.device));
-          },
-          child: SvgPicture.asset(
-            "assets/images/play_canvas_icon.svg",
-            color: AppColor.white,
-          ),
+        return SvgPicture.asset(
+          "assets/images/play_canvas_icon.svg",
+          color: AppColor.white,
         );
       case DeviceStatus.error:
         return GestureDetector(
           onTap: () {
-            // Navigate to Autonomy Canvas page
+            Navigator.of(context).pushNamed(AppRouter.canvasHelpPage);
           },
           child: SvgPicture.asset(
             "assets/images/help_icon.svg",
-            color: AppColor.white,
+            color: AppColor.auSuperTeal,
           ),
         );
     }
