@@ -111,7 +111,7 @@ class MixPanelClientService {
     mixpanel.getPeople().set(prop, value);
   }
 
-  MixpanelConfig getConfig() {
+  MixpanelConfig? getConfig() {
     return _configurationService.getMixpanelConfig();
   }
 

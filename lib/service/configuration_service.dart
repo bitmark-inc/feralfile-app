@@ -266,7 +266,7 @@ abstract class ConfigurationService {
 
   Future<void> setMixpanelConfig(MixpanelConfig config);
 
-  dynamic getMixpanelConfig();
+  MixpanelConfig? getMixpanelConfig();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
