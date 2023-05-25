@@ -152,7 +152,7 @@ class FFArtist {
 class FFSeries {
   final String id;
   final String artistID;
-  final String assetID;
+  final String? assetID;
   final String title;
   final String slug;
   final String medium;
