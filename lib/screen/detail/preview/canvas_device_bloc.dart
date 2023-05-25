@@ -110,8 +110,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       emit(newState);
     });
 
-    on<CanvasDevicePlayEvent>((event, emit) async {
-    });
+    on<CanvasDevicePlayEvent>((event, emit) async {});
 
     on<CanvasDeviceDisconnectEvent>((event, emit) async {
       final index = state.devices
