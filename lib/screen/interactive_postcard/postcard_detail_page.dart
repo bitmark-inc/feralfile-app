@@ -140,13 +140,15 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "your_postcard_completed".tr(namedArgs: {
-            'distance': distanceFormatter.format(
-                distance: totalDistance, withFullName: true),
-          }),
-          style: theme.textTheme.moMASans400Grey14,
-        ),
+        RichText(
+            text: TextSpan(children: [
+          TextSpan(text: "your_postcard_has_traveled".tr()),
+          TextSpan(
+              text: distanceFormatter.format(
+                  distance: totalDistance, withFullName: true),
+              style: const TextStyle(fontWeight: FontWeight.w700)),
+          TextSpan(text: "tag_your_postcard_collaborators".tr()),
+        ], style: theme.textTheme.moMASans400White14)),
         const SizedBox(height: 24),
         PrimaryButton(
           text: "share_on_".tr(),

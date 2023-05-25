@@ -268,7 +268,7 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String get twitterCaption {
-    return "#MoMaPostcardProject";
+    return "#MoMAPostcardProject";
   }
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;

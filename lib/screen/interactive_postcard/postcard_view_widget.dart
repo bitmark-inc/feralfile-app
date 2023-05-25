@@ -63,32 +63,31 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(1),
-          child: InAppWebView(
-            onWebViewCreated: (controller) {
-              _controller = controller;
-            },
-            onConsoleMessage: (InAppWebViewController controller,
-                ConsoleMessage consoleMessage) {
-              log.info(
-                  "[Postcard] Software artwork console log: ${consoleMessage.message}");
-              if (consoleMessage.message ==
-                  POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
-                _convertFileToBase64().then((value) {
-                  setState(() {
-                    isLoading = false;
-                  });
+        InAppWebView(
+          onWebViewCreated: (controller) {
+            _controller = controller;
+          },
+          onConsoleMessage: (InAppWebViewController controller,
+              ConsoleMessage consoleMessage) {
+            log.info(
+                "[Postcard] Software artwork console log: ${consoleMessage.message}");
+            if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
+              _convertFileToBase64().then((value) {
+                setState(() {
+                  isLoading = false;
                 });
-              }
-            },
-            initialUrlRequest: URLRequest(
-              url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
-            ),
+              });
+            }
+          },
+          initialUrlRequest: URLRequest(
+            url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
           ),
         ),
         if (isLoading)
-          Container(
+          Positioned.fill(
+              child: Container(
+            width: double.infinity,
+            height: double.infinity,
             color: Colors.black,
             child: Center(
               child: GifView.asset(
@@ -98,7 +97,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
                 frameRate: 12,
               ),
             ),
-          )
+          )),
       ],
     );
   }
