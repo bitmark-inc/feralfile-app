@@ -120,7 +120,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-
+    injector<ConfigurationService>().setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -264,13 +264,20 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      buildWhen: (previousState, currentState) {
+      listenWhen: (previousState, currentState) {
         final diffLength =
             currentState.tokens.length - previousState.tokens.length;
-        if (diffLength > 0) {
+        if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
           });
+        }
+        if (diffLength != 0) {
+          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
+            'number': currentState.tokens.length,
+          });
+          _metricClient.setLabel(
+              MixpanelProp.numberNft, currentState.tokens.length);
         }
         return true;
       },

@@ -1428,6 +1428,24 @@ class UIHelper {
     return showErrorDialog(
         context, "Share Failed", error.response?.data['message'], "close".tr());
   }
+
+  static Future<void> showInvalidURI(BuildContext context) async {
+    await UIHelper.showDialog(
+      context,
+      "invalid_uri".tr(),
+      Column(
+        children: [
+          Text("invalid_uri_desc".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 40),
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: "close".tr(),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ConnectedTV extends StatefulWidget {

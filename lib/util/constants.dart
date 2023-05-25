@@ -115,6 +115,8 @@ const POSRCARD_GAME_END = "5.09.23";
 
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 
+const CONNECT_FAILED_DURATION = Duration(seconds: 10);
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
@@ -420,6 +422,8 @@ class MixpanelEvent {
   static const hideAddress = "hide_address";
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
+  static const numberNft = "number_nft";
+  static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
 }
 
 class MixpanelProp {
@@ -428,7 +432,13 @@ class MixpanelProp {
   static const didKey = 'didKey';
   static const address = 'Address';
   static const subscription = 'Subscription';
+  static const numberNft = 'Number NFT';
 }
+
+// class MixpanelConfig {
+//   static const EditorialPeriodStart = "editorialPeriodStart";
+//   static const totalEditorialReading = 'totalEditorialReading';
+// }
 
 class SubscriptionStatus {
   static const free = 'Free';
