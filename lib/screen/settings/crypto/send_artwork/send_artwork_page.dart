@@ -114,6 +114,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           controller: _quantityController,
           isError: hasError,
           keyboardType: TextInputType.number,
+          onChanged: (value) => _onQuantityUpdated(),
           onSubmit: (value) => _onQuantityUpdated(),
         ),
       ],

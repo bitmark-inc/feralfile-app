@@ -142,21 +142,20 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         if (!await persona.wallet().isWalletCreated()) continue;
         final ethAddresses = await persona.getEthAddresses();
         final xtzAddresses = await persona.getTezosAddresses();
-        if (persona.isDefault()) {
-          if (ethAddresses.isEmpty) {
-            final address = await persona.wallet().getETHEip55Address();
-            final addressInfo =
-                EthereumAddressInfo(0, address, EtherAmount.zero());
-            await _accountService.addAddressPersona(persona, [addressInfo]);
-            ethAddresses.add(address);
-          }
-          if (xtzAddresses.isEmpty) {
-            final address = await persona.wallet().getTezosAddress();
-            final addressInfo = TezosAddressInfo(0, address, 0);
-            await _accountService.addAddressPersona(persona, [addressInfo]);
-            xtzAddresses.add(address);
-          }
+
+        if (ethAddresses.isEmpty && xtzAddresses.isEmpty) {
+          final ethAddress = await persona.wallet().getETHEip55Address();
+          final ethAddressInfo =
+              EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
+          await _accountService.addAddressPersona(persona, [ethAddressInfo]);
+          ethAddresses.add(ethAddress);
+
+          final tezAddress = await persona.wallet().getTezosAddress();
+          final tezAddressInfo = TezosAddressInfo(0, tezAddress, 0);
+          await _accountService.addAddressPersona(persona, [tezAddressInfo]);
+          xtzAddresses.add(tezAddress);
         }
+
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
