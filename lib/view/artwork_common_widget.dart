@@ -1281,30 +1281,28 @@ Widget postcardOwnership(
 }
 
 Widget tokenOwnership(
-    BuildContext context, AssetToken assetToken, List<String> addresses) {
+    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
   final theme = Theme.of(context);
 
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
-  List<String> ownerAddresses = [assetToken.owner];
-
   int ownedTokens = assetToken.balance ?? 0;
-
-  if (ownedTokens == 0) {
-    ownedTokens =
-        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
-    ownerAddresses = addresses;
-    if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
-      ownerAddresses = [assetToken.owner];
-    }
-  }
+  final ownerAddress = assetToken.owner;
+  final List<MapEntry<String, int>> values = owners.entries.toList()
+    ..sort((a, b) {
+      return a.key == ownerAddress
+          ? -1
+          : b.key == ownerAddress
+              ? 1
+              : a.key.compareTo(b.key);
+    });
+  final tapLink = assetToken.tokenURL;
 
   final totalSentQuantity = sentTokens
       .where((element) =>
           element.tokenID == assetToken.id &&
-          ownerAddresses.contains(element.address) &&
+          ownerAddress == element.address &&
           element.timestamp.isAfter(expiredTime))
       .fold<int>(
           0, (previousValue, element) => previousValue + element.sentQuantity);
@@ -1333,10 +1331,10 @@ Widget tokenOwnership(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
+        MetaDataMultiItem(
           title: "owned".tr(),
-          value: "$ownedTokens",
-          tapLink: assetToken.tokenURL,
+          values: values,
+          tapLink: tapLink,
           forceSafariVC: true,
         ),
       ],
@@ -1431,6 +1429,94 @@ class MetaDataItem extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class MetaDataMultiItem extends StatelessWidget {
+  final String title;
+  final List<MapEntry<String, int>> values;
+  final String? tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataMultiItem({
+    Key? key,
+    required this.title,
+    required this.values,
+    this.tapLink,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: values
+                .map(
+                  (e) => Column(
+                    children: [
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (tapLink != null &&
+                                      tapLink!.isValidUrl()) {
+                                    final uri = Uri.parse(tapLink!);
+                                    launchUrl(uri,
+                                        mode: forceSafariVC == true
+                                            ? LaunchMode.externalApplication
+                                            : LaunchMode.platformDefault);
+                                  }
+                                },
+                                child: Text(
+                                  e.value.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style:
+                                      tapLink != null && tapLink!.isValidUrl()
+                                          ? theme.textTheme.ppMori400Green14
+                                          : theme.textTheme.ppMori400White14,
+                                ),
+                              ),
+                              Text(
+                                " (${e.key.maskOnly(5)})",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.ppMori400White14,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (e != values.last)
+                        const Divider(
+                          color: AppColor.auLightGrey,
+                        ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        )
       ],
     );
   }

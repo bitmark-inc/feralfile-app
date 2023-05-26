@@ -193,6 +193,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       if (state.assetToken != null) {
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
+        final owners = state.owners;
 
         final artistName =
             asset.artistName?.toIdentityOrMask(identityState.identityMap);
@@ -327,12 +328,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(context, asset, artistName),
                       if (asset.fungible == true) ...[
-                        BlocBuilder<AccountsBloc, AccountsState>(
-                          builder: (context, state) {
-                            final addresses = state.addresses;
-                            return tokenOwnership(context, asset, addresses);
-                          },
-                        ),
+                        tokenOwnership(context, asset, owners),
                       ] else ...[
                         state.provenances.isNotEmpty
                             ? _provenanceView(context, state.provenances)
