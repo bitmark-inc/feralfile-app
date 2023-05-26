@@ -1478,7 +1478,8 @@ class MetaDataMultiItem extends StatelessWidget {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  if (tapLink != null) {
+                                  if (tapLink != null &&
+                                      tapLink!.isValidUrl()) {
                                     final uri = Uri.parse(tapLink!);
                                     launchUrl(uri,
                                         mode: forceSafariVC == true
@@ -1490,9 +1491,10 @@ class MetaDataMultiItem extends StatelessWidget {
                                   e.value.toString(),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
-                                  style: tapLink != null
-                                      ? theme.textTheme.ppMori400Green14
-                                      : theme.textTheme.ppMori400White14,
+                                  style:
+                                      tapLink != null && tapLink!.isValidUrl()
+                                          ? theme.textTheme.ppMori400Green14
+                                          : theme.textTheme.ppMori400White14,
                                 ),
                               ),
                               Text(
