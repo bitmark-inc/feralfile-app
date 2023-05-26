@@ -32,7 +32,9 @@ class KeyboardControlPage extends StatefulWidget {
 class _KeyboardControlPageState extends State<KeyboardControlPage>
     with AfterLayoutMixin, WidgetsBindingObserver {
   final _focusNode = FocusNode();
+  late Timer? _timer;
   final _controller = KeyboardVisibilityController();
+  late StreamSubscription? _keyboardSubscription;
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
 
@@ -44,7 +46,9 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
 
   @override
   void dispose() {
+    _timer?.cancel();
     _textController.dispose();
+    _keyboardSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -52,13 +56,13 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   @override
   void afterFirstLayout(BuildContext context) {
     showKeyboard();
-    _controller.onChange.listen((bool isVisible) {
+    _keyboardSubscription = _controller.onChange.listen((bool isVisible) {
       if (!isVisible) {
         Navigator.of(context).pop();
       }
     });
     bool scrolledToTop = false;
-    Timer.periodic(const Duration(milliseconds: 500), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (_scrollController.offset != 0) {
         if (scrolledToTop) {
           _scrollController.jumpTo(0);
