@@ -60,6 +60,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("connect_to_frame".tr(),
                       style: theme.textTheme.ppMori700White24),
@@ -145,38 +146,22 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets
               .copyWith(top: 20, bottom: 20),
-          child: GestureDetector(
-            onTap: () {
-              switch (deviceState.status) {
-                case DeviceStatus.connected:
-                  _bloc.add(CanvasDeviceCastSingleEvent(
-                      deviceState.device, widget.sceneId));
-                  break;
-                case DeviceStatus.playing:
-                case DeviceStatus.loading:
-                  _bloc.add(
-                      CanvasDeviceUncastingSingleEvent(deviceState.device));
-                  break;
-                default:
-              }
-            },
-            child: Container(
-              decoration: const BoxDecoration(color: Colors.transparent),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      deviceState.device.name,
-                      style: (deviceState.status == DeviceStatus.error)
-                          ? theme.textTheme.ppMori700Black14
-                              .copyWith(color: AppColor.disabledColor)
-                          : theme.textTheme.ppMori700White14,
-                    ),
+          child: Container(
+            decoration: const BoxDecoration(color: Colors.transparent),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    deviceState.device.name,
+                    style: (deviceState.status == DeviceStatus.error)
+                        ? theme.textTheme.ppMori700Black14
+                            .copyWith(color: AppColor.disabledColor)
+                        : theme.textTheme.ppMori700White14,
                   ),
-                  const Spacer(),
-                  _deviceStatus(deviceState),
-                ],
-              ),
+                ),
+                const Spacer(),
+                _deviceStatus(deviceState),
+              ],
             ),
           ),
         ),
@@ -189,10 +174,15 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
     final theme = Theme.of(context);
     switch (deviceState.status) {
       case DeviceStatus.loading:
-        return loadingIndicator(
-            size: 22,
-            valueColor: AppColor.white,
-            backgroundColor: AppColor.greyMedium);
+        return GestureDetector(
+          onTap: () {
+            _bloc.add(CanvasDeviceUncastingSingleEvent(deviceState.device));
+          },
+          child: loadingIndicator(
+              size: 22,
+              valueColor: AppColor.white,
+              backgroundColor: AppColor.greyMedium),
+        );
       case DeviceStatus.playing:
         return Row(
           children: [
@@ -210,17 +200,28 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                   Text("playing".tr(), style: theme.textTheme.ppMori400Green12),
             ),
             const SizedBox(width: 20),
-            SvgPicture.asset(
-              "assets/images/stop_icon.svg",
-              width: 30,
-              height: 30,
+            GestureDetector(
+              child: SvgPicture.asset(
+                "assets/images/stop_icon.svg",
+                width: 30,
+                height: 30,
+              ),
+              onTap: () {
+                _bloc.add(CanvasDeviceUncastingSingleEvent(deviceState.device));
+              },
             ),
           ],
         );
       case DeviceStatus.connected:
-        return SvgPicture.asset(
-          "assets/images/play_canvas_icon.svg",
-          color: AppColor.white,
+        return GestureDetector(
+          child: SvgPicture.asset(
+            "assets/images/play_canvas_icon.svg",
+            color: AppColor.white,
+          ),
+          onTap: () {
+            _bloc.add(CanvasDeviceCastSingleEvent(
+                deviceState.device, widget.sceneId));
+          },
         );
       case DeviceStatus.error:
         return GestureDetector(
