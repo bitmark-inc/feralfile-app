@@ -28,7 +28,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     this._tokenDao,
   ) : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
-      final tokens = await _tokenDao.findTokenBalanceByID(event.identity.id);
+      final tokens = await _tokenDao.findTokensByID(event.identity.id);
       Map<String, int> owners = {};
       for (var token in tokens) {
         if (token.balance != null && token.balance! > 0) {
