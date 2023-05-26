@@ -1281,30 +1281,28 @@ Widget postcardOwnership(
 }
 
 Widget tokenOwnership(
-    BuildContext context, AssetToken assetToken, List<String> addresses) {
+    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
   final theme = Theme.of(context);
 
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
-  List<String> ownerAddresses = [assetToken.owner];
-
   int ownedTokens = assetToken.balance ?? 0;
-
-  if (ownedTokens == 0) {
-    ownedTokens =
-        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
-    ownerAddresses = addresses;
-    if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
-      ownerAddresses = [assetToken.owner];
-    }
+  final ownerAddress = assetToken.owner;
+  final addresses = owners.keys.toList();
+  final List<Map<String, dynamic>> values = addresses
+      .map((e) =>
+          {"key": e, "value": owners[e], "addition": " (${e.maskOnly(5)})"})
+      .toList();
+  values.removeWhere((element) => element["key"] == ownerAddress);
+  Map<String, dynamic> tapLinks = {};
+  for (var address in addresses) {
+    tapLinks[address] = assetToken.tokenURL;
   }
-
   final totalSentQuantity = sentTokens
       .where((element) =>
           element.tokenID == assetToken.id &&
-          ownerAddresses.contains(element.address) &&
+          ownerAddress == element.address &&
           element.timestamp.isAfter(expiredTime))
       .fold<int>(
           0, (previousValue, element) => previousValue + element.sentQuantity);
@@ -1312,6 +1310,11 @@ Widget tokenOwnership(
   if (ownedTokens > 0) {
     ownedTokens -= totalSentQuantity;
   }
+  values.insert(0, {
+    "key": ownerAddress,
+    "value": ownedTokens,
+    "addition": " (${ownerAddress.maskOnly(5)})"
+  });
 
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
@@ -1333,10 +1336,10 @@ Widget tokenOwnership(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
+        MetaDataMultiItem(
           title: "owned".tr(),
-          value: "$ownedTokens",
-          tapLink: assetToken.tokenURL,
+          value: values,
+          tapLink: tapLinks,
           forceSafariVC: true,
         ),
       ],
@@ -1431,6 +1434,92 @@ class MetaDataItem extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class MetaDataMultiItem extends StatelessWidget {
+  final String title;
+  final List<Map<String, dynamic>> value;
+  final Map<String, dynamic> tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataMultiItem({
+    Key? key,
+    required this.title,
+    required this.value,
+    this.tapLink = const {},
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: value
+                .map(
+                  (e) => Column(
+                    children: [
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (tapLink[e["key"]] != null) {
+                                    final uri = Uri.parse(tapLink[e["key"]]);
+                                    launchUrl(uri,
+                                        mode: forceSafariVC == true
+                                            ? LaunchMode.externalApplication
+                                            : LaunchMode.platformDefault);
+                                  }
+                                },
+                                child: Text(
+                                  e["value"].toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: tapLink[e["key"]] != null
+                                      ? theme.textTheme.ppMori400Green14
+                                      : theme.textTheme.ppMori400White14,
+                                ),
+                              ),
+                              Text(
+                                e["addition"],
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.ppMori400White14,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (e != value.last)
+                        const Divider(
+                          color: AppColor.auLightGrey,
+                        ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        )
       ],
     );
   }

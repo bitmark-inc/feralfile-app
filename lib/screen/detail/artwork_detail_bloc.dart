@@ -18,14 +18,23 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   final AssetDao _assetDao;
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
+  final TokenDao _tokenDao;
 
   ArtworkDetailBloc(
     this._assetTokenDao,
     this._assetDao,
     this._provenanceDao,
     this._indexerService,
+    this._tokenDao,
   ) : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
+      final tokens = await _tokenDao.findTokenBalanceByID(event.identity.id);
+      Map<String, int> owners = {};
+      for (var token in tokens) {
+        if (token.balance != null && token.balance! > 0) {
+          owners[token.owner] = token.balance!;
+        }
+      }
       if (event.useIndexer) {
         final request = QueryListTokensRequest(
           ids: [event.identity.id],
@@ -35,7 +44,8 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
         if (assetToken.isNotEmpty) {
           emit(ArtworkDetailState(
               assetToken: assetToken.first,
-              provenances: assetToken.first.provenance));
+              provenances: assetToken.first.provenance,
+              owners: owners));
         }
         return;
       }
@@ -46,6 +56,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       emit(ArtworkDetailState(
         assetToken: assetToken,
         provenances: provenances,
+        owners: owners,
       ));
       if (assetToken != null &&
           assetToken.asset != null &&
@@ -61,6 +72,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
             emit(ArtworkDetailState(
               assetToken: assetToken,
               provenances: provenances,
+              owners: owners,
             ));
           } catch (error) {
             log.info("ArtworkDetailGetInfoEvent: preview url error", error);
