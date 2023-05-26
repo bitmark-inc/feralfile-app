@@ -1289,16 +1289,16 @@ Widget tokenOwnership(
 
   int ownedTokens = assetToken.balance ?? 0;
   final ownerAddress = assetToken.owner;
-  final addresses = owners.keys.toList();
-  final List<Map<String, dynamic>> values = addresses
-      .map((e) =>
-          {"key": e, "value": owners[e], "addition": " (${e.maskOnly(5)})"})
-      .toList();
-  values.removeWhere((element) => element["key"] == ownerAddress);
-  Map<String, dynamic> tapLinks = {};
-  for (var address in addresses) {
-    tapLinks[address] = assetToken.tokenURL;
-  }
+  final List<MapEntry<String, int>> values = owners.entries.toList()
+    ..sort((a, b) {
+      return a.key == ownerAddress
+          ? -1
+          : b.key == ownerAddress
+              ? 1
+              : a.key.compareTo(b.key);
+    });
+  final tapLink = assetToken.tokenURL;
+
   final totalSentQuantity = sentTokens
       .where((element) =>
           element.tokenID == assetToken.id &&
@@ -1310,11 +1310,6 @@ Widget tokenOwnership(
   if (ownedTokens > 0) {
     ownedTokens -= totalSentQuantity;
   }
-  values.insert(0, {
-    "key": ownerAddress,
-    "value": ownedTokens,
-    "addition": " (${ownerAddress.maskOnly(5)})"
-  });
 
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
@@ -1338,8 +1333,8 @@ Widget tokenOwnership(
         ),
         MetaDataMultiItem(
           title: "owned".tr(),
-          value: values,
-          tapLink: tapLinks,
+          values: values,
+          tapLink: tapLink,
           forceSafariVC: true,
         ),
       ],
@@ -1441,15 +1436,15 @@ class MetaDataItem extends StatelessWidget {
 
 class MetaDataMultiItem extends StatelessWidget {
   final String title;
-  final List<Map<String, dynamic>> value;
-  final Map<String, dynamic> tapLink;
+  final List<MapEntry<String, int>> values;
+  final String? tapLink;
   final bool? forceSafariVC;
 
   const MetaDataMultiItem({
     Key? key,
     required this.title,
-    required this.value,
-    this.tapLink = const {},
+    required this.values,
+    this.tapLink,
     this.forceSafariVC,
   }) : super(key: key);
 
@@ -1473,7 +1468,7 @@ class MetaDataMultiItem extends StatelessWidget {
           flex: 3,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: value
+            children: values
                 .map(
                   (e) => Column(
                     children: [
@@ -1483,8 +1478,8 @@ class MetaDataMultiItem extends StatelessWidget {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  if (tapLink[e["key"]] != null) {
-                                    final uri = Uri.parse(tapLink[e["key"]]);
+                                  if (tapLink != null) {
+                                    final uri = Uri.parse(tapLink!);
                                     launchUrl(uri,
                                         mode: forceSafariVC == true
                                             ? LaunchMode.externalApplication
@@ -1492,16 +1487,16 @@ class MetaDataMultiItem extends StatelessWidget {
                                   }
                                 },
                                 child: Text(
-                                  e["value"].toString(),
+                                  e.value.toString(),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
-                                  style: tapLink[e["key"]] != null
+                                  style: tapLink != null
                                       ? theme.textTheme.ppMori400Green14
                                       : theme.textTheme.ppMori400White14,
                                 ),
                               ),
                               Text(
-                                e["addition"],
+                                " (${e.key.maskOnly(5)})",
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: theme.textTheme.ppMori400White14,
@@ -1510,7 +1505,7 @@ class MetaDataMultiItem extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (e != value.last)
+                      if (e != values.last)
                         const Divider(
                           color: AppColor.auLightGrey,
                         ),
