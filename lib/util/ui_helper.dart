@@ -1310,10 +1310,10 @@ class UIHelper {
                         child: Row(
                           children: [
                             if (options?[index].icon != null)
-                              options![index].icon!,
+                              SizedBox(width: 30, child: options![index].icon!),
                             if (options?[index].icon != null)
                               const SizedBox(
-                                width: 40,
+                                width: 34,
                               ),
                             Text(
                               options?[index].title ?? '',
