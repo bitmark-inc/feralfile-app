@@ -141,8 +141,8 @@ Future<void> setup() async {
 
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
-    connectTimeout: 10000,
-    receiveTimeout: 10000,
+    connectTimeout: 100000,
+    receiveTimeout: 100000,
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());

@@ -146,7 +146,8 @@ class Environment {
 
   static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 
-  static String get auClaimAPIURL => dotenv.env['AU_CLAIM_API_URL'] ?? '';
+  static String get auClaimAPIURL =>
+      "https://09b6-2001-ee0-4c06-6320-415a-dd3e-2006-e999.ngrok-free.app";
 
   static List<String> get irlWhitelistUrls =>
       dotenv.env['IRL_WHITELIST_URL']?.split(',') ?? [];
