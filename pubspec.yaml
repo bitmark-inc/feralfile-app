@@ -141,7 +141,7 @@ dependencies:
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
-      ref: a26968876121fd2f0868bf45429fe104b527e474
+      ref: 6d56219be0510859f982d5d5c2b3e53240b021d3
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:
