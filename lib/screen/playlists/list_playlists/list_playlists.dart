@@ -72,7 +72,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   }
 
   _onUpdatePlaylists() async {
-    if (isDemo) return;
+    if (isDemo || _playlists.value == null) return;
     await injector
         .get<PlaylistService>()
         .setPlayList(_playlists.value!, override: true);
@@ -107,7 +107,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                     onHold: true,
                   );
                 },
-                itemCount: _playlists.value!.length,
+                itemCount: value.length,
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
                     if (oldIndex < newIndex) {
