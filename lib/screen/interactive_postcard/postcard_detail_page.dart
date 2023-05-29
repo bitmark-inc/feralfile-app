@@ -698,8 +698,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
-    final theme = Theme.of(context);
     final asset = postcardDetailState.assetToken;
+    final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
       listener: (context, state) {},
       builder: (context, state) {
@@ -708,45 +708,37 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (travelInfo == null) {
           return const SizedBox();
         }
-        return Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _postcardProgress(travelInfo),
-              addDivider(color: AppColor.primaryBlack),
-              Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: padding,
+              child: _postcardProgress(travelInfo),
+            ),
+            addDivider(color: AppColor.primaryBlack),
+            Padding(
+              padding: padding,
+              child: Column(
                 children: [
-                  Text(
-                    "total_distance_traveled".tr(),
-                    style: theme.textTheme.moMASans700Black14,
-                  ),
-                  const Spacer(),
-                  Text(
-                    distanceFormatter.format(
-                        distance: travelInfo.totalDistance),
-                    style: theme.textTheme.moMASans700Black14,
-                  ),
+                  if (postcardDetailState.canDoAction)
+                    if (postcardDetailState.isSending())
+                      _sendingTripItem(context, asset!, travelInfo)
+                    else
+                      _notSentItem(travelInfo),
+                  ...travelInfo.reversed.map((TravelInfo e) {
+                    if (e.to == null) {
+                      if (postcardDetailState.isSending() &&
+                          postcardDetailState.isLastOwner) {
+                        return _sendingTripItem(context, asset!, travelInfo);
+                      }
+                      return _completeTravelWidget(e);
+                    }
+                    return _travelWidget(e);
+                  }).toList(),
                 ],
               ),
-              addDivider(height: 30, color: AppColor.auGreyBackground),
-              if (postcardDetailState.canDoAction)
-                if (postcardDetailState.isSending())
-                  _sendingTripItem(context, asset!, travelInfo)
-                else
-                  _notSentItem(travelInfo),
-              ...travelInfo.reversed.map((TravelInfo e) {
-                if (e.to == null) {
-                  if (postcardDetailState.isSending() &&
-                      postcardDetailState.isLastOwner) {
-                    return _sendingTripItem(context, asset!, travelInfo);
-                  }
-                  return _completeTravelWidget(e);
-                }
-                return _travelWidget(e);
-              }).toList(),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
