@@ -10,7 +10,6 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -500,7 +499,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           //TODO: remove IF
           if (!viewJourney) _tabBar(),
           const SizedBox(
-            height: 10,
+            height: 15,
           ),
           viewJourney ? _travelInfoWidget(state) : _leaderboard(state),
         ],
@@ -648,6 +647,56 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Widget _postcardProgress(List<TravelInfo> travelInfo) {
+    final theme = Theme.of(context);
+    final currentStampNumber = travelInfo.length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "postcard_progress".tr(),
+          style: theme.textTheme.moMASans700Black12,
+        ),
+        const SizedBox(height: 15),
+        Row(
+          children: [
+            ...List.generate(MAX_STAMP_IN_POSTCARD, (index) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child: Container(
+                    height: 25,
+                    color: index < currentStampNumber
+                        ? Colors.amber
+                        : AppColor.auLightGrey,
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Text(
+                "stamps_".tr(namedArgs: {
+                  "current": currentStampNumber.toString(),
+                  "total": MAX_STAMP_IN_POSTCARD.toString(),
+                }),
+                style: theme.textTheme.moMASans400Black12),
+            const Spacer(),
+            Text(
+                "total_distance".tr(namedArgs: {
+                  "distance": distanceFormatter.format(
+                      distance: travelInfo.totalDistance)
+                }),
+                style: theme.textTheme.moMASans400Black12)
+          ],
+        )
+      ],
+    );
+  }
+
   Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
     final theme = Theme.of(context);
     final asset = postcardDetailState.assetToken;
@@ -664,7 +713,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // travel distance row
+              _postcardProgress(travelInfo),
+              addDivider(color: AppColor.primaryBlack),
               Row(
                 children: [
                   Text(
@@ -685,7 +735,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   _sendingTripItem(context, asset!, travelInfo)
                 else
                   _notSentItem(travelInfo),
-
               ...travelInfo.reversed.map((TravelInfo e) {
                 if (e.to == null) {
                   if (postcardDetailState.isSending() &&
@@ -717,11 +766,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 Text(formatter.format(travelInfo.index),
                     style: theme.textTheme.moMASans400Black12
                         .copyWith(color: AppColor.auQuickSilver)),
-                AutoSizeText(
+                Text(
                   travelInfo.sentLocation ?? "",
-                  style: theme.textTheme.moMASans400Black14,
-                  maxLines: 2,
-                  minFontSize: 14,
+                  style: theme.textTheme.moMASans400Black12,
                 ),
                 Row(
                   children: [
@@ -731,11 +778,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     ),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: AutoSizeText(
+                      child: Text(
                         travelInfo.receivedLocation ?? "Not sent",
-                        style: theme.textTheme.moMASans400Black14,
-                        maxLines: 2,
-                        minFontSize: 14,
+                        style: theme.textTheme.moMASans400Black12,
                       ),
                     ),
                   ],
@@ -750,7 +795,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
           ),
         ]),
-        addDivider(height: 30, color: AppColor.auGreyBackground),
+        addDivider(height: 30, color: AppColor.auLightGrey),
       ],
     );
   }
