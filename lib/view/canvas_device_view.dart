@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -160,6 +161,12 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                   ),
                 ),
                 const Spacer(),
+                IconButton(
+                  onPressed: () {
+                    _bloc.add(CanvasDeviceRotateEvent(deviceState.device));
+                  },
+                  icon: const Icon(AuIcon.rotateRounded, color: AppColor.white),
+                ),
                 _deviceStatus(deviceState),
               ],
             ),

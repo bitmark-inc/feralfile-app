@@ -43,6 +43,13 @@ class CanvasDeviceUncastingSingleEvent extends CanvasDeviceEvent {
   CanvasDeviceUncastingSingleEvent(this.device);
 }
 
+class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+  final bool clockwise;
+
+  CanvasDeviceRotateEvent(this.device, {this.clockwise = true});
+}
+
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final String sceneId;
@@ -196,6 +203,14 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         await _canvasClientService.uncastSingleArtwork(device);
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
+      } catch (_) {}
+    });
+
+    on<CanvasDeviceRotateEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        await _canvasClientService.rotateCanvas(device,
+            clockwise: event.clockwise);
       } catch (_) {}
     });
   }

@@ -76,8 +76,8 @@ class CanvasClientService {
         request,
         options: _callOptions,
       );
-      log.info('CanvasClientService received: ${response.status}');
-      if (response.status) {
+      log.info('CanvasClientService received: ${response.ok}');
+      if (response.ok) {
         log.info('CanvasClientService: Connected to device');
         device.isConnecting = true;
         await _db.canvasDeviceDao.insertCanvasDevice(device);
@@ -211,7 +211,7 @@ class CanvasClientService {
     final stub = _getStub(device);
     final castRequest = CastSingleRequest(id: tokenId);
     final response = await stub.castSingleArtwork(castRequest);
-    if (response.status) {
+    if (response.ok) {
       final lst = _devices.firstWhere(
         (element) {
           final isEqual = element == device;
@@ -226,7 +226,7 @@ class CanvasClientService {
     final stub = _getStub(device);
     final uncastRequest = UncastSingleRequest(id: "");
     final response = await stub.uncastSingleArtwork(uncastRequest);
-    if (response.status) {
+    if (response.ok) {
       _devices.firstWhere((element) => element == device).playingSceneId = null;
     }
   }
@@ -235,10 +235,24 @@ class CanvasClientService {
     final stub = _getStub(device);
     final sendKeyboardRequest = KeyboardEventRequest(code: code);
     final response = await stub.keyboardEvent(sendKeyboardRequest);
-    if (response.status) {
+    if (response.ok) {
       log.info("Canvas Client Service: Keyboard Event Success $code");
     } else {
       log.info("Canvas Client Service: Keyboard Event Failed $code");
+    }
+  }
+
+  // function to rotate canvas
+  Future<void> rotateCanvas(CanvasDevice device,
+      {bool clockwise = true}) async {
+    final stub = _getStub(device);
+    final rotateCanvasRequest = RotateRequest(clockwise: clockwise);
+    try {
+      final response = await stub.rotate(rotateCanvasRequest);
+      log.info(
+          "Canvas Client Service: Rotate Canvas Success ${response.degree}");
+    } catch (e) {
+      log.info("Canvas Client Service: Rotate Canvas Failed");
     }
   }
 }
