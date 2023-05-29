@@ -23,13 +23,13 @@ class ListPlaylistsScreen extends StatefulWidget {
 
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
-  final ValueNotifier<List<PlayListModel>> _playlists = ValueNotifier([]);
+  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier(null);
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
 
-  Future<List<PlayListModel>> getPlaylist() async {
+  Future<List<PlayListModel>?> getPlaylist() async {
     final playlistService = injector.get<PlaylistService>();
     final isSubscribed = await injector.get<IAPService>().isSubscribed();
-    if (!isSubscribed && !isDemo) return [];
+    if (!isSubscribed && !isDemo) return null;
     if (isDemo) {
       return injector<VersionService>().getDemoAccountFromGithub();
     }
@@ -75,7 +75,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     if (isDemo) return;
     await injector
         .get<PlaylistService>()
-        .setPlayList(_playlists.value, override: true);
+        .setPlayList(_playlists.value!, override: true);
     injector.get<SettingsDataService>().backup();
   }
 
@@ -107,7 +107,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                     onHold: true,
                   );
                 },
-                itemCount: _playlists.value.length,
+                itemCount: _playlists.value!.length,
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
                     if (oldIndex < newIndex) {
