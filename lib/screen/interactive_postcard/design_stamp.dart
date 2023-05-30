@@ -86,6 +86,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
     final cellSize = ((size - 60.0) / 10.0).floor();
+    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar: getBackAppBar(
@@ -105,8 +106,17 @@ class _DesignStampPageState extends State<DesignStampPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    addTitleSpace(),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "all_cells_must_be_filled".tr(),
+                          style: theme.textTheme.moMASans400Grey12,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
                       child: Container(

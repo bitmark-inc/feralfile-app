@@ -100,6 +100,11 @@ extension PostcardDetailStateExtension on PostcardDetailState {
         isStamping();
   }
 
+  bool get isPostcardUpdatingOnBlockchain {
+    return postcardValue == null ||
+        (isStamping() && postcardValue!.stamped == false);
+  }
+
   bool get isStamped {
     return postcardValue?.stamped ?? false;
   }

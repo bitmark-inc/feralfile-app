@@ -123,3 +123,106 @@ class _JumpingDotsState extends State<JumpingDots>
     );
   }
 }
+
+class CustomJumpingDots extends StatefulWidget {
+  final int numberOfDots;
+  final double innerPadding;
+  final Duration animationDuration;
+  final Widget Function(bool isActive) dotBuilder;
+
+  const CustomJumpingDots({
+    Key? key,
+    this.numberOfDots = 3,
+    this.innerPadding = 1.2,
+    this.animationDuration = const Duration(milliseconds: 500),
+    required this.dotBuilder,
+  }) : super(key: key);
+
+  @override
+  State createState() => _CustomJumpingDotsState();
+}
+
+class _CustomJumpingDotsState extends State<CustomJumpingDots>
+    with TickerProviderStateMixin {
+  List<AnimationController>? _animationControllers;
+
+  final List<Animation<double>> _animations = [];
+  var _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _initAnimation();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _animationControllers!) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _initAnimation() {
+    _animationControllers = List.generate(
+      widget.numberOfDots,
+      (index) {
+        return AnimationController(
+            vsync: this, duration: widget.animationDuration);
+      },
+    ).toList();
+
+    for (int i = 0; i < widget.numberOfDots; i++) {
+      _animations.add(
+          Tween<double>(begin: 0, end: -3).animate(_animationControllers![i]));
+    }
+
+    for (int i = 0; i < widget.numberOfDots; i++) {
+      _animationControllers![i].addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _animationControllers![i].reverse();
+          if (i != widget.numberOfDots - 1) {
+            _animationControllers![i + 1].forward();
+            setState(() {
+              _selectedIndex = i + 1;
+            });
+          }
+        }
+        if (i == widget.numberOfDots - 1 &&
+            status == AnimationStatus.dismissed) {
+          _animationControllers![0].forward();
+          setState(() {
+            _selectedIndex = 0;
+          });
+        }
+      });
+    }
+    _animationControllers!.first.forward();
+    setState(() {
+      _selectedIndex = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        children: List.generate(widget.numberOfDots, (index) {
+          return AnimatedBuilder(
+            animation: _animationControllers![index],
+            builder: (context, child) {
+              return Container(
+                padding: EdgeInsets.all(widget.innerPadding),
+                child: Transform.translate(
+                  offset: Offset(0, _animations[index].value),
+                  child: widget.dotBuilder(_selectedIndex == index),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+}

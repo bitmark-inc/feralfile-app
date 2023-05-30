@@ -40,6 +40,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/jumping_dot.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -438,8 +439,33 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardAction(PostcardDetailState state) {
     final asset = state.assetToken!;
+    final theme = Theme.of(context);
     if (asset.postcardMetadata.isCompleted || !state.isLastOwner) {
       return const SizedBox();
+    }
+    if (state.isPostcardUpdatingOnBlockchain) {
+      return PostcardCustomButton(
+          child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            "confirming_on_blockchain".tr(),
+            style: theme.textTheme.moMASans700Black14,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: CustomJumpingDots(
+              dotBuilder: (bool isActive) {
+                return Container(
+                  width: 3,
+                  height: 3,
+                  color: isActive ? Colors.black : Colors.white,
+                );
+              },
+            ),
+          ),
+        ],
+      ));
     }
     if (state.isPostcardUpdating) {
       return PostcardButton(
