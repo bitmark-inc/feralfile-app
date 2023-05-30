@@ -172,7 +172,9 @@ Widget tokenGalleryThumbnailWidget(
   return Semantics(
     label: "gallery_artwork_${token.title}",
     child: Hero(
-      tag: useHero ? "gallery_thumbnail_${token.id}" : const Uuid().v4(),
+      tag: useHero
+          ? "gallery_thumbnail_${token.id}_${token.owner}"
+          : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
       child: ext == ".svg"
           ? SvgImage(
