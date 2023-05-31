@@ -159,6 +159,8 @@ class ClaimEmptyPostCardBloc
           );
           emit(state.copyWith(
               isClaiming: false, isClaimed: true, assetToken: token));
+        } else {
+          emit(state.copyWith(isClaimed: false, isClaiming: false));
         }
       } on DioError catch (e) {
         emit(
