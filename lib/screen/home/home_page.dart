@@ -608,11 +608,15 @@ class HomePageState extends State<HomePage>
         .toList();
     final isRefresh =
         !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
+    log.info("activeAddresses: $activeAddresses");
+    log.info(
+        "NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
     if (isRefresh) {
       final listDifferents = activeAddresses
           .where(
               (element) => !NftCollectionBloc.activeAddress.contains(element))
           .toList();
+      log.info("listDifferents: ${listDifferents.toString()}");
       if (listDifferents.isNotEmpty) {
         nftBloc.add(GetTokensBeforeByOwnerEvent(
           pageKey: nftBloc.state.nextKey,
