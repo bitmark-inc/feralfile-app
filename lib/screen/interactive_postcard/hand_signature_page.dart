@@ -210,56 +210,60 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       }
       final imageData = await imageFile.writeAsBytes(img.encodePng(image));
       final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
-      postcardService
-          .stampPostcard(
-              tokenId,
-              walletIndex.first,
-              walletIndex.second,
-              imageData,
-              jsonData,
-              widget.payload.location,
-              counter,
-              contractAddress)
-          .then((value) {
-        if (!value) {
-          log.info("[POSTCARD] Stamp failed");
-          injector<NavigationService>().popUntilHomeOrSettings();
-        } else {
-          log.info("[POSTCARD] Stamp success");
-          postcardService.updateStampingPostcard([
-            StampingPostcard(
-              indexId: asset.id,
-              address: address,
-              imagePath: imagePath,
-              metadataPath: metadataPath,
-              counter: counter,
-            )
-          ]);
+      final isStampSuccess = await postcardService.stampPostcard(
+          tokenId,
+          walletIndex.first,
+          walletIndex.second,
+          imageData,
+          jsonData,
+          widget.payload.location,
+          counter,
+          contractAddress);
+      if (!isStampSuccess) {
+        log.info("[POSTCARD] Stamp failed");
+        setState(() {
+          loading = false;
+        });
+        injector<NavigationService>().popUntilHomeOrSettings();
+      } else {
+        log.info("[POSTCARD] Stamp success");
+        postcardService.updateStampingPostcard([
+          StampingPostcard(
+            indexId: asset.id,
+            address: address,
+            imagePath: imagePath,
+            metadataPath: metadataPath,
+            counter: counter,
+          )
+        ]);
+        if (widget.payload.location != null) {
+          var postcardMetadata = asset.postcardMetadata;
+          final stampedLocation = Location(
+              lat: widget.payload.location!.latitude,
+              lon: widget.payload.location!.longitude);
+          postcardMetadata.locationInformation.last.stampedLocation =
+              stampedLocation;
+          var newAsset = asset.asset;
+          newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+          final pendingToken = asset.copyWith(asset: newAsset);
+          final tokenService = injector<TokensService>();
+          await tokenService.setCustomTokens([pendingToken]);
+          tokenService.reindexAddresses([address]);
+          NftCollectionBloc.eventController.add(
+            GetTokensByOwnerEvent(pageKey: PageKey.init()),
+          );
         }
-      });
-      if (widget.payload.location != null) {
-        var postcardMetadata = asset.postcardMetadata;
-        final stampedLocation = Location(
-            lat: widget.payload.location!.latitude,
-            lon: widget.payload.location!.longitude);
-        postcardMetadata.locationInformation.last.stampedLocation =
-            stampedLocation;
-        var newAsset = asset.asset;
-        newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-        final pendingToken = asset.copyWith(asset: newAsset);
-        final tokenService = injector<TokensService>();
-        await tokenService.setCustomTokens([pendingToken]);
-        tokenService.reindexAddresses([address]);
-        NftCollectionBloc.eventController.add(
-          GetTokensByOwnerEvent(pageKey: PageKey.init()),
-        );
+        setState(() {
+          loading = false;
+        });
+        if (!mounted) return;
+        injector<NavigationService>().popUntilHomeOrSettings();
+        Navigator.of(context).pushNamed(StampPreview.tag,
+            arguments: StampPreviewPayload(
+                imagePath: imagePath,
+                metadataPath: metadataPath,
+                asset: asset));
       }
-      if (!mounted) return;
-      injector<NavigationService>().popUntilHomeOrSettings();
-      Navigator.of(context).pushNamed(StampPreview.tag,
-          arguments: StampPreviewPayload(
-              imagePath: imagePath, metadataPath: metadataPath, asset: asset));
-      return;
     } catch (e) {
       setState(() {
         loading = false;
