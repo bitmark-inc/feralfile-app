@@ -107,11 +107,10 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           final ethAddress = await persona.wallet().getETHEip55Address();
           final ethAddressInfo =
               EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
-          await _accountService.addAddressPersona(persona, [ethAddressInfo]);
-
           final tezAddress = await persona.wallet().getTezosAddress();
           final tezAddressInfo = TezosAddressInfo(0, tezAddress, 0);
-          await _accountService.addAddressPersona(persona, [tezAddressInfo]);
+          await _accountService
+              .addAddressPersona(persona, [ethAddressInfo, tezAddressInfo]);
         }
       }
       final connections =
