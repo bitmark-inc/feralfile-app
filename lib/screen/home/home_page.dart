@@ -722,7 +722,8 @@ class HomePageState extends State<HomePage>
   }
 
   void _handleForeground() async {
-    LocaleService.refresh(context);
+    final locale = Localizations.localeOf(context);
+    LocaleService.refresh(locale);
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await _checkTipCardShowTime();

@@ -8,14 +8,17 @@ class LocaleService {
 
   static String get measurementSystem => _measurementSystem;
 
-  static Future<void> refresh(BuildContext context) async {
+  static Future<void> refresh(Locale locale) async {
     String? localeMeasurement;
     if (Platform.isIOS) {
       final res = await _channel.invokeMethod('getMeasurementSystem');
-      localeMeasurement = res["data"];
+      if (res["data"] != null) {
+        localeMeasurement = res["data"];
+      } else {
+        localeMeasurement = _getCountryCode(locale);
+      }
     } else {
-      final locale = Localizations.localeOf(context);
-      localeMeasurement = locale.countryCode;
+      localeMeasurement = _getCountryCode(locale);
     }
     if (localeMeasurement == null) {
       _measurementSystem = "metric";
@@ -29,5 +32,9 @@ class LocaleService {
         _measurementSystem = "metric";
       }
     }
+  }
+
+  static String? _getCountryCode(Locale locale) {
+    return locale.countryCode;
   }
 }
