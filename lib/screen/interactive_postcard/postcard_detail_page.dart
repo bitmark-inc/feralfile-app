@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widge
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -75,7 +76,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late ScrollController _scrollController;
   late bool withSharing;
 
-  late Locale locale;
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
   Timer? timer;
@@ -226,8 +226,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    locale = Localizations.localeOf(context);
-    distanceFormatter = DistanceFormatter(locale: locale);
+    distanceFormatter = DistanceFormatter();
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;

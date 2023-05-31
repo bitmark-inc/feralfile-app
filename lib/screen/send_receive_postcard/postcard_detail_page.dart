@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -35,7 +36,6 @@ class PostcardDetailPage extends StatefulWidget {
 }
 
 class _PostcardDetailPageState extends State<PostcardDetailPage> {
-  late Locale locale;
   late DistanceFormatter distanceFormatter;
 
   @override
@@ -46,8 +46,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    locale = Localizations.localeOf(context);
-    distanceFormatter = DistanceFormatter(locale: locale);
+    distanceFormatter = DistanceFormatter();
     final theme = Theme.of(context);
     final asset = widget.asset;
     final artistName = asset.artistName?.toIdentityOrMask({});
