@@ -35,7 +35,6 @@ class PostcardDetailPage extends StatefulWidget {
 }
 
 class _PostcardDetailPageState extends State<PostcardDetailPage> {
-  late Locale locale;
   late DistanceFormatter distanceFormatter;
 
   @override
@@ -46,8 +45,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    locale = Localizations.localeOf(context);
-    distanceFormatter = DistanceFormatter(locale: locale);
+    distanceFormatter = DistanceFormatter();
     final theme = Theme.of(context);
     final asset = widget.asset;
     final artistName = asset.artistName?.toIdentityOrMask({});

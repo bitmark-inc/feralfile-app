@@ -75,7 +75,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late ScrollController _scrollController;
   late bool withSharing;
 
-  late Locale locale;
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
   Timer? timer;
@@ -226,8 +225,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    locale = Localizations.localeOf(context);
-    distanceFormatter = DistanceFormatter(locale: locale);
+    distanceFormatter = DistanceFormatter();
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
