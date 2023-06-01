@@ -87,9 +87,9 @@ class AutonomyLogo extends StatelessWidget {
     final color = isWhite ? AppColor.white : AppColor.primaryBlack;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(width: 2, color: color),
+        border: Border.all(color: color),
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 8),
