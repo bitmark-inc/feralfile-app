@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -258,6 +259,12 @@ abstract class ConfigurationService {
   Future<void> setAutoShowPostcard(bool value);
 
   bool isAutoShowPostcard();
+
+  List<AlreadyShowYouDidItPostcard> getListPostcardAlreadyShowYouDidIt();
+
+  Future<void> setListPostcardAlreadyShowYouDidIt(
+      List<AlreadyShowYouDidItPostcard> value,
+      {bool override = false});
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -341,6 +348,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
 
   static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
+
+  static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
+      "already_show_you_did_it_postcard";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1132,5 +1142,31 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setAutoShowPostcard(bool value) async {
     log.info('setAutoShowPostcard: $value');
     await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
+  }
+
+  @override
+  List<AlreadyShowYouDidItPostcard> getListPostcardAlreadyShowYouDidIt() {
+    return _preferences
+            .getStringList(KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD)
+            ?.map((e) => AlreadyShowYouDidItPostcard.fromJson(jsonDecode(e)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> setListPostcardAlreadyShowYouDidIt(
+      List<AlreadyShowYouDidItPostcard> values,
+      {bool override = false}) async {
+    const key = KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD;
+    final updateValues = values.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updateValues);
+    } else {
+      var currentValue = _preferences.getStringList(key) ?? [];
+
+      currentValue.addAll(updateValues);
+      await _preferences.setStringList(key, currentValue.toSet().toList());
+    }
   }
 }
