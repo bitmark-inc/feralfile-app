@@ -157,7 +157,7 @@ class AccountServiceImpl extends AccountService {
     metricClient.addEvent(MixpanelEvent.createFullAccount,
         data: {"isDefault": isDefault}, hashedData: {"id": persona.uuid});
     _autonomyService.postLinkedAddresses();
-
+    log.info("[AccountService] Created persona ${persona.uuid}}");
     return persona;
   }
 
@@ -201,7 +201,7 @@ class AccountServiceImpl extends AccountService {
       "ethereumIndex": ethereumIndexes
     });
     _autonomyService.postLinkedAddresses();
-
+    log.info("[AccountService] imported persona ${persona.uuid}");
     return persona;
   }
 

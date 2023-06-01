@@ -609,6 +609,9 @@ class HomePageState extends State<HomePage>
         .toList();
     final isRefresh =
         !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
+    log.info("[HomePage] activeAddresses: $activeAddresses");
+    log.info(
+        "[HomePage] NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
     if (isRefresh) {
       final listDifferents = activeAddresses
           .where(
