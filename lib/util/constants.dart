@@ -65,6 +65,7 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
   "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
   "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
+  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
 ];
 
 const REMOVE_CUSTOMER_SUPPORT =
