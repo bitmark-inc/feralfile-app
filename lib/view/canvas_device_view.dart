@@ -163,21 +163,24 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      TransparentRoute(
-                          builder: (context) {
-                            return TestDrag(
-                              device: deviceState.device,
-                            );
-                          },
-                          color: Colors.black),
-                    );
-                  },
-                  child: const Icon(
-                    Icons.pan_tool,
-                    color: Colors.amber,
+                Visibility(
+                  visible: deviceState.status == DeviceStatus.playing,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        TransparentRoute(
+                            builder: (context) {
+                              return TestDrag(
+                                device: deviceState.device,
+                              );
+                            },
+                            color: Colors.black),
+                      );
+                    },
+                    child: const Icon(
+                      Icons.pan_tool,
+                      color: Colors.amber,
+                    ),
                   ),
                 ),
                 const SizedBox(
