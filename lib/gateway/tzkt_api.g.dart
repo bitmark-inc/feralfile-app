@@ -12,9 +12,7 @@ class _TZKTApi implements TZKTApi {
   _TZKTApi(
     this._dio, {
     this.baseUrl,
-  }) {
-    baseUrl ??= 'https://api.tzkt.io';
-  }
+  });
 
   final Dio _dio;
 
@@ -111,7 +109,7 @@ class _TZKTApi implements TZKTApi {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'contract': contract,
-      r'path': path,
+      r'key': path,
       r'select': select,
     };
     final _headers = <String, dynamic>{};
