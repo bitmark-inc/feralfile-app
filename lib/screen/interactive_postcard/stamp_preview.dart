@@ -107,57 +107,55 @@ class _StampPreviewState extends State<StampPreview> {
       // });
       return;
     }
-    _postcardService
-        .stampPostcard(
-            tokenId,
-            walletIndex.first,
-            walletIndex.second,
-            imageFile,
-            metadataFile,
-            widget.payload.location,
-            counter,
-            contractAddress)
-        .then((value) {
-      if (!value) {
-        log.info("[POSTCARD] Stamp failed");
-        _navigationService.popUntilHomeOrSettings();
-      } else {
-        log.info("[POSTCARD] Stamp success");
-        _postcardService.updateStampingPostcard([
-          StampingPostcard(
-            indexId: asset.id,
-            address: address,
-            imagePath: imagePath,
-            metadataPath: metadataPath,
-            counter: counter,
-          )
-        ]);
-      }
-    });
 
-    if (widget.payload.location != null) {
-      var postcardMetadata = asset.postcardMetadata;
-      final stampedLocation = Location(
-          lat: widget.payload.location!.latitude,
-          lon: widget.payload.location!.longitude);
-      postcardMetadata.locationInformation.last.stampedLocation =
-          stampedLocation;
-      var newAsset = asset.asset;
-      newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-      final pendingToken = asset.copyWith(asset: newAsset);
-      await _tokenService.setCustomTokens([pendingToken]);
-      _tokenService.reindexAddresses([address]);
-      NftCollectionBloc.eventController.add(
-        GetTokensByOwnerEvent(pageKey: PageKey.init()),
+    final isStampSuccess = await _postcardService.stampPostcard(
+        tokenId,
+        walletIndex.first,
+        walletIndex.second,
+        imageFile,
+        metadataFile,
+        widget.payload.location,
+        counter,
+        contractAddress);
+    if (!isStampSuccess) {
+      log.info("[POSTCARD] Stamp failed");
+      injector<NavigationService>().popUntilHomeOrSettings();
+    } else {
+      log.info("[POSTCARD] Stamp success");
+      _postcardService.updateStampingPostcard([
+        StampingPostcard(
+          indexId: asset.id,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+        )
+      ]);
+
+      if (widget.payload.location != null) {
+        var postcardMetadata = asset.postcardMetadata;
+        final stampedLocation = Location(
+            lat: widget.payload.location!.latitude,
+            lon: widget.payload.location!.longitude);
+        postcardMetadata.locationInformation.last.stampedLocation =
+            stampedLocation;
+        var newAsset = asset.asset;
+        newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+        final pendingToken = asset.copyWith(asset: newAsset);
+        await _tokenService.setCustomTokens([pendingToken]);
+        _tokenService.reindexAddresses([address]);
+        NftCollectionBloc.eventController.add(
+          GetTokensByOwnerEvent(pageKey: PageKey.init()),
+        );
+      }
+      _navigationService.popUntilHomeOrSettings();
+      if (!mounted) return;
+      Navigator.of(context).pushNamed(
+        AppRouter.claimedPostcardDetailsPage,
+        arguments: ArtworkDetailPayload([asset.identity], 0),
       );
+      _configurationService.setAutoShowPostcard(true);
     }
-    _navigationService.popUntilHomeOrSettings();
-    if (!mounted) return;
-    Navigator.of(context).pushNamed(
-      AppRouter.claimedPostcardDetailsPage,
-      arguments: ArtworkDetailPayload([asset.identity], 0),
-    );
-    _configurationService.setAutoShowPostcard(true);
   }
 }
 
