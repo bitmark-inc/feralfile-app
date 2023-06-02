@@ -234,7 +234,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
         listenWhen: (previous, current) {
       if (previous.assetToken?.postcardMetadata.isCompleted != true &&
-              current.assetToken?.postcardMetadata.isCompleted == true ||
+          current.assetToken?.postcardMetadata.isCompleted == true &&
           current.assetToken?.isAlreadyShowYouDidIt == false) {
         _youDidIt(context, current.assetToken!);
       }
