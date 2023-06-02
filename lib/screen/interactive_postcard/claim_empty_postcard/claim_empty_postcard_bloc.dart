@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,9 +34,7 @@ class ClaimEmptyPostCardBloc
           mimeType: 'image/png',
           title: event.claimRequest.name,
           medium: 'software',
-          thumbnailURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
-          galleryThumbnailURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
-          previewURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
+          previewURL: event.claimRequest.previewURL,
         ),
         blockchain: "tezos",
         fungible: true,
@@ -127,8 +124,7 @@ class ClaimEmptyPostCardBloc
               maxEdition: 1,
               mimeType: 'image/png',
               title: event.claimRequest.name,
-              thumbnailURL: EMPTY_POSTCARD_PREVIEW_URL_IMAGE,
-              previewURL: EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE,
+              previewURL: event.claimRequest.previewURL,
               source: 'postcard',
               artworkMetadata: jsonEncode(postcardMetadata.toJson()),
               medium: 'software',
@@ -159,6 +155,8 @@ class ClaimEmptyPostCardBloc
           );
           emit(state.copyWith(
               isClaiming: false, isClaimed: true, assetToken: token));
+        } else {
+          emit(state.copyWith(isClaimed: false, isClaiming: false));
         }
       } on DioError catch (e) {
         emit(

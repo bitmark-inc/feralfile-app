@@ -435,6 +435,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         _isImporting = false;
       });
     } catch (exception) {
+      log.info("Import wallet fails ${exception.toString()}");
       if (!(exception is PlatformException &&
           exception.code == "importKey error")) {
         Sentry.captureException(exception);
