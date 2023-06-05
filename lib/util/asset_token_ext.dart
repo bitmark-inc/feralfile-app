@@ -340,6 +340,14 @@ extension AssetTokenExtension on AssetToken {
     }
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
   }
+
+  bool get isAlreadyShowYouDidIt {
+    final listAlreadyShow =
+        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
+    return listAlreadyShow
+        .where((element) => element.id == id && element.owner == owner)
+        .isNotEmpty;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
