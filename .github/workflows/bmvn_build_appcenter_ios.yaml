@@ -23,11 +23,11 @@ jobs:
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.7.1"
+          flutter-version: "3.7.7"
           channel: stable
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "14.3"
+#      - uses: maxim-lobanov/setup-xcode@v1
+#        with:
+#          xcode-version: "14.3"
 
       - name: Set env
         run: |
@@ -37,13 +37,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-          # Setup Ruby, Bundler, and Gemfile dependencies
-          #- name: Setup Fastlane
-          # uses: ruby/setup-ruby@v1
-          # with:
-          # ruby-version: "2.6"
-          # bundler-cache: true
-        #working-directory: ios
+      # Setup Ruby, Bundler, and Gemfile dependencies
+#      - name: Setup Fastlane
+#        uses: ruby/setup-ruby@v1
+#        with:
+#          ruby-version: "2.6"
+#          bundler-cache: true
+#          working-directory: ios
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
