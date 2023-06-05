@@ -869,6 +869,7 @@ class AppRouter {
                     payload: settings.arguments as ArtworkDetailPayload)));
 
       case claimedPostcardDetailsPage:
+        final payload = settings.arguments as ArtworkDetailPayload;
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
@@ -890,7 +891,7 @@ class AppRouter {
                           )),
                 ],
                 child: ClaimedPostcardDetailPage(
-                    payload: settings.arguments as ArtworkDetailPayload)));
+                    key: payload.key, payload: payload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
