@@ -67,10 +67,10 @@ class ClaimedPostcardDetailPage extends StatefulWidget {
 
   @override
   State<ClaimedPostcardDetailPage> createState() =>
-      _ClaimedPostcardDetailPageState();
+      ClaimedPostcardDetailPageState();
 }
 
-class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
+class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
@@ -221,6 +221,25 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     _scrollController.dispose();
     timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> gotoChatThread(BuildContext context) async {
+    final state = context.read<PostcardDetailBloc>().state;
+    final asset = state.assetToken;
+    if (asset == null) return;
+    final wallet = await asset.getOwnerWallet();
+    if (wallet == null || !mounted) return;
+    Navigator.of(context).pushNamed(
+      ChatThreadPage.tag,
+      arguments: ChatThreadPagePayload(
+          tokenId: asset.id,
+          wallet: wallet.first,
+          address: asset.owner,
+          index: wallet.second,
+          cryptoType:
+              asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
+          name: asset.title ?? ''),
+    );
   }
 
   @override
