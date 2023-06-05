@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -102,9 +101,6 @@ class _StampPreviewState extends State<StampPreview> {
     final walletIndex = await asset.getOwnerWallet();
     if (walletIndex == null) {
       log.info("[POSTCARD] Wallet index not found");
-      // setState(() {
-      //   loading = false;
-      // });
       return;
     }
 
@@ -148,13 +144,9 @@ class _StampPreviewState extends State<StampPreview> {
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
       }
-      _navigationService.popUntilHomeOrSettings();
       if (!mounted) return;
-      Navigator.of(context).pushNamed(
-        AppRouter.claimedPostcardDetailsPage,
-        arguments: ArtworkDetailPayload([asset.identity], 0),
-      );
-      _configurationService.setAutoShowPostcard(true);
+      Navigator.of(context).pushNamed(AppRouter.postcardConfirmingPage,
+          arguments: widget.payload);
     }
   }
 }
