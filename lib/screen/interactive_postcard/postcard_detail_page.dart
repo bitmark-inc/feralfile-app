@@ -443,32 +443,52 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
     if (state.isPostcardUpdatingOnBlockchain) {
       return PostcardCustomButton(
-          child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            "confirming_on_blockchain".tr(),
-            style: theme.textTheme.moMASans700Black14,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 5),
-            child: CustomJumpingDots(
-              dotBuilder: (bool isActive) {
-                return Container(
-                  width: 3,
-                  height: 3,
-                  color: isActive ? Colors.black : Colors.white,
-                );
-              },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              "confirming_on_blockchain".tr(),
+              style: theme.textTheme.moMASans700Black14,
             ),
-          ),
-        ],
-      ));
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: CustomJumpingDots(
+                dotBuilder: (bool isActive) {
+                  return Container(
+                    width: 3,
+                    height: 3,
+                    color: isActive ? Colors.black : Colors.white,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
     }
     if (state.isPostcardUpdating) {
-      return PostcardButton(
-        text: "updating_token".tr(),
-        enabled: false,
+      return PostcardCustomButton(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              "updating_token".tr(),
+              style: theme.textTheme.moMASans700Black14,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: CustomJumpingDots(
+                dotBuilder: (bool isActive) {
+                  return Container(
+                    width: 3,
+                    height: 3,
+                    color: isActive ? Colors.black : Colors.white,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       );
     }
     if (!state.isStamped) {
@@ -671,9 +691,10 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _postcardProgress(List<TravelInfo> travelInfo) {
+  Widget _postcardProgress(AssetToken asset) {
     final theme = Theme.of(context);
-    final currentStampNumber = travelInfo.length;
+    final travelInfo = asset.postcardMetadata.listTravelInfoWithoutLocationName;
+    final currentStampNumber = asset.postcardMetadata.numberOfStamp;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -728,7 +749,6 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       listener: (context, state) {},
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
-
         if (travelInfo == null) {
           return const SizedBox();
         }
@@ -737,7 +757,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           children: [
             Padding(
               padding: padding,
-              child: _postcardProgress(travelInfo),
+              child: _postcardProgress(asset!),
             ),
             addDivider(color: AppColor.primaryBlack),
             Padding(
@@ -746,14 +766,14 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 children: [
                   if (postcardDetailState.canDoAction)
                     if (postcardDetailState.isSending())
-                      _sendingTripItem(context, asset!, travelInfo)
+                      _sendingTripItem(context, asset, travelInfo)
                     else
                       _notSentItem(travelInfo),
                   ...travelInfo.reversed.map((TravelInfo e) {
                     if (e.to == null) {
                       if (postcardDetailState.isSending() &&
                           postcardDetailState.isLastOwner) {
-                        return _sendingTripItem(context, asset!, travelInfo);
+                        return _sendingTripItem(context, asset, travelInfo);
                       }
                       return _completeTravelWidget(e);
                     }
