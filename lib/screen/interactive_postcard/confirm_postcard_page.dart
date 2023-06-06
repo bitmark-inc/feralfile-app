@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/jumping_dot.dart';
+import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -116,17 +116,9 @@ class _ConfirmingPostcardState extends State<ConfirmingPostcardPage> {
               "confirming_on_blockchain".tr(),
               style: theme.textTheme.moMASans700Black14,
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: CustomJumpingDots(
-                dotBuilder: (bool isActive) {
-                  return Container(
-                    width: 3,
-                    height: 3,
-                    color: isActive ? Colors.black : Colors.white,
-                  );
-                },
-              ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 5),
+              child: DotsLoading(),
             ),
           ],
         ),
@@ -141,17 +133,9 @@ class _ConfirmingPostcardState extends State<ConfirmingPostcardPage> {
               "updating_token".tr(),
               style: theme.textTheme.moMASans700Black14,
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: CustomJumpingDots(
-                dotBuilder: (bool isActive) {
-                  return Container(
-                    width: 3,
-                    height: 3,
-                    color: isActive ? Colors.black : Colors.white,
-                  );
-                },
-              ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 5),
+              child: DotsLoading(),
             ),
           ],
         ),
