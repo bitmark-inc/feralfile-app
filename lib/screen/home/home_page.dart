@@ -89,7 +89,7 @@ class HomePageState extends State<HomePage>
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
 
-  final nftBloc = injector.get<NftCollectionBloc>();
+  final nftBloc = injector<ClientTokenService>().nftBloc;
 
   @override
   void initState() {

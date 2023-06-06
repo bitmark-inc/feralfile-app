@@ -12,10 +12,12 @@ class ClientTokenService {
   final AccountService _accountService;
   final CloudDatabase _cloudDatabase;
   final PendingTokenService _pendingTokenService;
-  final NftCollectionBloc nftBloc;
+  final NftCollectionBloc _nftBloc;
 
   ClientTokenService(this._accountService, this._cloudDatabase,
-      this._pendingTokenService, this.nftBloc);
+      this._pendingTokenService, this._nftBloc);
+
+  NftCollectionBloc get nftBloc => _nftBloc;
 
   Future<List<AddressIndex>> getAddressIndexes() async {
     return await _accountService.getAllAddressIndexes();
@@ -50,23 +52,23 @@ class ClientTokenService {
         .toList();
     final isRefresh =
         !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
-    log.info("[HomePage] activeAddresses: $activeAddresses");
+    log.info("[ClientTokenService] activeAddresses: $activeAddresses");
     log.info(
-        "[HomePage] NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
+        "[ClientTokenService] NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
     if (isRefresh) {
       final listDifferents = activeAddresses
           .where(
               (element) => !NftCollectionBloc.activeAddress.contains(element))
           .toList();
       if (listDifferents.isNotEmpty) {
-        nftBloc.add(GetTokensBeforeByOwnerEvent(
+        _nftBloc.add(GetTokensBeforeByOwnerEvent(
           pageKey: nftBloc.state.nextKey,
           owners: listDifferents,
         ));
       }
     }
 
-    nftBloc.add(RefreshNftCollectionByOwners(
+    _nftBloc.add(RefreshNftCollectionByOwners(
       hiddenAddresses: hiddenAddresses,
       addresses: addresses,
       debugTokens: indexerIds,
@@ -79,7 +81,7 @@ class ClientTokenService {
           .map((address) => _pendingTokenService
               .checkPendingTezosTokens(address, maxRetries: 1)));
       if (pendingResults.any((e) => e.isNotEmpty)) {
-        nftBloc.add(UpdateTokensEvent(
+        _nftBloc.add(UpdateTokensEvent(
             tokens: pendingResults.expand((e) => e).toList()));
       }
     }
