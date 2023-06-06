@@ -11,11 +11,11 @@ abstract class RoyaltyEvent {}
 
 class GetRoyaltyInfoEvent extends RoyaltyEvent {
   final String? exhibitionID;
-  final String? editionID;
+  final String? artworkID;
   final String contractAddress;
 
   GetRoyaltyInfoEvent(
-      {this.exhibitionID, this.editionID, this.contractAddress = ""});
+      {this.exhibitionID, this.artworkID, this.contractAddress = ""});
 }
 
 class RoyaltyState {
@@ -37,7 +37,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
       try {
         final String? exhibitionID = event.exhibitionID ??
             (await _feralFileService
-                    .getExhibitionFromTokenID(event.editionID ?? ""))
+                    .getExhibitionFromTokenID(event.artworkID ?? ""))
                 ?.id;
         if (exhibitionID != null) {
           if (MOMA_MEMENTO_EXHIBITION_IDS.contains(exhibitionID)) {

@@ -1124,7 +1124,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return ClaimTokenPage(
-                artwork: args.artwork,
+                series: args.series,
                 otp: args.otp,
               );
             });
@@ -1135,7 +1135,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                   create: (_) => RoyaltyBloc(injector()),
                   child: TokenDetailPage(
-                    artwork: settings.arguments as FFArtwork,
+                    series: settings.arguments as FFSeries,
                   ),
                 ));
 

@@ -24,7 +24,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class SelectAccountPageArgs {
   final String? blockchain;
 
-  final FFArtwork? artwork;
+  final FFSeries? artwork;
   final bool fromWebview;
 
   final Otp? otp;
@@ -39,7 +39,7 @@ class SelectAccountPageArgs {
 
 class SelectAccountPage extends StatefulWidget {
   final String? blockchain;
-  final FFArtwork? artwork;
+  final FFSeries? artwork;
   final bool? fromWebview;
   final Otp? otp;
 
@@ -213,7 +213,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       _setProcessingState(true);
       final ffService = injector<FeralFileService>();
       claimRespone = await ffService.claimToken(
-        artworkId: artworkId,
+        seriesId: artworkId,
         address: address,
         otp: otp,
       );
@@ -230,7 +230,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       await UIHelper.showClaimTokenError(
         context,
         e,
-        artwork: widget.artwork!,
+        series: widget.artwork!,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     } finally {
