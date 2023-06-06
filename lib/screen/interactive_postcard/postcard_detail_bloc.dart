@@ -53,7 +53,7 @@ class PostcardDetailBloc
     this._assetDao,
     this._provenanceDao,
     this._indexerService,
-  ) : super(PostcardDetailState(provenances: [])) {
+  ) : super(PostcardDetailState(provenances: [], postcardValueLoaded: false)) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
         final request = QueryListTokensRequest(
@@ -70,10 +70,9 @@ class PostcardDetailBloc
             imagePath: paths.first,
             metadataPath: paths.second,
           ));
-          final postcardValue = await getPostcardValue(
-              assetToken.first.contractAddress ?? "",
-              assetToken.first.tokenId ?? "");
-          emit(state.copyWith(postcardValue: postcardValue));
+          add(PostcardDetailGetValueEvent(
+              contractAddress: assetToken.first.contractAddress ?? "",
+              tokenId: assetToken.first.tokenId ?? ""));
         }
         return;
       } else {
@@ -91,9 +90,9 @@ class PostcardDetailBloc
             await _provenanceDao.findProvenanceByTokenID(event.identity.id);
         emit(state.copyWith(provenances: provenances));
 
-        final postcardValue = await getPostcardValue(
-            assetToken?.contractAddress ?? "", assetToken?.tokenId ?? "");
-        emit(state.copyWith(postcardValue: postcardValue));
+        add(PostcardDetailGetValueEvent(
+            contractAddress: assetToken?.contractAddress ?? "",
+            tokenId: assetToken?.tokenId ?? ""));
 
         if (assetToken != null &&
             assetToken.asset != null &&
@@ -119,7 +118,8 @@ class PostcardDetailBloc
       final postcardService = injector<PostcardService>();
       final postcardValue = await postcardService.getPostcardValue(
           contractAddress: event.contractAddress, tokenId: event.tokenId);
-      emit(state.copyWith(postcardValue: postcardValue));
+      emit(state.copyWith(
+          postcardValue: postcardValue, postcardValueLoaded: true));
     });
   }
 

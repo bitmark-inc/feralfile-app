@@ -459,7 +459,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _postcardAction(PostcardDetailState state) {
     final asset = state.assetToken!;
     final theme = Theme.of(context);
-    if (asset.postcardMetadata.isCompleted || !state.isLastOwner) {
+    if (asset.postcardMetadata.isCompleted ||
+        !state.isLastOwner ||
+        !state.postcardValueLoaded) {
       return const SizedBox();
     }
     if (state.isPostcardUpdatingOnBlockchain) {
