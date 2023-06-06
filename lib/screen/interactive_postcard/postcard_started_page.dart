@@ -1,9 +1,10 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -30,6 +31,8 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
     super.initState();
     injector<ConfigurationService>().setAutoShowPostcard(false);
   }
+
+  final _isGetLocation = true;
 
   @override
   Widget build(BuildContext context) {
@@ -87,9 +90,9 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
             children: [
               PostcardRatio(assetToken: widget.assetToken),
               PostcardButton(
-                text: "get_started".tr(),
-                onTap: () {
-                  _onStarted(context);
+                text: "next_design_your_stamp".tr(),
+                onTap: () async {
+                  await _onStarted(context);
                 },
               ),
             ],
@@ -99,8 +102,15 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
     );
   }
 
-  void _onStarted(BuildContext context) {
-    Navigator.of(context).pushNamed(AppRouter.postcardExplain,
-        arguments: PostcardExplainPayload(widget.assetToken));
+  Future<void> _onStarted(BuildContext context) async {
+    if (_isGetLocation) {
+      final location = await getGeoLocationWithPermission();
+      if (!mounted || location == null) return;
+      Navigator.of(context).pushNamed(AppRouter.designStamp,
+          arguments: DesignStampPayload(widget.assetToken, location));
+    } else {
+      Navigator.of(context).pushNamed(AppRouter.designStamp,
+          arguments: DesignStampPayload(widget.assetToken, null));
+    }
   }
 }
