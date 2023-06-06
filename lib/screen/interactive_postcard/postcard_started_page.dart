@@ -108,9 +108,6 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
       if (!mounted || location == null) return;
       Navigator.of(context).pushNamed(AppRouter.designStamp,
           arguments: DesignStampPayload(widget.assetToken, location));
-    } else {
-      Navigator.of(context).pushNamed(AppRouter.designStamp,
-          arguments: DesignStampPayload(widget.assetToken, null));
     }
   }
 }
