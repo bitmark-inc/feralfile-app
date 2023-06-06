@@ -57,7 +57,6 @@ class _ConfirmingPostcardState extends State<ConfirmingPostcardPage> {
     log.info("Refresh postcard");
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
           ArtworkIdentity(widget.payload.asset.id, widget.payload.asset.owner),
-          useIndexer: true,
         ));
   }
 
