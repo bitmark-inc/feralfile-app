@@ -45,7 +45,6 @@ class _StampPreviewState extends State<StampPreview> {
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _tokenService = injector<TokensService>();
-  final _navigationService = injector<NavigationService>();
 
   @override
   void initState() {
