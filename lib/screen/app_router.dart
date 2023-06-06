@@ -799,6 +799,9 @@ class AppRouter {
                     injector(),
                   ),
                 ),
+                BlocProvider(
+                    create: (_) => PostcardDetailBloc(
+                        injector(), injector(), injector(), injector())),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
