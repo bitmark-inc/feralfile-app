@@ -77,6 +77,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _configurationService = injector<ConfigurationService>();
   final _feedService = injector<FeedService>();
   final _editorialService = injector<EditorialService>();
+  late Timer? _timer;
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -192,6 +193,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _feedService.checkNewFeeds();
       _editorialService.checkNewEditorial();
     });
+
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _homePageKey.currentState?.refreshTokens();
+    });
+
     _pages = <Widget>[
       ValueListenableBuilder<bool>(
           valueListenable: _feedService.hasFeed,
@@ -374,6 +380,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _pageController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _fgbgSubscription?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
