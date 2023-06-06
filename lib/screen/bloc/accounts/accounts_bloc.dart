@@ -147,12 +147,12 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           final ethAddress = await persona.wallet().getETHEip55Address();
           final ethAddressInfo =
               EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
-          await _accountService.addAddressPersona(persona, [ethAddressInfo]);
           ethAddresses.add(ethAddress);
 
           final tezAddress = await persona.wallet().getTezosAddress();
           final tezAddressInfo = TezosAddressInfo(0, tezAddress, 0);
-          await _accountService.addAddressPersona(persona, [tezAddressInfo]);
+          await _accountService
+              .addAddressPersona(persona, [tezAddressInfo, ethAddressInfo]);
           xtzAddresses.add(tezAddress);
         }
 

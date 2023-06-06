@@ -103,13 +103,13 @@ class _TZKTApi implements TZKTApi {
   @override
   Future<List<int>> getBigMapsId({
     required contract,
-    path = "postcards",
+    path = "postcards.postcards",
     select = "ptr",
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'contract': contract,
-      r'key': path,
+      r'path': path,
       r'select': select,
     };
     final _headers = <String, dynamic>{};

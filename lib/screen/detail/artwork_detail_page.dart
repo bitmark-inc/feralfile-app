@@ -549,6 +549,7 @@ class _ArtworkView extends StatelessWidget {
 }
 
 class ArtworkDetailPayload {
+  final Key? key;
   final List<ArtworkIdentity> identities;
   final int currentIndex;
   final PlayControlModel? playControl;
@@ -561,6 +562,7 @@ class ArtworkDetailPayload {
     this.twitterCaption,
     this.playControl,
     this.useIndexer = false,
+    this.key,
   });
 
   ArtworkDetailPayload copyWith(

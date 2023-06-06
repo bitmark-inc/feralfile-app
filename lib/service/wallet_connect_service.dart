@@ -158,6 +158,8 @@ class WalletConnectService {
     tmpUuids[peerMeta] = Pair(uuid, index);
 
     if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+      _configurationService.setAlreadyShowTvAppTip(true);
+      _configurationService.showTvAppTip.value = false;
       final date = peerMeta.description?.split(' -').last;
       final microsecondsSinceEpoch = int.tryParse(date ?? '');
       if (microsecondsSinceEpoch == null) return true;
@@ -167,6 +169,9 @@ class WalletConnectService {
         return false;
       }
       log.info("it's AUTONOMY_TV_PEER_NAME => skip storing connection");
+      injector<MetricClientService>()
+          .addEvent(MixpanelEvent.connectAutonomyDisplay);
+
       return true;
     }
 
