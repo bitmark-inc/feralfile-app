@@ -82,6 +82,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/confirm_postcard_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -241,6 +242,7 @@ class AppRouter {
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
+  static const postcardConfirmingPage = 'postcard_confirming_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1379,6 +1381,27 @@ class AppRouter {
             return PostcardStartedPage(
               assetToken: settings.arguments as AssetToken,
             );
+          },
+        );
+
+      case AppRouter.postcardConfirmingPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(
+                      create: (_) => PostcardDetailBloc(
+                            injector(),
+                            injector(),
+                            injector(),
+                            injector(),
+                          )),
+                ],
+                child: ConfirmingPostcardPage(
+                    payload: settings.arguments as StampPreviewPayload));
           },
         );
 

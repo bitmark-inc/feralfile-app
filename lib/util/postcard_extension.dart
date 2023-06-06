@@ -40,7 +40,10 @@ extension PostcardMetadataExtension on PostcardMetadata {
     return travelInfo;
   }
 
-  List<String> get listOwner {
-    return List.generate(12, (index) => "Owner $index");
+  int get numberOfStamp {
+    return locationInformation
+        .where((element) => element.stampedLocation != null)
+        .toList()
+        .length;
   }
 }

@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
@@ -27,6 +26,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -36,7 +36,6 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -55,7 +54,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -89,29 +87,9 @@ class HomePageState extends State<HomePage>
   late ScrollController _controller;
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
+  final _clientTokenService = injector<ClientTokenService>();
 
-  late Timer _timer;
-
-  Future<List<AddressIndex>> getAddressIndexes() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddressIndexes();
-  }
-
-  Future<List<String>> getAddresses() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddresses();
-  }
-
-  Future<List<String>> getManualTokenIds() async {
-    final cloudDb = injector<CloudDatabase>();
-    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
-            ConnectionType.manuallyIndexerTokenID.rawValue))
-        .map((e) => e.key)
-        .toList();
-    return tokenIndexerIDs;
-  }
-
-  final nftBloc = injector.get<NftCollectionBloc>();
+  final nftBloc = injector<ClientTokenService>().nftBloc;
 
   @override
   void initState() {
@@ -134,7 +112,7 @@ class HomePageState extends State<HomePage>
     });
 
     refreshFeeds();
-    refreshTokens().then((value) {
+    _clientTokenService.refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
 
@@ -142,9 +120,6 @@ class HomePageState extends State<HomePage>
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      refreshTokens();
-    });
   }
 
   _scrollListenerToLoadMore() {
@@ -175,7 +150,6 @@ class HomePageState extends State<HomePage>
     routeObserver.unsubscribe(this);
     _fgbgSubscription?.cancel();
     _controller.dispose();
-    _timer.cancel();
     super.dispose();
   }
 
@@ -183,13 +157,14 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    refreshTokens().then((value) => refreshFeeds());
+    _clientTokenService.refreshTokens().then((value) => refreshFeeds());
     refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
         if (!mounted) return;
-        nftBloc.add(RequestIndexEvent(await getAddresses()));
+        nftBloc
+            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
     }
     memoryValues.inGalleryView = true;
@@ -591,60 +566,6 @@ class HomePageState extends State<HomePage>
     await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
-  Future refreshTokens({checkPendingToken = false}) async {
-    final accountService = injector<AccountService>();
-
-    final value = await Future.wait([
-      getAddressIndexes(),
-      getManualTokenIds(),
-      accountService.getHiddenAddressIndexes(),
-    ]);
-    final addresses = value[0] as List<AddressIndex>;
-    final indexerIds = value[1] as List<String>;
-    final hiddenAddresses = value[2] as List<AddressIndex>;
-
-    final activeAddresses = addresses
-        .where((element) => !hiddenAddresses.contains(element))
-        .map((e) => e.address)
-        .toList();
-    final isRefresh =
-        !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
-    log.info("[HomePage] activeAddresses: $activeAddresses");
-    log.info(
-        "[HomePage] NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
-    if (isRefresh) {
-      final listDifferents = activeAddresses
-          .where(
-              (element) => !NftCollectionBloc.activeAddress.contains(element))
-          .toList();
-      if (listDifferents.isNotEmpty) {
-        nftBloc.add(GetTokensBeforeByOwnerEvent(
-          pageKey: nftBloc.state.nextKey,
-          owners: listDifferents,
-        ));
-      }
-    }
-
-    nftBloc.add(RefreshNftCollectionByOwners(
-      hiddenAddresses: hiddenAddresses,
-      addresses: addresses,
-      debugTokens: indexerIds,
-      isRefresh: isRefresh,
-    ));
-
-    if (checkPendingToken) {
-      final pendingTokenService = injector<PendingTokenService>();
-      final pendingResults = await Future.wait(activeAddresses
-          .where((address) => address.startsWith("tz"))
-          .map((address) => pendingTokenService.checkPendingTezosTokens(address,
-              maxRetries: 1)));
-      if (pendingResults.any((e) => e.isNotEmpty)) {
-        nftBloc.add(UpdateTokensEvent(
-            tokens: pendingResults.expand((e) => e).toList()));
-      }
-    }
-  }
-
   void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
@@ -745,7 +666,7 @@ class HomePageState extends State<HomePage>
     injector<Wc2Service>().activateParings();
 
     refreshFeeds();
-    refreshTokens(checkPendingToken: true);
+    _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();

@@ -1041,7 +1041,9 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "contract".tr(),
-          value: assetToken.blockchain.capitalize(),
+          value: (assetToken.blockchain.toLowerCase() == "tezos")
+              ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
+              : assetToken.blockchain.capitalize(),
           tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
         ),
