@@ -40,7 +40,7 @@ class _StampPreviewState extends State<StampPreview> {
   Uint8List? postcardData;
   Uint8List? stampedPostcardData;
   int index = 0;
-  bool stamped = false;
+  bool loading = false;
 
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
@@ -75,6 +75,8 @@ class _StampPreviewState extends State<StampPreview> {
               text: widget.payload.asset.postcardMetadata.isCompleted
                   ? "complete_postcard_journey_".tr()
                   : "confirm_your_design".tr(),
+              isProcessing: loading,
+              enabled: !loading,
               onTap: () async {
                 await _close();
               },
@@ -86,6 +88,9 @@ class _StampPreviewState extends State<StampPreview> {
   }
 
   Future<void> _close() async {
+    setState(() {
+      loading = true;
+    });
     final imagePath = widget.payload.imagePath;
     final metadataPath = widget.payload.metadataPath;
     File imageFile = File(imagePath);
@@ -100,6 +105,9 @@ class _StampPreviewState extends State<StampPreview> {
     final walletIndex = await asset.getOwnerWallet();
     if (walletIndex == null) {
       log.info("[POSTCARD] Wallet index not found");
+      setState(() {
+        loading = true;
+      });
       return;
     }
 
@@ -147,6 +155,9 @@ class _StampPreviewState extends State<StampPreview> {
       Navigator.of(context).pushNamed(AppRouter.postcardConfirmingPage,
           arguments: widget.payload);
     }
+    setState(() {
+      loading = true;
+    });
   }
 }
 
