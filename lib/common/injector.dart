@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -279,6 +280,9 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));
+
+  injector.registerLazySingleton<ClientTokenService>(
+      () => ClientTokenService(injector(), injector(), injector(), injector()));
 
   final tezosNodeClientURL = Environment.appTestnetConfig
       ? Environment.tezosNodeClientTestnetURL

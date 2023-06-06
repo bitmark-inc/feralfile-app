@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/editorial_service.dart';
@@ -78,6 +79,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _feedService = injector<FeedService>();
   final _editorialService = injector<EditorialService>();
   late Timer? _timer;
+  final _clientTokenService = injector<ClientTokenService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -102,12 +104,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       });
       _pageController.jumpToPage(_selectedIndex);
       if (index == 1) {
-        _homePageKey.currentState?.refreshTokens().then((value) {
+        _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
           _editorialService.checkNewEditorial();
         });
       } else if (index == 0) {
-        _homePageKey.currentState?.refreshTokens().then((value) {
+        _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
           _editorialService.checkNewEditorial();
         });
@@ -189,13 +191,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
-    _homePageKey.currentState?.refreshTokens().then((value) {
+    _clientTokenService.refreshTokens().then((value) {
       _feedService.checkNewFeeds();
       _editorialService.checkNewEditorial();
     });
 
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _homePageKey.currentState?.refreshTokens();
+      _clientTokenService.refreshTokens();
     });
 
     _pages = <Widget>[
@@ -429,7 +431,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
 
       case 'gallery_new_nft':
-        _homePageKey.currentState?.refreshTokens();
+        _clientTokenService.refreshTokens();
         break;
       case "artwork_created":
       case "artwork_received":
