@@ -649,31 +649,32 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 Expanded(
                   child: GestureDetector(
                     child: PageView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (value) {
-                          _timer?.cancel();
-                          final currentId = tokens[value];
-                          _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
-                              useIndexer: widget.payload.useIndexer));
-                          _stopAllChromecastDevices();
-                          keyboardManagerKey.currentState?.hideKeyboard();
-                        },
-                        controller: controller,
-                        itemCount: tokens.length,
-                        itemBuilder: (context, index) {
-                          if (tokens[index].id.isPostcardId) {
-                            return PostcardPreviewWidget(
-                              identity: tokens[index],
-                              useIndexer: widget.payload.useIndexer,
-                            );
-                          }
-                          return ArtworkPreviewWidget(
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (value) {
+                        _timer?.cancel();
+                        final currentId = tokens[value];
+                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
+                            useIndexer: widget.payload.useIndexer));
+                        _stopAllChromecastDevices();
+                        keyboardManagerKey.currentState?.hideKeyboard();
+                      },
+                      controller: controller,
+                      itemCount: tokens.length,
+                      itemBuilder: (context, index) {
+                        if (tokens[index].id.isPostcardId) {
+                          return PostcardPreviewWidget(
                             identity: tokens[index],
-                            onLoaded: setTimer,
-                            focusNode: _focusNode,
                             useIndexer: widget.payload.useIndexer,
                           );
-                        }),
+                        }
+                        return ArtworkPreviewWidget(
+                          identity: tokens[index],
+                          onLoaded: setTimer,
+                          focusNode: _focusNode,
+                          useIndexer: widget.payload.useIndexer,
+                        );
+                      },
+                    ),
                   ),
                 ),
                 Visibility(
