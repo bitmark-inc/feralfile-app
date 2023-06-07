@@ -699,6 +699,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardProgress(AssetToken asset) {
     final theme = Theme.of(context);
+    NumberFormat numberFormatter = NumberFormat("00");
     final travelInfo = asset.postcardMetadata.listTravelInfoWithoutLocationName;
     final currentStampNumber = asset.postcardMetadata.numberOfStamp;
     return Column(
@@ -731,7 +732,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           children: [
             Text(
                 "stamps_".tr(namedArgs: {
-                  "current": currentStampNumber.toString(),
+                  "current": numberFormatter.format(currentStampNumber),
                   "total": MAX_STAMP_IN_POSTCARD.toString(),
                 }),
                 style: theme.textTheme.moMASans400Black12),
@@ -898,11 +899,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   .copyWith(color: AppColor.auQuickSilver),
             ),
             const Spacer(),
-            OutlineButton(
-              text: "share".tr(),
-              color: AppColor.auSuperTeal,
-              textColor: AppColor.primaryBlack,
-              padding: const EdgeInsets.symmetric(vertical: 4),
+            GestureDetector(
+              child: Text(
+                "resend_".tr(),
+                style: theme.textTheme.moMASans400Grey12
+                    .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
+              ),
               onTap: () {
                 _sharePostcard(asset);
               },
