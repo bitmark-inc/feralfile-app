@@ -82,7 +82,6 @@ import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/confirm_postcard_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -428,10 +427,22 @@ class AppRouter {
 
       case AppRouter.stampPreview:
         return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) =>
-              StampPreview(payload: settings.arguments as StampPreviewPayload),
-        );
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(
+                        create: (_) => PostcardDetailBloc(
+                              injector(),
+                              injector(),
+                              injector(),
+                              injector(),
+                            )),
+                  ],
+                  child: StampPreview(
+                      payload: settings.arguments as StampPreviewPayload),
+                ));
 
       case moreAutonomyPage:
         return CupertinoPageRoute(
@@ -1381,27 +1392,6 @@ class AppRouter {
             return PostcardStartedPage(
               assetToken: settings.arguments as AssetToken,
             );
-          },
-        );
-
-      case AppRouter.postcardConfirmingPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) {
-            return MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
-                  BlocProvider(
-                      create: (_) => PostcardDetailBloc(
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                          )),
-                ],
-                child: ConfirmingPostcardPage(
-                    payload: settings.arguments as StampPreviewPayload));
           },
         );
 
