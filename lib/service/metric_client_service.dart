@@ -128,7 +128,7 @@ class MetricClientService {
     }
   }
 
-  MixpanelConfig getConfig() {
+  MixpanelConfig? getConfig() {
     return mixPanelClient.getConfig();
   }
 

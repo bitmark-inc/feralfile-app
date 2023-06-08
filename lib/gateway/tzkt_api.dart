@@ -40,7 +40,7 @@ abstract class TZKTApi {
   @GET("/v1/bigmaps")
   Future<List<int>> getBigMapsId({
     @Query("contract") required String contract,
-    @Query("path") String path = "postcards",
+    @Query("path") String path = "postcards.postcards",
     @Query("select") String select = "ptr",
   });
 

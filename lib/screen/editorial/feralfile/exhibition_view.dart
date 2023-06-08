@@ -95,10 +95,10 @@ class _ExhibitionViewState extends State<ExhibitionView> {
   }
 
   Widget _ffArtworks(BuildContext context, Exhibition? exhibition) {
-    if (exhibition?.artworks == null) return const SizedBox();
+    if (exhibition?.series == null) return const SizedBox();
 
     final theme = Theme.of(context);
-    final artworks = exhibition!.artworks!;
+    final artworks = exhibition!.series!;
 
     return ListView.builder(
       scrollDirection: Axis.horizontal,

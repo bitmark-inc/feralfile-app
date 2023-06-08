@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
@@ -608,6 +609,9 @@ class HomePageState extends State<HomePage>
         .toList();
     final isRefresh =
         !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
+    log.info("[HomePage] activeAddresses: $activeAddresses");
+    log.info(
+        "[HomePage] NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
     if (isRefresh) {
       final listDifferents = activeAddresses
           .where(
@@ -689,9 +693,7 @@ class HomePageState extends State<HomePage>
         final isAndroidEndToEndEncryptionAvailable =
             await injector<AccountService>()
                 .isAndroidEndToEndEncryptionAvailable();
-        if (isAndroidEndToEndEncryptionAvailable == null) {
-          showTip = true;
-        }
+        showTip = isAndroidEndToEndEncryptionAvailable != true;
       } else {
         final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
         showTip = !iCloudAvailable.value;
@@ -723,6 +725,8 @@ class HomePageState extends State<HomePage>
   }
 
   void _handleForeground() async {
+    final locale = Localizations.localeOf(context);
+    LocaleService.refresh(locale);
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await _checkTipCardShowTime();
@@ -746,7 +750,6 @@ class HomePageState extends State<HomePage>
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
     injector<VersionService>().checkForUpdate();
-
     // Reload token in Isolate
     final jwtToken =
         (await injector<AuthService>().getAuthToken(forceRefresh: true))

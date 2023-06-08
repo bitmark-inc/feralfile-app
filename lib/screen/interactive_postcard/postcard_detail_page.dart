@@ -67,15 +67,14 @@ class ClaimedPostcardDetailPage extends StatefulWidget {
 
   @override
   State<ClaimedPostcardDetailPage> createState() =>
-      _ClaimedPostcardDetailPageState();
+      ClaimedPostcardDetailPageState();
 }
 
-class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
+class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
 
-  late Locale locale;
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
   Timer? timer;
@@ -83,7 +82,9 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final metricClient = injector.get<MetricClientService>();
+  final _metricClient = injector.get<MetricClientService>();
+  final _configurationService = injector<ConfigurationService>();
+  final _postcardService = injector<PostcardService>();
 
   @override
   void initState() {
@@ -98,8 +99,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    final metricClient = injector.get<MetricClientService>();
-    metricClient.timerEvent(
+    _metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
   }
@@ -123,7 +123,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         _manualShare(caption, url);
       }
     });
-    metricClient.addEvent(MixpanelEvent.share, data: {
+    _metricClient.addEvent(MixpanelEvent.share, data: {
       "id": token.id,
       "to": "Twitter",
       "caption": caption,
@@ -140,13 +140,15 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "your_postcard_completed".tr(namedArgs: {
-            'distance': distanceFormatter.format(
-                distance: totalDistance, withFullName: true),
-          }),
-          style: theme.textTheme.moMASans400Grey14,
-        ),
+        RichText(
+            text: TextSpan(children: [
+          TextSpan(text: "your_postcard_has_traveled".tr()),
+          TextSpan(
+              text: distanceFormatter.format(
+                  distance: totalDistance, withFullName: true),
+              style: const TextStyle(fontWeight: FontWeight.w700)),
+          TextSpan(text: "tag_your_postcard_collaborators".tr()),
+        ], style: theme.textTheme.moMASans400White14)),
         const SizedBox(height: 24),
         PrimaryButton(
           text: "share_on_".tr(),
@@ -164,7 +166,8 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
       ],
     );
-
+    _configurationService.setListPostcardAlreadyShowYouDidIt(
+        [AlreadyShowYouDidItPostcard(id: asset.id, owner: asset.owner)]);
     return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
   }
 
@@ -209,7 +212,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void dispose() {
     final artworkId =
         jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
-    metricClient.addEvent(
+    _metricClient.addEvent(
       MixpanelEvent.stayInArtworkDetail,
       data: {
         "id": artworkId,
@@ -220,19 +223,38 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     super.dispose();
   }
 
+  Future<void> gotoChatThread(BuildContext context) async {
+    final state = context.read<PostcardDetailBloc>().state;
+    final asset = state.assetToken;
+    if (asset == null) return;
+    final wallet = await asset.getOwnerWallet();
+    if (wallet == null || !mounted) return;
+    Navigator.of(context).pushNamed(
+      ChatThreadPage.tag,
+      arguments: ChatThreadPagePayload(
+          tokenId: asset.id,
+          wallet: wallet.first,
+          address: asset.owner,
+          index: wallet.second,
+          cryptoType:
+              asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
+          name: asset.title ?? ''),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    locale = Localizations.localeOf(context);
-    distanceFormatter = DistanceFormatter(locale: locale);
+    distanceFormatter = DistanceFormatter();
     final hasKeyboard = currentAsset?.medium == "software" ||
         currentAsset?.medium == "other" ||
         currentAsset?.medium == null;
     return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
         listenWhen: (previous, current) {
       if (previous.assetToken?.postcardMetadata.isCompleted != true &&
-          current.assetToken?.postcardMetadata.isCompleted == true) {
+          current.assetToken?.postcardMetadata.isCompleted == true &&
+          current.assetToken?.isAlreadyShowYouDidIt == false) {
         _youDidIt(context, current.assetToken!);
       }
       return true;
@@ -471,15 +493,14 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Future<void> _sharePostcard(AssetToken asset) async {
     try {
-      final sharePostcardResponse =
-          await injector<PostcardService>().sharePostcard(asset);
+      final sharePostcardResponse = await _postcardService.sharePostcard(asset);
       if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
           'deeplink': sharePostcardResponse.deeplink!,
         });
         Share.share(shareMessage);
       }
-      injector<ConfigurationService>()
+      _configurationService
           .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
     } catch (e) {
       if (e is DioError) {
@@ -596,7 +617,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   bool _isHidden(AssetToken token) {
-    return injector<ConfigurationService>()
+    return _configurationService
         .getTempStorageHiddenTokenIDs()
         .contains(token.id);
   }
@@ -611,7 +632,7 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
           icon: const Icon(AuIcon.hidden_artwork),
           onTap: () async {
-            await injector<ConfigurationService>()
+            await _configurationService
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             injector<SettingsDataService>().backup();
 
@@ -832,5 +853,26 @@ class _ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _leaderboard(PostcardDetailState state) {
     return const Text("Here is leader board");
+  }
+}
+
+class AlreadyShowYouDidItPostcard {
+  String id;
+  String owner;
+
+  AlreadyShowYouDidItPostcard({required this.id, required this.owner});
+
+  static AlreadyShowYouDidItPostcard fromJson(Map<String, dynamic> json) {
+    return AlreadyShowYouDidItPostcard(
+      id: json['id'],
+      owner: json['owner'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "owner": owner,
+    };
   }
 }

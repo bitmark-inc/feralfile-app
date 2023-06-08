@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
 import 'package:wallet_connect/wallet_connect.dart';
@@ -304,6 +305,17 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        backgroundColor: Colors.white,
+        toolbarHeight: 0,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(

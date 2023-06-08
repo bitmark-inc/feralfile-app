@@ -891,12 +891,14 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
+                            injector(),
                           )),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments as ArtworkDetailPayload)));
 
       case claimedPostcardDetailsPage:
+        final payload = settings.arguments as ArtworkDetailPayload;
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
@@ -918,7 +920,7 @@ class AppRouter {
                           )),
                 ],
                 child: ClaimedPostcardDetailPage(
-                    payload: settings.arguments as ArtworkDetailPayload)));
+                    key: payload.key, payload: payload)));
       case TBSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -1133,7 +1135,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return ClaimTokenPage(
-                artwork: args.artwork,
+                series: args.series,
                 otp: args.otp,
               );
             });
@@ -1144,7 +1146,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                   create: (_) => RoyaltyBloc(injector()),
                   child: TokenDetailPage(
-                    artwork: settings.arguments as FFArtwork,
+                    series: settings.arguments as FFSeries,
                   ),
                 ));
 

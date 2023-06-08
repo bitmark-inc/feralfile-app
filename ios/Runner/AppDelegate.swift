@@ -99,6 +99,17 @@ import Starscream
             }
         })
         
+        let localeChannel = FlutterMethodChannel(name: "locale",
+                                                    binaryMessenger: controller.binaryMessenger)
+        localeChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "getMeasurementSystem":
+                LocaleHandler.shared.getMeasurementSystem(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+        
         let migrationChannel = FlutterMethodChannel(name: "migration_util",
                                                     binaryMessenger: controller.binaryMessenger)
         migrationChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in

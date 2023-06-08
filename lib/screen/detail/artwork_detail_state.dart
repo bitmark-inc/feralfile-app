@@ -21,9 +21,11 @@ class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
 class ArtworkDetailState {
   AssetToken? assetToken;
   List<Provenance> provenances;
+  Map<String, int> owners;
 
   ArtworkDetailState({
     this.assetToken,
     required this.provenances,
+    this.owners = const {},
   });
 }
