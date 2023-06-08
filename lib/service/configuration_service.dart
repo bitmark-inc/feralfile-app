@@ -274,6 +274,10 @@ abstract class ConfigurationService {
   Future<void> setMixpanelConfig(MixpanelConfig config);
 
   MixpanelConfig? getMixpanelConfig();
+
+  Future<void> setCurrentGroupChatId(String? groupChatId);
+
+  String? getCurrentGroupChatId();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -361,6 +365,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
       "already_show_you_did_it_postcard";
+
+  static const String KEY_CURRENT_GROUP_CHAT_ID = "current_group_chat_id";
 
   static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
@@ -1211,5 +1217,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setMixpanelConfig(MixpanelConfig config) async {
     await _preferences.setString(
         KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
+  }
+
+  @override
+  String? getCurrentGroupChatId() {
+    return _preferences.getString(KEY_CURRENT_GROUP_CHAT_ID);
+  }
+
+  @override
+  Future<void> setCurrentGroupChatId(String? chatId) async {
+    chatId ??= "";
+    await _preferences.setString(KEY_CURRENT_GROUP_CHAT_ID, chatId);
   }
 }
