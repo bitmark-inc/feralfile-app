@@ -13,6 +13,8 @@ import 'package:collection/collection.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'log.dart';
+
 Future<bool> checkLocationPermissions() async {
   final permission = await Geolocator.requestPermission();
   if (permission == LocationPermission.denied ||
@@ -48,6 +50,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
             navigationService.navigatorKey.currentContext!);
         return null;
       }
+      log.info("Location: ${location.latitude}, ${location.longitude}");
       final placeMark = await getPlaceMarkFromCoordinates(
           location.latitude, location.longitude);
       if (placeMark == null) {
@@ -57,7 +60,8 @@ Future<GeoLocation?> getGeoLocationWithPermission(
       final geolocation = isFuzzy
           ? await getFuzzyGeolocation(address, location)
           : GeoLocation(position: location, address: address);
-
+      log.info(
+          "Fuzzy Location: ${geolocation.position.latitude}, ${geolocation.position.longitude}");
       return geolocation;
     } catch (e) {
       await UIHelper.showWeakGPSSignal(
