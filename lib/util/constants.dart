@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -78,8 +77,6 @@ const double cellSpacing = 3.0;
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
-
-final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
