@@ -126,14 +126,20 @@ class _StampPreviewState extends State<StampPreview> {
               padding:
                   ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(
+                    height: 150,
+                  ),
                   PostcardRatio(
                     assetToken: assetToken,
                     imagePath: imagePath,
                     jsonPath: metadataPath,
                   ),
                   _postcardAction(state),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  _postcardLoadingDescription(state),
                 ],
               ),
             );
@@ -187,6 +193,28 @@ class _StampPreviewState extends State<StampPreview> {
             ),
           ],
         ),
+      );
+    }
+    return const SizedBox();
+  }
+
+  Widget _postcardLoadingDescription(PostcardDetailState state) {
+    final theme = Theme.of(context);
+    if (!confirming) {
+      return SizedBox();
+    }
+    if (state.isPostcardUpdatingOnBlockchain) {
+      return Text(
+        "confirming_on_blockchain_description".tr(),
+        style: theme.textTheme.moMASans400Grey12
+            .copyWith(color: AppColor.auQuickSilver),
+      );
+    }
+    if (state.isPostcardUpdating) {
+      return Text(
+        "updating_token_description".tr(),
+        style: theme.textTheme.moMASans400Grey12
+            .copyWith(color: AppColor.auQuickSilver),
       );
     }
     return const SizedBox();

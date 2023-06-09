@@ -82,22 +82,27 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
           child: addOnlyDivider(color: AppColor.auGreyBackground),
         ),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              PostcardRatio(assetToken: widget.assetToken),
-              PostcardButton(
-                text: "next_design_your_stamp".tr(),
-                onTap: () async {
-                  await _onStarted(context);
-                },
-              ),
-            ],
+      body: Column(
+        children: [
+          const SizedBox(
+            height: 150,
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PostcardRatio(assetToken: widget.assetToken),
+                PostcardButton(
+                  text: "next_design_your_stamp".tr(),
+                  onTap: () async {
+                    await _onStarted(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

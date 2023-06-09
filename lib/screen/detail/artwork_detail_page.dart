@@ -402,7 +402,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         if (ownerWallet != null) ...[
           OptionItem(
             title: "send_artwork".tr(),
-            icon: const Icon(AuIcon.send),
+            icon: SvgPicture.asset('assets/images/Send.svg'),
             onTap: () async {
               final payload = await Navigator.of(context).popAndPushNamed(
                   AppRouter.sendArtworkPage,

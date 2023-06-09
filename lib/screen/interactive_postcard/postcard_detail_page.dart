@@ -397,7 +397,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(
-                              height: 40,
+                              height: 30,
                             ),
                             Hero(
                               tag: "detail_${asset.id}",
@@ -822,7 +822,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        travelInfo.receivedLocation ?? "Not sent",
+                        travelInfo.receivedLocation ?? "-",
                         style: theme.textTheme.moMASans400Black12,
                       ),
                     ),
@@ -882,7 +882,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           children: [
             Text(
               sendingTrip.sentLocation ?? "",
-              style: theme.textTheme.moMASans400Black14,
+              style: theme.textTheme.moMASans400Black12,
             ),
           ],
         ),
@@ -895,7 +895,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(width: 6),
             Text(
               "waiting_for_recipient".tr(),
-              style: theme.textTheme.moMASans400Black14
+              style: theme.textTheme.moMASans400Black12
                   .copyWith(color: AppColor.auQuickSilver),
             ),
             const Spacer(),
