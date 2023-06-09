@@ -14,12 +14,14 @@ class PostcardViewWidget extends StatefulWidget {
   final AssetToken assetToken;
   final String? imagePath;
   final String? jsonPath;
+  final int? zoomIndex;
 
   const PostcardViewWidget({
     super.key,
     required this.assetToken,
     this.imagePath,
     this.jsonPath,
+    this.zoomIndex,
   });
 
   @override
@@ -36,6 +38,13 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void _zoomIntoStamp(int index) {
+    log.info("[Postcard] zoom into stamp $index");
+    _controller?.evaluateJavascript(
+      source: "zoomStamp('$index')",
+    );
   }
 
   _convertFileToBase64() async {
@@ -68,14 +77,16 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             _controller = controller;
           },
           onConsoleMessage: (InAppWebViewController controller,
-              ConsoleMessage consoleMessage) {
+              ConsoleMessage consoleMessage) async {
             log.info(
                 "[Postcard] Software artwork console log: ${consoleMessage.message}");
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
-              _convertFileToBase64().then((value) {
-                setState(() {
-                  isLoading = false;
-                });
+              await _convertFileToBase64();
+              if (widget.zoomIndex != null) {
+                _zoomIntoStamp(widget.zoomIndex!);
+              }
+              setState(() {
+                isLoading = false;
               });
             }
           },
@@ -107,15 +118,21 @@ class PostcardRatio extends StatelessWidget {
   final AssetToken assetToken;
   final String? imagePath;
   final String? jsonPath;
+  final double? ratio;
 
   const PostcardRatio(
-      {super.key, required this.assetToken, this.imagePath, this.jsonPath});
+      {super.key,
+      required this.assetToken,
+      this.imagePath,
+      this.jsonPath,
+      this.ratio});
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: postcardAspectRatio,
+      aspectRatio: ratio ?? postcardAspectRatio,
       child: PostcardViewWidget(
+        key: key,
         assetToken: assetToken,
         imagePath: imagePath,
         jsonPath: jsonPath,

@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.da
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -725,52 +726,63 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _travelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(formatter.format(travelInfo.index),
-                    style: theme.textTheme.moMASans400Black12
-                        .copyWith(color: AppColor.auQuickSilver)),
-                AutoSizeText(
-                  travelInfo.sentLocation ?? "",
-                  style: theme.textTheme.moMASans400Black14,
-                  maxLines: 2,
-                  minFontSize: 14,
-                ),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      "assets/images/arrow_3.svg",
-                      color: AppColor.primaryBlack,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: AutoSizeText(
-                        travelInfo.receivedLocation ?? "Not sent",
-                        style: theme.textTheme.moMASans400Black14,
-                        maxLines: 2,
-                        minFontSize: 14,
+    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
+            arguments: TripDetailPayload(
+              stampIndex: travelInfo.index - 1,
+              travelsInfo: travelsInfo!,
+              assetToken: currentAsset!,
+            ));
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(formatter.format(travelInfo.index),
+                      style: theme.textTheme.moMASans400Black12
+                          .copyWith(color: AppColor.auQuickSilver)),
+                  AutoSizeText(
+                    travelInfo.sentLocation ?? "",
+                    style: theme.textTheme.moMASans400Black14,
+                    maxLines: 2,
+                    minFontSize: 14,
+                  ),
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        "assets/images/arrow_3.svg",
+                        color: AppColor.primaryBlack,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: AutoSizeText(
+                          travelInfo.receivedLocation ?? "Not sent",
+                          style: theme.textTheme.moMASans400Black14,
+                          maxLines: 2,
+                          minFontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            distanceFormatter.format(distance: travelInfo.getDistance()),
-            style: theme.textTheme.moMASans400Black12
-                .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
-          ),
-        ]),
-        addDivider(height: 30, color: AppColor.auGreyBackground),
-      ],
+            const SizedBox(width: 10),
+            Text(
+              distanceFormatter.format(distance: travelInfo.getDistance()),
+              style: theme.textTheme.moMASans400Black12
+                  .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
+            ),
+          ]),
+          addDivider(height: 30, color: AppColor.auGreyBackground),
+        ],
+      ),
     );
   }
 
