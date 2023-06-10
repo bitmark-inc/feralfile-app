@@ -75,7 +75,7 @@ class _$CloudDatabase extends CloudDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 6,
+      version: 7,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -97,7 +97,7 @@ class _$CloudDatabase extends CloudDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Audit` (`uuid` TEXT NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, PRIMARY KEY (`address`))');
+            'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, `name` TEXT, PRIMARY KEY (`address`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -512,7 +512,8 @@ class _$WalletAddressDao extends WalletAddressDao {
                   'index': item.index,
                   'cryptoType': item.cryptoType,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'isHidden': item.isHidden ? 1 : 0
+                  'isHidden': item.isHidden ? 1 : 0,
+                  'name': item.name
                 }),
         _walletAddressUpdateAdapter = UpdateAdapter(
             database,
@@ -524,7 +525,8 @@ class _$WalletAddressDao extends WalletAddressDao {
                   'index': item.index,
                   'cryptoType': item.cryptoType,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'isHidden': item.isHidden ? 1 : 0
+                  'isHidden': item.isHidden ? 1 : 0,
+                  'name': item.name
                 }),
         _walletAddressDeletionAdapter = DeletionAdapter(
             database,
@@ -536,7 +538,8 @@ class _$WalletAddressDao extends WalletAddressDao {
                   'index': item.index,
                   'cryptoType': item.cryptoType,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'isHidden': item.isHidden ? 1 : 0
+                  'isHidden': item.isHidden ? 1 : 0,
+                  'name': item.name
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -560,7 +563,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             index: row['index'] as int,
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            isHidden: (row['isHidden'] as int) != 0));
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?));
   }
 
   @override
@@ -572,7 +576,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             index: row['index'] as int,
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            isHidden: (row['isHidden'] as int) != 0),
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?),
         arguments: [address]);
   }
 
@@ -586,7 +591,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             index: row['index'] as int,
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            isHidden: (row['isHidden'] as int) != 0),
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?),
         arguments: [uuid]);
   }
 
@@ -601,7 +607,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             index: row['index'] as int,
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            isHidden: (row['isHidden'] as int) != 0),
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?),
         arguments: [isHidden ? 1 : 0]);
   }
 
@@ -618,7 +625,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             index: row['index'] as int,
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            isHidden: (row['isHidden'] as int) != 0),
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?),
         arguments: [uuid, cryptoType]);
   }
 

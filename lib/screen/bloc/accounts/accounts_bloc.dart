@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
@@ -46,15 +47,16 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<GetAccountsEvent>((event, emit) async {
       final connectionsFuture =
           _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-      final personas = await _cloudDB.personaDao.getPersonas();
+      final addresses = await _cloudDB.addressDao.getAllAddresses();
 
-      List<Account> accounts = (await Future.wait(
-              personas.map((persona) => getAccountPersona(persona))))
-          .whereNotNull()
-          .toList();
+      List<Account> accounts = await getAccountPersona(addresses);
 
       final connections = await connectionsFuture;
       for (var connection in connections) {
+        final cryptoType = CryptoType.fromAddress(connection.key).source;
+        final name = connection.name.isNotEmpty
+            ? connection.name
+            : cryptoType;
         switch (connection.connectionType) {
           case 'feralFileWeb3':
           case "feralFileToken":
@@ -72,7 +74,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
                   key: connection.key,
                   accountNumber: accountNumber,
                   connections: [connection],
-                  name: connection.name,
+                  blockchain: cryptoType,
+                  name: name,
                   createdAt: connection.createdAt));
             }
             break;
@@ -82,7 +85,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
               key: connection.key,
               accountNumber: connection.accountNumber,
               connections: [connection],
-              name: connection.name,
+              blockchain: cryptoType,
+              name: name,
               createdAt: connection.createdAt,
             ));
             break;
@@ -108,19 +112,19 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<GetAccountsIRLEvent>((event, emit) async {
-      final personas = await _cloudDB.personaDao.getPersonas();
 
-      List<Account> accounts = (await Future.wait(
-              personas.map((persona) => getAccountPersona(persona))))
-          .whereNotNull()
-          .toList();
+      final addresses = await _cloudDB.addressDao.getAllAddresses();
+
+      List<Account> accounts = await getAccountPersona(addresses);
 
       accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final defaultAccount = accounts.firstWhereOrNull((element) =>
-          element.persona != null ? element.persona!.isDefault() : false);
-      if (defaultAccount != null) {
-        accounts.remove(defaultAccount);
-        accounts.insert(0, defaultAccount);
+      final defaultAccount = accounts.where((element) =>
+          element.persona != null ? element.persona!.isDefault() : false).toList();
+      if (defaultAccount != []) {
+        for (var element in defaultAccount) {
+          accounts.remove(element);
+          accounts.insert(0, element);
+        }
       }
       emit(AccountsState(accounts: accounts));
     });
@@ -435,22 +439,23 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     return existingConnections.first;
   }
 
-  Future<Account?> getAccountPersona(Persona persona) async {
-    final nameFuture = persona.wallet().getName();
-    final ethAddress = await persona.wallet().getETHEip55Address();
-    if (ethAddress.isEmpty) return null;
-    var name = await nameFuture;
-
-    if (name.isEmpty) {
-      name = persona.name;
+  Future<List<Account>> getAccountPersona(List<WalletAddress> addresses) async {
+    final personas = await _cloudDB.personaDao.getPersonas();
+    List<Account> accounts = [];
+    for (var e in addresses) {
+      final persona =
+          personas.firstWhereOrNull((element) => element.uuid == e.uuid);
+      if (persona != null) {
+        accounts.add(Account(
+            key: e.address,
+            persona: persona,
+            name: e.name ?? e.cryptoType,
+            blockchain: e.cryptoType,
+            walletAddress: e,
+            accountNumber: e.address,
+            createdAt: e.createdAt));
+      }
     }
-
-    final account = Account(
-        key: persona.uuid,
-        persona: persona,
-        name: name,
-        accountNumber: ethAddress,
-        createdAt: persona.createdAt);
-    return account;
+    return accounts;
   }
 }

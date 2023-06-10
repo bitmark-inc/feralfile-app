@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -536,7 +537,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
     } else if (allowCreateNewPersona) {
       configurationService.setDoneOnboarding(true);
-      await accountService.createPersona();
+      final persona = await accountService.createPersona();
+      await persona.insertAddress(WalletType.Autonomy);
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
       injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }

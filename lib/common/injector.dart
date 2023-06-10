@@ -121,6 +121,7 @@ Future<void> setup() async {
     migrateCloudV3ToV4,
     migrateCloudV4ToV5,
     migrateCloudV5ToV6,
+    migrateCloudV6ToV7,
   ]).build();
 
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;

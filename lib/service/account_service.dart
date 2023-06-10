@@ -40,6 +40,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
+import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
@@ -110,6 +111,8 @@ abstract class AccountService {
 
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress);
+
+  Future<void> updateAddressPersona(WalletAddress walletAddress);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -147,10 +150,9 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(name);
-    final persona =
-        Persona.newPersona(uuid: uuid, defaultAccount: isDefault ? 1 : null);
+    final persona = Persona.newPersona(
+        uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
     await _cloudDB.personaDao.insertPersona(persona);
-    await persona.insertAddress(WalletType.Autonomy);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     final metricClient = injector.get<MetricClientService>();
@@ -168,7 +170,7 @@ class AccountServiceImpl extends AccountService {
     for (final persona in personas) {
       final mnemonic = await persona.wallet().exportMnemonicWords();
       if (mnemonic == words) {
-        throw AccountImportedException(persona: persona);
+        return persona;
       }
     }
 
@@ -177,30 +179,14 @@ class AccountServiceImpl extends AccountService {
     await walletStorage.importKey(
         words, "", DateTime.now().microsecondsSinceEpoch);
 
-    String tezosIndexes = "0";
-    String ethereumIndexes = "0";
-    switch (walletType) {
-      case WalletType.Ethereum:
-        tezosIndexes = "";
-        break;
-      case WalletType.Tezos:
-        ethereumIndexes = "";
-        break;
-      default:
-        break;
-    }
     final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
-    await persona.insertAddress(walletType);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
       "id": uuid,
-      "tezosIndex": tezosIndexes,
-      "ethereumIndex": ethereumIndexes
     });
-    _autonomyService.postLinkedAddresses();
     log.info("[AccountService] imported persona ${persona.uuid}");
     return persona;
   }
@@ -387,12 +373,18 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future linkManuallyAddress(String address) async {
+    final cryptoType = CryptoType.fromAddress(address);
+    String key = address;
+    if (cryptoType == CryptoType.ETH) {
+      final ethereumAddress = EthereumAddress.fromHex(address);
+      key = ethereumAddress.hexEip55;
+    }
     final connection = Connection(
-      key: address,
-      name: '',
+      key: key,
+      name: cryptoType.source,
       data: '',
       connectionType: ConnectionType.manuallyAddress.rawValue,
-      accountNumber: address,
+      accountNumber: key,
       createdAt: DateTime.now(),
     );
 
@@ -727,7 +719,8 @@ class AccountServiceImpl extends AccountService {
             uuid: newPersona.uuid,
             index: e.index,
             cryptoType: e.getCryptoType().source,
-            createdAt: timestamp))
+            createdAt: timestamp,
+            name: e.getCryptoType().source))
         .toList();
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
 
@@ -790,6 +783,11 @@ class AccountServiceImpl extends AccountService {
       default:
         return;
     }
+  }
+
+  @override
+  Future<void> updateAddressPersona(WalletAddress walletAddress) async {
+    await _cloudDB.addressDao.updateAddress(walletAddress);
   }
 }
 

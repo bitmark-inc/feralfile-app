@@ -11,6 +11,13 @@ abstract class PersonaEvent {}
 
 class CreatePersonaEvent extends PersonaEvent {}
 
+class CreatePersonaAddressesEvent extends PersonaEvent {
+  final String name;
+  final WalletType walletType;
+
+  CreatePersonaAddressesEvent(this.name, this.walletType);
+}
+
 class GetListPersonaEvent extends PersonaEvent {
   final bool useDidKeyForAlias;
 

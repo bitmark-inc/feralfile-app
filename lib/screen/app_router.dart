@@ -96,6 +96,8 @@ import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
@@ -113,7 +115,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
@@ -151,6 +152,9 @@ import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
+import 'onboarding/import_address/import_seeds.dart';
+import 'onboarding/new_address/choose_chain_page.dart';
+import 'onboarding/view_address/view_existing_address.dart';
 
 class AppRouter {
   static const createPlayListPage = "createPlayList";
@@ -211,7 +215,6 @@ class AppRouter {
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
   static const tvConnectPage = 'tv_connect';
-  static const tezosTXDetailPage = "tezos_tx_detail";
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
@@ -846,6 +849,39 @@ class AppRouter {
             settings: settings,
             child: FeedPreviewPage());
 
+      case ChooseChainPage.tag:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => const ChooseChainPage());
+
+      case ViewExistingAddress.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const ViewExistingAddress());
+      case ImportSeedsPage.tag:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => const ImportSeedsPage());
+
+      case SelectAddressesPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                  create: (_) => ScanWalletBloc(injector(), injector()),
+                  child: SelectAddressesPage(
+                      payload: settings.arguments as SelectAddressesPayload),
+                ));
+      case AddressAlias.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+              create: (_) => PersonaBloc(
+                injector<CloudDatabase>(),
+                injector(),
+                injector(),
+                injector<AuditService>(),
+              ),
+              child: AddressAlias(
+                  payload: settings.arguments as AddressAliasPayload),
+            ));
       case feedArtworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,
@@ -1098,12 +1134,6 @@ class AppRouter {
                     child: TVConnectPage(
                         wcConnectArgs:
                             settings.arguments as WCConnectPageArgs)));
-
-      case tezosTXDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => TezosTXDetailPage.fromPayload(
-                payload: settings.arguments as Map<String, dynamic>));
 
       case sendArtworkPage:
         return CupertinoPageRoute(

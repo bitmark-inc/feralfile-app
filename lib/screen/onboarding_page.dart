@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -375,13 +377,24 @@ class _OnboardingPageState extends State<OnboardingPage>
                 const SizedBox(height: 20),
                 PrimaryButton(
                   text: "create_a_new_wallet".tr(),
-                  onTap: () async {
-                    setState(() {
-                      creatingAccount = true;
-                    });
-                    await Future.delayed(const Duration(milliseconds: 200), () {
-                      context.read<PersonaBloc>().add(CreatePersonaEvent());
-                    });
+                  onTap: () {
+                    context.read<PersonaBloc>().add(CreatePersonaEvent());
+                    Navigator.of(context).pushNamed(ChooseChainPage.tag);
+                  },
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text("or".tr().toUpperCase(),
+                      style: theme.textTheme.ppMori400Grey14),
+                ),
+                const SizedBox(height: 20),
+                Text("view_existing_address_des".tr(),
+                    style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  text: "view_existing_address".tr(),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(ViewExistingAddress.tag);
                   },
                 ),
               ] else if (state.onboardingStep == OnboardingStep.restore) ...[

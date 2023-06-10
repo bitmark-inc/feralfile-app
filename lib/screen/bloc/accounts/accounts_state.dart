@@ -28,6 +28,7 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
 class GetAccountsIRLEvent extends AccountsEvent {
   final Map<String, dynamic>? param;
   final String? blockchain;
+
   GetAccountsIRLEvent({this.param, this.blockchain});
 }
 
@@ -76,6 +77,7 @@ class Account {
   List<Connection>? connections;
   String name;
   String? blockchain;
+  WalletAddress? walletAddress;
   String accountNumber;
   DateTime createdAt;
 
@@ -90,6 +92,7 @@ class Account {
     this.persona,
     this.connections,
     this.blockchain,
+    this.walletAddress,
     this.accountNumber = "",
     this.name = "",
     required this.createdAt,
@@ -104,6 +107,7 @@ class Account {
         listEquals(other.connections, connections) &&
         other.name == name &&
         other.blockchain == blockchain &&
+        other.walletAddress == walletAddress &&
         other.accountNumber == accountNumber &&
         other.createdAt == createdAt;
   }
@@ -115,6 +119,7 @@ class Account {
         connections.hashCode ^
         name.hashCode ^
         blockchain.hashCode ^
+        walletAddress.hashCode ^
         accountNumber.hashCode ^
         createdAt.hashCode;
   }

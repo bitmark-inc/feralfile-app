@@ -7,12 +7,15 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -32,14 +35,11 @@ class WalletPage extends StatefulWidget {
 
 class _WalletPageState extends State<WalletPage>
     with RouteAware, WidgetsBindingObserver {
-  late PersonaBloc _personaBloc;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     context.read<AccountsBloc>().add(GetAccountsEvent());
-    _personaBloc = context.read<PersonaBloc>();
     injector<SettingsDataService>().backup();
   }
 
@@ -68,64 +68,44 @@ class _WalletPageState extends State<WalletPage>
       OptionItem(
         title: "create_a_new_wallet".tr(),
         icon: SvgPicture.asset(
-          "assets/images/autonomy_icon_white.svg",
+          "assets/images/joinFile.svg",
           color: AppColor.primaryBlack,
           height: 24,
         ),
-        builder: (context, child) {
-          return BlocProvider.value(
-              value: _personaBloc,
-              child: BlocConsumer<PersonaBloc, PersonaState>(
-                listener: (context, state) {
-                  switch (state.createAccountState) {
-                    case ActionState.loading:
-                      UIHelper.showLoadingScreen(context,
-                          text: "generating_wallet".tr());
-                      break;
-                    case ActionState.done:
-                      UIHelper.hideInfoDialog(context);
-                      final createdPersona = state.persona;
-                      if (createdPersona != null) {
-                        Navigator.of(context).pushNamed(
-                            AppRouter.namePersonaPage,
-                            arguments: NamePersonaPayload(
-                                uuid: createdPersona.uuid, allowBack: true));
-                      }
-                      break;
-
-                    case ActionState.error:
-                      UIHelper.hideInfoDialog(context);
-                      break;
-                    default:
-                      break;
-                  }
-                },
-                builder: (context, state) {
-                  return GestureDetector(
-                    child: child,
-                    onTap: () {
-                      if (_personaBloc.state.createAccountState ==
-                          ActionState.loading) {
-                        return;
-                      }
-                      _personaBloc.add(CreatePersonaEvent());
-                    },
-                  );
-                },
-              ));
+        onTap: () {
+          Navigator.of(context).popAndPushNamed(ChooseChainPage.tag);
         },
       ),
       OptionItem(
         title: "add_an_existing_wallet".tr(),
         icon: SvgPicture.asset(
-          "assets/images/add_wallet.svg",
+          "assets/images/icon_save.svg",
+          color: AppColor.primaryBlack,
           height: 24,
         ),
         onTap: () {
-          Navigator.of(context).popAndPushNamed(AppRouter.accessMethodPage);
+          Navigator.of(context).popAndPushNamed(ImportSeedsPage.tag);
         },
       ),
-      OptionItem(),
+      OptionItem(
+        title: "view_existing_address".tr().toLowerCase().capitalize(),
+        icon: SvgPicture.asset(
+          "assets/images/unhide.svg",
+          color: AppColor.primaryBlack,
+          height: 24,
+        ),
+        onTap: () {
+          Navigator.of(context).popAndPushNamed(ViewExistingAddress.tag);
+        },
+      ),
+      OptionItem(
+        onTap: () async {
+          final debug = await isAppCenterBuild();
+          if (debug && mounted) {
+            Navigator.of(context).popAndPushNamed(AppRouter.accessMethodPage);
+          }
+        },
+      ),
     ];
     UIHelper.showDrawerAction(context, options: options);
   }
@@ -134,7 +114,7 @@ class _WalletPageState extends State<WalletPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getBackAppBar(context,
-          title: "wallets".tr(),
+          title: "addresses".tr(),
           onBack: null,
           icon: SvgPicture.asset(
             'assets/images/more_circle.svg',

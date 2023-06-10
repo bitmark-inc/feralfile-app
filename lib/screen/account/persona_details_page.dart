@@ -15,11 +15,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -38,7 +36,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -418,18 +415,6 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           ),
         ),
         onTap: () {
-          final payload = WalletDetailsPayload(
-            personaUUID: persona.uuid,
-            address: walletAddress.address,
-            type: CryptoType.fromSource(walletAddress.cryptoType),
-            wallet: LibAukDart.getWallet(persona.uuid),
-            personaName: persona.name,
-            index: walletAddress.index,
-            isHideGalleryEnabled: walletAddress.isHidden,
-            //personaName: widget.persona.name,
-          );
-          Navigator.of(context)
-              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
         },
       ),
     );

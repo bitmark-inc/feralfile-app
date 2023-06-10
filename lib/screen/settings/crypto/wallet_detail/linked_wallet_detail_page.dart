@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -235,13 +234,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                           ],
                         ),
                       ),
-                      widget.payload.type == CryptoType.XTZ
-                          ? TezosTXListView(
-                              address: widget.payload.address,
-                            )
-                          : const SliverToBoxAdapter(
-                              child: SizedBox(),
-                            )
                     ],
                   ),
                 ),
