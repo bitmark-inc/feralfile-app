@@ -1,11 +1,13 @@
 import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:autonomy_theme/style/colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -48,7 +50,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
   Widget build(BuildContext context) {
     final travelInfo = widget.payload.travelsInfo[_stampIndex];
     final theme = Theme.of(context);
-    final tripName = "Trip $_stampIndex";
+    final tripName = "trip_".tr(namedArgs: {"index": "${_stampIndex + 1}"});
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       appBar: getBackAppBar(context, onBack: () {
@@ -62,7 +64,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
               height: 15,
             ),
             AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: postcardAspectRatio,
               child: PostcardViewWidget(
                 assetToken: widget.payload.assetToken,
                 zoomIndex: travelInfo.index,
@@ -82,37 +84,41 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 ],
               ),
             ),
-            addOnlyDivider(color: Colors.white),
-            const SizedBox(
-              height: 22,
+            addOnlyDivider(color: AppColor.auGreyBackground),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 22),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        travelInfo.sentLocation ?? "",
+                        style: theme.textTheme.moMASans400White14,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  SvgPicture.asset(
+                    "assets/images/arrow_3.svg",
+                    color: AppColor.white,
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        travelInfo.receivedLocation ?? "",
+                        style: theme.textTheme.moMASans400White14,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      travelInfo.sentLocation ?? "",
-                      style: theme.textTheme.moMASans400White14,
-                    ),
-                  ),
-                ),
-                SvgPicture.asset(
-                  "assets/images/arrow_3.svg",
-                  color: AppColor.white,
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      travelInfo.receivedLocation ?? "",
-                      style: theme.textTheme.moMASans400White14,
-                    ),
-                  ),
-                ),
-              ],
-            )
-            // _tripInfo(travelInfo);
+            addOnlyDivider(color: AppColor.auGreyBackground),
           ],
         ),
       ),

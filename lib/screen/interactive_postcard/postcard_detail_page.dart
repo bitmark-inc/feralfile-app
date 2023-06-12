@@ -736,51 +736,59 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               assetToken: currentAsset!,
             ));
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(formatter.format(travelInfo.index),
-                      style: theme.textTheme.moMASans400Black12
-                          .copyWith(color: AppColor.auQuickSilver)),
-                  AutoSizeText(
-                    travelInfo.sentLocation ?? "",
-                    style: theme.textTheme.moMASans400Black14,
-                    maxLines: 2,
-                    minFontSize: 14,
-                  ),
-                  Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SvgPicture.asset(
-                        "assets/images/arrow_3.svg",
-                        color: AppColor.primaryBlack,
+                      Text(formatter.format(travelInfo.index),
+                          style: theme.textTheme.moMASans400Black12
+                              .copyWith(color: AppColor.auQuickSilver)),
+                      AutoSizeText(
+                        travelInfo.sentLocation ?? "",
+                        style: theme.textTheme.moMASans400Black14,
+                        maxLines: 2,
+                        minFontSize: 14,
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: AutoSizeText(
-                          travelInfo.receivedLocation ?? "Not sent",
-                          style: theme.textTheme.moMASans400Black14,
-                          maxLines: 2,
-                          minFontSize: 14,
-                        ),
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            "assets/images/arrow_3.svg",
+                            color: AppColor.primaryBlack,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: AutoSizeText(
+                              travelInfo.receivedLocation ?? "Not sent",
+                              style: theme.textTheme.moMASans400Black14,
+                              maxLines: 2,
+                              minFontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              distanceFormatter.format(distance: travelInfo.getDistance()),
-              style: theme.textTheme.moMASans400Black12
-                  .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
-            ),
-          ]),
-          addDivider(height: 30, color: AppColor.auGreyBackground),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  distanceFormatter.format(distance: travelInfo.getDistance()),
+                  style: theme.textTheme.moMASans400Black12
+                      .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
+                ),
+              ]),
+              addDivider(height: 30, color: AppColor.auGreyBackground),
+            ],
+          ),
+          Positioned.fill(
+              child: Container(
+            color: Colors.transparent,
+          ))
         ],
       ),
     );
