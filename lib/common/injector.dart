@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/memento_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
@@ -47,6 +48,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
+import 'package:autonomy_flutter/service/memento_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -318,6 +320,12 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<EditorialService>(
       () => EditorialServiceImpl(injector(), injector()));
+
+  injector
+      .registerLazySingleton<MementoService>(() => MementoService(injector()));
+
+  injector.registerLazySingleton<MementoApi>(
+      () => MementoApi(dio, baseUrl: Environment.mementoUrl));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

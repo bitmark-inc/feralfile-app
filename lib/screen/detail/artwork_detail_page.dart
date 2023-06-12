@@ -32,9 +32,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,6 +46,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:share/share.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -150,6 +153,34 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ],
     );
     return UIHelper.showDialog(context, "share_the_new".tr(), content);
+  }
+
+  Future<void> _shareMemento(AssetToken asset) async {
+    try {
+      final shareMessage = "memento_6_share_message".tr(namedArgs: {
+        'deeplink': "deepLink",
+      });
+      Share.share(shareMessage);
+    } catch (e) {
+      if (e is DioError) {
+        if (mounted) {
+          UIHelper.showSharePostcardFailed(context, e);
+        }
+      }
+    }
+  }
+
+  Widget _sendMomento6(AssetToken asset) {
+    final canSend = true;
+    if (!canSend) {
+      return SizedBox();
+    }
+    return PostcardButton(
+      text: "send_memento".tr(),
+      onTap: () {
+        _shareMemento(asset);
+      },
+    );
   }
 
   @override
@@ -277,6 +308,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     token: asset,
                   ),
                 ),
+                _sendMomento6(asset),
                 Visibility(
                   visible: CHECK_WEB3_CONTRACT_ADDRESS
                       .contains(asset.contractAddress),
