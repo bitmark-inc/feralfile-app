@@ -495,10 +495,13 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
+  String? userAgent,
 }) {
   String mimeType = assetToken.getMimeType;
-
+  final version = injector<ConfigurationService>().getVersionInfo();
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
+
+  userAgent ??= "user_agent".tr(namedArgs: {"version": version.toString()});
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
@@ -514,6 +517,7 @@ INFTRenderingWidget buildRenderingWidget(
     skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
+    userAgent: userAgent,
   ));
 
   return renderingWidget;

@@ -15,10 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:nft_collection/models/asset_token.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shake/shake.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:nft_collection/models/asset_tokenwakelock/wakelock.dart';
 
 class PreviewPrimerPage extends StatefulWidget {
   final AssetToken token;
@@ -37,6 +34,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
   bool isFullScreen = false;
   ShakeDetector? _detector;
   InAppWebViewController? _controller;
+  final _configurationService = injector<ConfigurationService>();
 
   @override
   void dispose() {
@@ -116,6 +114,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     final theme = Theme.of(context);
     final token = widget.token;
     final identityBloc = context.read<IdentityBloc>();
+    final version = _configurationService.getVersionInfo();
     return Scaffold(
         appBar: isFullScreen
             ? null
@@ -188,31 +187,25 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
           child: Column(
             children: [
               Expanded(
-                child: FutureBuilder(
-                    future: PackageInfo.fromPlatform(),
-                    builder: (context, snapshot) {
-                      final info = snapshot.data as PackageInfo;
-                      return InAppWebView(
-                        initialUrlRequest:
-                            URLRequest(url: Uri.tryParse(WEB3_PRIMER_URL)),
-                        initialOptions: InAppWebViewGroupOptions(
-                            crossPlatform: InAppWebViewOptions(
-                                userAgent: "userAgent"
-                                    .tr(namedArgs: {"version": info.version}))),
-                        onWebViewCreated: (controller) {
-                          _controller = controller;
-                        },
-                        onLoadStop: (controller, uri) {
-                          EasyDebounce.debounce(
-                            'screen_rotate',
-                            const Duration(milliseconds: 100),
-                            () => _controller?.evaluateJavascript(
-                                source:
-                                    "window.dispatchEvent(new Event('resize'));"),
-                          );
-                        },
-                      );
-                    }),
+                child: InAppWebView(
+                  initialUrlRequest:
+                      URLRequest(url: Uri.tryParse(WEB3_PRIMER_URL)),
+                  initialOptions: InAppWebViewGroupOptions(
+                      crossPlatform: InAppWebViewOptions(
+                          userAgent: "user_agent"
+                              .tr(namedArgs: {"version": version}))),
+                  onWebViewCreated: (controller) {
+                    _controller = controller;
+                  },
+                  onLoadStop: (controller, uri) {
+                    EasyDebounce.debounce(
+                      'screen_rotate',
+                      const Duration(milliseconds: 100),
+                      () => _controller?.evaluateJavascript(
+                          source: "window.dispatchEvent(new Event('resize'));"),
+                    );
+                  },
+                ),
               ),
               Visibility(
                 visible: !isFullScreen,

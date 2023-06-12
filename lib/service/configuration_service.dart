@@ -274,6 +274,10 @@ abstract class ConfigurationService {
   Future<void> setMixpanelConfig(MixpanelConfig config);
 
   MixpanelConfig? getMixpanelConfig();
+
+  String getVersionInfo();
+
+  Future<void> setVersionInfo(String version);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -363,6 +367,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "already_show_you_did_it_postcard";
 
   static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
+
+  static const String KEY_PACKAGE_INFO = "package_info";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1211,5 +1217,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setMixpanelConfig(MixpanelConfig config) async {
     await _preferences.setString(
         KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
+  }
+
+  @override
+  String getVersionInfo() {
+    return _preferences.getString(KEY_PACKAGE_INFO) ?? "";
+  }
+
+  @override
+  Future<void> setVersionInfo(String version) async {
+    await _preferences.setString(KEY_PACKAGE_INFO, version);
   }
 }

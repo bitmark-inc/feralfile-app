@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -6,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InappWebviewPage extends StatefulWidget {
@@ -22,6 +23,7 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
   late InAppWebViewController webViewController;
   late String title;
   late bool isLoading;
+  final _configurationService = injector<ConfigurationService>();
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final version = _configurationService.getVersionInfo();
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
@@ -49,33 +52,27 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
           Expanded(
             child: Stack(
               children: [
-                FutureBuilder(
-                    future: PackageInfo.fromPlatform(),
-                    builder: (context, snapshot) {
-                      final info = snapshot.data as PackageInfo;
-                      return InAppWebView(
-                        initialUrlRequest:
-                            URLRequest(url: Uri.tryParse(widget.url)),
-                        initialOptions: InAppWebViewGroupOptions(
-                            crossPlatform: InAppWebViewOptions(
-                                userAgent: "userAgent"
-                                    .tr(namedArgs: {"version": info.version}))),
-                        onWebViewCreated: (c) {
-                          webViewController = c;
-                        },
-                        onLoadStart: (controller, uri) {
-                          setState(() {
-                            isLoading = true;
-                            title = uri!.host;
-                          });
-                        },
-                        onLoadStop: (controller, uri) {
-                          setState(() {
-                            isLoading = false;
-                          });
-                        },
-                      );
-                    }),
+                InAppWebView(
+                  initialUrlRequest: URLRequest(url: Uri.tryParse(widget.url)),
+                  initialOptions: InAppWebViewGroupOptions(
+                      crossPlatform: InAppWebViewOptions(
+                          userAgent: "user_agent"
+                              .tr(namedArgs: {"version": version}))),
+                  onWebViewCreated: (c) {
+                    webViewController = c;
+                  },
+                  onLoadStart: (controller, uri) {
+                    setState(() {
+                      isLoading = true;
+                      title = uri!.host;
+                    });
+                  },
+                  onLoadStop: (controller, uri) {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  },
+                ),
                 isLoading
                     ? Container(
                         color: AppColor.white,
