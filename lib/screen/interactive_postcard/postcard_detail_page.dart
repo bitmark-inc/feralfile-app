@@ -170,6 +170,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
   }
 
+  Future<void> _postcardUpdated(BuildContext context) async {
+    await UIHelper.showPostcardUpdates(context);
+  }
+
   Future<void> _socialShare(BuildContext context, AssetToken asset) {
     final theme = Theme.of(context);
     final tags = [
@@ -256,6 +260,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           current.assetToken?.isAlreadyShowYouDidIt == false) {
         _youDidIt(context, current.assetToken!);
       }
+
+      if (previous.isPostcardUpdating &&
+          current.isStamped &&
+          _configurationService.isNotificationEnabled() != true) {
+        _postcardUpdated(context);
+      }
+
       return true;
     }, listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();

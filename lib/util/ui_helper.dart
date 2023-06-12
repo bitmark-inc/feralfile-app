@@ -1396,6 +1396,29 @@ class UIHelper {
       ),
     );
   }
+
+  static Future<void> showPostcardUpdates(BuildContext context) async {
+    await UIHelper.showDialog(
+        context,
+        "postcard_updates".tr(),
+        Column(
+          children: [
+            Text(
+              "postcard_updates_content".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 40),
+            PrimaryButton(
+              text: "enable_noti".tr(),
+              onTap: () {
+                Navigator.of(context)
+                    .popAndPushNamed(AppRouter.preferencesPage);
+              },
+            ),
+          ],
+        ),
+        isDismissible: true);
+  }
 }
 
 class ConnectedTV extends StatefulWidget {
