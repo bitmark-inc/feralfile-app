@@ -813,19 +813,19 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId
           : assetToken.id.split("-").last;
   if (assetToken.source == "feralfile") {
     return ArtworkRightsView(
       contract: FFContract("", "", assetToken.contractAddress ?? ""),
-      editionID: editionID,
+      artworkID: artworkID,
     );
   }
   if (assetToken.isPostcard) {
     return PostcardRightsView(
-      editionID: editionID,
+      editionID: artworkID,
     );
   }
   return const SizedBox();
@@ -1085,7 +1085,7 @@ Widget postcardDetailsMetadataSection(
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, String? artistName) {
   final theme = Theme.of(context);
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ""
           : assetToken.id.split("-").last;
@@ -1145,10 +1145,10 @@ Widget artworkDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        editionID.isNotEmpty
+        artworkID.isNotEmpty
             ? FutureBuilder<Exhibition?>(
                 future: injector<FeralFileService>()
-                    .getExhibitionFromTokenID(editionID),
+                    .getExhibitionFromTokenID(artworkID),
                 builder: (context, snapshot) {
                   if (snapshot.data != null) {
                     return Column(
@@ -1754,14 +1754,14 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
   final FFContract contract;
-  final String? editionID;
+  final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
       {Key? key,
       this.linkStyle,
       required this.contract,
-      this.editionID,
+      this.artworkID,
       this.exhibitionID})
       : super(key: key);
 
@@ -1775,7 +1775,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     super.initState();
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
-        editionID: widget.editionID,
+        artworkID: widget.artworkID,
         contractAddress: widget.contract.address));
   }
 
@@ -1930,20 +1930,20 @@ class ArtworkRightWidget extends StatelessWidget {
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,
-    required this.artwork,
+    required this.series,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artist = artwork.artist;
-    final contract = artwork.contract;
+    final artist = series.artist;
+    final contract = series.contract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = artwork.createdAt;
+    final mintDate = series.createdAt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1952,7 +1952,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           style: theme.textTheme.displayMedium,
         ),
         const SizedBox(height: 23.0),
-        _rowItem(context, "title".tr(), artwork.title),
+        _rowItem(context, "title".tr(), series.title),
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
@@ -1992,7 +1992,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork.medium.capitalize(),
+          series.medium.capitalize(),
         ),
         const Divider(
           height: 32.0,

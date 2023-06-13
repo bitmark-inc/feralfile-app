@@ -330,7 +330,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     //star
     memoryValues.airdropFFExhibitionId.value = AirdropQrData(
       exhibitionId: '',
-      artworkId: '',
+      seriesId: '',
     );
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -360,21 +360,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
-        final String? artworkId = data["artwork_id"];
+        final String? seriesId = data["series_id"];
         final String? expiredAt = data["expired_at"];
 
         if (expiredAt != null &&
             DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
                 int.tryParse(expiredAt) ?? 0))) {
           log.info("[DeeplinkService] FeralFile Airdrop expired");
-          _navigationService.showAirdropExpired(artworkId);
+          _navigationService.showAirdropExpired(seriesId);
           break;
         }
 
-        if (exhibitionId?.isNotEmpty == true || artworkId?.isNotEmpty == true) {
+        if (exhibitionId?.isNotEmpty == true || seriesId?.isNotEmpty == true) {
           _claimFFAirdropToken(
             exhibitionId: exhibitionId,
-            artworkId: artworkId,
+            seriesId: seriesId,
             otp: _getOtpFromBranchData(data),
           );
         }
@@ -428,12 +428,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future _claimFFAirdropToken({
     String? exhibitionId,
-    String? artworkId,
+    String? seriesId,
     Otp? otp,
   }) async {
     log.info(
         "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}");
-    final id = "${exhibitionId}_${artworkId}_${otp?.code}";
+    final id = "${exhibitionId}_${seriesId}_${otp?.code}";
     if (currentExhibitionId == id) {
       return;
     }
@@ -441,34 +441,33 @@ class DeeplinkServiceImpl extends DeeplinkService {
       currentExhibitionId = id;
       final doneOnboarding = _configurationService.isDoneOnboarding();
       if (doneOnboarding) {
-        final artworkFuture = (artworkId?.isNotEmpty == true)
-            ? _feralFileService.getArtwork(artworkId!)
-            : _feralFileService
-                .getAirdropArtworkFromExhibitionId(exhibitionId!);
+        final seriesFuture = (seriesId?.isNotEmpty == true)
+            ? _feralFileService.getSeries(seriesId!)
+            : _feralFileService.getAirdropSeriesFromExhibitionId(exhibitionId!);
 
         await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
         });
 
-        final artwork = await artworkFuture;
-        final endTime = artwork.airdropInfo?.endedAt;
-        if (artwork.airdropInfo == null ||
+        final series = await seriesFuture;
+        final endTime = series.airdropInfo?.endedAt;
+        if (series.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
-          await _navigationService.showAirdropExpired(artworkId);
-        } else if (artwork.airdropInfo?.isAirdropStarted != true) {
-          await _navigationService.showAirdropNotStarted(artworkId);
-        } else if (artwork.airdropInfo?.remainAmount == 0) {
+          await _navigationService.showAirdropExpired(seriesId);
+        } else if (series.airdropInfo?.isAirdropStarted != true) {
+          await _navigationService.showAirdropNotStarted(seriesId);
+        } else if (series.airdropInfo?.remainAmount == 0) {
           await _navigationService.showNoRemainingToken(
-            artwork: artwork,
+            series: series,
           );
         } else if (otp?.isExpired == true) {
-          await _navigationService.showOtpExpired(artworkId);
+          await _navigationService.showOtpExpired(seriesId);
         } else {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;
           });
           await _navigationService.openClaimTokenPage(
-            artwork,
+            series,
             otp: otp,
           );
         }
@@ -476,7 +475,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       } else {
         memoryValues.airdropFFExhibitionId.value = AirdropQrData(
           exhibitionId: exhibitionId,
-          artworkId: artworkId,
+          seriesId: seriesId,
           otp: otp,
         );
         handlingDeepLink = null;
