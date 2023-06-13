@@ -89,7 +89,7 @@ class AutonomyLogo extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: color),
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 8),

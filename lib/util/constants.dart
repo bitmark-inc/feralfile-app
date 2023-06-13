@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -65,6 +67,7 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
   "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
   "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
+  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
 ];
 
 const REMOVE_CUSTOMER_SUPPORT =
@@ -80,17 +83,18 @@ final moMALocation = Location(lat: 40.7614327, lon: -73.9798103);
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
-const String EMPTY_POSTCARD_PREVIEW_URL_IMAGE =
-    "https://ipfs.test.bitmark.com/ipfs/QmbVwRb9o2GPsSUmqmKfrQfhyhu6npzruGjeL5yxmhvyNJ";
-const String EMPTY_POSTCARD_PREVIEW_URL_SOFTWARE =
-    "https://ipfs.test.bitmark.com/ipfs/QmbVwRb9o2GPsSUmqmKfrQfhyhu6npzruGjeL5yxmhvyNJ";
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
     "postcard software artwork loaded";
 const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
 
-const double POSTCARD_ASPECT_RATIO = 365 / 265;
+const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
+const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
+
+double get postcardAspectRatio => Platform.isAndroid
+    ? POSTCARD_ASPECT_RATIO_ANDROID
+    : POSTCARD_ASPECT_RATIO_IOS;
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";

@@ -22,16 +22,14 @@ abstract class FeralFileApi {
 
   @GET("/api/exhibitions/{exhibitionId}")
   Future<ExhibitionResponse> getExhibition(
-    @Path("exhibitionId") String exhibitionId, {
-    @Query("includeArtwork") bool includeArtwork = true,
-  });
+      @Path("exhibitionId") String exhibitionId);
 
-  @GET("/api/artworks/{artworkId}")
-  Future<FFArtworkResponse> getArtwork(@Path("artworkId") String artworkId);
+  @GET("/api/series/{seriesId}")
+  Future<FFSeriesResponse> getSeries(@Path("seriesId") String seriesId);
 
-  @POST("/api/artworks/{artworkId}/claim")
-  Future<TokenClaimResponse> claimArtwork(
-    @Path("artworkId") String artworkId,
+  @POST("/api/series/{seriesId}/claim")
+  Future<TokenClaimResponse> claimSeries(
+    @Path("seriesId") String seriesId,
     @Body() Map<String, dynamic> body,
   );
 
@@ -39,10 +37,10 @@ abstract class FeralFileApi {
   Future<ResaleResponse> getResaleInfo(
       @Path("exhibitionID") String exhibitionID);
 
-  @GET("/api/artwork-editions/{tokenID}/{exhibitionID}")
-  Future<ArtworkEditionResponse> getArtworkEditions(
+  @GET("/api/artworks/{tokenID}")
+  Future<ArtworkResponse> getArtworks(
     @Path("tokenID") String tokenID, {
-    @Query("includeArtwork") bool includeArtwork = true,
+    @Query("includeSeries") bool includeSeries = true,
     @Query("includeExhibition") bool includeExhibition = true,
     @Query("includeArtist") bool includeArtist = true,
   });

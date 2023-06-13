@@ -172,7 +172,9 @@ Widget tokenGalleryThumbnailWidget(
   return Semantics(
     label: "gallery_artwork_${token.title}",
     child: Hero(
-      tag: useHero ? "gallery_thumbnail_${token.id}" : const Uuid().v4(),
+      tag: useHero
+          ? "gallery_thumbnail_${token.id}_${token.owner}"
+          : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
       child: ext == ".svg"
           ? SvgImage(
@@ -811,19 +813,19 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId
           : assetToken.id.split("-").last;
   if (assetToken.source == "feralfile") {
     return ArtworkRightsView(
       contract: FFContract("", "", assetToken.contractAddress ?? ""),
-      editionID: editionID,
+      artworkID: artworkID,
     );
   }
   if (assetToken.isPostcard) {
     return PostcardRightsView(
-      editionID: editionID,
+      editionID: artworkID,
     );
   }
   return const SizedBox();
@@ -1081,7 +1083,7 @@ Widget postcardDetailsMetadataSection(
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, String? artistName) {
   final theme = Theme.of(context);
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ""
           : assetToken.id.split("-").last;
@@ -1141,10 +1143,10 @@ Widget artworkDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        editionID.isNotEmpty
+        artworkID.isNotEmpty
             ? FutureBuilder<Exhibition?>(
                 future: injector<FeralFileService>()
-                    .getExhibitionFromTokenID(editionID),
+                    .getExhibitionFromTokenID(artworkID),
                 builder: (context, snapshot) {
                   if (snapshot.data != null) {
                     return Column(
@@ -1281,30 +1283,28 @@ Widget postcardOwnership(
 }
 
 Widget tokenOwnership(
-    BuildContext context, AssetToken assetToken, List<String> addresses) {
+    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
   final theme = Theme.of(context);
 
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
-  List<String> ownerAddresses = [assetToken.owner];
-
   int ownedTokens = assetToken.balance ?? 0;
-
-  if (ownedTokens == 0) {
-    ownedTokens =
-        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
-    ownerAddresses = addresses;
-    if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
-      ownerAddresses = [assetToken.owner];
-    }
-  }
+  final ownerAddress = assetToken.owner;
+  final List<MapEntry<String, int>> values = owners.entries.toList()
+    ..sort((a, b) {
+      return a.key == ownerAddress
+          ? -1
+          : b.key == ownerAddress
+              ? 1
+              : a.key.compareTo(b.key);
+    });
+  final tapLink = assetToken.tokenURL;
 
   final totalSentQuantity = sentTokens
       .where((element) =>
           element.tokenID == assetToken.id &&
-          ownerAddresses.contains(element.address) &&
+          ownerAddress == element.address &&
           element.timestamp.isAfter(expiredTime))
       .fold<int>(
           0, (previousValue, element) => previousValue + element.sentQuantity);
@@ -1333,10 +1333,10 @@ Widget tokenOwnership(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
+        MetaDataMultiItem(
           title: "owned".tr(),
-          value: "$ownedTokens",
-          tapLink: assetToken.tokenURL,
+          values: values,
+          tapLink: tapLink,
           forceSafariVC: true,
         ),
       ],
@@ -1431,6 +1431,94 @@ class MetaDataItem extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class MetaDataMultiItem extends StatelessWidget {
+  final String title;
+  final List<MapEntry<String, int>> values;
+  final String? tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataMultiItem({
+    Key? key,
+    required this.title,
+    required this.values,
+    this.tapLink,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: values
+                .map(
+                  (e) => Column(
+                    children: [
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (tapLink != null &&
+                                      tapLink!.isValidUrl()) {
+                                    final uri = Uri.parse(tapLink!);
+                                    launchUrl(uri,
+                                        mode: forceSafariVC == true
+                                            ? LaunchMode.externalApplication
+                                            : LaunchMode.platformDefault);
+                                  }
+                                },
+                                child: Text(
+                                  e.value.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style:
+                                      tapLink != null && tapLink!.isValidUrl()
+                                          ? theme.textTheme.ppMori400Green14
+                                          : theme.textTheme.ppMori400White14,
+                                ),
+                              ),
+                              Text(
+                                " (${e.key.maskOnly(5)})",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.ppMori400White14,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (e != values.last)
+                        const Divider(
+                          color: AppColor.auLightGrey,
+                        ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        )
       ],
     );
   }
@@ -1664,14 +1752,14 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
   final FFContract contract;
-  final String? editionID;
+  final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
       {Key? key,
       this.linkStyle,
       required this.contract,
-      this.editionID,
+      this.artworkID,
       this.exhibitionID})
       : super(key: key);
 
@@ -1685,7 +1773,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     super.initState();
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
-        editionID: widget.editionID,
+        artworkID: widget.artworkID,
         contractAddress: widget.contract.address));
   }
 
@@ -1840,20 +1928,20 @@ class ArtworkRightWidget extends StatelessWidget {
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,
-    required this.artwork,
+    required this.series,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artist = artwork.artist;
-    final contract = artwork.contract;
+    final artist = series.artist;
+    final contract = series.contract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = artwork.createdAt;
+    final mintDate = series.createdAt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1862,7 +1950,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           style: theme.textTheme.displayMedium,
         ),
         const SizedBox(height: 23.0),
-        _rowItem(context, "title".tr(), artwork.title),
+        _rowItem(context, "title".tr(), series.title),
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
@@ -1902,7 +1990,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork.medium.capitalize(),
+          series.medium.capitalize(),
         ),
         const Divider(
           height: 32.0,

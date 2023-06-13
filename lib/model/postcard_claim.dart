@@ -6,6 +6,7 @@ class ClaimPostCardRequest {
   String? publicKey;
   String? address;
   String? signature;
+
   ClaimPostCardRequest({
     this.claimID,
     this.timestamp,
@@ -82,6 +83,7 @@ class ClaimPostCardResponse {
   String? blockchain;
   String? owner;
   String? contractAddress;
+
   ClaimPostCardResponse({
     this.tokenID,
     this.imageCID,
@@ -157,9 +159,11 @@ class ClaimPostCardResponse {
 
 class RequestPostcardRequest {
   final String id;
+
   RequestPostcardRequest({
     required this.id,
   });
+
   // fromJson method
   factory RequestPostcardRequest.fromJson(Map<String, dynamic> json) {
     return RequestPostcardRequest(
@@ -178,23 +182,30 @@ class RequestPostcardRequest {
 class RequestPostcardResponse {
   final String claimID;
   final String name;
+  final String previewURL;
+
   // constructor
   RequestPostcardResponse({
     required this.claimID,
     required this.name,
+    required this.previewURL,
   });
+
   // fromJson method
   factory RequestPostcardResponse.fromJson(Map<String, dynamic> json) {
     return RequestPostcardResponse(
       claimID: json['claimID'] as String,
       name: json['name'] as String,
+      previewURL: json['previewURL'] as String,
     );
   }
+
   // toJson method
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'claimID': claimID,
       'name': name,
+      'previewURL': previewURL,
     };
   }
 }

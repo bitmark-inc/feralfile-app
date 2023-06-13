@@ -14,11 +14,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -46,6 +49,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -496,6 +500,32 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           'type': notificationType,
           'body': notification.body,
         });
+        break;
+      case "new_message":
+        final data = notification.additionalData;
+        if (data == null) return;
+        final tokenId = data["group_id"];
+        final tokens = await injector<NftCollectionDatabase>()
+            .assetTokenDao
+            .findAllAssetTokensByTokenIDs([tokenId]);
+        final owner = tokens.first.owner;
+        final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
+        final postcardDetailPayload = ArtworkDetailPayload(
+            [ArtworkIdentity(tokenId, owner)], 0,
+            key: key);
+        if (!mounted) return;
+        Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+            arguments: postcardDetailPayload);
+        Timer.periodic(const Duration(milliseconds: 100), (timer) async {
+          final state = key.currentState;
+          final assetToken =
+              key.currentContext?.read<PostcardDetailBloc>().state.assetToken;
+          if (state != null && assetToken != null) {
+            state.gotoChatThread(key.currentContext!);
+            timer.cancel();
+          }
+        });
+
         break;
       default:
         log.warning("unhandled notification type: $notificationType");

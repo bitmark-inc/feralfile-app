@@ -232,7 +232,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
                         //"Enter recovery phrase with each word separated by a space",
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
-                        hintMaxLines: 2,
+                        hintMaxLines: 3,
                         controller: _phraseTextController,
                         isError: isError,
                         onChanged: (value) {
@@ -435,6 +435,7 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
         _isImporting = false;
       });
     } catch (exception) {
+      log.info("Import wallet fails ${exception.toString()}");
       if (!(exception is PlatformException &&
           exception.code == "importKey error")) {
         Sentry.captureException(exception);

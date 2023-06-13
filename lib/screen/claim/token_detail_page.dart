@@ -18,11 +18,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 class TokenDetailPage extends StatefulWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
 
   const TokenDetailPage({
     Key? key,
-    required this.artwork,
+    required this.series,
   }) : super(key: key);
 
   @override
@@ -33,9 +33,9 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artwork = widget.artwork;
-    final contract = artwork.contract;
-    final artist = artwork.artist;
+    final series = widget.series;
+    final contract = series.contract;
+    final artist = series.artist;
     return Scaffold(
         appBar: _appBar(
           context,
@@ -50,7 +50,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  artwork.title,
+                  series.title,
                   style: theme.primaryTextTheme.displayLarge,
                 ),
               ),
@@ -66,7 +66,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
               const SizedBox(height: 15.0),
               // Show artwork here.
               CachedNetworkImage(
-                imageUrl: artwork.getThumbnailURL(),
+                imageUrl: series.getThumbnailURL(),
                 fit: BoxFit.fitWidth,
               ),
               const SizedBox(height: 24.0),
@@ -74,7 +74,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                 padding: ResponsiveLayout.getPadding,
                 child: HtmlWidget(
                   customStylesBuilder: auHtmlStyle,
-                  artwork.description ?? '',
+                  series.description ?? '',
                   textStyle: theme.primaryTextTheme.bodyLarge,
                 ),
               ),
@@ -87,7 +87,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                     Theme(
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
                       child: FeralfileArtworkDetailsMetadataSection(
-                        artwork: widget.artwork,
+                        series: widget.series,
                       ),
                     ),
                     const SizedBox(height: 40.0),
@@ -95,7 +95,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
                       child: ArtworkRightWidget(
                         contract: contract,
-                        exhibitionID: widget.artwork.exhibition?.id,
+                        exhibitionID: widget.series.exhibition?.id,
                       ),
                     ),
                     const SizedBox(height: 40.0),

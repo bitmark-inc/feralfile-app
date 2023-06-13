@@ -5,11 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:ui';
+import 'package:autonomy_flutter/service/locale_service.dart';
 
 class DistanceFormatter {
-  final Locale locale;
-
   //function convert kms to miles
   double convertKmToMiles(double km) {
     return km * 0.621371;
@@ -17,11 +15,10 @@ class DistanceFormatter {
 
   // check is miles or km
   bool isMiles() {
-    final imperialSystemCountries = ['us', 'gb', 'lr', 'mm'];
-    return imperialSystemCountries.contains(locale.countryCode);
+    return LocaleService.measurementSystem == "imperial";
   }
 
-  DistanceFormatter({required this.locale});
+  DistanceFormatter();
 
   String format({double? distance, withFullName = false}) {
     if (distance == null) {
