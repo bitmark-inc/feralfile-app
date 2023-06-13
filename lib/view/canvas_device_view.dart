@@ -1,13 +1,11 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/test_drag.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:collection/collection.dart';
@@ -163,26 +161,6 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                   ),
                 ),
                 const Spacer(),
-                Visibility(
-                  visible: deviceState.status == DeviceStatus.playing,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        TransparentRoute(
-                            builder: (context) {
-                              return TestDrag(
-                                device: deviceState.device,
-                              );
-                            },
-                            color: Colors.black),
-                      );
-                    },
-                    child: const Icon(
-                      Icons.pan_tool,
-                      color: Colors.amber,
-                    ),
-                  ),
-                ),
                 const SizedBox(
                   width: 20,
                 ),
