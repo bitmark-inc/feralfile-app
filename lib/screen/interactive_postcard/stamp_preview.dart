@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -116,6 +117,9 @@ class _StampPreviewState extends State<StampPreview> {
                     ArtworkDetailPayload([state.assetToken!.identity], 0),
               );
               _configurationService.setAutoShowPostcard(true);
+              if (_configurationService.isNotificationEnabled() != true) {
+                UIHelper.showPostcardUpdates(context);
+              }
             }
           },
           builder: (context, state) {
@@ -139,7 +143,6 @@ class _StampPreviewState extends State<StampPreview> {
                   const SizedBox(
                     height: 40,
                   ),
-                  _postcardLoadingDescription(state),
                 ],
               ),
             );
@@ -193,28 +196,6 @@ class _StampPreviewState extends State<StampPreview> {
             ),
           ],
         ),
-      );
-    }
-    return const SizedBox();
-  }
-
-  Widget _postcardLoadingDescription(PostcardDetailState state) {
-    final theme = Theme.of(context);
-    if (!confirming) {
-      return SizedBox();
-    }
-    if (state.isPostcardUpdatingOnBlockchain) {
-      return Text(
-        "confirming_on_blockchain_description".tr(),
-        style: theme.textTheme.moMASans400Grey12
-            .copyWith(color: AppColor.auQuickSilver),
-      );
-    }
-    if (state.isPostcardUpdating) {
-      return Text(
-        "updating_token_description".tr(),
-        style: theme.textTheme.moMASans400Grey12
-            .copyWith(color: AppColor.auQuickSilver),
       );
     }
     return const SizedBox();

@@ -261,7 +261,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         _youDidIt(context, current.assetToken!);
       }
 
-      if (previous.isPostcardUpdating &&
+      if (previous.postcardValueLoaded &&
+          previous.isPostcardUpdating &&
           current.isStamped &&
           _configurationService.isNotificationEnabled() != true) {
         _postcardUpdated(context);
