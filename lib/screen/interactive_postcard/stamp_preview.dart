@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -116,6 +117,9 @@ class _StampPreviewState extends State<StampPreview> {
                     ArtworkDetailPayload([state.assetToken!.identity], 0),
               );
               _configurationService.setAutoShowPostcard(true);
+              if (_configurationService.isNotificationEnabled() != true) {
+                UIHelper.showPostcardUpdates(context);
+              }
             }
           },
           builder: (context, state) {
@@ -126,14 +130,19 @@ class _StampPreviewState extends State<StampPreview> {
               padding:
                   ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(
+                    height: 150,
+                  ),
                   PostcardRatio(
                     assetToken: assetToken,
                     imagePath: imagePath,
                     jsonPath: metadataPath,
                   ),
                   _postcardAction(state),
+                  const SizedBox(
+                    height: 40,
+                  ),
                 ],
               ),
             );

@@ -8,8 +8,8 @@ import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:flutter_swiper_view/flutter_swiper_view.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:video_player/video_player.dart';
 
 class PostcardExplain extends StatefulWidget {
@@ -153,7 +153,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
                           "to": POSRCARD_GAME_END,
                         },
                       ),
-                      style: theme.textTheme.ppMori400Grey14),
+                      style: theme.textTheme.moMASans400Grey12
+                          .copyWith(color: AppColor.auQuickSilver)),
                 ],
               ),
             ],

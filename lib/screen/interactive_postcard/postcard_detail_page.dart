@@ -170,6 +170,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
   }
 
+  Future<void> _postcardUpdated(BuildContext context) async {
+    await UIHelper.showPostcardUpdates(context);
+  }
+
   Future<void> _socialShare(BuildContext context, AssetToken asset) {
     final theme = Theme.of(context);
     final tags = [
@@ -256,6 +260,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           current.assetToken?.isAlreadyShowYouDidIt == false) {
         _youDidIt(context, current.assetToken!);
       }
+
+      if (previous.postcardValueLoaded &&
+          previous.isPostcardUpdating &&
+          current.isStamped &&
+          _configurationService.isNotificationEnabled() != true) {
+        _postcardUpdated(context);
+      }
+
       return true;
     }, listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
@@ -397,7 +409,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(
-                              height: 40,
+                              height: 30,
                             ),
                             Hero(
                               tag: "detail_${asset.id}",
@@ -822,7 +834,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        travelInfo.receivedLocation ?? "Not sent",
+                        travelInfo.receivedLocation ?? "-",
                         style: theme.textTheme.moMASans400Black12,
                       ),
                     ),
@@ -882,7 +894,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           children: [
             Text(
               sendingTrip.sentLocation ?? "",
-              style: theme.textTheme.moMASans400Black14,
+              style: theme.textTheme.moMASans400Black12,
             ),
           ],
         ),
@@ -895,7 +907,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(width: 6),
             Text(
               "waiting_for_recipient".tr(),
-              style: theme.textTheme.moMASans400Black14
+              style: theme.textTheme.moMASans400Black12
                   .copyWith(color: AppColor.auQuickSilver),
             ),
             const Spacer(),
