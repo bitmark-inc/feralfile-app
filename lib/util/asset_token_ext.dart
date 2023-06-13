@@ -357,8 +357,11 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
-  bool get isPostcard =>
-      id.split('-')[1] == Environment.postcardContractAddress;
+  bool get isPostcard {
+    final splitted = id.split('-');
+    return splitted.length > 1 &&
+        splitted[1] == Environment.postcardContractAddress;
+  }
 
   String get getMimeType {
     switch (mimeType) {

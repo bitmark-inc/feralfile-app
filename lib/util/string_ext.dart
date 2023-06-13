@@ -78,6 +78,8 @@ extension StringExtension on String {
   }
 
   bool get isPostcardId {
-    return split('-')[1] == Environment.postcardContractAddress;
+    final splitted = split('-');
+    return splitted.length > 1 &&
+        splitted[1] == Environment.postcardContractAddress;
   }
 }
