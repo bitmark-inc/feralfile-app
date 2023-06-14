@@ -1673,8 +1673,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e6b5853fd2432d1a20988c807cf981e965a58c83
-      resolved-ref: e6b5853fd2432d1a20988c807cf981e965a58c83
+      ref: c390cdca02b5274f7997768ec1b428e9e56fc255
+      resolved-ref: c390cdca02b5274f7997768ec1b428e9e56fc255
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2871,7 +2871,7 @@ packages:
     source: hosted
     version: "1.2.0"
   webview_flutter:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: webview_flutter
       sha256: "392c1d83b70fe2495de3ea2c84531268d5b8de2de3f01086a53334d8b6030a88"
