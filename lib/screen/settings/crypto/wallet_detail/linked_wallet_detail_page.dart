@@ -8,6 +8,8 @@
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -29,6 +31,7 @@ import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -37,7 +40,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class LinkedWalletDetailPage extends StatefulWidget {
   final LinkedWalletDetailsPayload payload;
@@ -55,34 +57,36 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   bool hideConnection = false;
   bool isHideGalleryEnabled = false;
 
+  bool _isRename = false;
+  final TextEditingController _renameController = TextEditingController();
+  final FocusNode _renameFocusNode = FocusNode();
+  late Connection _connection;
+  late String _address;
+
   @override
   void initState() {
     super.initState();
-    isHideGalleryEnabled = injector<AccountService>()
-        .isLinkedAccountHiddenInGallery(widget.payload.address);
-
-    context.read<AccountsBloc>().add(FindLinkedAccount(
-        widget.payload.connectionKey,
-        widget.payload.address,
-        widget.payload.type));
+    _connection = widget.payload.connection;
+    _address = _connection.accountNumber;
+    isHideGalleryEnabled =
+        injector<AccountService>().isLinkedAccountHiddenInGallery(_address);
+    context
+        .read<AccountsBloc>()
+        .add(FindLinkedAccount(_connection.key, _address, widget.payload.type));
     switch (widget.payload.type) {
       case CryptoType.ETH:
         context
             .read<EthereumBloc>()
-            .add(GetEthereumBalanceWithAddressEvent([widget.payload.address]));
-        context
-            .read<USDCBloc>()
-            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
+            .add(GetEthereumBalanceWithAddressEvent([_address]));
+        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
         break;
       case CryptoType.XTZ:
         context
             .read<TezosBloc>()
-            .add(GetTezosBalanceWithAddressEvent([widget.payload.address]));
+            .add(GetTezosBalanceWithAddressEvent([_address]));
         break;
       case CryptoType.USDC:
-        context
-            .read<USDCBloc>()
-            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
+        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
         break;
       case CryptoType.UNKNOWN:
         // do nothing
@@ -108,12 +112,11 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   @override
   void didPopNext() {
     final cryptoType = widget.payload.type;
-    final address = widget.payload.address;
     context
         .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, address));
+        .add(WalletDetailBalanceEvent(cryptoType, _address));
     if (cryptoType == CryptoType.ETH) {
-      context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
+      context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
     }
   }
 
@@ -132,137 +135,158 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   @override
   Widget build(BuildContext context) {
     final cryptoType = widget.payload.type;
-    final address = widget.payload.address;
     context
         .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, address));
-    final theme = Theme.of(context);
+        .add(WalletDetailBalanceEvent(cryptoType, _address));
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: widget.payload.type.name,
-        icon: SvgPicture.asset(
-          'assets/images/more_circle.svg',
-          width: 22,
-          color: AppColor.primaryBlack,
-        ),
-        action: _showOptionDialog,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
-          listener: (context, state) async {},
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                hideConnection ? const SizedBox(height: 16) : addTitleSpace(),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 3000),
-                  height: hideConnection ? 60 : null,
-                  child: _balanceSection(state.balance, state.balanceInUSD),
-                ),
-                Visibility(
-                    visible: hideConnection,
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        addOnlyDivider(),
-                      ],
-                    )),
-                Expanded(
-                  child: CustomScrollView(
-                    controller: controller,
-                    slivers: [
-                      SliverToBoxAdapter(
+      appBar: _isRename
+          ? getTitleEditAppBar(
+              context,
+              titleIcon: LogoCrypto(
+                cryptoType: widget.payload.type,
+                size: 24,
+              ),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                color: AppColor.primaryBlack,
+              ),
+              controller: _renameController,
+              focusNode: _renameFocusNode,
+              onSubmit: (String value) {
+                if (value.trim().isNotEmpty) {
+                  _connection = _connection.copyWith(name: value);
+                  injector<CloudDatabase>()
+                      .connectionDao
+                      .updateConnection(_connection);
+                  setState(() {
+                    _isRename = false;
+                  });
+                }
+              },
+            )
+          : getBackAppBar(
+              context,
+              title: _connection.name,
+              titleIcon: LogoCrypto(
+                cryptoType: widget.payload.type,
+                size: 24,
+              ),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                color: AppColor.primaryBlack,
+              ),
+              action: _showOptionDialog,
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+            ),
+      body: Stack(
+        children: [
+          BlocConsumer<WalletDetailBloc, WalletDetailState>(
+              listener: (context, state) async {},
+              builder: (context, state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    hideConnection
+                        ? const SizedBox(height: 16)
+                        : addTitleSpace(),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 3000),
+                      height: hideConnection ? 60 : null,
+                      child: _balanceSection(state.balance, state.balanceInUSD),
+                    ),
+                    Visibility(
+                        visible: hideConnection,
                         child: Column(
                           children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 3000),
-                              child: Column(
-                                children: [
-                                  cryptoType == CryptoType.USDC
-                                      ? Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              0, 26, 0, 12),
-                                          child: _erc20Tag(),
-                                        )
-                                      : SizedBox(
-                                          height: hideConnection ? 48 : 16),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            addOnlyDivider(),
+                          ],
+                        )),
+                    Expanded(
+                      child: CustomScrollView(
+                        controller: controller,
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 3000),
+                                  child: Column(
                                     children: [
-                                      linkedBox(context, fontSize: 14)
+                                      cryptoType == CryptoType.USDC
+                                          ? Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      0, 26, 0, 12),
+                                              child: _erc20Tag(),
+                                            )
+                                          : SizedBox(
+                                              height: hideConnection ? 48 : 16),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          linkedBox(context, fontSize: 14)
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Padding(
+                                        padding: padding,
+                                        child: _addressSection(),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      Padding(
+                                        padding: padding,
+                                        child: _sendReceiveSection(),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      if (widget.payload.type ==
+                                          CryptoType.ETH) ...[
+                                        BlocBuilder<USDCBloc, USDCState>(
+                                            builder: (context, state) {
+                                          final usdcBalance =
+                                              state.usdcBalances[_address];
+                                          final balance = usdcBalance == null
+                                              ? "-- USDC"
+                                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                                          return Padding(
+                                            padding: padding,
+                                            child: _usdcBalance(balance),
+                                          );
+                                        })
+                                      ],
+                                      addDivider(),
+                                      Padding(
+                                        padding: padding,
+                                        child: _txSection(),
+                                      )
                                     ],
                                   ),
-                                  const SizedBox(height: 10),
-                                  Padding(
-                                    padding: padding,
-                                    child: _addressSection(),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  Padding(
-                                    padding: padding,
-                                    child: _sendReceiveSection(),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  if (widget.payload.type ==
-                                      CryptoType.ETH) ...[
-                                    BlocBuilder<USDCBloc, USDCState>(
-                                        builder: (context, state) {
-                                      final address = widget.payload.address;
-                                      final usdcBalance =
-                                          state.usdcBalances[address];
-                                      final balance = usdcBalance == null
-                                          ? "-- USDC"
-                                          : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-                                      return Padding(
-                                        padding: padding,
-                                        child: _usdcBalance(balance),
-                                      );
-                                    })
-                                  ],
-                                  addDivider(),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                widget.payload.type == CryptoType.XTZ
-                    ? GestureDetector(
-                        onTap: () =>
-                            launchUrlString(_txURL(widget.payload.address)),
-                        child: Container(
-                          alignment: Alignment.bottomCenter,
-                          padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
-                          color: AppColor.secondaryDimGreyBackground,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("powered_by_tzkt".tr(),
-                                  style: theme.textTheme.ppMori400Black14),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              SvgPicture.asset(
-                                  "assets/images/external_link.svg"),
-                            ],
                           ),
-                        ),
-                      )
-                    : Container(),
-              ],
-            );
-          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }),
+          if (_isRename)
+            Container(
+              color: const Color.fromRGBO(0, 0, 0, 0.5),
+              child: Container(),
+            ),
+        ],
+      ),
     );
   }
 
@@ -284,6 +308,14 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         .popAndPushNamed(AppRouter.scanQRPage, arguments: scanItem);
   }
 
+  void _onRenameTap() {
+    Navigator.of(context).pop();
+    setState(() {
+      _isRename = true;
+      _renameFocusNode.requestFocus();
+    });
+  }
+
   Widget _usdcBalance(String balance) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400White14
@@ -299,7 +331,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 width: 24,
                 height: 24,
               ),
-              const SizedBox(width: 35),
+              const SizedBox(width: 15),
               Text(
                 "USDC",
                 style: theme.textTheme.ppMori700Black14,
@@ -315,9 +347,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         ),
         onTap: () {
           final payload = LinkedWalletDetailsPayload(
-            connectionKey: widget.payload.connectionKey,
+            connection: _connection,
             type: CryptoType.USDC,
-            address: widget.payload.address,
             personaName: widget.payload.personaName,
           );
           Navigator.of(context)
@@ -371,7 +402,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     if (widget.payload.type == CryptoType.USDC) {
       return BlocBuilder<USDCBloc, USDCState>(
         builder: (context, state) {
-          final usdcBalance = state.usdcBalances[widget.payload.address];
+          final usdcBalance = state.usdcBalances[_address];
           final balance = usdcBalance == null
               ? "-- USDC"
               : "${USDCAmountFormatter(usdcBalance).format()} USDC";
@@ -390,7 +421,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   }
 
   Widget _addressSection() {
-    var address = widget.payload.address;
     final theme = Theme.of(context);
     bool isCopied = false;
 
@@ -410,7 +440,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             width: 8,
           ),
           Text(
-            address.mask(4),
+            _address.mask(4),
             style: theme.textTheme.ppMori400Black14,
           ),
           Expanded(
@@ -440,7 +470,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                         if (isCopied) return;
                         showInfoNotification(const Key("address"),
                             "address_copied_to_clipboard".tr());
-                        Clipboard.setData(ClipboardData(text: address));
+                        Clipboard.setData(ClipboardData(text: _address));
                         setState(() {
                           isCopied = true;
                         });
@@ -461,8 +491,36 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     );
   }
 
-  String _txURL(String address) {
-    return "https://tzkt.io/$address/operations";
+  Widget _txSection() {
+    final theme = Theme.of(context);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      TappableForwardRow(
+        padding: EdgeInsets.zero,
+        leftWidget: Text(
+          "show_history".tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            AppRouter.inappWebviewPage,
+            arguments: _txURL(_address, widget.payload.type),
+          );
+        },
+      ),
+    ]);
+  }
+
+  String _txURL(String address, CryptoType cryptoType) {
+    switch (cryptoType) {
+      case CryptoType.ETH:
+        return "https://etherscan.io/address/$address";
+      case CryptoType.XTZ:
+        return "https://tzkt.io/$address/operations";
+      case CryptoType.USDC:
+        return "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=$address";
+      default:
+        return "";
+    }
   }
 
   Widget _sendReceiveSection() {
@@ -507,7 +565,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                       Navigator.of(context).pushNamed(
                           GlobalReceiveDetailPage.tag,
                           arguments: GlobalReceivePayload(
-                              address: widget.payload.address,
+                              address: _address,
                               blockchain: blockChain,
                               account: account));
                     }
@@ -536,7 +594,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               ),
               onTap: () {
                 injector<AccountService>().setHideLinkedAccountInGallery(
-                    widget.payload.address, !isHideGalleryEnabled);
+                    _address, !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -551,7 +609,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               ),
               onTap: () {
                 injector<AccountService>().setHideLinkedAccountInGallery(
-                    widget.payload.address, !isHideGalleryEnabled);
+                    _address, !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -566,21 +624,27 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         ),
         onTap: _connectionIconTap,
       ),
+      OptionItem(
+        title: 'rename'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/rename_icon.svg',
+          color: AppColor.primaryBlack,
+        ),
+        onTap: _onRenameTap,
+      ),
       OptionItem(),
     ]);
   }
 }
 
 class LinkedWalletDetailsPayload {
-  final String connectionKey;
+  final Connection connection;
   final CryptoType type;
-  final String address;
   final String personaName;
 
   LinkedWalletDetailsPayload({
-    required this.connectionKey,
+    required this.connection,
     required this.type,
-    required this.address,
     required this.personaName,
   });
 }

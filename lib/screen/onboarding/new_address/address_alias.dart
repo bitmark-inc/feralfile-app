@@ -115,8 +115,8 @@ class _AddressAliasState extends State<AddressAlias> {
   Future _doneNaming() async {
     if (Platform.isAndroid) {
       final isAndroidEndToEndEncryptionAvailable =
-      await injector<AccountService>()
-          .isAndroidEndToEndEncryptionAvailable();
+          await injector<AccountService>()
+              .isAndroidEndToEndEncryptionAvailable();
 
       if (!mounted) return;
 

@@ -45,7 +45,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
-
 class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
 

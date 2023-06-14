@@ -8,9 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -282,18 +280,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
           address,
           style: theme.textTheme.ppMori400Black14,
         ),
-        onTap: () async {
-          final payload = LinkedWalletDetailsPayload(
-            connectionKey: widget.connection.key,
-            address: address,
-            type: type,
-            personaName: widget.connection.name.isNotEmpty
-                ? widget.connection.name.maskIfNeeded()
-                : widget.connection.accountNumber,
-          );
-          Navigator.of(context)
-              .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
-        },
+        onTap: () {},
       ),
     );
   }

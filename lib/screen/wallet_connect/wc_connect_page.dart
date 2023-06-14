@@ -361,8 +361,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                       const SizedBox(height: 40),
                       BlocConsumer<AccountsBloc, AccountsState>(
                           listener: (context, state) async {
-                        var stateCategorizedAccounts =
-                            state.accounts;
+                        var stateCategorizedAccounts = state.accounts;
                         if (stateCategorizedAccounts == null ||
                             stateCategorizedAccounts.isEmpty) {
                           setState(() {
@@ -396,8 +395,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future _autoSelectDefault(
-      List<Account>? categorizedAccounts) async {
+  Future _autoSelectDefault(List<Account>? categorizedAccounts) async {
     if (categorizedAccounts == null) return;
     if (categorizedAccounts.length != 1) return;
     final persona = categorizedAccounts.first.persona;
@@ -619,7 +617,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                           });
                         },
                       ),
-                      const SizedBox(height: 15.0)
                     ])
                 .flattened
                 .toList(),

@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -311,11 +309,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                             ),
                           ),
                           const SizedBox(height: 16.0),
-                          PersonalConnectItem(
-                            categorizedAccount: categorizedAccounts.first,
-                            isAutoSelect: true,
-                            isExpand: true,
-                          ),
+                          ...categorizedAccounts
+                              .map((e) => PersonalConnectItem(
+                                    categorizedAccount: e,
+                                    isAutoSelect: true,
+                                    isExpand: true,
+                                  ))
+                              .toList(),
                         ],
                       );
                     }
@@ -473,9 +473,6 @@ class AddressItem extends StatelessWidget {
           children: [
             Row(
               children: [
-                const SizedBox(
-                  width: 25,
-                ),
                 LogoCrypto(
                   cryptoType: cryptoType,
                   size: 24,
@@ -546,7 +543,6 @@ class PersonalConnectItem extends StatefulWidget {
 class _PersonalConnectItemState extends State<PersonalConnectItem> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final e = widget.categorizedAccount;
     return Column(
       children: [
@@ -566,10 +562,7 @@ class _PersonalConnectItemState extends State<PersonalConnectItem> {
           ethSelectedAddress: widget.ethSelectedAddress,
           tezSelectedAddress: widget.tezSelectedAddress,
         ),
-        Divider(
-          height: 1.0,
-          color: theme.auLightGrey,
-        ),
+        const SizedBox(height: 15.0),
       ],
     );
   }

@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -207,9 +208,18 @@ class _AccountsViewState extends State<AccountsView> {
                   persona: account.persona!));
         }
       },
-      onConnectionTap: () => Navigator.of(context).pushNamed(
-          AppRouter.linkedAccountDetailsPage,
-          arguments: account.connections!.first),
+      onConnectionTap: () {
+        final connection = account.connections?.first;
+        if (connection != null) {
+          final payload = LinkedWalletDetailsPayload(
+            connection: connection,
+            type: account.cryptoType,
+            personaName: account.name,
+          );
+          Navigator.of(context)
+              .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
+        }
+      },
     );
   }
 
