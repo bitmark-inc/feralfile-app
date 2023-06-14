@@ -3,7 +3,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -16,8 +18,10 @@ import 'package:flutter/material.dart';
 
 class ViewExistingAddress extends StatefulWidget {
   static const String tag = 'view_existing_address';
+  final ViewExistingAddressPayload payload;
 
-  const ViewExistingAddress({Key? key}) : super(key: key);
+  const ViewExistingAddress({Key? key, required this.payload})
+      : super(key: key);
 
   @override
   State<ViewExistingAddress> createState() => _ViewExistingAddressState();
@@ -26,6 +30,7 @@ class ViewExistingAddress extends StatefulWidget {
 class _ViewExistingAddressState extends State<ViewExistingAddress> {
   final _controller = TextEditingController();
   bool _isError = false;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                     const SizedBox(height: 10),
                     AuTextField(
                       title: "",
-                      placeholder: "paste_or_scan_address".tr(),
+                      placeholder: "enter_address_placeholder".tr(),
                       controller: _controller,
                       isError: _isError,
                       suffix: IconButton(
@@ -68,6 +73,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                           if (address != null && address is String) {
                             address = address.replacePrefix("ethereum:", "");
                             _controller.text = address;
+                            setState(() {});
                           }
                         },
                       ),
@@ -84,11 +90,34 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
             PrimaryButton(
               enabled: _controller.text.trim().isNotEmpty,
               text: "continue".tr(),
+              isProcessing: _isProcessing,
               onTap: () async {
-                await injector<AccountService>()
-                    .linkManuallyAddress(_controller.text.trim());
-                if (!mounted) return;
-                Navigator.of(context).pushNamed(AppRouter.homePage);
+                setState(() {
+                  _isProcessing = true;
+                });
+                final address = _controller.text.trim();
+                final cryptoType = CryptoType.fromAddress(address);
+                switch (cryptoType) {
+                  case CryptoType.ETH:
+                  case CryptoType.XTZ:
+                    await injector<AccountService>().linkManuallyAddress(
+                        _controller.text.trim(), cryptoType);
+                    if (!mounted) return;
+                    if (widget.payload.isOnboarding) {
+                      injector<ConfigurationService>().setDoneOnboarding(true);
+                      Navigator.of(context).pushNamed(AppRouter.homePage);
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                    break;
+                  default:
+                    setState(() {
+                      _isError = true;
+                    });
+                }
+                setState(() {
+                  _isProcessing = false;
+                });
               },
             ),
             const SizedBox(height: 20),
@@ -105,4 +134,11 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
       ),
     );
   }
+}
+
+// payload class
+class ViewExistingAddressPayload {
+  final bool isOnboarding;
+
+  ViewExistingAddressPayload(this.isOnboarding);
 }

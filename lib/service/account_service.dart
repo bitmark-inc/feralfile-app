@@ -78,7 +78,7 @@ abstract class AccountService {
 
   Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
 
-  Future linkManuallyAddress(String address);
+  Future linkManuallyAddress(String address, CryptoType cryptoType);
 
   Future<bool> isLinkedIndexerTokenID(String indexerTokenID);
 
@@ -372,19 +372,13 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future linkManuallyAddress(String address) async {
-    final cryptoType = CryptoType.fromAddress(address);
-    String key = address;
-    if (cryptoType == CryptoType.ETH) {
-      final ethereumAddress = EthereumAddress.fromHex(address);
-      key = ethereumAddress.hexEip55;
-    }
+  Future linkManuallyAddress(String address, CryptoType cryptoType) async {
     final connection = Connection(
-      key: key,
+      key: address,
       name: cryptoType.source,
-      data: '',
+      data: '{"blockchain":"${cryptoType.source}"}',
       connectionType: ConnectionType.manuallyAddress.rawValue,
-      accountNumber: key,
+      accountNumber: address,
       createdAt: DateTime.now(),
     );
 

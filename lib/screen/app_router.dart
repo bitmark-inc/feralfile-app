@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_app_options_page.dart';
 import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
-import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
@@ -151,6 +150,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'account/link_manually_page.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 import 'onboarding/import_address/import_seeds.dart';
 import 'onboarding/new_address/choose_chain_page.dart';
@@ -856,7 +856,9 @@ class AppRouter {
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => const ViewExistingAddress());
+            builder: (context) => ViewExistingAddress(
+                  payload: settings.arguments as ViewExistingAddressPayload,
+                ));
       case ImportSeedsPage.tag:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ImportSeedsPage());
@@ -873,15 +875,15 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-              create: (_) => PersonaBloc(
-                injector<CloudDatabase>(),
-                injector(),
-                injector(),
-                injector<AuditService>(),
-              ),
-              child: AddressAlias(
-                  payload: settings.arguments as AddressAliasPayload),
-            ));
+                  create: (_) => PersonaBloc(
+                    injector<CloudDatabase>(),
+                    injector(),
+                    injector(),
+                    injector<AuditService>(),
+                  ),
+                  child: AddressAlias(
+                      payload: settings.arguments as AddressAliasPayload),
+                ));
       case feedArtworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,

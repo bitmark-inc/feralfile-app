@@ -114,13 +114,10 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
 
   Widget _buildAddressList(BuildContext context) {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final categorizedAccounts = state.categorizedAccounts ?? [];
+      final categorizedAccounts = state.accounts ?? [];
       return Column(
         children: [
           ...categorizedAccounts.map((account) {
-            if (!widget.withLinked && !account.isPersona) {
-              return const SizedBox();
-            }
             return PersonalConnectItem(
               categorizedAccount: account,
               ethSelectedAddress: _selectedAddress,

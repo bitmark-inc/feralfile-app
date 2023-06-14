@@ -6,25 +6,34 @@
 //
 
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class RecoveryPhrasePage extends StatelessWidget {
+class RecoveryPhrasePage extends StatefulWidget {
   final List<String> words;
 
   const RecoveryPhrasePage({Key? key, required this.words}) : super(key: key);
 
   @override
+  State<RecoveryPhrasePage> createState() => _RecoveryPhrasePageState();
+}
+
+class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
+  bool _isShow = false;
+
+  @override
   Widget build(BuildContext context) {
-    final itemsEachRow = words.length ~/ 2;
-    final roundNumber = words.length ~/ 2;
+    final roundNumber = widget.words.length ~/ 2 + widget.words.length % 2;
     final theme = Theme.of(context);
     final customLinkStyle = theme.textTheme.ppMori400Black14
         .copyWith(decoration: TextDecoration.underline);
@@ -91,16 +100,48 @@ class RecoveryPhrasePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    Table(
-                      children: List.generate(
-                        roundNumber,
-                        (index) {
-                          return _tableRow(context, index, itemsEachRow);
-                        },
-                      ),
-                      border: TableBorder.all(
-                          color: AppColor.auLightGrey,
-                          borderRadius: BorderRadius.circular(10)),
+                    Stack(
+                      children: [
+                        Table(
+                          children: List.generate(
+                            roundNumber,
+                            (index) {
+                              return _tableRow(context, index, roundNumber);
+                            },
+                          ),
+                          border: TableBorder.all(
+                              color: AppColor.auLightGrey,
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        if (!_isShow)
+                          Positioned.fill(
+                            child: ClipRect(
+                                child: BackdropFilter(
+                              filter:
+                                  ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                              child: Center(
+                                  child: ConstrainedBox(
+                                constraints: const BoxConstraints.tightFor(
+                                    width: 168, height: 43),
+                                child: PrimaryButton(
+                                  text: "tap_to_reveal".tr(),
+                                  onTap: () async {
+                                    final didAuthenticate =
+                                        await LocalAuthenticationService
+                                            .checkLocalAuth();
+
+                                    if (!didAuthenticate) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _isShow = !_isShow;
+                                    });
+                                  },
+                                ),
+                              )),
+                            )),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -114,7 +155,8 @@ class RecoveryPhrasePage extends StatelessWidget {
 
   Widget _rowItem(BuildContext context, int index) {
     final theme = Theme.of(context);
-    final word = words[index];
+    final isNull = index >= widget.words.length;
+    final word = isNull ? "" : widget.words[index];
     NumberFormat formatter = NumberFormat("00");
 
     return Padding(
@@ -124,7 +166,7 @@ class RecoveryPhrasePage extends StatelessWidget {
           Container(
             width: 32,
             alignment: Alignment.centerRight,
-            child: Text(formatter.format(index + 1),
+            child: Text(isNull ? "" : formatter.format(index + 1),
                 style: theme.textTheme.ppMori400Grey14),
           ),
           const SizedBox(width: 16),

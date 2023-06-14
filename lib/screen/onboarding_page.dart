@@ -394,7 +394,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                 PrimaryButton(
                   text: "view_existing_address".tr(),
                   onTap: () {
-                    Navigator.of(context).pushNamed(ViewExistingAddress.tag);
+                    Navigator.of(context).pushNamed(ViewExistingAddress.tag,
+                        arguments: ViewExistingAddressPayload(true));
                   },
                 ),
               ] else if (state.onboardingStep == OnboardingStep.restore) ...[

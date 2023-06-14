@@ -15,8 +15,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
-import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -24,9 +22,9 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:web3dart/web3dart.dart';
 
 part 'accounts_state.dart';
 
@@ -54,9 +52,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       final connections = await connectionsFuture;
       for (var connection in connections) {
         final cryptoType = CryptoType.fromAddress(connection.key).source;
-        final name = connection.name.isNotEmpty
-            ? connection.name
-            : cryptoType;
+        final name = connection.name.isNotEmpty ? connection.name : cryptoType;
         switch (connection.connectionType) {
           case 'feralFileWeb3':
           case "feralFileToken":
@@ -101,213 +97,43 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         await _auditService.auditPersonaAction('cleanUp', null);
       }
 
-      accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final defaultAccount = accounts.firstWhereOrNull((element) =>
-          element.persona != null ? element.persona!.isDefault() : false);
-      if (defaultAccount != null) {
-        accounts.remove(defaultAccount);
-        accounts.insert(0, defaultAccount);
-      }
+      accounts.sort(_compareAccount);
+
       emit(AccountsState(accounts: accounts));
     });
 
     on<GetAccountsIRLEvent>((event, emit) async {
-
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
       List<Account> accounts = await getAccountPersona(addresses);
 
-      accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final defaultAccount = accounts.where((element) =>
-          element.persona != null ? element.persona!.isDefault() : false).toList();
-      if (defaultAccount != []) {
-        for (var element in defaultAccount) {
-          accounts.remove(element);
-          accounts.insert(0, element);
-        }
-      }
+      accounts.sort(_compareAccount);
       emit(AccountsState(accounts: accounts));
     });
 
     on<GetCategorizedAccountsEvent>((event, emit) async {
-      final personas = await _cloudDB.personaDao.getPersonas();
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-      logger.info(
-          'GetCategorizedAccountsEvent: personas: ${personas.map((e) => e.uuid).toList()}');
-      if (personas.isEmpty &&
-          ((event.includeLinkedAccount && connections.isEmpty) ||
-              !event.includeLinkedAccount)) {
-        emit(state.copyWith(categorizedAccounts: []));
-      }
-      List<CategorizedAccounts> categorizedAccounts = [];
-
-      for (var persona in personas) {
-        if (!await persona.wallet().isWalletCreated()) continue;
-        final ethAddresses = await persona.getEthAddresses();
-        final xtzAddresses = await persona.getTezosAddresses();
-
-        if (ethAddresses.isEmpty && xtzAddresses.isEmpty) {
-          final ethAddress = await persona.wallet().getETHEip55Address();
-          final ethAddressInfo =
-              EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
-          ethAddresses.add(ethAddress);
-
-          final tezAddress = await persona.wallet().getTezosAddress();
-          final tezAddressInfo = TezosAddressInfo(0, tezAddress, 0);
-          await _accountService
-              .addAddressPersona(persona, [tezAddressInfo, ethAddressInfo]);
-          xtzAddresses.add(tezAddress);
-        }
-
-        var name = await persona.wallet().getName();
-
-        if (name.isEmpty) {
-          name = persona.name.isNotEmpty
-              ? persona.name
-              : (await persona.wallet().getAccountDID())
-                  .replaceFirst('did:key:', '');
-        }
-
-        final List<Account> accounts = [];
-        final List<Account> ethAccounts = [];
-        final List<Account> xtzAccounts = [];
-        for (var address in ethAddresses) {
-          final ethAccount = Account(
-              key: persona.uuid,
-              persona: persona,
-              name: name,
-              blockchain: "Ethereum",
-              accountNumber: address,
-              createdAt: persona.createdAt);
-          ethAccounts.add(ethAccount);
-        }
-        for (var address in xtzAddresses) {
-          final xtzAccount = Account(
-              key: persona.uuid,
-              persona: persona,
-              name: name,
-              blockchain: "Tezos",
-              accountNumber: address,
-              createdAt: persona.createdAt);
-          xtzAccounts.add(xtzAccount);
-        }
-        if (event.getEth && ethAccounts.isNotEmpty) {
-          accounts.addAll(ethAccounts);
-        }
-
-        if (event.getTezos && xtzAccounts.isNotEmpty) {
-          accounts.addAll(xtzAccounts);
-        }
-        if (accounts.isNotEmpty) {
-          categorizedAccounts.add(
-            CategorizedAccounts(
-              name,
-              accounts,
-              'Persona',
-            ),
-          );
-        }
+      late List<WalletAddress> addresses;
+      final type =
+          WalletType.getWallet(eth: event.getEth, tezos: event.getTezos);
+      switch (type) {
+        case WalletType.Autonomy:
+          addresses = await _cloudDB.addressDao.getAllAddresses();
+          break;
+        case WalletType.Ethereum:
+          addresses = await _cloudDB.addressDao
+              .getAddressesByType(CryptoType.ETH.source);
+          break;
+        case WalletType.Tezos:
+          addresses = await _cloudDB.addressDao
+              .getAddressesByType(CryptoType.XTZ.source);
+          break;
+        default:
+          addresses = [];
       }
 
-      if (event.includeLinkedAccount) {
-        for (var connection in connections) {
-          switch (connection.connectionType) {
-            case "walletConnect":
-            case "walletBrowserConnect":
-              if (event.getEth) {
-                categorizedAccounts.add(
-                  CategorizedAccounts(
-                    connection.name,
-                    [
-                      Account(
-                        key: connection.key,
-                        blockchain: "Ethereum",
-                        accountNumber: connection.accountNumber,
-                        connections: [connection],
-                        name: connection.name,
-                        createdAt: connection.createdAt,
-                      )
-                    ],
-                    'Connection',
-                  ),
-                );
-              }
-              break;
-            case "walletBeacon":
-              if (event.getTezos) {
-                categorizedAccounts.add(
-                  CategorizedAccounts(
-                    connection.name,
-                    [
-                      Account(
-                        key: connection.key,
-                        blockchain: "Tezos",
-                        accountNumber: connection.accountNumber,
-                        connections: [connection],
-                        name: connection.name,
-                        createdAt: connection.createdAt,
-                      )
-                    ],
-                    'Connection',
-                  ),
-                );
-              }
-              break;
-
-            case 'ledger':
-              final data = connection.ledgerConnection;
-              List<Account> accounts = [];
-
-              final ethereumAddresses = data?.etheremAddress ?? [];
-              final tezosAddresses = data?.tezosAddress ?? [];
-
-              for (final ethereumAddress in ethereumAddresses) {
-                if (event.getEth) {
-                  accounts.add(
-                    Account(
-                      key: connection.key + ethereumAddress,
-                      blockchain: "Ethereum",
-                      accountNumber: ethereumAddress,
-                      connections: [connection],
-                      name: connection.name,
-                      createdAt: connection.createdAt,
-                    ),
-                  );
-                }
-              }
-
-              for (final tezosAddress in tezosAddresses) {
-                if (event.getTezos) {
-                  accounts.add(
-                    Account(
-                      key: connection.key + tezosAddress,
-                      blockchain: "Tezos",
-                      accountNumber: tezosAddress,
-                      connections: [connection],
-                      name: connection.name,
-                      createdAt: connection.createdAt,
-                    ),
-                  );
-                }
-              }
-
-              if (accounts.isNotEmpty) {
-                categorizedAccounts.add(CategorizedAccounts(
-                  connection.name,
-                  accounts,
-                  'Connection',
-                ));
-              }
-              break;
-
-            default:
-              break;
-          }
-        }
-      }
-
-      emit(state.copyWith(categorizedAccounts: categorizedAccounts));
+      List<Account> accounts = await getAccountPersona(addresses);
+      accounts.sort(_compareAccount);
+      emit(state.copyWith(accounts: accounts));
     });
 
     on<LinkLedgerWalletEvent>((event, emit) async {
@@ -457,5 +283,14 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
     }
     return accounts;
+  }
+
+  int _compareAccount(Account a, Account b) {
+    final aDefault = a.persona?.defaultAccount ?? 0;
+    final bDefault = b.persona?.defaultAccount ?? 0;
+    if (aDefault != bDefault) {
+      return bDefault.compareTo(aDefault);
+    }
+    return a.createdAt.compareTo(b.createdAt);
   }
 }

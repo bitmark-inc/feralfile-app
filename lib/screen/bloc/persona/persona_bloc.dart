@@ -103,15 +103,15 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
             createAccountState: ActionState.done, persona: persona));
       } else {
         persona = await _accountService.createPersona();
-        emit(PersonaState(
-            createAccountState: ActionState.done, persona: persona));
       }
       if (persona != null) {
         await persona.insertAddress(event.walletType, name: event.name);
+        emit(PersonaState(
+            createAccountState: ActionState.done, persona: persona));
       }
 
       await Future.delayed(const Duration(microseconds: 500), () {
-        emit(state.copyWith(createAccountState: ActionState.notRequested));
+        emit(state.copyWith(createAccountState: ActionState.error));
       });
     });
   }

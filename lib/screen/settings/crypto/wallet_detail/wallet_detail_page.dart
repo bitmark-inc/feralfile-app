@@ -45,6 +45,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
+
 class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
 
@@ -289,6 +290,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                           child: _connectionsSection(),
                                         ),
                                         addDivider(),
+                                      ],
+                                      Padding(
+                                        padding: padding,
+                                        child: _recoverySection(),
+                                      ),
+                                      addDivider(),
+                                      if (showConnection) ...[
                                         Padding(
                                             padding: padding,
                                             child: _txSection()),
@@ -572,6 +580,26 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             AppRouter.inappWebviewPage,
             arguments: _txURL(address, widget.payload.type),
           );
+        },
+      ),
+    ]);
+  }
+
+  Widget _recoverySection() {
+    final theme = Theme.of(context);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      TappableForwardRow(
+        padding: EdgeInsets.zero,
+        leftWidget: Text(
+          "recovery_phrase".tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        onTap: () async {
+          final words =
+              await widget.payload.persona.wallet().exportMnemonicWords();
+          if (!mounted) return;
+          Navigator.of(context).pushNamed(AppRouter.recoveryPhrasePage,
+              arguments: words.split(" "));
         },
       ),
     ]);

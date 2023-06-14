@@ -95,7 +95,8 @@ class _WalletPageState extends State<WalletPage>
           height: 24,
         ),
         onTap: () {
-          Navigator.of(context).popAndPushNamed(ViewExistingAddress.tag);
+          Navigator.of(context).popAndPushNamed(ViewExistingAddress.tag,
+              arguments: ViewExistingAddressPayload(false));
         },
       ),
       OptionItem(

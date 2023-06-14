@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -41,10 +45,10 @@ class _AddressAliasState extends State<AddressAlias> {
           title: "address_alias".tr(),
           onBack: () => Navigator.of(context).pop()),
       body: BlocConsumer<PersonaBloc, PersonaState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           switch (state.createAccountState) {
             case ActionState.done:
-              injector<NavigationService>().popUntilHomeOrSettings();
+              await _doneNaming();
               isProcessing = false;
               break;
             case ActionState.loading:
@@ -106,6 +110,34 @@ class _AddressAliasState extends State<AddressAlias> {
         },
       ),
     );
+  }
+
+  Future _doneNaming() async {
+    if (Platform.isAndroid) {
+      final isAndroidEndToEndEncryptionAvailable =
+      await injector<AccountService>()
+          .isAndroidEndToEndEncryptionAvailable();
+
+      if (!mounted) return;
+
+      if (injector<ConfigurationService>().isDoneOnboarding()) {
+        Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
+            arguments: isAndroidEndToEndEncryptionAvailable);
+      } else {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.cloudAndroidPage, (route) => false,
+            arguments: isAndroidEndToEndEncryptionAvailable);
+      }
+    } else {
+      if (injector<ConfigurationService>().isDoneOnboarding()) {
+        Navigator.of(context)
+            .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");
+      } else {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.cloudPage, (route) => false,
+            arguments: "nameAlias");
+      }
+    }
   }
 }
 

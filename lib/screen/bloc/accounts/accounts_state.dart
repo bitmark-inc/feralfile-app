@@ -87,6 +87,9 @@ class Account {
 
   bool get isUsdc => blockchain == "USDC";
 
+  String get className =>
+      persona != null && walletAddress != null ? "Persona" : "Connection";
+
   Account({
     required this.key,
     this.persona,
@@ -125,46 +128,21 @@ class Account {
   }
 }
 
-class CategorizedAccounts {
-  String category;
-  List<Account> accounts;
-  String className;
-
-  CategorizedAccounts(this.category, this.accounts, this.className);
-
-  List<Account> get ethAccounts =>
-      accounts.where((element) => element.isEth).toList();
-
-  List<Account> get xtzAccounts =>
-      accounts.where((element) => element.isTez).toList();
-
-  bool get isPersona => className == 'Persona';
-
-  Persona? get persona => accounts.firstWhere((e) => e.persona != null).persona;
-}
-
 class AccountsState {
   List<String> addresses;
   List<Account>? accounts;
-  List<CategorizedAccounts>? categorizedAccounts;
   AccountBlocStateEvent? event;
 
-  AccountsState(
-      {this.addresses = const [],
-      this.accounts,
-      this.categorizedAccounts,
-      this.event});
+  AccountsState({this.addresses = const [], this.accounts, this.event});
 
   AccountsState copyWith(
       {List<String>? addresses,
       List<Account>? accounts,
-      List<CategorizedAccounts>? categorizedAccounts,
       Network? network,
       AccountBlocStateEvent? event}) {
     return AccountsState(
       addresses: addresses ?? this.addresses,
       accounts: accounts ?? this.accounts,
-      categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
       event: event ?? this.event,
     );
   }
@@ -173,7 +151,6 @@ class AccountsState {
     return AccountsState(
       addresses: addresses,
       accounts: accounts,
-      categorizedAccounts: categorizedAccounts,
       event: event,
     );
   }

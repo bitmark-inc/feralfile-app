@@ -631,6 +631,21 @@ class _$WalletAddressDao extends WalletAddressDao {
   }
 
   @override
+  Future<List<WalletAddress>> getAddressesByType(String cryptoType) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM WalletAddress WHERE cryptoType = ?1',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?),
+        arguments: [cryptoType]);
+  }
+
+  @override
   Future<void> setAddressIsHidden(
     String address,
     bool isHidden,
