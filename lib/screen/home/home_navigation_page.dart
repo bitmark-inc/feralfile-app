@@ -445,7 +445,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
       case "new_message":
         final groupId = data["group_id"];
-        final currentGroupId = _configurationService.getCurrentGroupChatId();
+
+        final currentGroupId = memoryValues.currentGroupChatId;
         if (groupId != currentGroupId) {
           showNotifications(context, event.notification,
               notificationOpenedHandler: _handleNotificationClicked);

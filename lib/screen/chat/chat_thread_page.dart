@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -55,7 +56,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _payload = widget.payload;
     _user = types.User(id: _payload.address);
     _websocketInitAndFetchHistory();
-    _configurationService.setCurrentGroupChatId(_payload.tokenId);
+    memoryValues.currentGroupChatId = _payload.tokenId;
   }
 
   Future<void> _websocketInitAndFetchHistory() async {
@@ -212,7 +213,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _websocketChannel?.sink.close();
     _websocketChannel = null;
     _stopConnect = true;
-    _configurationService.setCurrentGroupChatId(null);
+    memoryValues.currentGroupChatId = null;
     super.dispose();
   }
 
