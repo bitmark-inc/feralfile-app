@@ -40,7 +40,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
-import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
