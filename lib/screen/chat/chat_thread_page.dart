@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -47,8 +45,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   String? _historyRequestId;
   bool _isTyping = false;
   bool _stopConnect = false;
-
-  final _configurationService = injector<ConfigurationService>();
 
   @override
   void initState() {
