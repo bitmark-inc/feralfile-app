@@ -37,18 +37,6 @@ class _TouchPadState extends State<TouchPad> {
               log.info(panDetails.delta);
               _canvasClient.drag(widget.device, panDetails.delta);
             },
-            onPanStart: (dragStartDetails) {
-              log.info("onPanStart");
-            },
-            onPanEnd: (dragEndDetails) {
-              log.info("onPanEnd");
-            },
-            onPanDown: (dragDownDetails) {
-              log.info("onPanDown ");
-            },
-            onPanCancel: () {
-              log.info("onPanCancel");
-            },
           ),
           Positioned(
             bottom: 0,
