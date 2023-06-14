@@ -94,14 +94,26 @@ class _StampPreviewState extends State<StampPreview> {
       },
       child: Scaffold(
         backgroundColor: AppColor.primaryBlack,
-        appBar: getBackAppBar(context,
-            title: "preview_postcard".tr(),
-            onBack: confirming
-                ? null
-                : () {
-                    Navigator.of(context).pop();
-                  },
-            isWhite: false),
+        appBar: !confirming
+            ? getBackAppBar(context,
+                title: "preview_postcard".tr(),
+                onBack: confirming
+                    ? null
+                    : () {
+                        Navigator.of(context).pop();
+                      },
+                isWhite: false)
+            : getCloseAppBar(context, title: "preview_postcard".tr(),
+                onClose: () {
+                _navigationService.popUntilHomeOrSettings();
+                if (!mounted) return;
+                Navigator.of(context).pushNamed(
+                  AppRouter.claimedPostcardDetailsPage,
+                  arguments:
+                      ArtworkDetailPayload([widget.payload.asset.identity], 0),
+                );
+                _configurationService.setAutoShowPostcard(true);
+              }, isWhite: false),
         body: BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
           listener: (context, state) {
             if (!(state.isPostcardUpdatingOnBlockchain ||

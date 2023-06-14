@@ -79,21 +79,23 @@ AppBar getCloseAppBar(BuildContext context,
     {String title = "",
     required Function()? onClose,
     Widget? icon,
-    bool withBottomDivider = true}) {
+    bool withBottomDivider = true,
+    bool isWhite = true}) {
   final theme = Theme.of(context);
-
+  final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
+  final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
       statusBarColor: theme.colorScheme.secondary,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
+      statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
+      statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
     centerTitle: true,
     automaticallyImplyLeading: false,
     title: Text(
       title,
       overflow: TextOverflow.ellipsis,
-      style: theme.textTheme.ppMori400Black16,
+      style: theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
       textAlign: TextAlign.center,
     ),
     actions: [
@@ -101,7 +103,7 @@ AppBar getCloseAppBar(BuildContext context,
         IconButton(
           tooltip: "CLOSE",
           onPressed: onClose,
-          icon: icon ?? closeIcon(),
+          icon: icon ?? closeIcon(color: primaryColor),
         )
     ],
     backgroundColor: Colors.transparent,
@@ -110,7 +112,8 @@ AppBar getCloseAppBar(BuildContext context,
     bottom: withBottomDivider
         ? PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: addOnlyDivider(),
+            child: addOnlyDivider(
+                color: isWhite ? null : AppColor.auGreyBackground),
           )
         : null,
   );
