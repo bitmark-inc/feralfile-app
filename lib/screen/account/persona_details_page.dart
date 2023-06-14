@@ -414,8 +414,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             ],
           ),
         ),
-        onTap: () {
-        },
+        onTap: () {},
       ),
     );
   }

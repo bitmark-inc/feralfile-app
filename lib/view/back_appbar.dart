@@ -84,14 +84,14 @@ AppBar getBackAppBar(BuildContext context,
 
 AppBar getTitleEditAppBar(BuildContext context,
     {String backTitle = "BACK",
-      required TextEditingController controller,
-      required FocusNode focusNode,
-      required Function(String value) onSubmit,
-      bool hasBack = true,
-      Widget? icon,
-      Widget? titleIcon,
-      bool hasAction = true,
-      bool isWhite = true}) {
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required Function(String value) onSubmit,
+    bool hasBack = true,
+    Widget? icon,
+    Widget? titleIcon,
+    bool hasAction = true,
+    bool isWhite = true}) {
   final theme = Theme.of(context);
 
   final primaryColor = isWhite ? AppColor.auGrey : AppColor.white;
@@ -105,16 +105,16 @@ AppBar getTitleEditAppBar(BuildContext context,
     leadingWidth: 44,
     leading: hasBack
         ? Semantics(
-      label: "BACK",
-      child: IconButton(
-        onPressed: (){},
-        constraints: const BoxConstraints(maxWidth: 36.0),
-        icon: SvgPicture.asset(
-          'assets/images/icon_back.svg',
-          color: primaryColor,
-        ),
-      ),
-    )
+            label: "BACK",
+            child: IconButton(
+              onPressed: () {},
+              constraints: const BoxConstraints(maxWidth: 36.0),
+              icon: SvgPicture.asset(
+                'assets/images/icon_back.svg',
+                color: primaryColor,
+              ),
+            ),
+          )
         : const SizedBox(),
     automaticallyImplyLeading: false,
     title: Row(
@@ -140,7 +140,7 @@ AppBar getTitleEditAppBar(BuildContext context,
           child: IconButton(
             tooltip: "AppbarAction",
             constraints: const BoxConstraints(maxWidth: 36.0),
-            onPressed: (){},
+            onPressed: () {},
             icon: icon ??
                 Icon(
                   Icons.more_horiz,

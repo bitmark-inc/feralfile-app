@@ -25,8 +25,7 @@ abstract class WalletAddressDao {
       'SELECT * FROM WalletAddress WHERE uuid = :uuid AND cryptoType = :cryptoType')
   Future<List<WalletAddress>> getAddresses(String uuid, String cryptoType);
 
-  @Query(
-      'SELECT * FROM WalletAddress WHERE cryptoType = :cryptoType')
+  @Query('SELECT * FROM WalletAddress WHERE cryptoType = :cryptoType')
   Future<List<WalletAddress>> getAddressesByType(String cryptoType);
 
   @Query(
