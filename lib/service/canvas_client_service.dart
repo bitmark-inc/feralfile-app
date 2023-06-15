@@ -175,10 +175,16 @@ class CanvasClientService {
           case CanvasServerStatus.playing:
           case CanvasServerStatus.connected:
             device.playingSceneId = status.second;
-            await _db.canvasDeviceDao.insertCanvasDevice(device);
+            device.isConnecting = true;
+            await _db.canvasDeviceDao.updateCanvasDevice(device);
             _devices.add(device);
             break;
           case CanvasServerStatus.open:
+            device.playingSceneId = status.second;
+            device.isConnecting = false;
+            await _db.canvasDeviceDao.updateCanvasDevice(device);
+            _devices.add(device);
+            break;
           case CanvasServerStatus.notServing:
             await _disconnectLocalDevice(device);
             break;
