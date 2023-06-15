@@ -430,20 +430,31 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
-    if (data['notification_type'] == "customer_support_new_announcement") {
-      showInfoNotification(
-          const Key("Announcement"), "au_has_announcement".tr(),
-          addOnTextSpan: [
-            TextSpan(
-                text: "tap_to_view".tr(),
-                style: Theme.of(context).textTheme.ppMori400Green14),
-          ], openHandler: () async {
-        final announcementID = '${data["id"]}';
-        _openAnnouncement(announcementID);
-      });
-    } else {
-      showNotifications(context, event.notification,
-          notificationOpenedHandler: _handleNotificationClicked);
+    switch (data['notification_type']) {
+      case "customer_support_new_announcement":
+        showInfoNotification(
+            const Key("Announcement"), "au_has_announcement".tr(),
+            addOnTextSpan: [
+              TextSpan(
+                  text: "tap_to_view".tr(),
+                  style: Theme.of(context).textTheme.ppMori400Green14),
+            ], openHandler: () async {
+          final announcementID = '${data["id"]}';
+          _openAnnouncement(announcementID);
+        });
+        break;
+      case "new_message":
+        final groupId = data["group_id"];
+
+        final currentGroupId = memoryValues.currentGroupChatId;
+        if (groupId != currentGroupId) {
+          showNotifications(context, event.notification,
+              notificationOpenedHandler: _handleNotificationClicked);
+        }
+        break;
+      default:
+        showNotifications(context, event.notification,
+            notificationOpenedHandler: _handleNotificationClicked);
     }
     event.complete(null);
   }
