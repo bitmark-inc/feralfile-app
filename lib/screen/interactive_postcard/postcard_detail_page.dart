@@ -714,7 +714,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   }
                   return _completeTravelWidget(e);
                 }
-                return _travelWidget(e);
+                return _travelWidget(e, onTap: () {
+                  _gotoTripDetail(context, e);
+                });
               }).toList(),
             ],
           ),
@@ -723,19 +725,21 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _travelWidget(TravelInfo travelInfo) {
+  _gotoTripDetail(BuildContext context, TravelInfo travelInfo) {
+    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
+    Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
+        arguments: TripDetailPayload(
+          stampIndex: travelInfo.index - 1,
+          travelsInfo: travelsInfo!,
+          assetToken: currentAsset!,
+        ));
+  }
+
+  Widget _travelWidget(TravelInfo travelInfo, {Function()? onTap}) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
-            arguments: TripDetailPayload(
-              stampIndex: travelInfo.index - 1,
-              travelsInfo: travelsInfo!,
-              assetToken: currentAsset!,
-            ));
-      },
+      onTap: onTap,
       child: Stack(
         children: [
           Column(
@@ -868,7 +872,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _notSentItem(List<TravelInfo> listTravelInfo) {
     final notSentTravelInfo = listTravelInfo.notSentTravelInfo;
-    return _travelWidget(notSentTravelInfo);
+    return _travelWidget(notSentTravelInfo, onTap: () {});
   }
 
   Widget _leaderboard(PostcardDetailState state) {

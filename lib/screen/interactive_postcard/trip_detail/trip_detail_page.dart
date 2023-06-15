@@ -63,12 +63,19 @@ class _TripDetailPageState extends State<TripDetailPage> {
             const SizedBox(
               height: 15,
             ),
-            AspectRatio(
-              aspectRatio: postcardAspectRatio,
-              child: PostcardViewWidget(
-                assetToken: widget.payload.assetToken,
-                zoomIndex: travelInfo.index,
-              ),
+            Stack(
+              children: [
+                AbsorbPointer(
+                  child: AspectRatio(
+                    aspectRatio: postcardAspectRatio,
+                    child: PostcardViewWidget(
+                      assetToken: widget.payload.assetToken,
+                      zoomIndex: travelInfo.index,
+                    ),
+                  ),
+                ),
+                Positioned.fill(child: Container()),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 22),

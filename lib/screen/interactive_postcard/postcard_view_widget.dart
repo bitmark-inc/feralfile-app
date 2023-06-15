@@ -43,7 +43,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
   void _zoomIntoStamp(int index) {
     log.info("[Postcard] zoom into stamp $index");
     _controller?.evaluateJavascript(
-      source: "zoomStamp('$index')",
+      source: "zoomInStamp('$index')",
     );
   }
 
