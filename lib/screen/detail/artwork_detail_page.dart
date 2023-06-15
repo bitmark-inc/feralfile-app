@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -69,6 +70,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
+  final _airdropService = injector.get<AirdropService>();
 
   @override
   void initState() {
@@ -156,9 +158,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future<void> _shareMemento(AssetToken asset) async {
+    final deeplink = await _airdropService.shareAirdrop(asset);
+    if (deeplink == null) {
+      return;
+    }
     try {
       final shareMessage = "memento_6_share_message".tr(namedArgs: {
-        'deeplink': "deepLink",
+        'deeplink': deeplink,
       });
       Share.share(shareMessage);
     } catch (e) {
@@ -171,9 +177,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Widget _sendMomento6(AssetToken asset) {
-    final canSend = true;
+    final deeplink = context.watch<ArtworkDetailBloc>().state.airdropDeeplink;
+    final canSend = deeplink != null && deeplink.isNotEmpty;
     if (!canSend) {
-      return SizedBox();
+      return const SizedBox();
     }
     return PostcardButton(
       text: "send_memento".tr(),
@@ -213,6 +220,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       setState(() {
         currentAsset = state.assetToken;
       });
+      if (state.assetToken != null && state.assetToken!.isAirdropToken) {
+        context.read<ArtworkDetailBloc>().add(
+            ArtworkDetailGetAirdropDeeplink(assetToken: state.assetToken!));
+      }
       if (withSharing && state.assetToken != null) {
         _socialShare(context, state.assetToken!);
         setState(() {
@@ -225,7 +236,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
         final owners = state.owners;
-
         final artistName =
             asset.artistName?.toIdentityOrMask(identityState.identityMap);
 

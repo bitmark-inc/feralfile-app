@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'memento_api.dart';
+part of 'airdrop_api.dart';
 
 // **************************************************************************
 // RetrofitGenerator
@@ -8,8 +8,8 @@ part of 'memento_api.dart';
 
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers
 
-class _MementoApi implements MementoApi {
-  _MementoApi(
+class _AirdropApi implements AirdropApi {
+  _AirdropApi(
     this._dio, {
     this.baseUrl,
   });
@@ -19,14 +19,14 @@ class _MementoApi implements MementoApi {
   String? baseUrl;
 
   @override
-  Future<MementoRequestClaimResponse> requestClaim(body) async {
+  Future<AirdropRequestClaimResponse> requestClaim(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<MementoRequestClaimResponse>(Options(
+        _setStreamType<AirdropRequestClaimResponse>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -38,19 +38,19 @@ class _MementoApi implements MementoApi {
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = MementoRequestClaimResponse.fromJson(_result.data!);
+    final value = AirdropRequestClaimResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<MementoClaimResponse> claim(body) async {
+  Future<TokenClaimResponse> claim(body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<MementoClaimResponse>(Options(
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<TokenClaimResponse>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -62,35 +62,35 @@ class _MementoApi implements MementoApi {
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = MementoClaimResponse.fromJson(_result.data!);
+    final value = TokenClaimResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<MementoGetInfoResponse> getInfo(shareCode) async {
+  Future<AirdropClaimShareResponse> claimShare(shareCode) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<MementoGetInfoResponse>(Options(
+        _setStreamType<AirdropClaimShareResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/v1/share/${shareCode}',
+              '/v1/claim/${shareCode}',
               queryParameters: queryParameters,
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = MementoGetInfoResponse.fromJson(_result.data!);
+    final value = AirdropClaimShareResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<MementoShareRespone> share(
+  Future<AirdropShareResponse> share(
     tokenId,
     body,
   ) async {
@@ -100,7 +100,7 @@ class _MementoApi implements MementoApi {
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
     final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<MementoShareRespone>(Options(
+        _setStreamType<AirdropShareResponse>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -112,7 +112,7 @@ class _MementoApi implements MementoApi {
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = MementoShareRespone.fromJson(_result.data!);
+    final value = AirdropShareResponse.fromJson(_result.data!);
     return value;
   }
 

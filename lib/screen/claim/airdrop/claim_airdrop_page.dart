@@ -2,14 +2,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
-import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
@@ -26,44 +26,46 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ClaimTokenPageArgs {
+class ClaimTokenPagePayload {
+  final String claimID;
+  final String shareCode;
   final FFSeries series;
-  final Otp? otp;
 
-  ClaimTokenPageArgs({
+  ClaimTokenPagePayload({
+    required this.claimID,
+    required this.shareCode,
     required this.series,
-    this.otp,
   });
 }
 
-class ClaimTokenPage extends StatefulWidget {
-  final FFSeries series;
-  final Otp? otp;
+class ClaimAirdropPage extends StatefulWidget {
+  final ClaimTokenPagePayload payload;
 
-  const ClaimTokenPage({
+  const ClaimAirdropPage({
     Key? key,
-    required this.series,
-    this.otp,
+    required this.payload,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _ClaimTokenPageState();
+  State<ClaimAirdropPage> createState() {
+    return _ClaimAirdropPageState();
   }
 }
 
-class _ClaimTokenPageState extends State<ClaimTokenPage> {
+class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
   bool _processing = false;
 
-  final metricClient = injector.get<MetricClientService>();
+  final _metricClient = injector.get<MetricClientService>();
+  final _airdropService = injector<AirdropService>();
+  final _accountService = injector<AccountService>();
+  final _configService = injector<ConfigurationService>();
 
   @override
   Widget build(BuildContext context) {
-    final artwork = widget.series;
+    final artwork = widget.payload.series;
     final artist = artwork.artist;
     final artistName = artist != null ? artist.getDisplayName() : "";
     final artworkThumbnail = artwork.getThumbnailURL();
@@ -153,7 +155,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PreviewTokenClaim(
-                                series: widget.series,
+                                series: widget.payload.series,
                               ),
                             ),
                           );
@@ -182,7 +184,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PreviewTokenClaim(
-                                          series: widget.series,
+                                          series: widget.payload.series,
                                         ),
                                       ),
                                     );
@@ -235,52 +237,57 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        metricClient.addEvent(
+                        _metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            "id": widget.series.id,
+                            "id": widget.payload.series.id,
                           },
                         );
                         setState(() {
                           _processing = true;
                         });
                         final blockchain = widget
-                                .series.exhibition?.mintBlockchain
+                                .payload.series.exhibition?.mintBlockchain
                                 .capitalize() ??
                             "Tezos";
-                        final accountService = injector<AccountService>();
                         final addresses =
-                            await accountService.getAddress(blockchain);
+                            await _accountService.getAddress(blockchain);
 
                         String? address;
                         if (addresses.isEmpty) {
                           final defaultAccount =
-                              await accountService.getDefaultAccount();
-                          final configService =
-                              injector<ConfigurationService>();
-                          await configService.setDoneOnboarding(true);
-                          injector<MetricClientService>()
-                              .mixPanelClient
-                              .initIfDefaultAccount();
-                          await configService.setPendingSettings(true);
+                              await _accountService.getDefaultAccount();
+
+                          await _configService.setDoneOnboarding(true);
+                          _metricClient.mixPanelClient.initIfDefaultAccount();
+                          await _configService.setPendingSettings(true);
                           address = blockchain == "Tezos"
                               ? await defaultAccount.getTezosAddress()
                               : await defaultAccount.getETHEip55Address();
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {
-                          if (!mounted) return;
-                          await Navigator.of(context).pushNamed(
-                            AppRouter.claimSelectAccountPage,
-                            arguments: SelectAccountPageArgs(
-                              blockchain,
-                              widget.series,
-                              widget.otp,
-                            ),
-                          );
+                          if (mounted) {
+                            final response =
+                                await Navigator.of(context).pushNamed(
+                              AppRouter.receivePostcardSelectAccountPage,
+                              arguments: ReceivePostcardSelectAccountPageArgs(
+                                blockchain,
+                                withLinked: false,
+                              ),
+                            );
+                            address = response as String?;
+                          }
                         }
+
                         if (address != null && mounted) {
-                          _claimToken(context, address);
+                          _claimToken(
+                            context: context,
+                            claimID: widget.payload.claimID,
+                            shareCode: widget.payload.shareCode,
+                            seriesId: widget.payload.series.id,
+                            receiveAddress: address,
+                          );
                         } else {
                           setState(() {
                             _processing = false;
@@ -332,10 +339,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                metricClient.addEvent(
+                _metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    "id": widget.series.id,
+                    "id": widget.payload.series.id,
                   },
                 );
                 memoryValues.airdropFFExhibitionId.value = null;
@@ -348,19 +355,23 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     );
   }
 
-  Future _claimToken(BuildContext context, String receiveAddress) async {
+  Future _claimToken(
+      {required BuildContext context,
+      required String claimID,
+      required String shareCode,
+      required String seriesId,
+      required String receiveAddress}) async {
     ClaimResponse? claimRespone;
-    final ffService = injector<FeralFileService>();
     try {
-      claimRespone = await ffService.claimToken(
-        seriesId: widget.series.id,
-        address: receiveAddress,
-        otp: widget.otp,
-      );
-      metricClient.addEvent(
+      claimRespone = await _airdropService.claimGift(
+          claimID: claimID,
+          shareCode: shareCode,
+          seriesId: seriesId,
+          receivingAddress: receiveAddress);
+      _metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.series.id,
+          "id": widget.payload.series.id,
         },
       );
 
@@ -370,7 +381,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       await UIHelper.showClaimTokenError(
         context,
         e,
-        series: widget.series,
+        series: widget.payload.series,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     }
@@ -397,16 +408,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   void _openFFArtistCollector() {
-    String uri = (widget.series.exhibition?.id == null)
+    String uri = (widget.payload.series.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
-        : "$FF_ARTIST_COLLECTOR/${widget.series.exhibition?.id}";
+        : "$FF_ARTIST_COLLECTOR/${widget.payload.series.exhibition?.id}";
     launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
-}
-
-class ClaimResponse {
-  AssetToken token;
-  AirdropInfo airdropInfo;
-
-  ClaimResponse({required this.token, required this.airdropInfo});
 }

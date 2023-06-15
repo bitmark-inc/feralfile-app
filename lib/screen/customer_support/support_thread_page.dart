@@ -16,9 +16,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -111,6 +116,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   bool _isRated = false;
   bool _isFileAttached = false;
   Pair<String, List<int>>? _debugLog;
+  late bool loading;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -157,7 +163,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   @override
   void initState() {
     _fetchCustomerSupportAvailability();
-
+    loading = false;
     injector<CustomerSupportService>().processMessages();
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -362,6 +368,43 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               messages: messages,
               onSendPressed: _handleSendPressed,
               user: _user,
+              listBottomWidget:
+                  (widget.payload.announcement?.isMemento6 == true || true)
+                      ? Padding(
+                          padding: const EdgeInsets.only(
+                              left: 18, right: 18, bottom: 15),
+                          child: PrimaryButton(
+                            text: "claim_your_gift".tr(),
+                            onTap: () async {
+                              setState(() {
+                                loading = true;
+                              });
+                              final response = await injector<AirdropService>()
+                                  .claimRequestGift();
+                              if (response == null) {
+                                if (mounted) {
+                                  UIHelper.showAirdropClainFailed(context);
+                                }
+                                setState(() {
+                                  loading = false;
+                                });
+                                return;
+                              }
+                              final feralFileService =
+                                  injector<FeralFileService>();
+                              final series = await feralFileService
+                                  .getSeries(response.seriesID);
+                              if (!mounted) return;
+                              Navigator.of(context).pushNamed(
+                                  AppRouter.claimAirdropPage,
+                                  arguments: ClaimTokenPagePayload(
+                                      claimID: response.claimID,
+                                      series: series,
+                                      shareCode: ''));
+                            },
+                          ),
+                        )
+                      : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
                   : _isRated == false && _status == 'closed'

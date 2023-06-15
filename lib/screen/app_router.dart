@@ -52,6 +52,7 @@ import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_b
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
@@ -241,6 +242,7 @@ class AppRouter {
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
+  static const claimAirdropPage = 'claim_airdrop_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -881,6 +883,7 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
+                            injector(),
                           )),
                 ],
                 child: ArtworkDetailPage(
@@ -1378,6 +1381,19 @@ class AppRouter {
           builder: (context) {
             return PostcardStartedPage(
               assetToken: settings.arguments as AssetToken,
+            );
+          },
+        );
+
+      case claimAirdropPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: ClaimAirdropPage(
+                payload: settings.arguments as ClaimTokenPagePayload,
+              ),
             );
           },
         );

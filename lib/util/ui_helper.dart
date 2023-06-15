@@ -1396,6 +1396,16 @@ class UIHelper {
       ),
     );
   }
+
+  static showAirdropClainFailed(BuildContext context) async {
+    return showErrorDialog(context, "airdrop_claim_failed".tr(),
+        "Memento6 claim failed", "close".tr());
+  }
+
+  static showAirdropAlreadyClaim(BuildContext context) async {
+    return showErrorDialog(context, "airdrop_already_claim".tr(),
+        "Memento6 already claimed", "close".tr());
+  }
 }
 
 class ConnectedTV extends StatefulWidget {

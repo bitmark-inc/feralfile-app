@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
@@ -21,7 +22,6 @@ import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/gateway/memento_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bl
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -48,7 +49,6 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
-import 'package:autonomy_flutter/service/memento_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -321,11 +321,18 @@ Future<void> setup() async {
   injector.registerLazySingleton<EditorialService>(
       () => EditorialServiceImpl(injector(), injector()));
 
-  injector
-      .registerLazySingleton<MementoService>(() => MementoService(injector()));
+  injector.registerLazySingleton<AirdropService>(() => AirdropService(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector()));
 
-  injector.registerLazySingleton<MementoApi>(
-      () => MementoApi(dio, baseUrl: Environment.mementoUrl));
+  injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
+      _mementoAirdrop(dioOptions.copyWith(followRedirects: true)),
+      baseUrl: Environment.mementoAirdripUrl));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
@@ -335,6 +342,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+        injector(),
         injector(),
         injector(),
         injector(),
@@ -390,7 +398,17 @@ Dio _feralFileDio(BaseOptions options) {
 Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  dio.interceptors.add(PostcardAuthInterceptor());
+  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
+  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
+  dio.addSentry(captureFailedRequests: true);
+  dio.options = options;
+  return dio;
+}
+
+Dio _mementoAirdrop(BaseOptions options) {
+  final dio = Dio(); // Default a dio instance
+  dio.interceptors.add(AutonomyAuthInterceptor());
+  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
   dio.options = options;

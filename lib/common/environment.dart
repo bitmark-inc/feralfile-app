@@ -167,7 +167,8 @@ class Environment {
 
   static String get tzktTestnetURL => dotenv.env['TZKT_TESTNET_URL'] ?? '';
 
-  static String get mementoUrl => dotenv.env['MEMENTO_URL'] ?? '';
+  static String get mementoAirdripUrl =>
+      dotenv.env['MEMENTO_AIRDROP_URL'] ?? '';
 }
 
 class Secret {
