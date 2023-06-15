@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:synchronized/synchronized.dart';
 
 class CanvasClientService {
@@ -254,6 +255,18 @@ class CanvasClientService {
     } catch (e) {
       log.info("Canvas Client Service: Rotate Canvas Failed");
     }
+  }
+
+  Future<void> tap(CanvasDevice device) async {
+    final stub = _getStub(device);
+    final tapRequest = TapGestureRequest();
+    await stub.tapGesture(tapRequest);
+  }
+
+  Future<void> drag(CanvasDevice device, Offset offset) async {
+    final stub = _getStub(device);
+    final dragRequest = DragGestureRequest(dx: offset.dx, dy: offset.dy);
+    await stub.dragGesture(dragRequest);
   }
 }
 

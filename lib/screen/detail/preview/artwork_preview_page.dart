@@ -387,6 +387,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
+                            const SizedBox(
+                              width: 20,
+                            ),
                             Visibility(
                               visible: (assetToken?.medium == 'software' ||
                                   assetToken?.medium == 'other' ||

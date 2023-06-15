@@ -161,6 +161,9 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                   ),
                 ),
                 const Spacer(),
+                const SizedBox(
+                  width: 20,
+                ),
                 IconButton(
                   onPressed: () {
                     _bloc.add(CanvasDeviceRotateEvent(deviceState.device));

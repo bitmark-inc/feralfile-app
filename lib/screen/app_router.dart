@@ -68,6 +68,7 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
@@ -247,6 +248,7 @@ class AppRouter {
   static const postcardStartedPage = 'postcard_started';
   static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = "keyboard_control_page";
+  static const touchPadPage = "touch_pad_page";
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1406,6 +1408,15 @@ class AppRouter {
             builder: (context) {
               final payload = settings.arguments as KeyboardControlPagePayload;
               return KeyboardControlPage(
+                payload: payload,
+              );
+            });
+      case touchPadPage:
+        return TransparentRoute(
+            settings: settings,
+            builder: (context) {
+              final payload = settings.arguments as TouchPadPagePayload;
+              return TouchPadPage(
                 payload: payload,
               );
             });
