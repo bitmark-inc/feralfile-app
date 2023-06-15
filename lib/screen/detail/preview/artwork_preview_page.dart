@@ -561,7 +561,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final identityBloc = context.read<IdentityBloc>();
-
     return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
       builder: (context, state) {
         AssetToken? assetToken;
@@ -573,7 +572,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final hasKeyboard = assetToken?.medium == "software" ||
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
-
+        final hideArtist = assetToken?.isPostcard ?? false;
         return Scaffold(
           appBar: isFullScreen
               ? null
@@ -592,32 +591,34 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        BlocBuilder<IdentityBloc, IdentityState>(
-                          bloc: identityBloc
-                            ..add(GetIdentityEvent([
-                              assetToken?.artistName ?? '',
-                            ])),
-                          builder: (context, state) {
-                            final artistName = assetToken?.artistName
-                                ?.toIdentityOrMask(state.identityMap);
-                            if (artistName != null) {
-                              return Row(
-                                children: [
-                                  const SizedBox(height: 4.0),
-                                  Expanded(
-                                    child: Text(
-                                      "by".tr(args: [artistName]),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.ppMori400White14,
+                        if (hideArtist != true) ...[
+                          BlocBuilder<IdentityBloc, IdentityState>(
+                            bloc: identityBloc
+                              ..add(GetIdentityEvent([
+                                assetToken?.artistName ?? '',
+                              ])),
+                            builder: (context, state) {
+                              final artistName = assetToken?.artistName
+                                  ?.toIdentityOrMask(state.identityMap);
+                              if (artistName != null) {
+                                return Row(
+                                  children: [
+                                    const SizedBox(height: 4.0),
+                                    Expanded(
+                                      child: Text(
+                                        "by".tr(args: [artistName]),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            }
-                            return const SizedBox();
-                          },
-                        ),
+                                  ],
+                                );
+                              }
+                              return const SizedBox();
+                            },
+                          ),
+                        ]
                       ],
                     ),
                   ),
