@@ -166,7 +166,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       ],
     );
     _configurationService.setListPostcardAlreadyShowYouDidIt(
-        [AlreadyShowYouDidItPostcard(id: asset.id, owner: asset.owner)]);
+        [PostcardIdentity(id: asset.id, owner: asset.owner)]);
     return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
   }
 
@@ -260,14 +260,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           current.assetToken?.isAlreadyShowYouDidIt == false) {
         _youDidIt(context, current.assetToken!);
       }
-
-      if (previous.postcardValueLoaded &&
-          previous.isPostcardUpdating &&
-          current.isStamped &&
-          _configurationService.isNotificationEnabled() != true) {
-        _postcardUpdated(context);
-      }
-
       return true;
     }, listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
@@ -282,7 +274,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         currentAsset = state.assetToken;
       });
       if (!mounted) return;
-      if (state.assetToken != null) {
+      final assetToken = state.assetToken;
+      if (assetToken != null) {
         if (withSharing) {
           _socialShare(context, state.assetToken!);
           setState(() {
@@ -300,6 +293,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           });
         } else {
           timer?.cancel();
+        }
+
+        final alreadyShowPostcardUpdate = _configurationService
+            .getAlreadyShowPostcardUpdates()
+            .any((element) =>
+                element.id == assetToken.id &&
+                element.owner == assetToken.owner);
+        if (!state.isPostcardUpdating &&
+            !state.isPostcardUpdatingOnBlockchain &&
+            state.isStamped &&
+            !alreadyShowPostcardUpdate) {
+          _postcardUpdated(context);
+          _configurationService.setAlreadyShowPostcardUpdates(
+              [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
         }
       }
 
@@ -933,14 +940,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 }
 
-class AlreadyShowYouDidItPostcard {
+class PostcardIdentity {
   String id;
   String owner;
 
-  AlreadyShowYouDidItPostcard({required this.id, required this.owner});
+  PostcardIdentity({required this.id, required this.owner});
 
-  static AlreadyShowYouDidItPostcard fromJson(Map<String, dynamic> json) {
-    return AlreadyShowYouDidItPostcard(
+  static PostcardIdentity fromJson(Map<String, dynamic> json) {
+    return PostcardIdentity(
       id: json['id'],
       owner: json['owner'],
     );
