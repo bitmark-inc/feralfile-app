@@ -796,23 +796,36 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _completeTravelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(formatter.format(travelInfo.index),
-                style: theme.textTheme.moMASans400Black12
-                    .copyWith(color: AppColor.auQuickSilver)),
-            Text(
-              travelInfo.sentLocation ?? "",
-              style: theme.textTheme.moMASans400Black14,
-            ),
-            addDivider(height: 30, color: AppColor.auGreyBackground),
-          ],
-        ),
-      ],
+    return GestureDetector(
+      onTap: () {
+        _gotoTripDetail(context, travelInfo);
+      },
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(formatter.format(travelInfo.index),
+                      style: theme.textTheme.moMASans400Black12
+                          .copyWith(color: AppColor.auQuickSilver)),
+                  Text(
+                    travelInfo.sentLocation ?? "",
+                    style: theme.textTheme.moMASans400Black14,
+                  ),
+                  addDivider(height: 30, color: AppColor.auGreyBackground),
+                ],
+              ),
+            ],
+          ),
+          Positioned.fill(
+              child: Container(
+            color: Colors.transparent,
+          ))
+        ],
+      ),
     );
   }
 
