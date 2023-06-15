@@ -176,7 +176,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.primaryBlack,
+                color: AppColor.disabledColor,
               ),
               controller: _renameController,
               focusNode: _renameFocusNode,

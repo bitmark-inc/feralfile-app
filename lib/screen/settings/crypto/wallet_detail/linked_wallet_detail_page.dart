@@ -68,6 +68,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     super.initState();
     _connection = widget.payload.connection;
     _address = _connection.accountNumber;
+    _renameController.text = _connection.name;
     isHideGalleryEnabled =
         injector<AccountService>().isLinkedAccountHiddenInGallery(_address);
     context
@@ -151,7 +152,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.primaryBlack,
+                color: AppColor.disabledColor,
               ),
               controller: _renameController,
               focusNode: _renameFocusNode,
