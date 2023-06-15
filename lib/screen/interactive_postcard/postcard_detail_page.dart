@@ -304,7 +304,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             !state.isPostcardUpdatingOnBlockchain &&
             state.isStamped &&
             !alreadyShowPostcardUpdate) {
-          _postcardUpdated(context);
+          if (_configurationService.isNotificationEnabled() != true) {
+            _postcardUpdated(context);
+          }
           _configurationService.setAlreadyShowPostcardUpdates(
               [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
         }
