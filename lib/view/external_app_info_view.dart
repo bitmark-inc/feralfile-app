@@ -126,7 +126,8 @@ class _CloudStateState extends State<CloudState> {
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColor.auGrey),
+          border:
+              Border.all(color: state != true ? AppColor.red : AppColor.auGrey),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
