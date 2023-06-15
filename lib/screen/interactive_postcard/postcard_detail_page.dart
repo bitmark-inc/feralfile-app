@@ -659,11 +659,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        OptionItem(
-          title: 'report_nft_rendering_issues'.tr(),
-          icon: const Icon(AuIcon.help_us),
-          onTap: () => showReportIssueDialog(context, asset),
-        ),
       ],
     );
   }
