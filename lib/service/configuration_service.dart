@@ -278,6 +278,10 @@ abstract class ConfigurationService {
       {bool override = false});
 
   List<PostcardIdentity> getAlreadyShowPostcardUpdates();
+
+  String getVersionInfo();
+
+  Future<void> setVersionInfo(String version);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -372,6 +376,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "already_show_postcard_updates";
 
   static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
+
+  static const String KEY_PACKAGE_INFO = "package_info";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1244,5 +1250,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
       currentValue.addAll(updateValues);
       return _preferences.setStringList(key, currentValue.toSet().toList());
     }
+  }
+
+  @override
+  String getVersionInfo() {
+    return _preferences.getString(KEY_PACKAGE_INFO) ?? "";
+  }
+
+  @override
+  Future<void> setVersionInfo(String version) async {
+    await _preferences.setString(KEY_PACKAGE_INFO, version);
   }
 }

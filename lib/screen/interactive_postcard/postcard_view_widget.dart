@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:gif_view/gif_view.dart';
@@ -60,10 +63,15 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final version = injector<ConfigurationService>().getVersionInfo();
     return Stack(
       alignment: Alignment.center,
       children: [
         InAppWebView(
+          initialOptions: InAppWebViewGroupOptions(
+              crossPlatform: InAppWebViewOptions(
+                  userAgent: "user_agent"
+                      .tr(namedArgs: {"version": version.toString()}))),
           onWebViewCreated: (controller) {
             _controller = controller;
           },

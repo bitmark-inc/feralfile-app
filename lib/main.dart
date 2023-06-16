@@ -38,6 +38,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
@@ -108,6 +109,8 @@ _setupApp() async {
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
+  final packageInfo = await PackageInfo.fromPlatform();
+  await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
 
   runApp(EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],
