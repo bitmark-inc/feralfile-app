@@ -661,12 +661,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       },
                       controller: controller,
                       itemCount: tokens.length,
-                      itemBuilder: (context, index) => ArtworkPreviewWidget(
-                        identity: tokens[index],
-                        onLoaded: setTimer,
-                        focusNode: _focusNode,
-                        useIndexer: widget.payload.useIndexer,
-                      ),
+                      itemBuilder: (context, index) {
+                        if (tokens[index].id.isPostcardId) {
+                          return PostcardPreviewWidget(
+                            identity: tokens[index],
+                            useIndexer: widget.payload.useIndexer,
+                          );
+                        }
+                        return ArtworkPreviewWidget(
+                          identity: tokens[index],
+                          onLoaded: setTimer,
+                          focusNode: _focusNode,
+                          useIndexer: widget.payload.useIndexer,
+                        );
+                      },
                     ),
                   ),
                 ),

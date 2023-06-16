@@ -366,6 +366,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
       "already_show_you_did_it_postcard";
 
+  static const String KEY_CURRENT_GROUP_CHAT_ID = "current_group_chat_id";
+
   static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
       "already_show_postcard_updates";
 

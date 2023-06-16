@@ -93,6 +93,21 @@ class AppFeedData {
   AssetToken? findTokenRelatedTo(FeedEvent event) {
     return tokens.firstWhereOrNull((element) => element.id == event.indexerID);
   }
+
+  Map<AssetToken, List<FeedEvent>> get tokenEventMap {
+    final tokenEventMap = <AssetToken, List<FeedEvent>>{};
+    for (FeedEvent event in events) {
+      final token = findTokenRelatedTo(event);
+      if (token == null) continue;
+
+      if (tokenEventMap[token] != null) {
+        tokenEventMap[token]!.add(event);
+      } else {
+        tokenEventMap[token] = [event];
+      }
+    }
+    return tokenEventMap;
+  }
 }
 
 class FeedServiceImpl extends FeedService {
@@ -173,16 +188,18 @@ class FeedServiceImpl extends FeedService {
 
   @override
   Future checkNewFeeds() async {
-    final service = injector<FeedApi>();
-    final isTestnet = Environment.appTestnetConfig;
-    final feedData = await service.getFeeds(isTestnet, 10, null, null);
-    hasFeed.value = feedData.events.isNotEmpty;
-    _configurationService.setHasFeed(hasFeed.value);
     final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
-    final newEvents = feedData.events.where(
-        (event) => event.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed);
-    log.info("[FeedService] ${newEvents.length} unread feeds");
-    unviewedCount.value = newEvents.length;
+    final appFeedData = await fetchFeeds(null);
+    final tokenEventMap = appFeedData.tokenEventMap;
+    hasFeed.value = tokenEventMap.isNotEmpty;
+    _configurationService.setHasFeed(hasFeed.value);
+    tokenEventMap.removeWhere((key, value) {
+      return (value.firstWhereOrNull((element) =>
+              element.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed) ==
+          null);
+    });
+    unviewedCount.value = tokenEventMap.length;
+    log.info("[FeedService] ${unviewedCount.value} unread feeds");
   }
 
   @override
