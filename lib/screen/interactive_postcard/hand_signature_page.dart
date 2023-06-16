@@ -3,11 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -21,9 +17,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/services/tokens_service.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
@@ -166,7 +159,6 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     try {
       final asset = widget.payload.asset;
       final tokenId = asset.tokenId ?? "";
-      final address = asset.owner;
       final counter = asset.postcardMetadata.counter;
       final contractAddress = Environment.postcardContractAddress;
       final data = await signatureGlobalKey.currentState!.toImage();
@@ -197,73 +189,18 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         "address": widget.payload.address,
         "stampedAt": DateTime.now().toIso8601String()
       };
-
-      final postcardService = injector<PostcardService>();
-
-      final walletIndex = await asset.getOwnerWallet();
-      if (walletIndex == null) {
-        log.info("[POSTCARD] Wallet index not found");
-        setState(() {
-          loading = false;
-        });
-        return;
-      }
-      final imageData = await imageFile.writeAsBytes(img.encodePng(image));
-      final jsonData = await metadataFile.writeAsString(jsonEncode(metadata));
-      final isStampSuccess = await postcardService.stampPostcard(
-          tokenId,
-          walletIndex.first,
-          walletIndex.second,
-          imageData,
-          jsonData,
-          widget.payload.location,
-          counter,
-          contractAddress);
-      if (!isStampSuccess) {
-        log.info("[POSTCARD] Stamp failed");
-        setState(() {
-          loading = false;
-        });
-        injector<NavigationService>().popUntilHomeOrSettings();
-      } else {
-        log.info("[POSTCARD] Stamp success");
-        postcardService.updateStampingPostcard([
-          StampingPostcard(
-            indexId: asset.id,
-            address: address,
-            imagePath: imagePath,
-            metadataPath: metadataPath,
-            counter: counter,
-          )
-        ]);
-        if (widget.payload.location != null) {
-          var postcardMetadata = asset.postcardMetadata;
-          final stampedLocation = Location(
-              lat: widget.payload.location!.latitude,
-              lon: widget.payload.location!.longitude);
-          postcardMetadata.locationInformation.last.stampedLocation =
-              stampedLocation;
-          var newAsset = asset.asset;
-          newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-          final pendingToken = asset.copyWith(asset: newAsset);
-          final tokenService = injector<TokensService>();
-          await tokenService.setCustomTokens([pendingToken]);
-          tokenService.reindexAddresses([address]);
-          NftCollectionBloc.eventController.add(
-            GetTokensByOwnerEvent(pageKey: PageKey.init()),
-          );
-        }
-        setState(() {
-          loading = false;
-        });
-        if (!mounted) return;
-        injector<NavigationService>().popUntilHomeOrSettings();
-        Navigator.of(context).pushNamed(StampPreview.tag,
-            arguments: StampPreviewPayload(
-                imagePath: imagePath,
-                metadataPath: metadataPath,
-                asset: asset));
-      }
+      await imageFile.writeAsBytes(img.encodePng(image));
+      await metadataFile.writeAsString(jsonEncode(metadata));
+      setState(() {
+        loading = false;
+      });
+      if (!mounted) return;
+      Navigator.of(context).pushNamed(StampPreview.tag,
+          arguments: StampPreviewPayload(
+              imagePath: imagePath,
+              metadataPath: metadataPath,
+              asset: asset,
+              location: widget.payload.location));
     } catch (e) {
       setState(() {
         loading = false;

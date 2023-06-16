@@ -53,7 +53,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
       'function': func,
       'error': result.errorMessage,
-      'result': JSResult.result.toString(),
+      'result': result.result.toString(),
+      'url': widget.url.toString(),
     });
     return result;
   }
@@ -299,6 +300,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         injector.get<NavigationService>().popUntilHomeOrSettings();
         _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
           'function': IrlWebviewFunction.closeWebview,
+          'url': widget.url.toString(),
         });
       },
     );

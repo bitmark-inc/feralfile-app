@@ -197,6 +197,7 @@ class MemoryValues {
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
   HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
+  String? currentGroupChatId;
 
   MemoryValues({
     this.scopedPersona,

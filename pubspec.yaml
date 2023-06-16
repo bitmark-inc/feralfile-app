@@ -169,7 +169,8 @@ dependencies:
   geocoding: ^2.1.0
   flutter_inappwebview: ^5.7.2+3
   html: ^0.15.1
-
+  flutter_swiper_view: ^1.1.8
+  video_player: ^2.4.8
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
@@ -213,6 +214,7 @@ flutter:
     - assets/erc1155-abi.json
     - assets/images/
     - assets/translations/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

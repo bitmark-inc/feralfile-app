@@ -241,6 +241,7 @@ class AppRouter {
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
+  static const postcardConfirmingPage = 'postcard_confirming_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -426,10 +427,22 @@ class AppRouter {
 
       case AppRouter.stampPreview:
         return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) =>
-              StampPreview(payload: settings.arguments as StampPreviewPayload),
-        );
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(
+                        create: (_) => PostcardDetailBloc(
+                              injector(),
+                              injector(),
+                              injector(),
+                              injector(),
+                            )),
+                  ],
+                  child: StampPreview(
+                      payload: settings.arguments as StampPreviewPayload),
+                ));
 
       case moreAutonomyPage:
         return CupertinoPageRoute(
@@ -816,6 +829,9 @@ class AppRouter {
                     injector(),
                   ),
                 ),
+                BlocProvider(
+                    create: (_) => PostcardDetailBloc(
+                        injector(), injector(), injector(), injector())),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,

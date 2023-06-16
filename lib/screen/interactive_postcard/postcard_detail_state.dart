@@ -22,6 +22,7 @@ class PostcardDetailState {
   PostcardValue? postcardValue;
   String? imagePath;
   String? metadataPath;
+  bool postcardValueLoaded;
 
   PostcardDetailState({
     this.assetToken,
@@ -29,6 +30,7 @@ class PostcardDetailState {
     this.postcardValue,
     this.imagePath,
     this.metadataPath,
+    required this.postcardValueLoaded,
   });
 
   ArtworkDetailState toArtworkDetailState() {
@@ -44,6 +46,7 @@ class PostcardDetailState {
     PostcardValue? postcardValue,
     String? imagePath,
     String? metadataPath,
+    bool? postcardValueLoaded,
   }) {
     return PostcardDetailState(
       assetToken: assetToken ?? this.assetToken,
@@ -51,6 +54,7 @@ class PostcardDetailState {
       postcardValue: postcardValue ?? this.postcardValue,
       imagePath: imagePath ?? this.imagePath,
       metadataPath: metadataPath ?? this.metadataPath,
+      postcardValueLoaded: postcardValueLoaded ?? this.postcardValueLoaded,
     );
   }
 }
@@ -95,9 +99,13 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool get isPostcardUpdating {
+    return isStamping() ||
+        postcardValue?.counter != assetToken?.postcardMetadata.counter;
+  }
+
+  bool get isPostcardUpdatingOnBlockchain {
     return postcardValue == null ||
-        isStamped != assetToken?.postcardMetadata.isStamped ||
-        isStamping();
+        (isStamping() && postcardValue!.stamped == false);
   }
 
   bool get isStamped {

@@ -226,7 +226,8 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Future<void> _checkVersion() async {
-    final versionCheck = VersionCheck();
+    final versionCheck =
+        VersionCheck(showUpdateDialog: (context, versionCheck) {});
     await versionCheck.checkVersion(context);
     setState(() {
       _versionCheck = versionCheck;
