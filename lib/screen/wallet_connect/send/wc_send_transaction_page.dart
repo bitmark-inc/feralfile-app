@@ -49,14 +49,14 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   void initState() {
     super.initState();
 
-    final to = EthereumAddress.fromHex(widget.args.transaction.to);
+    final to = EthereumAddress.fromHex(widget.args.transaction.to ?? "");
     final EtherAmount amount = EtherAmount.fromBase10String(
         EtherUnit.wei, widget.args.transaction.value ?? '0');
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
         to,
         amount,
-        widget.args.transaction.data,
+        widget.args.transaction.data ?? "",
         widget.args.uuid,
         widget.args.index));
     _selectedPriority = context.read<WCSendTransactionBloc>().state.feeOption;
@@ -239,13 +239,13 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                             Expanded(
                               child: PrimaryButton(
                                 text: "send".tr(),
-                                onTap: (state.fee != null && !state.isSending)
+                                onTap: (state.fee != null && !state.isSending && widget.args.transaction.to != null)
                                     ? () async {
                                         metricClient.addEvent(
                                             MixpanelEvent.confirmTransaction);
 
                                         final to = EthereumAddress.fromHex(
-                                            widget.args.transaction.to);
+                                            widget.args.transaction.to!);
 
                                         context
                                             .read<WCSendTransactionBloc>()

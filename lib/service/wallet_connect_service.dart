@@ -102,7 +102,7 @@ class WalletConnectService {
 
       if (wcClient == null || sessionStore == null) continue;
 
-      wcClient.connectFromSessionStore(sessionStore: sessionStore);
+      wcClient.connectFromSessionStore(sessionStore);
       wcClients.add(wcClient);
     }
   }
