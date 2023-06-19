@@ -46,6 +46,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   late double _selectedSize;
   late double adjustSize;
   late DateTime startReadingTime;
+  bool _showFullHeader = false;
 
   @override
   void initState() {
@@ -55,8 +56,21 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     adjustSize = _selectedSize - 16;
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
+    _controller.addListener(_scrollListener);
     _trackEvent();
     metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
+  }
+
+  _scrollListener() {
+    if (_controller.offset > 10) {
+      setState(() {
+        _showFullHeader = true;
+      });
+    } else {
+      setState(() {
+        _showFullHeader = false;
+      });
+    }
   }
 
   Future<void> _updateEditorialReadingTime() async {
@@ -275,64 +289,71 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      color: theme.colorScheme.primary,
-      padding: const EdgeInsets.fromLTRB(15, 15, 15, 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PublisherView(
-                  publisher: widget.post.publisher,
-                  isLargeSize: true,
+    return Column(
+      children: [
+        Container(
+          color: theme.colorScheme.primary,
+          padding: const EdgeInsets.fromLTRB(15, 15, 15, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    PublisherView(
+                      publisher: widget.post.publisher,
+                      isLargeSize: true,
+                    ),
+                    const SizedBox(height: 10.0),
+                    Text(
+                      widget.post.content["title"],
+                      style: theme.textTheme.ppMori400White16,
+                      maxLines: 3,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10.0),
-                Text(
-                  widget.post.content["title"],
-                  style: theme.textTheme.ppMori400White16,
-                  maxLines: 3,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: () async {
-              await showModalBottomSheet<dynamic>(
-                context: context,
-                backgroundColor: Colors.transparent,
-                enableDrag: false,
-                constraints: BoxConstraints(
-                    maxWidth: ResponsiveLayout.isMobile
-                        ? double.infinity
-                        : Constants.maxWidthModalTablet),
-                barrierColor: Colors.black.withOpacity(0.5),
-                isScrollControlled: true,
-                builder: (context) {
-                  return ModalSheet(
-                    child: _editSize(context),
+              ),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                onPressed: () async {
+                  await showModalBottomSheet<dynamic>(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    enableDrag: false,
+                    constraints: BoxConstraints(
+                        maxWidth: ResponsiveLayout.isMobile
+                            ? double.infinity
+                            : Constants.maxWidthModalTablet),
+                    barrierColor: Colors.black.withOpacity(0.5),
+                    isScrollControlled: true,
+                    builder: (context) {
+                      return ModalSheet(
+                        child: _editSize(context),
+                      );
+                    },
                   );
                 },
-              );
-            },
-            icon: SvgPicture.asset(
-              "assets/images/text_size.svg",
-              color: AppColor.white,
-              width: 32,
-              height: 32,
-            ),
+                icon: SvgPicture.asset(
+                  "assets/images/text_size.svg",
+                  color: AppColor.white,
+                  width: 32,
+                  height: 32,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: closeIcon(color: theme.colorScheme.secondary),
+                tooltip: "CloseArtticle",
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: closeIcon(color: theme.colorScheme.secondary),
-            tooltip: "CloseArtticle",
-          ),
-        ],
-      ),
+        ),
+        if (_showFullHeader) ...[
+          addOnlyDivider(color: AppColor.auGreyBackground),
+        ]
+      ],
     );
   }
 

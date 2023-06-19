@@ -4,8 +4,6 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -19,7 +17,6 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,7 +36,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
-import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -421,70 +417,6 @@ Widget placeholder(BuildContext context) {
   );
 }
 
-class ReportButton extends StatefulWidget {
-  final AssetToken? assetToken;
-  final ScrollController scrollController;
-
-  const ReportButton({
-    Key? key,
-    this.assetToken,
-    required this.scrollController,
-  }) : super(key: key);
-
-  @override
-  State<ReportButton> createState() => _ReportButtonState();
-}
-
-class _ReportButtonState extends State<ReportButton> {
-  bool isShowingArtwortReportProblemContainer = true;
-
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page.
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (widget.scrollController.offset > 80) {
-      setState(() {
-        isShowingArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        isShowingArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (widget.scrollController.position.pixels + 100 >=
-        widget.scrollController.position.maxScrollExtent) {
-      setState(() {
-        isShowingArtwortReportProblemContainer = true;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    widget.scrollController.addListener(_scrollListener);
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.assetToken == null) return const SizedBox();
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      height: isShowingArtwortReportProblemContainer ? 80 : 0,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: AnyProblemNFTWidget(
-          asset: widget.assetToken!,
-        ),
-      ),
-    );
-  }
-}
-
 INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
   AssetToken assetToken, {
@@ -495,10 +427,13 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
+  String? userAgent,
 }) {
   String mimeType = assetToken.getMimeType;
-
+  final version = injector<ConfigurationService>().getVersionInfo();
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
+
+  userAgent ??= "user_agent".tr(namedArgs: {"version": version.toString()});
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
@@ -514,6 +449,7 @@ INFTRenderingWidget buildRenderingWidget(
     skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
+    userAgent: userAgent,
   ));
 
   return renderingWidget;
@@ -649,54 +585,6 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
       ),
     );
   }
-}
-
-void showReportIssueDialog(BuildContext context, AssetToken token) {
-  UIHelper.showDialog(
-    context,
-    'report_issue'.tr(),
-    ReportRenderingIssueWidget(
-      token: token,
-      onReported: (githubURL) =>
-          _showReportRenderingDialogSuccess(context, githubURL),
-    ),
-    backgroundColor: Theme.of(context).auGreyBackground,
-  );
-}
-
-void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
-  final theme = Theme.of(context);
-  UIHelper.showDialog(
-    context,
-    'share_with_artist'.tr(),
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "thank_for_report".tr(),
-          style: theme.textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 40),
-        PrimaryButton(
-          onTap: () {
-            Share.share(githubURL).then((value) {
-              Navigator.of(context).pop();
-            });
-          },
-          text: "share".tr(),
-        ),
-        const SizedBox(height: 10),
-        OutlineButton(
-          onTap: () => Navigator.pop(context),
-          text: "cancel_dialog".tr(),
-        ),
-        const SizedBox(height: 15),
-      ],
-    ),
-    isDismissible: true,
-    feedback: FeedbackType.success,
-  );
 }
 
 Widget previewPlaceholder(BuildContext context) {
@@ -1041,7 +929,9 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "contract".tr(),
-          value: assetToken.blockchain.capitalize(),
+          value: (assetToken.blockchain.toLowerCase() == "tezos")
+              ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
+              : assetToken.blockchain.capitalize(),
           tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
         ),
