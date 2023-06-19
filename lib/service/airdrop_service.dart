@@ -12,12 +12,14 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -33,6 +35,7 @@ class AirdropService {
   final TokensService _tokensService;
   final FeralFileService _feralFileService;
   final IndexerService _indexerService;
+  final NavigationService _navigationService;
 
   const AirdropService(
       this._airdropApi,
@@ -41,7 +44,8 @@ class AirdropService {
       this._tezosService,
       this._tokensService,
       this._feralFileService,
-      this._indexerService);
+      this._indexerService,
+      this._navigationService);
 
   Future<AirdropShareResponse> share(AirdropShareRequest request) async {
     return _airdropApi.share(request.tokenId, request);
@@ -81,27 +85,19 @@ class AirdropService {
     return assetToken;
   }
 
-  Future<AirdropRequestClaimResponse?> claimRequestGift() async {
+  Future<AirdropRequestClaimResponse> claimRequestGift(
+      AssetToken assetToken) async {
     try {
-      final assetToken =
-          await getTokenByContract(MOMA_MEMENTO_CONTRACT_ADDRESS);
-      if (assetToken == null) {
-        log.info("[Airdrop service] claimGift: assetToken is null");
-        return null;
-      }
       final request = AirdropRequestClaimRequest(
           ownerAddress: assetToken.owner,
           id: MOMA_MEMENTO_6_CLAIM_ID,
           indexID: assetToken.id);
       final requestClaimResponse = await requestClaim(request);
-      if (requestClaimResponse.claimID.isEmpty) {
-        log.info("[Airdrop service] claimGift: claimId is empty");
-        return null;
-      }
       return requestClaimResponse;
     } catch (e) {
       log.info("[Airdrop service] claimGift: $e");
-      return null;
+      _navigationService.showAirdropJustOnce();
+      rethrow;
     }
   }
 
@@ -150,6 +146,19 @@ class AirdropService {
           token: assetTokens.first, airdropInfo: series.airdropInfo!);
     } catch (e) {
       log.info("[Airdrop service] claimGift: $e");
+      if (e is DioError) {
+        switch (e.response?.data['message']) {
+          case "cannot self claim":
+            _navigationService.showAirdropJustOnce();
+            break;
+          case "invalid claim":
+            _navigationService.showAirdropAlreadyClaimed();
+            break;
+          default:
+            _navigationService.showAirdropClaimFailed();
+            break;
+        }
+      }
       rethrow;
     }
   }

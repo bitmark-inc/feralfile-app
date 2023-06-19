@@ -321,14 +321,18 @@ Future<void> setup() async {
   injector.registerLazySingleton<EditorialService>(
       () => EditorialServiceImpl(injector(), injector()));
 
-  injector.registerLazySingleton<AirdropService>(() => AirdropService(
+  injector.registerLazySingleton<AirdropService>(
+    () => AirdropService(
       injector(),
       injector(),
       injector(),
       injector(),
       injector(),
       injector(),
-      injector()));
+      injector(),
+      injector(),
+    ),
+  );
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
       _mementoAirdrop(dioOptions.copyWith(followRedirects: true)),

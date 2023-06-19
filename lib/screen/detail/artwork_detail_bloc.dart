@@ -84,7 +84,13 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       }
     });
     on<ArtworkDetailGetAirdropDeeplink>((event, emit) async {
-      final deeplink = await _airdropService.shareAirdrop(event.assetToken);
+      String? deeplink;
+      try {
+        deeplink = await _airdropService.shareAirdrop(event.assetToken);
+      } catch (error) {
+        log.info("ArtworkDetailGetAirdropDeeplink: share airdrop error",
+            error.toString());
+      }
       emit(state.copyWith(airdropDeeplink: deeplink));
     });
   }

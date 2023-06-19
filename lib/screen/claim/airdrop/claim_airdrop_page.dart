@@ -13,10 +13,8 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -377,13 +375,11 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
 
       memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
-      log.info("[ClaimTokenPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(
-        context,
-        e,
-        series: widget.payload.series,
-      );
       memoryValues.airdropFFExhibitionId.value = null;
+      setState(() {
+        _processing = false;
+      });
+      return;
     }
     setState(() {
       _processing = false;
@@ -395,11 +391,8 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
       );
       NftCollectionBloc.eventController
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-      final token = claimRespone?.token;
-      final caption = claimRespone?.airdropInfo.twitterCaption;
-      if (token == null) {
-        return;
-      }
+      final token = claimRespone.token;
+      final caption = claimRespone.airdropInfo.twitterCaption;
       Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
               [ArtworkIdentity(token.id, token.owner)], 0,

@@ -1397,14 +1397,19 @@ class UIHelper {
     );
   }
 
-  static showAirdropClainFailed(BuildContext context) async {
-    return showErrorDialog(context, "airdrop_claim_failed".tr(),
-        "Memento6 claim failed", "close".tr());
+  static showAirdropClaimFailed(BuildContext context) async {
+    return showErrorDialog(
+        context, "airdrop_claim_failed".tr(), "", "close".tr());
   }
 
   static showAirdropAlreadyClaim(BuildContext context) async {
-    return showErrorDialog(context, "airdrop_already_claim".tr(),
-        "Memento6 already claimed", "close".tr());
+    return showErrorDialog(context, "already_claimed".tr(),
+        "already_claimed_desc".tr(), "close".tr());
+  }
+
+  static showAirdropJustOnce(BuildContext context) async {
+    return showErrorDialog(
+        context, "just_once".tr(), "just_once_desc".tr(), "close".tr());
   }
 }
 

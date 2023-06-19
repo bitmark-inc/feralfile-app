@@ -42,6 +42,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../util/datetime_ext.dart';
@@ -126,6 +127,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _askReviewMessengerID = const Uuid().v4();
   final _announcementMessengerID = const Uuid().v4();
   final _customerSupportService = injector<CustomerSupportService>();
+  final _airdropService = injector<AirdropService>();
+  final _feralFileService = injector<FeralFileService>();
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
@@ -370,40 +373,44 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               user: _user,
               listBottomWidget:
                   (widget.payload.announcement?.isMemento6 == true || true)
-                      ? Padding(
-                          padding: const EdgeInsets.only(
-                              left: 18, right: 18, bottom: 15),
-                          child: PrimaryButton(
-                            text: "claim_your_gift".tr(),
-                            onTap: () async {
-                              setState(() {
-                                loading = true;
-                              });
-                              final response = await injector<AirdropService>()
-                                  .claimRequestGift();
-                              if (response == null) {
-                                if (mounted) {
-                                  UIHelper.showAirdropClainFailed(context);
-                                }
-                                setState(() {
-                                  loading = false;
-                                });
-                                return;
-                              }
-                              final feralFileService =
-                                  injector<FeralFileService>();
-                              final series = await feralFileService
-                                  .getSeries(response.seriesID);
-                              if (!mounted) return;
-                              Navigator.of(context).pushNamed(
-                                  AppRouter.claimAirdropPage,
-                                  arguments: ClaimTokenPagePayload(
-                                      claimID: response.claimID,
-                                      series: series,
-                                      shareCode: ''));
-                            },
-                          ),
-                        )
+                      ? FutureBuilder(
+                          future: _airdropService.getTokenByContract(
+                              MOMA_MEMENTO_CONTRACT_ADDRESS),
+                          builder: (context, snapshot) {
+                            final token = snapshot.data as AssetToken?;
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 18, right: 18, bottom: 15),
+                              child: PrimaryButton(
+                                text: "claim_your_gift".tr(),
+                                enabled: !loading && token != null,
+                                isProcessing: loading,
+                                onTap: () async {
+                                  if (token == null) return;
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  try {
+                                    final response = await _airdropService
+                                        .claimRequestGift(token);
+                                    final series = await _feralFileService
+                                        .getSeries(response.seriesID);
+                                    if (!mounted) return;
+                                    Navigator.of(context).pushNamed(
+                                        AppRouter.claimAirdropPage,
+                                        arguments: ClaimTokenPagePayload(
+                                            claimID: response.claimID,
+                                            series: series,
+                                            shareCode: ''));
+                                  } catch (e) {
+                                    setState(() {
+                                      loading = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            );
+                          })
                       : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
