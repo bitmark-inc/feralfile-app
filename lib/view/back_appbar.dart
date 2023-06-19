@@ -57,20 +57,21 @@ AppBar getBackAppBar(BuildContext context,
       ],
     ),
     actions: [
-      action != null ?
-        Padding(
-          padding: const EdgeInsets.only(right: 15),
-          child: IconButton(
-            tooltip: "AppbarAction",
-            constraints: const BoxConstraints(maxWidth: 36.0),
-            onPressed: action,
-            icon: icon ??
-                Icon(
-                  Icons.more_horiz,
-                  color: primaryColor,
-                ),
-          ),
-        ) : const SizedBox(width: 36),
+      action != null
+          ? Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: IconButton(
+                tooltip: "AppbarAction",
+                constraints: const BoxConstraints(maxWidth: 36.0),
+                onPressed: action,
+                icon: icon ??
+                    Icon(
+                      Icons.more_horiz,
+                      color: primaryColor,
+                    ),
+              ),
+            )
+          : const SizedBox(width: 36),
     ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
