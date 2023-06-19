@@ -239,7 +239,10 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                             Expanded(
                               child: PrimaryButton(
                                 text: "send".tr(),
-                                onTap: (state.fee != null && !state.isSending && widget.args.transaction.to != null)
+                                enabled: widget.args.transaction.to != null,
+                                onTap: (state.fee != null &&
+                                        !state.isSending &&
+                                        widget.args.transaction.to != null)
                                     ? () async {
                                         metricClient.addEvent(
                                             MixpanelEvent.confirmTransaction);
