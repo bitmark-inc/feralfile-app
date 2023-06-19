@@ -103,7 +103,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         final hasAddress =
             addresses.any((element) => element.uuid == persona.uuid);
 
-        if (!hasAddress) {
+        if (!hasAddress && persona.isDefault()) {
           final ethAddress = await persona.wallet().getETHEip55Address();
           final ethAddressInfo =
               EthereumAddressInfo(0, ethAddress, EtherAmount.zero());

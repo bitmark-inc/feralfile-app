@@ -63,8 +63,6 @@ class _AccountsViewState extends State<AccountsView> {
       if (accounts.isEmpty) {
         injector<ConfigurationService>().setDoneOnboardingOnce(true);
         injector<ConfigurationService>().setDoneOnboarding(false);
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.newAccountPage, (route) => false);
       }
     }, builder: (context, state) {
       final accounts = state.accounts;

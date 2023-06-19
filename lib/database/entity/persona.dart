@@ -134,8 +134,9 @@ class Persona {
     return null;
   }
 
-  Future insertAddress(WalletType walletType,
+  Future<List<WalletAddress>> insertAddress(WalletType walletType,
       {int index = 0, String? name}) async {
+    final List<WalletAddress> addresses = [];
     final ethAddress = WalletAddress(
         address: await wallet().getETHEip55Address(index: index),
         uuid: uuid,
@@ -152,16 +153,16 @@ class Persona {
         name: name ?? CryptoType.XTZ.source);
     switch (walletType) {
       case WalletType.Ethereum:
-        await injector<CloudDatabase>().addressDao.insertAddress(ethAddress);
+        addresses.add(ethAddress);
         break;
       case WalletType.Tezos:
-        await injector<CloudDatabase>().addressDao.insertAddress(tezAddress);
+        addresses.add(tezAddress);
         break;
       default:
-        await injector<CloudDatabase>()
-            .addressDao
-            .insertAddresses([ethAddress, tezAddress]);
+        addresses.addAll([ethAddress, tezAddress]);
     }
+    await injector<CloudDatabase>().addressDao.insertAddresses(addresses);
+    return addresses;
   }
 
   @override
