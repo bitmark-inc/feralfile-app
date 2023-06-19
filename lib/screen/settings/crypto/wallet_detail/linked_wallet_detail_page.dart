@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:math';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -16,7 +14,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
@@ -29,7 +26,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -244,11 +240,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                         child: _addressSection(),
                                       ),
                                       const SizedBox(height: 24),
-                                      Padding(
-                                        padding: padding,
-                                        child: _sendReceiveSection(),
-                                      ),
-                                      const SizedBox(height: 24),
                                       if (widget.payload.type ==
                                           CryptoType.ETH) ...[
                                         BlocBuilder<USDCBloc, USDCState>(
@@ -268,7 +259,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                       Padding(
                                         padding: padding,
                                         child: _txSection(),
-                                      )
+                                      ),
+                                      addDivider(),
                                     ],
                                   ),
                                 ),
@@ -522,65 +514,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
       default:
         return "";
     }
-  }
-
-  Widget _sendReceiveSection() {
-    final theme = Theme.of(context);
-    if (widget.payload.type == CryptoType.ETH ||
-        widget.payload.type == CryptoType.XTZ ||
-        widget.payload.type == CryptoType.USDC) {
-      return Row(
-        children: [
-          Expanded(
-            child: BlocConsumer<AccountsBloc, AccountsState>(
-              listener: (context, accountState) async {},
-              builder: (context, accountState) {
-                final account = accountState.accounts?.firstWhere((element) =>
-                    element.blockchain == widget.payload.type.source);
-                final blockChain =
-                    (widget.payload.type.source == CryptoType.USDC.source)
-                        ? CryptoType.ETH.source
-                        : widget.payload.type.source;
-                return AuCustomButton(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Transform.rotate(
-                        angle: pi,
-                        child: SvgPicture.asset(
-                          'assets/images/Recieve.svg',
-                          width: 18,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 8,
-                      ),
-                      Text(
-                        '${"receive".tr()} ${widget.payload.type.name}',
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                    ],
-                  ),
-                  onPressed: () {
-                    if (account != null && account.accountNumber.isNotEmpty) {
-                      Navigator.of(context).pushNamed(
-                          GlobalReceiveDetailPage.tag,
-                          arguments: GlobalReceivePayload(
-                              address: _address,
-                              blockchain: blockChain,
-                              account: account));
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      );
-    }
-    return const SizedBox(
-      height: 10,
-    );
   }
 
   _showOptionDialog() {

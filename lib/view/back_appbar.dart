@@ -42,7 +42,7 @@ AppBar getBackAppBar(BuildContext context,
               ),
             ),
           )
-        : const SizedBox(),
+        : const SizedBox(width: 36),
     automaticallyImplyLeading: false,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -57,7 +57,7 @@ AppBar getBackAppBar(BuildContext context,
       ],
     ),
     actions: [
-      if (action != null)
+      action != null ?
         Padding(
           padding: const EdgeInsets.only(right: 15),
           child: IconButton(
@@ -70,7 +70,7 @@ AppBar getBackAppBar(BuildContext context,
                   color: primaryColor,
                 ),
           ),
-        )
+        ) : const SizedBox(width: 36),
     ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
@@ -122,7 +122,7 @@ AppBar getTitleEditAppBar(BuildContext context,
       children: [
         if (titleIcon != null) ...[titleIcon, const SizedBox(width: 10)],
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 200.0),
+          constraints: const BoxConstraints(maxWidth: 100.0),
           child: TextField(
             focusNode: focusNode,
             controller: controller,

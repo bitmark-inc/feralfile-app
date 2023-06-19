@@ -187,7 +187,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
             if (state.createAccountState == ActionState.loading) return;
             UIHelper.showInfoDialog(context, "generating".tr(), "",
                 isDismissible: true);
-            context.read<PersonaBloc>().add(CreatePersonaEvent());
+            //context.read<PersonaBloc>().add(CreatePersonaEvent());
           },
         );
       },

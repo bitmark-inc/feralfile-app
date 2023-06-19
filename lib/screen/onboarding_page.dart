@@ -378,7 +378,6 @@ class _OnboardingPageState extends State<OnboardingPage>
                 PrimaryButton(
                   text: "create_a_new_wallet".tr(),
                   onTap: () {
-                    context.read<PersonaBloc>().add(CreatePersonaEvent());
                     Navigator.of(context).pushNamed(ChooseChainPage.tag);
                   },
                 ),

@@ -282,20 +282,18 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                           );
                                         })
                                       ],
-                                      addDivider(),
                                       if (showConnection) ...[
+                                        addDivider(),
                                         Padding(
                                           padding: padding,
                                           child: _connectionsSection(),
                                         ),
                                         addDivider(),
-                                      ],
-                                      Padding(
-                                        padding: padding,
-                                        child: _recoverySection(),
-                                      ),
-                                      addDivider(),
-                                      if (showConnection) ...[
+                                        Padding(
+                                          padding: padding,
+                                          child: _recoverySection(),
+                                        ),
+                                        addDivider(),
                                         Padding(
                                             padding: padding,
                                             child: _txSection()),
@@ -364,7 +362,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 width: 24,
                 height: 24,
               ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 35),
               Text(
                 "USDC",
                 style: theme.textTheme.ppMori700Black14,

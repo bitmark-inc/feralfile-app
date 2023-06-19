@@ -47,7 +47,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
         },
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsets,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -122,7 +122,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                               child: Center(
                                   child: ConstrainedBox(
                                 constraints: const BoxConstraints.tightFor(
-                                    width: 168, height: 43),
+                                    width: 168, height: 45),
                                 child: PrimaryButton(
                                   text: "tap_to_reveal".tr(),
                                   onTap: () async {

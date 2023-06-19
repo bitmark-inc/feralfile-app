@@ -27,6 +27,7 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
   PersonaBloc(this._cloudDB, this._accountService, this._configurationService,
       this._auditService)
       : super(PersonaState()) {
+    /*
     on<CreatePersonaEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
       // await Future.delayed(SHOW_DIALOG_DURATION);
@@ -46,6 +47,8 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
         emit(state.copyWith(createAccountState: ActionState.notRequested));
       });
     });
+
+     */
 
     on<GetListPersonaEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();

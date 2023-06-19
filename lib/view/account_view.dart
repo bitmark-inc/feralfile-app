@@ -299,7 +299,7 @@ Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
           color: theme.colorScheme.surface,
         )),
     child: Text(
-      "linked".tr(),
+      "view_only".tr(),
       style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
     ),
   );

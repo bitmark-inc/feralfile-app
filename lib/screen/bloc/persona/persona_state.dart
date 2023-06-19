@@ -9,8 +9,6 @@ part of 'persona_bloc.dart';
 
 abstract class PersonaEvent {}
 
-class CreatePersonaEvent extends PersonaEvent {}
-
 class CreatePersonaAddressesEvent extends PersonaEvent {
   final String name;
   final WalletType walletType;

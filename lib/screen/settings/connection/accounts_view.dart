@@ -244,7 +244,7 @@ class _AccountsViewState extends State<AccountsView> {
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                style: theme.textTheme.headlineMedium,
+                style: theme.textTheme.ppMori700Black16,
                 controller: _nameController,
                 onSubmitted: (String value) async {
                   if (value.isEmpty) return;
