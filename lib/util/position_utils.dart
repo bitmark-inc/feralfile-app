@@ -4,6 +4,8 @@ import 'package:hive/hive.dart';
 
 import 'log.dart';
 
+const coordinate_digit_number = 4;
+
 String getLocationName(Placemark placeMark) {
   List<String> locationLevel = [];
   if (placeMark.subLocality != null && placeMark.subLocality!.isNotEmpty) {
@@ -45,12 +47,9 @@ Future<Placemark?> getPlaceMarkFromCoordinates(
 // get location name from longitude and latitude
 Future<String> getLocationNameFromCoordinates(
     double latitude, double longitude) async {
-  if (latitude == moMALocation.lat && longitude == moMALocation.lon) {
-    return "MoMA";
-  }
-
   final box = await Hive.openBox(POSTCARD_LOCATION_HIVE_BOX);
-  final key = "$latitude|$longitude";
+  final key =
+      "${latitude.toStringAsFixed(coordinate_digit_number)}|${longitude.toStringAsFixed(coordinate_digit_number)}";
   if (box.containsKey(key)) {
     return box.get(key) as String;
   }

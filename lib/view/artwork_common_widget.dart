@@ -427,10 +427,13 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
+  String? userAgent,
 }) {
   String mimeType = assetToken.getMimeType;
-
+  final version = injector<ConfigurationService>().getVersionInfo();
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
+
+  userAgent ??= "user_agent".tr(namedArgs: {"version": version.toString()});
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
@@ -446,6 +449,7 @@ INFTRenderingWidget buildRenderingWidget(
     skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
+    userAgent: userAgent,
   ));
 
   return renderingWidget;
@@ -925,7 +929,9 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "contract".tr(),
-          value: assetToken.blockchain.capitalize(),
+          value: (assetToken.blockchain.toLowerCase() == "tezos")
+              ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
+              : assetToken.blockchain.capitalize(),
           tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
         ),

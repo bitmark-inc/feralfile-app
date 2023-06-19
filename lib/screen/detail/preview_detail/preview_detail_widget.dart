@@ -10,6 +10,9 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
@@ -105,6 +108,11 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                 create: (_) => RetryCubit(),
                 child: BlocBuilder<RetryCubit, int>(
                   builder: (context, attempt) {
+                    if (assetToken.isPostcard) {
+                      return Container(
+                          alignment: Alignment.center,
+                          child: PostcardRatio(assetToken: assetToken));
+                    }
                     if (attempt > 0) {
                       _renderingWidget?.dispose();
                       _renderingWidget = null;
@@ -152,5 +160,61 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         }
       },
     );
+  }
+}
+
+class PostcardPreviewWidget extends StatefulWidget {
+  final ArtworkIdentity identity;
+  final bool useIndexer;
+
+  const PostcardPreviewWidget({
+    Key? key,
+    required this.identity,
+    this.useIndexer = false,
+  }) : super(key: key);
+
+  @override
+  State<PostcardPreviewWidget> createState() => _PostcardPreviewWidgetState();
+}
+
+class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
+    with WidgetsBindingObserver, RouteAware {
+  final bloc =
+      PostcardDetailBloc(injector(), injector(), injector(), injector());
+
+  @override
+  void initState() {
+    bloc.add(PostcardDetailGetInfoEvent(widget.identity,
+        useIndexer: widget.useIndexer));
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PostcardDetailBloc, PostcardDetailState>(
+        bloc: bloc,
+        builder: (context, state) {
+          final assetToken = state.assetToken;
+          if (assetToken != null) {
+            return BlocProvider(
+              create: (_) => RetryCubit(),
+              child: BlocBuilder<RetryCubit, int>(
+                builder: (context, attempt) {
+                  return Container(
+                      alignment: Alignment.center,
+                      child: PostcardRatio(assetToken: assetToken));
+                },
+              ),
+            );
+          }
+          return const SizedBox();
+        });
   }
 }

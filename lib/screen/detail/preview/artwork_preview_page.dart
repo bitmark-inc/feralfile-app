@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -262,7 +263,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final identityBloc = context.read<IdentityBloc>();
-
     return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
       builder: (context, state) {
         AssetToken? assetToken;
@@ -274,7 +274,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final hasKeyboard = assetToken?.medium == "software" ||
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
-
+        final hideArtist = assetToken?.isPostcard ?? false;
         return Scaffold(
           appBar: isFullScreen
               ? null
@@ -293,32 +293,34 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        BlocBuilder<IdentityBloc, IdentityState>(
-                          bloc: identityBloc
-                            ..add(GetIdentityEvent([
-                              assetToken?.artistName ?? '',
-                            ])),
-                          builder: (context, state) {
-                            final artistName = assetToken?.artistName
-                                ?.toIdentityOrMask(state.identityMap);
-                            if (artistName != null) {
-                              return Row(
-                                children: [
-                                  const SizedBox(height: 4.0),
-                                  Expanded(
-                                    child: Text(
-                                      "by".tr(args: [artistName]),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.ppMori400White14,
+                        if (hideArtist != true) ...[
+                          BlocBuilder<IdentityBloc, IdentityState>(
+                            bloc: identityBloc
+                              ..add(GetIdentityEvent([
+                                assetToken?.artistName ?? '',
+                              ])),
+                            builder: (context, state) {
+                              final artistName = assetToken?.artistName
+                                  ?.toIdentityOrMask(state.identityMap);
+                              if (artistName != null) {
+                                return Row(
+                                  children: [
+                                    const SizedBox(height: 4.0),
+                                    Expanded(
+                                      child: Text(
+                                        "by".tr(args: [artistName]),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            }
-                            return const SizedBox();
-                          },
-                        ),
+                                  ],
+                                );
+                              }
+                              return const SizedBox();
+                            },
+                          ),
+                        ]
                       ],
                     ),
                   ),
@@ -360,12 +362,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       },
                       controller: controller,
                       itemCount: tokens.length,
-                      itemBuilder: (context, index) => ArtworkPreviewWidget(
-                        identity: tokens[index],
-                        onLoaded: setTimer,
-                        focusNode: _focusNode,
-                        useIndexer: widget.payload.useIndexer,
-                      ),
+                      itemBuilder: (context, index) {
+                        if (tokens[index].id.isPostcardId) {
+                          return PostcardPreviewWidget(
+                            identity: tokens[index],
+                            useIndexer: widget.payload.useIndexer,
+                          );
+                        }
+                        return ArtworkPreviewWidget(
+                          identity: tokens[index],
+                          onLoaded: setTimer,
+                          focusNode: _focusNode,
+                          useIndexer: widget.payload.useIndexer,
+                        );
+                      },
                     ),
                   ),
                 ),

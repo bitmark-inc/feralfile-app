@@ -1430,8 +1430,8 @@ class UIHelper {
   }
 
   static showSharePostcardFailed(BuildContext context, DioError error) async {
-    return showErrorDialog(
-        context, "Share Failed", error.response?.data['message'], "close".tr());
+    return showErrorDialog(context, "Share Failed",
+        "${error.response?.data['message']}", "close".tr());
   }
 
   static Future<void> showInvalidURI(BuildContext context) async {
@@ -1450,6 +1450,29 @@ class UIHelper {
         ],
       ),
     );
+  }
+
+  static Future<void> showPostcardUpdates(BuildContext context) async {
+    await UIHelper.showDialog(
+        context,
+        "postcard_updates".tr(),
+        Column(
+          children: [
+            Text(
+              "postcard_updates_content".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 40),
+            PrimaryButton(
+              text: "enable_noti".tr(),
+              onTap: () {
+                Navigator.of(context)
+                    .popAndPushNamed(AppRouter.preferencesPage);
+              },
+            ),
+          ],
+        ),
+        isDismissible: true);
   }
 }
 
