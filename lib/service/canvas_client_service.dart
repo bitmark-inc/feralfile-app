@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:synchronized/synchronized.dart';
@@ -22,6 +23,8 @@ class CanvasClientService {
   late final String _deviceName;
 
   final _connectDevice = Lock();
+  final AccountService _accountService = injector<AccountService>();
+  final NavigationService _navigationService = injector<NavigationService>();
 
   CallOptions get _callOptions => CallOptions(
       compression: const GzipCodec(), timeout: const Duration(seconds: 3));
@@ -29,7 +32,7 @@ class CanvasClientService {
   Future<void> init() async {
     final device = my_device.DeviceInfo.instance;
     _deviceName = await device.getMachineName() ?? "Autonomy App";
-    final account = await injector<AccountService>().getDefaultAccount();
+    final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
     await syncDevices();
   }
@@ -98,10 +101,8 @@ class CanvasClientService {
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
       if (e.toString().contains("DEADLINE_EXCEEDED")) {
-        UIHelper.showInfoDialog(
-            injector<NavigationService>().navigatorKey.currentContext!,
-            "failed_to_connect".tr(),
-            "canvas_ip_fail".tr(),
+        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
+            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
             closeButton: "close".tr());
       }
       return false;
@@ -167,7 +168,7 @@ class CanvasClientService {
 
   Future<void> syncDevices() async {
     final devices = await _db.canvasDeviceDao.getCanvasDevices();
-    _devices.removeRange(0, _devices.length);
+    _devices.clear();
     for (final device in devices) {
       if (device.isConnecting) {
         final status = await checkDeviceStatus(device);
@@ -219,13 +220,13 @@ class CanvasClientService {
     final castRequest = CastSingleRequest(id: tokenId);
     final response = await stub.castSingleArtwork(castRequest);
     if (response.ok) {
-      final lst = _devices.firstWhere(
+      final lst = _devices.firstWhereOrNull(
         (element) {
           final isEqual = element == device;
           return isEqual;
         },
       );
-      lst.playingSceneId = tokenId;
+      lst?.playingSceneId = tokenId;
     }
   }
 
@@ -234,7 +235,9 @@ class CanvasClientService {
     final uncastRequest = UncastSingleRequest(id: "");
     final response = await stub.uncastSingleArtwork(uncastRequest);
     if (response.ok) {
-      _devices.firstWhere((element) => element == device).playingSceneId = null;
+      _devices
+          .firstWhereOrNull((element) => element == device)
+          ?.playingSceneId = null;
     }
   }
 

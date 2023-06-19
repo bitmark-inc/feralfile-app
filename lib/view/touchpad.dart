@@ -30,11 +30,10 @@ class _TouchPadState extends State<TouchPad> {
         children: [
           GestureDetector(
             onTap: () {
-              log.info("onTap");
+              log.info("[Touchpad] onTap");
               _canvasClient.tap(widget.device);
             },
             onPanUpdate: (panDetails) {
-              log.info(panDetails.delta);
               _canvasClient.drag(widget.device, panDetails.delta);
             },
           ),
