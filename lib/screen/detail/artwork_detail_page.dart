@@ -176,7 +176,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     }
   }
 
-  Widget _sendMomento6(AssetToken asset) {
+  Widget _sendMemento6(AssetToken asset) {
     final deeplink = context.watch<ArtworkDetailBloc>().state.airdropDeeplink;
     final canSend = deeplink != null && deeplink.isNotEmpty;
     if (!canSend) {
@@ -318,7 +318,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     token: asset,
                   ),
                 ),
-                _sendMomento6(asset),
+                _sendMemento6(asset),
                 Visibility(
                   visible: CHECK_WEB3_CONTRACT_ADDRESS
                       .contains(asset.contractAddress),

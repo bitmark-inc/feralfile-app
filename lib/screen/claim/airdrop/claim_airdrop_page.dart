@@ -372,10 +372,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           "id": widget.payload.series.id,
         },
       );
-
-      memoryValues.airdropFFExhibitionId.value = null;
     } catch (e) {
-      memoryValues.airdropFFExhibitionId.value = null;
       setState(() {
         _processing = false;
       });

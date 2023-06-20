@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -58,24 +59,11 @@ class AirdropService {
 
   Future<AirdropRequestClaimResponse> requestClaim(
       AirdropRequestClaimRequest request) async {
-    // return AirdropRequestClaimResponse(
-    //     claimID: "claimID", seriesID: "b95fc2e8-c7ca-4db8-9f81-7bd231ff1c48");
     return _airdropApi.requestClaim(request);
   }
 
   Future<TokenClaimResponse> claim(AirdropClaimRequest request) async {
     return _airdropApi.claim(request);
-    // return TokenClaimResponse(TokenClaimResult(
-    //   '8b9fab30-6812-4d16-8e1a-6ae3dd84db1e',
-    //   "did:key:zQ3shbPhAZ4P8qBVtjSUZe1hxicRXmxTmBJnC1d6pF9Pvu6xM",
-    //   "5abbd290-e526-4857-b890-543882113de9",
-    //   "71305918851970992124874994061922198217466596602646112563906495118818546608863",
-    //   "3027192f-57c4-44cf-b5c1-0e0622847f54",
-    //   "b95fc2e8-c7ca-4db8-9f81-7bd231ff1c48",
-    //   {
-    //     "claim_address": "tz1Ub3EYwAqjGWyQER7CxgLSWqssZHZoL2qA",
-    //   },
-    // ));
   }
 
   Future<AssetToken?> getTokenByContract(List<String> contractAddress) async {
@@ -154,9 +142,15 @@ class AirdropService {
           case "invalid claim":
             _navigationService.showAirdropAlreadyClaimed();
             break;
-          default:
-            _navigationService.showAirdropClaimFailed();
+          case "the token is not available for share":
+            _navigationService.showAirdropAlreadyClaimed();
             break;
+          default:
+            UIHelper.showClaimTokenError(
+              _navigationService.navigatorKey.currentContext!,
+              e,
+              series: series,
+            );
         }
       }
       rethrow;

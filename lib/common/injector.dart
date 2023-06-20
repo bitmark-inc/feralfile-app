@@ -338,7 +338,7 @@ Future<void> setup() async {
   );
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
-      _mementoAirdrop(dioOptions.copyWith(followRedirects: true)),
+      _mementoAirdropDio(dioOptions.copyWith(followRedirects: true)),
       baseUrl: Environment.mementoAirdripUrl));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
@@ -409,10 +409,11 @@ Dio _postcardDio(BaseOptions options) {
   return dio;
 }
 
-Dio _mementoAirdrop(BaseOptions options) {
+Dio _mementoAirdropDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
+  dio.interceptors.add(AirdropInterceptor());
   (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry(captureFailedRequests: true);
   dio.options = options;
