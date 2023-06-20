@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -271,6 +272,12 @@ class _OnboardingPageState extends State<OnboardingPage>
         }
         await cloudDB.connectionDao.getUpdatedLinkedAccounts();
       }
+    } else {
+      configurationService.setDoneOnboarding(true);
+      final persona = await accountService.createPersona();
+      await persona.insertAddress(WalletType.Autonomy);
+      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
   }
 
