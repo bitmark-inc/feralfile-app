@@ -412,17 +412,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
           final sharedInfor = await _airdropService.claimShare(
             AirdropClaimShareRequest(shareCode: sharedCode),
           );
-          if (sharedInfor != null) {
-            final series =
-                await _feralFileService.getSeries(sharedInfor.seriesID);
-            _navigationService.navigateTo(
-              AppRouter.claimAirdropPage,
-              arguments: ClaimTokenPagePayload(
-                  claimID: "",
-                  shareCode: sharedInfor.shareCode,
-                  series: series),
-            );
-          }
+          final series =
+              await _feralFileService.getSeries(sharedInfor.seriesID);
+          _navigationService.navigateTo(
+            AppRouter.claimAirdropPage,
+            arguments: ClaimTokenPagePayload(
+                claimID: "", shareCode: sharedInfor.shareCode, series: series),
+          );
         } else {
           _navigationService.waitTooLongDialog();
         }
