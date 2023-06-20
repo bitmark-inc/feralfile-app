@@ -71,8 +71,9 @@ class _TutorialVideoState extends State<TutorialVideo> {
     );
   }
 
-  Widget _videoDescription(VideoData data) {
-    final width = (_width ?? MediaQuery.of(context).size.width) - 151;
+  Widget _videoDescription(VideoData data, {bool isHeader = false}) {
+    final width =
+        (_width ?? MediaQuery.of(context).size.width) - (isHeader ? 30 : 151);
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +140,7 @@ class _TutorialVideoState extends State<TutorialVideo> {
         children: [
           Padding(
               padding: const EdgeInsets.all(15),
-              child: _videoDescription(_currentVideoData!)),
+              child: _videoDescription(_currentVideoData!, isHeader: true)),
           const SizedBox(height: 35),
           ..._videoData
               .map((video) => _videoItem(video, dataState,
