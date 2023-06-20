@@ -49,7 +49,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   void initState() {
     super.initState();
 
-    final to = EthereumAddress.fromHex(widget.args.transaction.to ?? "");
+    final to = EthereumAddress.fromHex(widget.args.transaction.to!);
     final EtherAmount amount = EtherAmount.fromBase10String(
         EtherUnit.wei, widget.args.transaction.value ?? '0');
 
