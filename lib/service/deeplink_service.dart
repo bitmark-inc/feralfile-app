@@ -220,7 +220,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
-      await _restoreIfNeeded();
+      await _restoreIfNeeded(allowCreateNewPersona: true);
     }
     // Check Universal Link
     final callingWCPrefix =
@@ -536,6 +536,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             .navigateTo(AppRouter.homePageNoTransition);
       }
     } else if (allowCreateNewPersona) {
+      log.info("[DeeplinkService] create new addresses");
       configurationService.setDoneOnboarding(true);
       final persona = await accountService.createPersona();
       await persona.insertAddress(WalletType.Autonomy);

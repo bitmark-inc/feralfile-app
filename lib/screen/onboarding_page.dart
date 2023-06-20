@@ -273,6 +273,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         await cloudDB.connectionDao.getUpdatedLinkedAccounts();
       }
     } else {
+      logger.info("Onboarding: create new addresses");
       configurationService.setDoneOnboarding(true);
       final persona = await accountService.createPersona();
       await persona.insertAddress(WalletType.Autonomy);

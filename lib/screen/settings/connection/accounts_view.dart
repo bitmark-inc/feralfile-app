@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wal
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -58,12 +57,6 @@ class _AccountsViewState extends State<AccountsView> {
         listener: (context, state) {
       final accounts = state.accounts;
       if (accounts == null) return;
-
-      // move back to onboarding
-      if (accounts.isEmpty) {
-        injector<ConfigurationService>().setDoneOnboardingOnce(true);
-        injector<ConfigurationService>().setDoneOnboarding(false);
-      }
     }, builder: (context, state) {
       final accounts = state.accounts;
       if (accounts == null) return const CupertinoActivityIndicator();

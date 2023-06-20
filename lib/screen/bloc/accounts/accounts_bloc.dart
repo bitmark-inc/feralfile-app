@@ -133,7 +133,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           addresses = [];
       }
 
-      List<Account> accounts = await getAccountPersona(addresses);
+      List<Account> accounts = await getAccountPersona(addresses,
+          addDefault: type == WalletType.Autonomy);
       accounts.sort(_compareAccount);
       emit(state.copyWith(accounts: accounts));
     });
