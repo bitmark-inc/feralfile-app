@@ -62,6 +62,7 @@ import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -1022,6 +1023,13 @@ class AppRouter {
       case supportListPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const SupportListPage());
+
+      case TutorialVideo.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => TutorialVideo(
+                  payload: settings.arguments as TutorialVideosPayload,
+                ));
 
       case supportThreadPage:
         return CupertinoPageRoute(
