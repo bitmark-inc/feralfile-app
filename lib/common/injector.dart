@@ -339,7 +339,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
       _mementoAirdropDio(dioOptions.copyWith(followRedirects: true)),
-      baseUrl: Environment.mementoAirdropUrl));
+      baseUrl: Environment.autonomyAirdropUrl));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),

@@ -350,7 +350,7 @@ extension AssetTokenExtension on AssetToken {
   }
 
   bool get isAirdropToken {
-    return Environment.airDropContractAddress == contractAddress;
+    return Environment.autonomyAirDropContractAddress == contractAddress;
   }
 }
 
