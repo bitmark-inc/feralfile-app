@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -107,8 +106,6 @@ _setupApp() async {
 
   final metricClient = injector.get<MetricClientService>();
   metricClient.initService();
-
-  injector<CanvasClientService>().init();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
