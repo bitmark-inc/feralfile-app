@@ -382,6 +382,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
       case "Postcard":
         final String? type = data["type"];
         final String? id = data["id"];
+        final DateTime expiredAt = data['expired'] != null
+            ? DateTime.fromMicrosecondsSinceEpoch(
+                int.tryParse(data['expired_at']) ?? 0)
+            : DateTime.now().add(const Duration(days: 1));
+        if (expiredAt.isAfter(DateTime.now())) {
+          _navigationService.showPostcardShareLinkExpired();
+          break;
+        }
         if (type == "claim_empty_postcard" && id != null) {
           _handleClaimEmptyPostcardDeeplink(id);
           return;

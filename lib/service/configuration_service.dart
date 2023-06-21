@@ -244,10 +244,12 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showBackupSettingTip;
 
+  ValueNotifier<int> get showPostcardSharedLinkTip;
+
   List<SharedPostcard> getSharedPostcard();
 
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
-      {bool override = false});
+      {bool override = false, bool isRemove = false});
 
   List<String> getListPostcardMint();
 
@@ -1075,7 +1077,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
-      {bool override = false}) async {
+      {bool override = false, bool isRemove = false}) async {
     const key = KEY_SHARED_POSTCARD;
     final updatePostcards =
         sharedPostcards.map((e) => jsonEncode(e.toJson())).toList();
@@ -1084,8 +1086,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(key, updatePostcards);
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
-
-      sentPostcard.addAll(updatePostcards);
+      if (isRemove) {
+        sentPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        sentPostcard.addAll(updatePostcards);
+      }
       await _preferences.setStringList(key, sentPostcard.toSet().toList());
     }
   }
@@ -1261,4 +1267,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setVersionInfo(String version) async {
     await _preferences.setString(KEY_PACKAGE_INFO, version);
   }
+
+  @override
+  ValueNotifier<int> get showPostcardSharedLinkTip => ValueNotifier(0);
 }

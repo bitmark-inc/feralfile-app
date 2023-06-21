@@ -51,6 +51,7 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -444,6 +445,7 @@ class HomePageState extends State<HomePage>
         configurationService.showCreatePlaylistTip,
         configurationService.showLinkOrImportTip,
         configurationService.showBackupSettingTip,
+        configurationService.showPostcardSharedLinkTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -460,6 +462,11 @@ class HomePageState extends State<HomePage>
     final isShowLinkOrImportTip = values[2] as bool;
     final isShowBackupSettingTip = values[3] as bool;
     final configurationService = injector<ConfigurationService>();
+    final expiredPostcardShareLink = configurationService
+        .getSharedPostcard()
+        .where((element) => element.isExpired)
+        .toList();
+    final compactedToken = nftBloc.state.tokens.items;
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
@@ -539,6 +546,28 @@ class HomePageState extends State<HomePage>
                     : "backup_tip_card_content_ios".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: configurationService.showBackupSettingTip),
+      ...expiredPostcardShareLink.map((e) {
+        final title = compactedToken
+                .firstWhereOrNull((element) => element.id == e.tokenID)
+                ?.title ??
+            "";
+        return Tipcard(
+          titleText: "moma_postcard".tr(),
+          onPressed: () {
+            final payload =
+                ArtworkDetailPayload([ArtworkIdentity(e.tokenID, e.owner)], 0);
+            Navigator.of(context).pushNamed(
+                AppRouter.claimedPostcardDetailsPage,
+                arguments: payload);
+            configurationService.updateSharedPostcard([e], isRemove: true);
+          },
+          buttonText: "go_to_postcard".tr(),
+          content: Text(
+              "postcard_not_deliveried".tr(namedArgs: {"title": title}),
+              style: theme.textTheme.ppMori400Black14),
+          listener: ValueNotifier<bool>(true),
+        );
+      }).toList(),
     ];
   }
 
@@ -643,6 +672,12 @@ class HomePageState extends State<HomePage>
             data: {"title": "try_autonomy_pro_free".tr()});
       }
     }
+    final expiredPostcardShareLink = configurationService
+        .getSharedPostcard()
+        .where((element) => element.isExpired || true)
+        .toList();
+    configurationService.showPostcardSharedLinkTip.value =
+        expiredPostcardShareLink.length;
   }
 
   void _handleForeground() async {

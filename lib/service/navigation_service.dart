@@ -290,4 +290,11 @@ class NavigationService {
       await UIHelper.showAlreadyDelivered(navigatorKey.currentContext!);
     }
   }
+
+  Future<void> showPostcardShareLinkExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardShareLinkExpired(navigatorKey.currentContext!);
+    }
+  }
 }
