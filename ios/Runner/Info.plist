@@ -32,32 +32,14 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>autonomy-deeplink</string>
+			<string>me.autonomy</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>wc</string>
 				<string>autonomy</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>autonomy-tezos</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
 				<string>autonomy-tezos</string>
 				<string>tezos</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>autonomy-wc</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
 				<string>autonomy-wc</string>
-				<string>wc</string>
 			</array>
 		</dict>
 	</array>

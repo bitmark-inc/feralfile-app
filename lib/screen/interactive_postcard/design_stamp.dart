@@ -1,9 +1,6 @@
 import 'dart:math';
 
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
-import 'package:autonomy_flutter/util/position_utils.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -41,12 +38,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.payload.location != null) {
-      final placeMark = widget.payload.location!.placeMark;
-      if (widget.payload.asset.postcardMetadata.counter != 1) {
-        _location = getLocationName(placeMark);
-      }
-    }
+    _location = widget.payload.location.address;
 
     _undoController = SimpleStack<List<Color?>>(
       List<Color?>.filled(100, null),
@@ -86,6 +78,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width;
     final cellSize = ((size - 60.0) / 10.0).floor();
+    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppColor.primaryBlack,
       appBar: getBackAppBar(
@@ -105,8 +98,17 @@ class _DesignStampPageState extends State<DesignStampPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    addTitleSpace(),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "all_cells_must_be_filled".tr(),
+                          style: theme.textTheme.moMASans400Grey12,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
                       child: Container(
@@ -244,7 +246,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                                   bytes!,
                                                   widget.payload.asset,
                                                   widget.payload.location
-                                                      ?.position,
+                                                      .position,
                                                   _location));
                                         },
                                       );
@@ -435,7 +437,7 @@ class StampPainter extends CustomPainter {
 
 class DesignStampPayload {
   final AssetToken asset;
-  final GeoLocation? location;
+  final GeoLocation location;
 
   DesignStampPayload(this.asset, this.location);
 }

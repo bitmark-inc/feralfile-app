@@ -1,11 +1,14 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class InappWebviewPage extends StatefulWidget {
   final String url;
@@ -17,9 +20,11 @@ class InappWebviewPage extends StatefulWidget {
 }
 
 class _InappWebviewPageState extends State<InappWebviewPage> {
-  late WebViewController webViewController;
+  late InAppWebViewController webViewController;
   late String title;
   late bool isLoading;
+  final _configurationService = injector<ConfigurationService>();
+
   @override
   void initState() {
     title = Uri.parse(widget.url).host;
@@ -30,6 +35,7 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final version = _configurationService.getVersionInfo();
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
@@ -46,24 +52,26 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
           Expanded(
             child: Stack(
               children: [
-                WebView(
-                  initialUrl: widget.url,
-                  javascriptMode: JavascriptMode.unrestricted,
+                InAppWebView(
+                  initialUrlRequest: URLRequest(url: Uri.tryParse(widget.url)),
+                  initialOptions: InAppWebViewGroupOptions(
+                      crossPlatform: InAppWebViewOptions(
+                          userAgent: "user_agent"
+                              .tr(namedArgs: {"version": version}))),
                   onWebViewCreated: (c) {
                     webViewController = c;
                   },
-                  onPageStarted: (url) {
+                  onLoadStart: (controller, uri) {
                     setState(() {
-                      title = Uri.parse(url).host;
                       isLoading = true;
+                      title = uri!.host;
                     });
                   },
-                  onPageFinished: (url) {
+                  onLoadStop: (controller, uri) {
                     setState(() {
                       isLoading = false;
                     });
                   },
-                  backgroundColor: AppColor.white,
                 ),
                 isLoading
                     ? Container(
@@ -185,10 +193,10 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
           IconButton(
             icon: SvgPicture.asset("assets/images/Share.svg"),
             onPressed: () async {
-              final currentUrl = await webViewController.currentUrl();
+              final currentUrl = await webViewController.getUrl();
               if (currentUrl != null) {
                 launchUrl(
-                  Uri.parse(currentUrl),
+                  currentUrl,
                   mode: LaunchMode.externalApplication,
                 );
               }

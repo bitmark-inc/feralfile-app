@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -51,7 +53,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
       'function': func,
       'error': result.errorMessage,
-      'result': JSResult.result.toString(),
+      'result': result.result.toString(),
+      'url': widget.url.toString(),
     });
     return result;
   }
@@ -202,6 +205,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             var transaction = argument.transactions.firstOrNull ?? {};
             if (transaction["data"] == null) transaction["data"] = "";
             if (transaction["gas"] == null) transaction["gas"] = "";
+            if (transaction["to"] == null) {
+              return _logAndReturnJSResult(
+                '_sendTransaction',
+                JSResult.error('Invalid transaction: no recipient'),
+              );
+            }
 
             final args = WCSendTransactionPageArgs(
               1,
@@ -297,6 +306,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         injector.get<NavigationService>().popUntilHomeOrSettings();
         _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
           'function': IrlWebviewFunction.closeWebview,
+          'url': widget.url.toString(),
         });
       },
     );
@@ -304,6 +314,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final version = injector<ConfigurationService>().getVersionInfo();
     return Scaffold(
       appBar: AppBar(
         systemOverlayStyle: const SystemUiOverlayStyle(
@@ -323,6 +334,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             Expanded(
               child: InAppWebView(
                 initialUrlRequest: URLRequest(url: widget.url),
+                initialOptions: InAppWebViewGroupOptions(
+                    crossPlatform: InAppWebViewOptions(
+                        userAgent: "user_agent"
+                            .tr(namedArgs: {"version": version.toString()}))),
                 onWebViewCreated: (controller) {
                   _controller = controller;
                   _addJavaScriptHandler();

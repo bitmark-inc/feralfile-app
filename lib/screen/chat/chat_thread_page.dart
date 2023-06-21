@@ -1,22 +1,23 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart';
+import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/util/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:autonomy_flutter/model/chat_message.dart' as app;
-import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -51,6 +52,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _payload = widget.payload;
     _user = types.User(id: _payload.address);
     _websocketInitAndFetchHistory();
+    memoryValues.currentGroupChatId = _payload.tokenId;
   }
 
   Future<void> _websocketInitAndFetchHistory() async {
@@ -207,6 +209,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _websocketChannel?.sink.close();
     _websocketChannel = null;
     _stopConnect = true;
+    memoryValues.currentGroupChatId = null;
     super.dispose();
   }
 

@@ -265,15 +265,23 @@ abstract class ConfigurationService {
 
   bool isAutoShowPostcard();
 
-  List<AlreadyShowYouDidItPostcard> getListPostcardAlreadyShowYouDidIt();
+  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt();
 
-  Future<void> setListPostcardAlreadyShowYouDidIt(
-      List<AlreadyShowYouDidItPostcard> value,
+  Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
       {bool override = false});
 
   Future<void> setMixpanelConfig(MixpanelConfig config);
 
   MixpanelConfig? getMixpanelConfig();
+
+  Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
+      {bool override = false});
+
+  List<PostcardIdentity> getAlreadyShowPostcardUpdates();
+
+  String getVersionInfo();
+
+  Future<void> setVersionInfo(String version);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -362,7 +370,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
       "already_show_you_did_it_postcard";
 
+  static const String KEY_CURRENT_GROUP_CHAT_ID = "current_group_chat_id";
+
+  static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
+      "already_show_postcard_updates";
+
   static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
+
+  static const String KEY_PACKAGE_INFO = "package_info";
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1157,17 +1172,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<AlreadyShowYouDidItPostcard> getListPostcardAlreadyShowYouDidIt() {
+  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt() {
     return _preferences
             .getStringList(KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD)
-            ?.map((e) => AlreadyShowYouDidItPostcard.fromJson(jsonDecode(e)))
+            ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
             .toList() ??
         [];
   }
 
   @override
-  Future<void> setListPostcardAlreadyShowYouDidIt(
-      List<AlreadyShowYouDidItPostcard> values,
+  Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> values,
       {bool override = false}) async {
     const key = KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD;
     final updateValues = values.map((e) => jsonEncode(e.toJson())).toList();
@@ -1211,5 +1225,40 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setMixpanelConfig(MixpanelConfig config) async {
     await _preferences.setString(
         KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
+  }
+
+  @override
+  List<PostcardIdentity> getAlreadyShowPostcardUpdates() {
+    return _preferences
+            .getStringList(KEY_ALREADY_SHOW_POSTCARD_UPDATES)
+            ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
+      {bool override = false}) {
+    const key = KEY_ALREADY_SHOW_POSTCARD_UPDATES;
+    final updateValues = value.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      return _preferences.setStringList(key, updateValues);
+    } else {
+      var currentValue = _preferences.getStringList(key) ?? [];
+
+      currentValue.addAll(updateValues);
+      return _preferences.setStringList(key, currentValue.toSet().toList());
+    }
+  }
+
+  @override
+  String getVersionInfo() {
+    return _preferences.getString(KEY_PACKAGE_INFO) ?? "";
+  }
+
+  @override
+  Future<void> setVersionInfo(String version) async {
+    await _preferences.setString(KEY_PACKAGE_INFO, version);
   }
 }

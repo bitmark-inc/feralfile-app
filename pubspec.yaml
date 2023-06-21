@@ -88,7 +88,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: v1.0.24
+      ref: c390cdca02b5274f7997768ec1b428e9e56fc255
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -119,10 +119,9 @@ dependencies:
   wallet_connect:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
-      ref: 71c4409ecc309ef6488e4dbc2175fba321dbf8f8
+      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
   web3dart: ^2.5.1
   web_socket_channel: ^2.1.0
-  webview_flutter: ^3.0.0
   json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
   autonomy_theme:
@@ -170,7 +169,8 @@ dependencies:
   geocoding: ^2.1.0
   flutter_inappwebview: ^5.7.2+3
   html: ^0.15.1
-
+  flutter_swiper_view: ^1.1.8
+  video_player: ^2.4.8
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
@@ -214,6 +214,7 @@ flutter:
     - assets/erc1155-abi.json
     - assets/images/
     - assets/translations/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
