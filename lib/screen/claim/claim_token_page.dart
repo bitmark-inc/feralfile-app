@@ -189,7 +189,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                   },
                                 ),
                                 Text(
-                                  "by $artistName",
+                                  "by".tr(args: [artistName]),
                                   style: theme.textTheme.ppMori400White14,
                                 ),
                               ],

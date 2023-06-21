@@ -189,7 +189,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                   },
                                 ),
                                 Text(
-                                  "by $artistName",
+                                  "by".tr(args: [artistName]),
                                   style: theme.textTheme.ppMori400White14,
                                 ),
                               ],
