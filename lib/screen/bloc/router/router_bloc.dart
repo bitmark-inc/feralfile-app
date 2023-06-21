@@ -71,7 +71,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           emit(RouterState(
               onboardingStep: OnboardingStep.restore,
               backupVersion: backupVersion));
-
+          add(RestoreCloudDatabaseRoutingEvent(backupVersion));
           return;
         } else {
           await _configurationService.setDoneOnboarding(true);
@@ -81,7 +81,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         }
       } else {
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
-        add(RestoreCloudDatabaseRoutingEvent(state.backupVersion));
       }
     });
 

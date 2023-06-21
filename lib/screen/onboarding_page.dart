@@ -383,13 +383,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                 PrimaryButton(
                   text: "restoring".tr(),
                   isProcessing: true,
-                  onTap: !state.isLoading
-                      ? () {
-                          context.read<RouterBloc>().add(
-                              RestoreCloudDatabaseRoutingEvent(
-                                  state.backupVersion));
-                        }
-                      : null,
+                  enabled: false,
                 ),
               ]
             ],
