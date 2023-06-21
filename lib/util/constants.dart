@@ -76,7 +76,11 @@ const MOMA_MEMENTO_CONTRACT_ADDRESS_TESTNET = [
 ];
 
 const MOMA_MEMENTO_CONTRACT_ADDRESS_MAINNET = [
-  "",
+  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
+  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
+  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
+  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
 ];
 
 List<String> get momaMementoContractAddress {
