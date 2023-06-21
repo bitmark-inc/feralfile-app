@@ -767,7 +767,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
-    final theme = Theme.of(context);
     final asset = postcardDetailState.assetToken;
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
