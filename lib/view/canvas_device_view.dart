@@ -118,9 +118,18 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                             CanvasDeviceAddEvent(DeviceState(device: device)));
                       }
                     },
-                    child: Text(
-                      "add_new_frame".tr(),
-                      style: theme.textTheme.ppMori400Green14,
+                    child: Row(
+                      children: [
+                        Text(
+                          "add_new_frame".tr(),
+                          style: theme.textTheme.ppMori400Green14,
+                        ),
+                        const Spacer(),
+                        SvgPicture.asset(
+                          "assets/images/joinFile.svg",
+                          color:AppColor.auSuperTeal
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 40),
