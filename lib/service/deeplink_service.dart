@@ -36,11 +36,7 @@ import 'package:uni_links/uni_links.dart';
 
 import '../database/cloud_database.dart';
 import '../screen/app_router.dart';
-import '../util/migration/migration_util.dart';
 import 'account_service.dart';
-import 'audit_service.dart';
-import 'backup_service.dart';
-import 'iap_service.dart';
 
 abstract class DeeplinkService {
   Future setup();
@@ -220,7 +216,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
-      await _restoreIfNeeded(allowCreateNewPersona: true);
+      await _createAddressIfNeeded();
     }
     // Check Universal Link
     final callingWCPrefix =
@@ -303,7 +299,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.irlLink.value = link;
-      await _restoreIfNeeded(allowCreateNewPersona: true);
+      await _createAddressIfNeeded();
       memoryValues.irlLink.value = null;
     }
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
@@ -502,40 +498,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
   }
 
-  Future<void> _restoreIfNeeded({bool allowCreateNewPersona = false}) async {
+  Future<void> _createAddressIfNeeded() async {
     final configurationService = injector<ConfigurationService>();
     if (configurationService.isDoneOnboarding()) return;
 
     final cloudDB = injector<CloudDatabase>();
-    final backupService = injector<BackupService>();
     final accountService = injector<AccountService>();
-    final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(configurationService, cloudDB,
-        accountService, iapService, auditService, backupService);
-    await accountService.androidBackupKeys();
-    await migrationUtil.migrationFromKeychain();
     final personas = await cloudDB.personaDao.getPersonas();
-    final connections = await cloudDB.connectionDao.getConnections();
-    if (personas.isNotEmpty || connections.isNotEmpty) {
-      configurationService.setOldUser();
-      final defaultAccount = await accountService.getDefaultAccount();
-      final backupVersion =
-          await backupService.fetchBackupVersion(defaultAccount);
-      if (backupVersion.isNotEmpty) {
-        backupService.restoreCloudDatabase(defaultAccount, backupVersion);
-        for (var persona in personas) {
-          if (persona.name != "") {
-            persona.wallet().updateName(persona.name);
-          }
-        }
-        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        configurationService.setDoneOnboarding(true);
-        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-        injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition);
-      }
-    } else if (allowCreateNewPersona) {
+    if (personas.isEmpty) {
       log.info("[DeeplinkService] create new addresses");
       configurationService.setDoneOnboarding(true);
       final persona = await accountService.createPersona();
