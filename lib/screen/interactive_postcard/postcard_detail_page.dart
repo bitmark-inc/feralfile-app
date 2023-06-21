@@ -552,8 +552,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         });
         Share.share(shareMessage);
       }
-      _configurationService
-          .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
+      _configurationService.updateSharedPostcard(
+          [SharedPostcard(asset.id, asset.owner, DateTime.now())]);
     } catch (e) {
       if (e is DioError) {
         if (mounted) {

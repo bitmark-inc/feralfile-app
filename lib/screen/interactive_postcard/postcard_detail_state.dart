@@ -80,9 +80,14 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;
     final id = assetToken?.id;
-    return sharedPostcards.any((element) => (element.tokenID == id &&
-        element.owner == lastOwner &&
-        owner == element.owner));
+    return sharedPostcards.any((element) {
+      return element.tokenID == id &&
+          element.owner == lastOwner &&
+          owner == element.owner &&
+          (element.sharedAt?.isAfter(DateTime.now()
+                  .subtract(POSTCARD_SHARE_LINK_VALID_DURATION)) ??
+              false);
+    });
   }
 
   bool isStamping() {
