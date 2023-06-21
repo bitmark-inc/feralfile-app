@@ -69,13 +69,23 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
 ];
 
-const MOMA_MEMENTO_CONTRACT_ADDRESS = [
+const MOMA_MEMENTO_CONTRACT_ADDRESS_TESTNET = [
   "KT1ESGez4dEuDjjNt4k2HPAK5Nzh7e8X8jyX",
   "KT1MDvWtwi8sCcyJdbWPScTdFa2uJ8mnKNJe",
   "KT1DPFXN2NeFjg1aQGNkVXYS1FAy4BymcbZz",
 ];
 
-const AIRDROP_CONTRACT_ADDRESS = [];
+const MOMA_MEMENTO_CONTRACT_ADDRESS_MAINNET = [
+  "",
+];
+
+List<String> get momaMementoContractAddress {
+  if (Environment.appTestnetConfig) {
+    return MOMA_MEMENTO_CONTRACT_ADDRESS_TESTNET;
+  } else {
+    return MOMA_MEMENTO_CONTRACT_ADDRESS_MAINNET;
+  }
+}
 
 const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
 

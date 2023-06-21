@@ -371,47 +371,47 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               messages: messages,
               onSendPressed: _handleSendPressed,
               user: _user,
-              listBottomWidget: (widget.payload.announcement?.isMemento6 ==
-                      true)
-                  ? FutureBuilder(
-                      future: _airdropService
-                          .getTokenByContract(MOMA_MEMENTO_CONTRACT_ADDRESS),
-                      builder: (context, snapshot) {
-                        final token = snapshot.data as AssetToken?;
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                              left: 18, right: 18, bottom: 15),
-                          child: PrimaryButton(
-                            text: "claim_your_gift".tr(),
-                            enabled: !loading && token != null,
-                            isProcessing: loading,
-                            onTap: () async {
-                              if (token == null) return;
-                              setState(() {
-                                loading = true;
-                              });
-                              try {
-                                final response = await _airdropService
-                                    .claimRequestGift(token);
-                                final series = await _feralFileService
-                                    .getSeries(response.seriesID);
-                                if (!mounted) return;
-                                Navigator.of(context).pushNamed(
-                                    AppRouter.claimAirdropPage,
-                                    arguments: ClaimTokenPagePayload(
-                                        claimID: response.claimID,
-                                        series: series,
-                                        shareCode: ''));
-                              } catch (e) {
-                                setState(() {
-                                  loading = false;
-                                });
-                              }
-                            },
-                          ),
-                        );
-                      })
-                  : null,
+              listBottomWidget:
+                  (widget.payload.announcement?.isMemento6 == true)
+                      ? FutureBuilder(
+                          future: _airdropService
+                              .getTokenByContract(momaMementoContractAddress),
+                          builder: (context, snapshot) {
+                            final token = snapshot.data as AssetToken?;
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 18, right: 18, bottom: 15),
+                              child: PrimaryButton(
+                                text: "claim_your_gift".tr(),
+                                enabled: !loading && token != null,
+                                isProcessing: loading,
+                                onTap: () async {
+                                  if (token == null) return;
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  try {
+                                    final response = await _airdropService
+                                        .claimRequestGift(token);
+                                    final series = await _feralFileService
+                                        .getSeries(response.seriesID);
+                                    if (!mounted) return;
+                                    Navigator.of(context).pushNamed(
+                                        AppRouter.claimAirdropPage,
+                                        arguments: ClaimTokenPagePayload(
+                                            claimID: response.claimID,
+                                            series: series,
+                                            shareCode: ''));
+                                  } catch (e) {
+                                    setState(() {
+                                      loading = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            );
+                          })
+                      : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
                   : _isRated == false && _status == 'closed'
