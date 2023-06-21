@@ -205,6 +205,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             var transaction = argument.transactions.firstOrNull ?? {};
             if (transaction["data"] == null) transaction["data"] = "";
             if (transaction["gas"] == null) transaction["gas"] = "";
+            if (transaction["to"] == null) {
+              return _logAndReturnJSResult(
+                '_sendTransaction',
+                JSResult.error('Invalid transaction: no recipient'),
+              );
+            }
 
             final args = WCSendTransactionPageArgs(
               1,

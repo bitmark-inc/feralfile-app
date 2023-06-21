@@ -102,7 +102,7 @@ class WalletConnectService {
 
       if (wcClient == null || sessionStore == null) continue;
 
-      wcClient.connectFromSessionStore(sessionStore: sessionStore);
+      wcClient.connectFromSessionStore(sessionStore);
       wcClients.add(wcClient);
     }
   }
@@ -302,8 +302,9 @@ class WalletConnectService {
         int? index = wcConnection?.index ?? tmpUuids[currentPeerMeta!]?.second;
         if (uuid == null ||
             index == null ||
-            !wcClients.any(
-                (element) => element.remotePeerMeta == currentPeerMeta)) return;
+            !wcClients
+                .any((element) => element.remotePeerMeta == currentPeerMeta) ||
+            tx.to == null) return;
         final payload =
             WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid, index);
         _handlingEthSendTransactions.add(payload);
