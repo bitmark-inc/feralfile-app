@@ -100,6 +100,8 @@ jobs:
           echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
           echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
+          echo AUTONOMY_AIRDROP_URL=${{ secrets.AUTONOMY_AIRDROP_URL }} >> .env
+          echo AUTONOMY_AIRDROP_CONTRACT_ADDRESS=${{ secrets.AUTONOMY_AIRDROP_CONTRACT_ADDRESS }} >> .env
           
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
