@@ -375,7 +375,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                   (widget.payload.announcement?.isMemento6 == true)
                       ? FutureBuilder(
                           future: _airdropService
-                              .getTokenByContract(momaMementoContractAddress),
+                              .getTokenByContract(momaMementoContractAddresses),
                           builder: (context, snapshot) {
                             final token = snapshot.data as AssetToken?;
                             return Padding(
