@@ -17,12 +17,14 @@ class PostcardViewWidget extends StatefulWidget {
   final AssetToken assetToken;
   final String? imagePath;
   final String? jsonPath;
+  final int? zoomIndex;
 
   const PostcardViewWidget({
     super.key,
     required this.assetToken,
     this.imagePath,
     this.jsonPath,
+    this.zoomIndex,
   });
 
   @override
@@ -41,16 +43,22 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     super.initState();
   }
 
+  void _zoomIntoStamp({required int index, Color color = Colors.black}) {
+    log.info(
+        "[Postcard] zoom into stamp $index, ${color.value.toRadixString(16)}");
+    final hexColor = color.value.toRadixString(16).substring(2);
+    _controller?.evaluateJavascript(
+      source: "zoomInStamp('$index', \"#$hexColor\")",
+    );
+  }
+
   _convertFileToBase64() async {
     log.info("[Postcard] add stamp ${widget.imagePath}, ${widget.jsonPath}");
     if (widget.imagePath == null || widget.jsonPath == null) return;
     final image = await File(widget.imagePath!).readAsBytes();
     final json = await File(widget.jsonPath!).readAsBytes();
     base64Json = base64Encode(json);
-    //base64Json = 'eyJhZGRyZXNzIjogImNvbW1pbmciLCAic3RhbXBlZEF0IjogIjIwMjMtMDItMTJUMTk6MjU6MTRaIn0=';
     base64Image = base64Encode(image);
-    // base64Image =
-    //base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAVkAAAFYCAYAAAD5ro9+AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAVVSURBVHgB7di9kY5hGIbhe3kxEptIVwNUoAJCEkJF6IA+tCGUEEkMTcgw42d3vx+yrwHnzPvtHEfwFPAE59xzncyzt28GgMKn5d/zYgD4/07m3bUBICOyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChJYBjtqDzW5Od/vh4PONa/Pj5GTWQGThyL36dj4Pz7fDwdO7t+f9reuzBuYCgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgNAycERefz+fR382w8HpblgxkeWo3NnPnG32A8fCXAAQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCy7Baj39v5sFmNxzcv9gOHBORXbHH59t59vNygONlLgAIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgChZVbibLufe9vdcHC28R9w7FYT2ee/Luflj4sBuErMBQAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgAhkQUIiSxASGQBQiILEBJZgJDIAoREFiAksgCh5ePXn7MGp7sBuHKWs81+AGiYCwBCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWILQ8uXt7AK6SLzfXcz8uH25dHwAa5gKAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWICSyACGRBQiJLEBIZAFCIgsQElmAkMgChEQWIPQX2B45BdAPrLcAAAAASUVORK5CYII=';
     if (base64Image != null && base64Json != null) {
       log.info("[Postcard] getNewStamp");
       log.info(base64Json);
@@ -76,14 +84,16 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             _controller = controller;
           },
           onConsoleMessage: (InAppWebViewController controller,
-              ConsoleMessage consoleMessage) {
+              ConsoleMessage consoleMessage) async {
             log.info(
                 "[Postcard] Software artwork console log: ${consoleMessage.message}");
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
-              _convertFileToBase64().then((value) {
-                setState(() {
-                  isLoading = false;
-                });
+              await _convertFileToBase64();
+              if (widget.zoomIndex != null) {
+                _zoomIntoStamp(index: widget.zoomIndex!);
+              }
+              setState(() {
+                isLoading = false;
               });
             }
           },
@@ -115,15 +125,21 @@ class PostcardRatio extends StatelessWidget {
   final AssetToken assetToken;
   final String? imagePath;
   final String? jsonPath;
+  final double? ratio;
 
   const PostcardRatio(
-      {super.key, required this.assetToken, this.imagePath, this.jsonPath});
+      {super.key,
+      required this.assetToken,
+      this.imagePath,
+      this.jsonPath,
+      this.ratio});
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: postcardAspectRatio,
+      aspectRatio: ratio ?? postcardAspectRatio,
       child: PostcardViewWidget(
+        key: key,
         assetToken: assetToken,
         imagePath: imagePath,
         jsonPath: jsonPath,
