@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
 
 class CanvasClientService {
@@ -25,6 +25,8 @@ class CanvasClientService {
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
   final NavigationService _navigationService = injector<NavigationService>();
+
+  Offset currentCursorOffset = Offset.zero;
 
   CallOptions get _callOptions => CallOptions(
       compression: const GzipCodec(), timeout: const Duration(seconds: 3));
@@ -215,9 +217,27 @@ class CanvasClientService {
     await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
   }
 
-  Future<void> castSingleArtwork(CanvasDevice device, String tokenId) async {
+  Future<bool> castSingleArtwork(CanvasDevice device, String tokenId) async {
     final stub = _getStub(device);
-    final castRequest = CastSingleRequest(id: tokenId);
+    final size =
+        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
+    final playingDevice = _devices.firstWhereOrNull(
+      (element) {
+        return element.playingSceneId != null;
+      },
+    );
+    if (playingDevice != null) {
+      currentCursorOffset = await getCursorOffset(playingDevice);
+    }
+    final castRequest = CastSingleRequest(
+      id: tokenId,
+      cursorDrag: DragGestureRequest(
+        dx: currentCursorOffset.dx,
+        dy: currentCursorOffset.dy,
+        coefficientX: 1 / size.width,
+        coefficientY: 1 / size.height,
+      ),
+    );
     final response = await stub.castSingleArtwork(castRequest);
     if (response.ok) {
       final lst = _devices.firstWhereOrNull(
@@ -227,7 +247,11 @@ class CanvasClientService {
         },
       );
       lst?.playingSceneId = tokenId;
+      await setCursorOffset(device);
+    } else {
+      log.info('CanvasClientService: Failed to cast single artwork');
     }
+    return response.ok;
   }
 
   Future<void> uncastSingleArtwork(CanvasDevice device) async {
@@ -241,14 +265,16 @@ class CanvasClientService {
     }
   }
 
-  Future<void> sendKeyBoard(CanvasDevice device, int code) async {
-    final stub = _getStub(device);
-    final sendKeyboardRequest = KeyboardEventRequest(code: code);
-    final response = await stub.keyboardEvent(sendKeyboardRequest);
-    if (response.ok) {
-      log.info("Canvas Client Service: Keyboard Event Success $code");
-    } else {
-      log.info("Canvas Client Service: Keyboard Event Failed $code");
+  Future<void> sendKeyBoard(List<CanvasDevice> devices, int code) async {
+    for (var device in devices) {
+      final stub = _getStub(device);
+      final sendKeyboardRequest = KeyboardEventRequest(code: code);
+      final response = await stub.keyboardEvent(sendKeyboardRequest);
+      if (response.ok) {
+        log.info("Canvas Client Service: Keyboard Event Success $code");
+      } else {
+        log.info("Canvas Client Service: Keyboard Event Failed $code");
+      }
     }
   }
 
@@ -266,16 +292,51 @@ class CanvasClientService {
     }
   }
 
-  Future<void> tap(CanvasDevice device) async {
-    final stub = _getStub(device);
-    final tapRequest = TapGestureRequest();
-    await stub.tapGesture(tapRequest);
+  Future<void> tap(List<CanvasDevice> devices) async {
+    for (var device in devices) {
+      final stub = _getStub(device);
+      final tapRequest = TapGestureRequest();
+      await stub.tapGesture(tapRequest);
+    }
   }
 
-  Future<void> drag(CanvasDevice device, Offset offset) async {
+  Future<void> drag(
+      List<CanvasDevice> devices, Offset offset, Size touchpadSize) async {
+    final dragRequest = DragGestureRequest(
+        dx: offset.dx,
+        dy: offset.dy,
+        coefficientX: 1 / touchpadSize.width,
+        coefficientY: 1 / touchpadSize.height);
+    currentCursorOffset += offset;
+    for (var device in devices) {
+      final stub = _getStub(device);
+      await stub.dragGesture(dragRequest);
+    }
+  }
+
+  Future<Offset> getCursorOffset(CanvasDevice device) async {
     final stub = _getStub(device);
-    final dragRequest = DragGestureRequest(dx: offset.dx, dy: offset.dy);
-    await stub.dragGesture(dragRequest);
+    final response = await stub.getCursorOffset(Empty());
+    final size =
+        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
+    final dx = size.width * response.coefficientX * response.dx;
+    final dy = size.height * response.coefficientY * response.dy;
+    return Offset(dx, dy);
+  }
+
+  Future<void> setCursorOffset(CanvasDevice device) async {
+    final stub = _getStub(device);
+    final size =
+        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
+    final dx = currentCursorOffset.dx / size.width;
+    final dy = currentCursorOffset.dy / size.height;
+    final request = CursorOffset(
+      dx: dx,
+      dy: dy,
+      coefficientX: 1 / size.width,
+      coefficientY: 1 / size.height,
+    );
+    final response = await stub.setCursorOffset(request);
   }
 }
 

@@ -184,7 +184,15 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             device: device,
             deviceState:
                 DeviceState(device: device, status: DeviceStatus.loading)));
-        await _canvasClientService.castSingleArtwork(device, event.tokenId);
+        final connected = await _canvasClientService.connectToDevice(device);
+        if (!connected) {
+          throw Exception("Failed to connect to device");
+        }
+        final ok =
+            await _canvasClientService.castSingleArtwork(device, event.tokenId);
+        if (!ok) {
+          throw Exception("Failed to cast to device");
+        }
         emit(state.replaceDeviceState(
             device: device,
             deviceState:

@@ -415,7 +415,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                             arguments:
                                                 KeyboardControlPagePayload(
                                                     assetToken!,
-                                                    playingDevice[0]));
+                                                    playingDevice));
                                       }
                                     : null,
                               ),

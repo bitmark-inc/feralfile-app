@@ -4,9 +4,9 @@ import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:flutter/material.dart';
 
 class TouchPadPagePayload {
-  final CanvasDevice device;
+  final List<CanvasDevice> devices;
 
-  TouchPadPagePayload(this.device);
+  TouchPadPagePayload(this.devices);
 }
 
 class TouchPadPage extends StatefulWidget {
@@ -30,17 +30,20 @@ class _TouchPadPageState extends State<TouchPadPage> {
       body: Container(
         color: AppColor.disabledColor,
         padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            Expanded(
-              child: TouchPad(
-                device: widget.payload.device,
-                onExpand: () {
-                  Navigator.of(context).pop();
-                },
+        child: RotatedBox(
+          quarterTurns: -1,
+          child: Column(
+            children: [
+              Expanded(
+                child: TouchPad(
+                  devices: widget.payload.devices,
+                  onExpand: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

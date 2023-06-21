@@ -1,3 +1,4 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -8,17 +9,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class TouchPad extends StatefulWidget {
-  final CanvasDevice device;
+  final List<CanvasDevice> devices;
   final Function()? onExpand;
 
-  const TouchPad({super.key, required this.device, this.onExpand});
+  const TouchPad({super.key, required this.devices, this.onExpand});
 
   @override
   State<TouchPad> createState() => _TouchPadState();
 }
 
-class _TouchPadState extends State<TouchPad> {
+class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
   final _canvasClient = injector<CanvasClientService>();
+  final _touchPadKey = GlobalKey();
+  Size? _touchpadSize;
+
+  Size? _getSize() {
+    final size = MediaQuery.of(context).size;
+    setState(() {
+      _touchpadSize = size;
+    });
+    return size;
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    _getSize();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +45,17 @@ class _TouchPadState extends State<TouchPad> {
       child: Stack(
         children: [
           GestureDetector(
+            key: _touchPadKey,
             onTap: () {
               log.info("[Touchpad] onTap");
-              _canvasClient.tap(widget.device);
+              _canvasClient.tap(widget.devices);
+            },
+            onPanStart: (panDetails) {
+              _getSize();
             },
             onPanUpdate: (panDetails) {
-              _canvasClient.drag(widget.device, panDetails.delta);
+              Offset delta = panDetails.delta;
+              _canvasClient.drag(widget.devices, delta, _touchpadSize!);
             },
           ),
           Positioned(
