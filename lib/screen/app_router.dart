@@ -90,6 +90,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.da
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
@@ -243,6 +244,7 @@ class AppRouter {
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
+  static const tripDetailPage = 'trip_detail_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1405,6 +1407,13 @@ class AppRouter {
             );
           },
         );
+      case tripDetailPage:
+        final payload = settings.arguments as TripDetailPayload;
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return TripDetailPage(payload: payload);
+            });
 
       default:
         throw Exception('Invalid route: ${settings.name}');

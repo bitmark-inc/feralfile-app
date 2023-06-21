@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_sta
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -800,7 +801,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       }
                       return _completeTravelWidget(e);
                     }
-                    return _travelWidget(e);
+                    return _travelWidget(e, onTap: () {
+                      _gotoTripDetail(context, e);
+                    });
                   }).toList(),
                 ],
               ),
@@ -811,74 +814,108 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _travelWidget(TravelInfo travelInfo) {
+  _gotoTripDetail(BuildContext context, TravelInfo travelInfo) {
+    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
+    Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
+        arguments: TripDetailPayload(
+          stampIndex: travelInfo.index - 1,
+          travelsInfo: travelsInfo!,
+          assetToken: currentAsset!,
+        ));
+  }
+
+  Widget _travelWidget(TravelInfo travelInfo, {Function()? onTap}) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(formatter.format(travelInfo.index),
-                    style: theme.textTheme.moMASans400Black12
-                        .copyWith(color: AppColor.auQuickSilver)),
-                Text(
-                  travelInfo.sentLocation ?? "",
-                  style: theme.textTheme.moMASans400Black12,
-                ),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      "assets/images/arrow_3.svg",
-                      color: AppColor.primaryBlack,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        travelInfo.receivedLocation ?? "-",
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(formatter.format(travelInfo.index),
+                          style: theme.textTheme.moMASans400Black12
+                              .copyWith(color: AppColor.auQuickSilver)),
+                      Text(
+                        travelInfo.sentLocation ?? "",
                         style: theme.textTheme.moMASans400Black12,
                       ),
-                    ),
-                  ],
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            "assets/images/arrow_3.svg",
+                            color: AppColor.primaryBlack,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              travelInfo.receivedLocation ?? "-",
+                              style: theme.textTheme.moMASans400Black12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+                const SizedBox(width: 10),
+                Text(
+                  distanceFormatter.format(distance: travelInfo.getDistance()),
+                  style: theme.textTheme.moMASans400Black12
+                      .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
+                ),
+              ]),
+              addDivider(height: 30, color: AppColor.auLightGrey),
+            ],
           ),
-          const SizedBox(width: 10),
-          Text(
-            distanceFormatter.format(distance: travelInfo.getDistance()),
-            style: theme.textTheme.moMASans400Black12
-                .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
-          ),
-        ]),
-        addDivider(height: 30, color: AppColor.auLightGrey),
-      ],
+          Positioned.fill(
+              child: Container(
+            color: Colors.transparent,
+          ))
+        ],
+      ),
     );
   }
 
   Widget _completeTravelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(formatter.format(travelInfo.index),
-                style: theme.textTheme.moMASans400Black12
-                    .copyWith(color: AppColor.auQuickSilver)),
-            Text(
-              travelInfo.sentLocation ?? "",
-              style: theme.textTheme.moMASans400Black14,
-            ),
-            addDivider(height: 30, color: AppColor.auGreyBackground),
-          ],
-        ),
-      ],
+    return GestureDetector(
+      onTap: () {
+        _gotoTripDetail(context, travelInfo);
+      },
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(formatter.format(travelInfo.index),
+                      style: theme.textTheme.moMASans400Black12
+                          .copyWith(color: AppColor.auQuickSilver)),
+                  Text(
+                    travelInfo.sentLocation ?? "",
+                    style: theme.textTheme.moMASans400Black12,
+                  ),
+                  addDivider(height: 30, color: AppColor.auGreyBackground),
+                ],
+              ),
+            ],
+          ),
+          Positioned.fill(
+              child: Container(
+            color: Colors.transparent,
+          ))
+        ],
+      ),
     );
   }
 
@@ -934,7 +971,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _notSentItem(List<TravelInfo> listTravelInfo) {
     final notSentTravelInfo = listTravelInfo.notSentTravelInfo;
-    return _travelWidget(notSentTravelInfo);
+    return _travelWidget(notSentTravelInfo, onTap: () {});
   }
 
   Widget _leaderboard(PostcardDetailState state) {
