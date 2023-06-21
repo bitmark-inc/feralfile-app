@@ -67,7 +67,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
               children: [
                 AbsorbPointer(
                   child: AspectRatio(
-                    aspectRatio: postcardAspectRatio,
+                    aspectRatio: STAMP_ASPECT_RATIO,
                     child: PostcardViewWidget(
                       assetToken: widget.payload.assetToken,
                       zoomIndex: travelInfo.index,
