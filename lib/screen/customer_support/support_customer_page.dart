@@ -6,9 +6,11 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -99,17 +101,19 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                   ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _reportItemsWidget(context),
+              child: _reportItemsWidget(),
             ),
             const SizedBox(height: 30),
-            _resourcesWidget(context),
+            addOnlyDivider(),
+            _resourcesWidget(),
+            _videoTutorials(),
           ],
         ),
       ),
     );
   }
 
-  Widget _reportItemsWidget(BuildContext context) {
+  Widget _reportItemsWidget() {
     return Column(
       children: [
         ...ReportIssueType.getSuggestList.map((item) {
@@ -141,7 +145,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
     );
   }
 
-  Widget _resourcesWidget(BuildContext context) {
+  Widget _resourcesWidget() {
     final theme = Theme.of(context);
 
     return ValueListenableBuilder<List<int>?>(
@@ -156,7 +160,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              addOnlyDivider(),
               TappableForwardRow(
                 leftWidget: Row(
                   children: [
@@ -180,6 +183,32 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
               addOnlyDivider(),
             ],
           );
+        });
+  }
+
+  Widget _videoTutorials() {
+    final theme = Theme.of(context);
+    return FutureBuilder<List<VideoData>>(
+        future: injector<PubdocAPI>().getTutorialVideosFromGithub(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TappableForwardRow(
+                  leftWidget: Text('tutorial_videos'.tr(),
+                      style: theme.textTheme.ppMori400Black14),
+                  onTap: () => Navigator.of(context).pushNamed(
+                      TutorialVideo.tag,
+                      arguments: TutorialVideosPayload(videos: snapshot.data!)),
+                  padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
+                ),
+                addOnlyDivider(),
+              ],
+            );
+          } else {
+            return const SizedBox();
+          }
         });
   }
 }
