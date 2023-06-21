@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -97,13 +98,8 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 24,
-                    child: SvgPicture.asset(
-                        isSelected
-                            ? "assets/images/check_box_true.svg"
-                            : "assets/images/check_box_false.svg",
-                        color: AppColor.primaryBlack),
+                  AuCheckBox(
+                    isChecked: isSelected,
                   ),
                   const SizedBox(width: 15),
                   LogoCrypto(

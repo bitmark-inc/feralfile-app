@@ -14,13 +14,13 @@ import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SelectAddressesPage extends StatefulWidget {
   static const String tag = 'select_addresses_page';
@@ -242,16 +242,11 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 24,
-                child: SvgPicture.asset(
-                    isSelected
-                        ? "assets/images/check_box_true.svg"
-                        : "assets/images/check_box_false.svg",
-                    color: isImported
-                        ? AppColor.disabledColor
-                        : AppColor.primaryBlack),
-              ),
+              AuCheckBox(
+                  isChecked: isSelected,
+                  color: isImported
+                      ? AppColor.disabledColor
+                      : AppColor.primaryBlack),
               const SizedBox(width: 15),
               LogoCrypto(
                 cryptoType: addressInfo.getCryptoType(),

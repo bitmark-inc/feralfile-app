@@ -466,7 +466,7 @@ class AddressItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        color: AppColor.auLightGrey.withOpacity(0.5),
+        color: AppColor.white,
         padding: ResponsiveLayout.paddingAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +500,7 @@ class AddressItem extends StatelessWidget {
                 ),
                 Visibility(
                   visible: !isAutoSelect,
-                  child: RadioSelectAddress(
+                  child: AuCheckBox(
                     isChecked: address == ethSelectedAddress ||
                         address == tezSelectedAddress,
                   ),
@@ -562,7 +562,7 @@ class _PersonalConnectItemState extends State<PersonalConnectItem> {
           ethSelectedAddress: widget.ethSelectedAddress,
           tezSelectedAddress: widget.tezSelectedAddress,
         ),
-        const SizedBox(height: 15.0),
+        addOnlyDivider(),
       ],
     );
   }
