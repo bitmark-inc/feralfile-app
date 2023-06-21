@@ -77,6 +77,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 Positioned.fill(child: Container()),
               ],
             ),
+            addOnlyDivider(color: AppColor.auGreyBackground),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 22),
               child: Row(

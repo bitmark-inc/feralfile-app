@@ -904,7 +904,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           .copyWith(color: AppColor.auQuickSilver)),
                   Text(
                     travelInfo.sentLocation ?? "",
-                    style: theme.textTheme.moMASans400Black14,
+                    style: theme.textTheme.moMASans400Black12,
                   ),
                   addDivider(height: 30, color: AppColor.auGreyBackground),
                 ],

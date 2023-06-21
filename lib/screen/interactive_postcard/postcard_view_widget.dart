@@ -43,10 +43,12 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     super.initState();
   }
 
-  void _zoomIntoStamp(int index) {
-    log.info("[Postcard] zoom into stamp $index");
+  void _zoomIntoStamp({required int index, Color color = Colors.black}) {
+    log.info(
+        "[Postcard] zoom into stamp $index, ${color.value.toRadixString(16)}");
+    final hexColor = color.value.toRadixString(16).substring(2);
     _controller?.evaluateJavascript(
-      source: "zoomInStamp('$index')",
+      source: "zoomInStamp('$index', \"#$hexColor\")",
     );
   }
 
@@ -88,7 +90,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
               await _convertFileToBase64();
               if (widget.zoomIndex != null) {
-                _zoomIntoStamp(widget.zoomIndex!);
+                _zoomIntoStamp(index: widget.zoomIndex!);
               }
               setState(() {
                 isLoading = false;
