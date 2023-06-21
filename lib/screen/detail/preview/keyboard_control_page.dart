@@ -19,9 +19,9 @@ import 'package:nft_collection/models/asset_token.dart';
 
 class KeyboardControlPagePayload {
   final AssetToken assetToken;
-  final CanvasDevice device;
+  final List<CanvasDevice> devices;
 
-  KeyboardControlPagePayload(this.assetToken, this.device);
+  KeyboardControlPagePayload(this.assetToken, this.devices);
 }
 
 class KeyboardControlPage extends StatefulWidget {
@@ -163,9 +163,9 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                           final text = _textController.text;
                           final code = text[text.length - 1];
                           _textController.text = "";
-                          final device = widget.payload.device;
+                          final devices = widget.payload.devices;
                           await injector<CanvasClientService>()
-                              .sendKeyBoard(device, code.codeUnitAt(0));
+                              .sendKeyBoard(devices, code.codeUnitAt(0));
                         },
                       ),
                     ],
@@ -181,11 +181,11 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                 children: [
                   Expanded(
                       child: TouchPad(
-                    device: widget.payload.device,
+                    devices: widget.payload.devices,
                     onExpand: () {
                       Navigator.of(context).pushNamed(AppRouter.touchPadPage,
                           arguments:
-                              TouchPadPagePayload(widget.payload.device));
+                              TouchPadPagePayload(widget.payload.devices));
                     },
                   )),
                 ],
