@@ -107,32 +107,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onTap: () async {
-                      dynamic device = await Navigator.of(context).pushNamed(
-                          ScanQRPage.tag,
-                          arguments: ScannerItem.CANVAS_DEVICE);
-                      if (!mounted) return;
-                      if (device != null && device is CanvasDevice) {
-                        _bloc.add(
-                            CanvasDeviceAddEvent(DeviceState(device: device)));
-                      }
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          "add_new_frame".tr(),
-                          style: theme.textTheme.ppMori400Green14,
-                        ),
-                        const Spacer(),
-                        SvgPicture.asset(
-                          "assets/images/joinFile.svg",
-                          color:AppColor.auSuperTeal
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  _newCanvas(state),
                   OutlineButton(
                     text: "close".tr(),
                     onTap: () {
@@ -146,6 +121,55 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         );
       },
     );
+  }
+
+  Widget _newCanvas(CanvasDeviceState state) {
+    final theme = Theme.of(context);
+    if (!state.isLoaded) {
+      return const SizedBox();
+    } else if (state.devices.isEmpty) {
+      return Column(
+        children: [
+          PrimaryButton(
+            text: "add_new_frame".tr(),
+            onTap: () => _addNewCanvas(),
+          ),
+          const SizedBox(height: 10),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          GestureDetector(
+            onTap: () => _addNewCanvas(),
+            child: Container(
+              decoration: const BoxDecoration(color: Colors.transparent),
+              child: Row(
+                children: [
+                  Text(
+                    "add_new_frame".tr(),
+                    style: theme.textTheme.ppMori400Green14,
+                  ),
+                  const Spacer(),
+                  SvgPicture.asset("assets/images/joinFile.svg",
+                      color: AppColor.auSuperTeal),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
+      );
+    }
+  }
+
+  Future<void> _addNewCanvas() async {
+    dynamic device = await Navigator.of(context)
+        .pushNamed(ScanQRPage.tag, arguments: ScannerItem.CANVAS_DEVICE);
+    if (!mounted) return;
+    if (device != null && device is CanvasDevice) {
+      _bloc.add(CanvasDeviceAddEvent(DeviceState(device: device)));
+    }
   }
 
   // row view show DeviceState display name and status

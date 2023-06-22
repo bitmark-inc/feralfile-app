@@ -54,22 +54,26 @@ class CanvasDeviceState {
   final List<DeviceState> devices;
   final String sceneId;
   final bool isConnectError;
+  final bool isLoaded;
 
   CanvasDeviceState({
     required this.devices,
     this.sceneId = "",
     this.isConnectError = false,
+    required this.isLoaded,
   });
 
   CanvasDeviceState copyWith({
     List<DeviceState>? devices,
     String? sceneId,
     bool? isConnectError,
+    bool? isLoaded,
   }) {
     return CanvasDeviceState(
       devices: devices ?? this.devices,
       sceneId: sceneId ?? this.sceneId,
       isConnectError: isConnectError ?? false,
+      isLoaded: isLoaded ?? this.isLoaded,
     );
   }
 
@@ -137,9 +141,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
   // constructor
   CanvasDeviceBloc(this._canvasClientService)
-      : super(CanvasDeviceState(devices: [])) {
+      : super(CanvasDeviceState(devices: [], isLoaded: false)) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
-      emit(CanvasDeviceState(devices: state.devices, sceneId: event.sceneId));
+      emit(CanvasDeviceState(
+          devices: state.devices,
+          sceneId: event.sceneId,
+          isLoaded: state.devices.isNotEmpty));
       final devices = await _canvasClientService.getConnectingDevices();
       emit(CanvasDeviceState(
           devices: devices
@@ -148,7 +155,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                   status: e.isConnecting && e.playingSceneId != null
                       ? DeviceStatus.playing
                       : DeviceStatus.connected))
-              .toList()));
+              .toList(),
+          isLoaded: true));
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {

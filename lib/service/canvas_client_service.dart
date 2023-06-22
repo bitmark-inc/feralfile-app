@@ -336,7 +336,7 @@ class CanvasClientService {
       coefficientX: 1 / size.width,
       coefficientY: 1 / size.height,
     );
-    final response = await stub.setCursorOffset(request);
+    await stub.setCursorOffset(request);
   }
 }
 
