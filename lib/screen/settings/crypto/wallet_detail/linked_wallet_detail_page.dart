@@ -195,7 +195,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 3000),
                       height: hideConnection ? 60 : null,
-                      child: _balanceSection(state.balance, state.balanceInUSD),
+                      child: _balanceSection(
+                          context, state.balance, state.balanceInUSD),
                     ),
                     Visibility(
                         visible: hideConnection,
@@ -223,7 +224,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                               padding:
                                                   const EdgeInsets.fromLTRB(
                                                       0, 26, 0, 12),
-                                              child: _erc20Tag(),
+                                              child: _erc20Tag(context),
                                             )
                                           : SizedBox(
                                               height: hideConnection ? 48 : 16),
@@ -237,7 +238,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                       const SizedBox(height: 10),
                                       Padding(
                                         padding: padding,
-                                        child: _addressSection(),
+                                        child: _addressSection(context),
                                       ),
                                       const SizedBox(height: 24),
                                       if (widget.payload.type ==
@@ -251,14 +252,15 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                               : "${USDCAmountFormatter(usdcBalance).format()} USDC";
                                           return Padding(
                                             padding: padding,
-                                            child: _usdcBalance(balance),
+                                            child:
+                                                _usdcBalance(context, balance),
                                           );
                                         })
                                       ],
                                       addDivider(),
                                       Padding(
                                         padding: padding,
-                                        child: _txSection(),
+                                        child: _txSection(context),
                                       ),
                                       addDivider(),
                                     ],
@@ -309,7 +311,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     });
   }
 
-  Widget _usdcBalance(String balance) {
+  Widget _usdcBalance(BuildContext context, String balance) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400White14
         .copyWith(color: AppColor.auQuickSilver);
@@ -330,7 +332,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                 style: theme.textTheme.ppMori700Black14,
               ),
               const SizedBox(width: 10),
-              _erc20Tag()
+              _erc20Tag(context)
             ],
           ),
         ),
@@ -349,7 +351,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         });
   }
 
-  Widget _erc20Tag() {
+  Widget _erc20Tag(BuildContext context) {
     final theme = Theme.of(context);
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -368,7 +370,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     );
   }
 
-  Widget _balanceSection(String balance, String balanceInUSD) {
+  Widget _balanceSection(
+      BuildContext context, String balance, String balanceInUSD) {
     final theme = Theme.of(context);
     if (widget.payload.type == CryptoType.ETH ||
         widget.payload.type == CryptoType.XTZ) {
@@ -413,7 +416,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     return Container();
   }
 
-  Widget _addressSection() {
+  Widget _addressSection(BuildContext context) {
     final theme = Theme.of(context);
     bool isCopied = false;
 
@@ -484,7 +487,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     );
   }
 
-  Widget _txSection() {
+  Widget _txSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       TappableForwardRow(

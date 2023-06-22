@@ -223,7 +223,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 3000),
                       height: hideConnection ? 60 : null,
-                      child: _balanceSection(state.balance, state.balanceInUSD),
+                      child: _balanceSection(
+                          context, state.balance, state.balanceInUSD),
                     ),
                     Visibility(
                         visible: hideConnection,
@@ -251,18 +252,18 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                               padding:
                                                   const EdgeInsets.fromLTRB(
                                                       0, 26, 0, 12),
-                                              child: _erc20Tag(),
+                                              child: _erc20Tag(context),
                                             )
                                           : SizedBox(
                                               height: hideConnection ? 84 : 52),
                                       Padding(
                                         padding: padding,
-                                        child: _addressSection(),
+                                        child: _addressSection(context),
                                       ),
                                       const SizedBox(height: 24),
                                       Padding(
                                         padding: padding,
-                                        child: _sendReceiveSection(),
+                                        child: _sendReceiveSection(context),
                                       ),
                                       const SizedBox(height: 24),
                                       if (widget.payload.type ==
@@ -286,17 +287,17 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                         addDivider(),
                                         Padding(
                                           padding: padding,
-                                          child: _connectionsSection(),
+                                          child: _connectionsSection(context),
                                         ),
                                         addDivider(),
                                         Padding(
                                           padding: padding,
-                                          child: _recoverySection(),
+                                          child: _recoverySection(context),
                                         ),
                                         addDivider(),
                                         Padding(
                                             padding: padding,
-                                            child: _txSection()),
+                                            child: _txSection(context)),
                                         addDivider(),
                                       ],
                                     ],
@@ -368,7 +369,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 style: theme.textTheme.ppMori700Black14,
               ),
               const SizedBox(width: 10),
-              _erc20Tag()
+              _erc20Tag(context)
             ],
           ),
         ),
@@ -387,7 +388,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         });
   }
 
-  Widget _erc20Tag() {
+  Widget _erc20Tag(BuildContext context) {
     final theme = Theme.of(context);
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -406,7 +407,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     );
   }
 
-  Widget _balanceSection(String balance, String balanceInUSD) {
+  Widget _balanceSection(
+      BuildContext context, String balance, String balanceInUSD) {
     final theme = Theme.of(context);
     if (widget.payload.type == CryptoType.ETH ||
         widget.payload.type == CryptoType.XTZ) {
@@ -451,7 +453,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     return Container();
   }
 
-  Widget _addressSection() {
+  Widget _addressSection(BuildContext context) {
     final theme = Theme.of(context);
     bool isCopied = false;
 
@@ -522,7 +524,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     );
   }
 
-  Widget _connectionsSection() {
+  Widget _connectionsSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       BlocBuilder<ConnectionsBloc, ConnectionsState>(builder: (context, state) {
@@ -563,7 +565,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     ]);
   }
 
-  Widget _txSection() {
+  Widget _txSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       TappableForwardRow(
@@ -582,7 +584,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     ]);
   }
 
-  Widget _recoverySection() {
+  Widget _recoverySection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       TappableForwardRow(
@@ -615,7 +617,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     }
   }
 
-  Widget _sendReceiveSection() {
+  Widget _sendReceiveSection(BuildContext context) {
     final theme = Theme.of(context);
     if (widget.payload.type == CryptoType.ETH ||
         widget.payload.type == CryptoType.XTZ ||

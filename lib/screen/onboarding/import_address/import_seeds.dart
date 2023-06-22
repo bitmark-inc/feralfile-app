@@ -61,7 +61,6 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                         title: "",
                         placeholder: "enter_recovery_phrase".tr(),
                         //"Enter recovery phrase with each word separated by a space",
-                        keyboardType: TextInputType.multiline,
                         maxLines: null,
                         hintMaxLines: 3,
                         controller: _phraseTextController,

@@ -136,9 +136,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     height: 16,
                   ),
             const SizedBox(height: 32),
-            _addressesSection(uuid),
+            _addressesSection(context, uuid),
             const SizedBox(height: 16),
-            _backupSection(),
+            _backupSection(context),
             const SizedBox(height: 40),
           ],
         ),
@@ -247,7 +247,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     ]);
   }
 
-  Widget _addressesSection(String uuid) {
+  Widget _addressesSection(BuildContext context, String uuid) {
     final theme = Theme.of(context);
 
     return Column(
@@ -269,7 +269,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           return Column(
               children: ethAddresses
                   .map((addressIndex) => [
-                        _addressRow(
+                        _addressRow(context,
                             walletAddress: addressIndex,
                             balance: state.ethBalances[addressIndex.address] ==
                                     null
@@ -289,6 +289,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             children: tezosAddress
                 .map((addressIndex) => [
                       _addressRow(
+                        context,
                         walletAddress: addressIndex,
                         balance: state.balances[addressIndex.address] == null
                             ? "-- XTZ"
@@ -353,7 +354,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  Widget _addressRow(
+  Widget _addressRow(BuildContext context,
       {required WalletAddress walletAddress, String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.ppMori400Black14;
@@ -362,7 +363,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
         dragDismissible: false,
-        children: slidableActions(walletAddress),
+        children: slidableActions(context, walletAddress),
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -419,7 +420,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  Widget _backupSection() {
+  Widget _backupSection(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -486,7 +487,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  List<CustomSlidableAction> slidableActions(WalletAddress walletAddress) {
+  List<CustomSlidableAction> slidableActions(
+      BuildContext context, WalletAddress walletAddress) {
     final theme = Theme.of(context);
     final isHidden = walletAddress.isHidden;
     return [

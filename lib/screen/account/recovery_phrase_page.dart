@@ -40,7 +40,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((context) {
       _checkBackUpAvailable();
     });
   }

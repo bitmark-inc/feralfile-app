@@ -63,7 +63,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     _linkAccountOption(context),
                     addDivider(),
                     _createAccountOption(context),
-                    _linkDebugWidget(),
+                    _linkDebugWidget(context),
                   ],
                 ),
               ),
@@ -74,7 +74,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     );
   }
 
-  Widget _linkDebugWidget() {
+  Widget _linkDebugWidget(BuildContext context) {
     final theme = Theme.of(context);
     return FutureBuilder<bool>(
         future: isAppCenterBuild(),

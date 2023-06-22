@@ -43,10 +43,17 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   bool _addingAddresses = false;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
   void initState() {
     super.initState();
-    _callBloc();
-    fetchImportedAddresses();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _callBloc();
+      fetchImportedAddresses();
+    });
   }
 
   Future<void> fetchImportedAddresses() async {
@@ -70,15 +77,13 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
       body: BlocConsumer<ScanWalletBloc, ScanWalletState>(
           listener: (context, scanState) {
         if (scanState.addresses.isNotEmpty && !scanState.isScanning) {
-          setState(() {
-            _addresses.addAll(scanState.addresses);
-            _addresses.sort((a, b) {
-              if (a.getCryptoType() == b.getCryptoType()) {
-                return a.getCryptoType().index - b.getCryptoType().index;
-              } else {
-                return a.getCryptoType() == CryptoType.ETH ? -1 : 1;
-              }
-            });
+          _addresses.addAll(scanState.addresses);
+          _addresses.sort((a, b) {
+            if (a.getCryptoType() == b.getCryptoType()) {
+              return a.getCryptoType().index - b.getCryptoType().index;
+            } else {
+              return a.getCryptoType() == CryptoType.ETH ? -1 : 1;
+            }
           });
         }
       }, builder: (context, scanState) {

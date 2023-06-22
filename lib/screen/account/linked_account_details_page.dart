@@ -200,13 +200,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
             addTitleSpace(),
             Padding(
               padding: padding,
-              child: _addressesSection(),
+              child: _addressesSection(context),
             ),
             addOnlyDivider(),
             const SizedBox(height: 16),
             Padding(
               padding: padding,
-              child: _backupSection(),
+              child: _backupSection(context),
             ),
             const SizedBox(height: 40),
           ],
@@ -215,7 +215,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
     );
   }
 
-  Widget _addressesSection() {
+  Widget _addressesSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +233,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
             ...contextAddresses.map(
               (e) => Column(
                 children: [
-                  _addressRow(e.cryptoType,
+                  _addressRow(context, e.cryptoType,
                       address: e.address,
                       balanceString: e.cryptoType != CryptoType.UNKNOWN
                           ? _balances[e.address] ?? '-- ${e.cryptoType.code}'
@@ -250,7 +250,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
     );
   }
 
-  Widget _addressRow(CryptoType type,
+  Widget _addressRow(BuildContext context, CryptoType type,
       {required String address, required balanceString}) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400Grey14;
@@ -260,7 +260,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
         dragDismissible: false,
-        children: slidableActions(address),
+        children: slidableActions(context, address),
       ),
       child: TappableForwardRowWithContent(
         leftWidget: Text(type.source, style: theme.textTheme.ppMori700Black14),
@@ -285,7 +285,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
     );
   }
 
-  Widget _backupSection() {
+  Widget _backupSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,7 +305,8 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
     );
   }
 
-  List<CustomSlidableAction> slidableActions(String address) {
+  List<CustomSlidableAction> slidableActions(
+      BuildContext context, String address) {
     final theme = Theme.of(context);
     final isHidden =
         injector<AccountService>().isLinkedAccountHiddenInGallery(address);
