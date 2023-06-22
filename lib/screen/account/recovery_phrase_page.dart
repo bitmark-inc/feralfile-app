@@ -40,7 +40,9 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   @override
   void initState() {
     super.initState();
-    _checkBackUpAvailable();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkBackUpAvailable();
+    });
   }
 
   Future<void> _checkBackUpAvailable() async {
@@ -79,7 +81,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    _getBackUpState(),
+                    _getBackUpState(context),
                     Stack(
                       children: [
                         Table(
@@ -123,12 +125,12 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                           ),
                       ],
                     ),
-                    _recommend(),
+                    _recommend(context),
                   ],
                 ),
               ),
             ),
-            _settingButton()
+            _settingButton(context)
           ],
         ),
       ),
@@ -158,7 +160,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     );
   }
 
-  Widget _getBackUpState() {
+  Widget _getBackUpState(BuildContext context) {
     final theme = Theme.of(context);
     final customLinkStyle = theme.textTheme.ppMori400Black14
         .copyWith(decoration: TextDecoration.underline);
@@ -269,7 +271,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     }
   }
 
-  Widget _recommend() {
+  Widget _recommend(BuildContext context) {
     final theme = Theme.of(context);
     if (_isBackUpAvailable != false) {
       return const SizedBox();
@@ -287,7 +289,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     );
   }
 
-  Widget _settingButton() {
+  Widget _settingButton(BuildContext context) {
     if (_isBackUpAvailable != false) {
       return const SizedBox();
     }
