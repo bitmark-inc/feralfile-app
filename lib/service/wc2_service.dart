@@ -222,6 +222,14 @@ class Wc2Service extends Wc2Handler {
                 request.params["transactions"][0] as Map<String, dynamic>;
             if (transaction["data"] == null) transaction["data"] = "";
             if (transaction["gas"] == null) transaction["gas"] = "";
+            if (transaction["to"] == null) {
+              log.info("[Wc2Service] Invalid transaction: no recipient");
+              await respondOnReject(
+                request.topic,
+                reason: "Invalid transaction: no recipient",
+              );
+              return;
+            }
             final metaData = request.proposer != null
                 ? request.proposer!.toWCPeerMeta()
                 : WCPeerMeta(icons: [], name: "", url: "", description: "");
