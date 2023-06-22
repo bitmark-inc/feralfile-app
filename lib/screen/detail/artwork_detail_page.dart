@@ -157,9 +157,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     return UIHelper.showDialog(context, "share_the_new".tr(), content);
   }
 
-  Future<void> _shareMemento(AssetToken asset) async {
+  Future<void> _shareMemento(BuildContext context, AssetToken asset) async {
     final deeplink = await _airdropService.shareAirdrop(asset);
     if (deeplink == null) {
+      if (!mounted) {
+        return;
+      }
+      context
+          .read<ArtworkDetailBloc>()
+          .add(ArtworkDetailGetAirdropDeeplink(assetToken: asset));
+      UIHelper.showAirdropCannotShare(context);
       return;
     }
     try {
@@ -176,7 +183,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     }
   }
 
-  Widget _sendMemento6(AssetToken asset) {
+  Widget _sendMemento6(BuildContext context, AssetToken asset) {
     final deeplink = context.watch<ArtworkDetailBloc>().state.airdropDeeplink;
     final canSend = deeplink != null && deeplink.isNotEmpty;
     if (!canSend) {
@@ -185,7 +192,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     return PostcardButton(
       text: "send_memento".tr(),
       onTap: () {
-        _shareMemento(asset);
+        _shareMemento(context, asset);
       },
     );
   }
@@ -318,7 +325,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     token: asset,
                   ),
                 ),
-                _sendMemento6(asset),
+                _sendMemento6(context, asset),
                 Visibility(
                   visible: CHECK_WEB3_CONTRACT_ADDRESS
                       .contains(asset.contractAddress),

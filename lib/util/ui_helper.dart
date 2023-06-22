@@ -1434,6 +1434,11 @@ class UIHelper {
     return showErrorDialog(
         context, "just_once".tr(), "just_once_desc".tr(), "close".tr());
   }
+
+  static showAirdropCannotShare(BuildContext context) async {
+    return showErrorDialog(context, "already_claimed".tr(),
+        "cannot_share_aridrop_desc".tr(), "close".tr());
+  }
 }
 
 class ConnectedTV extends StatefulWidget {
