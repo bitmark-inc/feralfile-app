@@ -41,7 +41,10 @@ class Wc2Service extends Wc2Handler {
     "au_permissions",
     "au_sendTransaction",
     "eth_sendTransaction",
-    "personal_sign"
+    "personal_sign",
+    "eth_sign",
+    "eth_signTypedData",
+    "eth_signTransaction"
   };
 
   static final Set<String> autonomyMethods = {
@@ -198,7 +201,8 @@ class Wc2Service extends Wc2Handler {
       case "au_sign":
         switch (request.chainId.caip2Namespace) {
           case Wc2Chain.ethereum:
-            await _handleEthereumSignRequest(request);
+            await _handleEthereumSignRequest(
+                request, WCSignType.PERSONAL_MESSAGE);
             break;
           case Wc2Chain.tezos:
             await _handleTezosSignRequest(request);
@@ -248,7 +252,15 @@ class Wc2Service extends Wc2Handler {
         _handleEthereumSendTransactionRequest(request);
         break;
       case "personal_sign":
-        await _handleEthereumSignRequest(request);
+        await _handleEthereumSignRequest(request, WCSignType.PERSONAL_MESSAGE);
+        break;
+      case "eth_signTypedData":
+        await _handleEthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
+        break;
+      case "eth_sign":
+        await _handleEthereumSignRequest(request, WCSignType.MESSAGE);
+        break;
+      case "eth_signTransaction":
         break;
       default:
         log.info("[Wc2Service] Unsupported method: ${request.method}");
@@ -262,14 +274,15 @@ class Wc2Service extends Wc2Handler {
   //#endregion
 
   //#region Handle sign request
-  Future _handleEthereumSignRequest(Wc2Request request) async {
+  Future _handleEthereumSignRequest(
+      Wc2Request request, WCSignType signType) async {
     await _navigationService.navigateTo(WCSignMessagePage.tag,
         arguments: WCSignMessagePageArgs(
           request.id,
           request.topic,
           request.proposer!.toWCPeerMeta(),
           request.params["message"],
-          WCSignType.PERSONAL_MESSAGE,
+          signType,
           "",
           0,
           // uuid, index, used for Wallet connect 1 only
