@@ -250,6 +250,7 @@ class AppRouter {
   static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
   static const tripDetailPage = 'trip_detail_page';
+  static const tripDetailPage = 'trip_detail_page';
   static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = "keyboard_control_page";
   static const touchPadPage = "touch_pad_page";
