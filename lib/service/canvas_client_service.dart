@@ -247,7 +247,6 @@ class CanvasClientService {
         },
       );
       lst?.playingSceneId = tokenId;
-      await setCursorOffset(device);
     } else {
       log.info('CanvasClientService: Failed to cast single artwork');
     }
