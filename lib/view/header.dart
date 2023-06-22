@@ -5,7 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -85,22 +88,31 @@ class AutonomyLogo extends StatelessWidget {
 
   Widget proLabel(ThemeData theme, {bool isWhite = false}) {
     final color = isWhite ? AppColor.white : AppColor.primaryBlack;
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: color),
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "pro".tr().toUpperCase(),
-              style: theme.textTheme.ppMori700White12.copyWith(color: color),
-            ),
-          ],
+    return GestureDetector(
+      onTap: () {
+        final context =
+            injector<NavigationService>().navigatorKey.currentContext;
+        if (context != null) {
+          Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: color),
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "pro".tr().toUpperCase(),
+                style: theme.textTheme.ppMori700White12.copyWith(color: color),
+              ),
+            ],
+          ),
         ),
       ),
     );
