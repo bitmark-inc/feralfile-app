@@ -13,15 +13,23 @@ import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
+import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/token.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
+import 'dao/canvas_device_dao.dart';
+
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
-@Database(
-    version: 15, entities: [Identity, DraftCustomerSupport, AnnouncementLocal])
+@Database(version: 16, entities: [
+  Identity,
+  DraftCustomerSupport,
+  AnnouncementLocal,
+  CanvasDevice,
+  Scene
+])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
 
@@ -29,10 +37,16 @@ abstract class AppDatabase extends FloorDatabase {
 
   AnnouncementLocalDao get announcementDao;
 
+  CanvasDeviceDao get canvasDeviceDao;
+
+  SceneDao get sceneDao;
+
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
     await announcementDao.removeAll();
+    await canvasDeviceDao.removeAll();
+    await sceneDao.removeAll();
   }
 }
 
@@ -114,4 +128,11 @@ final migrateV13ToV14 = Migration(13, 14, (database) async {
 final migrateV14ToV15 = Migration(14, 15, (database) async {
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL,  PRIMARY KEY (`announcementContextId`))');
+});
+
+final migrateV15ToV16 = Migration(15, 16, (database) async {
+  await database.execute(
+      'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `isConnecting` INTEGER NOT NULL, `lastScenePlayed` TEXT, `playingSceneId` TEXT,  PRIMARY KEY (`id`))');
+  await database.execute(
+      'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
 });

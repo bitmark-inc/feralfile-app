@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -111,6 +112,7 @@ Future<void> setup() async {
     migrateV12ToV13,
     migrateV13ToV14,
     migrateV14ToV15,
+    migrateV15ToV16,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -316,6 +318,9 @@ Future<void> setup() async {
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector()));
+
+  injector.registerLazySingleton<CanvasClientService>(
+      () => CanvasClientService(injector()));
 
   injector.registerLazySingleton<PostcardService>(
       () => PostcardServiceImpl(injector(), injector(), injector()));
