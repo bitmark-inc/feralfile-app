@@ -128,6 +128,13 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
+  Future<bool> isViewOnly() async {
+    final cloudDB = injector<CloudDatabase>();
+    final walletAddress = await cloudDB.addressDao.findByAddress(owner);
+    final connection = await cloudDB.connectionDao.findById(owner);
+    return walletAddress == null && connection != null;
+  }
+
   String? getBlockchainUrl() {
     final network = Environment.appTestnetConfig ? "TESTNET" : "MAINNET";
     switch ("${network}_$blockchain") {
