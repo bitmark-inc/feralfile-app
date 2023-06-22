@@ -40,4 +40,6 @@ class AuIcon {
   static const IconData settings = IconData(0xe916, fontFamily: _fontFamily);
   static const IconData subscription =
       IconData(0xe917, fontFamily: _fontFamily);
+  static const IconData rotateRounded =
+      IconData(0xf688, fontFamily: 'MaterialIcons');
 }

@@ -964,7 +964,7 @@ Widget postcardDetailsMetadataSection(
                 ],
               )
             : const SizedBox(),
-        const Divider(height: 32.0),
+        const SizedBox(height: 16.0),
       ],
     ),
   );
