@@ -36,7 +36,6 @@ class KeyboardControlPage extends StatefulWidget {
 class _KeyboardControlPageState extends State<KeyboardControlPage>
     with AfterLayoutMixin, WidgetsBindingObserver, RouteAware {
   final _focusNode = FocusNode();
-  late Timer? _timer;
   final _controller = KeyboardVisibilityController();
   late StreamSubscription? _keyboardSubscription;
   final _textController = TextEditingController();
@@ -51,7 +50,6 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
 
   @override
   void dispose() {
-    _timer?.cancel();
     _textController.dispose();
     _keyboardSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -84,17 +82,6 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
         Navigator.of(context).pop();
       }
     });
-    bool scrolledToTop = false;
-    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-      if (_scrollController.offset != 0) {
-        if (scrolledToTop) {
-          _scrollController.jumpTo(0);
-          timer.cancel();
-        } else {
-          scrolledToTop = true;
-        }
-      }
-    });
   }
 
   @override
@@ -118,82 +105,89 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
       appBar: AppBar(
         toolbarHeight: 0,
       ),
-      body: Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                controller: _scrollController,
-                child: Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      Visibility(
-                        visible: editionSubTitle.isNotEmpty,
-                        child: Text(
-                          editionSubTitle,
-                          style: theme.textTheme.ppMori400Grey14,
+      body: KeyboardVisibilityBuilder(builder: (context, isKeyboardVisible) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (isKeyboardVisible) {
+            _scrollController.jumpTo(0);
+          }
+        });
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  controller: _scrollController,
+                  child: Padding(
+                    padding: ResponsiveLayout.getPadding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        addTitleSpace(),
+                        const SizedBox(
+                          height: 30,
                         ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      HtmlWidget(
-                        customStylesBuilder: auHtmlStyle,
-                        assetToken.description ?? "",
-                        textStyle: theme.textTheme.ppMori400White14,
-                      ),
-                      TextField(
-                        focusNode: _focusNode,
-                        controller: _textController,
-                        autofocus: true,
-                        cursorColor: Colors.transparent,
-                        showCursor: false,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        enableInteractiveSelection: false,
-                        decoration:
-                            const InputDecoration(border: InputBorder.none),
-                        onChanged: (_) async {
-                          final text = _textController.text;
-                          final code = text[text.length - 1];
-                          _textController.text = "";
-                          final devices = widget.payload.devices;
-                          await injector<CanvasClientService>()
-                              .sendKeyBoard(devices, code.codeUnitAt(0));
-                        },
-                      ),
-                    ],
+                        Visibility(
+                          visible: editionSubTitle.isNotEmpty,
+                          child: Text(
+                            editionSubTitle,
+                            style: theme.textTheme.ppMori400Grey14,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        HtmlWidget(
+                          customStylesBuilder: auHtmlStyle,
+                          assetToken.description ?? "",
+                          textStyle: theme.textTheme.ppMori400White14,
+                        ),
+                        TextField(
+                          focusNode: _focusNode,
+                          controller: _textController,
+                          autofocus: true,
+                          cursorColor: Colors.transparent,
+                          showCursor: false,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          enableInteractiveSelection: false,
+                          decoration:
+                              const InputDecoration(border: InputBorder.none),
+                          onChanged: (_) async {
+                            final text = _textController.text;
+                            final code = text[text.length - 1];
+                            _textController.text = "";
+                            final devices = widget.payload.devices;
+                            await injector<CanvasClientService>()
+                                .sendKeyBoard(devices, code.codeUnitAt(0));
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Container(
-              height: 210,
-              color: AppColor.greyMedium,
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                children: [
-                  Expanded(
-                      child: TouchPad(
-                    devices: widget.payload.devices,
-                    onExpand: () {
-                      Navigator.of(context).pushNamed(AppRouter.touchPadPage,
-                          arguments:
-                              TouchPadPagePayload(widget.payload.devices));
-                    },
-                  )),
-                ],
+              Container(
+                height: 210,
+                color: AppColor.greyMedium,
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                        child: TouchPad(
+                      devices: widget.payload.devices,
+                      onExpand: () {
+                        Navigator.of(context).pushNamed(AppRouter.touchPadPage,
+                            arguments:
+                                TouchPadPagePayload(widget.payload.devices));
+                      },
+                    )),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
