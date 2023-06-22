@@ -326,12 +326,12 @@ class _SettingsPageState extends State<SettingsPage>
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLastestVersion = _versionCheck?.storeVersion
+        final isLatestVersion = _versionCheck?.storeVersion
                 ?.compareTo(_versionCheck?.packageVersion ?? "") ==
             0;
         return GestureDetector(
           onTap: () async {
-            if (isLastestVersion) {
+            if (isLatestVersion) {
               int now = DateTime.now().millisecondsSinceEpoch;
               if (now - _lastTap < 1000) {
                 _consecutiveTaps++;
@@ -351,10 +351,25 @@ class _SettingsPageState extends State<SettingsPage>
               }
               _lastTap = now;
             } else {
-              injector<VersionService>().openLastestVersion();
+              UIHelper.showMessageAction(
+                context,
+                "update_available".tr(),
+                "want_to_update".tr(
+                  args: [
+                    _versionCheck?.storeVersion ?? "the_latest_version".tr(),
+                    _packageInfo?.version ?? ""
+                  ],
+                ),
+                isDismissible: true,
+                closeButton: "close".tr(),
+                actionButton: "update".tr(),
+                onAction: () {
+                  injector<VersionService>().openLatestVersion();
+                },
+              );
             }
           },
-          child: isLastestVersion
+          child: isLatestVersion
               ? Text(
                   'up_to_date'.tr(),
                   style: theme.textTheme.ppMori400Grey12,
