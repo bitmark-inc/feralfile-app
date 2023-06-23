@@ -135,6 +135,7 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future respondOnApprove(String topic, String response) async {
+    log.info("[Wc2Service] respondOnApprove topic $topic, response: $response");
     await _wc2channel.respondOnApprove(topic, response);
   }
 
@@ -249,18 +250,16 @@ class Wc2Service extends Wc2Handler {
         }
         break;
       case "eth_sendTransaction":
-        _handleEthereumSendTransactionRequest(request);
+        await _handleWC2EthereumSendTransactionRequest(request);
         break;
       case "personal_sign":
-        await _handleEthereumSignRequest(request, WCSignType.PERSONAL_MESSAGE);
+        await _handleWC2EthereumSignRequest(request, WCSignType.PERSONAL_MESSAGE);
         break;
       case "eth_signTypedData":
-        await _handleEthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
+        await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
         break;
       case "eth_sign":
-        await _handleEthereumSignRequest(request, WCSignType.MESSAGE);
-        break;
-      case "eth_signTransaction":
+        await _handleWC2EthereumSignRequest(request, WCSignType.MESSAGE);
         break;
       default:
         log.info("[Wc2Service] Unsupported method: ${request.method}");
@@ -272,6 +271,72 @@ class Wc2Service extends Wc2Handler {
   }
 
   //#endregion
+  Future _handleWC2EthereumSignRequest(
+      Wc2Request request, WCSignType signType) async {
+    String address, message;
+    if (signType == WCSignType.PERSONAL_MESSAGE) {
+      address = request.params[1];
+      message = request.params[0];
+    } else {
+      address = request.params[0];
+      message = request.params[1];
+    }
+    final wallet = await _accountService.getAccountByAddress(
+      chain: "eip155",
+      address: address,
+    );
+    await _navigationService.navigateTo(WCSignMessagePage.tag,
+        arguments: WCSignMessagePageArgs(
+          request.id,
+          request.topic,
+          request.proposer!.toWCPeerMeta(),
+          message,
+          signType,
+          wallet.wallet.uuid,
+          wallet.index,
+          isWalletConnect2: true,
+        ));
+  }
+
+  Future _handleWC2EthereumSendTransactionRequest(Wc2Request request) async {
+    try {
+      var transaction =
+      request.params[0] as Map<String, dynamic>;
+
+      final walletIndex = await _accountService.getAccountByAddress(
+        chain: "eip155",
+        address: transaction["from"],
+      );
+      if (transaction["data"] == null) transaction["data"] = "";
+      if (transaction["gas"] == null) transaction["gas"] = "";
+      if (transaction["to"] == null) {
+        log.info("[Wc2Service] Invalid transaction: no recipient");
+        await respondOnReject(
+          request.topic,
+          reason: "Invalid transaction: no recipient",
+        );
+        return;
+      }
+      final metaData = request.proposer != null
+          ? request.proposer!.toWCPeerMeta()
+          : WCPeerMeta(icons: [], name: "", url: "", description: "");
+      final args = WCSendTransactionPageArgs(
+        request.id,
+        metaData,
+        WCEthereumTransaction.fromJson(transaction),
+        walletIndex.wallet.uuid,
+        walletIndex.index,
+        topic: request.topic,
+        isWalletConnect2: true,
+      );
+      _navigationService.navigateTo(
+        WCSendTransactionPage.tag,
+        arguments: args,
+      );
+    } catch (e) {
+      await respondOnReject(request.topic, reason: "$e");
+    }
+  }
 
   //#region Handle sign request
   Future _handleEthereumSignRequest(
