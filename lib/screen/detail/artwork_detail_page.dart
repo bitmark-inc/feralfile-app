@@ -227,10 +227,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       setState(() {
         currentAsset = state.assetToken;
       });
-      if (state.assetToken != null && state.assetToken!.isAirdropToken) {
-        context.read<ArtworkDetailBloc>().add(
-            ArtworkDetailGetAirdropDeeplink(assetToken: state.assetToken!));
-      }
       if (withSharing && state.assetToken != null) {
         _socialShare(context, state.assetToken!);
         setState(() {

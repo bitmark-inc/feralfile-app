@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/database/dao/dao.dart';
@@ -81,6 +82,9 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
             log.info("ArtworkDetailGetInfoEvent: preview url error", error);
           }
         }
+      }
+      if (assetToken != null && assetToken.isAirdropToken) {
+        add(ArtworkDetailGetAirdropDeeplink(assetToken: state.assetToken!));
       }
     });
     on<ArtworkDetailGetAirdropDeeplink>((event, emit) async {
