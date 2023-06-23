@@ -279,7 +279,11 @@ class Wc2Service extends Wc2Handler {
       message = request.params[0];
     } else {
       address = request.params[0];
-      message = request.params[1];
+      if (request.params[1].runtimeType != String) {
+        message = jsonEncode(request.params[1]);
+      } else {
+        message = request.params[1];
+      }
     }
     final wallet = await _accountService.getAccountByAddress(
       chain: "eip155",
