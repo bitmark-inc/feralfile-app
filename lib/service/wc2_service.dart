@@ -253,7 +253,8 @@ class Wc2Service extends Wc2Handler {
         await _handleWC2EthereumSendTransactionRequest(request);
         break;
       case "personal_sign":
-        await _handleWC2EthereumSignRequest(request, WCSignType.PERSONAL_MESSAGE);
+        await _handleWC2EthereumSignRequest(
+            request, WCSignType.PERSONAL_MESSAGE);
         break;
       case "eth_signTypedData":
         await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
@@ -304,8 +305,7 @@ class Wc2Service extends Wc2Handler {
 
   Future _handleWC2EthereumSendTransactionRequest(Wc2Request request) async {
     try {
-      var transaction =
-      request.params[0] as Map<String, dynamic>;
+      var transaction = request.params[0] as Map<String, dynamic>;
 
       final walletIndex = await _accountService.getAccountByAddress(
         chain: "eip155",
