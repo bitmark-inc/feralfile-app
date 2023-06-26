@@ -49,7 +49,7 @@ abstract class FeralFileService {
 
   Future<FFSeries> getSeries(String id);
 
-  Future<ClaimRespone?> claimToken({
+  Future<ClaimResponse?> claimToken({
     required String seriesId,
     String? address,
     Otp? otp,
@@ -211,7 +211,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<ClaimRespone?> claimToken(
+  Future<ClaimResponse?> claimToken(
       {required String seriesId,
       String? address,
       Otp? otp,
@@ -275,7 +275,7 @@ class FeralFileServiceImpl extends FeralFileService {
         ];
         await indexer.setCustomTokens(assetTokens);
       }
-      return ClaimRespone(
+      return ClaimResponse(
           token: assetTokens.first, airdropInfo: series.airdropInfo!);
     } else {
       throw NoRemainingToken();

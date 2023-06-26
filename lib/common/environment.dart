@@ -166,6 +166,12 @@ class Environment {
   static String get tzktMainnetURL => dotenv.env['TZKT_MAINNET_URL'] ?? '';
 
   static String get tzktTestnetURL => dotenv.env['TZKT_TESTNET_URL'] ?? '';
+
+  static String get autonomyAirdropURL =>
+      dotenv.env['AUTONOMY_AIRDROP_URL'] ?? '';
+
+  static String get autonomyAirDropContractAddress =>
+      dotenv.env['AUTONOMY_AIRDROP_CONTRACT_ADDRESS'] ?? '';
 }
 
 class Secret {
