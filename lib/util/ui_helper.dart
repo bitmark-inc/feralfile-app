@@ -1501,7 +1501,7 @@ class UIHelper {
       "claim_has_expired".tr(),
       Column(
         children: [
-          Text("claim_has_expired_decs".tr(),
+          Text("claim_has_expired_desc".tr(),
               style: Theme.of(context).textTheme.ppMori400White14),
           const SizedBox(height: 40),
           OutlineButton(
