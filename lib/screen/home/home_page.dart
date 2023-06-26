@@ -232,7 +232,7 @@ class HomePageState extends State<HomePage>
     final nextKey = nftBloc.state.nextKey;
     if (nextKey != null &&
         !nextKey.isLoaded &&
-        tokens.length < COLLECTION_PAGE_SIZE) {
+        tokens.length < COLLECTION_INITIAL_MIN_SIZE) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
     return tokens;
