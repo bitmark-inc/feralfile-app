@@ -70,7 +70,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                     aspectRatio: STAMP_ASPECT_RATIO,
                     child: PostcardViewWidget(
                       assetToken: widget.payload.assetToken,
-                      zoomIndex: travelInfo.index,
+                      zoomIndex: _stampIndex,
                     ),
                   ),
                 ),

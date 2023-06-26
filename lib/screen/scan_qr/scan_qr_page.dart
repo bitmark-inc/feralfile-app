@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -19,6 +20,7 @@ import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -36,6 +38,7 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -314,11 +317,9 @@ class _ScanQRPageState extends State<ScanQRPage>
       ),
       onQRViewCreated: _onQRViewCreated,
       onPermissionSet: (ctrl, p) {
-        if (ctrl.hasPermissions) {
-          setState(() {
-            cameraPermission = true;
-          });
-        }
+        setState(() {
+          cameraPermission = ctrl.hasPermissions;
+        });
       },
     );
   }
@@ -470,6 +471,8 @@ class _ScanQRPageState extends State<ScanQRPage>
             Text("scan_qr".tr(), style: theme.primaryTextTheme.labelLarge),
           ],
         );
+      case ScannerItem.CANVAS_DEVICE:
+        return const SizedBox();
     }
   }
 
@@ -550,12 +553,64 @@ class _ScanQRPageState extends State<ScanQRPage>
               log(err.toString());
             }
             */
+          } else if (_isCanvasQrCode(code)) {
+            if (await isPremium()) {
+              final result = await _handleCanvasQrCode(code);
+              if (result) {
+                if (!mounted) return;
+                await UIHelper.showInfoDialog(
+                  context,
+                  "connected".tr(),
+                  "canvas_connected".tr(),
+                  closeButton: "close".tr(),
+                  onClose: () => UIHelper.hideInfoDialog(
+                      injector<NavigationService>()
+                          .navigatorKey
+                          .currentContext!),
+                  autoDismissAfter: 3,
+                  isDismissible: true,
+                );
+              }
+            }
           } else {
             _handleError(code);
           }
           break;
+        case ScannerItem.CANVAS_DEVICE:
+          await _handleCanvasQrCode(code);
+          break;
       }
     });
+  }
+
+  bool _isCanvasQrCode(String code) {
+    try {
+      CanvasDevice.fromJson(jsonDecode(code));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  Future<bool> _handleCanvasQrCode(String code) async {
+    log.info("Canvas device scanned: $code");
+    try {
+      final device = CanvasDevice.fromJson(jsonDecode(code));
+      final canvasClient = injector<CanvasClientService>();
+      final result = await canvasClient.connectToDevice(device);
+      if (result) {
+        device.isConnecting = true;
+        if (!mounted) return false;
+        Navigator.pop(context, device);
+        return true;
+      } else {
+        _handleError(code);
+        return false;
+      }
+    } catch (err) {
+      _handleError(code);
+    }
+    return false;
   }
 
   Future _addScanQREvent(
@@ -669,5 +724,6 @@ enum ScannerItem {
   ETH_ADDRESS,
   XTZ_ADDRESS,
   FERALFILE_TOKEN,
+  CANVAS_DEVICE,
   GLOBAL
 }

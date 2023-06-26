@@ -773,7 +773,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       listener: (context, state) {},
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
-        if (travelInfo == null) {
+        final lastTravelInfo = state.lastTravelInfo;
+        if (travelInfo == null || lastTravelInfo == null) {
           return const SizedBox();
         }
         return Column(
@@ -788,16 +789,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               padding: padding,
               child: Column(
                 children: [
-                  if (postcardDetailState.canDoAction)
+                  if (postcardDetailState.canDoAction) ...[
                     if (postcardDetailState.isSending())
-                      _sendingTripItem(context, asset, travelInfo)
+                      _sendingTripItem(context, asset, lastTravelInfo)
                     else
-                      _notSentItem(travelInfo),
+                      _notSentItem(lastTravelInfo)
+                  ],
                   ...travelInfo.reversed.map((TravelInfo e) {
                     if (e.to == null) {
                       if (postcardDetailState.isSending() &&
                           postcardDetailState.isLastOwner) {
-                        return _sendingTripItem(context, asset, travelInfo);
+                        return _sendingTripItem(context, asset, lastTravelInfo);
                       }
                       return _completeTravelWidget(e);
                     }
@@ -920,10 +922,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _sendingTripItem(
-      BuildContext context, AssetToken asset, List<TravelInfo> travelInfo) {
+      BuildContext context, AssetToken asset, TravelInfo sendingTrip) {
     final theme = Theme.of(context);
     NumberFormat formatter = NumberFormat("00");
-    final sendingTrip = travelInfo.sendingTravelInfo;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -969,9 +970,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _notSentItem(List<TravelInfo> listTravelInfo) {
-    final notSentTravelInfo = listTravelInfo.notSentTravelInfo;
-    return _travelWidget(notSentTravelInfo, onTap: () {});
+  Widget _notSentItem(TravelInfo lastTravelInfo) {
+    return _travelWidget(lastTravelInfo, onTap: () {});
   }
 
   Widget _leaderboard(PostcardDetailState state) {

@@ -18,14 +18,37 @@ class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
   ArtworkDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
+class ArtworkDetailGetAirdropDeeplink extends ArtworkDetailEvent {
+  final AssetToken assetToken;
+
+  ArtworkDetailGetAirdropDeeplink({required this.assetToken});
+}
+
 class ArtworkDetailState {
   AssetToken? assetToken;
   List<Provenance> provenances;
   Map<String, int> owners;
+  String? airdropDeeplink;
 
   ArtworkDetailState({
     this.assetToken,
     required this.provenances,
     this.owners = const {},
+    this.airdropDeeplink,
   });
+
+  //copyWith
+  ArtworkDetailState copyWith({
+    AssetToken? assetToken,
+    List<Provenance>? provenances,
+    Map<String, int>? owners,
+    String? airdropDeeplink,
+  }) {
+    return ArtworkDetailState(
+      assetToken: assetToken ?? this.assetToken,
+      provenances: provenances ?? this.provenances,
+      owners: owners ?? this.owners,
+      airdropDeeplink: airdropDeeplink ?? this.airdropDeeplink,
+    );
+  }
 }

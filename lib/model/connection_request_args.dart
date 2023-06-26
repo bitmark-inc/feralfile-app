@@ -5,16 +5,24 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:collection/collection.dart';
 import 'package:tezart/tezart.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConnectionRequest {
-  bool get isWCconnect => false;
-  bool get isWC2connect => false;
+  bool get isWalletConnect => false;
+
+  bool get isWalletConnect2 => false;
+
+  bool get isAutonomyConnect => false;
+
   bool get isBeaconConnect => false;
 
   get id;
+
   String? get name;
+
   String? get url;
 }
 
@@ -23,7 +31,7 @@ class WCConnectPageArgs extends ConnectionRequest {
   final WCPeerMeta peerMeta;
 
   @override
-  bool get isWCconnect => true;
+  bool get isWalletConnect => true;
 
   WCConnectPageArgs(this._id, this.peerMeta);
 
@@ -87,7 +95,18 @@ class Wc2Proposal extends ConnectionRequest {
   });
 
   @override
-  bool get isWC2connect => true;
+  bool get isWalletConnect2 => !_isAutonomyConnect();
+
+  @override
+  bool get isAutonomyConnect => _isAutonomyConnect();
+
+  bool _isAutonomyConnect() {
+    final proposalMethods =
+        requiredNamespaces.values.map((e) => e.methods).flattened.toSet();
+    final unsupportedMethods =
+        proposalMethods.difference(Wc2Service.autonomyMethods);
+    return unsupportedMethods.isEmpty;
+  }
 
   AppMetadata proposer;
   Map<String, Wc2Namespace> requiredNamespaces;

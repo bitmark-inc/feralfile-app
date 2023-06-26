@@ -291,6 +291,27 @@ class NavigationService {
     }
   }
 
+  Future<void> showAirdropJustOnce() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showAirdropJustOnce(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showAirdropAlreadyClaimed() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showAirdropAlreadyClaim(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showAirdropClaimFailed() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showAirdropClaimFailed(navigatorKey.currentContext!);
+    }
+  }
+
   Future<void> showPostcardShareLinkExpired() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {

@@ -52,6 +52,7 @@ import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_b
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
@@ -67,6 +68,9 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
@@ -145,6 +149,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -152,6 +157,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'detail/preview/canvas_device_bloc.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 
 class AppRouter {
@@ -245,6 +251,10 @@ class AppRouter {
   static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
   static const tripDetailPage = 'trip_detail_page';
+  static const canvasHelpPage = 'canvas_help_page';
+  static const keyboardControlPage = "keyboard_control_page";
+  static const touchPadPage = "touch_pad_page";
+  static const claimAirdropPage = 'claim_airdrop_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -833,6 +843,11 @@ class AppRouter {
                   ),
                 ),
                 BlocProvider(
+                  create: (_) => CanvasDeviceBloc(
+                    injector(),
+                  ),
+                ),
+                BlocProvider(
                     create: (_) => PostcardDetailBloc(
                         injector(), injector(), injector(), injector())),
               ],
@@ -895,6 +910,7 @@ class AppRouter {
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
+                            injector(),
                             injector(),
                             injector(),
                             injector(),
@@ -1414,6 +1430,44 @@ class AppRouter {
             builder: (context) {
               return TripDetailPage(payload: payload);
             });
+
+      case canvasHelpPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return const CanvasHelpPage();
+            });
+
+      case keyboardControlPage:
+        return TransparentRoute(
+            settings: settings,
+            builder: (context) {
+              final payload = settings.arguments as KeyboardControlPagePayload;
+              return KeyboardControlPage(
+                payload: payload,
+              );
+            });
+      case touchPadPage:
+        return TransparentRoute(
+            settings: settings,
+            builder: (context) {
+              final payload = settings.arguments as TouchPadPagePayload;
+              return TouchPadPage(
+                payload: payload,
+              );
+            });
+      case claimAirdropPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: ClaimAirdropPage(
+                payload: settings.arguments as ClaimTokenPagePayload,
+              ),
+            );
+          },
+        );
 
       default:
         throw Exception('Invalid route: ${settings.name}');

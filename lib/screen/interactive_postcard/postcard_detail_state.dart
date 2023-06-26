@@ -128,7 +128,7 @@ extension PostcardDetailStateExtension on PostcardDetailState {
 
   bool get canDoAction {
     if (postcardValue == null) {
-      return true;
+      return postcardValueLoaded;
     }
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;

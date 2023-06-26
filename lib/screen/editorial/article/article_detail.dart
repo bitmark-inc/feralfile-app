@@ -4,6 +4,9 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
+
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -23,6 +26,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -46,7 +50,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   late double _selectedSize;
   late double adjustSize;
   late DateTime startReadingTime;
-  bool _showFullHeader = false;
+  bool _showHeader = true;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -62,13 +67,21 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   }
 
   _scrollListener() {
-    if (_controller.offset > 10) {
+    if (_controller.offset > 5) {
       setState(() {
-        _showFullHeader = true;
+        _showHeader = false;
+      });
+      _timer?.cancel();
+      _timer = Timer(const Duration(seconds: 5), () {
+        if (mounted) {
+          setState(() {
+            _showHeader = true;
+          });
+        }
       });
     } else {
       setState(() {
-        _showFullHeader = false;
+        _showHeader = true;
       });
     }
   }
@@ -122,6 +135,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     });
     _updateEditorialReadingTime();
     _controller.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -130,11 +144,20 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     final theme = Theme.of(context);
     adjustSize = _selectedSize - 16;
     return Scaffold(
-      appBar: AppBar(toolbarHeight: 0),
+      appBar: AppBar(
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: AppColor.primaryBlack,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+          ),
+          toolbarHeight: 0),
       backgroundColor: theme.colorScheme.primary,
       body: Column(
         children: [
-          _header(context),
+          Visibility(
+            visible: _showHeader,
+            child: _header(context),
+          ),
           Expanded(
             child: SingleChildScrollView(
               controller: _controller,
@@ -142,6 +165,10 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 32.0),
+                  Visibility(
+                    visible: !_showHeader,
+                    child: const SizedBox(height: 50.0),
+                  ),
                   Column(
                     children: [
                       Container(
@@ -350,9 +377,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             ],
           ),
         ),
-        if (_showFullHeader) ...[
-          addOnlyDivider(color: AppColor.auGreyBackground),
-        ]
+        addOnlyDivider(color: AppColor.auGreyBackground),
       ],
     );
   }
