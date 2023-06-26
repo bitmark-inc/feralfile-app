@@ -317,15 +317,9 @@ class _ScanQRPageState extends State<ScanQRPage>
       ),
       onQRViewCreated: _onQRViewCreated,
       onPermissionSet: (ctrl, p) {
-        if (ctrl.hasPermissions) {
-          setState(() {
-            cameraPermission = true;
-          });
-        } else {
-          setState(() {
-            cameraPermission = false;
-          });
-        }
+        setState(() {
+          cameraPermission = ctrl.hasPermissions;
+        });
       },
     );
   }
