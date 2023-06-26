@@ -888,7 +888,7 @@ Widget postcardDetailsMetadataSection(
             color: theme.auLightGrey,
           ),
           CustomMetaDataItem(
-            title: "artists".tr(),
+            title: "creators".tr(),
             content: ListItemExpandedWidget(
               children: [
                 ...ownersList
