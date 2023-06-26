@@ -118,6 +118,8 @@ const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 
 const CONNECT_FAILED_DURATION = Duration(seconds: 10);
 
+const int COLLECTION_INITIAL_MIN_SIZE = 20;
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
