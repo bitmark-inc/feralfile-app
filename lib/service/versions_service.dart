@@ -153,7 +153,7 @@ class VersionService {
         arguments: releaseNotes);
   }
 
-  Future openLastestVersion() async {
+  Future openLatestVersion() async {
     final versionInfo = await getVersionInfo();
     final uri = Uri.tryParse(versionInfo.link);
     if (uri != null) {

@@ -66,7 +66,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        if (widget.args.wc2Params != null) {
+        if (widget.args.wc2Params != null || widget.args.isWalletConnect2) {
           await injector<Wc2Service>().respondOnReject(
             widget.args.topic,
             reason: "User reject",
@@ -81,7 +81,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         appBar: getBackAppBar(
           context,
           onBack: () async {
-            if (widget.args.wc2Params != null) {
+            if (widget.args.wc2Params != null || widget.args.isWalletConnect2) {
               await injector<Wc2Service>().respondOnReject(
                 widget.args.topic,
                 reason: "User reject",
@@ -260,19 +260,26 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
                   switch (widget.args.type) {
                     case WCSignType.PERSONAL_MESSAGE:
+                    case WCSignType.MESSAGE:
                       signature = await injector<EthereumService>()
                           .signPersonalMessage(
                               wallet.wallet, wallet.index, message);
                       break;
-                    case WCSignType.MESSAGE:
                     case WCSignType.TYPED_MESSAGE:
                       signature = await injector<EthereumService>()
                           .signMessage(wallet.wallet, wallet.index, message);
                       break;
                   }
 
-                  injector<WalletConnectService>().approveRequest(
-                      widget.args.peerMeta, widget.args.id, signature);
+                  if (widget.args.isWalletConnect2) {
+                    await injector<Wc2Service>().respondOnApprove(
+                      args.topic,
+                      signature,
+                    );
+                  } else {
+                    injector<WalletConnectService>().approveRequest(
+                        widget.args.peerMeta, widget.args.id, signature);
+                  }
                 }
 
                 if (!mounted) return;
@@ -335,6 +342,7 @@ class WCSignMessagePageArgs {
   final String uuid;
   final int index;
   final Wc2SignRequestParams? wc2Params;
+  final bool isWalletConnect2;
 
   WCSignMessagePageArgs(
     this.id,
@@ -344,6 +352,7 @@ class WCSignMessagePageArgs {
     this.type,
     this.uuid,
     this.index, {
+    this.isWalletConnect2 = false,
     this.wc2Params,
   });
 }
