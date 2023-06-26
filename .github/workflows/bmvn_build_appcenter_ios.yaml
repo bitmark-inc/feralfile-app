@@ -17,7 +17,7 @@ on:
 
 jobs:
   fastlane-deploy:
-    runs-on: [self-hosted, macm2, build-ci-local-bmvn, ios]
+    runs-on: [ self-hosted, macm2, build-ci-local-bmvn, ios ]
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with master channel
@@ -37,13 +37,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Setup Ruby, Bundler, and Gemfile dependencies
-      #- name: Setup Fastlane
-       # uses: ruby/setup-ruby@v1
-       # with:
-         # ruby-version: "2.6"
-         # bundler-cache: true
-          #working-directory: ios
+          # Setup Ruby, Bundler, and Gemfile dependencies
+          #- name: Setup Fastlane
+          # uses: ruby/setup-ruby@v1
+          # with:
+          # ruby-version: "2.6"
+          # bundler-cache: true
+        #working-directory: ios
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -100,6 +100,8 @@ jobs:
           echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
           echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
+          echo AUTONOMY_AIRDROP_URL=${{ secrets.AUTONOMY_AIRDROP_URL }} >> .env
+          echo AUTONOMY_AIRDROP_CONTRACT_ADDRESS=${{ secrets.AUTONOMY_AIRDROP_CONTRACT_ADDRESS }} >> .env
           
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env

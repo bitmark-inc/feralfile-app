@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -53,6 +55,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final NavigationService _navigationService;
   final BranchApi _branchApi;
   final PostcardService _postcardService;
+  final AirdropService _airdropService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -68,6 +71,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._navigationService,
     this._branchApi,
     this._postcardService,
+    this._airdropService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -398,6 +402,25 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _handleIRL(url);
         }
         break;
+      case "autonomy_airdrop":
+        final String? sharedCode = data["share_code"];
+        if (sharedCode != null) {
+          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          final sharedInfor = await _airdropService.claimShare(
+            AirdropClaimShareRequest(shareCode: sharedCode),
+          );
+          final series =
+              await _feralFileService.getSeries(sharedInfor.seriesID);
+          _navigationService.navigateTo(
+            AppRouter.claimAirdropPage,
+            arguments: ClaimTokenPagePayload(
+                claimID: "", shareCode: sharedInfor.shareCode, series: series),
+          );
+        } else {
+          _navigationService.waitTooLongDialog();
+        }
+        break;
+
       default:
         memoryValues.airdropFFExhibitionId.value = null;
     }

@@ -1474,6 +1474,26 @@ class UIHelper {
         ),
         isDismissible: true);
   }
+
+  static showAirdropClaimFailed(BuildContext context) async {
+    return showErrorDialog(
+        context, "airdrop_claim_failed".tr(), "", "close".tr());
+  }
+
+  static showAirdropAlreadyClaim(BuildContext context) async {
+    return showErrorDialog(context, "already_claimed".tr(),
+        "already_claimed_desc".tr(), "close".tr());
+  }
+
+  static showAirdropJustOnce(BuildContext context) async {
+    return showErrorDialog(
+        context, "just_once".tr(), "just_once_desc".tr(), "close".tr());
+  }
+
+  static showAirdropCannotShare(BuildContext context) async {
+    return showErrorDialog(context, "already_claimed".tr(),
+        "cannot_share_aridrop_desc".tr(), "close".tr());
+  }
 }
 
 class ConnectedTV extends StatefulWidget {

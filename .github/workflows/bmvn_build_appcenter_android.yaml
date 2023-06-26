@@ -18,7 +18,7 @@ on:
         description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: [self-hosted, macm2, build-ci-local-bmvn, android]
+    runs-on: [ self-hosted, macm2, build-ci-local-bmvn, android ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
@@ -91,7 +91,9 @@ jobs:
           ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_TEST }} >> .env || echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_PRODUCTION }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_TEST }} >> .env || echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_PRODUCTION }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
-
+          echo AUTONOMY_AIRDROP_URL=${{ secrets.AUTONOMY_AIRDROP_URL }} >> .env
+          echo AUTONOMY_AIRDROP_CONTRACT_ADDRESS=${{ secrets.AUTONOMY_AIRDROP_CONTRACT_ADDRESS }} >> .env
+          
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
 

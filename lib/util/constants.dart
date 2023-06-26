@@ -71,6 +71,30 @@ const CHECK_WEB3_CONTRACT_ADDRESS = [
   "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
 ];
 
+const MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET = [
+  "KT1ESGez4dEuDjjNt4k2HPAK5Nzh7e8X8jyX",
+  "KT1MDvWtwi8sCcyJdbWPScTdFa2uJ8mnKNJe",
+  "KT1DPFXN2NeFjg1aQGNkVXYS1FAy4BymcbZz",
+];
+
+const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
+  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
+  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
+  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
+  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
+];
+
+List<String> get momaMementoContractAddresses {
+  if (Environment.appTestnetConfig) {
+    return MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET;
+  } else {
+    return MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET;
+  }
+}
+
+const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
+
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;

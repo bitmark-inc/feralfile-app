@@ -355,6 +355,10 @@ extension AssetTokenExtension on AssetToken {
         .where((element) => element.id == id && element.owner == owner)
         .isNotEmpty;
   }
+
+  bool get isAirdropToken {
+    return Environment.autonomyAirDropContractAddress == contractAddress;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
