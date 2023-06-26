@@ -229,7 +229,12 @@ class HomePageState extends State<HomePage>
 
   List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
     tokens = tokens.filterAssetToken();
-
+    final nextKey = nftBloc.state.nextKey;
+    if (nextKey != null &&
+        !nextKey.isLoaded &&
+        tokens.length < COLLECTION_PAGE_SIZE) {
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
+    }
     return tokens;
   }
 
