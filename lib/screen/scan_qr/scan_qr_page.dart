@@ -317,11 +317,9 @@ class _ScanQRPageState extends State<ScanQRPage>
       ),
       onQRViewCreated: _onQRViewCreated,
       onPermissionSet: (ctrl, p) {
-        if (ctrl.hasPermissions) {
-          setState(() {
-            cameraPermission = true;
-          });
-        }
+        setState(() {
+          cameraPermission = ctrl.hasPermissions;
+        });
       },
     );
   }
@@ -556,7 +554,6 @@ class _ScanQRPageState extends State<ScanQRPage>
             }
             */
           } else if (_isCanvasQrCode(code)) {
-            controller.dispose();
             if (await isPremium()) {
               final result = await _handleCanvasQrCode(code);
               if (result) {
@@ -580,7 +577,6 @@ class _ScanQRPageState extends State<ScanQRPage>
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
-          controller.dispose();
           await _handleCanvasQrCode(code);
           break;
       }
