@@ -127,6 +127,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
+      memoryValues.irlLink.value = null;
     });
   }
 
@@ -298,12 +299,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<bool> _handleIRL(String link) async {
     log.info("[DeeplinkService] _handleIRL");
-
+    memoryValues.irlLink.value = link;
     if (!_configurationService.isDoneOnboarding()) {
-      memoryValues.irlLink.value = link;
 
       await injector<AccountService>().restoreIfNeeded();
-      memoryValues.irlLink.value = null;
     }
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
       final urlDecode =
@@ -318,7 +317,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         );
         if (!validUrl) return false;
       }
-      _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
+      await _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
       return true;
     }
 
@@ -398,7 +397,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final url = data["irl_url"];
         if (url != null) {
           log.info("[DeeplinkService] _handleIRL $url");
-          _handleIRL(url);
+          await _handleIRL(url);
+          memoryValues.irlLink.value = null;
         }
         break;
       case "autonomy_airdrop":

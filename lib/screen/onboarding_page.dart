@@ -344,11 +344,11 @@ class _OnboardingPageState extends State<OnboardingPage>
               addBoldDivider(),
               Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
               const Spacer(),
-              if (fromBranchLink ||
-                  fromDeeplink ||
-                  fromIrlLink ||
-                  (state.onboardingStep == OnboardingStep.undefined) &&
-                      (state.onboardingStep == OnboardingStep.restore)) ...[
+              if ((fromBranchLink ||
+                      fromDeeplink ||
+                      fromIrlLink ||
+                      (state.onboardingStep == OnboardingStep.undefined)) &&
+                  (state.onboardingStep != OnboardingStep.restore)) ...[
                 PrimaryButton(
                   text: "h_loading...".tr(),
                   isProcessing: true,
