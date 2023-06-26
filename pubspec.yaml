@@ -75,7 +75,7 @@ dependencies:
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
-  flutter_keyboard_visibility: ^5.3.0
+  flutter_keyboard_visibility: ^5.4.1
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -137,6 +137,10 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/nft-collection
       ref: db09684d5952e606d402a56497c24bebd0a64d96
+  autonomy_tv_proto:
+    git:
+      url: https://github.com/autonomy-system/autonomy-tv-proto-communication
+      ref: 48c86e89b451494cd7affdcb0141a7e4db9c1307
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:

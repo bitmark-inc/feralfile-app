@@ -335,6 +335,61 @@ class UIHelper {
     );
   }
 
+  static Future<void> showFlexibleDialog(
+    BuildContext context,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+  }) async {
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          padding: const EdgeInsets.only(top: 200),
+          child: ClipPath(
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+              decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              child: content,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   static Future<void> showMessageAction(
     BuildContext context,
     String title,

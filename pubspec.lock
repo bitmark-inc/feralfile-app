@@ -98,6 +98,15 @@ packages:
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
+  autonomy_tv_proto:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      resolved-ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
+    source: git
+    version: "0.0.1"
   background_fetch:
     dependency: "direct main"
     description:
@@ -772,10 +781,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_keyboard_visibility
-      sha256: "86b71bbaffa38e885f5c21b1182408b9be6951fd125432cf6652c636254cef2d"
+      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "5.4.1"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:
@@ -1133,6 +1142,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  googleapis_auth:
+    dependency: transitive
+    description:
+      name: googleapis_auth
+      sha256: f59be210ede1e22718962e4ef48a08ae783eb67fe19b0f4c16b204e20df0869c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   gql:
     dependency: transitive
     description:
@@ -1213,6 +1230,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  grpc:
+    dependency: transitive
+    description:
+      name: grpc
+      sha256: a73c16e4f6a4a819be892bb2c73cc1d0b00e36095f69b0738cc91a733e3d27ba
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   hex:
     dependency: transitive
     description:
@@ -1261,6 +1286,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.5"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "58805ebc6513eed3b98ee0a455a8357e61d187bf2e0fdc1e53120770f78de258"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -2007,6 +2040,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  protoc_plugin:
+    dependency: transitive
+    description:
+      name: protoc_plugin
+      sha256: e2be5014ba145dc0f8de20ac425afa2a513aff64fe350d338e481d40de0573df
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.0.1"
   provider:
     dependency: transitive
     description:
