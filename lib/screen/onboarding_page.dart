@@ -347,7 +347,8 @@ class _OnboardingPageState extends State<OnboardingPage>
               if (fromBranchLink ||
                   fromDeeplink ||
                   fromIrlLink ||
-                  (state.onboardingStep == OnboardingStep.undefined)) ...[
+                  (state.onboardingStep == OnboardingStep.undefined) &&
+                      (state.onboardingStep == OnboardingStep.restore)) ...[
                 PrimaryButton(
                   text: "h_loading...".tr(),
                   isProcessing: true,

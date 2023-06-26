@@ -85,6 +85,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
+      if (_configurationService.isDoneOnboarding()) return;
       await _backupService.restoreCloudDatabase(
           await _accountService.getDefaultAccount(), event.version);
 
@@ -116,6 +117,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } else {
         await _configurationService.setOldUser();
+        if (_configurationService.isDoneOnboarding()) return;
         await _configurationService.setDoneOnboarding(true);
         injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));

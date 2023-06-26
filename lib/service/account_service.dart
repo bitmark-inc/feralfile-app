@@ -15,12 +15,14 @@ import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -42,6 +44,7 @@ import 'package:uuid/uuid.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
 
+import 'iap_service.dart';
 import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
@@ -112,6 +115,8 @@ abstract class AccountService {
       Persona persona, WalletAddress walletAddress);
 
   Future<void> updateAddressPersona(WalletAddress walletAddress);
+
+  Future<void> restoreIfNeeded({bool isCreateNew = true});
 }
 
 class AccountServiceImpl extends AccountService {
@@ -781,6 +786,44 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<void> updateAddressPersona(WalletAddress walletAddress) async {
     await _cloudDB.addressDao.updateAddress(walletAddress);
+  }
+
+  @override
+  Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
+    if (_configurationService.isDoneOnboarding()) return;
+
+    final iapService = injector<IAPService>();
+    final auditService = injector<AuditService>();
+    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
+        iapService, auditService, _backupService);
+    await androidBackupKeys();
+    await migrationUtil.migrationFromKeychain();
+    final personas = await _cloudDB.personaDao.getPersonas();
+    final connections = await _cloudDB.connectionDao.getConnections();
+    if (personas.isNotEmpty || connections.isNotEmpty) {
+      _configurationService.setOldUser();
+      final defaultAccount = await getDefaultAccount();
+      final backupVersion =
+          await _backupService.fetchBackupVersion(defaultAccount);
+      if (backupVersion.isNotEmpty) {
+        _backupService.restoreCloudDatabase(defaultAccount, backupVersion);
+        for (var persona in personas) {
+          if (persona.name != "") {
+            persona.wallet().updateName(persona.name);
+          }
+        }
+        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        _configurationService.setDoneOnboarding(true);
+        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+        injector<NavigationService>()
+            .navigateTo(AppRouter.homePageNoTransition);
+      }
+    } else if (isCreateNew) {
+      _configurationService.setDoneOnboarding(true);
+      await createPersona();
+      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
+    }
   }
 }
 
