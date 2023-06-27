@@ -7,26 +7,28 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/nft_collection.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/svg.dart';
 
 class LinkedAccountDetailsPage extends StatefulWidget {
   final Connection connection;
@@ -39,10 +41,10 @@ class LinkedAccountDetailsPage extends StatefulWidget {
       _LinkedAccountDetailsPageState();
 }
 
-class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
+class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage>
+    with RouteAware {
   final Map<String, String> _balances = {};
-  bool isHideGalleryEnabled = false;
-  List<ContextedAddress> contextedAddresses = [];
+  List<ContextedAddress> contextAddresses = [];
   String _source = '';
 
   @override
@@ -69,14 +71,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         final tezosAddress = ffAccount?.tezosAddress;
 
         if (ethereumAddress != null) {
-          contextedAddresses
+          contextAddresses
               .add(ContextedAddress(CryptoType.ETH, ethereumAddress));
           fetchETHBalance(ethereumAddress);
         }
 
         if (tezosAddress != null) {
-          contextedAddresses
-              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          contextAddresses.add(ContextedAddress(CryptoType.XTZ, tezosAddress));
           fetchXtzBalance(tezosAddress);
         }
 
@@ -85,7 +86,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       case "walletBeacon":
         _source = widget.connection.walletBeaconConnection?.peer.name ??
             "tezos_wallet".tr();
-        contextedAddresses.add(ContextedAddress(CryptoType.XTZ, address));
+        contextAddresses.add(ContextedAddress(CryptoType.XTZ, address));
         fetchXtzBalance(address);
         break;
 
@@ -93,13 +94,13 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         _source = widget.connection.wcConnectedSession?.sessionStore
                 .remotePeerMeta.name ??
             "ethereum_wallet".tr();
-        contextedAddresses.add(ContextedAddress(CryptoType.ETH, address));
+        contextAddresses.add(ContextedAddress(CryptoType.ETH, address));
         fetchETHBalance(address);
         break;
 
       case "walletBrowserConnect":
         _source = widget.connection.data;
-        contextedAddresses.add(ContextedAddress(CryptoType.ETH, address));
+        contextAddresses.add(ContextedAddress(CryptoType.ETH, address));
         fetchETHBalance(address);
         break;
 
@@ -110,28 +111,24 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
         final tezosAddress = data?.tezosAddress.firstOrNull;
 
         if (ethereumAddress != null) {
-          contextedAddresses
+          contextAddresses
               .add(ContextedAddress(CryptoType.ETH, ethereumAddress));
           fetchETHBalance(ethereumAddress);
         }
 
         if (tezosAddress != null) {
-          contextedAddresses
-              .add(ContextedAddress(CryptoType.XTZ, tezosAddress));
+          contextAddresses.add(ContextedAddress(CryptoType.XTZ, tezosAddress));
           fetchXtzBalance(tezosAddress);
         }
         break;
       case "manuallyAddress":
-        contextedAddresses.add(ContextedAddress(
+        contextAddresses.add(ContextedAddress(
             CryptoType.UNKNOWN, widget.connection.accountNumber));
         break;
 
       default:
         break;
     }
-
-    isHideGalleryEnabled = injector<AccountService>()
-        .isLinkedAccountHiddenInGallery(widget.connection.hiddenGalleryKey);
   }
 
   Future fetchXtzBalance(String address) async {
@@ -147,6 +144,24 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       _balances[address] =
           "${EthAmountFormatter(balance.getInWei).format()} ETH";
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    setState(() {});
   }
 
   @override
@@ -189,13 +204,7 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               padding: padding,
               child: _addressesSection(),
             ),
-            addDivider(),
-            const SizedBox(height: 16),
-            Padding(
-              padding: padding,
-              child: _preferencesSection(),
-            ),
-            addDivider(),
+            addOnlyDivider(),
             const SizedBox(height: 16),
             Padding(
               padding: padding,
@@ -214,16 +223,16 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          contextedAddresses.length > 1
+          contextAddresses.length > 1
               ? "linked_addresses".tr()
               : "linked_address".tr(),
           style: theme.textTheme.ppMori400Black16,
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 20),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...contextedAddresses.map(
+            ...contextAddresses.map(
               (e) => Column(
                 children: [
                   _addressRow(e.cryptoType,
@@ -231,9 +240,9 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
                       balanceString: e.cryptoType != CryptoType.UNKNOWN
                           ? _balances[e.address] ?? '-- ${e.cryptoType.code}'
                           : ""),
-                  e == contextedAddresses.last
+                  e == contextAddresses.last
                       ? const SizedBox()
-                      : addDivider(),
+                      : addOnlyDivider(),
                 ],
               ),
             ),
@@ -247,82 +256,46 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
       {required String address, required balanceString}) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400Grey14;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(type.source, style: theme.textTheme.ppMori700Black14),
-          Text(balanceString, style: balanceStyle),
-        ],
+    final isHideGalleryEnabled =
+        injector<AccountService>().isLinkedAccountHiddenInGallery(address);
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        dragDismissible: false,
+        children: slidableActions(address),
       ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () async {
-                showInfoNotification(
-                    const Key("address"), "copied_to_clipboard".tr());
-                Clipboard.setData(ClipboardData(text: address));
-              },
-              child: Text(
-                address,
-                style: theme.textTheme.ppMori400Black14,
+      child: TappableForwardRowWithContent(
+        leftWidget: Text(type.source, style: theme.textTheme.ppMori700Black14),
+        rightWidget: Row(
+          children: [
+            if (isHideGalleryEnabled) ...[
+              SvgPicture.asset(
+                'assets/images/hide.svg',
+                color: theme.colorScheme.surface,
               ),
-            ),
-          ),
-        ],
-      )
-    ]);
-  }
-
-  Widget _preferencesSection() {
-    final theme = Theme.of(context);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(
-        "preferences".tr(),
-        style: theme.textTheme.ppMori400Black16,
-      ),
-      const SizedBox(
-        height: 24,
-      ),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("hide_from_collection".tr(),
-                  style: theme.textTheme.ppMori400Black16),
-              AuToggle(
-                value: isHideGalleryEnabled,
-                onToggle: (value) async {
-                  await injector<AccountService>()
-                      .setHideLinkedAccountInGallery(
-                          widget.connection.hiddenGalleryKey, value);
-                  final hiddenAddress =
-                      await injector<AccountService>().getHiddenAddresses();
-                  setState(() {
-                    context
-                        .read<NftCollectionBloc>()
-                        .add(UpdateHiddenTokens(ownerAddresses: hiddenAddress));
-                    isHideGalleryEnabled = value;
-                  });
-                },
-              )
+              const SizedBox(width: 10),
             ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            "do_not_show_nft".tr(),
-            //"Do not show this account's NFTs in the collection view."
-            style: theme.textTheme.ppMori400Black14,
-          ),
-        ],
+            Text(balanceString, style: balanceStyle),
+          ],
+        ),
+        bottomWidget: Text(
+          address,
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        onTap: () async {
+          final payload = LinkedWalletDetailsPayload(
+            connectionKey: widget.connection.key,
+            address: address,
+            type: type,
+            personaName: widget.connection.name.isNotEmpty
+                ? widget.connection.name.maskIfNeeded()
+                : widget.connection.accountNumber,
+          );
+          Navigator.of(context)
+              .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
+        },
       ),
-      const SizedBox(height: 12),
-    ]);
+    );
   }
 
   Widget _backupSection() {
@@ -337,11 +310,33 @@ class _LinkedAccountDetailsPageState extends State<LinkedAccountDetailsPage> {
               //'The keys for this account are either automatically backed up by Feral File or managed by your web3 wallet (if you connected one).',
               style: theme.textTheme.ppMori400Black14),
         ] else ...[
-          Text("ba_the_keys_for_thisFf".tr(args: [_source]),
+          Text("ba_the_keys_for_this".tr(args: [_source]),
               //"The keys for this account are in $_source. You should manage your key backups there.",
               style: theme.textTheme.ppMori400Black14),
         ],
       ],
     );
+  }
+
+  List<CustomSlidableAction> slidableActions(String address) {
+    final theme = Theme.of(context);
+    final isHidden =
+        injector<AccountService>().isLinkedAccountHiddenInGallery(address);
+    return [
+      CustomSlidableAction(
+        backgroundColor: AppColor.secondarySpanishGrey,
+        foregroundColor: theme.colorScheme.secondary,
+        child: Semantics(
+          label: "${address}_hide",
+          child: SvgPicture.asset(
+              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
+        ),
+        onPressed: (_) async {
+          await injector<AccountService>()
+              .setHideLinkedAccountInGallery(address, !isHidden);
+          setState(() {});
+        },
+      ),
+    ];
   }
 }

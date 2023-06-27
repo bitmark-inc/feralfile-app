@@ -10,8 +10,7 @@ import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:collection/collection.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
+import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 part 'feed_state.dart';
@@ -19,21 +18,21 @@ part 'feed_state.dart';
 class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
   final FeedService _feedService;
   final ConfigurationService _configurationService;
-  final AssetTokenDao _assetTokenDao;
+  final TokenDao _tokenDao;
 
-  FeedBloc(this._feedService, this._configurationService, this._assetTokenDao)
-      : super(FeedState(
-          onBoardingStep:
-              _configurationService.isFinishedFeedOnBoarding() ? -1 : 0,
-        )) {
-    on<GetFeedsEvent>(
-      (event, emit) async {
+  FeedBloc(
+    this._feedService,
+    this._configurationService,
+    this._tokenDao,
+  ) : super(FeedState()) {
+    on<GetFeedsEvent>((event, emit) async {
+      try {
         if (state.appFeedData != null && state.appFeedData?.next == null) {
           log.info('[FeedBloc] break; no more feeds');
           return;
         }
 
-        final ownedTokenIds = await _assetTokenDao.findAllAssetTokenIDs();
+        final ownedTokenIds = await _tokenDao.findAllTokenIDs();
         final newAppFeedData = await _feedService.fetchFeeds(
           state.appFeedData?.next,
           ignoredTokenIds: ownedTokenIds,
@@ -42,20 +41,34 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
         final appFeedData =
             state.appFeedData?.insert(newAppFeedData) ?? newAppFeedData;
 
-        final List<AssetToken?> feedTokens = appFeedData.events
-            .map((e) => appFeedData.findTokenRelatedTo(e))
-            .toList();
+        final Map<AssetToken, List<FeedEvent>> tokenEventMap = {};
+        for (FeedEvent event in appFeedData.events) {
+          final token = appFeedData.findTokenRelatedTo(event);
+          if (token == null) continue;
+
+          if (tokenEventMap[token] != null) {
+            tokenEventMap[token]!.add(event);
+          } else {
+            tokenEventMap[token] = [event];
+          }
+        }
 
         emit(
           state.copyWith(
             appFeedData: appFeedData,
-            feedTokens: feedTokens,
-            viewingIndex: state.viewingIndex ?? 0,
-            feedEvents: appFeedData.events,
+            feedTokenEventsMap: tokenEventMap,
           ),
         );
-      },
-    );
+      } catch (e) {
+        emit(
+          state.copyWith(
+            appFeedData: state.appFeedData,
+            feedTokenEventsMap: state.feedTokenEventsMap,
+            error: e,
+          ),
+        );
+      }
+    });
 
     on<OpenFeedEvent>((event, emit) {
       _configurationService
@@ -78,16 +91,9 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
           '[FeedBloc][Start] RetryMissingTokenInFeedsEvent: has ${tokens.length} tokens ${tokens.map((e) => e.id)}');
       final insertedAppFeedData = state.appFeedData!.insertTokens(tokens);
 
-      // Reload viewingToken if empty
-      final currentIndex = state.viewingIndex ?? 0;
-      var viewingToken = state.feedTokens?[currentIndex];
-      viewingToken ??= insertedAppFeedData.tokens.firstWhereOrNull(
-          (element) => element.id == state.feedEvents?[currentIndex].indexerID);
-
       emit(
         state.copyWith(
           appFeedData: insertedAppFeedData,
-          onBoardingStep: state.onBoardingStep,
         ),
       );
     });

@@ -23,6 +23,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
@@ -117,13 +118,17 @@ class _AccountsViewState extends State<AccountsView> {
 
   List<CustomSlidableAction> slidableActions(Account account, bool isDefault) {
     final theme = Theme.of(context);
+
     var actions = [
       CustomSlidableAction(
-        backgroundColor: AppColor.secondarySpanishGrey,
+        backgroundColor: AppColor.auGreyBackground,
         foregroundColor: theme.colorScheme.secondary,
         child: Semantics(
             label: "${account.name}_edit",
-            child: const Icon(CupertinoIcons.pencil)),
+            child: SvgPicture.asset(
+              'assets/images/rename_icon.svg',
+              color: theme.colorScheme.secondary,
+            )),
         onPressed: (_) {
           setState(() {
             _nameController.text = account.name;
@@ -135,11 +140,11 @@ class _AccountsViewState extends State<AccountsView> {
 
     if (!isDefault) {
       actions.add(CustomSlidableAction(
-        backgroundColor: theme.colorScheme.primary,
+        backgroundColor: Colors.red,
         foregroundColor: theme.colorScheme.secondary,
         child: Semantics(
             label: "${account.name}_delete",
-            child: const Icon(CupertinoIcons.delete)),
+            child: SvgPicture.asset('assets/images/trash.svg')),
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
         },

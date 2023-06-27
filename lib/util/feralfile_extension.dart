@@ -39,12 +39,12 @@ extension FeralfileErrorExt on FeralfileError {
     }
   }
 
-  String getDialogTitle({required FFArtwork artwork}) {
+  String getDialogTitle({required FFSeries series}) {
     return dialogTitle;
   }
 
-  String getDialogMessage({required FFArtwork artwork}) {
-    if (code == 3009 && artwork.maxEdition < 0) {
+  String getDialogMessage({required FFSeries series}) {
+    if (code == 3009 && series.maxEdition < 0) {
       return "We are running out of tokens. Come back later.";
     } else {
       return dialogMessage;
@@ -76,7 +76,7 @@ extension FFContractExt on FFContract {
 
 extension FFArtistExt on FFArtist {
   String getDisplayName() {
-    return fullName.isNotEmpty ? fullName : alias;
+    return (fullName?.isNotEmpty == true) ? fullName! : alias;
   }
 }
 

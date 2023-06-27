@@ -12,22 +12,31 @@ class AuRadio<T> extends StatelessWidget {
   final Function(T value) onTap;
   final T value;
   final T groupValue;
+  final Color? color;
 
-  const AuRadio(
-      {Key? key,
-      required this.onTap,
-      required this.value,
-      required this.groupValue})
-      : super(key: key);
+  const AuRadio({
+    Key? key,
+    required this.onTap,
+    required this.value,
+    required this.groupValue,
+    this.color,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onTap: () {
-          onTap(value);
-        },
-        child: (value == groupValue)
-            ? SvgPicture.asset('assets/images/radio_true.svg')
-            : SvgPicture.asset('assets/images/radio_false.svg'));
+      onTap: () {
+        onTap(value);
+      },
+      child: (value == groupValue)
+          ? SvgPicture.asset(
+              'assets/images/radio_true.svg',
+              color: color,
+            )
+          : SvgPicture.asset(
+              'assets/images/radio_false.svg',
+              color: color,
+            ),
+    );
   }
 }

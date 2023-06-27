@@ -9,17 +9,19 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 
 class LinkAppOptionsPage extends StatefulWidget {
   final WalletApp walletApp;
@@ -71,10 +73,7 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadiusGeometry.lerp(
-                      const BorderRadius.all(Radius.circular(5)),
-                      const BorderRadius.all(Radius.circular(5)),
-                      5),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(15.0),
@@ -96,6 +95,19 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
                               TextSpan(text: 'all_other_evm_networks'.tr()),
                             ],
                             style: theme.textTheme.ppMori400Black14),
+                      ),
+                      const SizedBox(height: 15.0),
+                      AuSecondaryButton(
+                        text: "request_other_supported_networks".tr(),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            AppRouter.supportThreadPage,
+                            arguments: NewIssuePayload(
+                                reportIssueType: ReportIssueType.Feature),
+                          );
+                        },
+                        borderColor: AppColor.primaryBlack,
+                        textColor: AppColor.primaryBlack,
                       ),
                     ],
                   ),
@@ -180,7 +192,8 @@ class _LinkAppOptionsPageState extends State<LinkAppOptionsPage> {
       _isPageInactive = true;
       if (!mounted) return;
       Navigator.of(context)
-          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask');
+          .pushNamed(AppRouter.linkWalletConnectPage, arguments: 'MetaMask')
+          .then((value) => _isPageInactive = false);
     }
   }
 }

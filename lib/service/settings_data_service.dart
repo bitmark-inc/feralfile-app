@@ -8,20 +8,22 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'settings_data_service.g.dart';
 
 abstract class SettingsDataService {
   Future backup();
+
   Future restoreSettingsData();
 }
 
@@ -29,6 +31,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final IAPApi _iapApi;
+  final CloudDatabase _cloudDB;
 
   var latestDataHash = '';
 
@@ -36,6 +39,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     this._configurationService,
     this._accountService,
     this._iapApi,
+    this._cloudDB,
   );
 
   final _requester =
@@ -54,14 +58,18 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final hiddenMainnetTokenIDs =
         _configurationService.getTempStorageHiddenTokenIDs();
 
+    final hiddenAddressesFromGallery =
+        (await _cloudDB.addressDao.findAddressesWithHiddenStatus(true))
+            .map((e) => e.address)
+            .toList();
+
     final data = SettingsDataBackup(
       addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       finishedSurveys: _configurationService.getFinishedSurveys(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
       hiddenTestnetTokenIDs: [],
-      hiddenFullAccountsFromGallery:
-          _configurationService.getPersonaUUIDsHiddenInGallery(),
+      hiddenAddressesFromGallery: hiddenAddressesFromGallery,
       hiddenLinkedAccountsFromGallery:
           _configurationService.getLinkedAccountsHiddenInGallery(),
       playlists: _configurationService.getPlayList(),
@@ -115,9 +123,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
         data.hiddenMainnetTokenIDs, true,
         override: true);
 
-    await _configurationService.setHidePersonaInGallery(
-        data.hiddenFullAccountsFromGallery, true,
-        override: true);
+    await Future.wait((data.hiddenAddressesFromGallery ?? [])
+        .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
 
     await _configurationService.setHideLinkedAccountInGallery(
         data.hiddenLinkedAccountsFromGallery, true,
@@ -136,9 +143,9 @@ class SettingsDataBackup {
   List<String> finishedSurveys;
   List<String> hiddenMainnetTokenIDs;
   List<String> hiddenTestnetTokenIDs;
-  List<String> hiddenFullAccountsFromGallery;
   List<String> hiddenLinkedAccountsFromGallery;
-  List<PlayListModel>? playlists;
+  List<String>? hiddenAddressesFromGallery;
+  List<PlayListModel> playlists;
 
   SettingsDataBackup({
     required this.addresses,
@@ -146,9 +153,9 @@ class SettingsDataBackup {
     required this.finishedSurveys,
     required this.hiddenMainnetTokenIDs,
     required this.hiddenTestnetTokenIDs,
-    required this.hiddenFullAccountsFromGallery,
     required this.hiddenLinkedAccountsFromGallery,
-    this.playlists,
+    this.hiddenAddressesFromGallery,
+    this.playlists = const [],
   });
 
   factory SettingsDataBackup.fromJson(Map<String, dynamic> json) =>

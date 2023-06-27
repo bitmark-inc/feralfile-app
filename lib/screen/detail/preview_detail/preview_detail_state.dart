@@ -12,15 +12,17 @@ abstract class ArtworkPreviewDetailEvent {}
 
 class ArtworkPreviewDetailGetAssetTokenEvent extends ArtworkPreviewDetailEvent {
   final ArtworkIdentity identity;
+  final bool useIndexer;
 
-  ArtworkPreviewDetailGetAssetTokenEvent(this.identity);
+  ArtworkPreviewDetailGetAssetTokenEvent(this.identity,
+      {this.useIndexer = false});
 }
 
 class ArtworkFeedPreviewDetailGetAssetTokenEvent
     extends ArtworkPreviewDetailEvent {
-  final AssetToken token;
+  final AssetToken assetToken;
 
-  ArtworkFeedPreviewDetailGetAssetTokenEvent(this.token);
+  ArtworkFeedPreviewDetailGetAssetTokenEvent(this.assetToken);
 }
 
 abstract class ArtworkPreviewDetailState {
@@ -32,8 +34,8 @@ class ArtworkPreviewDetailLoadingState extends ArtworkPreviewDetailState {
 }
 
 class ArtworkPreviewDetailLoadedState extends ArtworkPreviewDetailState {
-  AssetToken? asset;
+  AssetToken? assetToken;
   String? overriddenHtml;
 
-  ArtworkPreviewDetailLoadedState({this.asset, this.overriddenHtml});
+  ArtworkPreviewDetailLoadedState({this.assetToken, this.overriddenHtml});
 }

@@ -26,8 +26,8 @@ class RecoveryPhrasePage extends StatelessWidget {
     final itemsEachRow = words.length ~/ 2;
     final roundNumber = words.length ~/ 2;
     final theme = Theme.of(context);
-    final customLinkStyle =
-        theme.textTheme.linkStyle14.copyWith(fontWeight: FontWeight.w400);
+    final customLinkStyle = theme.textTheme.ppMori400Black14
+        .copyWith(decoration: TextDecoration.underline);
 
     return Scaffold(
       appBar: getBackAppBar(

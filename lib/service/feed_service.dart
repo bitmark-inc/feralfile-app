@@ -23,7 +23,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:nft_collection/graphql/clients/indexer_client.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -90,6 +93,21 @@ class AppFeedData {
   AssetToken? findTokenRelatedTo(FeedEvent event) {
     return tokens.firstWhereOrNull((element) => element.id == event.indexerID);
   }
+
+  Map<AssetToken, List<FeedEvent>> get tokenEventMap {
+    final tokenEventMap = <AssetToken, List<FeedEvent>>{};
+    for (FeedEvent event in events) {
+      final token = findTokenRelatedTo(event);
+      if (token == null) continue;
+
+      if (tokenEventMap[token] != null) {
+        tokenEventMap[token]!.add(event);
+      } else {
+        tokenEventMap[token] = [event];
+      }
+    }
+    return tokenEventMap;
+  }
 }
 
 class FeedServiceImpl extends FeedService {
@@ -133,8 +151,7 @@ class FeedServiceImpl extends FeedService {
       _receivePort!.sendPort,
       jwtToken,
       Environment.feedURL,
-      Environment.indexerMainnetURL,
-      Environment.indexerTestnetURL,
+      Environment.indexerURL,
       dotenv,
     ]);
   }
@@ -171,16 +188,18 @@ class FeedServiceImpl extends FeedService {
 
   @override
   Future checkNewFeeds() async {
-    final service = injector<FeedApi>();
-    final isTestnet = Environment.appTestnetConfig;
-    final feedData = await service.getFeeds(isTestnet, 10, null, null);
-    hasFeed.value = feedData.events.isNotEmpty;
-    _configurationService.setHasFeed(hasFeed.value);
     final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
-    final newEvents = feedData.events.where(
-        (event) => event.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed);
-    log.info("[FeedService] ${newEvents.length} unread feeds");
-    unviewedCount.value = newEvents.length;
+    final appFeedData = await fetchFeeds(null);
+    final tokenEventMap = appFeedData.tokenEventMap;
+    hasFeed.value = tokenEventMap.isNotEmpty;
+    _configurationService.setHasFeed(hasFeed.value);
+    tokenEventMap.removeWhere((key, value) {
+      return (value.firstWhereOrNull((element) =>
+              element.timestamp.millisecondsSinceEpoch > lastTimeOpenFeed) ==
+          null);
+    });
+    unviewedCount.value = tokenEventMap.length;
+    log.info("[FeedService] ${unviewedCount.value} unread feeds");
   }
 
   @override
@@ -231,12 +250,16 @@ class FeedServiceImpl extends FeedService {
 
   static void _isolateEntry(List<dynamic> arguments) async {
     SendPort sendPort = arguments[0];
-    dotenv = arguments[5];
+    dotenv = arguments[4];
 
     final receivePort = ReceivePort();
     receivePort.listen(_handleMessageInIsolate);
 
-    _setupInjector(arguments[1], arguments[2], arguments[3], arguments[4]);
+    _setupInjector(
+      arguments[1],
+      arguments[2],
+      arguments[3],
+    );
     sendPort.send(receivePort.sendPort);
     _isolateSendPort = sendPort;
   }
@@ -267,8 +290,15 @@ class FeedServiceImpl extends FeedService {
       _fetchFeedsCompleters.remove(result.uuid);
       //
     } else if (result is FetchFeedsFailure) {
-      _fetchFeedsCompleters[result.uuid]?.completeError(result.exception);
+      final exception = result.exception;
+      _fetchFeedsCompleters[result.uuid]?.completeError(exception);
       _fetchFeedsCompleters.remove(result.uuid);
+      if (exception is DioError && exception.response?.statusCode == 403) {
+        _isolateRetryParams = result.fetchParams;
+        injector<AuthService>().getAuthToken(forceRefresh: true);
+      } else {
+        Sentry.captureException(exception);
+      }
       //
     } else if (result is FetchTokensByIndexerIDSuccess) {
       _fetchTokensByIndexerIDCompleters[result.uuid]?.complete(result.tokens);
@@ -283,6 +313,7 @@ class FeedServiceImpl extends FeedService {
 
   // Isolate
   static late QuickAuthInterceptor _quickAuthInterceptor;
+  static List<dynamic>? _isolateRetryParams;
 
   static void _handleMessageInIsolate(dynamic message) {
     if (message is List<dynamic>) {
@@ -302,12 +333,17 @@ class FeedServiceImpl extends FeedService {
 
         case REFRESH_JWT_TOKEN:
           _quickAuthInterceptor.jwtToken = message[1];
+          if (_isolateRetryParams != null) {
+            List<dynamic> params = _isolateRetryParams!;
+            _isolateRetryParams = null;
+            _handleMessageInIsolate(params);
+          }
       }
     }
   }
 
-  static void _setupInjector(String jwtToken, String feedURL,
-      String indexerMainnetURL, String indexerTestnetURL) {
+  static void _setupInjector(
+      String jwtToken, String feedURL, String indexerURL) {
     _quickAuthInterceptor = QuickAuthInterceptor(jwtToken);
 
     final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
@@ -320,10 +356,14 @@ class FeedServiceImpl extends FeedService {
         () => FeedApi(authenticatedDio, baseUrl: feedURL));
 
     final dio = Dio();
-    injector.registerLazySingleton(
-        () => IndexerApi(dio, baseUrl: indexerMainnetURL));
-    testnetInjector.registerLazySingleton(
-        () => IndexerApi(dio, baseUrl: indexerTestnetURL));
+    injector.registerLazySingleton(() => IndexerApi(dio, baseUrl: indexerURL));
+    testnetInjector
+        .registerLazySingleton(() => IndexerApi(dio, baseUrl: indexerURL));
+
+    final indexerClient = IndexerClient(indexerURL);
+
+    injector.registerLazySingleton<IndexerService>(
+        () => IndexerService(indexerClient));
   }
 
   static void _refreshFollowings(String uuid, List<String> followings) async {
@@ -394,11 +434,12 @@ class FeedServiceImpl extends FeedService {
         indexerIDs.add(feed.indexerID);
       }
 
-      final indexerAPI =
-          isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
-      final tokens = (await indexerAPI.getNftTokens({"ids": indexerIDs}))
-          .map((e) => AssetToken.fromAsset(e))
-          .toList();
+      final indexerService = injector<IndexerService>();
+
+      final List<AssetToken> tokens = indexerIDs.isNotEmpty
+          ? (await indexerService
+              .getNftTokens(QueryListTokensRequest(ids: indexerIDs)))
+          : [];
 
       // Get missing tokens
       final eventsWithMissingToken = feedData.events.where(
@@ -419,18 +460,26 @@ class FeedServiceImpl extends FeedService {
             missingTokenIDs: missingTokenIDs),
       ));
     } catch (exception) {
-      _isolateSendPort?.send(FetchFeedsFailure(uuid, exception));
+      _isolateSendPort?.send(FetchFeedsFailure(uuid, exception, [
+        FETCH_FEEDS,
+        uuid,
+        isTestnet,
+        serial,
+        timestamp,
+        ignoredTokenIds,
+      ]));
     }
   }
 
   static void _fetchTokensByIndexerID(
       String uuid, bool isTestnet, List<String> indexerIDs) async {
     try {
-      final indexerAPI =
-          isTestnet ? testnetInjector<IndexerApi>() : injector<IndexerApi>();
-      final tokens = (await indexerAPI.getNftTokens({"ids": indexerIDs}))
-          .map((e) => AssetToken.fromAsset(e))
-          .toList();
+      final indexerService = injector<IndexerService>();
+
+      final List<AssetToken> tokens = indexerIDs.isNotEmpty
+          ? (await indexerService
+              .getNftTokens(QueryListTokensRequest(ids: indexerIDs)))
+          : [];
       _isolateSendPort?.send(FetchTokensByIndexerIDSuccess(uuid, tokens));
     } catch (exception) {
       _isolateSendPort?.send(FetchTokensByIndexerIDFailure(uuid, exception));
@@ -473,8 +522,9 @@ class FetchFeedsSuccess extends FeedServiceResult {
 class FetchFeedsFailure extends FeedServiceResult {
   final String uuid;
   final Object exception;
+  final List<dynamic> fetchParams;
 
-  FetchFeedsFailure(this.uuid, this.exception);
+  FetchFeedsFailure(this.uuid, this.exception, this.fetchParams);
 }
 
 class FetchTokensByIndexerIDSuccess extends FeedServiceResult {

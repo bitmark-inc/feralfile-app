@@ -17,12 +17,14 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:version_check/version_check.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -34,6 +36,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage>
     with RouteAware, WidgetsBindingObserver, TickerProviderStateMixin {
   PackageInfo? _packageInfo;
+  VersionCheck? _versionCheck;
   late ScrollController _controller;
   int _lastTap = 0;
   int _consecutiveTaps = 0;
@@ -46,6 +49,7 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadPackageInfo();
+    _checkVersion();
     injector<SettingsDataService>().backup();
     injector<VersionService>().checkForUpdate();
     _controller = ScrollController();
@@ -103,11 +107,12 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "settings".tr(),
-        onBack: () {
+        onClose: () {
           Navigator.of(context).pop();
         },
       ),
@@ -115,17 +120,23 @@ class _SettingsPageState extends State<SettingsPage>
         child: NotificationListener(
           child: Column(
             children: [
-              addTitleSpace(),
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Tipcard(
+                    titleText: "try_autonomy_pro_free".tr(),
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushNamed(AppRouter.subscriptionPage);
+                    },
+                    buttonText: "start_free_trial".tr(),
+                    content: Text("experience_premium_features".tr(),
+                        style: theme.textTheme.ppMori400Black14),
+                    listener: injector<ConfigurationService>().showProTip),
+              ),
+              const SizedBox(height: 30),
               Column(
                 children: [
-                  _settingItem(
-                    title: "wallets".tr(),
-                    icon: const Icon(AuIcon.account),
-                    onTap: () {
-                      Navigator.of(context).pushNamed(AppRouter.walletPage);
-                    },
-                  ),
-                  addOnlyDivider(),
                   _settingItem(
                     title: "preferences".tr(),
                     icon: const Icon(AuIcon.preferences),
@@ -214,9 +225,54 @@ class _SettingsPageState extends State<SettingsPage>
     });
   }
 
+  Future<void> _checkVersion() async {
+    final versionCheck =
+        VersionCheck(showUpdateDialog: (context, versionCheck) {});
+    await versionCheck.checkVersion(context);
+    setState(() {
+      _versionCheck = versionCheck;
+    });
+  }
+
   Widget _versionSection() {
     final theme = Theme.of(context);
     return Column(children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            child: Text(
+              "eula".tr(),
+              style: theme.textTheme.ppMori400Grey12
+                  .copyWith(decoration: TextDecoration.underline),
+            ),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.githubDocPage, arguments: {
+              "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
+              "document": "eula.md",
+              "title": "eula".tr(),
+            }),
+          ),
+          Text(
+            "_and".tr(),
+            style: theme.textTheme.ppMori400Grey12,
+          ),
+          GestureDetector(
+            child: Text(
+              "privacy_policy".tr(),
+              style: theme.textTheme.ppMori400Grey12
+                  .copyWith(decoration: TextDecoration.underline),
+            ),
+            onTap: () => Navigator.of(context)
+                .pushNamed(AppRouter.githubDocPage, arguments: {
+              "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
+              "document": "privacy.md",
+              "title": "privacy_policy".tr(),
+            }),
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
       if (_packageInfo != null)
         GestureDetector(
             child: Container(
@@ -241,11 +297,12 @@ class _SettingsPageState extends State<SettingsPage>
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLastestVersion =
-            injector<ConfigurationService>().isLastestVersion();
+        final isLatestVersion = _versionCheck?.storeVersion
+                ?.compareTo(_versionCheck?.packageVersion ?? "") ==
+            0;
         return GestureDetector(
           onTap: () async {
-            if (isLastestVersion) {
+            if (isLatestVersion) {
               int now = DateTime.now().millisecondsSinceEpoch;
               if (now - _lastTap < 1000) {
                 _consecutiveTaps++;
@@ -265,10 +322,25 @@ class _SettingsPageState extends State<SettingsPage>
               }
               _lastTap = now;
             } else {
-              injector<VersionService>().openLastestVersion();
+              UIHelper.showMessageAction(
+                context,
+                "update_available".tr(),
+                "want_to_update".tr(
+                  args: [
+                    _versionCheck?.storeVersion ?? "the_latest_version".tr(),
+                    _packageInfo?.version ?? ""
+                  ],
+                ),
+                isDismissible: true,
+                closeButton: "close".tr(),
+                actionButton: "update".tr(),
+                onAction: () {
+                  injector<VersionService>().openLatestVersion();
+                },
+              );
             }
           },
-          child: isLastestVersion
+          child: isLatestVersion
               ? Text(
                   'up_to_date'.tr(),
                   style: theme.textTheme.ppMori400Grey12,
@@ -277,6 +349,7 @@ class _SettingsPageState extends State<SettingsPage>
                   'update_to_the_latest_version'.tr(),
                   style: theme.textTheme.linkStyle14.copyWith(
                       fontWeight: FontWeight.w400,
+                      fontFamily: AppTheme.ppMori,
                       decorationColor: AppColor.disabledColor,
                       color: AppColor.disabledColor,
                       shadows: [const Shadow()]),

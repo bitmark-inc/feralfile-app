@@ -5,6 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
@@ -27,36 +33,133 @@ class Persona {
   String name;
   DateTime createdAt;
   int? defaultAccount;
+  int ethereumIndex;
+  int tezosIndex;
+  String? ethereumIndexes;
+  String? tezosIndexes;
 
   Persona(
       {required this.uuid,
       required this.name,
       required this.createdAt,
-      this.defaultAccount});
+      this.defaultAccount,
+      this.ethereumIndex = 1,
+      this.tezosIndex = 1,
+      this.ethereumIndexes = "",
+      this.tezosIndexes = ""});
 
   Persona.newPersona(
       {required this.uuid,
       this.name = "",
       this.defaultAccount,
-      DateTime? createdAt})
+      DateTime? createdAt,
+      this.ethereumIndex = 1,
+      this.tezosIndex = 1,
+      this.ethereumIndexes = "0",
+      this.tezosIndexes = "0"})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
     String? name,
     DateTime? createdAt,
+    String? ethereumIndexes,
+    String? tezosIndexes,
   }) {
     return Persona(
         uuid: uuid,
         name: name ?? this.name,
         defaultAccount: defaultAccount,
-        createdAt: createdAt ?? this.createdAt);
+        createdAt: createdAt ?? this.createdAt,
+        ethereumIndexes: ethereumIndexes ?? this.ethereumIndexes,
+        tezosIndexes: tezosIndexes ?? this.tezosIndexes);
+  }
+
+  // fromJson method
+  factory Persona.fromJson(Map<String, dynamic> json) {
+    return Persona(
+      uuid: json['uuid'],
+      name: json['name'],
+      createdAt: DateTimeConverter().decode(json['createdAt']),
+      defaultAccount: json['defaultAccount'],
+      ethereumIndex: json['ethereumIndex'],
+      tezosIndex: json['tezosIndex'],
+      ethereumIndexes: json['ethereumIndexes'],
+      tezosIndexes: json['tezosIndexes'],
+    );
   }
 
   WalletStorage wallet() {
     return LibAukDart.getWallet(uuid);
   }
 
+  Future<List<WalletAddress>> getWalletAddresses() async {
+    return injector<CloudDatabase>().addressDao.findByWalletID(uuid);
+  }
+
+  Future<List<WalletAddress>> getEthWalletAddresses() async {
+    return injector<CloudDatabase>()
+        .addressDao
+        .getAddresses(uuid, CryptoType.ETH.source);
+  }
+
+  Future<List<WalletAddress>> getTezWalletAddresses() async {
+    return injector<CloudDatabase>()
+        .addressDao
+        .getAddresses(uuid, CryptoType.XTZ.source);
+  }
+
   bool isDefault() => defaultAccount == 1;
+
+  Future<List<String>> getAddresses() async {
+    final walletAddress = await getWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
+  }
+
+  Future<List<String>> getEthAddresses() async {
+    final walletAddress = await getEthWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
+  }
+
+  Future<List<String>> getTezosAddresses() async {
+    final walletAddress = await getTezWalletAddresses();
+    return walletAddress.map((e) => e.address).toList();
+  }
+
+  Future<int?> getAddressIndex(String address) async {
+    final walletAddress =
+        await injector<CloudDatabase>().addressDao.findByAddress(address);
+    if (walletAddress != null) {
+      return walletAddress.index;
+    }
+    return null;
+  }
+
+  Future insertAddress(WalletType walletType, {int index = 0}) async {
+    final ethAddress = WalletAddress(
+        address: await wallet().getETHEip55Address(index: index),
+        uuid: uuid,
+        index: index,
+        cryptoType: CryptoType.ETH.source,
+        createdAt: DateTime.now());
+    final tezAddress = WalletAddress(
+        address: await wallet().getTezosAddress(index: index),
+        uuid: uuid,
+        index: index,
+        cryptoType: CryptoType.XTZ.source,
+        createdAt: DateTime.now());
+    switch (walletType) {
+      case WalletType.Ethereum:
+        await injector<CloudDatabase>().addressDao.insertAddress(ethAddress);
+        break;
+      case WalletType.Tezos:
+        await injector<CloudDatabase>().addressDao.insertAddress(tezAddress);
+        break;
+      default:
+        await injector<CloudDatabase>()
+            .addressDao
+            .insertAddresses([ethAddress, tezAddress]);
+    }
+  }
 
   @override
   bool operator ==(covariant Persona other) {
@@ -65,7 +168,9 @@ class Persona {
     return other.uuid == uuid &&
         other.name == name &&
         other.createdAt == createdAt &&
-        other.defaultAccount == defaultAccount;
+        other.defaultAccount == defaultAccount &&
+        other.ethereumIndexes == ethereumIndexes &&
+        other.tezosIndexes == tezosIndexes;
   }
 
   @override
@@ -73,6 +178,8 @@ class Persona {
     return uuid.hashCode ^
         name.hashCode ^
         createdAt.hashCode ^
-        defaultAccount.hashCode;
+        defaultAccount.hashCode ^
+        ethereumIndexes.hashCode ^
+        tezosIndexes.hashCode;
   }
 }

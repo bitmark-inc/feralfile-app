@@ -9,6 +9,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -167,7 +168,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               final createdPersona = state.persona;
               if (createdPersona != null) {
                 Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                    arguments: createdPersona.uuid);
+                    arguments: NamePersonaPayload(uuid: createdPersona.uuid));
               }
             });
             break;

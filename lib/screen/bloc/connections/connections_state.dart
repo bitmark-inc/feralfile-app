@@ -12,14 +12,16 @@ abstract class ConnectionsEvent {}
 // Refresh when gotoPage (PersonaConnectionsPage)
 class GetETHConnectionsEvent extends ConnectionsEvent {
   final String personUUID;
+  final int index;
 
-  GetETHConnectionsEvent(this.personUUID);
+  GetETHConnectionsEvent(this.personUUID, this.index);
 }
 
 class GetXTZConnectionsEvent extends ConnectionsEvent {
   final String personUUID;
+  final int index;
 
-  GetXTZConnectionsEvent(this.personUUID);
+  GetXTZConnectionsEvent(this.personUUID, this.index);
 }
 
 class DeleteConnectionsEvent extends ConnectionsEvent {

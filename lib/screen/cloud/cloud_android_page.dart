@@ -111,16 +111,16 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                     Text(
                       "autonomy_will_auto_bk".tr(),
                       //"Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
-                      style: theme.textTheme.bodyLarge,
+                      style: theme.textTheme.ppMori400Black14,
                     ),
                     const SizedBox(height: 15),
                     ExternalAppInfoView(
                       icon: Image.asset("assets/images/googleCloud.png"),
                       appName: "google_cloud".tr(),
-                      status: isEncryptionAvailable != null
+                      status: isEncryptionAvailable == true
                           ? "turned_on".tr()
                           : "turned_off".tr(),
-                      statusColor: isEncryptionAvailable == null
+                      statusColor: isEncryptionAvailable != true
                           ? AppColor.red
                           : AppColor.auQuickSilver,
                     ),
@@ -186,7 +186,6 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
           route.settings.name == AppRouter.claimSelectAccountPage ||
-          route.settings.name == AppRouter.walletPage ||
           route.settings.name == AppRouter.wcConnectPage ||
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition);

@@ -14,16 +14,16 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
-import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:web3dart/credentials.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
+import 'package:web3dart/credentials.dart';
 
 extension StringExtension on WalletStorage {
-  Future<String> getETHEip55Address() async {
-    String address = await getETHAddress();
+  Future<String> getETHEip55Address({int index = 0}) async {
+    String address = await getETHAddress(index: index);
     if (address.isNotEmpty) {
       return EthereumAddress.fromHex(address).hexEip55;
     } else {
@@ -43,23 +43,28 @@ extension StringHelper on String {
 }
 
 extension WalletStorageExtension on WalletStorage {
-  Future getOwnedQuantity(AssetToken token) async {
-    final addresses = [
-      await getETHEip55Address(),
-      await getTezosAddress(),
-    ];
-    if (token.fungible == true && token.owners.isNotEmpty) {
-      return addresses.map((e) => token.owners[e] ?? 0).sum;
-    } else {
-      return addresses.contains(token.ownerAddress) ? 1 : 0;
-    }
+  int getOwnedQuantity(AssetToken token) {
+    return token.getCurrentBalance ?? 0;
   }
 
-  Future getTezosAddress() async {
-    final publicKey = await getTezosPublicKey();
+  Future<String> getTezosAddress({int index = 0}) async {
+    final publicKey = await getTezosPublicKey(index: index);
     return crypto.addressFromPublicKey(publicKey);
   }
 
+  getTezosAddressFromPubKey(String publicKey) {
+    return crypto.addressFromPublicKey(publicKey);
+  }
+}
+
+class WalletIndex {
+  final WalletStorage wallet;
+  final int index;
+
+  WalletIndex(this.wallet, this.index);
+}
+
+extension WalletIndexExtension on WalletIndex {
   Future<String> signMessage({
     required String chain,
     required String message,
@@ -67,11 +72,12 @@ extension WalletStorageExtension on WalletStorage {
     var msg = Uint8List.fromList(utf8.encode(message));
     switch (chain.caip2Namespace) {
       case Wc2Chain.ethereum:
-        return await injector<EthereumService>().signPersonalMessage(this, msg);
+        return await injector<EthereumService>()
+            .signPersonalMessage(wallet, index, msg);
       case Wc2Chain.tezos:
-        return await injector<TezosService>().signMessage(this, msg);
+        return await injector<TezosService>().signMessage(wallet, index, msg);
       case Wc2Chain.autonomy:
-        return await getAccountDIDSignature(message);
+        return await wallet.getAccountDIDSignature(message);
     }
     throw Exception("Unsupported chain $chain");
   }
@@ -82,18 +88,18 @@ extension WalletStorageExtension on WalletStorage {
   }) async {
     switch (chain.caip2Namespace) {
       case "eip155":
-        final ethAddress = await getETHEip55Address();
+        final ethAddress = await wallet.getETHEip55Address(index: index);
         return Wc2Chain(
           chain: chain,
           address: ethAddress,
           signature: await signMessage(chain: chain, message: message),
         );
       case "tezos":
-        final tezosAddress = await getTezosAddress();
+        final tezosAddress = await wallet.getTezosAddress(index: index);
         return Wc2Chain(
           chain: chain,
           address: tezosAddress,
-          publicKey: await getTezosPublicKey(),
+          publicKey: await wallet.getTezosPublicKey(index: index),
           signature: await signMessage(chain: chain, message: message),
         );
     }

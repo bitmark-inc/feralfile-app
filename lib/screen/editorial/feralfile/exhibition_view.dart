@@ -95,10 +95,10 @@ class _ExhibitionViewState extends State<ExhibitionView> {
   }
 
   Widget _ffArtworks(BuildContext context, Exhibition? exhibition) {
-    if (exhibition?.artworks == null) return const SizedBox();
+    if (exhibition?.series == null) return const SizedBox();
 
     final theme = Theme.of(context);
-    final artworks = exhibition!.artworks!;
+    final artworks = exhibition!.series!;
 
     return ListView.builder(
       scrollDirection: Axis.horizontal,
@@ -139,7 +139,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  "by".tr(args: [artwork.artist.fullName]),
+                  "by".tr(args: [artwork.artist?.fullName ?? ""]),
                   style: theme.textTheme.ppMori400White12,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

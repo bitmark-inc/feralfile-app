@@ -6,61 +6,66 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
+import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/carousel.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
+import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:open_settings/open_settings.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/token_ext.dart';
@@ -82,30 +87,9 @@ class HomePageState extends State<HomePage>
   late ScrollController _controller;
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
+  final _clientTokenService = injector<ClientTokenService>();
 
-  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier([]);
-
-  Future<List<String>> getAddresses() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddresses();
-  }
-
-  Future<List<PlayListModel>?> getPlaylist() async {
-    final configurationService = injector.get<ConfigurationService>();
-    if (configurationService.isDemoArtworksMode()) {
-      return injector<VersionService>().getDemoAccountFromGithub();
-    }
-    return configurationService.getPlayList();
-  }
-
-  Future<List<String>> getManualTokenIds() async {
-    final cloudDb = injector<CloudDatabase>();
-    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
-            ConnectionType.manuallyIndexerTokenID.rawValue))
-        .map((e) => e.key)
-        .toList();
-    return tokenIndexerIDs;
-  }
+  final nftBloc = injector<ClientTokenService>().nftBloc;
 
   @override
   void initState() {
@@ -114,15 +98,37 @@ class HomePageState extends State<HomePage>
     _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
-    _controller = ScrollController();
+    _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
+    injector<ConfigurationService>().setAutoShowPostcard(true);
+    NftCollectionBloc.eventController.stream.listen((event) async {
+      switch (event.runtimeType) {
+        case ReloadEvent:
+        case GetTokensByOwnerEvent:
+        case UpdateTokensEvent:
+          nftBloc.add(event);
+          break;
+        default:
+      }
+    });
+
     refreshFeeds();
-    refreshTokens();
+    _clientTokenService.refreshTokens().then((value) {
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+    });
+
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
-    injector<TezosBeaconService>().cleanup();
-    injector<Wc2Service>().cleanup();
+  }
+
+  _scrollListenerToLoadMore() {
+    if (_controller.position.pixels + 100 >=
+        _controller.position.maxScrollExtent) {
+      final nextKey = nftBloc.state.nextKey;
+      if (nextKey == null || nextKey.isLoaded) return;
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
+    }
   }
 
   @override
@@ -134,7 +140,6 @@ class HomePageState extends State<HomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     injector<FeralFileService>().completeDelayedFFConnections();
-    _cloudBackup();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
   }
@@ -152,15 +157,14 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    refreshTokens().then((value) => refreshFeeds());
+    _clientTokenService.refreshTokens().then((value) => refreshFeeds());
     refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
         if (!mounted) return;
-        context
-            .read<NftCollectionBloc>()
-            .add(RequestIndexEvent(await getAddresses()));
+        nftBloc
+            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
     }
     memoryValues.inGalleryView = true;
@@ -172,13 +176,40 @@ class HomePageState extends State<HomePage>
     super.didPushNext();
   }
 
-  void _onTokensUpdate(List<AssetToken> tokens) async {
+  void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     final artistIds = tokens
         .map((e) => e.artistID)
         .where((value) => value?.isNotEmpty == true)
         .map((e) => e as String)
         .toList();
     injector<FeedService>().refreshFollowings(artistIds);
+
+    //check minted postcard and naviagtor to artwork detail
+    final config = injector.get<ConfigurationService>();
+    final listTokenMints = config.getListPostcardMint();
+    if (tokens.any((element) =>
+        listTokenMints.contains(element.id) && element.pending != true)) {
+      final tokenMints = tokens
+          .where(
+            (element) =>
+                listTokenMints.contains(element.id) && element.pending != true,
+          )
+          .map((e) => e.identity)
+          .toList();
+      if (config.isAutoShowPostcard()) {
+        log.info("Auto show minted postcard");
+        final payload = ArtworkDetailPayload(tokenMints, 0);
+        Navigator.of(context).pushNamed(
+          AppRouter.claimedPostcardDetailsPage,
+          arguments: payload,
+        );
+      }
+
+      config.setListPostcardMint(
+        tokenMints.map((e) => e.id).toList(),
+        isRemoved: true,
+      );
+    }
 
     // Check if there is any Tezos token in the list
     List<String> allAccountNumbers =
@@ -196,49 +227,53 @@ class HomePageState extends State<HomePage>
     }
   }
 
+  List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
+    tokens = tokens.filterAssetToken();
+
+    return tokens;
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
-            buildWhen: (previousState, currentState) {
-      final diffLength =
-          currentState.tokens.length - previousState.tokens.length;
-      if (diffLength > 0) {
-        _metricClient.addEvent(MixpanelEvent.addNFT, data: {
-          'number': diffLength,
-        });
-      }
-      return true;
-    }, builder: (context, state) {
-      final hiddenTokens =
-          injector<ConfigurationService>().getTempStorageHiddenTokenIDs();
-      final sentArtworks =
-          injector<ConfigurationService>().getRecentlySentToken();
-      final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-      return NftCollectionGrid(
-        state: state.state,
-        tokens: state.tokens
-            .where((element) =>
-                !hiddenTokens.contains(element.id) &&
-                !sentArtworks.any((e) => e.isHidden(
-                    tokenID: element.id,
-                    address: element.ownerAddress,
-                    timestamp: expiredTime)))
-            .toList(),
-        loadingIndicatorBuilder: _loadingView,
-        emptyGalleryViewBuilder: _emptyGallery,
-        customGalleryViewBuilder: (context, tokens) =>
-            _assetsWidget(context, tokens),
-      );
-    }, listener: (context, state) async {
-      log.info("[NftCollectionBloc] State update $state");
-      if (state.state == NftLoadingState.done) {
-        _onTokensUpdate(state.tokens);
-      }
-    });
+      bloc: nftBloc,
+      listenWhen: (previousState, currentState) {
+        final diffLength =
+            currentState.tokens.length - previousState.tokens.length;
+        if (diffLength != 0) {
+          _metricClient.addEvent(MixpanelEvent.addNFT, data: {
+            'number': diffLength,
+          });
+        }
+        if (diffLength != 0) {
+          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
+            'number': currentState.tokens.length,
+          });
+          _metricClient.setLabel(
+              MixpanelProp.numberNft, currentState.tokens.length);
+        }
+        return true;
+      },
+      builder: (context, state) {
+        return NftCollectionGrid(
+          state: state.state,
+          tokens: _updateTokens(state.tokens.items),
+          loadingIndicatorBuilder: _loadingView,
+          emptyGalleryViewBuilder: _emptyGallery,
+          customGalleryViewBuilder: (context, tokens) =>
+              _assetsWidget(context, tokens),
+        );
+      },
+      listener: (context, state) async {
+        log.info("[NftCollectionBloc] State update $state");
+        if (state.state == NftLoadingState.done) {
+          _onTokensUpdate(state.tokens.items);
+        }
+      },
+    );
 
     return BlocListener<UpgradesBloc, UpgradeState>(
       listener: (context, state) {
@@ -277,12 +312,8 @@ class HomePageState extends State<HomePage>
     return Center(
         child: Column(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-            child: autonomyLogo,
-          ),
+        HeaderView(
+          paddingTop: paddingTop,
         ),
         loadingIndicator(),
       ],
@@ -292,34 +323,27 @@ class HomePageState extends State<HomePage>
   Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
     final paddingTop = MediaQuery.of(context).viewPadding.top;
-
     return ListView(
-      padding: ResponsiveLayout.getPadding.copyWith(left: 0),
+      padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-            child: autonomyLogo,
-          ),
-        ),
+        HeaderView(paddingTop: paddingTop),
+        _carouselTipcard(context),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
             "collection_empty_now".tr(),
             //"Your collection is empty for now.",
-            style: theme.textTheme.bodyLarge,
+            style: theme.textTheme.ppMori400Black14,
           ),
         ),
       ],
     );
   }
 
-  Widget _assetsWidget(BuildContext context, List<AssetToken> tokens) {
-    tokens.sortToken();
+  Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
     final accountIdentities = tokens
         .where((e) => e.pending != true || e.hasMetadata)
-        .map((element) => ArtworkIdentity(element.id, element.ownerAddress))
+        .map((element) => element.identity)
         .toList();
 
     const int cellPerRowPhone = 3;
@@ -338,47 +362,15 @@ class HomePageState extends State<HomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     sources = [
       SliverToBoxAdapter(
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(15, paddingTop + 20, 0, 40),
-                child: autonomyLogo,
-              ),
-            ),
-            FutureBuilder<bool>(
-              future: injector<IAPService>().isSubscribed(),
-              builder: (context, subscriptionSnapshot) {
-                final isSubscribed = subscriptionSnapshot.hasData &&
-                    subscriptionSnapshot.data == true;
-                return Visibility(
-                  visible: isSubscribed,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: SizedBox(
-                      height: 103,
-                      child: ValueListenableBuilder(
-                        valueListenable: _playlists,
-                        builder: (context, value, child) => ListPlaylistWidget(
-                          playlists: _playlists.value,
-                          onUpdateList: () async {
-                            if (injector
-                                .get<ConfigurationService>()
-                                .isDemoArtworksMode()) return;
-                            await injector
-                                .get<ConfigurationService>()
-                                .setPlayList(_playlists.value, override: true);
-                            injector.get<SettingsDataService>().backup();
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
+        child: HeaderView(paddingTop: paddingTop),
+      ),
+      SliverToBoxAdapter(
+        child: _carouselTipcard(context),
+      ),
+      const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 15),
+          child: ListPlaylistsScreen(),
         ),
       ),
       SliverGrid(
@@ -391,6 +383,13 @@ class HomePageState extends State<HomePage>
           (BuildContext context, int index) {
             final asset = tokens[index];
 
+            if (asset.pending == true && asset.isPostcard) {
+              return MintTokenWidget(
+                thumbnail: asset.galleryThumbnailURL,
+                tokenId: asset.tokenId,
+              );
+            }
+
             return GestureDetector(
               child: asset.pending == true && !asset.hasMetadata
                   ? PendingTokenWidget(
@@ -401,6 +400,7 @@ class HomePageState extends State<HomePage>
                       context,
                       asset,
                       _cachedImageSize,
+                      usingThumbnailID: index > 50,
                     ),
               onTap: () {
                 if (asset.pending == true && !asset.hasMetadata) return;
@@ -411,8 +411,12 @@ class HomePageState extends State<HomePage>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                    arguments: payload);
+                final pageName = asset.isPostcard
+                    ? AppRouter.claimedPostcardDetailsPage
+                    : AppRouter.artworkDetailsPage;
+                Navigator.of(context)
+                    .pushNamed(pageName, ////need change to pageName
+                        arguments: payload);
 
                 _metricClient.addEvent(MixpanelEvent.viewArtwork,
                     data: {"id": asset.id});
@@ -432,10 +436,110 @@ class HomePageState extends State<HomePage>
     );
   }
 
-  Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
+  Widget _carouselTipcard(BuildContext context) {
+    final configurationService = injector<ConfigurationService>();
+    return MultiValueListenableBuilder(
+      valueListenables: [
+        configurationService.showTvAppTip,
+        configurationService.showCreatePlaylistTip,
+        configurationService.showLinkOrImportTip,
+        configurationService.showBackupSettingTip,
+      ],
+      builder: (BuildContext context, List<dynamic> values, Widget? child) {
+        return CarouselWithIndicator(
+          items: _listTipcards(context, values),
+        );
+      },
+    );
+  }
+
+  List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
+    final theme = Theme.of(context);
+    final isShowTvAppTip = values[0] as bool;
+    final isShowCreatePlaylistTip = values[1] as bool;
+    final isShowLinkOrImportTip = values[2] as bool;
+    final isShowBackupSettingTip = values[3] as bool;
+    final configurationService = injector<ConfigurationService>();
+    return [
+      if (isShowLinkOrImportTip)
+        Tipcard(
+            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.accessMethodPage);
+            },
+            buttonText: "add_wallet".tr(),
+            content: Text("you_can_link_or_import".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showLinkOrImportTip),
+      if (isShowCreatePlaylistTip)
+        Tipcard(
+            titleText: "create_your_first_playlist".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
+            },
+            buttonText: "create_new_playlist".tr(),
+            content: Text("as_a_pro_sub_playlist".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showCreatePlaylistTip),
+      if (isShowTvAppTip)
+        Tipcard(
+            titleText: "enjoy_your_collection".tr(),
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                AppRouter.scanQRPage,
+                arguments: ScannerItem.GLOBAL,
+              );
+            },
+            buttonText: "sync_up_with_autonomy_tv".tr(),
+            content: RichText(
+              text: TextSpan(
+                text: "as_a_pro_sub_TV_app".tr(),
+                style: theme.textTheme.ppMori400Black14,
+                children: [
+                  TextSpan(
+                    text: "google_TV_app".tr(),
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                        color: theme.colorScheme.primary,
+                        decoration: TextDecoration.underline),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        final metricClient = injector<MetricClientService>();
+                        metricClient.addEvent(MixpanelEvent.tapLinkInTipCard,
+                            data: {
+                              "link": TV_APP_STORE_URL,
+                              "title": "enjoy_your_collection".tr()
+                            });
+                        launchUrl(Uri.parse(TV_APP_STORE_URL),
+                            mode: LaunchMode.externalApplication);
+                      },
+                  ),
+                  TextSpan(
+                    text: "currently_available_on".tr(),
+                  )
+                ],
+              ),
+            ),
+            listener: configurationService.showTvAppTip),
+      if (isShowBackupSettingTip)
+        Tipcard(
+            titleText: "backup_failed".tr(),
+            onPressed: Platform.isAndroid
+                ? () {
+                    OpenSettings.openAddAccountSetting();
+                  }
+                : () async {
+                    openAppSettings();
+                  },
+            buttonText: Platform.isAndroid
+                ? "open_device_setting".tr()
+                : "open_icloud_setting".tr(),
+            content: Text(
+                Platform.isAndroid
+                    ? "backup_tip_card_content_android".tr()
+                    : "backup_tip_card_content_ios".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: configurationService.showBackupSettingTip),
+    ];
   }
 
   Future<void> _checkForKeySync() async {
@@ -459,43 +563,7 @@ class HomePageState extends State<HomePage>
   }
 
   Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssues();
-  }
-
-  Future refreshTokens({checkPendingToken = false}) async {
-    final accountService = injector<AccountService>();
-    _playlists.value = await getPlaylist();
-    Future.wait([
-      getAddresses(),
-      getManualTokenIds(),
-      accountService.getHiddenAddresses(),
-    ]).then((value) async {
-      final addresses = value[0];
-      final indexerIds = value[1];
-      final hiddenAddresses = value[2];
-      final activeAddresses = addresses
-          .where((element) => !hiddenAddresses.contains(element))
-          .toList();
-      final nftBloc = context.read<NftCollectionBloc>();
-      final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-      if (isDemo) {
-        _playlists.value?.forEach((element) {
-          indexerIds.addAll(element.tokenIDs ?? []);
-        });
-      }
-      nftBloc.add(UpdateHiddenTokens(ownerAddresses: hiddenAddresses));
-      nftBloc.add(RefreshTokenEvent(
-          addresses: activeAddresses, debugTokens: indexerIds));
-      nftBloc.add(RequestIndexEvent(activeAddresses));
-      if (checkPendingToken) {
-        final pendingTokenService = injector<PendingTokenService>();
-        activeAddresses
-            .where((address) => address.startsWith("tz"))
-            .forEach((address) {
-          pendingTokenService.checkPendingTezosTokens(address, maxRetries: 1);
-        });
-      }
-    });
+    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   void _handleForeBackground(FGBGType event) async {
@@ -509,9 +577,80 @@ class HomePageState extends State<HomePage>
     }
   }
 
+  Future _checkTipCardShowTime() async {
+    final metricClient = injector<MetricClientService>();
+    log.info("_checkTipCardShowTime");
+    final configurationService = injector<ConfigurationService>();
+
+    final doneOnboardingTime = configurationService.getDoneOnboardingTime();
+    final subscriptionTime = configurationService.getSubscriptionTime();
+
+    final now = DateTime.now();
+    if (subscriptionTime != null) {
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowTvAppTip()) {
+        configurationService.showTvAppTip.value = true;
+        await configurationService.setAlreadyShowTvAppTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "enjoy_your_collection".tr()});
+      }
+      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowCreatePlaylistTip() &&
+          injector<ConfigurationService>().getPlayList().isEmpty != false) {
+        configurationService.showCreatePlaylistTip.value = true;
+        configurationService.setAlreadyShowCreatePlaylistTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "create_your_first_playlist".tr()});
+      }
+    }
+
+    final remindTime = configurationService.getShowBackupSettingTip();
+    final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
+    if (shouldRemindNow) {
+      configurationService
+          .setShowBackupSettingTip(now.add(const Duration(days: 7)));
+      bool showTip = false;
+      if (Platform.isAndroid) {
+        final isAndroidEndToEndEncryptionAvailable =
+            await injector<AccountService>()
+                .isAndroidEndToEndEncryptionAvailable();
+        showTip = isAndroidEndToEndEncryptionAvailable != true;
+      } else {
+        final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
+        showTip = !iCloudAvailable.value;
+      }
+      if (showTip && configurationService.showBackupSettingTip.value == false) {
+        configurationService.showBackupSettingTip.value = true;
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "backup_failed".tr()});
+      }
+    }
+    if (doneOnboardingTime != null) {
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
+          !configurationService.getAlreadyShowLinkOrImportTip()) {
+        configurationService.showLinkOrImportTip.value = true;
+        configurationService.setAlreadyShowLinkOrImportTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
+      }
+      final premium = await isPremium();
+      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
+          !premium &&
+          !configurationService.getAlreadyShowProTip()) {
+        configurationService.showProTip.value = true;
+        configurationService.setAlreadyShowProTip(true);
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "try_autonomy_pro_free".tr()});
+      }
+    }
+  }
+
   void _handleForeground() async {
+    final locale = Localizations.localeOf(context);
+    LocaleService.refresh(locale);
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
+    await _checkTipCardShowTime();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {
@@ -527,13 +666,11 @@ class HomePageState extends State<HomePage>
     injector<Wc2Service>().activateParings();
 
     refreshFeeds();
-    refreshTokens(checkPendingToken: true);
+    _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
-
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
     injector<VersionService>().checkForUpdate();
-
     // Reload token in Isolate
     final jwtToken =
         (await injector<AuthService>().getAuthToken(forceRefresh: true))
@@ -544,7 +681,7 @@ class HomePageState extends State<HomePage>
         .refreshJWTToken(jwtToken)
         .then((value) => feedService.checkNewFeeds());
 
-    injector<CustomerSupportService>().getIssues();
+    injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();
   }
 
@@ -583,217 +720,9 @@ class HomePageState extends State<HomePage>
   void _handleBackground() {
     _metricClient.addEvent(MixpanelEvent.deviceBackground);
     _metricClient.sendAndClearMetrics();
-    _cloudBackup();
     FileLogger.shrinkLogFileIfNeeded();
   }
 
   @override
   bool get wantKeepAlive => true;
-}
-
-class ListPlaylistWidget extends StatefulWidget {
-  final Function onUpdateList;
-
-  const ListPlaylistWidget({
-    Key? key,
-    required this.playlists,
-    required this.onUpdateList,
-  }) : super(key: key);
-
-  final List<PlayListModel?>? playlists;
-
-  @override
-  State<ListPlaylistWidget> createState() => _ListPlaylistWidgetState();
-}
-
-class _ListPlaylistWidgetState extends State<ListPlaylistWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ReorderableListView.builder(
-        onReorderStart: (index) {
-          Vibrate.feedback(FeedbackType.light);
-        },
-        proxyDecorator: (child, index, animation) {
-          return PlaylistItem(
-            name: widget.playlists?[index]?.name,
-            thumbnailURL: widget.playlists?[index]?.thumbnailURL,
-            onHold: true,
-          );
-        },
-        onReorder: (oldIndex, newIndex) {
-          setState(() {
-            if (oldIndex < newIndex) {
-              newIndex -= 1;
-            }
-            final element = widget.playlists?.removeAt(oldIndex);
-            if (element != null) widget.playlists?.insert(newIndex, element);
-            widget.playlists?.removeWhere((element) => element == null);
-            widget.onUpdateList.call();
-          });
-        },
-        scrollDirection: Axis.horizontal,
-        footer: injector.get<ConfigurationService>().isDemoArtworksMode()
-            ? null
-            : AddPlayListItem(
-                onTap: () {
-                  Navigator.of(context)
-                      .pushNamed(AppRouter.createPlayListPage)
-                      .then((value) {
-                    if (value != null && value is PlayListModel) {
-                      Navigator.pushNamed(context, AppRouter.viewPlayListPage,
-                          arguments: value);
-                    }
-                  });
-                },
-              ),
-        itemBuilder: (context, index) => PlaylistItem(
-          key: ValueKey(widget.playlists?[index]?.id ?? index),
-          name: widget.playlists?[index]?.name,
-          thumbnailURL: widget.playlists?[index]?.thumbnailURL,
-          onSelected: () => Navigator.pushNamed(
-            context,
-            AppRouter.viewPlayListPage,
-            arguments: widget.playlists?[index],
-          ),
-        ),
-        itemCount: widget.playlists?.length ?? 0,
-      ),
-    );
-  }
-}
-
-class PlaylistItem extends StatefulWidget {
-  final Function()? onSelected;
-  final String? name;
-  final String? thumbnailURL;
-  final bool onHold;
-
-  const PlaylistItem({
-    Key? key,
-    this.onSelected,
-    this.name,
-    this.thumbnailURL,
-    this.onHold = false,
-  }) : super(key: key);
-
-  @override
-  State<PlaylistItem> createState() => _PlaylistItemState();
-}
-
-class _PlaylistItemState extends State<PlaylistItem> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: GestureDetector(
-        onTap: widget.onSelected,
-        child: SizedBox(
-          width: 83,
-          child: Column(
-            children: [
-              Container(
-                width: 83,
-                height: 83,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(
-                    width: widget.onHold ? 3 : 0,
-                    color: theme.auLightGrey,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(1),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: widget.thumbnailURL == null
-                        ? Container(
-                            color: theme.disableColor,
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: widget.thumbnailURL ?? '',
-                            fit: BoxFit.cover,
-                            cacheManager: injector.get<CacheManager>(),
-                            errorWidget: (context, url, error) => Container(
-                              color: theme.disableColor,
-                            ),
-                            memCacheHeight: 1000,
-                            memCacheWidth: 1000,
-                            maxWidthDiskCache: 1000,
-                            maxHeightDiskCache: 1000,
-                            fadeInDuration: Duration.zero,
-                          ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  (widget.name?.isNotEmpty ?? false)
-                      ? widget.name!
-                      : 'Untitled',
-                  style: widget.onHold
-                      ? theme.textTheme.ppMori400Black12
-                          .copyWith(fontWeight: FontWeight.bold)
-                      : theme.textTheme.ppMori400Black12,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class AddPlayListItem extends StatelessWidget {
-  final Function()? onTap;
-
-  const AddPlayListItem({Key? key, this.onTap}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: SizedBox(
-          width: 83,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 83,
-                height: 83,
-                decoration: BoxDecoration(
-                    border: Border.all(color: theme.auLightGrey),
-                    borderRadius: BorderRadius.circular(5)),
-                child: Padding(
-                  padding: const EdgeInsets.all(1),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: Icon(
-                      AuIcon.add,
-                      color: theme.auLightGrey,
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'New Playlist',
-                style: theme.textTheme.ppMori400Grey12,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

@@ -93,11 +93,20 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.1.0"
-      resolved-ref: "4cb1519ef931a7aeeb5aa6afc5424173ca67de3b"
+      ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
+      resolved-ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
+  autonomy_tv_proto:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      resolved-ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
+    source: git
+    version: "0.0.1"
   background_fetch:
     dependency: "direct main"
     description:
@@ -147,7 +156,7 @@ packages:
     source: hosted
     version: "2.1.1"
   bs58check:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: bs58check
       sha256: c4a164d42b25c2f6bc88a8beccb9fc7d01440f3c60ba23663a20a70faf484ea9
@@ -266,6 +275,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  carousel_slider:
+    dependency: "direct main"
+    description:
+      name: carousel_slider
+      sha256: "9c695cc963bf1d04a47bd6021f68befce8970bcd61d24938e1fb0918cf5d9c42"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.1"
   cast:
     dependency: "direct main"
     description:
@@ -322,54 +339,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
+  confetti:
+    dependency: "direct main"
+    description:
+      name: confetti
+      sha256: "979aafde2428c53947892c95eb244466c109c129b7eee9011f0a66caaca52267"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   connectivity_plus:
     dependency: "direct main"
     description:
       name: connectivity_plus
-      sha256: "3f8fe4e504c2d33696dac671a54909743bc6a902a9bb0902306f7a2aed7e528e"
+      sha256: "8875e8ed511a49f030e313656154e4bbbcef18d68dfd32eb853fac10bce48e96"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.9"
-  connectivity_plus_linux:
-    dependency: transitive
-    description:
-      name: connectivity_plus_linux
-      sha256: "3caf859d001f10407b8e48134c761483e4495ae38094ffcca97193f6c271f5e2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.1"
-  connectivity_plus_macos:
-    dependency: transitive
-    description:
-      name: connectivity_plus_macos
-      sha256: "488d2de1e47e1224ad486e501b20b088686ba1f4ee9c4420ecbc3b9824f0b920"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.6"
+    version: "3.0.3"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
       name: connectivity_plus_platform_interface
-      sha256: b8795b9238bf83b64375f63492034cb3d8e222af4d9ce59dda085edf038fa06f
+      sha256: cf1d1c28f4416f8c654d7dc3cd638ec586076255d407cef3ddbdaf178272a71a
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.3"
-  connectivity_plus_web:
-    dependency: transitive
-    description:
-      name: connectivity_plus_web
-      sha256: "81332be1b4baf8898fed17bb4fdef27abb7c6fd990bf98c54fd978478adf2f1a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.5"
-  connectivity_plus_windows:
-    dependency: transitive
-    description:
-      name: connectivity_plus_windows
-      sha256: "535b0404b4d5605c4dd8453d67e5d6d2ea0dd36e3b477f50f31af51b0aeab9dd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.2"
+    version: "1.2.4"
   convert:
     dependency: "direct main"
     description:
@@ -676,8 +669,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e36798db86cd283eb556d90475f874bbd0f28cb4
-      resolved-ref: e36798db86cd283eb556d90475f874bbd0f28cb4
+      ref: "9ae9c8e8a366d0d820208148603412700ed150f0"
+      resolved-ref: "9ae9c8e8a366d0d820208148603412700ed150f0"
       url: "https://github.com/autonomy-system/flutter_blue.git"
     source: git
     version: "0.8.0"
@@ -733,11 +726,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7092a0c3708be0f94d8abcf49ebf84f778c0ae26"
-      resolved-ref: "7092a0c3708be0f94d8abcf49ebf84f778c0ae26"
+      ref: "77fe59498333190976959001fe9960a1fb4d27e2"
+      resolved-ref: "77fe59498333190976959001fe9960a1fb4d27e2"
       url: "https://github.com/autonomy-system/flutter_downloader"
     source: git
-    version: "1.10.0"
+    version: "1.10.1+2"
   flutter_driver:
     dependency: transitive
     description: flutter
@@ -751,6 +744,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  flutter_hooks:
+    dependency: transitive
+    description:
+      name: flutter_hooks
+      sha256: "6a126f703b89499818d73305e4ce1e3de33b4ae1c5512e3b8eab4b986f46774c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.6"
   flutter_image_compress:
     dependency: "direct main"
     description:
@@ -759,12 +760,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.3"
+  flutter_inappwebview:
+    dependency: "direct main"
+    description:
+      name: flutter_inappwebview
+      sha256: f73505c792cf083d5566e1a94002311be497d984b5607f25be36d685cf6361cf
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.7.2+3"
   flutter_inline_webview_macos:
     dependency: transitive
     description:
       path: "."
-      ref: "1.0.0"
-      resolved-ref: "1890b61932da34fbf05f3615395af62df9224a5c"
+      ref: "1.0.1"
+      resolved-ref: "243bc696c8b8348db9730eed7b160d80c1e4af1c"
       url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
     source: git
     version: "0.0.4"
@@ -772,10 +781,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_keyboard_visibility
-      sha256: "86b71bbaffa38e885f5c21b1182408b9be6951fd125432cf6652c636254cef2d"
+      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "5.4.1"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:
@@ -901,6 +910,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.6"
+  flutter_swiper_view:
+    dependency: "direct main"
+    description:
+      name: flutter_swiper_view
+      sha256: "2a165b259e8a4c49d4da5626b967ed42a73dac2d075bd9e266ad8d23b9f01879"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.8"
   flutter_switch:
     dependency: "direct main"
     description:
@@ -1021,6 +1038,86 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.2+5"
+  geocoding:
+    dependency: "direct main"
+    description:
+      name: geocoding
+      sha256: b34c0501bbbaf3190b85bef3078b27cf66c28a8915c6d3af50d67f356aa7da31
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  geocoding_android:
+    dependency: transitive
+    description:
+      name: geocoding_android
+      sha256: "5a1fc0cec9b0497b44ca31c1fa8d1c891f3aded1053e6bb2eac075d3bd1bf046"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  geocoding_ios:
+    dependency: transitive
+    description:
+      name: geocoding_ios
+      sha256: c85495ce8fb34e4fbd2dd8fc5f79263d622d9f88c4af948c965daf6b27a7f3a1
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  geocoding_platform_interface:
+    dependency: transitive
+    description:
+      name: geocoding_platform_interface
+      sha256: "8848605d307d844d89937cdb4b8ad7dfa880552078f310fa24d8a460f6dddab4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  geolocator:
+    dependency: "direct main"
+    description:
+      name: geolocator
+      sha256: "5c23f3613f50586c0bbb2b8f970240ae66b3bd992088cf60dd5ee2e6f7dde3a8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.2"
+  geolocator_android:
+    dependency: transitive
+    description:
+      name: geolocator_android
+      sha256: "2ba24690aee0a3e1b6b7bd47c2711a50c874e95e4c758346589d35194adf6d6a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.7"
+  geolocator_apple:
+    dependency: transitive
+    description:
+      name: geolocator_apple
+      sha256: "22b60ca3b8c0f58e6a9688ff855ee39ab813ca3f0c0609a48d282f6631266f2e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.5"
+  geolocator_platform_interface:
+    dependency: transitive
+    description:
+      name: geolocator_platform_interface
+      sha256: af4d69231452f9620718588f41acc4cb58312368716bfff2e92e770b46ce6386
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.7"
+  geolocator_web:
+    dependency: transitive
+    description:
+      name: geolocator_web
+      sha256: f68a122da48fcfff68bbc9846bb0b74ef651afe84a1b1f6ec20939de4d6860e1
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.6"
+  geolocator_windows:
+    dependency: transitive
+    description:
+      name: geolocator_windows
+      sha256: f5911c88e23f48b598dd506c7c19eff0e001645bdc03bb6fecb9f4549208354d
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   get_it:
     dependency: "direct main"
     description:
@@ -1029,6 +1126,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.2.0"
+  gif_view:
+    dependency: "direct main"
+    description:
+      name: gif_view
+      sha256: c14dc41501b479d9a14cd9135532c1e5bcad7d915d497a0f3e6d77c4edbc8f0e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
   glob:
     dependency: transitive
     description:
@@ -1037,6 +1142,86 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  googleapis_auth:
+    dependency: transitive
+    description:
+      name: googleapis_auth
+      sha256: f59be210ede1e22718962e4ef48a08ae783eb67fe19b0f4c16b204e20df0869c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  gql:
+    dependency: transitive
+    description:
+      name: gql
+      sha256: "998304fbb88a3956cfea10cd27a56f8e5d4b3bc110f03c952c18a9310774e8bb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.14.0"
+  gql_dedupe_link:
+    dependency: transitive
+    description:
+      name: gql_dedupe_link
+      sha256: "89681048cf956348e865da872a40081499b8c087fc84dd4d4b9c134bd70d27b3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3+1"
+  gql_error_link:
+    dependency: transitive
+    description:
+      name: gql_error_link
+      sha256: e7bfdd2b6232f3e15861cd96c2ad6b7c9c94693843b3dea18295136a5fb5b534
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.3+1"
+  gql_exec:
+    dependency: transitive
+    description:
+      name: gql_exec
+      sha256: "0d1fdb2e4154efbfc1dcf3f35ec36d19c8428ff0d560eb4c45b354f8f871dc50"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.3"
+  gql_http_link:
+    dependency: transitive
+    description:
+      name: gql_http_link
+      sha256: "89ef87b32947acf4189f564c095f1148b0ab9bb9996fe518716dbad66708b834"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.5"
+  gql_link:
+    dependency: transitive
+    description:
+      name: gql_link
+      sha256: f7973279126bc922d465c4f4da6ed93d187085e597b3480f5e14e74d28fe14bd
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.1"
+  gql_transform_link:
+    dependency: transitive
+    description:
+      name: gql_transform_link
+      sha256: b1735a9a92d25a92960002a8b40dfaede95ec1e5ed848906125d69efd878661f
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.2+1"
+  graphql:
+    dependency: transitive
+    description:
+      name: graphql
+      sha256: bda5b794345087ccbd16942045be8091e2ac4619285bb22e73555d5fd88c4043
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.2.0-beta.1"
+  graphql_flutter:
+    dependency: transitive
+    description:
+      name: graphql_flutter
+      sha256: "06059ac9e8417c71582f05e28a59b1416d43959d34a6a0d9565341e3a362e117"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.1.2"
   graphs:
     dependency: transitive
     description:
@@ -1045,6 +1230,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  grpc:
+    dependency: transitive
+    description:
+      name: grpc
+      sha256: a73c16e4f6a4a819be892bb2c73cc1d0b00e36095f69b0738cc91a733e3d27ba
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   hex:
     dependency: transitive
     description:
@@ -1070,13 +1263,13 @@ packages:
     source: hosted
     version: "1.1.0"
   html:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: html
-      sha256: d9793e10dbe0e6c364f4c59bf3e01fb33a9b2a674bc7a1081693dba0614b6269
+      sha256: "3a7812d5bcd2894edf53dfaf8cd640876cf6cef50a8f238745c8b8120ea74d3a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.15.1"
+    version: "0.15.4"
   html_unescape:
     dependency: "direct dev"
     description:
@@ -1093,6 +1286,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.5"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "58805ebc6513eed3b98ee0a455a8357e61d187bf2e0fdc1e53120770f78de258"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -1110,13 +1311,13 @@ packages:
     source: hosted
     version: "4.0.2"
   image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image
-      sha256: "3686865febd85c57a632d87a0fb1f0a8a9ef602fdb68d909c3e9aa29ec70fd24"
+      sha256: "483a389d6ccb292b570c31b3a193779b1b0178e7eb571986d9a49904b6861227"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.13"
+    version: "4.0.15"
   image_picker:
     dependency: "direct main"
     description:
@@ -1310,8 +1511,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a"
-      resolved-ref: "17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a"
+      ref: "6ab6dd6e42d577115783bc60279de559ed5cefc1"
+      resolved-ref: "6ab6dd6e42d577115783bc60279de559ed5cefc1"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -1388,7 +1589,7 @@ packages:
     source: hosted
     version: "1.1.1"
   markdown:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: markdown
       sha256: c2b81e184067b41d0264d514f7cdaa2c02d38511e39d6521a1ccc238f6d7b3f2
@@ -1484,6 +1685,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  multi_value_listenable_builder:
+    dependency: "direct main"
+    description:
+      name: multi_value_listenable_builder
+      sha256: "5d073a5ab4935c3eab7134dec939544467bdf8a71ab24d01f0dcc3f94f03a71e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   nested:
     dependency: transitive
     description:
@@ -1496,8 +1705,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8591e66f61c09ee09c19ab90e61d3849b5c9cab3"
-      resolved-ref: "8591e66f61c09ee09c19ab90e61d3849b5c9cab3"
+      ref: db09684d5952e606d402a56497c24bebd0a64d96
+      resolved-ref: db09684d5952e606d402a56497c24bebd0a64d96
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1505,8 +1714,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.22"
-      resolved-ref: bfcefa61c15a1b93c081c06d4faf9b0084b2a4d0
+      ref: c390cdca02b5274f7997768ec1b428e9e56fc255
+      resolved-ref: c390cdca02b5274f7997768ec1b428e9e56fc255
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1526,6 +1735,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  normalize:
+    dependency: transitive
+    description:
+      name: normalize
+      sha256: "31a6742a7d702a0dc6f66536bf6749af85fae51ffcd77bf27de1e5c01b314c12"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.0+1"
   octo_image:
     dependency: transitive
     description:
@@ -1823,6 +2040,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  protoc_plugin:
+    dependency: transitive
+    description:
+      name: protoc_plugin
+      sha256: e2be5014ba145dc0f8de20ac425afa2a513aff64fe350d338e481d40de0573df
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.0.1"
   provider:
     dependency: transitive
     description:
@@ -1931,10 +2156,10 @@ packages:
     dependency: "direct main"
     description:
       name: rxdart
-      sha256: "2ef8b4e91cb3b55d155e0e34eeae0ac7107974e451495c955ac04ddee8cc21fd"
+      sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.26.0"
+    version: "0.27.7"
   scroll_to_index:
     dependency: transitive
     description:
@@ -2124,6 +2349,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.9"
+  social_share:
+    dependency: "direct main"
+    description:
+      name: social_share
+      sha256: eb19a0f6f5a29c7bb71e5bb1991145eb52472184363b6e2da70695befd8be041
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.1"
   source_gen:
     dependency: transitive
     description:
@@ -2248,10 +2481,10 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: b3e500b1896d40c8961ab430a94fc22eff8fa1b33af03584e2f0b89371c3fa6a
+      sha256: ab3eac31638e80663eae19c71e362012e1e2f67dfd527dc5c07d9397cd4238f2
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.48"
+    version: "20.4.53"
   syncfusion_flutter_pdf:
     dependency: transitive
     description:
@@ -2268,6 +2501,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "20.4.48"
+  syncfusion_flutter_signaturepad:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_signaturepad
+      sha256: dd29c5b88864dfd6f794183108c7274eee168d4fa6764d0581817fe2f484e966
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.4.53"
   syncfusion_pdfviewer_macos:
     dependency: transitive
     description:
@@ -2344,8 +2585,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "68a5160bcbf951670cbdda806f12aefbc5e04672"
-      resolved-ref: "68a5160bcbf951670cbdda806f12aefbc5e04672"
+      ref: "0cd68a902c8d2554227738594c62046571e57b4c"
+      resolved-ref: "0cd68a902c8d2554227738594c62046571e57b4c"
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
     version: "2.0.4"
@@ -2373,6 +2614,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
+  undo:
+    dependency: "direct main"
+    description:
+      name: undo
+      sha256: "103f7c15002d2cc551ed290a71a8ebd49d44db3252d46cdcb77dea2f5acb5d5c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   uni_links:
     dependency: "direct main"
     description:
@@ -2501,8 +2750,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  version_check:
+    dependency: "direct main"
+    description:
+      name: version_check
+      sha256: e75605bbffbcc1a72a97414cbbca63e88fd970d4fcbb0b740dc59bb88d354e70
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
   video_player:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: video_player
       sha256: "59f7f31c919c59cbedd37c617317045f5f650dc0eeb568b0b0de9a36472bdb28"
@@ -2617,11 +2874,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
-      resolved-ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
+      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
+      resolved-ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
       url: "https://github.com/autonomy-system/wallet-connect-dart.git"
     source: git
-    version: "1.0.2"
+    version: "1.0.4"
   watcher:
     dependency: transitive
     description:
@@ -2663,7 +2920,7 @@ packages:
     source: hosted
     version: "1.2.0"
   webview_flutter:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: webview_flutter
       sha256: "392c1d83b70fe2495de3ea2c84531268d5b8de2de3f01086a53334d8b6030a88"
@@ -2694,6 +2951,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.9.5"
+  widgets_to_image:
+    dependency: "direct main"
+    description:
+      name: widgets_to_image
+      sha256: e32c7b77267c01d319dc97333d4f3d894e9d81c8b3a408fd33862fa7775ee398
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   win32:
     dependency: transitive
     description:
@@ -2726,6 +2991,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  youtube_player_iframe:
+    dependency: "direct main"
+    description:
+      name: youtube_player_iframe
+      sha256: a85cdaea199ed3a3e19d115dd520009b4fb0f9af453f0c7a1aae10c2887cb700
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
+  youtube_player_iframe_web:
+    dependency: transitive
+    description:
+      name: youtube_player_iframe_web
+      sha256: ce112e0af418e434465c20e8c941a90297a8c43f83d8956e63f297b9eba828fb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
 sdks:
   dart: ">=2.19.0 <3.0.0"
   flutter: ">=3.3.0"

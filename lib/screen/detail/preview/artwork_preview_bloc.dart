@@ -10,32 +10,52 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
+import 'package:nft_collection/database/dao/dao.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 
 class ArtworkPreviewBloc
     extends AuBloc<ArtworkPreviewEvent, ArtworkPreviewState> {
   final AssetTokenDao _assetTokenDao;
+  final AssetDao _assetDao;
+  final IndexerService _indexerService;
 
-  ArtworkPreviewBloc(this._assetTokenDao)
+  ArtworkPreviewBloc(this._assetTokenDao, this._assetDao, this._indexerService)
       : super(ArtworkPreviewLoadingState()) {
     on<ArtworkPreviewGetAssetTokenEvent>((event, emit) async {
-      final asset = await _assetTokenDao.findAssetTokenByIdAndOwner(
-          event.identity.id, event.identity.owner);
+      AssetToken? assetToken;
+      if (event.useIndexer) {
+        final request = QueryListTokensRequest(
+          ids: [event.identity.id],
+        );
+        final tokens = await _indexerService.getNftTokens(request);
+        if (tokens.isNotEmpty) {
+          assetToken = tokens.first;
+        }
+      } else {
+        assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
+            event.identity.id, event.identity.owner);
+      }
+
       if (state is ArtworkPreviewLoadedState) {
         final currentState = state as ArtworkPreviewLoadedState;
-        emit(currentState.copyWith(asset: asset));
+        emit(currentState.copyWith(assetToken: assetToken));
       } else {
-        emit(ArtworkPreviewLoadedState(asset: asset));
+        emit(ArtworkPreviewLoadedState(assetToken: assetToken));
       }
       // change ipfs if the cloud_flare ipfs has not worked
       try {
-        if (asset?.previewURL != null) {
-          final response = await callRequest(Uri.parse(asset!.previewURL!));
+        if (assetToken?.previewURL != null) {
+          final response =
+              await callRequest(Uri.parse(assetToken!.previewURL!));
           if (response.statusCode == 520) {
-            asset.previewURL = asset.previewURL!.replaceRange(
+            assetToken.asset?.previewURL = assetToken.previewURL!.replaceRange(
                 0, Environment.autonomyIpfsPrefix.length, DEFAULT_IPFS_PREFIX);
-            await _assetTokenDao.insertAsset(asset);
-            emit(ArtworkPreviewLoadedState(asset: asset));
+            if (!event.useIndexer) {
+              await _assetDao.insertAsset(assetToken.asset!);
+            }
+            emit(ArtworkPreviewLoadedState(assetToken: assetToken));
           }
         }
       } catch (_) {

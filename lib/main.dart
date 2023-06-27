@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -37,6 +38,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
@@ -107,6 +109,8 @@ _setupApp() async {
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
+  final packageInfo = await PackageInfo.fromPlatform();
+  await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
 
   runApp(EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],
@@ -176,10 +180,12 @@ class AutonomyApp extends StatelessWidget {
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =
-    RouteObserver<ModalRoute<void>>();
+    CustomRouteObserver<ModalRoute<void>>();
 
 var memoryValues = MemoryValues(
-    airdropFFExhibitionId: ValueNotifier(null), deepLink: ValueNotifier(null));
+    airdropFFExhibitionId: ValueNotifier(null),
+    deepLink: ValueNotifier(null),
+    irlLink: ValueNotifier(null));
 
 class MemoryValues {
   String? scopedPersona;
@@ -189,7 +195,9 @@ class MemoryValues {
   ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
-  HomePageTab homePageInitialTab = HomePageTab.HOME;
+  ValueNotifier<String?> irlLink;
+  HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
+  String? currentGroupChatId;
 
   MemoryValues({
     this.scopedPersona,
@@ -199,6 +207,7 @@ class MemoryValues {
     required this.airdropFFExhibitionId,
     this.linkedFFConnections,
     required this.deepLink,
+    required this.irlLink,
   });
 
   MemoryValues copyWith({
@@ -208,6 +217,7 @@ class MemoryValues {
       scopedPersona: scopedPersona ?? this.scopedPersona,
       airdropFFExhibitionId: airdropFFExhibitionId,
       deepLink: deepLink,
+      irlLink: irlLink,
     );
   }
 }
@@ -218,11 +228,17 @@ enum HomePageTab {
   EDITORIAL,
 }
 
+enum HomeNavigatorTab {
+  DISCOVER,
+  COLLECTION,
+  WALLET,
+}
+
 @pragma('vm:entry-point')
 void downloadCallback(String id, DownloadTaskStatus status, int progress) {
   final SendPort? send =
       IsolateNameServer.lookupPortByName('downloader_send_port');
-  send?.send([id, status, progress]);
+  send?.send([id, status.value, progress]);
 }
 
 void imageError(Object exception, StackTrace? stackTrace) {}

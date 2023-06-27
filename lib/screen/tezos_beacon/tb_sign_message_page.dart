@@ -10,7 +10,8 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -19,7 +20,6 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -44,7 +44,7 @@ class TBSignMessagePage extends StatefulWidget {
 }
 
 class _TBSignMessagePageState extends State<TBSignMessagePage> {
-  WalletStorage? _currentPersona;
+  WalletIndex? _currentPersona;
 
   @override
   void initState() {
@@ -52,14 +52,23 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     fetchPersona();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    Future.delayed(const Duration(seconds: 2), () {
+      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
+    });
+  }
+
   Future fetchPersona() async {
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    WalletStorage? currentWallet;
-    for (final persona in personas) {
-      final address = await persona.wallet().getTezosAddress();
-      if (address == widget.request.sourceAddress) {
-        currentWallet = persona.wallet();
-        break;
+    WalletIndex? currentWallet;
+    if (widget.request.sourceAddress != null) {
+      final walletAddress = await injector<CloudDatabase>()
+          .addressDao
+          .findByAddress(widget.request.sourceAddress!);
+      if (walletAddress != null) {
+        currentWallet =
+            WalletIndex(WalletStorage(walletAddress.uuid), walletAddress.index);
       }
     }
 
@@ -68,7 +77,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         reason: "No wallet found for address ${widget.request.sourceAddress}",
       );
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(false);
       return;
     }
 
@@ -100,11 +109,40 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         signature,
       );
     } else {
-      await injector<TezosBeaconService>().signResponse(
+      final tezosService = injector<TezosBeaconService>();
+      await tezosService.signResponse(
         widget.request.id,
         signature,
       );
     }
+  }
+
+  _sign(Uint8List message) async {
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      return;
+    }
+    final signature = await injector<TezosService>()
+        .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
+    await _approveRequest(signature: signature);
+    log.info("[TBSignMessagePage] _sign: $signature");
+    if (!mounted) return;
+
+    final metricClient = injector.get<MetricClientService>();
+
+    metricClient.addEvent(
+      "Sign In",
+      hashedData: {"uuid": widget.request.id},
+    );
+    Navigator.of(context).pop(true);
+    showInfoNotification(
+      const Key("signed"),
+      "signed".tr(),
+      frontWidget: SvgPicture.asset(
+        "assets/images/checkbox_icon.svg",
+        width: 24,
+      ),
+    );
   }
 
   @override
@@ -128,7 +166,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
           context,
           onBack: () {
             _rejectRequest(reason: "User reject");
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           title: "signature_request".tr(),
         ),
@@ -165,10 +203,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                               vertical: 20, horizontal: 22),
                           decoration: BoxDecoration(
                             color: AppColor.auLightGrey,
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
                             messageInUtf8,
@@ -188,37 +223,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       child: PrimaryButton(
                         text: "sign".tr(),
                         onTap: _currentPersona != null
-                            ? () => withDebounce(() async {
-                                  final signature =
-                                      await injector<TezosService>()
-                                          .signMessage(
-                                              _currentPersona!, message);
-                                  await _approveRequest(signature: signature);
-                                  if (!mounted) return;
-
-                                  final metricClient =
-                                      injector.get<MetricClientService>();
-
-                                  metricClient.addEvent(
-                                    "Sign In",
-                                    hashedData: {"uuid": widget.request.id},
-                                  );
-                                  Navigator.of(context).pop();
-                                  final notificationEnable =
-                                      injector<ConfigurationService>()
-                                              .isNotificationEnabled() ??
-                                          false;
-                                  if (notificationEnable) {
-                                    showInfoNotification(
-                                      const Key("signed"),
-                                      "signed".tr(),
-                                      frontWidget: SvgPicture.asset(
-                                        "assets/images/checkbox_icon.svg",
-                                        width: 24,
-                                      ),
-                                    );
-                                  }
-                                })
+                            ? () => withDebounce(() => _sign(message))
                             : null,
                       ),
                     )

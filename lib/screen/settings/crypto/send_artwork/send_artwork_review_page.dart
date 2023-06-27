@@ -13,16 +13,21 @@ import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,6 +35,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/pending_tx_params.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendArtworkReviewPage extends StatefulWidget {
@@ -49,19 +55,27 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
     setState(() {
       _isSending = true;
     });
+    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+    if (!didAuthenticate) {
+      setState(() {
+        _isSending = false;
+      });
+      return;
+    }
 
     try {
-      final asset = widget.payload.asset;
-      if (widget.payload.asset.blockchain == "ethereum") {
+      final assetToken = widget.payload.assetToken;
+      if (widget.payload.assetToken.blockchain == "ethereum") {
         final ethereumService = injector<EthereumService>();
 
-        final contractAddress = EthereumAddress.fromHex(asset.contractAddress!);
+        final contractAddress =
+            EthereumAddress.fromHex(assetToken.contractAddress!);
         final to = EthereumAddress.fromHex(widget.payload.address);
-        final from = EthereumAddress.fromHex(
-            await widget.payload.wallet.getETHAddress());
-        final tokenId = asset.tokenId!;
+        final from = EthereumAddress.fromHex(await widget.payload.wallet
+            .getETHEip55Address(index: widget.payload.index));
+        final tokenId = assetToken.tokenId!;
 
-        final data = widget.payload.asset.contractType == "erc1155"
+        final data = widget.payload.assetToken.contractType == "erc1155"
             ? await ethereumService.getERC1155TransferTransactionData(
                 contractAddress, from, to, tokenId, widget.payload.quantity,
                 feeOption: widget.payload.feeOption)
@@ -70,7 +84,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                 feeOption: widget.payload.feeOption);
 
         final txHash = await ethereumService.sendTransaction(
-            widget.payload.wallet, contractAddress, BigInt.zero, data,
+            widget.payload.wallet,
+            widget.payload.index,
+            contractAddress,
+            BigInt.zero,
+            data,
             feeOption: widget.payload.feeOption);
 
         //post pending token to indexer
@@ -78,12 +96,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
           final signature = await ethereumService.signPersonalMessage(
               widget.payload.wallet,
+              widget.payload.index,
               Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
-            blockchain: asset.blockchain,
-            id: asset.tokenId ?? "",
-            contractAddress: asset.contractAddress ?? "",
-            ownerAccount: asset.ownerAddress,
+            blockchain: assetToken.blockchain,
+            id: assetToken.tokenId ?? "",
+            contractAddress: assetToken.contractAddress ?? "",
+            ownerAccount: assetToken.owner,
             pendingTx: txHash,
             timestamp: timestamp,
             signature: signature,
@@ -95,24 +114,26 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         final payload = {
           "isTezos": false,
           "hash": txHash,
-          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
+          "sentQuantity": widget.payload.quantity,
         };
         Navigator.of(context).pop(payload);
       } else {
         final tezosService = injector<TezosService>();
-        final tokenId = asset.tokenId!;
+        final tokenId = assetToken.tokenId!;
 
         final wallet = widget.payload.wallet;
-        final address = await wallet.getTezosAddress();
+        final index = widget.payload.index;
+        final address = await wallet.getTezosAddress(index: index);
         final operation = await tezosService.getFa2TransferOperation(
-          widget.payload.asset.contractAddress!,
+          widget.payload.assetToken.contractAddress!,
           address,
           widget.payload.address,
           tokenId,
           widget.payload.quantity,
         );
         final opHash = await tezosService.sendOperationTransaction(
-            wallet, [operation],
+            wallet, index, [operation],
             baseOperationCustomFee:
                 widget.payload.feeOption.tezosBaseOperationCustomFee);
         final exchangeRateXTZ =
@@ -121,15 +142,14 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         //post pending token to indexer
         if (opHash != null) {
           final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-          final publicKey = await widget.payload.wallet.getTezosPublicKey();
+          final publicKey = await wallet.getTezosPublicKey(index: index);
           final signature = await tezosService.signMessage(
-              widget.payload.wallet,
-              Uint8List.fromList(utf8.encode(timestamp)));
+              wallet, index, Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
-            blockchain: asset.blockchain,
-            id: asset.tokenId ?? "",
-            contractAddress: asset.contractAddress ?? "",
-            ownerAccount: asset.ownerAddress,
+            blockchain: assetToken.blockchain,
+            id: assetToken.tokenId ?? "",
+            contractAddress: assetToken.contractAddress ?? "",
+            ownerAccount: assetToken.owner,
             pendingTx: opHash,
             timestamp: timestamp,
             signature: signature,
@@ -176,7 +196,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               tokenId: tokenId,
               id: 0,
               contract: TZKTActor(
-                  address: widget.payload.asset.contractAddress ?? ''),
+                  address: widget.payload.assetToken.contractAddress ?? ''),
             ),
             status: 'pending');
         if (!mounted) return;
@@ -184,11 +204,13 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           "isTezos": true,
           "hash": opHash,
           "tx": tx,
-          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens
+          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
+          "sentQuantity": widget.payload.quantity,
         };
         Navigator.of(context).pop(payload);
       }
     } catch (e) {
+      if (!mounted) return;
       UIHelper.showMessageAction(
         context,
         'transaction_failed'.tr(),
@@ -204,17 +226,19 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
   Widget build(BuildContext context) {
     final fee = widget.payload.feeOptionValue.getFee(widget.payload.feeOption);
     final theme = Theme.of(context);
-    final asset = widget.payload.asset;
+    final assetToken = widget.payload.assetToken;
 
     final identityState = context.watch<IdentityBloc>().state;
     final artistName =
-        asset.artistName?.toIdentityOrMask(identityState.identityMap);
-
+        assetToken.artistName?.toIdentityOrMask(identityState.identityMap);
+    final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+    final divider = addDivider(height: 20);
     return AbsorbPointer(
       absorbing: _isSending,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          title: "confirmation".tr(),
           onBack: () {
             Navigator.of(context).pop();
           },
@@ -223,9 +247,6 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           children: [
             Container(
               margin: EdgeInsets.only(
-                  top: 16.0,
-                  left: 16.0,
-                  right: 16.0,
                   bottom: MediaQuery.of(context).padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,127 +256,130 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "confirmation".tr(),
-                            style: theme.textTheme.displayLarge,
+                          addTitleSpace(),
+                          Padding(
+                            padding: padding,
+                            child: Text(
+                              "send_artwork".tr(),
+                              style: theme.textTheme.ppMori400Black16,
+                            ),
                           ),
                           const SizedBox(height: 40.0),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "title".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  asset.title,
-                                  textAlign: TextAlign.right,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "artist".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              Text(
-                                artistName ?? "",
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 32),
-                          if (widget.payload.asset.fungible == true) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          divider,
+                          Padding(
+                            padding: padding,
+                            child: Column(
                               children: [
-                                Text(
-                                  "owned_tokens".tr(),
-                                  style: theme.textTheme.headlineMedium,
+                                _item(
+                                  context: context,
+                                  title: "title".tr(),
+                                  content: assetToken.title ?? '',
                                 ),
-                                Text(
-                                  "${widget.payload.ownedTokens}",
-                                  style: theme.textTheme.bodyMedium,
+                                divider,
+                                _item(
+                                    context: context,
+                                    title: "artist".tr(),
+                                    content: artistName ?? "",
+                                    tapLink: assetToken.artistURL),
+                                divider,
+                                if (!(widget.payload.assetToken.fungible ==
+                                    true)) ...[
+                                  _item(
+                                      context: context,
+                                      title: "edition".tr(),
+                                      content: assetToken.editionSlashMax),
+                                  divider,
+                                ],
+                                _item(
+                                    context: context,
+                                    title: "token".tr(),
+                                    content:
+                                        polishSource(assetToken.source ?? ""),
+                                    tapLink: assetToken.assetURL),
+                                divider,
+                                _item(
+                                  context: context,
+                                  title: "contract".tr(),
+                                  content: assetToken.blockchain.capitalize(),
+                                  tapLink: assetToken.getBlockchainUrl(),
+                                ),
+                                divider,
+                                _item(
+                                    context: context,
+                                    title: "minted".tr(),
+                                    content: assetToken.mintedAt != null
+                                        ? localTimeString(assetToken.mintedAt!)
+                                        : ''),
+                                divider,
+                                if (widget.payload.assetToken.fungible ==
+                                    true) ...[
+                                  _item(
+                                      context: context,
+                                      title: "owned_tokens".tr(),
+                                      content: "${widget.payload.ownedTokens}"),
+                                  divider,
+                                  _item(
+                                      context: context,
+                                      title: "quantity_sent".tr(),
+                                      content: "${widget.payload.quantity}"),
+                                  divider,
+                                ],
+                                const SizedBox(height: 16),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      color: AppColor.primaryBlack),
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "to".tr(),
+                                        style: theme.textTheme.ppMori400Grey14,
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        widget.payload.address,
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
+                                      addDivider(color: AppColor.white),
+                                      Text(
+                                        "gas_fee2".tr(),
+                                        style: theme.textTheme.ppMori400Grey14,
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        _amountFormat(
+                                          fee,
+                                          isETH: widget.payload.assetToken
+                                                  .blockchain ==
+                                              "ethereum",
+                                        ),
+                                        style: theme.textTheme.ppMori400White14,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                            const Divider(height: 32),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "quantity_sent".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  "${widget.payload.quantity}",
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ] else ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "edition".tr(),
-                                  style: theme.textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  asset.editionSlashMax,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ],
-                          const Divider(height: 32),
-                          Text(
-                            "to".tr(),
-                            style: theme.textTheme.headlineMedium,
                           ),
-                          const SizedBox(height: 16.0),
-                          Text(
-                            widget.payload.address,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          const Divider(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "gas_fee2".tr(),
-                                style: theme.textTheme.headlineMedium,
-                              ),
-                              Text(
-                                widget.payload.asset.blockchain == "ethereum"
-                                    ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
-                                    : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)",
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24.0),
                         ],
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AuFilledButton(
-                            text: _isSending
-                                ? "sending".tr().toUpperCase()
-                                : "sendH".tr(),
-                            isProcessing: _isSending,
-                            onPress: _isSending ? null : _sendArtwork),
-                      ),
-                    ],
+                  Padding(
+                    padding: padding,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                              text: _isSending ? "sending".tr() : "sendH".tr(),
+                              isProcessing: _isSending,
+                              onTap: _isSending ? null : _sendArtwork),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16.0),
                 ],
@@ -366,11 +390,59 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
       ),
     );
   }
+
+  Widget _item({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String? tapLink,
+    double width = 120,
+    bool forceSafariVC = true,
+  }) {
+    final theme = Theme.of(context);
+    Function()? onValueTap;
+
+    if (onValueTap == null && tapLink != null) {
+      final uri = Uri.parse(tapLink);
+      onValueTap = () => launchUrl(uri,
+          mode: forceSafariVC == true
+              ? LaunchMode.externalApplication
+              : LaunchMode.platformDefault);
+    }
+    return Row(
+      children: [
+        SizedBox(
+          width: width,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        GestureDetector(
+          onTap: onValueTap,
+          child: Text(
+            content,
+            style: theme.textTheme.ppMori400Black14.copyWith(
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null),
+          ),
+        )
+      ],
+    );
+  }
+
+  String _amountFormat(BigInt fee, {required bool isETH}) {
+    return isETH
+        ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
+        : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)";
+  }
 }
 
 class SendArtworkReviewPayload {
-  final AssetToken asset;
+  final AssetToken assetToken;
   final WalletStorage wallet;
+  final int index;
   final String address;
   final BigInt fee;
   final CurrencyExchangeRate exchangeRate;
@@ -380,8 +452,9 @@ class SendArtworkReviewPayload {
   final FeeOptionValue feeOptionValue;
 
   SendArtworkReviewPayload(
-      this.asset,
+      this.assetToken,
       this.wallet,
+      this.index,
       this.address,
       this.fee,
       this.exchangeRate,

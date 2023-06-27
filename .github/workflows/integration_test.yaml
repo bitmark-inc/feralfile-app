@@ -1,15 +1,15 @@
 name: Automation Android
-on: 
+on:
   schedule:
-    - cron: '0 17 * * *'
+    - cron: "0 17 * * *"
   workflow_dispatch:
   # push:
   #   branches:
-      # - develop
+  # - develop
 jobs:
   build:
     runs-on: [self-hosted, linux, ci-local-bmvn]
-    steps:      
+    steps:
       # Checkout code and get packages.
       - name: Checkout code
         uses: actions/checkout@v3
@@ -59,9 +59,10 @@ jobs:
           echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
           echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
           echo MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }} >> .env
+          echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
 
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet }} >> .env
-          
+
           echo TEZOS_FAUCET_URL=${{ secrets.TEZOS_FAUCET_URL }} >> .env
           echo TEZOS_FAUCET_AUTH_TOKEN=${{ secrets.TEZOS_FAUCET_AUTH_TOKEN }} >> .env
 
@@ -79,15 +80,14 @@ jobs:
 
           cat .env
 
-
       - name: Submoudles update
         run: git submodule update --init --recursive
       - run: flutter pub cache repair
-      - run: flutter pub get 
+      - run: flutter pub get
       # Build app
       - name: Build to flutter apk inhouse app
         run: flutter build apk --flavor inhouse
-      
+
       # Run integration test
       - name: Run auto tests for Suite "Link account from MetaMask app"
         if: success() || failure()
@@ -97,7 +97,7 @@ jobs:
       - name: Run auto tests for Suite "Import accounts from seeds"
         if: success() || failure()
         run: |
-          cd $GITHUB_WORKSPACE          
+          cd $GITHUB_WORKSPACE
           flutter pub run test auto-test/tests/import_fullaccount_kukai_temple_test.dart
       - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
         if: success() || failure()
@@ -174,11 +174,11 @@ jobs:
         uses: ravsamhq/notify-slack-action@v2
         with:
           status: ${{ job.status }}
-          notify_when: 'failure,success,warnings'
+          notify_when: "failure,success,warnings"
           notification_title: Auto test execution-"{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
           message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}@{branch}> on commit <{commit_url}|{commit_sha}>"
           footer: "<{run_url}|View Run>"
-          mention_users: 'U03NZ7JU8KC'
-          mention_users_when: 'failure,warnings'      
+          mention_users: "U03NZ7JU8KC"
+          mention_users_when: "failure,warnings"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_LOCAL_BITMARKVN_CI_SLACK }}

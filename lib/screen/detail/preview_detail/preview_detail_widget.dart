@@ -5,18 +5,19 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_state.dart';
-import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
@@ -24,6 +25,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final Function({int? time})? onDispose;
   final bool isMute;
   final FocusNode? focusNode;
+  final bool useIndexer;
 
   const ArtworkPreviewWidget({
     Key? key,
@@ -32,6 +34,7 @@ class ArtworkPreviewWidget extends StatefulWidget {
     this.onDispose,
     this.isMute = false,
     this.focusNode,
+    this.useIndexer = false,
   }) : super(key: key);
 
   @override
@@ -40,15 +43,14 @@ class ArtworkPreviewWidget extends StatefulWidget {
 
 class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc = ArtworkPreviewDetailBloc(
-      GetIt.instance.get<NftCollectionBloc>().database.assetDao,
-      GetIt.instance.get<EthereumService>());
+  final bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
 
   INFTRenderingWidget? _renderingWidget;
 
   @override
   void initState() {
-    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity));
+    bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
+        useIndexer: widget.useIndexer));
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -99,21 +101,28 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
           case ArtworkPreviewDetailLoadingState:
             return const CircularProgressIndicator();
           case ArtworkPreviewDetailLoadedState:
-            final asset = (state as ArtworkPreviewDetailLoadedState).asset;
-            if (asset != null) {
+            final assetToken =
+                (state as ArtworkPreviewDetailLoadedState).assetToken;
+            if (assetToken != null) {
               return BlocProvider(
                 create: (_) => RetryCubit(),
                 child: BlocBuilder<RetryCubit, int>(
                   builder: (context, attempt) {
+                    if (assetToken.isPostcard) {
+                      return Container(
+                          alignment: Alignment.center,
+                          child: PostcardRatio(assetToken: assetToken));
+                    }
                     if (attempt > 0) {
                       _renderingWidget?.dispose();
                       _renderingWidget = null;
                     }
                     if (_renderingWidget == null ||
-                        _renderingWidget!.previewURL != asset.getPreviewUrl()) {
+                        _renderingWidget!.previewURL !=
+                            assetToken.getPreviewUrl()) {
                       _renderingWidget = buildRenderingWidget(
                         context,
-                        asset,
+                        assetToken,
                         attempt: attempt > 0 ? attempt : null,
                         onLoaded: widget.onLoaded,
                         onDispose: widget.onLoaded,
@@ -123,9 +132,24 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                       );
                     }
 
-                    return Container(
-                      child: _renderingWidget?.build(context),
-                    );
+                    switch (assetToken.getMimeType) {
+                      case RenderingType.image:
+                      case RenderingType.video:
+                      case RenderingType.gif:
+                      case RenderingType.pdf:
+                      case RenderingType.svg:
+                        return InteractiveViewer(
+                          minScale: 1,
+                          maxScale: 4,
+                          child: Center(
+                            child: _renderingWidget?.build(context),
+                          ),
+                        );
+                      default:
+                        return Center(
+                          child: _renderingWidget?.build(context),
+                        );
+                    }
                   },
                 ),
               );
@@ -136,5 +160,61 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         }
       },
     );
+  }
+}
+
+class PostcardPreviewWidget extends StatefulWidget {
+  final ArtworkIdentity identity;
+  final bool useIndexer;
+
+  const PostcardPreviewWidget({
+    Key? key,
+    required this.identity,
+    this.useIndexer = false,
+  }) : super(key: key);
+
+  @override
+  State<PostcardPreviewWidget> createState() => _PostcardPreviewWidgetState();
+}
+
+class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
+    with WidgetsBindingObserver, RouteAware {
+  final bloc =
+      PostcardDetailBloc(injector(), injector(), injector(), injector());
+
+  @override
+  void initState() {
+    bloc.add(PostcardDetailGetInfoEvent(widget.identity,
+        useIndexer: widget.useIndexer));
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PostcardDetailBloc, PostcardDetailState>(
+        bloc: bloc,
+        builder: (context, state) {
+          final assetToken = state.assetToken;
+          if (assetToken != null) {
+            return BlocProvider(
+              create: (_) => RetryCubit(),
+              child: BlocBuilder<RetryCubit, int>(
+                builder: (context, attempt) {
+                  return Container(
+                      alignment: Alignment.center,
+                      child: PostcardRatio(assetToken: assetToken));
+                },
+              ),
+            );
+          }
+          return const SizedBox();
+        });
   }
 }

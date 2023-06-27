@@ -12,6 +12,7 @@ class AuIcon {
 
   static const String _fontFamily = 'AuIcon';
 
+  static const IconData wallet = IconData(0xe918, fontFamily: _fontFamily);
   static const IconData send = IconData(0xe90f, fontFamily: _fontFamily);
   static const IconData account = IconData(0xe900, fontFamily: _fontFamily);
   static const IconData add = IconData(0xe901, fontFamily: _fontFamily);
@@ -39,4 +40,6 @@ class AuIcon {
   static const IconData settings = IconData(0xe916, fontFamily: _fontFamily);
   static const IconData subscription =
       IconData(0xe917, fontFamily: _fontFamily);
+  static const IconData rotateRounded =
+      IconData(0xf688, fontFamily: 'MaterialIcons');
 }

@@ -14,21 +14,25 @@ abstract class SendArtworkEvent {}
 
 class GetBalanceEvent extends SendArtworkEvent {
   final WalletStorage wallet;
+  final int index;
 
-  GetBalanceEvent(this.wallet);
+  GetBalanceEvent(this.wallet, this.index);
 }
 
 class AddressChangedEvent extends SendArtworkEvent {
   final String address;
+  final int index;
 
-  AddressChangedEvent(this.address);
+  AddressChangedEvent(this.address, this.index);
 }
 
 class QuantityUpdateEvent extends SendArtworkEvent {
   final int quantity;
   final int maxQuantity;
+  final int index;
 
-  QuantityUpdateEvent({required this.quantity, required this.maxQuantity});
+  QuantityUpdateEvent(
+      {required this.quantity, required this.maxQuantity, required this.index});
 
   @override
   bool operator ==(Object other) =>
@@ -36,21 +40,23 @@ class QuantityUpdateEvent extends SendArtworkEvent {
       other is QuantityUpdateEvent &&
           runtimeType == other.runtimeType &&
           quantity == other.quantity &&
-          maxQuantity == other.maxQuantity;
+          maxQuantity == other.maxQuantity &&
+          index == other.index;
 
   @override
-  int get hashCode => quantity.hashCode ^ maxQuantity.hashCode;
+  int get hashCode => quantity.hashCode ^ maxQuantity.hashCode ^ index;
 }
 
 class EstimateFeeEvent extends SendArtworkEvent {
   final String address;
+  final int index;
   final String contractAddress;
   final String tokenId;
   final int quantity;
   final SendArtworkState? newState;
 
-  EstimateFeeEvent(
-      this.address, this.contractAddress, this.tokenId, this.quantity,
+  EstimateFeeEvent(this.address, this.index, this.contractAddress, this.tokenId,
+      this.quantity,
       {this.newState});
 
   @override
@@ -59,6 +65,7 @@ class EstimateFeeEvent extends SendArtworkEvent {
       other is EstimateFeeEvent &&
           runtimeType == other.runtimeType &&
           address == other.address &&
+          index == other.index &&
           contractAddress == other.contractAddress &&
           tokenId == other.tokenId &&
           quantity == other.quantity;
@@ -66,6 +73,7 @@ class EstimateFeeEvent extends SendArtworkEvent {
   @override
   int get hashCode =>
       address.hashCode ^
+      index.hashCode ^
       contractAddress.hashCode ^
       tokenId.hashCode ^
       quantity.hashCode;
@@ -73,14 +81,13 @@ class EstimateFeeEvent extends SendArtworkEvent {
 
 class FeeOptionChangedEvent extends SendArtworkEvent {
   final FeeOption feeOption;
-  final String address;
-  final int quantity;
 
-  FeeOptionChangedEvent(this.feeOption, this.address, this.quantity);
+  FeeOptionChangedEvent(this.feeOption);
 }
 
 class SendArtworkState {
   WalletStorage? wallet;
+  int? index;
 
   bool isScanQR;
   bool isAddressError;
@@ -102,6 +109,7 @@ class SendArtworkState {
 
   SendArtworkState(
       {this.wallet,
+      this.index,
       this.isScanQR = true,
       this.isAddressError = false,
       this.isQuantityError = false,
@@ -117,6 +125,7 @@ class SendArtworkState {
 
   SendArtworkState clone() => SendArtworkState(
         wallet: wallet,
+        index: index,
         isScanQR: isScanQR,
         isAddressError: isAddressError,
         isQuantityError: isQuantityError,
@@ -134,6 +143,7 @@ class SendArtworkState {
   SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
     return SendArtworkState(
       wallet: wallet,
+      index: index,
       isScanQR: isScanQR,
       isAddressError: isAddressError,
       isQuantityError: isQuantityError,
@@ -153,6 +163,7 @@ class SendArtworkState {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SendArtworkState &&
+          index == other.index &&
           runtimeType == other.runtimeType &&
           isScanQR == other.isScanQR &&
           isAddressError == other.isAddressError &&
@@ -170,6 +181,7 @@ class SendArtworkState {
   @override
   int get hashCode =>
       isScanQR.hashCode ^
+      index.hashCode ^
       isAddressError.hashCode ^
       isQuantityError.hashCode ^
       isValid.hashCode ^

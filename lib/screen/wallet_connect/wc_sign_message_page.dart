@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -66,7 +66,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        if (widget.args.wc2Params != null) {
+        if (widget.args.wc2Params != null || widget.args.isWalletConnect2) {
           await injector<Wc2Service>().respondOnReject(
             widget.args.topic,
             reason: "User reject",
@@ -81,7 +81,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         appBar: getBackAppBar(
           context,
           onBack: () async {
-            if (widget.args.wc2Params != null) {
+            if (widget.args.wc2Params != null || widget.args.isWalletConnect2) {
               await injector<Wc2Service>().respondOnReject(
                 widget.args.topic,
                 reason: "User reject",
@@ -91,12 +91,12 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                   .rejectRequest(widget.args.peerMeta, widget.args.id);
             }
             if (!mounted) return;
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           title: "signature_request".tr(),
         ),
         body: Container(
-          margin: EdgeInsets.only(bottom: ResponsiveLayout.padding),
+          margin: const EdgeInsets.only(bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -128,10 +128,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                               vertical: 20, horizontal: 22),
                           decoration: BoxDecoration(
                             color: AppColor.auLightGrey,
-                            borderRadius: BorderRadiusGeometry.lerp(
-                                const BorderRadius.all(Radius.circular(5)),
-                                const BorderRadius.all(Radius.circular(5)),
-                                5),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
                             messageInUtf8,
@@ -195,7 +192,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     return BlocConsumer<FeralfileBloc, FeralFileState>(
         listener: (context, state) {
       if (state.event != null) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
 
       /***
@@ -234,9 +231,14 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             child: PrimaryButton(
               text: "sign".tr(),
               onTap: () => withDebounce(() async {
+                final didAuthenticate =
+                    await LocalAuthenticationService.checkLocalAuth();
+                if (!didAuthenticate) {
+                  return;
+                }
                 final args = widget.args;
                 final wc2Params = args.wc2Params;
-                final WalletStorage wallet;
+                final WalletIndex wallet;
                 if (wc2Params != null) {
                   final accountService = injector<AccountService>();
                   wallet = await accountService.getAccountByAddress(
@@ -252,23 +254,32 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     signature,
                   );
                 } else {
-                  wallet = LibAukDart.getWallet(widget.args.uuid);
+                  wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),
+                      widget.args.index);
                   final String signature;
 
                   switch (widget.args.type) {
                     case WCSignType.PERSONAL_MESSAGE:
-                      signature = await injector<EthereumService>()
-                          .signPersonalMessage(wallet, message);
-                      break;
                     case WCSignType.MESSAGE:
+                      signature = await injector<EthereumService>()
+                          .signPersonalMessage(
+                              wallet.wallet, wallet.index, message);
+                      break;
                     case WCSignType.TYPED_MESSAGE:
                       signature = await injector<EthereumService>()
-                          .signMessage(wallet, message);
+                          .signMessage(wallet.wallet, wallet.index, message);
                       break;
                   }
 
-                  injector<WalletConnectService>().approveRequest(
-                      widget.args.peerMeta, widget.args.id, signature);
+                  if (widget.args.isWalletConnect2) {
+                    await injector<Wc2Service>().respondOnApprove(
+                      args.topic,
+                      signature,
+                    );
+                  } else {
+                    injector<WalletConnectService>().approveRequest(
+                        widget.args.peerMeta, widget.args.id, signature);
+                  }
                 }
 
                 if (!mounted) return;
@@ -278,13 +289,13 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
-                        wallet,
+                        wallet.wallet,
                         true));
                   } else if (messageInUtf8.contains("ff_request_auth".tr())) {
                     context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
                         widget.args.topic,
                         widget.args.peerMeta.url,
-                        wallet,
+                        wallet.wallet,
                         false));
                   } else if (messageInUtf8
                       .contains("ff_request_auth_dis".tr())) {
@@ -293,31 +304,26 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                             .firstMatch(messageInUtf8);
                     final address = matched?.group(0)?.split("\n")[1].trim();
                     if (address == null) {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(false);
                       return;
                     }
                     context.read<FeralfileBloc>().add(UnlinkFFWeb3AccountEvent(
                         source: widget.args.peerMeta.url, address: address));
                   } else {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true);
                   }
                   // result in listener - linkState.done
                 } else {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 }
-                final notificationEnable =
-                    injector<ConfigurationService>().isNotificationEnabled() ??
-                        false;
-                if (notificationEnable) {
-                  showInfoNotification(
-                    const Key("signed"),
-                    "signed".tr(),
-                    frontWidget: SvgPicture.asset(
-                      "assets/images/checkbox_icon.svg",
-                      width: 24,
-                    ),
-                  );
-                }
+                showInfoNotification(
+                  const Key("signed"),
+                  "signed".tr(),
+                  frontWidget: SvgPicture.asset(
+                    "assets/images/checkbox_icon.svg",
+                    width: 24,
+                  ),
+                );
               }),
             ),
           )
@@ -334,7 +340,9 @@ class WCSignMessagePageArgs {
   final String message;
   final WCSignType type;
   final String uuid;
+  final int index;
   final Wc2SignRequestParams? wc2Params;
+  final bool isWalletConnect2;
 
   WCSignMessagePageArgs(
     this.id,
@@ -342,7 +350,9 @@ class WCSignMessagePageArgs {
     this.peerMeta,
     this.message,
     this.type,
-    this.uuid, {
+    this.uuid,
+    this.index, {
+    this.isWalletConnect2 = false,
     this.wc2Params,
   });
 }

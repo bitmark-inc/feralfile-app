@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/asset_price.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -14,14 +13,42 @@ abstract class ArtworkDetailEvent {}
 
 class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
   final ArtworkIdentity identity;
+  final bool useIndexer;
 
-  ArtworkDetailGetInfoEvent(this.identity);
+  ArtworkDetailGetInfoEvent(this.identity, {this.useIndexer = false});
+}
+
+class ArtworkDetailGetAirdropDeeplink extends ArtworkDetailEvent {
+  final AssetToken assetToken;
+
+  ArtworkDetailGetAirdropDeeplink({required this.assetToken});
 }
 
 class ArtworkDetailState {
-  AssetToken? asset;
+  AssetToken? assetToken;
   List<Provenance> provenances;
-  AssetPrice? assetPrice;
+  Map<String, int> owners;
+  String? airdropDeeplink;
 
-  ArtworkDetailState({this.asset, required this.provenances, this.assetPrice});
+  ArtworkDetailState({
+    this.assetToken,
+    required this.provenances,
+    this.owners = const {},
+    this.airdropDeeplink,
+  });
+
+  //copyWith
+  ArtworkDetailState copyWith({
+    AssetToken? assetToken,
+    List<Provenance>? provenances,
+    Map<String, int>? owners,
+    String? airdropDeeplink,
+  }) {
+    return ArtworkDetailState(
+      assetToken: assetToken ?? this.assetToken,
+      provenances: provenances ?? this.provenances,
+      owners: owners ?? this.owners,
+      airdropDeeplink: airdropDeeplink ?? this.airdropDeeplink,
+    );
+  }
 }

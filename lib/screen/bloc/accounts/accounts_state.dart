@@ -13,7 +13,23 @@ class ResetEventEvent extends AccountsEvent {}
 
 class GetAccountsEvent extends AccountsEvent {}
 
-class GetCategorizedAccountsEvent extends AccountsEvent {}
+class GetCategorizedAccountsEvent extends AccountsEvent {
+  final bool includeLinkedAccount;
+  final bool getTezos;
+  final bool getEth;
+
+  GetCategorizedAccountsEvent({
+    this.includeLinkedAccount = true,
+    this.getTezos = true,
+    this.getEth = true,
+  });
+}
+
+class GetAccountsIRLEvent extends AccountsEvent {
+  final Map<String, dynamic>? param;
+  final String? blockchain;
+  GetAccountsIRLEvent({this.param, this.blockchain});
+}
 
 class LinkLedgerWalletEvent extends AccountsEvent {
   final String address;
@@ -46,6 +62,14 @@ class FindAccount extends AccountsEvent {
   FindAccount(this.personaUUID, this.address, this.type);
 }
 
+class FindLinkedAccount extends AccountsEvent {
+  final String connectionKey;
+  final String address;
+  final CryptoType type;
+
+  FindLinkedAccount(this.connectionKey, this.address, this.type);
+}
+
 class Account {
   String key;
   Persona? persona;
@@ -54,6 +78,12 @@ class Account {
   String? blockchain;
   String accountNumber;
   DateTime createdAt;
+
+  bool get isTez => blockchain == "Tezos";
+
+  bool get isEth => blockchain == "Ethereum";
+
+  bool get isUsdc => blockchain == "USDC";
 
   Account({
     required this.key,
@@ -96,6 +126,16 @@ class CategorizedAccounts {
   String className;
 
   CategorizedAccounts(this.category, this.accounts, this.className);
+
+  List<Account> get ethAccounts =>
+      accounts.where((element) => element.isEth).toList();
+
+  List<Account> get xtzAccounts =>
+      accounts.where((element) => element.isTez).toList();
+
+  bool get isPersona => className == 'Persona';
+
+  Persona? get persona => accounts.firstWhere((e) => e.persona != null).persona;
 }
 
 class AccountsState {

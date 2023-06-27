@@ -1,157 +1,124 @@
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/play_control_service.dart';
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 
-class PlaylistControl extends StatefulWidget {
+class PlaylistControl extends StatelessWidget {
+  final PlayControlModel playControl;
   final Function()? onPlayTap;
   final Function()? onTimerTap;
   final Function()? onShuffleTap;
-  final Function()? onLoopTap;
   final bool showPlay;
+
   const PlaylistControl({
     Key? key,
     this.onPlayTap,
     this.onTimerTap,
     this.onShuffleTap,
-    this.onLoopTap,
     this.showPlay = true,
+    required this.playControl,
   }) : super(key: key);
 
   @override
-  State<PlaylistControl> createState() => _PlaylistControlState();
-}
-
-class _PlaylistControlState extends State<PlaylistControl> {
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final playControlListen = injector.get<ValueNotifier<PlayControlService>>();
 
-    return ValueListenableBuilder(
-      builder: (BuildContext context, value, Widget? child) {
-        final playControl = playControlListen.value;
-        return Container(
-          color: theme.colorScheme.primary,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ControlItem(
-                  icon: SvgPicture.asset(
+    return Container(
+      color: theme.colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ControlItem(
+              icon: SvgPicture.asset(
+                'assets/images/time_off_icon.svg',
+                width: 24,
+                color: theme.disableColor,
+              ),
+              iconFocus: Stack(
+                children: [
+                  SvgPicture.asset(
                     'assets/images/time_off_icon.svg',
                     width: 24,
-                    color: theme.disableColor,
+                    color: theme.colorScheme.secondary,
                   ),
-                  iconFocus: Stack(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/time_off_icon.svg',
-                        width: 24,
-                        color: theme.colorScheme.secondary,
-                      ),
-                      Positioned(
-                        bottom: -2,
-                        right: -1,
-                        child: Visibility(
-                          visible: playControl.timer != 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 2,
-                              horizontal: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.secondary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              playControl.timer.toString(),
-                              style: TextStyle(
-                                fontFamily: 'PPMori',
-                                color: theme.colorScheme.primary,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                  Positioned(
+                    bottom: -2,
+                    right: -1,
+                    child: Visibility(
+                      visible: playControl.timer != 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 2,
+                          horizontal: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          playControl.timer.toString(),
+                          style: TextStyle(
+                            fontFamily: 'PPMori',
+                            color: theme.colorScheme.primary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      )
-                    ],
-                  ),
-                  isActive: playControl.timer != 0,
-                  onTap: () {
-                    playControlListen.value = playControl.onChangeTime();
-                  },
-                ),
-                const SizedBox(
-                  width: 15,
-                ),
-                ControlItem(
-                  icon: SvgPicture.asset(
-                    'assets/images/shuffle_icon.svg',
-                    width: 24,
-                    color: theme.disableColor,
-                  ),
-                  iconFocus: SvgPicture.asset(
-                    'assets/images/shuffle_icon.svg',
-                    width: 24,
-                    color: theme.colorScheme.secondary,
-                  ),
-                  isActive: playControl.isShuffle,
-                  onTap: () {
-                    playControlListen.value =
-                        playControl.copyWith(isShuffle: !playControl.isShuffle);
-                    widget.onShuffleTap?.call();
-                  },
-                ),
-                const SizedBox(
-                  width: 15,
-                ),
-                ControlItem(
-                  icon: SvgPicture.asset(
-                    'assets/images/loop_icon.svg',
-                    width: 24,
-                  ),
-                  iconFocus: SvgPicture.asset(
-                    'assets/images/loop_icon.svg',
-                    width: 24,
-                    color: theme.colorScheme.secondary,
-                  ),
-                  isActive: playControl.isLoop,
-                  onTap: () {
-                    playControlListen.value =
-                        playControl.copyWith(isLoop: !playControl.isLoop);
-                  },
-                ),
-                if (widget.showPlay) ...[
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  ControlItem(
-                    icon: SvgPicture.asset(
-                      'assets/images/play_icon.svg',
-                      width: 24,
-                      color: theme.colorScheme.secondary,
+                      ),
                     ),
-                    iconFocus: SvgPicture.asset(
-                      'assets/images/play_icon.svg',
-                      width: 24,
-                      color: theme.colorScheme.secondary,
-                    ),
-                    onTap: () {
-                      widget.onPlayTap?.call();
-                    },
-                  ),
-                ]
-              ],
+                  )
+                ],
+              ),
+              isActive: playControl.timer != 0,
+              onTap: () {
+                onTimerTap?.call();
+              },
             ),
-          ),
-        );
-      },
-      valueListenable: playControlListen,
+            const SizedBox(
+              width: 15,
+            ),
+            ControlItem(
+              icon: SvgPicture.asset(
+                'assets/images/shuffle_icon.svg',
+                width: 24,
+                color: theme.disableColor,
+              ),
+              iconFocus: SvgPicture.asset(
+                'assets/images/shuffle_icon.svg',
+                width: 24,
+                color: theme.colorScheme.secondary,
+              ),
+              isActive: playControl.isShuffle,
+              onTap: () {
+                onShuffleTap?.call();
+              },
+            ),
+            if (showPlay) ...[
+              const SizedBox(
+                width: 15,
+              ),
+              ControlItem(
+                icon: SvgPicture.asset(
+                  'assets/images/play_icon.svg',
+                  width: 24,
+                  color: theme.colorScheme.secondary,
+                ),
+                iconFocus: SvgPicture.asset(
+                  'assets/images/play_icon.svg',
+                  width: 24,
+                  color: theme.colorScheme.secondary,
+                ),
+                onTap: () {
+                  onPlayTap?.call();
+                },
+              ),
+            ]
+          ],
+        ),
+      ),
     );
   }
 }

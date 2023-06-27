@@ -5,15 +5,17 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -21,8 +23,11 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import '../main.dart';
@@ -33,13 +38,45 @@ class WalletConnectService {
   final ConfigurationService _configurationService;
 
   final List<WCClient> wcClients = List.empty(growable: true);
-  Map<WCPeerMeta, String> tmpUuids = {};
+  Map<WCPeerMeta, Pair<String, int>> tmpUuids = {};
+  final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
+  bool _addedConnectionFlag = false;
+  bool _requestSignMessageForConnectionFlag = false;
+  Timer? _timer;
 
   WalletConnectService(
     this._navigationService,
     this._cloudDB,
     this._configurationService,
   );
+
+  void _addedConnection() {
+    _addedConnectionFlag = true;
+    Future.delayed(const Duration(seconds: 10), () {
+      _addedConnectionFlag = false;
+    });
+  }
+
+  void _clearConnectFlag() {
+    _addedConnectionFlag = false;
+    _requestSignMessageForConnectionFlag = false;
+  }
+
+  void _requestSignMessageForConnection() {
+    if (_addedConnectionFlag) {
+      _requestSignMessageForConnectionFlag = true;
+      _addedConnectionFlag = false;
+    }
+  }
+
+  void _showYouAllSet() {
+    if (_requestSignMessageForConnectionFlag) {
+      _requestSignMessageForConnectionFlag = false;
+      Future.delayed(const Duration(seconds: 3), () {
+        showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+      });
+    }
+  }
 
   Future initSessions({bool forced = false}) async {
     final wcConnections = await _cloudDB.connectionDao
@@ -65,12 +102,12 @@ class WalletConnectService {
 
       if (wcClient == null || sessionStore == null) continue;
 
-      wcClient.connectFromSessionStore(sessionStore: sessionStore);
+      wcClient.connectFromSessionStore(sessionStore);
       wcClients.add(wcClient);
     }
   }
 
-  connect(String wcUri) {
+  connect(String wcUri, {Function()? onTimeout}) {
     log.info("WalletConnectService.connect: $wcUri");
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
@@ -79,6 +116,10 @@ class WalletConnectService {
       description: 'Autonomy Wallet',
       icons: [],
     );
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
 
     final wcClient = _createWCClient(session.topic, null);
     if (wcClient == null) {
@@ -104,7 +145,7 @@ class WalletConnectService {
     wcClients.remove(wcClient);
   }
 
-  Future<bool> approveSession(String uuid, WCPeerMeta peerMeta,
+  Future<bool> approveSession(String uuid, int index, WCPeerMeta peerMeta,
       List<String> accounts, int chainId) async {
     log.info(
         "WalletConnectService.approveSession: $peerMeta, $accounts, $chainId");
@@ -114,9 +155,11 @@ class WalletConnectService {
 
     wcClient.approveSession(accounts: accounts, chainId: chainId);
 
-    tmpUuids[peerMeta] = uuid;
+    tmpUuids[peerMeta] = Pair(uuid, index);
 
     if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+      _configurationService.setAlreadyShowTvAppTip(true);
+      _configurationService.showTvAppTip.value = false;
       final date = peerMeta.description?.split(' -').last;
       final microsecondsSinceEpoch = int.tryParse(date ?? '');
       if (microsecondsSinceEpoch == null) return true;
@@ -126,11 +169,14 @@ class WalletConnectService {
         return false;
       }
       log.info("it's AUTONOMY_TV_PEER_NAME => skip storing connection");
+      injector<MetricClientService>()
+          .addEvent(MixpanelEvent.connectAutonomyDisplay);
+
       return true;
     }
 
     final wcConnection = WalletConnectConnection(
-        personaUuid: uuid, sessionStore: wcClient.sessionStore);
+        personaUuid: uuid, sessionStore: wcClient.sessionStore, index: index);
 
     final connection = Connection(
       key: wcClient.session!.topic,
@@ -141,6 +187,7 @@ class WalletConnectService {
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
+    _addedConnection();
     return true;
   }
 
@@ -197,6 +244,7 @@ class WalletConnectService {
         log.info("WC failed to connect: $error");
       },
       onSessionRequest: (id, peerMeta) async {
+        log.info("[WalletConnectService]: onSessionRequest id = $id]");
         currentPeerMeta = peerMeta;
         if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
           final isSubscribed = await injector<IAPService>().isSubscribed();
@@ -214,20 +262,32 @@ class WalletConnectService {
                 feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
           }
         } else {
+          _timer?.cancel();
           _navigationService.navigateTo(AppRouter.wcConnectPage,
               arguments: WCConnectPageArgs(id, peerMeta));
         }
       },
-      onEthSign: (id, message) {
-        String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
+      onEthSign: (id, message) async {
+        log.info("[WalletConnectService]: onEthSign id = $id]");
+        String? uuid =
+            wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
+        int? index = wcConnection?.index ?? tmpUuids[currentPeerMeta!]?.second;
         if (uuid == null ||
+            index == null ||
             !wcClients.any(
                 (element) => element.remotePeerMeta == currentPeerMeta)) return;
 
-        _navigationService.navigateTo(WCSignMessagePage.tag,
+        _requestSignMessageForConnection();
+        final result = await _navigationService.navigateTo(
+            WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
-                message.data!, message.type, uuid));
-
+                message.data!, message.type, uuid, index));
+        log.info(
+            "[WalletConnectService]: onEthSign id = $id, result = $result");
+        if (result) {
+          _showYouAllSet();
+        }
+        _clearConnectFlag();
         final metricClient = injector.get<MetricClientService>();
         metricClient.addEvent(MixpanelEvent.signIn, data: {
           "type": "Eth",
@@ -236,18 +296,36 @@ class WalletConnectService {
         });
       },
       onEthSendTransaction: (id, tx) {
-        String? uuid = wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!];
+        log.info("[WalletConnectService]: onEthSendTransaction id = $id]");
+        String? uuid =
+            wcConnection?.personaUuid ?? tmpUuids[currentPeerMeta!]?.first;
+        int? index = wcConnection?.index ?? tmpUuids[currentPeerMeta!]?.second;
         if (uuid == null ||
-            !wcClients.any(
-                (element) => element.remotePeerMeta == currentPeerMeta)) return;
-
-        _navigationService.navigateTo(WCSendTransactionPage.tag,
-            arguments:
-                WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid));
+            index == null ||
+            !wcClients
+                .any((element) => element.remotePeerMeta == currentPeerMeta) ||
+            tx.to == null) return;
+        final payload =
+            WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid, index);
+        _handlingEthSendTransactions.add(payload);
+        if (_handlingEthSendTransactions.length == 1) {
+          handleEthSendTransaction();
+        }
       },
       onEthSignTransaction: (id, tx) {
         // Respond to eth_signTransaction request callback
       },
     );
+  }
+
+  void handleEthSendTransaction({bool isRemoved = false}) {
+    log.info("[WalletConnectService]: handle EthSendTransaction]");
+    if (isRemoved && _handlingEthSendTransactions.isNotEmpty) {
+      _handlingEthSendTransactions.removeAt(0);
+    }
+    if (_handlingEthSendTransactions.isEmpty) return;
+    final payload = _handlingEthSendTransactions.first;
+    _navigationService.navigateTo(WCSendTransactionPage.tag,
+        arguments: payload);
   }
 }

@@ -15,11 +15,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shake/shake.dart';
 
 class PreviewTokenClaim extends StatefulWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
 
   const PreviewTokenClaim({
     Key? key,
-    required this.artwork,
+    required this.series,
   }) : super(key: key);
 
   @override
@@ -30,9 +30,9 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
     with AfterLayoutMixin, WidgetsBindingObserver {
   bool isFullScreen = false;
   ShakeDetector? _detector;
+
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
@@ -68,7 +68,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
   Widget build(BuildContext context) {
     final safeAreaTop = MediaQuery.of(context).padding.top;
     final theme = Theme.of(context);
-    final artwork = widget.artwork;
+    final artwork = widget.series;
     final artist = artwork.artist;
     return Scaffold(
         backgroundColor: theme.colorScheme.primary,
@@ -116,7 +116,9 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                         const SizedBox(height: 4.0),
                                         Text(
                                           "by".tr(args: [
-                                            artist.getDisplayName()
+                                            artist != null
+                                                ? artist.getDisplayName()
+                                                : ""
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style: theme

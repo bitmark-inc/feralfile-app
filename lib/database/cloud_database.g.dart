@@ -67,10 +67,15 @@ class _$CloudDatabase extends CloudDatabase {
 
   AuditDao? _auditDaoInstance;
 
-  Future<sqflite.Database> open(String path, List<Migration> migrations,
-      [Callback? callback]) async {
+  WalletAddressDao? _addressDaoInstance;
+
+  Future<sqflite.Database> open(
+    String path,
+    List<Migration> migrations, [
+    Callback? callback,
+  ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 3,
+      version: 6,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -86,11 +91,13 @@ class _$CloudDatabase extends CloudDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, PRIMARY KEY (`uuid`))');
+            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER NOT NULL, `tezosIndex` INTEGER NOT NULL, `ethereumIndexes` TEXT, `tezosIndexes` TEXT, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Audit` (`uuid` TEXT NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, PRIMARY KEY (`address`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -112,11 +119,18 @@ class _$CloudDatabase extends CloudDatabase {
   AuditDao get auditDao {
     return _auditDaoInstance ??= _$AuditDao(database, changeListener);
   }
+
+  @override
+  WalletAddressDao get addressDao {
+    return _addressDaoInstance ??= _$WalletAddressDao(database, changeListener);
+  }
 }
 
 class _$PersonaDao extends PersonaDao {
-  _$PersonaDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$PersonaDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _personaInsertionAdapter = InsertionAdapter(
             database,
             'Persona',
@@ -124,7 +138,11 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount
+                  'defaultAccount': item.defaultAccount,
+                  'ethereumIndex': item.ethereumIndex,
+                  'tezosIndex': item.tezosIndex,
+                  'ethereumIndexes': item.ethereumIndexes,
+                  'tezosIndexes': item.tezosIndexes
                 }),
         _personaUpdateAdapter = UpdateAdapter(
             database,
@@ -134,7 +152,11 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount
+                  'defaultAccount': item.defaultAccount,
+                  'ethereumIndex': item.ethereumIndex,
+                  'tezosIndex': item.tezosIndex,
+                  'ethereumIndexes': item.ethereumIndexes,
+                  'tezosIndexes': item.tezosIndexes
                 }),
         _personaDeletionAdapter = DeletionAdapter(
             database,
@@ -144,7 +166,11 @@ class _$PersonaDao extends PersonaDao {
                   'uuid': item.uuid,
                   'name': item.name,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount
+                  'defaultAccount': item.defaultAccount,
+                  'ethereumIndex': item.ethereumIndex,
+                  'tezosIndex': item.tezosIndex,
+                  'ethereumIndexes': item.ethereumIndexes,
+                  'tezosIndexes': item.tezosIndexes
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -161,12 +187,16 @@ class _$PersonaDao extends PersonaDao {
 
   @override
   Future<List<Persona>> getPersonas() async {
-    return _queryAdapter.queryList("SELECT * FROM Persona",
+    return _queryAdapter.queryList('SELECT * FROM Persona',
         mapper: (Map<String, Object?> row) => Persona(
             uuid: row['uuid'] as String,
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?));
+            defaultAccount: row['defaultAccount'] as int?,
+            ethereumIndex: row['ethereumIndex'] as int,
+            tezosIndex: row['tezosIndex'] as int,
+            ethereumIndexes: row['ethereumIndexes'] as String?,
+            tezosIndexes: row['tezosIndexes'] as String?));
   }
 
   @override
@@ -177,12 +207,17 @@ class _$PersonaDao extends PersonaDao {
             uuid: row['uuid'] as String,
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?));
+            defaultAccount: row['defaultAccount'] as int?,
+            ethereumIndex: row['ethereumIndex'] as int,
+            tezosIndex: row['tezosIndex'] as int,
+            ethereumIndexes: row['ethereumIndexes'] as String?,
+            tezosIndexes: row['tezosIndexes'] as String?));
   }
 
   @override
   Future<int?> getPersonasCount() async {
-    await _queryAdapter.queryNoReturn('SELECT COUNT(*) FROM Persona');
+    return _queryAdapter.query('SELECT COUNT(*) FROM Persona',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
@@ -192,7 +227,11 @@ class _$PersonaDao extends PersonaDao {
             uuid: row['uuid'] as String,
             name: row['name'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?),
+            defaultAccount: row['defaultAccount'] as int?,
+            ethereumIndex: row['ethereumIndex'] as int,
+            tezosIndex: row['tezosIndex'] as int,
+            ethereumIndexes: row['ethereumIndexes'] as String?,
+            tezosIndexes: row['tezosIndexes'] as String?),
         arguments: [uuid]);
   }
 
@@ -207,6 +246,12 @@ class _$PersonaDao extends PersonaDao {
   }
 
   @override
+  Future<void> insertPersonas(List<Persona> personas) async {
+    await _personaInsertionAdapter.insertList(
+        personas, OnConflictStrategy.replace);
+  }
+
+  @override
   Future<void> updatePersona(Persona persona) async {
     await _personaUpdateAdapter.update(persona, OnConflictStrategy.abort);
   }
@@ -218,8 +263,10 @@ class _$PersonaDao extends PersonaDao {
 }
 
 class _$ConnectionDao extends ConnectionDao {
-  _$ConnectionDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$ConnectionDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _connectionInsertionAdapter = InsertionAdapter(
             database,
             'Connection',
@@ -385,8 +432,10 @@ class _$ConnectionDao extends ConnectionDao {
 }
 
 class _$AuditDao extends AuditDao {
-  _$AuditDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$AuditDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _auditInsertionAdapter = InsertionAdapter(
             database,
             'Audit',
@@ -418,7 +467,10 @@ class _$AuditDao extends AuditDao {
   }
 
   @override
-  Future<List<Audit>> getAuditsBy(String category, String action) async {
+  Future<List<Audit>> getAuditsBy(
+    String category,
+    String action,
+  ) async {
     return _queryAdapter.queryList(
         'SELECT * FROM Audit WHERE category = (?1) AND action = (?2)',
         mapper: (Map<String, Object?> row) => Audit(
@@ -438,6 +490,173 @@ class _$AuditDao extends AuditDao {
   @override
   Future<void> insertAudit(Audit audit) async {
     await _auditInsertionAdapter.insert(audit, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAudits(List<Audit> audits) async {
+    await _auditInsertionAdapter.insertList(audits, OnConflictStrategy.replace);
+  }
+}
+
+class _$WalletAddressDao extends WalletAddressDao {
+  _$WalletAddressDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _walletAddressInsertionAdapter = InsertionAdapter(
+            database,
+            'WalletAddress',
+            (WalletAddress item) => <String, Object?>{
+                  'address': item.address,
+                  'uuid': item.uuid,
+                  'index': item.index,
+                  'cryptoType': item.cryptoType,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'isHidden': item.isHidden ? 1 : 0
+                }),
+        _walletAddressUpdateAdapter = UpdateAdapter(
+            database,
+            'WalletAddress',
+            ['address'],
+            (WalletAddress item) => <String, Object?>{
+                  'address': item.address,
+                  'uuid': item.uuid,
+                  'index': item.index,
+                  'cryptoType': item.cryptoType,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'isHidden': item.isHidden ? 1 : 0
+                }),
+        _walletAddressDeletionAdapter = DeletionAdapter(
+            database,
+            'WalletAddress',
+            ['address'],
+            (WalletAddress item) => <String, Object?>{
+                  'address': item.address,
+                  'uuid': item.uuid,
+                  'index': item.index,
+                  'cryptoType': item.cryptoType,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'isHidden': item.isHidden ? 1 : 0
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<WalletAddress> _walletAddressInsertionAdapter;
+
+  final UpdateAdapter<WalletAddress> _walletAddressUpdateAdapter;
+
+  final DeletionAdapter<WalletAddress> _walletAddressDeletionAdapter;
+
+  @override
+  Future<List<WalletAddress>> getAllAddresses() async {
+    return _queryAdapter.queryList('SELECT * FROM WalletAddress',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0));
+  }
+
+  @override
+  Future<WalletAddress?> findByAddress(String address) async {
+    return _queryAdapter.query('SELECT * FROM WalletAddress WHERE address = ?1',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0),
+        arguments: [address]);
+  }
+
+  @override
+  Future<List<WalletAddress>> findByWalletID(String uuid) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM WalletAddress WHERE uuid = ?1',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0),
+        arguments: [uuid]);
+  }
+
+  @override
+  Future<List<WalletAddress>> findAddressesWithHiddenStatus(
+      bool isHidden) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM WalletAddress WHERE isHidden = ?1',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0),
+        arguments: [isHidden ? 1 : 0]);
+  }
+
+  @override
+  Future<List<WalletAddress>> getAddresses(
+    String uuid,
+    String cryptoType,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM WalletAddress WHERE uuid = ?1 AND cryptoType = ?2',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0),
+        arguments: [uuid, cryptoType]);
+  }
+
+  @override
+  Future<void> setAddressIsHidden(
+    String address,
+    bool isHidden,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE WalletAddress SET isHidden = ?2 WHERE address = ?1',
+        arguments: [address, isHidden ? 1 : 0]);
+  }
+
+  @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM WalletAddress');
+  }
+
+  @override
+  Future<void> insertAddress(WalletAddress address) async {
+    await _walletAddressInsertionAdapter.insert(
+        address, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAddresses(List<WalletAddress> addresses) async {
+    await _walletAddressInsertionAdapter.insertList(
+        addresses, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateAddress(WalletAddress address) async {
+    await _walletAddressUpdateAdapter.update(address, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> deleteAddress(WalletAddress address) async {
+    await _walletAddressDeletionAdapter.delete(address);
   }
 }
 

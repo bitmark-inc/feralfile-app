@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
+import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -23,6 +25,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:web3dart/web3dart.dart';
 
 part 'accounts_state.dart';
 
@@ -104,122 +107,199 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       emit(AccountsState(accounts: accounts));
     });
 
+    on<GetAccountsIRLEvent>((event, emit) async {
+      final personas = await _cloudDB.personaDao.getPersonas();
+
+      List<Account> accounts = (await Future.wait(
+              personas.map((persona) => getAccountPersona(persona))))
+          .whereNotNull()
+          .toList();
+
+      accounts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final defaultAccount = accounts.firstWhereOrNull((element) =>
+          element.persona != null ? element.persona!.isDefault() : false);
+      if (defaultAccount != null) {
+        accounts.remove(defaultAccount);
+        accounts.insert(0, defaultAccount);
+      }
+      emit(AccountsState(accounts: accounts));
+    });
+
     on<GetCategorizedAccountsEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-
+      logger.info(
+          'GetCategorizedAccountsEvent: personas: ${personas.map((e) => e.uuid).toList()}');
+      if (personas.isEmpty &&
+          ((event.includeLinkedAccount && connections.isEmpty) ||
+              !event.includeLinkedAccount)) {
+        emit(state.copyWith(categorizedAccounts: []));
+      }
       List<CategorizedAccounts> categorizedAccounts = [];
 
       for (var persona in personas) {
         if (!await persona.wallet().isWalletCreated()) continue;
-        final ethAddress = await persona.wallet().getETHEip55Address();
-        final xtzAddress = (await persona.wallet().getTezosAddress());
+        final ethAddresses = await persona.getEthAddresses();
+        final xtzAddresses = await persona.getTezosAddresses();
+
+        if (ethAddresses.isEmpty && xtzAddresses.isEmpty) {
+          final ethAddress = await persona.wallet().getETHEip55Address();
+          final ethAddressInfo =
+              EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
+          ethAddresses.add(ethAddress);
+
+          final tezAddress = await persona.wallet().getTezosAddress();
+          final tezAddressInfo = TezosAddressInfo(0, tezAddress, 0);
+          await _accountService
+              .addAddressPersona(persona, [tezAddressInfo, ethAddressInfo]);
+          xtzAddresses.add(tezAddress);
+        }
+
         var name = await persona.wallet().getName();
 
         if (name.isEmpty) {
-          name = persona.name;
+          name = persona.name.isNotEmpty
+              ? persona.name
+              : (await persona.wallet().getAccountDID())
+                  .replaceFirst('did:key:', '');
         }
 
-        final ethAccount = Account(
-            key: persona.uuid,
-            persona: persona,
-            name: name,
-            blockchain: "Ethereum",
-            accountNumber: ethAddress,
-            createdAt: persona.createdAt);
+        final List<Account> accounts = [];
+        final List<Account> ethAccounts = [];
+        final List<Account> xtzAccounts = [];
+        for (var address in ethAddresses) {
+          final ethAccount = Account(
+              key: persona.uuid,
+              persona: persona,
+              name: name,
+              blockchain: "Ethereum",
+              accountNumber: address,
+              createdAt: persona.createdAt);
+          ethAccounts.add(ethAccount);
+        }
+        for (var address in xtzAddresses) {
+          final xtzAccount = Account(
+              key: persona.uuid,
+              persona: persona,
+              name: name,
+              blockchain: "Tezos",
+              accountNumber: address,
+              createdAt: persona.createdAt);
+          xtzAccounts.add(xtzAccount);
+        }
+        if (event.getEth && ethAccounts.isNotEmpty) {
+          accounts.addAll(ethAccounts);
+        }
 
-        final xtzAccount = Account(
-            key: persona.uuid,
-            persona: persona,
-            name: name,
-            blockchain: "Tezos",
-            accountNumber: xtzAddress,
-            createdAt: persona.createdAt);
-
-        categorizedAccounts.add(CategorizedAccounts(
-          name,
-          [ethAccount, xtzAccount],
-          'Persona',
-        ));
+        if (event.getTezos && xtzAccounts.isNotEmpty) {
+          accounts.addAll(xtzAccounts);
+        }
+        if (accounts.isNotEmpty) {
+          categorizedAccounts.add(
+            CategorizedAccounts(
+              name,
+              accounts,
+              'Persona',
+            ),
+          );
+        }
       }
 
-      for (var connection in connections) {
-        switch (connection.connectionType) {
-          case "walletConnect":
-          case "walletBrowserConnect":
-            categorizedAccounts.add(CategorizedAccounts(
-              connection.name,
-              [
-                Account(
-                  key: connection.key,
-                  blockchain: "Ethereum",
-                  accountNumber: connection.accountNumber,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                )
-              ],
-              'Connection',
-            ));
-            break;
-          case "walletBeacon":
-            categorizedAccounts.add(CategorizedAccounts(
-              connection.name,
-              [
-                Account(
-                  key: connection.key,
-                  blockchain: "Tezos",
-                  accountNumber: connection.accountNumber,
-                  connections: [connection],
-                  name: connection.name,
-                  createdAt: connection.createdAt,
-                )
-              ],
-              'Connection',
-            ));
-            break;
+      if (event.includeLinkedAccount) {
+        for (var connection in connections) {
+          switch (connection.connectionType) {
+            case "walletConnect":
+            case "walletBrowserConnect":
+              if (event.getEth) {
+                categorizedAccounts.add(
+                  CategorizedAccounts(
+                    connection.name,
+                    [
+                      Account(
+                        key: connection.key,
+                        blockchain: "Ethereum",
+                        accountNumber: connection.accountNumber,
+                        connections: [connection],
+                        name: connection.name,
+                        createdAt: connection.createdAt,
+                      )
+                    ],
+                    'Connection',
+                  ),
+                );
+              }
+              break;
+            case "walletBeacon":
+              if (event.getTezos) {
+                categorizedAccounts.add(
+                  CategorizedAccounts(
+                    connection.name,
+                    [
+                      Account(
+                        key: connection.key,
+                        blockchain: "Tezos",
+                        accountNumber: connection.accountNumber,
+                        connections: [connection],
+                        name: connection.name,
+                        createdAt: connection.createdAt,
+                      )
+                    ],
+                    'Connection',
+                  ),
+                );
+              }
+              break;
 
-          case 'ledger':
-            final data = connection.ledgerConnection;
-            List<Account> accounts = [];
+            case 'ledger':
+              final data = connection.ledgerConnection;
+              List<Account> accounts = [];
 
-            final ethereumAddresses = data?.etheremAddress ?? [];
-            final tezosAddresses = data?.tezosAddress ?? [];
+              final ethereumAddresses = data?.etheremAddress ?? [];
+              final tezosAddresses = data?.tezosAddress ?? [];
 
-            for (final ethereumAddress in ethereumAddresses) {
-              accounts.add(Account(
-                key: connection.key + ethereumAddress,
-                blockchain: "Ethereum",
-                accountNumber: ethereumAddress,
-                connections: [connection],
-                name: connection.name,
-                createdAt: connection.createdAt,
-              ));
-            }
+              for (final ethereumAddress in ethereumAddresses) {
+                if (event.getEth) {
+                  accounts.add(
+                    Account(
+                      key: connection.key + ethereumAddress,
+                      blockchain: "Ethereum",
+                      accountNumber: ethereumAddress,
+                      connections: [connection],
+                      name: connection.name,
+                      createdAt: connection.createdAt,
+                    ),
+                  );
+                }
+              }
 
-            for (final tezosAddress in tezosAddresses) {
-              accounts.add(Account(
-                key: connection.key + tezosAddress,
-                blockchain: "Tezos",
-                accountNumber: tezosAddress,
-                connections: [connection],
-                name: connection.name,
-                createdAt: connection.createdAt,
-              ));
-            }
+              for (final tezosAddress in tezosAddresses) {
+                if (event.getTezos) {
+                  accounts.add(
+                    Account(
+                      key: connection.key + tezosAddress,
+                      blockchain: "Tezos",
+                      accountNumber: tezosAddress,
+                      connections: [connection],
+                      name: connection.name,
+                      createdAt: connection.createdAt,
+                    ),
+                  );
+                }
+              }
 
-            if (accounts.isNotEmpty) {
-              categorizedAccounts.add(CategorizedAccounts(
-                connection.name,
-                accounts,
-                'Connection',
-              ));
-            }
-            break;
+              if (accounts.isNotEmpty) {
+                categorizedAccounts.add(CategorizedAccounts(
+                  connection.name,
+                  accounts,
+                  'Connection',
+                ));
+              }
+              break;
 
-          default:
-            break;
+            default:
+              break;
+          }
         }
       }
 
@@ -295,12 +375,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         final personas = await _cloudDB.personaDao.getPersonas();
 
         for (var persona in personas) {
-          final wallet = persona.wallet();
-          final ethAddress = await wallet.getETHEip55Address();
-          final tzAddress = await wallet.getTezosAddress();
-
-          addresses.add(ethAddress);
-          addresses.add(tzAddress);
+          addresses.addAll(await persona.getAddresses());
         }
 
         final linkedAccounts = await _cloudDB.connectionDao.getConnections();
@@ -330,6 +405,22 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
             blockchain: event.type.source,
             accountNumber: event.address,
             createdAt: persona.createdAt));
+      }
+      emit(AccountsState(accounts: accounts));
+    });
+
+    on<FindLinkedAccount>((event, emit) async {
+      final connection =
+          await _cloudDB.connectionDao.findById(event.connectionKey);
+      List<Account> accounts = [];
+      if (connection != null) {
+        accounts.add(Account(
+            key: connection.key,
+            name: connection.name,
+            blockchain: event.type.source,
+            accountNumber: event.address,
+            connections: [connection],
+            createdAt: connection.createdAt));
       }
       emit(AccountsState(accounts: accounts));
     });

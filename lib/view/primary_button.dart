@@ -76,6 +76,7 @@ class OutlineButton extends StatelessWidget {
   final bool enabled;
   final Color? textColor;
   final Color? borderColor;
+  final EdgeInsets padding;
 
   const OutlineButton({
     Key? key,
@@ -87,6 +88,7 @@ class OutlineButton extends StatelessWidget {
     this.isProcessing = false,
     this.textColor,
     this.borderColor,
+    this.padding = const EdgeInsets.symmetric(vertical: 13),
   }) : super(key: key);
 
   @override
@@ -106,12 +108,30 @@ class OutlineButton extends StatelessWidget {
         ),
         onPressed: enabled ? onTap : null,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 13),
+          padding: padding,
           child: Center(
-            child: Text(
-              text ?? '',
-              style:
-                  theme.textTheme.ppMori400White14.copyWith(color: textColor),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                isProcessing
+                    ? Container(
+                        height: 14.0,
+                        width: 14.0,
+                        margin: const EdgeInsets.only(right: 8.0),
+                        child: CircularProgressIndicator(
+                          color: theme.colorScheme.primary,
+                          backgroundColor: theme.colorScheme.surface,
+                          strokeWidth: 2.0,
+                        ),
+                      )
+                    : const SizedBox(),
+                Text(
+                  text ?? '',
+                  style: theme.textTheme.ppMori400White14.copyWith(
+                      color: textColor ??
+                          (!enabled ? AppColor.disabledColor : null)),
+                ),
+              ],
             ),
           ),
         ),

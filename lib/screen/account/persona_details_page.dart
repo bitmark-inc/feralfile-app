@@ -7,33 +7,38 @@
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/biometrics_util.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:nft_collection/nft_collection.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -46,47 +51,36 @@ class PersonaDetailsPage extends StatefulWidget {
 
 class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     with RouteAware {
-  bool isHideGalleryEnabled = false;
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-
+  WalletType _walletTypeSelecting = WalletType.Ethereum;
   String? title;
+  late Persona persona;
+  late bool isDefaultWallet;
 
   @override
   void initState() {
     super.initState();
+    persona = widget.persona;
+    isDefaultWallet = persona.defaultAccount == 1;
+    _callBloc(persona);
 
-    context
-        .read<EthereumBloc>()
-        .add(GetEthereumAddressEvent(widget.persona.uuid));
-
-    context.read<TezosBloc>().add(GetTezosAddressEvent(widget.persona.uuid));
-
-    context.read<USDCBloc>().add(GetAddressEvent(widget.persona.uuid));
-
-    context
-        .read<EthereumBloc>()
-        .add(GetEthereumBalanceWithUUIDEvent(widget.persona.uuid));
-
-    context
-        .read<TezosBloc>()
-        .add(GetTezosBalanceWithUUIDEvent(widget.persona.uuid));
-
-    context
-        .read<USDCBloc>()
-        .add(GetUSDCBalanceWithUUIDEvent(widget.persona.uuid));
-
-    isHideGalleryEnabled = injector<AccountService>()
-        .isPersonaHiddenInGallery(widget.persona.uuid);
-
-    if (widget.persona.name.isNotEmpty) {
-      title = widget.persona.name;
+    if (persona.name.isNotEmpty) {
+      title = persona.name;
     } else {
       _getDidKey();
     }
   }
 
+  _callBloc(Persona persona) {
+    context
+        .read<EthereumBloc>()
+        .add(GetEthereumBalanceWithUUIDEvent(persona.uuid));
+
+    context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(persona.uuid));
+  }
+
   _getDidKey() async {
-    final didKey = await widget.persona.wallet().getAccountDID();
+    final didKey = await persona.wallet().getAccountDID();
     setState(() {
       title = didKey;
     });
@@ -106,29 +100,32 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
 
   @override
   void didPopNext() {
-    final uuid = widget.persona.uuid;
+    final uuid = persona.uuid;
     context.read<EthereumBloc>().add(GetEthereumBalanceWithUUIDEvent(uuid));
     context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(uuid));
-    context.read<USDCBloc>().add(GetUSDCBalanceWithUUIDEvent(uuid));
     super.didPopNext();
   }
 
   @override
   Widget build(BuildContext context) {
-    final uuid = widget.persona.uuid;
-    final isDefaultAccount = widget.persona.defaultAccount == 1;
-
+    final uuid = persona.uuid;
     return Scaffold(
       appBar: getBackAppBar(
         context,
         title: title?.replaceFirst('did:key:', '') ?? '',
+        action: _showOptionDialog,
+        icon: SvgPicture.asset(
+          'assets/images/more_circle.svg',
+          width: 22,
+          color: AppColor.primaryBlack,
+        ),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            isDefaultAccount
+            isDefaultWallet
                 ? Column(
                     children: [
                       const SizedBox(height: 30),
@@ -139,13 +136,10 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     ],
                   )
                 : const SizedBox(
-                    height: 48,
+                    height: 16,
                   ),
             const SizedBox(height: 32),
             _addressesSection(uuid),
-            const SizedBox(height: 16),
-            _preferencesSection(),
-            addDivider(),
             const SizedBox(height: 16),
             _backupSection(),
             const SizedBox(height: 40),
@@ -153,6 +147,107 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         ),
       ),
     );
+  }
+
+  _showOptionDialog() async {
+    final theme = Theme.of(context);
+    final walletAddresses =
+        await injector<CloudDatabase>().addressDao.findByWalletID(persona.uuid);
+    final isAllHidden =
+        walletAddresses.every((element) => element.isHidden == true);
+    if (!mounted) return;
+    UIHelper.showDrawerAction(context, options: [
+      isAllHidden
+          ? OptionItem(
+              title: 'unhide_all_from_collection_view'.tr(),
+              icon: SvgPicture.asset(
+                'assets/images/unhide.svg',
+                color: AppColor.primaryBlack,
+              ),
+              onTap: () {
+                Navigator.of(context).pop();
+                setIsHiddenAll(walletAddresses, false);
+              },
+            )
+          : OptionItem(
+              title: 'hide_all_from_collection_view'.tr(),
+              icon: const Icon(
+                AuIcon.hidden_artwork,
+                color: AppColor.primaryBlack,
+              ),
+              onTap: () {
+                Navigator.of(context).pop();
+                setIsHiddenAll(walletAddresses, true);
+              },
+            ),
+      OptionItem(
+        title: "add_address_to_wallet".tr(),
+        icon: SvgPicture.asset("assets/images/joinFile.svg",
+            color: AppColor.primaryBlack),
+        onTap: () {
+          Navigator.of(context).pop();
+          UIHelper.showDialog(context, "add_address_to_wallet".tr(),
+              StatefulBuilder(builder: (
+            BuildContext dialogContext,
+            StateSetter dialogState,
+          ) {
+            return Column(
+              children: [
+                _walletTypeOption(theme, WalletType.Ethereum, dialogState),
+                addDivider(height: 40, color: AppColor.white),
+                _walletTypeOption(theme, WalletType.Tezos, dialogState),
+                const SizedBox(height: 40),
+                Padding(
+                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                  child: Column(
+                    children: [
+                      PrimaryButton(
+                        text: "add_address".tr(),
+                        onTap: () async {
+                          Navigator.of(context).pop();
+                          UIHelper.showScrollableDialog(
+                            context,
+                            BlocProvider.value(
+                              value: context.read<ScanWalletBloc>(),
+                              child: AddAddressToWallet(
+                                addresses: const [],
+                                importedAddress: await persona.getAddresses(),
+                                walletType: _walletTypeSelecting,
+                                wallet: persona.wallet(),
+                                onImport: (addresses) async {
+                                  Persona newPersona =
+                                      await injector<AccountService>()
+                                          .addAddressPersona(
+                                              persona, addresses);
+                                  setState(() {
+                                    persona = newPersona;
+                                    _callBloc(newPersona);
+                                  });
+                                },
+                              ),
+                            ),
+                            isDismissible: true,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      OutlineButton(
+                        onTap: () => Navigator.of(context).pop(),
+                        text: "cancel".tr(),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            );
+          }),
+              isDismissible: true,
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
+        },
+      ),
+      OptionItem(),
+    ]);
   }
 
   Widget _addressesSection(String uuid) {
@@ -168,160 +263,175 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             style: theme.textTheme.ppMori400Black16,
           ),
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 30),
         BlocBuilder<EthereumBloc, EthereumState>(builder: (context, state) {
-          final ethAddress = state.personaAddresses?[uuid];
-          final ethBalance = state.ethBalances[ethAddress];
-          final balance = ethBalance == null
-              ? "-- ETH"
-              : "${EthAmountFormatter(ethBalance.getInWei).format()} ETH";
-          return _addressRow(
-              address: state.personaAddresses?[uuid] ?? "",
-              type: CryptoType.ETH,
-              balance: balance);
+          final ethAddresses = state.personaAddresses?[uuid];
+          if (ethAddresses == null || ethAddresses.isEmpty) {
+            return const SizedBox();
+          }
+          return Column(
+              children: ethAddresses
+                  .map((addressIndex) => [
+                        _addressRow(
+                            walletAddress: addressIndex,
+                            balance: state.ethBalances[addressIndex.address] ==
+                                    null
+                                ? "-- ETH"
+                                : "${EthAmountFormatter(state.ethBalances[addressIndex.address]!.getInWei).format()} ETH"),
+                        addOnlyDivider(),
+                      ])
+                  .flattened
+                  .toList());
         }),
-        addDivider(),
-        BlocBuilder<USDCBloc, USDCState>(builder: (context, state) {
-          final usdcAddress = state.personaAddresses?[uuid];
-          final usdcBalance = state.usdcBalances[usdcAddress];
-          final balance = usdcBalance == null
-              ? "-- USDC"
-              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-          return _addressRow(
-              address: state.personaAddresses?[uuid] ?? "",
-              type: CryptoType.USDC,
-              balance: balance);
-        }),
-        addDivider(),
         BlocBuilder<TezosBloc, TezosState>(builder: (context, state) {
           final tezosAddress = state.personaAddresses?[uuid];
-          final xtzBalance = state.balances[tezosAddress];
-          final balance = xtzBalance == null
-              ? "-- XTZ"
-              : "${XtzAmountFormatter(xtzBalance).format()} XTZ";
-          return _addressRow(
-            address: state.personaAddresses?[uuid] ?? "",
-            type: CryptoType.XTZ,
-            balance: balance,
+          if (tezosAddress == null || tezosAddress.isEmpty) {
+            return const SizedBox();
+          }
+          return Column(
+            children: tezosAddress
+                .map((addressIndex) => [
+                      _addressRow(
+                        walletAddress: addressIndex,
+                        balance: state.balances[addressIndex.address] == null
+                            ? "-- XTZ"
+                            : "${XtzAmountFormatter(state.balances[addressIndex.address]!).format()} XTZ",
+                      ),
+                      addOnlyDivider(),
+                    ])
+                .flattened
+                .toList(),
           );
         }),
-        addDivider(),
       ],
     );
   }
 
-  Widget _addressRow(
-      {required String address,
-      required CryptoType type,
-      String balance = ""}) {
-    final theme = Theme.of(context);
-    final addressStyle = theme.textTheme.ppMori400Black14;
+  Future<void> setIsHiddenAll(
+      List<WalletAddress> walletAddresses, bool isHide) async {
+    final addresses = walletAddresses
+        .where((element) => element.isHidden == !isHide)
+        .toList()
+        .map((e) => e.address)
+        .toList();
+    await injector<AccountService>().setHideAddressInGallery(addresses, isHide);
+    _callBloc(persona);
+  }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      child: Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(type.source,
-                          style: theme.textTheme.ppMori700Black16),
-                      const Expanded(child: SizedBox()),
-                      Text(balance,
-                          style: addressStyle.copyWith(
-                              color: AppColor.auQuickSilver)),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                    ],
-                  ),
-                ),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    address,
-                    style: addressStyle,
-                    key: const Key("fullAccount_address"),
-                  ),
-                ),
-              ],
-            ),
-          ],
+  Widget _walletTypeOption(
+      ThemeData theme, WalletType walletType, StateSetter dialogState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _walletTypeSelecting = walletType;
+          });
+          dialogState(() {});
+        },
+        child: Container(
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Row(
+            children: [
+              Text(
+                walletType.getString(),
+                style: theme.textTheme.ppMori400White14,
+              ),
+              const Spacer(),
+              AuRadio<WalletType>(
+                onTap: (value) {
+                  setState(() {
+                    _walletTypeSelecting = walletType;
+                  });
+                  dialogState(() {});
+                },
+                value: _walletTypeSelecting,
+                groupValue: walletType,
+                color: AppColor.white,
+              ),
+            ],
+          ),
         ),
       ),
-      onTap: () {
-        final payload = WalletDetailsPayload(
-          personaUUID: widget.persona.uuid,
-          address: address,
-          type: type,
-          wallet: LibAukDart.getWallet(widget.persona.uuid),
-          personaName: widget.persona.name,
-          //personaName: widget.persona.name,
-        );
-        Navigator.of(context)
-            .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
-      },
     );
   }
 
-  Widget _preferencesSection() {
+  Widget _addressRow(
+      {required WalletAddress walletAddress, String balance = ""}) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: padding,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          "preferences".tr(),
-          style: theme.textTheme.ppMori400Black16,
+    final addressStyle = theme.textTheme.ppMori400Black14;
+    final isHideGalleryEnabled = walletAddress.isHidden;
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        dragDismissible: false,
+        children: slidableActions(walletAddress),
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        child: Padding(
+          padding: padding.copyWith(bottom: 16, top: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(walletAddress.cryptoType,
+                            style: theme.textTheme.ppMori700Black16),
+                        const Expanded(child: SizedBox()),
+                        if (isHideGalleryEnabled) ...[
+                          SvgPicture.asset(
+                            'assets/images/hide.svg',
+                            color: theme.colorScheme.surface,
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                        Text(balance,
+                            style: addressStyle.copyWith(
+                                color: AppColor.auQuickSilver)),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SvgPicture.asset('assets/images/iconForward.svg'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      walletAddress.address,
+                      style: addressStyle,
+                      key: const Key("fullAccount_address"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        const SizedBox(
-          height: 24,
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('hide_from_collection'.tr(),
-                    style: theme.textTheme.ppMori400Black16),
-                AuToggle(
-                  value: isHideGalleryEnabled,
-                  onToggle: (value) async {
-                    await injector<AccountService>()
-                        .setHidePersonaInGallery(widget.persona.uuid, value);
-                    final hiddenAddress =
-                        await injector<AccountService>().getHiddenAddresses();
-                    if (!mounted) return;
-                    setState(() {
-                      context.read<NftCollectionBloc>().add(
-                          UpdateHiddenTokens(ownerAddresses: hiddenAddress));
-                      isHideGalleryEnabled = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              "do_not_show_nft".tr(),
-              //"Do not show this account's NFTs in the collection view.",
-              style: theme.textTheme.ppMori400Black14,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-      ]),
+        onTap: () {
+          final payload = WalletDetailsPayload(
+            personaUUID: persona.uuid,
+            address: walletAddress.address,
+            type: CryptoType.fromSource(walletAddress.cryptoType),
+            wallet: LibAukDart.getWallet(persona.uuid),
+            personaName: persona.name,
+            index: walletAddress.index,
+            isHideGalleryEnabled: walletAddress.isHidden,
+            //personaName: widget.persona.name,
+          );
+          Navigator.of(context)
+              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
+        },
+      ),
     );
   }
 
@@ -346,19 +456,14 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               style: theme.textTheme.ppMori400Black14,
             ),
             onTap: () async {
-              final configurationService = injector<ConfigurationService>();
+              final didAuthenticate =
+                  await LocalAuthenticationService.checkLocalAuth();
 
-              if (configurationService.isDevicePasscodeEnabled() &&
-                  await authenticateIsAvailable()) {
-                final localAuth = LocalAuthentication();
-                final didAuthenticate = await localAuth.authenticate(
-                    localizedReason: "authen_for_autonomy".tr());
-                if (!didAuthenticate) {
-                  return;
-                }
+              if (!didAuthenticate) {
+                return;
               }
 
-              final words = await widget.persona.wallet().exportMnemonicWords();
+              final words = await persona.wallet().exportMnemonicWords();
 
               if (!mounted) return;
 
@@ -395,5 +500,41 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         ],
       ),
     );
+  }
+
+  List<CustomSlidableAction> slidableActions(WalletAddress walletAddress) {
+    final theme = Theme.of(context);
+    final isHidden = walletAddress.isHidden;
+    return [
+      CustomSlidableAction(
+        backgroundColor: AppColor.secondarySpanishGrey,
+        foregroundColor: theme.colorScheme.secondary,
+        child: Semantics(
+          label: "${walletAddress.address}_hide",
+          child: SvgPicture.asset(
+              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
+        ),
+        onPressed: (_) {
+          injector<AccountService>()
+              .setHideAddressInGallery([walletAddress.address], !isHidden);
+          _callBloc(persona);
+        },
+      ),
+      if (!isDefaultWallet || walletAddress.index != 0) ...[
+        CustomSlidableAction(
+          backgroundColor: Colors.red,
+          foregroundColor: theme.colorScheme.secondary,
+          child: Semantics(
+              label: "${walletAddress.address}_delete",
+              child: SvgPicture.asset('assets/images/trash.svg')),
+          onPressed: (_) async {
+            await injector<AccountService>()
+                .deleteAddressPersona(persona, walletAddress);
+            _callBloc(persona);
+            setState(() {});
+          },
+        )
+      ]
+    ];
   }
 }

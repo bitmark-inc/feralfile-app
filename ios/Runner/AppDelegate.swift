@@ -60,12 +60,22 @@ import Starscream
                 LibAukChannelHandler.shared.signPersonalMessage(call: call, result: result)
             case "ethSignMessage":
                 LibAukChannelHandler.shared.signMessage(call: call, result: result)
+            case "getETHAddressWithIndex":
+                LibAukChannelHandler.shared.getETHAddressWithIndex(call: call, result: result)
+            case "ethSignPersonalMessageWithIndex":
+                LibAukChannelHandler.shared.signPersonalMessageWithIndex(call: call, result: result)
+            case "ethSignMessageWithIndex":
+                LibAukChannelHandler.shared.signMessageWithIndex(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":
                 LibAukChannelHandler.shared.signTransaction(call: call, result: result)
             case "ethSignTransaction1559":
                 LibAukChannelHandler.shared.signTransaction1559(call: call, result: result)
+            case "ethSignTransactionWithIndex":
+                LibAukChannelHandler.shared.signTransactionWithIndex(call: call, result: result)
+            case "ethSignTransaction1559WithIndex":
+                LibAukChannelHandler.shared.signTransaction1559WithIndex(call: call, result: result)
             case "encryptFile":
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":
@@ -76,8 +86,25 @@ import Starscream
                 LibAukChannelHandler.shared.tezosSign(call: call, result: result)
             case "tezosSignTransaction":
                 LibAukChannelHandler.shared.tezosSignTransaction(call: call, result: result)
+            case "getTezosPublicKeyWithIndex":
+                LibAukChannelHandler.shared.getTezosPublicKeyWithIndex(call: call, result: result)
+            case "tezosSignMessageWithIndex":
+                LibAukChannelHandler.shared.tezosSignWithIndex(call: call, result: result)
+            case "tezosSignTransactionWithIndex":
+                LibAukChannelHandler.shared.tezosSignTransactionWithIndex(call: call, result: result)
             case "removeKeys":
                 LibAukChannelHandler.shared.removeKeys(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+        
+        let localeChannel = FlutterMethodChannel(name: "locale",
+                                                    binaryMessenger: controller.binaryMessenger)
+        localeChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "getMeasurementSystem":
+                LocaleHandler.shared.getMeasurementSystem(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -213,10 +240,6 @@ import Starscream
         if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
             showAuthenticationOverlay()
         }
-    }
-    
-    override func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        .allButUpsideDown
     }
     
     func authenticationCompleted(success: Bool) {

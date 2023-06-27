@@ -9,7 +9,7 @@ extension AccountExt on Account {
     if (wallet != null) {
       address = blockchain.toLowerCase() == "tezos"
           ? await wallet.getTezosAddress()
-          : await wallet.getETHAddress();
+          : await wallet.getETHEip55Address();
     } else if (connections?.isNotEmpty == true) {
       final connectionType = blockchain.toLowerCase() == "tezos"
           ? "walletBeacon"

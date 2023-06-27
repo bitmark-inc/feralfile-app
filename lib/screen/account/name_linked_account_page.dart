@@ -34,6 +34,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   final TextEditingController _nameController = TextEditingController();
 
   bool isSavingAliasDisabled = true;
+  bool canPop = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
@@ -62,73 +63,80 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
-      body: Container(
-        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    addTitleSpace(),
-                    Text(
-                      "aa_you_can_add".tr(),
-                      //"You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                    const SizedBox(height: 15),
-                    AuTextField(
-                        title: "",
-                        placeholder: "enter_alias".tr(),
-                        controller: _nameController,
-                        onChanged: (valueChanged) {
-                          if (_nameController.text.trim().isEmpty !=
-                              isSavingAliasDisabled) {
-                            saveAliasButtonChangedState();
-                          }
-                        }),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        return canPop;
+      },
+      child: Scaffold(
+        appBar:
+            getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
+        body: Container(
+          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Text(
+                        "aa_you_can_add".tr(),
+                        //"You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
+                      const SizedBox(height: 15),
+                      AuTextField(
+                          labelSemantics: "enter_alias_link",
+                          title: "",
+                          placeholder: "enter_alias".tr(),
+                          controller: _nameController,
+                          onChanged: (valueChanged) {
+                            if (_nameController.text.trim().isEmpty !=
+                                isSavingAliasDisabled) {
+                              saveAliasButtonChangedState();
+                            }
+                          }),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        text: "save_alias".tr(),
-                        onTap: isSavingAliasDisabled
-                            ? null
-                            : () {
-                                context.read<AccountsBloc>().add(
-                                    NameLinkedAccountEvent(widget.connection,
-                                        _nameController.text));
-                                _doneNaming();
-                              },
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: PrimaryButton(
+                          text: "save_alias".tr(),
+                          onTap: isSavingAliasDisabled
+                              ? null
+                              : () {
+                                  context.read<AccountsBloc>().add(
+                                      NameLinkedAccountEvent(widget.connection,
+                                          _nameController.text));
+                                  _doneNaming();
+                                },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                OutlineButton(
-                  onTap: () {
-                    context.read<AccountsBloc>().add(NameLinkedAccountEvent(
-                        widget.connection, widget.connection.accountNumber));
-                    _doneNaming();
-                  },
-                  text: "skip".tr(),
-                  borderColor: AppColor.primaryBlack,
-                  textColor: AppColor.primaryBlack,
-                  color: AppColor.white,
-                ),
-              ],
-            ),
-          ],
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  OutlineButton(
+                    onTap: () {
+                      context.read<AccountsBloc>().add(NameLinkedAccountEvent(
+                          widget.connection, widget.connection.accountNumber));
+                      _doneNaming();
+                    },
+                    text: "skip".tr(),
+                    borderColor: AppColor.primaryBlack,
+                    textColor: AppColor.primaryBlack,
+                    color: AppColor.white,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -137,7 +145,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.walletPage ||
+          route.settings.name == AppRouter.homePageNoTransition ||
           route.settings.name == AppRouter.claimSelectAccountPage);
     } else {
       Navigator.of(context).pushNamedAndRemoveUntil(

@@ -65,9 +65,15 @@ class PreferenceView extends StatelessWidget {
               final metricClient = injector<MetricClientService>();
               metricClient.addEvent(MixpanelEvent.enableNotification,
                   data: {'isEnable': value});
+              metricClient.mixPanelClient.mixpanel
+                  .getPeople()
+                  .set(MixpanelProp.enableNotification, value);
               final newState = state.copyWith(
                   isNotificationEnabled: value, hasPendingSettings: false);
               final configService = injector<ConfigurationService>();
+              if (value) {
+                configService.showNotifTip.value = false;
+              }
               configService.setPendingSettings(false);
               context
                   .read<PreferencesBloc>()

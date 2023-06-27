@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -128,7 +129,7 @@ class MigrationUtil {
       final existingPersona = await _cloudDB.personaDao.findById(uuid);
       if (existingPersona == null) {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
-        final address = await wallet.getETHAddress();
+        final address = await wallet.getETHEip55Address();
 
         if (address.isEmpty) continue;
         final name = await wallet.getName();

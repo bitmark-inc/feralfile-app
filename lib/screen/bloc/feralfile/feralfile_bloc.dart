@@ -28,8 +28,8 @@ class FeralfileBloc extends AuBloc<FeralFileEvent, FeralFileState> {
   Future<Persona?> getPersonaFromETHAddress(String address) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (var persona in personas) {
-      final ethAddress = await persona.wallet().getETHEip55Address();
-      if (ethAddress == address) {
+      final ethAddresses = await persona.getEthAddresses();
+      if (ethAddresses.contains(address)) {
         return persona;
       }
     }

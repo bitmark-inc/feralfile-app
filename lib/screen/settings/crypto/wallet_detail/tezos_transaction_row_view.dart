@@ -82,7 +82,7 @@ class TezosTXRowView extends StatelessWidget {
                 style: theme.textTheme.ppMori400Black14),
             Text(
               tx is! TZKTTokenTransfer
-                  ? "${tx.txAmountSign(currentAddress)}${((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).toStringAsPrecision(2)} USD"
+                  ? "${tx.txUSDAmountSign(currentAddress)}${((tx as TZKTOperation).quote.usd * (tx as TZKTOperation).getTotalAmount(currentAddress) / _nanoTEZFactor).toStringAsPrecision(2)} USD"
                   : "",
               style: theme.textTheme.ppMori400Grey14,
             )

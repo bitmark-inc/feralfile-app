@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter/material.dart';
@@ -72,10 +74,13 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _configurationService.removeAll();
 
       _authService.reset();
+      injector<MetricClientService>().mixPanelClient.reset();
       _feedService.unviewedCount.value = 0;
       memoryValues = MemoryValues(
-          airdropFFExhibitionId: ValueNotifier(null),
-          deepLink: ValueNotifier(null));
+        airdropFFExhibitionId: ValueNotifier(null),
+        deepLink: ValueNotifier(null),
+        irlLink: ValueNotifier(null),
+      );
 
       emit(ForgetExistState(state.isChecked, false));
     });

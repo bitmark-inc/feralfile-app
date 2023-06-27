@@ -5,7 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -25,6 +31,7 @@ const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/anais-bitmark/usertesting';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
+const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     "https://github.com/bitmark-inc/autonomy-client";
 const DEEP_LINKS = [
@@ -44,6 +51,9 @@ const COLLECTOR_RIGHTS_MEMENTO_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
 const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
+
+const POSTCARD_RIGHTS_DOCS =
+    "https://raw.githubusercontent.com/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
@@ -53,13 +63,62 @@ const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
 const CHECK_WEB3_CONTRACT_ADDRESS = [
   "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
   "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt"
+  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
+  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
+  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
+  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
 ];
+
+const MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET = [
+  "KT1ESGez4dEuDjjNt4k2HPAK5Nzh7e8X8jyX",
+  "KT1MDvWtwi8sCcyJdbWPScTdFa2uJ8mnKNJe",
+  "KT1DPFXN2NeFjg1aQGNkVXYS1FAy4BymcbZz",
+];
+
+const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
+  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
+  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
+  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
+  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
+  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
+];
+
+List<String> get momaMementoContractAddresses {
+  if (Environment.appTestnetConfig) {
+    return MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET;
+  } else {
+    return MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET;
+  }
+}
+
+const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
+
+const REMOVE_CUSTOMER_SUPPORT =
+    "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
 const double cellSpacing = 3.0;
 
-const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 20);
+const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
+const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
+
+const int MAX_STAMP_IN_POSTCARD = 15;
+
+const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
+
+const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
+    "postcard software artwork loaded";
+const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
+
+const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
+const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
+
+double get postcardAspectRatio => Platform.isAndroid
+    ? POSTCARD_ASPECT_RATIO_ANDROID
+    : POSTCARD_ASPECT_RATIO_IOS;
+
+const double STAMP_ASPECT_RATIO = 345.0 / 378;
+
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
@@ -71,14 +130,33 @@ String get usdcContractAddress => Environment.appTestnetConfig
 
 const publicTezosNodes = [
   "https://mainnet.api.tez.ie",
-  "https://mainnet.smartpy.io",
   "https://rpc.tzbeta.net",
   "https://mainnet.tezos.marigold.dev",
 ];
 
+const TV_APP_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
+
+const POSRCARD_GAME_START = "4.09.23";
+const POSRCARD_GAME_END = "5.09.23";
+
+const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
+
+const CONNECT_FAILED_DURATION = Duration(seconds: 10);
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
+}
+
+Future<bool> isPremium() async {
+  return injector<IAPService>().isSubscribed();
+}
+
+Future<Pair<bool, bool>> logoState() async {
+  final isAppCenter = await isAppCenterBuild();
+  final isPro = await isPremium();
+  return Pair(isAppCenter, isPro);
 }
 
 Future<String> getDemoAccount() async {
@@ -125,9 +203,10 @@ class ReportIssueType {
   static const Other = 'other';
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
+  static const Announcement = 'announcement';
 
   static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue];
+      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -143,6 +222,8 @@ class ReportIssueType {
         return 'Report a bug';
       case ReportNFTIssue:
         return 'Report NFT issue';
+      case Announcement:
+        return "Announcement";
       default:
         return 'Something else?';
     }
@@ -207,7 +288,30 @@ enum CryptoType {
   ETH,
   XTZ,
   USDC,
-  UNKNOWN,
+  UNKNOWN;
+
+  static CryptoType fromSource(String source) {
+    switch (source) {
+      case "Ethereum":
+        return CryptoType.ETH;
+      case "Tezos":
+        return CryptoType.XTZ;
+      case "USDC":
+        return CryptoType.USDC;
+      default:
+        return CryptoType.UNKNOWN;
+    }
+  }
+}
+
+enum AnnouncementID {
+  WELCOME("welcome"),
+  SUBSCRIBE("subscription"),
+  ;
+
+  const AnnouncementID(this.value);
+
+  final String value;
 }
 
 extension CryptoTypeHelpers on CryptoType {
@@ -297,6 +401,9 @@ class MixpanelEvent {
   static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
+  static const viewDiscoveryArtwork = 'view_discovery_artwork';
+  static const timeViewDiscovery = 'time_view_discovery';
+  static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
   static const unhandledError = 'unhandled_error';
   static const signIn = 'Sign In';
@@ -314,18 +421,80 @@ class MixpanelEvent {
   static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
   static const editorialViewArticle = 'editorial_view_article';
+  static const editorialReadingArticle = 'editorial_reading_article';
   static const addNFT = 'add_NFT';
   static const enableNotification = 'enable_notification';
   static const tabNotification = 'tab_notification';
   static const viewEditorial = 'view_editorial';
+  static const timeViewEditorial = 'time_view_editorial';
   static const finishArticles = 'finish_articles';
   static const visitExhibition = 'visit_exhibition';
   static const visitExhibitionArtwork = 'visit_exhibition_artwork';
   static const tabOnLinkInEditorial = 'tab_on_link_in_editorial';
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
-  static const acceptGiftNFT = 'accept_gift_NFT';
   static const scanQR = 'scan_qr';
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
+  static const share = "share";
+  static const readAnnouncement = 'read_announcement';
+  static const replyAnnouncement = 'reply_announcement';
+  static const receiveAnnouncement = 'receive_announcement';
+  static const viewScreen = "view_screen";
+  static const endViewScreen = "end_view_screen";
+  static const showTipcard = "show_tip_card";
+  static const closeTipcard = "close_tip_card";
+  static const pressTipcard = "press_tip_card";
+  static const tapLinkInTipCard = "tap_link_in_tip_card";
+  static const hideAddress = "hide_address";
+  static const hideAddresses = "hide_addresses";
+  static const callIrlFunction = "call_irl_function";
+  static const numberNft = "number_nft";
+  static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
+}
+
+class MixpanelProp {
+  static const enableNotification = 'enableNotification';
+  static const client = 'client';
+  static const didKey = 'didKey';
+  static const address = 'Address';
+  static const subscription = 'Subscription';
+  static const numberNft = 'Number NFT';
+}
+
+// class MixpanelConfig {
+//   static const EditorialPeriodStart = "editorialPeriodStart";
+//   static const totalEditorialReading = 'totalEditorialReading';
+// }
+
+class SubscriptionStatus {
+  static const free = 'Free';
+  static const subscried = 'Subscried';
+  static const trial = 'Trial';
+  static const expired = 'Expired';
+}
+
+class LinkType {
+  static const local = "Local Deep Link";
+  static const dAppConnect = 'Dapp Connect Deeplink';
+  static const feralFile = 'FeralFile Deeplink';
+  static const branch = 'Branch Deeplink';
+  static const autonomyConnect = 'Autonomy Connect';
+  static const beaconConnect = 'Beacon Connect';
+  static const feralFileToken = 'FeralFile Token';
+  static const walletConnect = 'Wallet Connect';
+}
+
+class SocialApp {
+  static String twitter = "twitter";
+  static String twitterPrefix = "https://twitter.com/intent/tweet";
+}
+
+class KeyChain {
+  static String device = "device_keychain".tr();
+  static String cloud = "cloud_keychain".tr();
+}
+
+class IrlWebviewFunction {
+  static String closeWebview = "_closeWebview";
 }

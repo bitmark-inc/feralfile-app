@@ -49,8 +49,8 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       (json['artists'] as List<dynamic>?)
           ?.map((e) => FFArtist.fromJson(e as Map<String, dynamic>))
           .toList(),
-      (json['artworks'] as List<dynamic>?)
-          ?.map((e) => FFArtwork.fromJson(e as Map<String, dynamic>))
+      (json['series'] as List<dynamic>?)
+          ?.map((e) => FFSeries.fromJson(e as Map<String, dynamic>))
           .toList(),
       (json['contracts'] as List<dynamic>?)
           ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
@@ -65,14 +65,14 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
-      'title': instance.slug,
+      'slug': instance.slug,
       'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
       'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
       'coverURI': instance.coverURI,
       'thumbnailCoverURI': instance.thumbnailCoverURI,
       'mintBlockchain': instance.mintBlockchain,
       'artists': instance.artists,
-      'artworks': instance.artworks,
+      'series': instance.series,
       'contracts': instance.contracts,
       'partner': instance.partner,
     };
@@ -91,12 +91,12 @@ FFArtist _$FFArtistFromJson(Map<String, dynamic> json) => FFArtist(
       json['ID'] as String,
       json['alias'] as String,
       json['slug'] as String,
-      json['verified'] as bool,
-      json['isArtist'] as bool,
-      json['fullName'] as String,
-      json['avatarURI'] as String,
-      json['accountNumber'] as String,
-      json['type'] as String,
+      json['verified'] as bool?,
+      json['isArtist'] as bool?,
+      json['fullName'] as String?,
+      json['avatarURI'] as String?,
+      json['accountNumber'] as String?,
+      json['type'] as String?,
     );
 
 Map<String, dynamic> _$FFArtistToJson(FFArtist instance) => <String, dynamic>{
@@ -111,20 +111,23 @@ Map<String, dynamic> _$FFArtistToJson(FFArtist instance) => <String, dynamic>{
       'type': instance.type,
     };
 
-FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
+FFSeries _$FFSeriesFromJson(Map<String, dynamic> json) => FFSeries(
       json['id'] as String,
       json['artistID'] as String,
+      json['assetID'] as String?,
       json['title'] as String,
       json['slug'] as String,
       json['medium'] as String,
-      json['description'] as String,
-      json['thumbnailFileURI'] as String?,
-      json['galleryThumbnailFileURI'] as String?,
+      json['description'] as String?,
+      json['thumbnailURI'] as String?,
+      json['exhibitionID'] as String,
+      json['metadata'] as Map<String, dynamic>?,
       json['settings'] == null
           ? null
-          : FFArtworkSettings.fromJson(
-              json['settings'] as Map<String, dynamic>),
-      FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
+          : FFSeriesSettings.fromJson(json['settings'] as Map<String, dynamic>),
+      json['artist'] == null
+          ? null
+          : FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
       json['exhibition'] == null
           ? null
           : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -134,43 +137,53 @@ FFArtwork _$FFArtworkFromJson(Map<String, dynamic> json) => FFArtwork(
       json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
+      json['displayIndex'] as int?,
+      json['featuringIndex'] as int?,
+      json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$FFArtworkToJson(FFArtwork instance) => <String, dynamic>{
+Map<String, dynamic> _$FFSeriesToJson(FFSeries instance) => <String, dynamic>{
       'id': instance.id,
       'artistID': instance.artistID,
+      'assetID': instance.assetID,
       'title': instance.title,
       'slug': instance.slug,
       'medium': instance.medium,
       'description': instance.description,
-      'thumbnailFileURI': instance.thumbnailFileURI,
-      'galleryThumbnailFileURI': instance.galleryThumbnailFileURI,
+      'thumbnailURI': instance.thumbnailURI,
+      'exhibitionID': instance.exhibitionID,
+      'metadata': instance.metadata,
+      'displayIndex': instance.displayIndex,
+      'featuringIndex': instance.featuringIndex,
       'settings': instance.settings,
       'artist': instance.artist,
       'exhibition': instance.exhibition,
       'airdropInfo': instance.airdropInfo,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };
 
-FFArtworkResponse _$FFArtworkResponseFromJson(Map<String, dynamic> json) =>
-    FFArtworkResponse(
-      FFArtwork.fromJson(json['result'] as Map<String, dynamic>),
+FFSeriesResponse _$FFSeriesResponseFromJson(Map<String, dynamic> json) =>
+    FFSeriesResponse(
+      FFSeries.fromJson(json['result'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$FFArtworkResponseToJson(FFArtworkResponse instance) =>
+Map<String, dynamic> _$FFSeriesResponseToJson(FFSeriesResponse instance) =>
     <String, dynamic>{
       'result': instance.result,
     };
 
-FFArtworkSettings _$FFArtworkSettingsFromJson(Map<String, dynamic> json) =>
-    FFArtworkSettings(
+FFSeriesSettings _$FFSeriesSettingsFromJson(Map<String, dynamic> json) =>
+    FFSeriesSettings(
       json['saleModel'] as String?,
-      json['maxEdition'] as int,
+      json['maxArtwork'] as int,
     );
 
-Map<String, dynamic> _$FFArtworkSettingsToJson(FFArtworkSettings instance) =>
+Map<String, dynamic> _$FFSeriesSettingsToJson(FFSeriesSettings instance) =>
     <String, dynamic>{
-      'maxEdition': instance.maxEdition,
+      'maxArtwork': instance.maxArtwork,
       'saleModel': instance.saleModel,
     };
 
@@ -191,8 +204,8 @@ AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
       json['contractAddress'] as String,
       json['blockchain'] as String,
       json['remainAmount'] as int,
-      json['artworkId'] as String?,
-      json['artworkTitle'] as String?,
+      json['seriesId'] as String?,
+      json['seriesTitle'] as String?,
       json['artist'] as String?,
       json['gifter'] as String?,
       json['startedAt'] == null
@@ -201,6 +214,7 @@ AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
       json['endedAt'] == null
           ? null
           : DateTime.parse(json['endedAt'] as String),
+      json['twitterCaption'] as String?,
     );
 
 Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
@@ -208,12 +222,13 @@ Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
       'contractAddress': instance.contractAddress,
       'blockchain': instance.blockchain,
       'remainAmount': instance.remainAmount,
-      'artworkId': instance.artworkId,
-      'artworkTitle': instance.artworkTitle,
+      'seriesId': instance.seriesId,
+      'seriesTitle': instance.seriesTitle,
       'artist': instance.artist,
       'gifter': instance.gifter,
       'startedAt': instance.startedAt?.toIso8601String(),
       'endedAt': instance.endedAt?.toIso8601String(),
+      'twitterCaption': instance.twitterCaption,
     };
 
 TokenClaimResponse _$TokenClaimResponseFromJson(Map<String, dynamic> json) =>
@@ -231,8 +246,10 @@ TokenClaimResult _$TokenClaimResultFromJson(Map<String, dynamic> json) =>
       json['id'] as String,
       json['claimerID'] as String,
       json['exhibitionID'] as String,
-      json['editionID'] as String,
+      json['artworkID'] as String,
       json['txID'] as String,
+      json['seriesID'] as String,
+      json['metadata'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$TokenClaimResultToJson(TokenClaimResult instance) =>
@@ -240,8 +257,10 @@ Map<String, dynamic> _$TokenClaimResultToJson(TokenClaimResult instance) =>
       'id': instance.id,
       'claimerID': instance.claimerID,
       'exhibitionID': instance.exhibitionID,
-      'editionID': instance.editionID,
+      'seriesID': instance.seriesID,
+      'artworkID': instance.artworkID,
       'txID': instance.txID,
+      'metadata': instance.metadata,
     };
 
 FeralfileError _$FeralfileErrorFromJson(Map<String, dynamic> json) =>
@@ -270,11 +289,11 @@ FeralFileResaleInfo _$FeralFileResaleInfoFromJson(Map<String, dynamic> json) =>
     FeralFileResaleInfo(
       json['exhibitionID'] as String,
       json['saleType'] as String,
-      double.parse(json['platform'].toString().trim()),
-      double.parse(json['artist'].toString().trim()),
-      double.parse(json['seller'].toString().trim()),
-      double.parse(json['curator'].toString().trim()),
-      double.parse(json['partner'].toString().trim()),
+      (json['platform'] as num).toDouble(),
+      (json['artist'] as num).toDouble(),
+      (json['seller'] as num).toDouble(),
+      (json['curator'] as num).toDouble(),
+      (json['partner'] as num).toDouble(),
       DateTime.parse(json['createdAt'] as String),
       DateTime.parse(json['updatedAt'] as String),
     );
@@ -289,45 +308,43 @@ Map<String, dynamic> _$FeralFileResaleInfoToJson(
       'seller': instance.seller,
       'curator': instance.curator,
       'partner': instance.partner,
-      'createdAt': instance.createdAt.toIso8601String,
-      'updatedAt': instance.updatedAt.toIso8601String,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
     };
 
-ArtworkEditionResponse _$ArtworkEditionResponseFromJson(
-        Map<String, dynamic> json) =>
-    ArtworkEditionResponse(
-      ArtworkEdition.fromJson(json['result'] as Map<String, dynamic>),
+ArtworkResponse _$ArtworkResponseFromJson(Map<String, dynamic> json) =>
+    ArtworkResponse(
+      Artwork.fromJson(json['result'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$ArtworkEditionResponseToJson(
-        ArtworkEditionResponse instance) =>
+Map<String, dynamic> _$ArtworkResponseToJson(ArtworkResponse instance) =>
     <String, dynamic>{
       'result': instance.result,
     };
 
-ArtworkEdition _$ArtworkEditionFromJson(Map<String, dynamic> json) =>
-    ArtworkEdition(
+Artwork _$ArtworkFromJson(Map<String, dynamic> json) => Artwork(
       json['id'] as String,
-      json['artworkID'] as String,
+      json['seriesID'] as String,
       json['index'] as int,
       json['name'] as String,
       json['category'] as String,
       json['ownerAccountID'] as String,
-      json['virgin'] as bool,
-      json['burned'] as bool,
+      json['virgin'] as bool?,
+      json['burned'] as bool?,
       json['blockchainStatus'] as String,
       json['isExternal'] as bool,
-      DateTime.parse(json['issuedAt'] as String),
+      DateTime.parse(json['mintedAt'] as String),
       DateTime.parse(json['createdAt'] as String),
       DateTime.parse(json['updatedAt'] as String),
-      json['isArchived'] as bool,
-      FFArtwork.fromJson(json['artwork'] as Map<String, dynamic>),
+      json['isArchived'] as bool?,
+      json['series'] == null
+          ? null
+          : FFSeries.fromJson(json['series'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$ArtworkEditionToJson(ArtworkEdition instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
       'id': instance.id,
-      'artworkID': instance.artworkID,
+      'seriesID': instance.seriesID,
       'index': instance.index,
       'name': instance.name,
       'category': instance.category,
@@ -336,9 +353,9 @@ Map<String, dynamic> _$ArtworkEditionToJson(ArtworkEdition instance) =>
       'burned': instance.burned,
       'blockchainStatus': instance.blockchainStatus,
       'isExternal': instance.isExternal,
-      'issuedAt': instance.issuedAt.toIso8601String,
-      'createdAt': instance.createdAt.toIso8601String,
-      'updatedAt': instance.updatedAt.toIso8601String,
+      'mintedAt': instance.mintedAt.toIso8601String(),
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
       'isArchived': instance.isArchived,
-      'artwork': instance.artwork,
+      'series': instance.series,
     };

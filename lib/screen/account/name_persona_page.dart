@@ -24,18 +24,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NamePersonaPage extends StatefulWidget {
-  final String uuid;
+  final NamePersonaPayload payload;
 
-  const NamePersonaPage({Key? key, required this.uuid}) : super(key: key);
+  const NamePersonaPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<NamePersonaPage> createState() => _NamePersonaPageState();
 }
 
-class _NamePersonaPageState extends State<NamePersonaPage> {
+class _NamePersonaPageState extends State<NamePersonaPage> with RouteAware {
   final TextEditingController _nameController = TextEditingController();
 
   bool isSavingAliasDisabled = true;
+  final bool canPop = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
@@ -47,7 +48,7 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final uuid = widget.uuid;
+    final uuid = widget.payload.uuid;
     context.read<PersonaBloc>().add(GetInfoPersonaEvent(uuid));
   }
 
@@ -60,99 +61,125 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    return BlocConsumer<PersonaBloc, PersonaState>(
+      listener: (context, state) {
+        switch (state.namePersonaState) {
+          case ActionState.notRequested:
+            _nameController.text = state.persona?.name ?? "";
+            break;
 
-    return Scaffold(
-      appBar: getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
-      body: BlocListener<PersonaBloc, PersonaState>(
-        listener: (context, state) {
-          switch (state.namePersonaState) {
-            case ActionState.notRequested:
-              _nameController.text = state.persona?.name ?? "";
-              break;
+          case ActionState.done:
+            _doneNaming();
+            break;
 
-            case ActionState.done:
-              _doneNaming();
-              break;
+          default:
+            break;
+        }
+        switch (state.deletePersonaState) {
+          case ActionState.done:
+            Navigator.of(context).pop();
+            break;
 
-            default:
-              break;
-          }
-        },
-        child: Container(
-          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Text(
-                        injector<ConfigurationService>().isDoneOnboarding()
-                            ? "need_add_alias".tr()
-                            : "aa_you_can_add".tr(),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                      const SizedBox(height: 40),
-                      AuTextField(
-                          title: "",
-                          placeholder: "enter_alias".tr(),
-                          controller: _nameController,
-                          onChanged: (valueChanged) {
-                            if (_nameController.text.trim().isEmpty !=
-                                isSavingAliasDisabled) {
-                              saveAliasButtonChangedState();
-                            }
-                          }),
-                    ],
-                  ),
-                ),
-              ),
-              Column(
+          default:
+            break;
+        }
+      },
+      builder: (context, state) {
+        return WillPopScope(
+          onWillPop: () async {
+            return canPop;
+          },
+          child: Scaffold(
+            appBar: getBackAppBar(
+              context,
+              onBack: state.persona == null || !widget.payload.allowBack
+                  ? null
+                  : () {
+                      context
+                          .read<PersonaBloc>()
+                          .add(DeletePersonaEvent(state.persona!));
+                    },
+              title: "wallet_alias".tr(),
+            ),
+            body: Container(
+              margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: PrimaryButton(
-                          text: "save_alias".tr(),
-                          onTap: isSavingAliasDisabled
-                              ? null
-                              : () {
-                                  context.read<PersonaBloc>().add(
-                                      NamePersonaEvent(
-                                          _nameController.text.trim()));
-                                },
-                        ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          addTitleSpace(),
+                          Text(
+                            injector<ConfigurationService>().isDoneOnboarding()
+                                ? "need_add_alias".tr()
+                                : "aa_you_can_add".tr(),
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                          const SizedBox(height: 40),
+                          AuTextField(
+                              labelSemantics: "enter_alias_full",
+                              title: "",
+                              placeholder: "enter_alias".tr(),
+                              controller: _nameController,
+                              onChanged: (valueChanged) {
+                                if (_nameController.text.trim().isEmpty !=
+                                    isSavingAliasDisabled) {
+                                  saveAliasButtonChangedState();
+                                }
+                              }),
+                        ],
                       ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PrimaryButton(
+                              text: "save_alias".tr(),
+                              onTap: isSavingAliasDisabled
+                                  ? null
+                                  : () {
+                                      context.read<PersonaBloc>().add(
+                                          NamePersonaEvent(
+                                              _nameController.text.trim()));
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      !injector<ConfigurationService>().isDoneOnboarding() &&
+                              !widget.payload.isForceAlias
+                          ? OutlineButton(
+                              onTap: () async {
+                                //_doneNaming();
+                                if (!mounted) {
+                                  _doneNaming();
+                                  return;
+                                }
+                                context
+                                    .read<PersonaBloc>()
+                                    .add(NamePersonaEvent(''));
+                              },
+                              text: "skip".tr(),
+                              color: AppColor.white,
+                              textColor: AppColor.primaryBlack,
+                              borderColor: AppColor.primaryBlack,
+                            )
+                          : const SizedBox(),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  !injector<ConfigurationService>().isDoneOnboarding()
-                      ? OutlineButton(
-                          onTap: () async {
-                            //_doneNaming();
-                            if (!mounted) {
-                              _doneNaming();
-                              return;
-                            }
-                            context
-                                .read<PersonaBloc>()
-                                .add(NamePersonaEvent(''));
-                          },
-                          text: "skip".tr(),
-                          color: AppColor.white,
-                          textColor: AppColor.primaryBlack,
-                          borderColor: AppColor.primaryBlack,
-                        )
-                      : const SizedBox(),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -183,4 +210,13 @@ class _NamePersonaPageState extends State<NamePersonaPage> {
       }
     }
   }
+}
+
+class NamePersonaPayload {
+  final String uuid;
+  final bool isForceAlias;
+  final bool allowBack;
+
+  NamePersonaPayload(
+      {required this.uuid, this.isForceAlias = false, this.allowBack = false});
 }

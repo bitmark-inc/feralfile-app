@@ -71,7 +71,7 @@ class Exhibition {
   final String? thumbnailCoverURI;
   final String mintBlockchain;
   final List<FFArtist>? artists;
-  final List<FFArtwork>? artworks;
+  final List<FFSeries>? series;
   final List<FFContract>? contracts;
   final FFArtist? partner;
 
@@ -84,7 +84,7 @@ class Exhibition {
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
-    this.artworks,
+    this.series,
     this.contracts,
     this.mintBlockchain,
     this.partner,
@@ -95,8 +95,8 @@ class Exhibition {
 
   Map<String, dynamic> toJson() => _$ExhibitionToJson(this);
 
-  FFArtist? getArtist(FFArtwork? artwork) {
-    final artistId = artwork?.artistID;
+  FFArtist? getArtist(FFSeries? series) {
+    final artistId = series?.artistID;
     return artists?.firstWhereOrNull((artist) => artist.id == artistId);
   }
 
@@ -105,7 +105,6 @@ class Exhibition {
   }
 }
 
-@JsonSerializable()
 @JsonSerializable()
 class ExhibitionResponse {
   final Exhibition result;
@@ -124,12 +123,12 @@ class FFArtist {
   final String id;
   final String alias;
   final String slug;
-  final bool verified;
-  final bool isArtist;
-  final String fullName;
-  final String avatarURI;
-  final String accountNumber;
-  final String type;
+  final bool? verified;
+  final bool? isArtist;
+  final String? fullName;
+  final String? avatarURI;
+  final String? accountNumber;
+  final String? type;
 
   FFArtist(
     this.id,
@@ -150,39 +149,49 @@ class FFArtist {
 }
 
 @JsonSerializable()
-class FFArtwork {
+class FFSeries {
   final String id;
   final String artistID;
+  final String? assetID;
   final String title;
   final String slug;
   final String medium;
-  final String description;
-  final String? thumbnailFileURI;
-  final String? galleryThumbnailFileURI;
-  final FFArtworkSettings? settings;
-  final FFArtist artist;
+  final String? description;
+  final String? thumbnailURI;
+  final String exhibitionID;
+  final Map<String, dynamic>? metadata;
+  final int? displayIndex;
+  final int? featuringIndex;
+  final FFSeriesSettings? settings;
+  final FFArtist? artist;
   final Exhibition? exhibition;
   final AirdropInfo? airdropInfo;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  FFArtwork(
+  FFSeries(
     this.id,
     this.artistID,
+    this.assetID,
     this.title,
     this.slug,
     this.medium,
     this.description,
-    this.thumbnailFileURI,
-    this.galleryThumbnailFileURI,
+    this.thumbnailURI,
+    this.exhibitionID,
+    this.metadata,
     this.settings,
     this.artist,
     this.exhibition,
     this.airdropInfo,
     this.createdAt,
+    this.displayIndex,
+    this.featuringIndex,
+    this.updatedAt,
   );
 
   int get maxEdition {
-    return settings?.maxEdition ?? -1;
+    return settings?.maxArtwork ?? -1;
   }
 
   FFContract? get contract {
@@ -192,44 +201,44 @@ class FFArtwork {
   }
 
   String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/${galleryThumbnailFileURI ?? thumbnailFileURI}";
+    return "${Environment.feralFileAssetURL}/$thumbnailURI";
   }
 
-  bool get isAirdropArtwork {
+  bool get isAirdropSeries {
     return settings?.isAirdrop == true;
   }
 
-  factory FFArtwork.fromJson(Map<String, dynamic> json) =>
-      _$FFArtworkFromJson(json);
+  factory FFSeries.fromJson(Map<String, dynamic> json) =>
+      _$FFSeriesFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FFArtworkToJson(this);
+  Map<String, dynamic> toJson() => _$FFSeriesToJson(this);
 }
 
 @JsonSerializable()
-class FFArtworkResponse {
-  final FFArtwork result;
+class FFSeriesResponse {
+  final FFSeries result;
 
-  FFArtworkResponse(
+  FFSeriesResponse(
     this.result,
   );
 
-  factory FFArtworkResponse.fromJson(Map<String, dynamic> json) =>
-      _$FFArtworkResponseFromJson(json);
+  factory FFSeriesResponse.fromJson(Map<String, dynamic> json) =>
+      _$FFSeriesResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FFArtworkResponseToJson(this);
+  Map<String, dynamic> toJson() => _$FFSeriesResponseToJson(this);
 }
 
 @JsonSerializable()
-class FFArtworkSettings {
-  final int maxEdition;
+class FFSeriesSettings {
+  final int maxArtwork;
   final String? saleModel;
 
-  FFArtworkSettings(this.saleModel, this.maxEdition);
+  FFSeriesSettings(this.saleModel, this.maxArtwork);
 
-  factory FFArtworkSettings.fromJson(Map<String, dynamic> json) =>
-      _$FFArtworkSettingsFromJson(json);
+  factory FFSeriesSettings.fromJson(Map<String, dynamic> json) =>
+      _$FFSeriesSettingsFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FFArtworkSettingsToJson(this);
+  Map<String, dynamic> toJson() => _$FFSeriesSettingsToJson(this);
 
   bool get isAirdrop {
     return ["airdrop", "shopping_airdrop"].contains(saleModel?.toLowerCase());
@@ -259,23 +268,25 @@ class AirdropInfo {
   final String contractAddress;
   final String blockchain;
   final int remainAmount;
-  final String? artworkId; // TODO: rename?
-  final String? artworkTitle;
+  final String? seriesId; // TODO: rename?
+  final String? seriesTitle;
   final String? artist;
   final String? gifter;
   final DateTime? startedAt;
   final DateTime? endedAt;
+  final String? twitterCaption;
 
   AirdropInfo(
     this.contractAddress,
     this.blockchain,
     this.remainAmount,
-    this.artworkId,
-    this.artworkTitle,
+    this.seriesId,
+    this.seriesTitle,
     this.artist,
     this.gifter,
     this.startedAt,
     this.endedAt,
+    this.twitterCaption,
   );
 
   factory AirdropInfo.fromJson(Map<String, dynamic> json) =>
@@ -310,15 +321,19 @@ class TokenClaimResult {
   final String id;
   final String claimerID;
   final String exhibitionID;
-  final String editionID;
+  final String seriesID;
+  final String artworkID;
   final String txID;
+  final Map<String, dynamic>? metadata;
 
   TokenClaimResult(
     this.id,
     this.claimerID,
     this.exhibitionID,
-    this.editionID,
+    this.artworkID,
     this.txID,
+    this.seriesID,
+    this.metadata,
   );
 
   factory TokenClaimResult.fromJson(Map<String, dynamic> json) =>
@@ -328,7 +343,7 @@ class TokenClaimResult {
 
   @override
   String toString() {
-    return 'TokenClaimResult{id: $id, claimerID: $claimerID, exhibitionID: $exhibitionID, editionID: $editionID, txID: $txID}';
+    return 'TokenClaimResult{id: $id, claimerID: $claimerID, exhibitionID: $exhibitionID, artworkID: $artworkID, txID: $txID}';
   }
 }
 
@@ -395,38 +410,38 @@ class FeralFileResaleInfo {
 }
 
 @JsonSerializable()
-class ArtworkEditionResponse {
-  final ArtworkEdition result;
+class ArtworkResponse {
+  final Artwork result;
 
-  ArtworkEditionResponse(this.result);
+  ArtworkResponse(this.result);
 
-  factory ArtworkEditionResponse.fromJson(Map<String, dynamic> json) =>
-      _$ArtworkEditionResponseFromJson(json);
+  factory ArtworkResponse.fromJson(Map<String, dynamic> json) =>
+      _$ArtworkResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ArtworkEditionResponseToJson(this);
+  Map<String, dynamic> toJson() => _$ArtworkResponseToJson(this);
 }
 
 @JsonSerializable()
-class ArtworkEdition {
+class Artwork {
   final String id;
-  final String artworkID;
+  final String seriesID;
   final int index;
   final String name;
   final String category;
   final String ownerAccountID;
-  final bool virgin;
-  final bool burned;
+  final bool? virgin;
+  final bool? burned;
   final String blockchainStatus;
   final bool isExternal;
-  final DateTime issuedAt;
+  final DateTime mintedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final bool isArchived;
-  final FFArtwork artwork;
+  final bool? isArchived;
+  final FFSeries? series;
 
-  ArtworkEdition(
+  Artwork(
       this.id,
-      this.artworkID,
+      this.seriesID,
       this.index,
       this.name,
       this.category,
@@ -435,14 +450,14 @@ class ArtworkEdition {
       this.burned,
       this.blockchainStatus,
       this.isExternal,
-      this.issuedAt,
+      this.mintedAt,
       this.createdAt,
       this.updatedAt,
       this.isArchived,
-      this.artwork);
+      this.series);
 
-  factory ArtworkEdition.fromJson(Map<String, dynamic> json) =>
-      _$ArtworkEditionFromJson(json);
+  factory Artwork.fromJson(Map<String, dynamic> json) =>
+      _$ArtworkFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ArtworkEditionToJson(this);
+  Map<String, dynamic> toJson() => _$ArtworkToJson(this);
 }

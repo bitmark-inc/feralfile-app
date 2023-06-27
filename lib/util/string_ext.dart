@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/environment.dart';
+
 extension StringExtension on String {
   String capitalize() {
     return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
@@ -20,7 +22,16 @@ extension StringExtension on String {
     } else if (length <= number) {
       return this;
     }
-    return "[${substring(0, number)}...${substring(length - number, length)}]";
+    return maskOnly(number);
+  }
+
+  String maskOnly(int number) {
+    if (isEmpty) {
+      return "";
+    } else if (length <= number) {
+      return this;
+    }
+    return "${substring(0, number)}...${substring(length - number, length)}";
   }
 
   String maskIfNeeded() {
@@ -34,6 +45,10 @@ extension StringExtension on String {
     return (identity != null && identity.isNotEmpty)
         ? identity
         : maskIfNeeded();
+  }
+
+  bool isValidUrl() {
+    return Uri.tryParse(this) != null;
   }
 
   String replacePrefix(String from, String to) {
@@ -60,5 +75,11 @@ extension StringExtension on String {
       default:
         return null;
     }
+  }
+
+  bool get isPostcardId {
+    final splitted = split('-');
+    return splitted.length > 1 &&
+        splitted[1] == Environment.postcardContractAddress;
   }
 }

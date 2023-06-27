@@ -51,10 +51,12 @@ class FeralFileWeb3Connection {
 @JsonSerializable()
 class WalletConnectConnection {
   String personaUuid;
+  int index;
   WCSessionStore sessionStore;
 
   WalletConnectConnection({
     required this.personaUuid,
+    required this.index,
     required this.sessionStore,
   });
 
@@ -67,10 +69,12 @@ class WalletConnectConnection {
 @JsonSerializable()
 class BeaconConnectConnection {
   String personaUuid;
+  int index;
   P2PPeer peer;
 
   BeaconConnectConnection({
     required this.personaUuid,
+    required this.index,
     required this.peer,
   });
 

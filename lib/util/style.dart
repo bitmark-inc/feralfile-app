@@ -5,14 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:html/dom.dart' as dom;
 
 TextStyle makeLinkStyle(TextStyle style) {
   final color = style.color ?? AppColor.primaryBlack;
@@ -39,9 +39,7 @@ MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
 
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
-  final bodyText2 = ResponsiveLayout.isMobile
-      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
-      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
+  final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
@@ -53,20 +51,20 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
       decorationColor: textColor,
       decorationThickness: 1,
     ),
-    p: theme.textTheme.bodyLarge?.copyWith(color: textColor),
+    p: bodyText2,
     pPadding: const EdgeInsets.only(bottom: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.displayLarge?.copyWith(color: textColor),
+    h1: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h1Padding: const EdgeInsets.only(bottom: 40),
-    h2: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h2: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.displaySmall?.copyWith(color: textColor),
+    h3: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h4: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.titleSmall?.copyWith(color: textColor),
+    h5: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.titleLarge?.copyWith(color: textColor),
+    h6: theme.textTheme.ppMori700Black16.copyWith(color: textColor),
     h6Padding: EdgeInsets.zero,
     em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -110,28 +108,28 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
 
 MarkdownStyleSheet markDownRightStyle(BuildContext context) {
   final theme = Theme.of(context);
-  final bodyText2 = theme.textTheme.ppMori400White12;
+  final bodyText2 = theme.textTheme.ppMori400White14;
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.ppMori,
       color: theme.auSuperTeal,
       fontWeight: FontWeight.w400,
-      fontSize: 12,
+      fontSize: 14,
     ),
-    p: theme.textTheme.ppMori400White12,
+    p: theme.textTheme.ppMori400White14,
     pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.ppMori400White14,
+    h1: theme.textTheme.ppMori400White16,
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.ppMori400White14,
+    h2: theme.textTheme.ppMori400White16,
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.ppMori400White14,
+    h3: theme.textTheme.ppMori400White16,
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.ppMori400White14,
+    h4: theme.textTheme.ppMori400White16,
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.ppMori400White14,
+    h5: theme.textTheme.ppMori400White16,
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.ppMori400White14,
+    h6: theme.textTheme.ppMori400White16,
     h6Padding: EdgeInsets.zero,
     em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.white),
     strong: theme.textTheme.ppMori400White14,
@@ -174,12 +172,76 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
   );
 }
 
+MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  final bodyText2 = theme.textTheme.ppMori400White12;
+  return MarkdownStyleSheet(
+    a: TextStyle(
+      fontFamily: AppTheme.ppMori,
+      color: theme.auSuperTeal,
+      fontWeight: FontWeight.w400,
+      fontSize: 14,
+    ),
+    p: theme.textTheme.ppMori400Black14,
+    pPadding: EdgeInsets.zero,
+    code: bodyText2.copyWith(backgroundColor: Colors.transparent),
+    h1: theme.textTheme.ppMori700Black14,
+    h1Padding: EdgeInsets.zero,
+    h2: theme.textTheme.ppMori700Black14,
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.ppMori700Black14,
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.ppMori700Black14,
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.ppMori700Black14,
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.ppMori700White14,
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
+    strong: theme.textTheme.ppMori700Black14,
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: Colors.black),
+    blockquote: bodyText2,
+    img: bodyText2,
+    checkbox: bodyText2.copyWith(color: theme.colorScheme.primary),
+    blockSpacing: 16.0,
+    listIndent: 24.0,
+    listBullet: bodyText2.copyWith(color: Colors.black),
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: bodyText2,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquoteDecoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          width: 0.5,
+          color: theme.disableColor,
+        ),
+      ),
+    ),
+  );
+}
+
 MarkdownStyleSheet markDownDetailPageStyle(
     BuildContext context, Color textColor) {
   final theme = Theme.of(context);
-  final bodyText2 = ResponsiveLayout.isMobile
-      ? theme.textTheme.ibmGreyNormal16.copyWith(color: textColor)
-      : theme.textTheme.ibmGreyNormal20.copyWith(color: textColor);
+  final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
     a: TextStyle(
       fontFamily: AppTheme.atlasGrotesk,
@@ -191,20 +253,20 @@ MarkdownStyleSheet markDownDetailPageStyle(
       decorationColor: textColor,
       decorationThickness: 1,
     ),
-    p: theme.textTheme.bodyLarge?.copyWith(color: textColor),
+    p: bodyText2,
     pPadding: EdgeInsets.zero,
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.displayLarge?.copyWith(color: textColor),
+    h1: theme.textTheme.ppMori700Black16,
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h2: theme.textTheme.ppMori700Black16,
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.displaySmall?.copyWith(color: textColor),
+    h3: theme.textTheme.ppMori700Black16,
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.headlineMedium?.copyWith(color: textColor),
+    h4: theme.textTheme.ppMori700Black16,
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.titleSmall?.copyWith(color: textColor),
+    h5: theme.textTheme.ppMori700Black16,
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.titleLarge?.copyWith(color: textColor),
+    h6: theme.textTheme.ppMori700Black16,
     h6Padding: EdgeInsets.zero,
     em: TextStyle(fontStyle: FontStyle.italic, color: textColor),
     strong: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -245,46 +307,47 @@ MarkdownStyleSheet markDownDetailPageStyle(
   );
 }
 
-MarkdownStyleSheet editorialMarkDownStyle(BuildContext context) {
+MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
+    {TextStyle? preferredStyle, EdgeInsets? pPadding, double? adjustSize}) {
   const textColor = AppColor.white;
   final theme = Theme.of(context);
+  final size = adjustSize ?? 0;
   final textStyleWhite =
-      theme.textTheme.ppMori400White12.copyWith(fontSize: 17);
-  final textStyleGreen =
-      theme.textTheme.ppMori400Green12.copyWith(fontSize: 17);
-  final textStyleGrey = theme.textTheme.ppMori400Grey12.copyWith(fontSize: 17);
+      theme.textTheme.ppMori400White12.copyWith(fontSize: 17).adjustSize(size);
+  preferredStyle = preferredStyle ?? textStyleWhite;
   return MarkdownStyleSheet(
-    a: const TextStyle(
-      fontFamily: AppTheme.ppMori,
-      color: Colors.transparent,
-      fontWeight: FontWeight.w500,
-      shadows: [Shadow(color: textColor, offset: Offset(0, -1))],
-      decoration: TextDecoration.underline,
-      decorationStyle: TextDecorationStyle.solid,
-      decorationColor: textColor,
-      decorationThickness: 1,
+    a: preferredStyle.merge(
+      const TextStyle(
+        color: AppColor.auSuperTeal,
+      ),
     ),
-    p: textStyleWhite,
-    pPadding: const EdgeInsets.only(bottom: 16),
+    p: preferredStyle,
+    pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
     code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.ppMori700White24,
+    h1: preferredStyle
+        .copyWith(fontSize: 24, fontWeight: FontWeight.w700)
+        .adjustSize(size),
     h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: theme.textTheme.ppMori700White24.copyWith(fontSize: 20),
+    h2: preferredStyle
+        .copyWith(fontSize: 20, fontWeight: FontWeight.w700)
+        .adjustSize(size),
     h2Padding: EdgeInsets.zero,
-    h3: textStyleGreen,
+    h3: preferredStyle,
     h3Padding: EdgeInsets.zero,
-    h4: textStyleGreen,
+    h4: preferredStyle,
     h4Padding: EdgeInsets.zero,
-    h5: textStyleGreen,
+    h5: preferredStyle,
     h5Padding: EdgeInsets.zero,
-    h6: textStyleGreen,
+    h6: preferredStyle,
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic, color: textColor),
-    strong: const TextStyle(fontWeight: FontWeight.bold, color: textColor),
-    del: const TextStyle(
+    em: preferredStyle.copyWith(fontStyle: FontStyle.italic),
+    strong: preferredStyle.copyWith(fontWeight: FontWeight.bold),
+    del: preferredStyle.copyWith(
         decoration: TextDecoration.lineThrough, color: textColor),
-    blockquote: textStyleWhite,
-    img: textStyleGrey.copyWith(fontSize: 12),
+    blockquote: preferredStyle.copyWith(color: AppColor.white),
+    img: preferredStyle
+        .copyWith(fontSize: 12, color: AppColor.disabledColor)
+        .adjustSize(size),
     checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
     blockSpacing: 15.0,
     listIndent: 24.0,
@@ -416,17 +479,27 @@ SizedBox addTitleSpace() {
   return const SizedBox(height: 60);
 }
 
-Divider addDivider({double height = 32}) {
+Divider addDivider({double height = 32, Color? color}) {
   return Divider(
     height: height,
     thickness: 1.0,
+    color: color,
   );
 }
 
-Divider addOnlyDivider() {
+Divider headDivider() {
   return const Divider(
+    height: 30,
+    thickness: 3,
+    color: AppColor.auSuperTeal,
+  );
+}
+
+Divider addOnlyDivider({Color? color}) {
+  return Divider(
     height: 1.0,
     thickness: 1.0,
+    color: color,
   );
 }
 
@@ -444,19 +517,6 @@ Divider addDialogDivider({double height = 32}) {
     thickness: 1,
     color: Colors.white,
   );
-}
-
-Widget get autonomyLogo {
-  return FutureBuilder<bool>(
-      future: isAppCenterBuild(),
-      builder: (context, snapshot) {
-        return SvgPicture.asset(
-          snapshot.data == true
-              ? "assets/images/logo_dev.svg"
-              : "assets/images/penrose_moma.svg",
-          width: 50,
-        );
-      });
 }
 
 Widget loadingIndicator({
@@ -544,4 +604,33 @@ void disableLandscapeMode() {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+}
+
+class MomaPallet {
+  static const pink = Color.fromRGBO(233, 60, 172, 1);
+  static const red = Color.fromRGBO(228, 0, 43, 1);
+  static const brick = Color.fromRGBO(255, 88, 93, 1);
+  static const lightBrick = Color.fromRGBO(255, 179, 171, 1);
+  static const orange = Color.fromRGBO(255, 143, 28, 1);
+  static const lightYellow = Color.fromRGBO(255, 205, 0, 1);
+  static const bananaYellow = Color.fromRGBO(206, 220, 0, 1);
+  static const green = Color.fromRGBO(0, 177, 64, 1);
+  static const riverGreen = Color.fromRGBO(140, 226, 208, 1);
+  static const cloudBlue = Color.fromRGBO(0, 175, 215, 1);
+  static const blue = Color.fromRGBO(0, 87, 184, 1);
+  static const purple = Color.fromRGBO(117, 59, 189, 1);
+}
+
+Map<String, String>? auHtmlStyle(dom.Element element) {
+  if (element.localName == "a") {
+    const linkColor = AppColor.auSuperTeal;
+    // convert linkColor to hex string
+    String hexColor =
+        "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";
+    return {
+      "color": hexColor,
+      "text-decoration": "none",
+    };
+  }
+  return null;
 }

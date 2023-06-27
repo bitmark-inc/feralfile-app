@@ -15,18 +15,21 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.26.0+20
+version: 0.36.0+121
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   after_layout: ^1.2.0
+  bs58check: ^1.0.2
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
+  carousel_slider: ^4.2.1
   cast: ^1.1.0
   collection: ^1.15.0
-  connectivity_plus: ^2.2.1
+  confetti: ^0.7.0
+  connectivity_plus: ^3.0.0
   crypto: ^3.0.1
   device_info_plus: ^3.2.1
   dio: ^4.0.6
@@ -40,7 +43,7 @@ dependencies:
   flutter_blue:
     git:
       url: https://github.com/autonomy-system/flutter_blue.git
-      ref: e36798db86cd283eb556d90475f874bbd0f28cb4
+      ref: 9ae9c8e8a366d0d820208148603412700ed150f0
   flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
@@ -48,7 +51,7 @@ dependencies:
   flutter_downloader:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
-      ref: 7092a0c3708be0f94d8abcf49ebf84f778c0ae26
+      ref: 77fe59498333190976959001fe9960a1fb4d27e2
   flutter_fgbg: ^0.2.0
   flutter_image_compress: ^1.1.0
   flutter_markdown: ^0.6.9
@@ -61,7 +64,9 @@ dependencies:
       url: https://github.com/autonomy-system/flutter_to_airplay.git
       ref: 622b2717fd2d0fa70a06e62817b845e2361b100e
   flutter_vibrate: ^1.3.0
+  geolocator: ^9.0.2
   get_it: ^7.2.0
+  gif_view: ^0.3.1
   hive: ^2.2.1
   hive_flutter: ^1.1.0
   http: ^0.13.2
@@ -70,11 +75,11 @@ dependencies:
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.17.0
   jiffy: ^5.0.0
-  flutter_keyboard_visibility: ^5.3.0
+  flutter_keyboard_visibility: ^5.4.1
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 17fac38d818eaced1e8e7d87dafeab4aa2cbaa9a
+      ref: 6ab6dd6e42d577115783bc60279de559ed5cefc1
   local_auth: ^2.1.0
   logging: ^1.0.2
   measured_size: ^1.0.0
@@ -83,7 +88,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: v1.0.22
+      ref: c390cdca02b5274f7997768ec1b428e9e56fc255
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -101,43 +106,51 @@ dependencies:
   share: ^2.0.4
   shared_preferences: ^2.0.0
   synchronized: ^3.0.0+2
+  social_share: ^2.3.1
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 68a5160bcbf951670cbdda806f12aefbc5e04672
+      ref: 0cd68a902c8d2554227738594c62046571e57b4c
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
+  version_check: ^0.3.0
   wakelock: ^0.6.1+2
   wallet_connect:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
-      ref: 763516f2013982c8723e1ab1478f52a5ba0699c8
+      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
   web3dart: ^2.5.1
   web_socket_channel: ^2.1.0
-  webview_flutter: ^3.0.0
   json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 1.1.0
+      ref: 9010ebc5d282391d174b90f3f1e3aa4f7f00388c
   marqueer: ^1.2.0
+  markdown: ^6.0.1
   easy_localization: ^3.0.1
-  rxdart: ^0.26.0
+  rxdart: ^0.27.1
   in_app_review: ^2.0.4
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 8591e66f61c09ee09c19ab90e61d3849b5c9cab3
+      ref: db09684d5952e606d402a56497c24bebd0a64d96
+  autonomy_tv_proto:
+    git:
+      url: https://github.com/autonomy-system/autonomy-tv-proto-communication
+      ref: 48c86e89b451494cd7affdcb0141a7e4db9c1307
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:
     git:
       url: https://github.com/autonomy-system/metric-client-dart
       ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
+  multi_value_listenable_builder: ^0.0.2
   auto_size_text: ^3.0.0
   uri: ^1.0.0
+  undo: ^1.4.0
   reorderable_grid_view: ^2.2.5
   eth_sig_util:
     git:
@@ -154,7 +167,15 @@ dependencies:
   sqflite: ^2.2.2
   slidable_button: ^2.0.0+1
   background_fetch: ^1.1.3
-
+  syncfusion_flutter_signaturepad: ^20.4.53
+  image: ^4.0.15
+  widgets_to_image: ^0.0.2
+  geocoding: ^2.1.0
+  flutter_inappwebview: ^5.7.2+3
+  html: ^0.15.1
+  flutter_swiper_view: ^1.1.8
+  video_player: ^2.4.8
+  youtube_player_iframe: ^3.1.0
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
@@ -198,6 +219,7 @@ flutter:
     - assets/erc1155-abi.json
     - assets/images/
     - assets/translations/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -235,3 +257,10 @@ flutter:
     - family: AuIcon
       fonts:
         - asset: assets/fonts/AuIcon.ttf
+
+    - family: MoMASans
+      fonts:
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Bold-Italic.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular.otf
+        - asset: assets/fonts/MoMASans/MoMA-Sans-Regular-Italic.otf

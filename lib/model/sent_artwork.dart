@@ -4,22 +4,36 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
-import 'package:json_annotation/json_annotation.dart';
 
-part 'sent_artwork.g.dart';
-
-@JsonSerializable()
 class SentArtwork {
   final String tokenID;
   final String address;
   final DateTime timestamp;
+  final int sentQuantity;
+  final bool isSentAll;
 
-  SentArtwork(this.tokenID, this.address, this.timestamp);
+  SentArtwork(this.tokenID, this.address, this.timestamp, this.sentQuantity,
+      this.isSentAll);
 
-  factory SentArtwork.fromJson(Map<String, dynamic> json) =>
-      _$SentArtworkFromJson(json);
+  factory SentArtwork.fromJson(Map<String, dynamic> json) {
+    return SentArtwork(
+      json['tokenID'] as String,
+      json['address'] as String,
+      DateTime.parse(json['timestamp'] as String),
+      (json['sentQuantity'] ?? 1) as int,
+      (json['isSentAll'] ?? true) as bool,
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$SentArtworkToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'tokenID': tokenID,
+      'address': address,
+      'timestamp': timestamp.toIso8601String(),
+      'sentQuantity': sentQuantity,
+      'isSentAll': isSentAll,
+    };
+  }
 
   bool isHidden(
       {required String tokenID,

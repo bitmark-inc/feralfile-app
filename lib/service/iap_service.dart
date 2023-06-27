@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -186,6 +187,7 @@ class IAPServiceImpl implements IAPService {
     if (purchaseDetailsList.isEmpty) {
       // Remove purchase status
       _configurationService.setIAPReceipt(null);
+      _configurationService.setPremium(false);
       return;
     }
 
@@ -223,6 +225,13 @@ class IAPServiceImpl implements IAPService {
           log.info("[IAPService] verifying the receipt");
           if (subscriptionStatus?.isPremium == true) {
             _configurationService.setIAPJWT(jwt);
+            if (!_configurationService.isPremium()) {
+              Future.delayed(const Duration(seconds: 2), () async {
+                injector<CustomerSupportService>()
+                    .createAnnouncement(AnnouncementID.SUBSCRIBE);
+              });
+              _configurationService.setPremium(true);
+            }
             final status = subscriptionStatus!;
             if (status.isTrial == true) {
               purchases.value[purchaseDetails.productID] =
@@ -242,6 +251,10 @@ class IAPServiceImpl implements IAPService {
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
+              if (purchaseDetails.status == PurchaseStatus.purchased) {
+                injector<ConfigurationService>()
+                    .setSubscriptionTime(DateTime.now());
+              }
               metricClient.addEvent(
                 MixpanelEvent.purchased,
                 data: {
@@ -256,6 +269,7 @@ class IAPServiceImpl implements IAPService {
             purchases.notifyListeners();
           } else {
             log.info("[IAPService] the receipt is invalid");
+            _configurationService.setPremium(false);
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
             _configurationService.setIAPReceipt(null);

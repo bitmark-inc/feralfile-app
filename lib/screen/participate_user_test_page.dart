@@ -5,14 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../util/constants.dart';
 
@@ -69,16 +69,16 @@ class ParticipateUserTestPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           ...[
-                            "user_test_will_1"
-                                .tr(), //'The user test will be conducted via Zoom.',
-                            "user_test_will_2"
-                                .tr(), //'You should have a good Internet connection in a quiet area.',
-                            "user_test_will_3"
-                                .tr(), //'You will be asked questions in English or French.',
-                            "user_test_will_4"
-                                .tr(), //'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
-                            "user_test_will_5"
-                                .tr(), //'We may ask you to install a development build on your device.',
+                            "user_test_will_1".tr(),
+                            //'The user test will be conducted via Zoom.',
+                            "user_test_will_2".tr(),
+                            //'You should have a good Internet connection in a quiet area.',
+                            "user_test_will_3".tr(),
+                            //'You will be asked questions in English or French.',
+                            "user_test_will_4".tr(),
+                            //'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
+                            "user_test_will_5".tr(),
+                            //'We may ask you to install a development build on your device.',
                           ]
                               .map(
                                 (e) => Row(
@@ -116,15 +116,14 @@ class ParticipateUserTestPage extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: AuPrimaryButton(
+                  child: PrimaryButton(
                     text: "schedule_test".tr(),
-                    onPressed: () => launchUrl(
-                        Uri.parse(USER_TEST_CALENDAR_LINK),
-                        mode: LaunchMode.inAppWebView,
-                        webViewConfiguration: const WebViewConfiguration(
-                            headers: <String, String>{
-                              'my_header_key': 'my_header_value'
-                            })),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AppRouter.inappWebviewPage,
+                        arguments: USER_TEST_CALENDAR_LINK,
+                      );
+                    },
                   ),
                 ),
               ],

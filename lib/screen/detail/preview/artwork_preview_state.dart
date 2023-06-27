@@ -12,8 +12,9 @@ abstract class ArtworkPreviewEvent {}
 
 class ArtworkPreviewGetAssetTokenEvent extends ArtworkPreviewEvent {
   final ArtworkIdentity identity;
+  final bool useIndexer;
 
-  ArtworkPreviewGetAssetTokenEvent(this.identity);
+  ArtworkPreviewGetAssetTokenEvent(this.identity, {this.useIndexer = false});
 }
 
 abstract class ArtworkPreviewState {
@@ -22,6 +23,7 @@ abstract class ArtworkPreviewState {
 
 class ChangeFullScreen extends ArtworkPreviewEvent {
   bool isFullscreen;
+
   ChangeFullScreen({this.isFullscreen = false});
 }
 
@@ -30,14 +32,15 @@ class ArtworkPreviewLoadingState extends ArtworkPreviewState {
 }
 
 class ArtworkPreviewLoadedState extends ArtworkPreviewState {
-  AssetToken? asset;
+  AssetToken? assetToken;
   bool isFullScreen;
 
-  ArtworkPreviewLoadedState({this.asset, this.isFullScreen = false});
+  ArtworkPreviewLoadedState({this.assetToken, this.isFullScreen = false});
 
-  ArtworkPreviewLoadedState copyWith({AssetToken? asset, bool? isFullScreen}) {
+  ArtworkPreviewLoadedState copyWith(
+      {AssetToken? assetToken, bool? isFullScreen}) {
     return ArtworkPreviewLoadedState(
-        asset: asset ?? this.asset,
+        assetToken: assetToken ?? this.assetToken,
         isFullScreen: isFullScreen ?? this.isFullScreen);
   }
 }

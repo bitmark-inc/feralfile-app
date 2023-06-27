@@ -9,19 +9,21 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 
-import 'package:autonomy_flutter/view/au_filled_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
 
 class TVConnectPage extends StatefulWidget {
@@ -75,12 +77,12 @@ class _TVConnectPageState extends State<TVConnectPage>
     final chainId = Environment.web3ChainId;
 
     final isApproveSuccess = await injector<WalletConnectService>()
-        .approveSession(const Uuid().v4(), widget.wcConnectArgs.peerMeta,
+        .approveSession(const Uuid().v4(), 0, widget.wcConnectArgs.peerMeta,
             [authorizedKeypair], chainId);
 
     if (!mounted) return;
     if (!isApproveSuccess) {
-      await UIHelper.showConnectionFaild(
+      await UIHelper.showConnectionFailed(
         context,
         onClose: () {
           UIHelper.hideInfoDialog(context);
@@ -107,79 +109,89 @@ class _TVConnectPageState extends State<TVConnectPage>
         return true;
       },
       child: Scaffold(
-        backgroundColor: theme.colorScheme.primary,
-        appBar: AppBar(
-          leading: const SizedBox(),
-          leadingWidth: 0.0,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  _reject();
-                  Navigator.of(context).pop();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 7, 18, 8),
-                  child: Row(
-                    children: [
-                      Row(
-                        children: [
-                          SvgPicture.asset(
-                            'assets/images/nav-arrow-left.svg',
-                            color: theme.colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 7),
-                          Text(
-                            "back".tr(),
-                            style: theme.primaryTextTheme.labelLarge,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          elevation: 0,
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            _reject();
+            Navigator.of(context).pop();
+          },
+          title: 'connect'.tr(),
         ),
         body: Container(
           margin: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              "connect_au_viewer".tr(),
-              style: theme.primaryTextTheme.displayLarge,
-            ),
-            const SizedBox(height: 24),
-            Text("set_up_gallery".tr(),
-                style: theme.primaryTextTheme.bodyLarge),
-            const SizedBox(
-              height: 32,
-            ),
-            Text("viewer_request_to".tr(),
-                style: theme.primaryTextTheme.bodyLarge),
-            const SizedBox(height: 8),
-            Text("view_collections".tr(),
-                style: theme.primaryTextTheme.bodyLarge),
-            const Expanded(child: SizedBox()),
-            Row(
-              children: [
-                Expanded(
-                  child: AuFilledButton(
-                    text: "Authorize".tr().toUpperCase(),
-                    onPress: () => withDebounce(() => _approve()),
-                    color: theme.colorScheme.secondary,
-                    textStyle: theme.textTheme.labelLarge,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              addTitleSpace(),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: theme.auSuperTeal,
+                        borderRadius: BorderRadius.circular(20)),
+                    child: SizedBox(
+                      width: 45,
+                      height: 45,
+                      child: Image.asset("assets/images/moma_logo.png"),
+                    ),
                   ),
-                )
-              ],
-            )
-          ]),
+                  const SizedBox(
+                    width: 24,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "autonomy_on_TV".tr(),
+                          style: theme.textTheme.ppMori700Black24,
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Text(
+                          "set_up_gallery".tr(),
+                          style: theme.textTheme.ppMori400Black12,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 24,
+                  ),
+                ],
+              ),
+              addTitleSpace(),
+              const Divider(),
+              const SizedBox(
+                height: 24,
+              ),
+              Text(
+                "you_have_permission".tr(),
+                style: theme.textTheme.ppMori400Black16,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                decoration: BoxDecoration(
+                  color: theme.auLightGrey,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  "view_collections".tr(),
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+              PrimaryButton(
+                text: 'connect'.tr(),
+                onTap: () => withDebounce(() => _approve()),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -17,13 +17,13 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_button_clipper.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,12 +31,13 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:gif_view/gif_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
-import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import '../common/injector.dart';
 
@@ -49,6 +50,38 @@ String getEditionSubTitle(AssetToken token) {
       ? tr('edition_of',
           args: [token.edition.toString(), token.maxEdition.toString()])
       : '${tr('edition')} ${token.edition}';
+}
+
+class MintTokenWidget extends StatelessWidget {
+  final String? thumbnail;
+  final String? tokenId;
+
+  const MintTokenWidget({Key? key, this.thumbnail, this.tokenId})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      label: "gallery_artwork_${tokenId}_minting",
+      child: Container(
+        color: theme.auLightGrey,
+        padding: const EdgeInsets.all(10),
+        child: Stack(
+          children: [
+            Center(child: SvgPicture.asset('assets/images/mint_icon.svg')),
+            Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: Text(
+                "minting_token".tr(),
+                style: theme.textTheme.ppMori700QuickSilver8,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class PendingTokenWidget extends StatelessWidget {
@@ -101,88 +134,22 @@ class PendingTokenWidget extends StatelessWidget {
   }
 }
 
-class TokenThumbnailWidget extends StatelessWidget {
-  final AssetToken token;
-  final Function? onHideArtwork;
-
-  const TokenThumbnailWidget({
-    Key? key,
-    required this.token,
-    this.onHideArtwork,
-  }) : super(key: key);
-
-  Widget _buildContent(
-      {required String ext,
-      required double screenWidth,
-      required int attempt}) {
-    final thumbnailUrl = token.getThumbnailUrl();
-    if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-      return const AspectRatio(
-        aspectRatio: 1,
-        child: GalleryNoThumbnailWidget(),
-      );
-    }
-
-    return Hero(
-      tag: "thumbnail_${token.id}",
-      child: ext == ".svg"
-          ? Center(
-              child: SvgImage(
-                url: thumbnailUrl,
-                fallbackToWebView: true,
-                loadingWidgetBuilder: (context) => placeholder(context),
-                errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
-                unsupportWidgetBuilder: (context) => GalleryUnSupportWidget(
-                  onHideArtwork: () => onHideArtwork?.call(),
-                ),
-              ),
-            )
-          : CachedNetworkImage(
-              imageUrl: attempt > 0
-                  ? "${token.getThumbnailUrl(usingThumbnailID: false) ?? ''}?t=$attempt"
-                  : token.getThumbnailUrl() ?? "",
-              width: double.infinity,
-              memCacheWidth: (screenWidth * 3).floor(),
-              maxWidthDiskCache: (screenWidth * 3).floor(),
-              cacheManager: injector<CacheManager>(),
-              placeholder: (context, url) => placeholder(context),
-              placeholderFadeInDuration: const Duration(milliseconds: 300),
-              fit: BoxFit.cover,
-              errorWidget: (context, url, error) => AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: Theme.of(context).auLightGrey,
-                  child: BrokenTokenWidget(token: token),
-                ),
-              ),
-            ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ext = p.extension(token.getThumbnailUrl() ?? "");
-    final screenWidth = MediaQuery.of(context).size.width;
-    return BlocProvider(
-      create: (_) => RetryCubit(),
-      child: BlocBuilder<RetryCubit, int>(
-        builder: (context, state) => _buildContent(
-          ext: ext,
-          screenWidth: screenWidth,
-          attempt: state,
-        ),
-      ),
-    );
-  }
-}
-
 final Map<String, Future<bool>> _cachingStates = {};
 
 Widget tokenGalleryThumbnailWidget(
-    BuildContext context, AssetToken token, int cachedImageSize) {
-  final thumbnailUrl = token.getGalleryThumbnailUrl();
+  BuildContext context,
+  CompactedAssetToken token,
+  int cachedImageSize, {
+  bool usingThumbnailID = true,
+  bool useHero = true,
+}) {
+  final thumbnailUrl =
+      token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
+
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-    return const GalleryNoThumbnailWidget();
+    return GalleryNoThumbnailWidget(
+      assetToken: token,
+    );
   }
 
   final ext = p.extension(thumbnailUrl);
@@ -201,7 +168,9 @@ Widget tokenGalleryThumbnailWidget(
   return Semantics(
     label: "gallery_artwork_${token.title}",
     child: Hero(
-      tag: "gallery_thumbnail_${token.id}",
+      tag: useHero
+          ? "gallery_thumbnail_${token.id}_${token.owner}"
+          : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
       child: ext == ".svg"
           ? SvgImage(
@@ -250,137 +219,6 @@ Widget tokenGalleryThumbnailWidget(
             ),
     ),
   );
-}
-
-Widget tokenGalleryWidget(
-  BuildContext context,
-  AssetToken token,
-  int cachedImageSize,
-) {
-  final thumbnailUrl = token.getGalleryThumbnailUrl();
-  if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-    return const GalleryNoThumbnailWidget();
-  }
-
-  final ext = p.extension(thumbnailUrl);
-
-  final cacheManager = injector<CacheManager>();
-
-  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
-      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
-        final cached = cachedObject != null;
-        if (cached) {
-          _cachingStates[thumbnailUrl] = Future.value(true);
-        }
-        return cached;
-      });
-
-  return Semantics(
-    label: token.title,
-    child: ext == ".svg"
-        ? SvgImage(
-            url: thumbnailUrl,
-            loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
-            errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
-            unsupportWidgetBuilder: (context) =>
-                const GalleryUnSupportThumbnailWidget(),
-          )
-        : CachedNetworkImage(
-            imageUrl: thumbnailUrl,
-            fadeInDuration: Duration.zero,
-            fit: BoxFit.cover,
-            memCacheHeight: cachedImageSize,
-            memCacheWidth: cachedImageSize,
-            maxWidthDiskCache: cachedImageSize,
-            maxHeightDiskCache: cachedImageSize,
-            cacheManager: cacheManager,
-            placeholder: (context, index) => FutureBuilder<bool>(
-                future: cachingState,
-                builder: (context, snapshot) {
-                  return GalleryThumbnailPlaceholder(
-                    loading: !(snapshot.data ?? true),
-                  );
-                }),
-            errorWidget: (context, url, error) => CachedNetworkImage(
-              imageUrl:
-                  token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? "",
-              fadeInDuration: Duration.zero,
-              fit: BoxFit.cover,
-              memCacheHeight: cachedImageSize,
-              memCacheWidth: cachedImageSize,
-              maxWidthDiskCache: cachedImageSize,
-              maxHeightDiskCache: cachedImageSize,
-              cacheManager: cacheManager,
-              placeholder: (context, index) => FutureBuilder<bool>(
-                  future: cachingState,
-                  builder: (context, snapshot) {
-                    return GalleryThumbnailPlaceholder(
-                      loading: !(snapshot.data ?? true),
-                    );
-                  }),
-              errorWidget: (context, url, error) =>
-                  const GalleryThumbnailErrorWidget(),
-            ),
-          ),
-  );
-}
-
-class GalleryUnSupportWidget extends StatelessWidget {
-  final String type;
-  final Function()? onHideArtwork;
-
-  const GalleryUnSupportWidget(
-      {Key? key, this.type = '.svg', this.onHideArtwork})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return ClipPath(
-      clipper: AutonomyTopRightRectangleClipper(),
-      child: Container(
-        width: size.width,
-        height: size.width,
-        padding: const EdgeInsets.all(13),
-        color: theme.auLightGrey,
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'unsupported_token'.tr(),
-                    style: theme.textTheme.atlasGreyNormal14,
-                  ),
-                  Visibility(
-                    visible: onHideArtwork != null,
-                    child: GestureDetector(
-                      onTap: onHideArtwork,
-                      child: Text(
-                        'hide_it_from_collection'.tr(),
-                        style: theme.textTheme.atlasGreyNormal14.copyWith(
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: Text(
-                type.toUpperCase(),
-                style: theme.textTheme.ibmGreyNormal12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class GalleryUnSupportThumbnailWidget extends StatelessWidget {
@@ -450,7 +288,23 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
 }
 
 class GalleryNoThumbnailWidget extends StatelessWidget {
-  const GalleryNoThumbnailWidget({Key? key}) : super(key: key);
+  final CompactedAssetToken assetToken;
+
+  const GalleryNoThumbnailWidget({Key? key, required this.assetToken})
+      : super(key: key);
+
+  String getAssetDefault() {
+    switch (assetToken.getMimeType) {
+      case RenderingType.modelViewer:
+        return 'assets/images/icon_3d.svg';
+      case RenderingType.webview:
+        return 'assets/images/icon_software.svg';
+      case RenderingType.video:
+        return 'assets/images/icon_video.svg';
+      default:
+        return 'assets/images/no_thumbnail.svg';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -465,7 +319,7 @@ class GalleryNoThumbnailWidget extends StatelessWidget {
         children: [
           Center(
             child: SvgPicture.asset(
-              'assets/images/no_thumbnail.svg',
+              getAssetDefault(),
               width: 24,
             ),
           ),
@@ -536,20 +390,25 @@ Widget placeholder(BuildContext context) {
   return AspectRatio(
     aspectRatio: 1,
     child: Container(
-      color: theme.auLightGrey,
+      color: AppColor.primaryBlack,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            loadingIndicator(valueColor: theme.colorScheme.primary),
+            GifView.asset(
+              "assets/images/loading_white.gif",
+              width: 52,
+              height: 52,
+              frameRate: 12,
+            ),
             const SizedBox(
               height: 12,
             ),
             Text(
               "loading...".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasGreyNormal12
-                  : theme.textTheme.atlasGreyNormal14,
+                  ? theme.textTheme.ppMori400White12
+                  : theme.textTheme.ppMori400White14,
             ),
           ],
         ),
@@ -558,73 +417,9 @@ Widget placeholder(BuildContext context) {
   );
 }
 
-class ReportButton extends StatefulWidget {
-  final AssetToken? token;
-  final ScrollController scrollController;
-
-  const ReportButton({
-    Key? key,
-    this.token,
-    required this.scrollController,
-  }) : super(key: key);
-
-  @override
-  State<ReportButton> createState() => _ReportButtonState();
-}
-
-class _ReportButtonState extends State<ReportButton> {
-  bool isShowingArtwortReportProblemContainer = true;
-
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page.
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (widget.scrollController.offset > 80) {
-      setState(() {
-        isShowingArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        isShowingArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (widget.scrollController.position.pixels + 100 >=
-        widget.scrollController.position.maxScrollExtent) {
-      setState(() {
-        isShowingArtwortReportProblemContainer = true;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    widget.scrollController.addListener(_scrollListener);
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.token == null) return const SizedBox();
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      height: isShowingArtwortReportProblemContainer ? 80 : 0,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: AnyProblemNFTWidget(
-          asset: widget.token!,
-        ),
-      ),
-    );
-  }
-}
-
 INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
-  AssetToken token, {
+  AssetToken assetToken, {
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
@@ -632,25 +427,29 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
+  String? userAgent,
 }) {
-  String mimeType = token.getMimeType;
-
+  String mimeType = assetToken.getMimeType;
+  final version = injector<ConfigurationService>().getVersionInfo();
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
+
+  userAgent ??= "user_agent".tr(namedArgs: {"version": version.toString()});
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
-        ? token.getPreviewUrl()
-        : "${token.getPreviewUrl()}?t=$attempt",
-    thumbnailURL: token.getThumbnailUrl(usingThumbnailID: false),
+        ? assetToken.getPreviewUrl()
+        : "${assetToken.getPreviewUrl()}?t=$attempt",
+    thumbnailURL: assetToken.getGalleryThumbnailUrl(usingThumbnailID: false),
     loadingWidget: loadingWidget ?? previewPlaceholder(context),
-    errorWidget: BrokenTokenWidget(token: token),
+    errorWidget: BrokenTokenWidget(token: assetToken),
     cacheManager: injector<CacheManager>(),
     onLoaded: onLoaded,
     onDispose: onDispose,
     overriddenHtml: overriddenHtml,
-    skipViewport: token.scrollable ?? false,
+    skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
+    userAgent: userAgent,
   ));
 
   return renderingWidget;
@@ -661,6 +460,56 @@ class RetryCubit extends Cubit<int> {
 
   void refresh() {
     emit(state + 1);
+  }
+}
+
+class PreviewUnSupportedTokenWidget extends StatelessWidget {
+  final AssetToken token;
+
+  const PreviewUnSupportedTokenWidget({Key? key, required this.token})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: AppColor.auGreyBackground,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/unsupported_token.svg',
+              width: 40,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Row(
+              children: [
+                Text(
+                  'unsupported_token'.tr(),
+                  style: theme.textTheme.ppMori700QuickSilver8
+                      .copyWith(fontSize: 12),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text(
+                    "hide_from_collection".tr(),
+                    style: theme.textTheme.ppMori400Black12
+                        .copyWith(color: AppColor.auSuperTeal),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -691,89 +540,51 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(
-            "unable_to_load_artwork_preview_from_ipfs".tr(),
-            style: ResponsiveLayout.isMobile
-                ? theme.textTheme.atlasGreyNormal12
-                : theme.textTheme.atlasGreyNormal14,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: AppColor.auGreyBackground,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/ipfs_error_icon.svg',
+              width: 40,
+            ),
           ),
-          TextButton(
-            onPressed: () {
-              metricClient.addEvent(
-                MixpanelEvent.clickLoadIPFSAgain,
-                data: {'id': widget.token.id},
-              );
-              context.read<RetryCubit>().refresh();
-            },
-            style: TextButton.styleFrom(
-                minimumSize: Size.zero,
-                padding: const EdgeInsets.all(8),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-            child: Text("please_try_again".tr(),
-                style: makeLinkStyle(
-                  ResponsiveLayout.isMobile
-                      ? theme.textTheme.atlasGreyNormal12
-                      : theme.textTheme.atlasGreyNormal14,
-                )),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Row(
+              children: [
+                Text(
+                  'unable_to_load_artwork_preview_from_ipfs'.tr(),
+                  style: theme.textTheme.ppMori700QuickSilver8
+                      .copyWith(fontSize: 12),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    metricClient.addEvent(
+                      MixpanelEvent.clickLoadIPFSAgain,
+                      data: {'id': widget.token.id},
+                    );
+                    context.read<RetryCubit>().refresh();
+                  },
+                  child: Text(
+                    "reload".tr(),
+                    style: theme.textTheme.ppMori400Black12
+                        .copyWith(color: AppColor.auSuperTeal),
+                  ),
+                )
+              ],
+            ),
           ),
-        ]),
+        ],
       ),
     );
   }
-}
-
-void showReportIssueDialog(BuildContext context, AssetToken token) {
-  UIHelper.showDialog(
-    context,
-    'report_issue'.tr(),
-    ReportRenderingIssueWidget(
-      token: token,
-      onReported: (githubURL) =>
-          _showReportRenderingDialogSuccess(context, githubURL),
-    ),
-    backgroundColor: Theme.of(context).auGreyBackground,
-  );
-}
-
-void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
-  final theme = Theme.of(context);
-  UIHelper.showDialog(
-    context,
-    'share_with_artist'.tr(),
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "thank_for_report".tr(),
-          style: theme.textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 40),
-        PrimaryButton(
-          onTap: () {
-            Share.share(githubURL).then((value) {
-              Navigator.of(context).pop();
-            });
-          },
-          text: "share".tr(),
-        ),
-        const SizedBox(height: 10),
-        OutlineButton(
-          onTap: () => Navigator.pop(context),
-          text: "cancel_dialog".tr(),
-        ),
-        const SizedBox(height: 15),
-      ],
-    ),
-    isDismissible: true,
-    feedback: FeedbackType.success,
-  );
 }
 
 Widget previewPlaceholder(BuildContext context) {
@@ -818,17 +629,20 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            loadingIndicator(
-                valueColor: theme.colorScheme.surface,
-                backgroundColor: theme.colorScheme.surface.withOpacity(0.5)),
+            GifView.asset(
+              "assets/images/loading_white.gif",
+              width: 52,
+              height: 52,
+              frameRate: 12,
+            ),
             const SizedBox(
               height: 13,
             ),
             Text(
               "loading...".tr(),
               style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.atlasGreyNormal12
-                  : theme.textTheme.atlasGreyNormal14,
+                  ? theme.textTheme.ppMori400White12
+                  : theme.textTheme.ppMori400White14,
             ),
           ],
         ),
@@ -879,7 +693,6 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
             buildInfo('IndexerID', token.id),
             buildInfo(
                 'galleryThumbnailURL', token.getGalleryThumbnailUrl() ?? ''),
-            buildInfo('thumbnailURL', token.getThumbnailUrl() ?? ''),
             buildInfo('previewURL', token.getPreviewUrl() ?? ''),
             addDivider(),
           ],
@@ -887,17 +700,107 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
       });
 }
 
-Widget artworkDetailsRightSection(BuildContext context, AssetToken token) {
-  final editionID =
-      ((token.swapped ?? false) && token.originTokenInfoId != null)
-          ? token.originTokenInfoId
-          : token.id.split("-").last;
-  return token.source == "feralfile"
-      ? ArtworkRightsView(
-          contract: FFContract("", "", token.contractAddress ?? ""),
-          editionID: editionID,
-        )
-      : const SizedBox();
+Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
+  final artworkID =
+      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
+          ? assetToken.originTokenInfoId
+          : assetToken.id.split("-").last;
+  if (assetToken.source == "feralfile") {
+    return ArtworkRightsView(
+      contract: FFContract("", "", assetToken.contractAddress ?? ""),
+      artworkID: artworkID,
+    );
+  }
+  if (assetToken.isPostcard) {
+    return PostcardRightsView(
+      editionID: artworkID,
+    );
+  }
+  return const SizedBox();
+}
+
+class ListItemExpandedWidget extends StatefulWidget {
+  final List<TextSpan> children;
+  final int unexpandedCount;
+
+  const ListItemExpandedWidget(
+      {Key? key, required this.children, required this.unexpandedCount})
+      : super(key: key);
+
+  @override
+  State<ListItemExpandedWidget> createState() => _ListItemExpandedWidgetState();
+}
+
+class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
+  bool _isExpanded = false;
+
+  Widget unexpanedWidget(BuildContext context) {
+    final theme = Theme.of(context);
+    final expandText = (widget.children.length - widget.unexpandedCount > 0)
+        ? TextSpan(
+            text: " +${widget.children.length - widget.unexpandedCount}",
+            style: theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                setState(() {
+                  _isExpanded = true;
+                });
+              },
+          )
+        : const TextSpan();
+    final subList = widget.children
+        .sublist(0, min(widget.unexpandedCount, widget.children.length));
+    return RichText(
+      text: TextSpan(
+        children: subList
+            .mapIndexed((index, child) => [
+                  child,
+                  if (index != widget.children.length - 1)
+                    TextSpan(
+                      text: ", ",
+                      style: theme.textTheme.ppMori400White14,
+                    ),
+                ])
+            .flattened
+            .toList()
+          ..add(expandText),
+      ),
+    );
+  }
+
+  Widget expanedWidget(BuildContext context) {
+    // final hideText = TextSpan(
+    //   text: " -",
+    //   style: Theme.of(context).textTheme.ppMori400White14,
+    //   recognizer: TapGestureRecognizer()
+    //     ..onTap = () {
+    //       setState(() {
+    //         _isExpanded = false;
+    //       });
+    //     },
+    // );
+    return RichText(
+      text: TextSpan(
+          children: widget.children
+              .mapIndexed((index, child) => [
+                    child,
+                    if (index != widget.children.length - 1)
+                      TextSpan(
+                        text: ", ",
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                  ])
+              .flattened
+              .toList()
+          // ..add(hideText),
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isExpanded ? expanedWidget(context) : unexpanedWidget(context);
+  }
 }
 
 class SectionExpandedWidget extends StatefulWidget {
@@ -912,7 +815,7 @@ class SectionExpandedWidget extends StatefulWidget {
 }
 
 class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -939,7 +842,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                   children: [
                     Text(
                       widget.header ?? '',
-                      style: theme.textTheme.ppMori400White14,
+                      style: theme.textTheme.ppMori400White16,
                     ),
                     const Spacer(),
                     RotatedBox(
@@ -966,10 +869,10 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
   }
 }
 
-Widget artworkDetailsMetadataSection(
-    BuildContext context, AssetToken asset, String? artistName) {
+Widget postcardDetailsMetadataSection(
+    BuildContext context, AssetToken assetToken, List<String?> owners) {
   final theme = Theme.of(context);
-
+  final ownersList = owners.whereNotNull().toList();
   return SectionExpandedWidget(
     header: "metadata".tr(),
     child: Column(
@@ -977,7 +880,111 @@ Widget artworkDetailsMetadataSection(
       children: [
         MetaDataItem(
           title: "title".tr(),
-          value: asset.title,
+          value: assetToken.title ?? '',
+        ),
+        if (ownersList.isNotEmpty) ...[
+          Divider(
+            height: 32.0,
+            color: theme.auLightGrey,
+          ),
+          CustomMetaDataItem(
+            title: "creators".tr(),
+            content: ListItemExpandedWidget(
+              children: [
+                ...ownersList
+                    .mapIndexed((index, artistName) => TextSpan(
+                          text: artistName,
+                          style: theme.textTheme.ppMori400White14,
+                        ))
+                    .toList(),
+              ],
+              unexpandedCount: 2,
+            ),
+          ),
+        ],
+        (assetToken.fungible == false)
+            ? Column(
+                children: [
+                  Divider(
+                    height: 32.0,
+                    color: theme.auLightGrey,
+                  ),
+                  _getEditionNameRow(context, assetToken),
+                ],
+              )
+            : const SizedBox(),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "token".tr(),
+          value: polishSource(assetToken.source ?? ""),
+          tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "contract".tr(),
+          value: (assetToken.blockchain.toLowerCase() == "tezos")
+              ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
+              : assetToken.blockchain.capitalize(),
+          tapLink: assetToken.getBlockchainUrl(),
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "medium".tr(),
+          value: assetToken.medium?.capitalize() ?? '',
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "date_minted".tr(),
+          value: assetToken.mintedAt != null
+              ? localTimeString(assetToken.mintedAt!)
+              : '',
+        ),
+        assetToken.assetData != null && assetToken.assetData!.isNotEmpty
+            ? Column(
+                children: [
+                  const Divider(height: 32.0),
+                  MetaDataItem(
+                    title: "artwork_data".tr(),
+                    value: assetToken.assetData!,
+                  )
+                ],
+              )
+            : const SizedBox(),
+        const SizedBox(height: 16.0),
+      ],
+    ),
+  );
+}
+
+Widget artworkDetailsMetadataSection(
+    BuildContext context, AssetToken assetToken, String? artistName) {
+  final theme = Theme.of(context);
+  final artworkID =
+      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
+          ? assetToken.originTokenInfoId ?? ""
+          : assetToken.id.split("-").last;
+  return SectionExpandedWidget(
+    header: "metadata".tr(),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MetaDataItem(
+          title: "title".tr(),
+          value: assetToken.title ?? '',
         ),
         if (artistName != null) ...[
           Divider(
@@ -991,24 +998,24 @@ Widget artworkDetailsMetadataSection(
               final metricClient = injector.get<MetricClientService>();
 
               metricClient.addEvent(MixpanelEvent.clickArtist, data: {
-                'id': asset.id,
-                'artistID': asset.artistID,
+                'id': assetToken.id,
+                'artistID': assetToken.artistID,
               });
-              final uri =
-                  Uri.parse(asset.artistURL?.split(" & ").firstOrNull ?? "");
+              final uri = Uri.parse(
+                  assetToken.artistURL?.split(" & ").firstOrNull ?? "");
               launchUrl(uri, mode: LaunchMode.externalApplication);
             },
             forceSafariVC: true,
           ),
         ],
-        (asset.fungible == false)
+        (assetToken.fungible == false)
             ? Column(
                 children: [
                   Divider(
                     height: 32.0,
                     color: theme.auLightGrey,
                   ),
-                  _getEditionNameRow(context, asset),
+                  _getEditionNameRow(context, assetToken),
                 ],
               )
             : const SizedBox(),
@@ -1018,18 +1025,44 @@ Widget artworkDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "token".tr(),
-          value: polishSource(asset.source ?? ""),
-          tapLink: asset.isAirdrop ? null : asset.assetURL,
+          value: polishSource(assetToken.source ?? ""),
+          tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
           forceSafariVC: true,
         ),
         Divider(
           height: 32.0,
           color: theme.auLightGrey,
         ),
+        artworkID.isNotEmpty
+            ? FutureBuilder<Exhibition?>(
+                future: injector<FeralFileService>()
+                    .getExhibitionFromTokenID(artworkID),
+                builder: (context, snapshot) {
+                  if (snapshot.data != null) {
+                    return Column(
+                      children: [
+                        MetaDataItem(
+                          title: "exhibition".tr(),
+                          value: snapshot.data!.title,
+                          tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
+                          forceSafariVC: true,
+                        ),
+                        Divider(
+                          height: 32.0,
+                          color: theme.auLightGrey,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+              )
+            : const SizedBox(),
         MetaDataItem(
           title: "contract".tr(),
-          value: asset.blockchain.capitalize(),
-          tapLink: asset.getBlockchainUrl(),
+          value: assetToken.blockchain.capitalize(),
+          tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
         ),
         Divider(
@@ -1038,7 +1071,7 @@ Widget artworkDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "medium".tr(),
-          value: asset.medium?.capitalize() ?? '',
+          value: assetToken.medium?.capitalize() ?? '',
         ),
         Divider(
           height: 32.0,
@@ -1046,17 +1079,17 @@ Widget artworkDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "date_minted".tr(),
-          value: asset.mintedAt != null
-              ? localTimeStringFromISO8601(asset.mintedAt!)
+          value: assetToken.mintedAt != null
+              ? localTimeString(assetToken.mintedAt!)
               : '',
         ),
-        asset.assetData != null && asset.assetData!.isNotEmpty
+        assetToken.assetData != null && assetToken.assetData!.isNotEmpty
             ? Column(
                 children: [
                   const Divider(height: 32.0),
                   MetaDataItem(
                     title: "artwork_data".tr(),
-                    value: asset.assetData!,
+                    value: assetToken.assetData!,
                   )
                 ],
               )
@@ -1067,29 +1100,44 @@ Widget artworkDetailsMetadataSection(
   );
 }
 
-Widget _getEditionNameRow(BuildContext context, AssetToken asset) {
-  if (asset.editionName != null && asset.editionName != "") {
+Widget _getEditionNameRow(BuildContext context, AssetToken assetToken) {
+  if (assetToken.editionName != null && assetToken.editionName != "") {
     return MetaDataItem(
       title: "edition".tr(),
-      value: asset.editionName!,
+      value: assetToken.editionName!,
     );
   }
   return MetaDataItem(
     title: "edition".tr(),
-    value: asset.edition.toString(),
+    value: assetToken.edition.toString(),
   );
 }
 
-Widget tokenOwnership(
-    BuildContext context, AssetToken asset, List<String> addresses) {
+Widget postcardOwnership(
+    BuildContext context, AssetToken assetToken, List<String> addresses) {
   final theme = Theme.of(context);
 
-  int ownedTokens = asset.balance ?? 0;
+  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+  final totalSentQuantity = sentTokens
+      .where((element) =>
+          element.tokenID == assetToken.id &&
+          element.timestamp.isAfter(expiredTime))
+      .fold<int>(
+          0, (previousValue, element) => previousValue + element.sentQuantity);
+
+  int ownedTokens = assetToken.balance ?? 0;
   if (ownedTokens == 0) {
-    ownedTokens = addresses.map((address) => asset.owners[address] ?? 0).sum;
+    ownedTokens =
+        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
     if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(asset.ownerAddress) ? 1 : 0;
+      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
     }
+  }
+
+  if (ownedTokens > 0) {
+    ownedTokens -= totalSentQuantity;
   }
 
   return SectionExpandedWidget(
@@ -1098,14 +1146,14 @@ Widget tokenOwnership(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "how_many_editions_you_own".tr(),
-          style: theme.textTheme.ppMori400White12,
+          "how_many_shares_you_own".tr(),
+          style: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 32.0),
         MetaDataItem(
-          title: "editions".tr(),
-          value: "${asset.maxEdition}",
-          tapLink: asset.tokenURL,
+          title: "shares".tr(),
+          value: "${assetToken.maxEdition}",
+          tapLink: assetToken.tokenURL,
           forceSafariVC: true,
         ),
         Divider(
@@ -1115,12 +1163,108 @@ Widget tokenOwnership(
         MetaDataItem(
           title: "owned".tr(),
           value: "$ownedTokens",
-          tapLink: asset.tokenURL,
+          tapLink: assetToken.tokenURL,
+          forceSafariVC: true,
+        ),
+        const SizedBox(height: 16.0),
+      ],
+    ),
+  );
+}
+
+Widget tokenOwnership(
+    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
+  final theme = Theme.of(context);
+
+  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+  int ownedTokens = assetToken.balance ?? 0;
+  final ownerAddress = assetToken.owner;
+  final List<MapEntry<String, int>> values = owners.entries.toList()
+    ..sort((a, b) {
+      return a.key == ownerAddress
+          ? -1
+          : b.key == ownerAddress
+              ? 1
+              : a.key.compareTo(b.key);
+    });
+  final tapLink = assetToken.tokenURL;
+
+  final totalSentQuantity = sentTokens
+      .where((element) =>
+          element.tokenID == assetToken.id &&
+          ownerAddress == element.address &&
+          element.timestamp.isAfter(expiredTime))
+      .fold<int>(
+          0, (previousValue, element) => previousValue + element.sentQuantity);
+
+  if (ownedTokens > 0) {
+    ownedTokens -= totalSentQuantity;
+  }
+
+  return SectionExpandedWidget(
+    header: "token_ownership".tr(),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "how_many_editions_you_own".tr(),
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 32.0),
+        MetaDataItem(
+          title: "editions".tr(),
+          value: "${assetToken.maxEdition}",
+          tapLink: assetToken.tokenURL,
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataMultiItem(
+          title: "owned".tr(),
+          values: values,
+          tapLink: tapLink,
           forceSafariVC: true,
         ),
       ],
     ),
   );
+}
+
+class CustomMetaDataItem extends StatelessWidget {
+  final String title;
+  final Widget content;
+  final bool? forceSafariVC;
+
+  const CustomMetaDataItem({
+    Key? key,
+    required this.title,
+    required this.content,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(flex: 3, child: content),
+      ],
+    );
+  }
 }
 
 class MetaDataItem extends StatelessWidget {
@@ -1158,7 +1302,7 @@ class MetaDataItem extends StatelessWidget {
           flex: 2,
           child: Text(
             title,
-            style: theme.textTheme.ppMori400Grey12,
+            style: theme.textTheme.ppMori400Grey14,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -1172,11 +1316,99 @@ class MetaDataItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               style: onValueTap != null
-                  ? theme.textTheme.ppMori400SupperTeal12
-                  : theme.textTheme.ppMori400White12,
+                  ? theme.textTheme.ppMori400Green14
+                  : theme.textTheme.ppMori400White14,
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class MetaDataMultiItem extends StatelessWidget {
+  final String title;
+  final List<MapEntry<String, int>> values;
+  final String? tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataMultiItem({
+    Key? key,
+    required this.title,
+    required this.values,
+    this.tapLink,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: values
+                .map(
+                  (e) => Column(
+                    children: [
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (tapLink != null &&
+                                      tapLink!.isValidUrl()) {
+                                    final uri = Uri.parse(tapLink!);
+                                    launchUrl(uri,
+                                        mode: forceSafariVC == true
+                                            ? LaunchMode.externalApplication
+                                            : LaunchMode.platformDefault);
+                                  }
+                                },
+                                child: Text(
+                                  e.value.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style:
+                                      tapLink != null && tapLink!.isValidUrl()
+                                          ? theme.textTheme.ppMori400Green14
+                                          : theme.textTheme.ppMori400White14,
+                                ),
+                              ),
+                              Text(
+                                " (${e.key.maskOnly(5)})",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.ppMori400White14,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (e != values.last)
+                        const Divider(
+                          color: AppColor.auLightGrey,
+                        ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        )
       ],
     );
   }
@@ -1221,7 +1453,7 @@ class ProvenanceItem extends StatelessWidget {
             onTap: onNameTap,
             child: Text(
               title,
-              style: theme.textTheme.ppMori400White12,
+              style: theme.textTheme.ppMori400White14,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ),
@@ -1233,7 +1465,7 @@ class ProvenanceItem extends StatelessWidget {
             value,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            style: theme.textTheme.ppMori400White12,
+            style: theme.textTheme.ppMori400White14,
           ),
         ),
         Expanded(
@@ -1254,7 +1486,7 @@ class ProvenanceItem extends StatelessWidget {
                   child: Text(
                     'view'.tr(),
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.ppMori400Green12,
+                    style: theme.textTheme.ppMori400Green14,
                   ),
                 ),
               ),
@@ -1345,17 +1577,79 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
+class PostcardRightsView extends StatefulWidget {
+  final TextStyle? linkStyle;
+  final String? editionID;
+
+  const PostcardRightsView({
+    Key? key,
+    this.linkStyle,
+    this.editionID,
+  }) : super(key: key);
+
+  @override
+  State<PostcardRightsView> createState() => _PostcardRightsViewState();
+}
+
+class _PostcardRightsViewState extends State<PostcardRightsView> {
+  final dio = Dio(BaseOptions(
+    connectTimeout: 2000,
+  ));
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Response<String>>(
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data?.statusCode == 200) {
+            return SectionExpandedWidget(
+              header: "rights".tr(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Markdown(
+                    key: const Key("rightsSection"),
+                    data: snapshot.data!.data!.replaceAll(".**", "**"),
+                    softLineBreak: true,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(0),
+                    styleSheet: markDownRightStyle(context),
+                    onTapLink: (text, href, title) async {
+                      if (href == null) return;
+                      launchUrl(Uri.parse(href),
+                          mode: LaunchMode.externalApplication);
+                    },
+                  ),
+                  const SizedBox(height: 23.0),
+                ],
+              ),
+            );
+          } else {
+            return const SizedBox();
+          }
+        },
+        future: dio.get<String>(
+          POSTCARD_RIGHTS_DOCS,
+        ));
+  }
+}
+
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
   final FFContract contract;
-  final String? editionID;
+  final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
       {Key? key,
       this.linkStyle,
       required this.contract,
-      this.editionID,
+      this.artworkID,
       this.exhibitionID})
       : super(key: key);
 
@@ -1369,7 +1663,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     super.initState();
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
-        editionID: widget.editionID,
+        artworkID: widget.artworkID,
         contractAddress: widget.contract.address));
   }
 
@@ -1524,20 +1818,20 @@ class ArtworkRightWidget extends StatelessWidget {
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,
-    required this.artwork,
+    required this.series,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artist = artwork.artist;
-    final contract = artwork.contract;
+    final artist = series.artist;
+    final contract = series.contract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = artwork.createdAt;
+    final mintDate = series.createdAt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1546,21 +1840,23 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           style: theme.textTheme.displayMedium,
         ),
         const SizedBox(height: 23.0),
-        _rowItem(context, "title".tr(), artwork.title),
+        _rowItem(context, "title".tr(), series.title),
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
         ),
-        _rowItem(
-          context,
-          "artist".tr(),
-          artist.getDisplayName(),
-          tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
-        ),
-        const Divider(
-          height: 32.0,
-          color: AppColor.secondarySpanishGrey,
-        ),
+        if (artist != null) ...[
+          _rowItem(
+            context,
+            "artist".tr(),
+            artist.getDisplayName(),
+            tapLink: "${Environment.feralFileAPIURL}/profiles/${artist.id}",
+          ),
+          const Divider(
+            height: 32.0,
+            color: AppColor.secondarySpanishGrey,
+          )
+        ],
         _rowItem(
           context,
           "token".tr(),
@@ -1584,7 +1880,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork.medium.capitalize(),
+          series.medium.capitalize(),
         ),
         const Divider(
           height: 32.0,
@@ -1596,6 +1892,60 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           mintDate != null ? df.format(mintDate).toUpperCase() : null,
           maxLines: 1,
         ),
+      ],
+    );
+  }
+}
+
+class ExpandedWidget extends StatefulWidget {
+  final Widget? header;
+  final Widget? child;
+  final Widget? unexpendedChild;
+
+  const ExpandedWidget(
+      {Key? key, this.header, this.child, this.unexpendedChild})
+      : super(key: key);
+
+  @override
+  State<ExpandedWidget> createState() => _ExpandedWidgetState();
+}
+
+class _ExpandedWidgetState extends State<ExpandedWidget> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          },
+          child: Row(
+            children: [
+              Expanded(child: widget.header ?? const SizedBox()),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: RotatedBox(
+                  quarterTurns: _isExpanded ? 1 : 0,
+                  child: const Icon(
+                    AuIcon.chevron_Sm,
+                    size: 12,
+                    color: AppColor.primaryBlack,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+        const SizedBox(height: 23.0),
+        if (_isExpanded)
+          widget.child ?? const SizedBox()
+        else
+          widget.unexpendedChild ?? const SizedBox(),
       ],
     );
   }
