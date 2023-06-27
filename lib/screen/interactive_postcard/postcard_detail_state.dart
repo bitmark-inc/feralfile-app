@@ -81,12 +81,7 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     final owner = assetToken?.owner;
     final id = assetToken?.id;
     return sharedPostcards.any((element) {
-      return element.tokenID == id &&
-          element.owner == lastOwner &&
-          owner == element.owner &&
-          (element.sharedAt?.isAfter(DateTime.now()
-                  .subtract(POSTCARD_SHARE_LINK_VALID_DURATION)) ??
-              false);
+      return !element.isExpired;
     });
   }
 

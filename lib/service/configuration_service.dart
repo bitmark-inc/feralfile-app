@@ -1072,6 +1072,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
         _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
     return sharedPostcardString
         .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toSet()
         .toList();
   }
 
@@ -1084,6 +1085,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
+      showPostcardSharedLinkTip.value = updatePostcards.length;
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
       if (isRemove) {
@@ -1093,6 +1095,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
         sentPostcard.addAll(updatePostcards);
       }
       await _preferences.setStringList(key, sentPostcard.toSet().toList());
+      showPostcardSharedLinkTip.value = sentPostcard.length;
     }
   }
 

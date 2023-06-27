@@ -15,6 +15,15 @@ class SharedPostcard {
 
   SharedPostcard(this.tokenID, this.owner, this.sharedAt);
 
+  // override operator ==
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SharedPostcard &&
+          runtimeType == other.runtimeType &&
+          tokenID == other.tokenID &&
+          owner == other.owner;
+
   // fromJson method
   factory SharedPostcard.fromJson(Map<String, dynamic> json) {
     return SharedPostcard(
@@ -42,4 +51,7 @@ class SharedPostcard {
         .subtract(POSTCARD_SHARE_LINK_VALID_DURATION)
         .isAfter(sharedAt!);
   }
+
+  @override
+  int get hashCode => super.hashCode; //tokenID.hashCode ^ owner.hashCode;
 }
