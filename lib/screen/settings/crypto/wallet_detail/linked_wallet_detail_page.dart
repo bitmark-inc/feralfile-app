@@ -166,7 +166,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             )
           : getBackAppBar(
               context,
-              title: _connection.name,
+              title: _connection.name.maskIfNeeded(),
               titleIcon: LogoCrypto(
                 cryptoType: widget.payload.type,
                 size: 24,

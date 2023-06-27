@@ -52,40 +52,29 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       final connections = await connectionsFuture;
       for (var connection in connections) {
-        final cryptoType = CryptoType.fromAddress(connection.key).source;
-        final name = connection.name.isNotEmpty ? connection.name : cryptoType;
         switch (connection.connectionType) {
           case 'feralFileWeb3':
           case "feralFileToken":
-            final source = connection.ffConnection?.source ??
-                connection.ffWeb3Connection?.source;
-            if (source == null) continue;
-
-            final accountNumber = connection.accountNumber;
-            try {
-              final account = accounts.firstWhere(
-                  (element) => element.accountNumber == accountNumber);
-              account.connections?.add(connection);
-            } catch (error) {
-              accounts.add(Account(
-                  key: connection.key,
-                  accountNumber: accountNumber,
-                  connections: [connection],
-                  blockchain: cryptoType,
-                  name: name,
-                  createdAt: connection.createdAt));
+            break;
+          case 'ledger':
+            final data = connection.ledgerConnection;
+            final ethereumAddress = data?.etheremAddress.firstOrNull;
+            final tezosAddress = data?.tezosAddress.firstOrNull;
+            if (ethereumAddress != null) {
+              accounts.add(_getAccountFromConnectionAddress(
+                  connection, ethereumAddress));
+            }
+            if (tezosAddress != null) {
+              accounts.add(
+                  _getAccountFromConnectionAddress(connection, tezosAddress));
             }
             break;
-
           default:
-            accounts.add(Account(
-              key: connection.key,
-              accountNumber: connection.accountNumber,
-              connections: [connection],
-              blockchain: cryptoType,
-              name: name,
-              createdAt: connection.createdAt,
-            ));
+            final addresses = connection.accountNumber.split('||');
+            for (var address in addresses) {
+              accounts
+                  .add(_getAccountFromConnectionAddress(connection, address));
+            }
             break;
         }
       }
@@ -305,5 +294,19 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       return bDefault.compareTo(aDefault);
     }
     return a.createdAt.compareTo(b.createdAt);
+  }
+
+  Account _getAccountFromConnectionAddress(
+      Connection connection, String address) {
+    final cryptoType = CryptoType.fromAddress(address).source;
+    final name = connection.name.isNotEmpty ? connection.name : cryptoType;
+    return Account(
+      key: connection.key,
+      accountNumber: connection.accountNumber,
+      connections: [connection],
+      blockchain: cryptoType,
+      name: name,
+      createdAt: connection.createdAt,
+    );
   }
 }

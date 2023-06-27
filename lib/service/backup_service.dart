@@ -143,7 +143,6 @@ class BackupService {
         const String tempDbName = "temp_cloud_database.db";
         final dbFilePath =
             await sqfliteDatabaseFactory.getDatabasePath(tempDbName);
-
         await account.decryptFile(
           inputPath: tempFilePath,
           outputPath: dbFilePath,
