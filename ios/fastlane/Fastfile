@@ -61,13 +61,13 @@ platform :ios do
 
 		build_app(
 			scheme: "inhouse",
-			export_method: "ad-hoc",
+			export_method: "enterprise",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: false,
 			export_options: {
-				method: "ad-hoc",
+				method: "enterprise",
 				provisioningProfiles: {
 					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
 					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
@@ -124,13 +124,13 @@ platform :ios do
 
 		build_app(
 			scheme: "inhouse",
-			export_method: "ad-hoc",
+			export_method: "enterprise",
 			workspace: "Runner.xcworkspace",
 			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: false,
 			export_options: {
-				method: "ad-hoc",
+				method: "enterprise",
 				provisioningProfiles: {
 					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
 					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
