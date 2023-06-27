@@ -24,12 +24,16 @@ Future<bool> checkLocationPermissions() async {
   return true;
 }
 
-Future<Position> getGeoLocation(
+Future<Position> _getGeoLocation(
     {Duration timeout = const Duration(seconds: 10)}) async {
   Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium)
       .timeout(timeout);
-  return position;
+  final lat =
+      double.parse(position.latitude.toStringAsFixed(coordinate_digit_number));
+  final lon =
+      double.parse(position.longitude.toStringAsFixed(coordinate_digit_number));
+  return position.copyWith(latitude: lat, longitude: lon);
 }
 
 Future<GeoLocation?> getGeoLocationWithPermission(
@@ -44,7 +48,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
   } else {
     try {
       final location =
-          await getGeoLocation(timeout: const Duration(seconds: 2));
+          await _getGeoLocation(timeout: const Duration(seconds: 2));
       if (location.isMocked) {
         UIHelper.showMockedLocation(
             navigationService.navigatorKey.currentContext!);
