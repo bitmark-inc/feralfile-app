@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 
 import 'log.dart';
 
-const coordinate_digit_number = 4;
+const coordinate_digit_number = 3;
 
 String getLocationName(Placemark placeMark) {
   List<String> locationLevel = [];
