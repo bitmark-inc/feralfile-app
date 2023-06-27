@@ -80,6 +80,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _editorialService = injector<EditorialService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
+  final _metricClientService = injector<MetricClientService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -188,6 +189,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     } else {
       _selectedIndex = HomeNavigatorTab.DISCOVER.index;
+      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
@@ -476,8 +478,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
     log.info(
         "Tap to notification: ${notification.body ?? "empty"} \nAdditional data: ${notification.additionalData!}");
-
     final notificationType = notification.additionalData!["notification_type"];
+    _metricClientService.addEvent(MixpanelEvent.tabNotification, data: {
+      'type': notificationType,
+    });
     switch (notificationType) {
       case "gallery_new_nft":
         Navigator.of(context).popUntil((route) =>
@@ -515,11 +519,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePageNoTransition);
         memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
         _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
-        final metricClient = injector<MetricClientService>();
-        metricClient.addEvent(MixpanelEvent.tabNotification, data: {
-          'type': notificationType,
-          'body': notification.body,
-        });
         break;
       case "new_message":
         final data = notification.additionalData;
