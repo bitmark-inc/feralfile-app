@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/number_utils.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
@@ -29,11 +30,9 @@ Future<Position> _getGeoLocation(
   Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium)
       .timeout(timeout);
-  final lat =
-      double.parse(position.latitude.toStringAsFixed(coordinate_digit_number));
-  final lon =
-      double.parse(position.longitude.toStringAsFixed(coordinate_digit_number));
-  return position.copyWith(latitude: lat, longitude: lon);
+  return position.copyWith(
+      latitude: position.latitude.floorAtDigit(coordinate_digit_number),
+      longitude: position.longitude.floorAtDigit(coordinate_digit_number));
 }
 
 Future<GeoLocation?> getGeoLocationWithPermission(
@@ -84,14 +83,16 @@ Future<GeoLocation> getFuzzyGeolocation(
     if (location != null) {
       return GeoLocation(
           position: position.copyWith(
-              latitude: location.latitude, longitude: location.longitude),
+              latitude: location.latitude.floorAtDigit(coordinate_digit_number),
+              longitude:
+                  location.longitude.floorAtDigit(coordinate_digit_number)),
           address: address);
     }
   } catch (_) {}
   return GeoLocation(
       position: position.copyWith(
-          latitude: double.parse(position.latitude.toStringAsFixed(2)),
-          longitude: double.parse(position.longitude.toStringAsFixed(2))),
+          latitude: position.latitude.floorAtDigit(2),
+          longitude: position.longitude.floorAtDigit(2)),
       address: address);
 }
 
