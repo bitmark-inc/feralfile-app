@@ -244,7 +244,7 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showBackupSettingTip;
 
-  ValueNotifier<int> get showPostcardSharedLinkTip;
+  ValueNotifier<int> get numberPostcardSharedLinkTip;
 
   List<SharedPostcard> getSharedPostcard();
 
@@ -1269,5 +1269,5 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  ValueNotifier<int> get showPostcardSharedLinkTip => ValueNotifier(0);
+  ValueNotifier<int> get numberPostcardSharedLinkTip => ValueNotifier(0);
 }

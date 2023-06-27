@@ -89,6 +89,7 @@ class HomePageState extends State<HomePage>
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
+  final _configurationService = injector<ConfigurationService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -100,7 +101,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-    injector<ConfigurationService>().setAutoShowPostcard(true);
+    _configurationService.setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -218,13 +219,12 @@ class HomePageState extends State<HomePage>
     final hashedAddresses = allAccountNumbers.fold(
         0, (int previousValue, element) => previousValue + element.hashCode);
 
-    if (injector<ConfigurationService>().sentTezosArtworkMetricValue() !=
+    if (_configurationService.sentTezosArtworkMetricValue() !=
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
       _metricClient.addEvent("collection_has_tezos");
-      injector<ConfigurationService>()
-          .setSentTezosArtworkMetric(hashedAddresses);
+      _configurationService.setSentTezosArtworkMetric(hashedAddresses);
     }
   }
 
@@ -438,14 +438,13 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _carouselTipcard(BuildContext context) {
-    final configurationService = injector<ConfigurationService>();
     return MultiValueListenableBuilder(
       valueListenables: [
-        configurationService.showTvAppTip,
-        configurationService.showCreatePlaylistTip,
-        configurationService.showLinkOrImportTip,
-        configurationService.showBackupSettingTip,
-        configurationService.showPostcardSharedLinkTip,
+        _configurationService.showTvAppTip,
+        _configurationService.showCreatePlaylistTip,
+        _configurationService.showLinkOrImportTip,
+        _configurationService.showBackupSettingTip,
+        _configurationService.numberPostcardSharedLinkTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -461,11 +460,13 @@ class HomePageState extends State<HomePage>
     final isShowCreatePlaylistTip = values[1] as bool;
     final isShowLinkOrImportTip = values[2] as bool;
     final isShowBackupSettingTip = values[3] as bool;
-    final configurationService = injector<ConfigurationService>();
-    final expiredPostcardShareLink = configurationService
-        .getSharedPostcard()
-        .where((element) => element.isExpired)
-        .toList();
+    final numberPostcardSharedLinkTip = values[4] as int;
+    final expiredPostcardShareLink = numberPostcardSharedLinkTip <= 0
+        ? []
+        : _configurationService
+            .getSharedPostcard()
+            .where((element) => element.isExpired)
+            .toList();
     final compactedToken = nftBloc.state.tokens.items;
     return [
       if (isShowLinkOrImportTip)
@@ -477,7 +478,7 @@ class HomePageState extends State<HomePage>
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showLinkOrImportTip),
+            listener: _configurationService.showLinkOrImportTip),
       if (isShowCreatePlaylistTip)
         Tipcard(
             titleText: "create_your_first_playlist".tr(),
@@ -487,7 +488,7 @@ class HomePageState extends State<HomePage>
             buttonText: "create_new_playlist".tr(),
             content: Text("as_a_pro_sub_playlist".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showCreatePlaylistTip),
+            listener: _configurationService.showCreatePlaylistTip),
       if (isShowTvAppTip)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),
@@ -526,7 +527,7 @@ class HomePageState extends State<HomePage>
                 ],
               ),
             ),
-            listener: configurationService.showTvAppTip),
+            listener: _configurationService.showTvAppTip),
       if (isShowBackupSettingTip)
         Tipcard(
             titleText: "backup_failed".tr(),
@@ -545,7 +546,7 @@ class HomePageState extends State<HomePage>
                     ? "backup_tip_card_content_android".tr()
                     : "backup_tip_card_content_ios".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showBackupSettingTip),
+            listener: _configurationService.showBackupSettingTip),
       ...expiredPostcardShareLink.map((e) {
         final title = compactedToken
                 .firstWhereOrNull((element) => element.id == e.tokenID)
@@ -559,7 +560,7 @@ class HomePageState extends State<HomePage>
             Navigator.of(context).pushNamed(
                 AppRouter.claimedPostcardDetailsPage,
                 arguments: payload);
-            configurationService.updateSharedPostcard([e], isRemove: true);
+            _configurationService.updateSharedPostcard([e], isRemove: true);
           },
           buttonText: "go_to_postcard".tr(),
           content: Text(
@@ -676,7 +677,7 @@ class HomePageState extends State<HomePage>
         .getSharedPostcard()
         .where((element) => element.isExpired || true)
         .toList();
-    configurationService.showPostcardSharedLinkTip.value =
+    configurationService.numberPostcardSharedLinkTip.value =
         expiredPostcardShareLink.length;
   }
 
