@@ -562,6 +562,9 @@ class HomePageState extends State<HomePage>
                 arguments: payload);
             _configurationService.updateSharedPostcard([e], isRemove: true);
           },
+          onClosed: () {
+            _configurationService.updateSharedPostcard([e], isRemove: true);
+          },
           buttonText: "go_to_postcard".tr(),
           content: Text(
               "postcard_not_deliveried".tr(namedArgs: {"title": title}),
