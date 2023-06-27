@@ -301,7 +301,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     log.info("[DeeplinkService] _handleIRL");
     memoryValues.irlLink.value = link;
     if (!_configurationService.isDoneOnboarding()) {
-
       await injector<AccountService>().restoreIfNeeded();
     }
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
