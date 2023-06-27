@@ -1085,7 +1085,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
-      showPostcardSharedLinkTip.value = updatePostcards.length;
+      numberPostcardSharedLinkTip.value = updatePostcards.length;
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
       if (isRemove) {
@@ -1095,7 +1095,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
         sentPostcard.addAll(updatePostcards);
       }
       await _preferences.setStringList(key, sentPostcard.toSet().toList());
-      showPostcardSharedLinkTip.value = sentPostcard.length;
+      numberPostcardSharedLinkTip.value = sentPostcard.length;
     }
   }
 
