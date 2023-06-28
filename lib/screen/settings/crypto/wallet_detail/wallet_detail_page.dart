@@ -138,15 +138,16 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
   void _callFetchConnections() {
     final personUUID = widget.payload.persona.uuid;
+    final address = widget.payload.walletAddress.address;
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
         context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(
-            personUUID, widget.payload.walletAddress.index));
+            personUUID, widget.payload.walletAddress.index, address));
         break;
       case CryptoType.XTZ:
         context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(
-            personUUID, widget.payload.walletAddress.index));
+            personUUID, widget.payload.walletAddress.index, address));
         break;
       default:
         // do nothing

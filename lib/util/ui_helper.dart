@@ -883,7 +883,27 @@ class UIHelper {
             ),
           );
         }
-
+      case 'dappConnect2':
+        final appMetaData = AppMetadata.fromJson(jsonDecode(connection.data));
+        final appIcons = appMetaData.icons;
+        if (appIcons.isEmpty) {
+          return SizedBox(
+              width: size,
+              height: size,
+              child:
+                  Image.asset("assets/images/walletconnect-alternative.png"));
+        } else {
+          return CachedNetworkImage(
+            imageUrl: appIcons.firstOrNull ?? "",
+            width: size,
+            height: size,
+            errorWidget: (context, url, error) => SizedBox(
+              width: size,
+              height: size,
+              child: Image.asset("assets/images/walletconnect-alternative.png"),
+            ),
+          );
+        }
       case 'walletConnect2':
         final appMetaData = AppMetadata.fromJson(jsonDecode(connection.data));
         final appIcons = appMetaData.icons;

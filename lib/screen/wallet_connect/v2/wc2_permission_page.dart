@@ -8,6 +8,8 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -160,6 +162,20 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       params: params,
     );
     await wc2Service.respondOnApprove(widget.request.topic, response);
+    final cloudDB = injector<CloudDatabase>();
+    final connections = await cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+    final pendingSession = wc2Service.getFirstSession();
+    if (pendingSession != null) {
+      final connection = connections
+          .firstWhereOrNull((element) => element.key.contains(pendingSession));
+      if (connection != null) {
+        final accountNumber = selectedAddress.values.join("||");
+        await cloudDB.connectionDao.updateConnection(
+            connection.copyWith(accountNumber: accountNumber));
+      }
+      wc2Service.removePendingSession(pendingSession);
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();

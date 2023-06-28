@@ -330,7 +330,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<List<Connection>> getLinkedAccounts() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType NOT IN (\"dappConnect\", \"walletConnect2\", \"beaconP2PPeer\", \"manuallyIndexerTokenID\")',
+        'SELECT * FROM Connection WHERE connectionType NOT IN (\"dappConnect\", \"dappConnect2\", \"walletConnect2\", \"beaconP2PPeer\", \"manuallyIndexerTokenID\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,
@@ -343,7 +343,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<List<Connection>> getRelatedPersonaConnections() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect\", \"beaconP2PPeer\")',
+        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect\",\ "dappConnect2\", \"beaconP2PPeer\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,

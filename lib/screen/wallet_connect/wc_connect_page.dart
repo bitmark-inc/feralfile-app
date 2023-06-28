@@ -167,10 +167,17 @@ class _WCConnectPageState extends State<WCConnectPage>
         if (connectionRequest.isAutonomyConnect) {
           final account = await injector<AccountService>().getDefaultAccount();
           final accountDid = await account.getAccountDID();
+          final walletAddresses = await injector<CloudDatabase>()
+              .addressDao
+              .findByWalletID(account.uuid);
+          final accountNumber =
+              walletAddresses.map((e) => e.address).join("||");
           await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
             account: accountDid.substring("did:key:".length),
             connectionKey: account.uuid,
+            accountNumber: accountNumber,
+            isAuConnect: true,
           );
           payloadType = CryptoType.ETH;
           payloadAddress =
@@ -190,6 +197,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             connectionRequest as Wc2Proposal,
             account: address,
             connectionKey: address,
+            accountNumber: address,
           );
           payloadType = CryptoType.ETH;
           payloadAddress = address;

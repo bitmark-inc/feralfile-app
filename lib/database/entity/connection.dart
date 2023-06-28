@@ -28,10 +28,14 @@ enum ConnectionType {
   manuallyAddress,
   manuallyIndexerTokenID,
   walletConnect2,
+  dappConnect2,
 }
 
 extension RawValue on ConnectionType {
-  String get rawValue => toString().split('.').last;
+  String get rawValue =>
+      toString()
+          .split('.')
+          .last;
 }
 
 @entity
@@ -65,10 +69,10 @@ class Connection {
     required this.createdAt,
   });
 
-  factory Connection.fromFFToken(
-      String token, String source, FFAccount ffAccount) {
+  factory Connection.fromFFToken(String token, String source,
+      FFAccount ffAccount) {
     final ffConnection =
-        FeralFileConnection(source: source, ffAccount: ffAccount);
+    FeralFileConnection(source: source, ffAccount: ffAccount);
 
     return Connection(
       key: token,
@@ -91,8 +95,8 @@ class Connection {
     );
   }
 
-  factory Connection.fromFFWeb3(
-      String topic, String source, String personaAddress, FFAccount ffAccount) {
+  factory Connection.fromFFWeb3(String topic, String source,
+      String personaAddress, FFAccount ffAccount) {
     final ffWeb3Connection = FeralFileWeb3Connection(
         personaAddress: personaAddress, source: source, ffAccount: ffAccount);
 
@@ -193,7 +197,8 @@ class Connection {
   }
 
   String? get wc2ConnectedSession {
-    if (connectionType != ConnectionType.walletConnect2.rawValue) return null;
+    if (connectionType != ConnectionType.walletConnect2.rawValue &&
+        connectionType != ConnectionType.dappConnect2.rawValue) return null;
     return data;
   }
 
@@ -299,10 +304,10 @@ class Connection {
   @override
   int get hashCode {
     return key.hashCode ^
-        name.hashCode ^
-        data.hashCode ^
-        connectionType.hashCode ^
-        accountNumber.hashCode ^
-        createdAt.hashCode;
+    name.hashCode ^
+    data.hashCode ^
+    connectionType.hashCode ^
+    accountNumber.hashCode ^
+    createdAt.hashCode;
   }
 }
