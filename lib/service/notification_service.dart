@@ -33,30 +33,6 @@ enum NotificationType {
   }
 }
 
-class Notification {
-  int id;
-  NotificationType type;
-  String tokenId;
-
-  Notification({required this.id, required this.type, required this.tokenId});
-
-  factory Notification.fromJson(Map<String, dynamic> map) {
-    return Notification(
-      id: map['id'],
-      type: NotificationType.fromJson(jsonDecode(map['type'])),
-      tokenId: map['tokenId'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': jsonEncode(type.toJson()),
-      'tokenId': tokenId,
-    };
-  }
-}
-
 class NotificationPayload {
   int id;
   NotificationType type;
@@ -86,7 +62,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  List<Notification> notifications = [];
   final groupKey = 'com.android.autonomy.grouped_notification';
   final groupChannelId = 'grouped_channel_id';
   final groupChannelName = 'grouped_channel_name';
@@ -240,10 +215,6 @@ class NotificationService {
         body: "your_postcard_not_delivered".tr(),
         payload: jsonEncode(payload.toJson()),
         id: notificationId);
-    notifications.add(Notification(
-        id: notificationId,
-        type: NotificationType.Postcard,
-        tokenId: postcardIdentity.id));
   }
 
   Future<void> checkNotification() async {
