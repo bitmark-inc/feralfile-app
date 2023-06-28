@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:math';
+import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
@@ -51,7 +51,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   late double adjustSize;
   late DateTime startReadingTime;
   bool _showHeader = true;
-  int _currentThreadNum = 0;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -71,10 +71,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       setState(() {
         _showHeader = false;
       });
-      _currentThreadNum = Random().nextInt(1000);
-      final threadNum = _currentThreadNum;
-      Future.delayed(const Duration(seconds: 5), () {
-        if (threadNum == _currentThreadNum) {
+      _timer?.cancel();
+      _timer = Timer(const Duration(seconds: 5), () {
+        if (mounted) {
           setState(() {
             _showHeader = true;
           });
@@ -136,6 +135,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     });
     _updateEditorialReadingTime();
     _controller.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 

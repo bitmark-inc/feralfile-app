@@ -4,6 +4,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -117,6 +118,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     final token = widget.token;
     final identityBloc = context.read<IdentityBloc>();
     final version = _configurationService.getVersionInfo();
+    final isShowArtistName = !token.isPostcard;
     return Scaffold(
         appBar: isFullScreen
             ? null
@@ -135,32 +137,33 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      BlocBuilder<IdentityBloc, IdentityState>(
-                        bloc: identityBloc
-                          ..add(GetIdentityEvent([
-                            token.artistName ?? '',
-                          ])),
-                        builder: (context, state) {
-                          final artistName = token.artistName
-                              ?.toIdentityOrMask(state.identityMap);
-                          if (artistName != null) {
-                            return Row(
-                              children: [
-                                const SizedBox(height: 4.0),
-                                Expanded(
-                                  child: Text(
-                                    "by".tr(args: [artistName]),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.ppMori400White14,
+                      if (isShowArtistName)
+                        BlocBuilder<IdentityBloc, IdentityState>(
+                          bloc: identityBloc
+                            ..add(GetIdentityEvent([
+                              token.artistName ?? '',
+                            ])),
+                          builder: (context, state) {
+                            final artistName = token.artistName
+                                ?.toIdentityOrMask(state.identityMap);
+                            if (artistName != null) {
+                              return Row(
+                                children: [
+                                  const SizedBox(height: 4.0),
+                                  Expanded(
+                                    child: Text(
+                                      "by".tr(args: [artistName]),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.ppMori400White14,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            );
-                          }
-                          return const SizedBox();
-                        },
-                      ),
+                                ],
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
                     ],
                   ),
                 ),
