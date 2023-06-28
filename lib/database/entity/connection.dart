@@ -32,10 +32,7 @@ enum ConnectionType {
 }
 
 extension RawValue on ConnectionType {
-  String get rawValue =>
-      toString()
-          .split('.')
-          .last;
+  String get rawValue => toString().split('.').last;
 }
 
 @entity
@@ -69,10 +66,10 @@ class Connection {
     required this.createdAt,
   });
 
-  factory Connection.fromFFToken(String token, String source,
-      FFAccount ffAccount) {
+  factory Connection.fromFFToken(
+      String token, String source, FFAccount ffAccount) {
     final ffConnection =
-    FeralFileConnection(source: source, ffAccount: ffAccount);
+        FeralFileConnection(source: source, ffAccount: ffAccount);
 
     return Connection(
       key: token,
@@ -95,8 +92,8 @@ class Connection {
     );
   }
 
-  factory Connection.fromFFWeb3(String topic, String source,
-      String personaAddress, FFAccount ffAccount) {
+  factory Connection.fromFFWeb3(
+      String topic, String source, String personaAddress, FFAccount ffAccount) {
     final ffWeb3Connection = FeralFileWeb3Connection(
         personaAddress: personaAddress, source: source, ffAccount: ffAccount);
 
@@ -304,10 +301,10 @@ class Connection {
   @override
   int get hashCode {
     return key.hashCode ^
-    name.hashCode ^
-    data.hashCode ^
-    connectionType.hashCode ^
-    accountNumber.hashCode ^
-    createdAt.hashCode;
+        name.hashCode ^
+        data.hashCode ^
+        connectionType.hashCode ^
+        accountNumber.hashCode ^
+        createdAt.hashCode;
   }
 }
