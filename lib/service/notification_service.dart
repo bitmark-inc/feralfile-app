@@ -101,8 +101,50 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('autonomy_icon');
 
+    /// Defines a iOS/MacOS notification category for text input actions.
+    const String darwinNotificationCategoryText = 'textCategory';
+
+    /// Defines a iOS/MacOS notification category for plain actions.
+    const String darwinNotificationCategoryPlain = 'plainCategory';
+
+    /// A notification action which triggers a App navigation event
+    const String navigationActionId = 'id_3';
+
+    final List<DarwinNotificationCategory> darwinNotificationCategories =
+        <DarwinNotificationCategory>[
+      DarwinNotificationCategory(
+        darwinNotificationCategoryText,
+        actions: <DarwinNotificationAction>[
+          DarwinNotificationAction.text(
+            'text_1',
+            'Action 1',
+            buttonTitle: 'Send',
+            placeholder: 'Placeholder',
+          ),
+        ],
+      ),
+      DarwinNotificationCategory(
+        darwinNotificationCategoryPlain,
+        actions: <DarwinNotificationAction>[
+          DarwinNotificationAction.plain(
+            navigationActionId,
+            'Action 3 (foreground)',
+            options: <DarwinNotificationActionOption>{
+              DarwinNotificationActionOption.foreground,
+            },
+          ),
+        ],
+      )
+    ];
+
     DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings();
+        DarwinInitializationSettings(
+      onDidReceiveLocalNotification: (id, title, body, payload) async {
+        log.info(
+            "[NotificationService] onDidReceiveLocalNotification: $id, $title, $body, $payload");
+      },
+      notificationCategories: darwinNotificationCategories,
+    );
 
     InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid, iOS: initializationSettingsIOS);

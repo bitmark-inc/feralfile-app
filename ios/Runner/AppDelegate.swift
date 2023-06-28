@@ -19,6 +19,7 @@ import WalletConnectSign
 import WalletConnectRelay
 import WalletConnectNetworking
 import Starscream
+import flutter_local_notifications
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -212,14 +213,18 @@ import Starscream
 
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
-        
+
+        FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
+            GeneratedPluginRegistrant.register(with: registry)
+        }
+
         GeneratedPluginRegistrant.register(with: self)
         FlutterDownloaderPlugin.setPluginRegistrantCallback({ registry in
             if (!registry.hasPlugin("FlutterDownloaderPlugin")) {
                 FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
             }
         })
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
                 self?.showAuthenticationOverlay()

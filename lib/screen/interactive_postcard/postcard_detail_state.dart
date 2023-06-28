@@ -80,7 +80,7 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     final id = assetToken?.id;
     return sharedPostcards.any((element) {
       return !element.isExpired &&
-          element.owner == this.assetToken?.owner &&
+          element.owner == assetToken?.owner &&
           element.tokenID == id;
     });
   }
