@@ -271,13 +271,14 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     }
     List<Account> accounts = [];
     for (var e in addresses) {
+      final name = e.name != null && e.name!.isNotEmpty ? e.name : e.cryptoType;
       final persona =
           personas.firstWhereOrNull((element) => element.uuid == e.uuid);
       if (persona != null) {
         accounts.add(Account(
             key: e.address,
             persona: persona,
-            name: e.name ?? e.cryptoType,
+            name: name ?? "",
             blockchain: e.cryptoType,
             walletAddress: e,
             accountNumber: e.address,
