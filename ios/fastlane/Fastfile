@@ -67,6 +67,7 @@ platform :ios do
 			include_bitcode: false,
 			clean: false,
 			export_options: {
+			    compileBitcode: false,
 				method: "enterprise",
 				provisioningProfiles: {
 					"com.bitmark.autonomy.inhouse": "Autonomy Inhouse",
@@ -130,6 +131,7 @@ platform :ios do
 			include_bitcode: false,
 			clean: false,
 			export_options: {
+			    compileBitcode: false,
 				method: "enterprise",
 				provisioningProfiles: {
 					"com.bitmark.autonomy.inhouse": "Autonomy Inhouse",
