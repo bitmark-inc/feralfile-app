@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/wallet_connect.dart';
+import 'package:web3dart/credentials.dart';
 
 import '../database/cloud_database.dart';
 import '../database/entity/connection.dart';
@@ -44,6 +45,7 @@ class Wc2Service extends Wc2Handler {
     "personal_sign",
     "eth_sign",
     "eth_signTypedData",
+    "eth_signTypedData_v4",
     "eth_signTransaction"
   };
 
@@ -186,11 +188,6 @@ class Wc2Service extends Wc2Handler {
     if (unsupportedMethods.isNotEmpty) {
       log.info("[Wc2Service] Proposal contains unsupported methods: "
           "$unsupportedMethods");
-      await rejectSession(
-        proposal.id,
-        reason: "Methods ${unsupportedMethods.join(", ")} not supported",
-      );
-      return;
     }
     _navigationService.navigateTo(AppRouter.wc2ConnectPage,
         arguments: proposal);
@@ -257,6 +254,7 @@ class Wc2Service extends Wc2Handler {
             request, WCSignType.PERSONAL_MESSAGE);
         break;
       case "eth_signTypedData":
+      case "eth_signTypedData_v4":
         await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
         break;
       case "eth_sign":
@@ -286,9 +284,11 @@ class Wc2Service extends Wc2Handler {
         message = request.params[1];
       }
     }
+
+    final eip55address = EthereumAddress.fromHex(address).hexEip55;
     final wallet = await _accountService.getAccountByAddress(
       chain: "eip155",
-      address: address,
+      address: eip55address,
     );
     await _navigationService.navigateTo(WCSignMessagePage.tag,
         arguments: WCSignMessagePageArgs(
