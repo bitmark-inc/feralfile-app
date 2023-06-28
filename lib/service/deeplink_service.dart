@@ -390,7 +390,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             ? DateTime.fromMicrosecondsSinceEpoch(
                 int.tryParse(data['expired_at']) ?? 0)
             : DateTime.now().add(const Duration(days: 1));
-        if (expiredAt.isAfter(DateTime.now())) {
+        if (expiredAt.isBefore(DateTime.now())) {
           _navigationService.showPostcardShareLinkExpired();
           break;
         }

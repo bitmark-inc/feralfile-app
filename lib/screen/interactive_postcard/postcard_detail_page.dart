@@ -311,6 +311,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           _configurationService.setAlreadyShowPostcardUpdates(
               [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
         }
+
+        if (!state.isSending()) {
+          if (assetToken != null) {
+            _configurationService.removeSharedPostcardWhere((element) =>
+                element.tokenID == assetToken.id &&
+                element.owner == assetToken.owner);
+          }
+        }
       }
 
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));

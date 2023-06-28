@@ -77,11 +77,11 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     }
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
-    final lastOwner = postcardValue?.postman;
-    final owner = assetToken?.owner;
     final id = assetToken?.id;
     return sharedPostcards.any((element) {
-      return !element.isExpired;
+      return !element.isExpired &&
+          element.owner == this.assetToken?.owner &&
+          element.tokenID == id;
     });
   }
 

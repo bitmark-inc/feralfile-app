@@ -53,6 +53,7 @@ import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -225,8 +226,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       CrowdSourcingApi(authenticatedDio, baseUrl: Environment.indexerURL));
 
-  injector
-      .registerLazySingleton(() => BackgroundService(injector(), injector()));
+  injector.registerLazySingleton(
+      () => BackgroundService(injector(), injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
@@ -323,8 +324,8 @@ Future<void> setup() async {
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
 
-  injector.registerLazySingleton<PostcardService>(
-      () => PostcardServiceImpl(injector(), injector(), injector()));
+  injector.registerLazySingleton<PostcardService>(() => PostcardServiceImpl(
+      injector(), injector(), injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton<EditorialService>(
       () => EditorialServiceImpl(injector(), injector()));
@@ -341,6 +342,9 @@ Future<void> setup() async {
       injector(),
     ),
   );
+
+  injector.registerLazySingleton<NotificationService>(
+      () => NotificationService(injector(), injector()));
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
       _mementoAirdropDio(dioOptions.copyWith(followRedirects: true)),
