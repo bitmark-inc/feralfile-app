@@ -13,8 +13,11 @@ import 'package:autonomy_flutter/util/rand.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+@pragma('vm:entry-point')
 void onDidReceiveBackgroundNotificationResponse(NotificationResponse details) {
-  log.info("[onDidReceiveBackgroundNotificationResponse] $details");
+  log.info(
+      "[NotificationService] onDidReceiveBackgroundNotificationResponse $details");
+  injector<NotificationService>().onDidReceiveNotificationResponse(details);
 }
 
 enum NotificationType {

@@ -38,7 +38,7 @@ class BackgroundService {
 
       if (taskId == packageInfo.packageName) {
         await mimeTypeUpdateWorkflow();
-      } else if (taskId == "${packageInfo.packageName}_notification") {
+      } else if (taskId == "${packageInfo.packageName}.notification") {
         await expiredPostcardSharedLinkNotification();
       }
 
@@ -96,9 +96,9 @@ class BackgroundService {
 
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     log.info(
-        "[BackgroundService] register service: ${packageInfo.packageName}_notification");
+        "[BackgroundService] register service: ${packageInfo.packageName}.notification");
     BackgroundFetch.scheduleTask(TaskConfig(
-        taskId: "${packageInfo.packageName}_notification",
+        taskId: "${packageInfo.packageName}.notification",
         delay: 10800000, // <-- 3h in milliseconds
         periodic: true,
         requiresNetworkConnectivity: true));
