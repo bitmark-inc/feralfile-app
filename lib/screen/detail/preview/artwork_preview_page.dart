@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -363,6 +364,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       controller: controller,
                       itemCount: tokens.length,
                       itemBuilder: (context, index) {
+                        if (_canvasDeviceBloc.state.isCasting) {
+                          return const CurrentlyCastingArtwork();
+                        }
                         if (tokens[index].id.isPostcardId) {
                           return PostcardPreviewWidget(
                             identity: tokens[index],
@@ -382,74 +386,75 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                 Visibility(
                   visible: !isFullScreen && _isPremium,
                   child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                      bloc: _canvasDeviceBloc,
                       builder: (context, state) {
-                    final isCasting = state.isCasting;
-                    final playingDevice = state.playingDevice;
-                    return Container(
-                      color: theme.colorScheme.primary,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 15,
-                          bottom: 30,
-                          right: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const SizedBox(
-                              width: 20,
+                        final isCasting = state.isCasting;
+                        final playingDevice = state.playingDevice;
+                        return Container(
+                          color: theme.colorScheme.primary,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              top: 15,
+                              bottom: 30,
+                              right: 20,
                             ),
-                            Visibility(
-                              visible: (assetToken?.medium == 'software' ||
-                                  assetToken?.medium == 'other' ||
-                                  (assetToken?.medium?.isEmpty ?? true) ||
-                                  isCasting),
-                              child: KeyboardManagerWidget(
-                                key: keyboardManagerKey,
-                                focusNode: _focusNode,
-                                onTap: isCasting
-                                    ? () {
-                                        Navigator.of(context).pushNamed(
-                                            AppRouter.keyboardControlPage,
-                                            arguments:
-                                                KeyboardControlPagePayload(
-                                                    assetToken!,
-                                                    playingDevice));
-                                      }
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            CastButton(
-                              assetToken: assetToken,
-                              onCastTap: () => _onCastTap(assetToken),
-                              isCasting: isCasting,
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            GestureDetector(
-                              onTap: isCasting
-                                  ? null
-                                  : () => onClickFullScreen(assetToken),
-                              child: Semantics(
-                                label: "fullscreen_icon",
-                                child: SvgPicture.asset(
-                                  'assets/images/fullscreen_icon.svg',
-                                  color: isCasting
-                                      ? AppColor.disabledColor
-                                      : AppColor.white,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const SizedBox(
+                                  width: 20,
                                 ),
-                              ),
+                                Visibility(
+                                  visible: (assetToken?.medium == 'software' ||
+                                      assetToken?.medium == 'other' ||
+                                      (assetToken?.medium?.isEmpty ?? true) ||
+                                      isCasting),
+                                  child: KeyboardManagerWidget(
+                                    key: keyboardManagerKey,
+                                    focusNode: _focusNode,
+                                    onTap: isCasting
+                                        ? () {
+                                            Navigator.of(context).pushNamed(
+                                                AppRouter.keyboardControlPage,
+                                                arguments:
+                                                    KeyboardControlPagePayload(
+                                                        assetToken!,
+                                                        playingDevice));
+                                          }
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                CastButton(
+                                  assetToken: assetToken,
+                                  onCastTap: () => _onCastTap(assetToken),
+                                  isCasting: isCasting,
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                GestureDetector(
+                                  onTap: isCasting
+                                      ? null
+                                      : () => onClickFullScreen(assetToken),
+                                  child: Semantics(
+                                    label: "fullscreen_icon",
+                                    child: SvgPicture.asset(
+                                      'assets/images/fullscreen_icon.svg',
+                                      color: isCasting
+                                          ? AppColor.disabledColor
+                                          : AppColor.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
+                          ),
+                        );
+                      }),
                 ),
               ],
             ),
