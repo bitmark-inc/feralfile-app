@@ -313,11 +313,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
 
         if (!state.isSending()) {
-          if (assetToken != null) {
-            _configurationService.removeSharedPostcardWhere((element) =>
-                element.tokenID == assetToken.id &&
-                element.owner == assetToken.owner);
-          }
+          _configurationService.removeSharedPostcardWhere((element) =>
+              element.tokenID == assetToken.id &&
+              element.owner == assetToken.owner);
         }
       }
 
