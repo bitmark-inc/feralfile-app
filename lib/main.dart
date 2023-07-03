@@ -106,7 +106,7 @@ _setupApp() async {
   await DeviceInfo.instance.init();
 
   final metricClient = injector.get<MetricClientService>();
-  metricClient.initService();
+  await metricClient.initService();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
