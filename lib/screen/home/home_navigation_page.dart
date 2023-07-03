@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -81,6 +82,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _editorialService = injector<EditorialService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
+  final _notificationService = injector<NotificationService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -593,6 +595,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
     _cloudBackup();
+    final initialAction = _notificationService.initialAction;
+    if (initialAction != null) {
+      NotificationService.onActionReceivedMethod(initialAction);
+    }
   }
 
   Future<void> _cloudBackup() async {

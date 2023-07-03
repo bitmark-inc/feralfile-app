@@ -2,23 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rand.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-@pragma('vm:entry-point')
-void onDidReceiveBackgroundNotificationResponse(NotificationResponse details) {
-  log.info(
-      "[NotificationService] onDidReceiveBackgroundNotificationResponse $details");
-  injector<NotificationService>().onDidReceiveNotificationResponse(details);
-}
 
 enum NotificationType {
   Postcard;
@@ -37,208 +28,153 @@ enum NotificationType {
 }
 
 class NotificationPayload {
-  int id;
-  NotificationType type;
+  int notificationId;
+  NotificationType notificationType;
   String metadata;
 
   NotificationPayload(
-      {required this.id, required this.type, required this.metadata});
+      {required this.notificationId,
+      required this.notificationType,
+      required this.metadata});
 
   factory NotificationPayload.fromJson(Map<String, dynamic> map) {
     return NotificationPayload(
-      id: map['id'],
-      type: NotificationType.fromJson(jsonDecode(map['type'])),
+      notificationId: int.tryParse(map['notificationId'] ?? "") ?? 0,
+      notificationType:
+          NotificationType.fromJson(jsonDecode(map['notificationType'])),
       metadata: map['metadata'],
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, String> toJson() {
     return {
-      'id': id,
-      'type': jsonEncode(type.toJson()),
+      'notificationId': notificationId.toString(),
+      'notificationType': jsonEncode(notificationType.toJson()),
       'metadata': metadata,
     };
   }
 }
 
 class NotificationService {
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final postcardChannelKey = 'autonomy.postcard.notification.key';
+  final postcardChannelName = 'postcard_channel_name';
+  final postcardChannelDescription = 'postcard_channel_description';
+  ReceivedAction? _initialAction;
 
-  final groupKey = 'com.android.autonomy.grouped_notification';
-  final groupChannelId = 'grouped_channel_id';
-  final groupChannelName = 'grouped_channel_name';
-  final groupChannelDescription = 'grouped_channel_description';
+  ReceivedAction? get initialAction => _initialAction;
 
-  final NavigationService _navigationService;
-  final ConfigurationService _configurationService;
-
-  NotificationService(this._navigationService, this._configurationService);
+  NotificationService();
 
   Future<void> initNotification() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('autonomy_icon');
-
-    /// Defines a iOS/MacOS notification category for text input actions.
-    const String darwinNotificationCategoryText = 'textCategory';
-
-    /// Defines a iOS/MacOS notification category for plain actions.
-    const String darwinNotificationCategoryPlain = 'plainCategory';
-
-    /// A notification action which triggers a App navigation event
-    const String navigationActionId = 'id_3';
-
-    final List<DarwinNotificationCategory> darwinNotificationCategories =
-        <DarwinNotificationCategory>[
-      DarwinNotificationCategory(
-        darwinNotificationCategoryText,
-        actions: <DarwinNotificationAction>[
-          DarwinNotificationAction.text(
-            'text_1',
-            'Action 1',
-            buttonTitle: 'Send',
-            placeholder: 'Placeholder',
-          ),
+    await AwesomeNotifications().initialize(
+        null, //'resource://drawable/res_app_icon',//
+        [
+          NotificationChannel(
+            channelKey: postcardChannelKey,
+            channelName: postcardChannelName,
+            channelDescription: postcardChannelDescription,
+            playSound: true,
+            onlyAlertOnce: false,
+            groupAlertBehavior: GroupAlertBehavior.Children,
+            importance: NotificationImportance.High,
+            defaultPrivacy: NotificationPrivacy.Private,
+          )
         ],
-      ),
-      DarwinNotificationCategory(
-        darwinNotificationCategoryPlain,
-        actions: <DarwinNotificationAction>[
-          DarwinNotificationAction.plain(
-            navigationActionId,
-            'Action 3 (foreground)',
-            options: <DarwinNotificationActionOption>{
-              DarwinNotificationActionOption.foreground,
-            },
-          ),
-        ],
-      )
-    ];
+        debug: true);
 
-    DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-      onDidReceiveLocalNotification: (id, title, body, payload) async {
-        log.info(
-            "[NotificationService] onDidReceiveLocalNotification: $id, $title, $body, $payload");
-      },
-      notificationCategories: darwinNotificationCategories,
-    );
+    _initialAction =
+        await AwesomeNotifications().getInitialNotificationAction();
+  }
 
-    InitializationSettings initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveBackgroundNotificationResponse:
-          onDidReceiveBackgroundNotificationResponse,
-      onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
+  Future<void> startListeningNotificationEvents() async {
+    await AwesomeNotifications().setListeners(
+      onActionReceivedMethod: onActionReceivedMethod,
+      onNotificationCreatedMethod: onNotificationCreatedMethod,
+      onNotificationDisplayedMethod: onNotificationDisplayedMethod,
+      onDismissActionReceivedMethod: onDismissActionReceivedMethod,
     );
   }
 
-  Future<void> onDidReceiveNotificationResponse(
-      NotificationResponse details) async {
-    if (details.notificationResponseType !=
-        NotificationResponseType.selectedNotification) {
+  @pragma('vm:entry-point')
+  static Future<void> onActionReceivedMethod(
+      ReceivedAction receivedAction) async {
+    final navigationService = injector<NavigationService>();
+    if (receivedAction.actionType == ActionType.SilentAction ||
+        receivedAction.actionType == ActionType.SilentBackgroundAction) {
       return;
-    }
-    try {
-      final notificationPayload =
-          NotificationPayload.fromJson(jsonDecode(details.payload ?? ""));
-      switch (notificationPayload.type) {
-        case NotificationType.Postcard:
-          final postcardIdentity = PostcardIdentity.fromJson(
-              jsonDecode(notificationPayload.metadata));
-          _navigationService.popUntilHome();
-          _navigationService.navigateTo(AppRouter.claimedPostcardDetailsPage,
-              arguments: ArtworkDetailPayload([
-                ArtworkIdentity(postcardIdentity.id, postcardIdentity.owner)
-              ], 0));
+    } else {
+      try {
+        final payload = receivedAction.payload;
+        final notificationPayload = NotificationPayload.fromJson(payload ?? {});
+        switch (notificationPayload.notificationType) {
+          case NotificationType.Postcard:
+            final postcardIdentity = PostcardIdentity.fromJson(
+                jsonDecode(notificationPayload.metadata));
+            navigationService.popUntilHome();
+            navigationService.navigateTo(AppRouter.claimedPostcardDetailsPage,
+                arguments: ArtworkDetailPayload([
+                  ArtworkIdentity(postcardIdentity.id, postcardIdentity.owner)
+                ], 0));
+        }
+      } catch (e) {
+        log.info("[NotificationService] onActionReceivedMethod error: $e]");
       }
-    } catch (e) {
-      log.info(
-          "[NotificationService] onDidReceiveNotificationResponse error: $e]");
     }
+  }
+
+  @pragma('vm:entry-point')
+  static Future<void> onNotificationCreatedMethod(
+      ReceivedNotification receivedNotification) async {
+    log.info(
+        "[NotificationService] onNotificationCreatedMethod: $receivedNotification");
+  }
+
+  @pragma('vm:entry-point')
+  static Future<void> onNotificationDisplayedMethod(
+      ReceivedNotification receivedNotification) async {
+    log.info(
+        "[NotificationService] onNotificationDisplayedMethod: $receivedNotification");
+  }
+
+  @pragma('vm:entry-point')
+  static Future<void> onDismissActionReceivedMethod(
+      ReceivedNotification receivedNotification) async {
+    log.info(
+        "[NotificationService] onDismissActionReceivedMethod: $receivedNotification");
   }
 
   Future<void> showNotification(
       {int id = 0,
       required String title,
       String? body,
-      String? payload}) async {
-    AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(groupChannelId, groupChannelName,
-            channelDescription: groupChannelDescription,
-            groupKey: groupKey,
-            importance: Importance.max,
-            priority: Priority.high,
-            ticker: 'ticker',
-            playSound: false,
-            enableVibration: false,
-            onlyAlertOnce: true,
-            showWhen: false);
-
-    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-        DarwinNotificationDetails(
-      presentAlert: false,
-      presentBadge: false,
-      presentSound: false,
-      subtitle: '',
-      sound: '',
-      badgeNumber: 0,
-      threadIdentifier: '',
-      attachments: [],
-    );
-
-    NotificationDetails platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin
-        .show(id, title, body, platformChannelSpecifics, payload: payload);
-  }
-
-  Future<void> scheduleShowNotification(
-      {int id = 0,
-      required String title,
-      String? body,
-      String? payload}) async {}
-
-  Future<void> cancelNotification(int id) async {
-    await flutterLocalNotificationsPlugin.cancel(id);
+      Map<String, String>? payload,
+      required String channelKey}) async {
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      return;
+    }
+    await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: id,
+            channelKey: channelKey,
+            title: title,
+            body: body,
+            payload: payload));
   }
 
   Future<void> showPostcardWasnotDeliveredNotification(
       PostcardIdentity postcardIdentity) async {
     final notificationId = random.nextInt(100000);
     final payload = NotificationPayload(
-        id: notificationId,
-        type: NotificationType.Postcard,
+        notificationId: notificationId,
+        notificationType: NotificationType.Postcard,
         metadata: jsonEncode(postcardIdentity.toJson()));
 
     await showNotification(
         title: "moma_postcard".tr(),
         body: "your_postcard_not_delivered".tr(),
-        payload: jsonEncode(payload.toJson()),
-        id: notificationId);
-  }
-
-  Future<void> checkNotification() async {
-    final expiredPostcardShareLink =
-        await _configurationService.getSharedPostcard().expiredPostcards;
-    if (_configurationService.isNotificationEnabled() ?? false) {
-      Timer.periodic(const Duration(seconds: 1), (timer) async {
-        final index = timer.tick;
-        if (index >= expiredPostcardShareLink.length) {
-          timer.cancel();
-        } else {
-          final expiredPostcard = expiredPostcardShareLink[index];
-          await injector<NotificationService>()
-              .showPostcardWasnotDeliveredNotification(PostcardIdentity(
-                  id: expiredPostcard.tokenID, owner: expiredPostcard.owner));
-        }
-      });
-      _configurationService.expiredPostcardSharedLinkTip.value = [];
-    } else {
-      _configurationService.expiredPostcardSharedLinkTip.value =
-          expiredPostcardShareLink;
-    }
+        payload: payload.toJson(),
+        id: notificationId,
+        channelKey: postcardChannelKey);
   }
 }

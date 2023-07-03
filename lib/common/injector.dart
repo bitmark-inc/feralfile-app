@@ -343,8 +343,8 @@ Future<void> setup() async {
     ),
   );
 
-  injector.registerLazySingleton<NotificationService>(
-      () => NotificationService(injector(), injector()));
+  injector
+      .registerLazySingleton<NotificationService>(() => NotificationService());
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
       _mementoAirdropDio(dioOptions.copyWith(followRedirects: true)),

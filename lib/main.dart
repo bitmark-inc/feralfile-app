@@ -114,6 +114,7 @@ _setupApp() async {
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
   final notificationService = injector<NotificationService>();
   await notificationService.initNotification();
+  await notificationService.startListeningNotificationEvents();
 
   runApp(EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],
