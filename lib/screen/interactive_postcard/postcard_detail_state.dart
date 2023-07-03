@@ -77,12 +77,12 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     }
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
-    final lastOwner = postcardValue?.postman;
-    final owner = assetToken?.owner;
     final id = assetToken?.id;
-    return sharedPostcards.any((element) => (element.tokenID == id &&
-        element.owner == lastOwner &&
-        owner == element.owner));
+    return sharedPostcards.any((element) {
+      return !element.isExpired &&
+          element.owner == assetToken?.owner &&
+          element.tokenID == id;
+    });
   }
 
   bool isStamping() {

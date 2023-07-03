@@ -311,6 +311,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           _configurationService.setAlreadyShowPostcardUpdates(
               [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
         }
+
+        if (!state.isSending()) {
+          _configurationService.removeSharedPostcardWhere((element) =>
+              element.tokenID == assetToken.id &&
+              element.owner == assetToken.owner);
+        }
       }
 
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
@@ -568,8 +574,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         });
         Share.share(shareMessage);
       }
-      _configurationService
-          .updateSharedPostcard([SharedPostcard(asset.id, asset.owner)]);
+      _configurationService.updateSharedPostcard(
+          [SharedPostcard(asset.id, asset.owner, DateTime.now())]);
     } catch (e) {
       if (e is DioError) {
         if (mounted) {
