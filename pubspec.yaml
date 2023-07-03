@@ -176,7 +176,6 @@ dependencies:
   flutter_swiper_view: ^1.1.8
   video_player: ^2.4.8
   youtube_player_iframe: ^3.1.0
-  flutter_local_notifications: ^12.0.4
   awesome_notifications: ^0.7.4+1
 dependency_overrides:
   # Error using when import photo_view from dependencies:
