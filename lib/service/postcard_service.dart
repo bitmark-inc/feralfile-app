@@ -338,7 +338,7 @@ class PostcardServiceImpl extends PostcardService {
     if (_configurationService.isNotificationEnabled() ?? false) {
       Timer.periodic(const Duration(seconds: 1), (timer) async {
         final index = timer.tick - 1;
-        if (index > expiredPostcardShareLink.length) {
+        if (index >= expiredPostcardShareLink.length) {
           timer.cancel();
         } else {
           final expiredPostcard = expiredPostcardShareLink[index];
