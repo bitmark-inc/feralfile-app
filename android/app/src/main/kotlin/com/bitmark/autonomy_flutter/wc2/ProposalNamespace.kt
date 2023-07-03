@@ -25,19 +25,10 @@ data class Extension(
     val events: List<String>
 )
 
-fun Sign.Model.Namespace.Proposal.Extension.toExtension(): Extension {
-    return Extension(
-        chains = this.chains,
-        methods = this.methods,
-        events = this.events
-    )
-}
-
 fun Sign.Model.Namespace.Proposal.toProposalNamespace(): ProposalNamespace {
     return ProposalNamespace(
-        chains = this.chains,
+        chains = this.chains ?: emptyList(),
         methods = this.methods,
         events = this.events,
-        extensions = this.extensions?.map { it.toExtension() }
     )
 }
