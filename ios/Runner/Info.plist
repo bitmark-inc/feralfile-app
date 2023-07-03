@@ -5,6 +5,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).notification</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
@@ -32,32 +33,14 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>autonomy-deeplink</string>
+			<string>me.autonomy</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>wc</string>
 				<string>autonomy</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>autonomy-tezos</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
 				<string>autonomy-tezos</string>
 				<string>tezos</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>autonomy-wc</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
 				<string>autonomy-wc</string>
-				<string>wc</string>
 			</array>
 		</dict>
 	</array>
@@ -85,15 +68,17 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Autonomy to use your location</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Autonomy to use your location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Scan for your Ledger hardware wallets.</string>
+	<string>Allow Autonomy to use your location</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to the photo library.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -108,6 +93,8 @@
 	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
@@ -137,8 +124,6 @@
 		<string>autonomy-app-alternate.test.app.link</string>
 	</array>
 	<key>io.flutter.embedded_views_preview</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>
 </plist>

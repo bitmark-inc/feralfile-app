@@ -16,9 +16,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -37,6 +42,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../util/datetime_ext.dart';
@@ -111,6 +117,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   bool _isRated = false;
   bool _isFileAttached = false;
   Pair<String, List<int>>? _debugLog;
+  late bool loading;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -120,6 +127,8 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   final _askReviewMessengerID = const Uuid().v4();
   final _announcementMessengerID = const Uuid().v4();
   final _customerSupportService = injector<CustomerSupportService>();
+  final _airdropService = injector<AirdropService>();
+  final _feralFileService = injector<FeralFileService>();
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
@@ -157,7 +166,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   @override
   void initState() {
     _fetchCustomerSupportAvailability();
-
+    loading = false;
     injector<CustomerSupportService>().processMessages();
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -362,6 +371,47 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
               messages: messages,
               onSendPressed: _handleSendPressed,
               user: _user,
+              listBottomWidget:
+                  (widget.payload.announcement?.isMemento6 == true)
+                      ? FutureBuilder(
+                          future: _airdropService
+                              .getTokenByContract(momaMementoContractAddresses),
+                          builder: (context, snapshot) {
+                            final token = snapshot.data as AssetToken?;
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 18, right: 18, bottom: 15),
+                              child: PrimaryButton(
+                                text: "claim_your_gift".tr(),
+                                enabled: !loading && token != null,
+                                isProcessing: loading,
+                                onTap: () async {
+                                  if (token == null) return;
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  try {
+                                    final response = await _airdropService
+                                        .claimRequestGift(token);
+                                    final series = await _feralFileService
+                                        .getSeries(response.seriesID);
+                                    if (!mounted) return;
+                                    Navigator.of(context).pushNamed(
+                                        AppRouter.claimAirdropPage,
+                                        arguments: ClaimTokenPagePayload(
+                                            claimID: response.claimID,
+                                            series: series,
+                                            shareCode: ''));
+                                  } catch (e) {
+                                    setState(() {
+                                      loading = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            );
+                          })
+                      : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
                   : _isRated == false && _status == 'closed'
@@ -408,7 +458,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     final fileSizeInMB = fileSize / (1024 * 1024);
     return Container(
       color: AppColor.auGreyBackground,
-      padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
+      padding: const EdgeInsets.fromLTRB(25, 5, 25, 5),
       child: Row(
         children: [
           Text(
@@ -1055,11 +1105,15 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
   DefaultChatTheme get _chatTheme {
     final theme = Theme.of(context);
+    bool isKeyboardShowing = MediaQuery.of(context).viewInsets.vertical > 0;
+    final inputPadding = isKeyboardShowing
+        ? const EdgeInsets.fromLTRB(0, 20, 0, 20)
+        : const EdgeInsets.fromLTRB(0, 10, 0, 32);
     return DefaultChatTheme(
       messageInsetsVertical: 14,
       messageInsetsHorizontal: 14,
       errorIcon: const SizedBox(),
-      inputPadding: const EdgeInsets.fromLTRB(0, 10, 0, 40),
+      inputPadding: inputPadding,
       backgroundColor: Colors.transparent,
       inputBackgroundColor: theme.colorScheme.primary,
       inputTextStyle: theme.textTheme.ppMori400White14,

@@ -12,9 +12,7 @@ class _TZKTApi implements TZKTApi {
   _TZKTApi(
     this._dio, {
     this.baseUrl,
-  }) {
-    baseUrl ??= 'https://api.tzkt.io';
-  }
+  });
 
   final Dio _dio;
 
@@ -98,6 +96,69 @@ class _TZKTApi implements TZKTApi {
     var value = _result.data!
         .map((dynamic i) =>
             TZKTTokenTransfer.fromJson(i as Map<String, dynamic>))
+        .toList();
+    return value;
+  }
+
+  @override
+  Future<List<int>> getBigMapsId({
+    required contract,
+    path = "postcards.postcards",
+    select = "ptr",
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'contract': contract,
+      r'path': path,
+      r'select': select,
+    };
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result =
+        await _dio.fetch<List<dynamic>>(_setStreamType<List<int>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/bigmaps',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data!.cast<int>();
+    return value;
+  }
+
+  @override
+  Future<List<PostcardValue>> getBigMaps(
+    ptr, {
+    select = "value",
+    required key,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'select': select,
+      r'key': key,
+    };
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio
+        .fetch<List<dynamic>>(_setStreamType<List<PostcardValue>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/bigmaps/${ptr}/keys',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    var value = _result.data!
+        .map((dynamic i) => PostcardValue.fromJson(i as Map<String, dynamic>))
         .toList();
     return value;
   }

@@ -19,4 +19,7 @@ abstract class BranchApi {
     @Query("branch_key") String? key,
     @Query("url") String? url,
   );
+
+  @POST("/v1/url")
+  Future<dynamic> getUrl(@Body() Map<String, dynamic> body);
 }

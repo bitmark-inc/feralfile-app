@@ -157,7 +157,7 @@ class AccountServiceImpl extends AccountService {
     metricClient.addEvent(MixpanelEvent.createFullAccount,
         data: {"isDefault": isDefault}, hashedData: {"id": persona.uuid});
     _autonomyService.postLinkedAddresses();
-
+    log.info("[AccountService] Created persona ${persona.uuid}}");
     return persona;
   }
 
@@ -201,7 +201,7 @@ class AccountServiceImpl extends AccountService {
       "ethereumIndex": ethereumIndexes
     });
     _autonomyService.postLinkedAddresses();
-
+    log.info("[AccountService] imported persona ${persona.uuid}");
     return persona;
   }
 
@@ -375,7 +375,10 @@ class AccountServiceImpl extends AccountService {
   @override
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao.deleteConnection(connection);
-    await setHideLinkedAccountInGallery(connection.hiddenGalleryKey, false);
+    final addressIndexes = connection.addressIndexes;
+    Future.wait(addressIndexes.map((element) async {
+      await setHideLinkedAccountInGallery(element.address, false);
+    }));
 
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.deleteLinkedAccount,
@@ -618,7 +621,8 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<List<AddressIndex>> getAllAddressIndexes() async {
     if (_configurationService.isDemoArtworksMode()) {
-      return [];
+      final demoAccount = await getDemoAccount();
+      return [AddressIndex(address: demoAccount, createdAt: DateTime.now())];
     }
 
     List<AddressIndex> addresses = [];
@@ -688,11 +692,12 @@ class AccountServiceImpl extends AccountService {
         _configurationService.getLinkedAccountsHiddenInGallery();
 
     for (final linkedAccount in linkedAccounts) {
-      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
-        continue;
+      for (final addressIndex in linkedAccount.addressIndexes) {
+        if (hiddenLinkedAccounts.contains(addressIndex.address)) {
+          continue;
+        }
+        addresses.add(addressIndex.address);
       }
-
-      addresses.addAll(linkedAccount.accountNumbers);
     }
 
     return addresses;
@@ -743,8 +748,10 @@ class AccountServiceImpl extends AccountService {
         _configurationService.getLinkedAccountsHiddenInGallery();
 
     for (final linkedAccount in linkedAccounts) {
-      if (hiddenLinkedAccounts.contains(linkedAccount.hiddenGalleryKey)) {
-        hiddenAddresses.addAll(linkedAccount.addressIndexes);
+      for (final addressIndex in linkedAccount.addressIndexes) {
+        if (hiddenLinkedAccounts.contains(addressIndex.address)) {
+          hiddenAddresses.add(addressIndex);
+        }
       }
     }
 

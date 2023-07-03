@@ -11,13 +11,13 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -44,6 +44,7 @@ class TezosBeaconService implements BeaconHandler {
 
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
+  Timer? _timer;
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
@@ -95,8 +96,12 @@ class TezosBeaconService implements BeaconHandler {
     return _beaconChannel.handlePostMessageMessage(extensionPublicKey, payload);
   }
 
-  Future addPeer(String link) async {
+  Future addPeer(String link, {Function()? onTimeout}) async {
     const maxRetries = 3;
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
     var retryCount = 0;
     do {
       try {
@@ -173,11 +178,13 @@ class TezosBeaconService implements BeaconHandler {
     if (request.type == "permission") {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
+      _timer?.cancel();
       _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
     } else if (request.type == "signPayload") {
       _requestSignMessageForConnection();
       final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
           arguments: request);
+      log.info("TezosBeaconService: handle permission Request result: $result");
       if (result) {
         _showYouAllSet();
       }

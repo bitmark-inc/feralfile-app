@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -11,12 +10,14 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
+  final ConfigurationService _configurationService;
 
-  MixPanelClientService(this._accountService);
+  MixPanelClientService(this._accountService, this._configurationService);
 
   late Mixpanel mixpanel;
 
@@ -31,7 +32,7 @@ class MixPanelClientService {
         .getPeople()
         .set(MixpanelProp.subscription, SubscriptionStatus.free);
     mixpanel.getPeople().set(MixpanelProp.enableNotification,
-        injector<ConfigurationService>().isNotificationEnabled() ?? false);
+        _configurationService.isNotificationEnabled() ?? false);
     mixpanel.registerSuperPropertiesOnce({
       MixpanelProp.client: "Autonomy Wallet",
     });
@@ -73,9 +74,7 @@ class MixPanelClientService {
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
-    final configurationService = injector.get<ConfigurationService>();
-
-    if (configurationService.isAnalyticsEnabled() == false) {
+    if (_configurationService.isAnalyticsEnabled() == false) {
       return;
     }
 
@@ -106,5 +105,46 @@ class MixPanelClientService {
     } catch (e) {
       log(e.toString());
     }
+  }
+
+  void setLabel(String prop, dynamic value) {
+    mixpanel.getPeople().set(prop, value);
+  }
+
+  MixpanelConfig? getConfig() {
+    return _configurationService.getMixpanelConfig();
+  }
+
+  Future<void> setConfig(MixpanelConfig config) async {
+    await _configurationService.setMixpanelConfig(config);
+  }
+}
+
+@JsonSerializable()
+class MixpanelConfig {
+  final DateTime? editorialPeriodStart;
+  final double? totalEditorialReading;
+
+  MixpanelConfig({this.editorialPeriodStart, this.totalEditorialReading});
+
+  Map<String, dynamic> toJson() => {
+        "editorialPeriodStart": editorialPeriodStart?.toIso8601String(),
+        "totalEditorialReading": totalEditorialReading,
+      };
+
+  factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
+    return MixpanelConfig(
+      editorialPeriodStart: DateTime.tryParse(json['editorialPeriodStart']),
+      totalEditorialReading: json['totalEditorialReading'],
+    );
+  }
+
+  MixpanelConfig copyWith(
+      {DateTime? editorialPeriodStart, double? totalEditorialReading}) {
+    return MixpanelConfig(
+      editorialPeriodStart: editorialPeriodStart ?? this.editorialPeriodStart,
+      totalEditorialReading:
+          totalEditorialReading ?? this.totalEditorialReading,
+    );
   }
 }

@@ -121,4 +121,18 @@ class MetricClientService {
     await addEvent(MixpanelEvent.endViewScreen,
         data: {"screen": screen.snakeToCapital()});
   }
+
+  void setLabel(String prop, dynamic value) {
+    if (isFinishInit) {
+      mixPanelClient.setLabel(prop, value);
+    }
+  }
+
+  MixpanelConfig? getConfig() {
+    return mixPanelClient.getConfig();
+  }
+
+  Future<void> setConfig(MixpanelConfig config) async {
+    await mixPanelClient.setConfig(config);
+  }
 }

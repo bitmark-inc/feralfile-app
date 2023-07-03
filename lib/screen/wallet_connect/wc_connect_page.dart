@@ -100,7 +100,8 @@ class _WCConnectPageState extends State<WCConnectPage>
   void callAccountBloc() {
     context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
         includeLinkedAccount: false,
-        getTezos: !widget.connectionRequest.isWCconnect,
+        getTezos: widget.connectionRequest.isBeaconConnect ||
+            widget.connectionRequest.isAutonomyConnect,
         getEth: !widget.connectionRequest.isBeaconConnect));
   }
 
@@ -119,19 +120,31 @@ class _WCConnectPageState extends State<WCConnectPage>
     // final wcConnectArgs = widget.wcConnectArgs;
     // final beaconRequest = widget.beaconRequest;
 
-    if (connectionRequest.isWC2connect) {
+    if (connectionRequest.isAutonomyConnect) {
       try {
         await injector<Wc2Service>().rejectSession(
           connectionRequest.id,
           reason: "User reject",
         );
       } catch (e) {
-        log.info("[WCConnectPage] Reject WC2 Proposal $e");
+        log.info("[WCConnectPage] Reject AutonomyConnect Proposal $e");
       }
       return;
     }
 
-    if (connectionRequest.isWCconnect) {
+    if (connectionRequest.isWalletConnect2) {
+      try {
+        await injector<Wc2Service>().rejectSession(
+          connectionRequest.id,
+          reason: "User reject",
+        );
+      } catch (e) {
+        log.info("[WCConnectPage] Reject WalletConnect2 Proposal $e");
+      }
+      return;
+    }
+
+    if (connectionRequest.isWalletConnect) {
       injector<WalletConnectService>()
           .rejectSession((connectionRequest as WCConnectPageArgs).peerMeta);
       return;
@@ -144,31 +157,44 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future _approve({bool onBoarding = false}) async {
-    if (selectedPersona == null && !connectionRequest.isWC2connect) return;
+    if (selectedPersona == null && !connectionRequest.isAutonomyConnect) return;
 
     UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
     late String payloadAddress;
     late CryptoType payloadType;
     switch (connectionRequest.runtimeType) {
       case Wc2Proposal:
-        final account = await injector<AccountService>().getDefaultAccount();
-        final accountDid = await account.getAccountDID();
-        await injector<Wc2Service>().approveSession(
-          connectionRequest as Wc2Proposal,
-          accountDid: accountDid.substring("did:key:".length),
-          personalUUID: account.uuid,
-        );
-        payloadType = CryptoType.ETH;
-        payloadAddress =
-            await account.getETHEip55Address(index: selectedPersona!.index);
-        metricClient.addEvent(
-          MixpanelEvent.connectExternal,
-          data: {
-            "method": "autonomy_connect",
-            "name": connectionRequest.name,
-            "url": connectionRequest.url,
-          },
-        );
+        if (connectionRequest.isAutonomyConnect) {
+          final account = await injector<AccountService>().getDefaultAccount();
+          final accountDid = await account.getAccountDID();
+          await injector<Wc2Service>().approveSession(
+            connectionRequest as Wc2Proposal,
+            account: accountDid.substring("did:key:".length),
+            connectionKey: account.uuid,
+          );
+          payloadType = CryptoType.ETH;
+          payloadAddress =
+              await account.getETHEip55Address(index: selectedPersona!.index);
+          metricClient.addEvent(
+            MixpanelEvent.connectExternal,
+            data: {
+              "method": "autonomy_connect",
+              "name": connectionRequest.name,
+              "url": connectionRequest.url,
+            },
+          );
+        } else {
+          final address = await injector<EthereumService>()
+              .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
+          await injector<Wc2Service>().approveSession(
+            connectionRequest as Wc2Proposal,
+            account: address,
+            connectionKey: address,
+          );
+          payloadType = CryptoType.ETH;
+          payloadAddress = address;
+        }
+
         break;
       case WCConnectPageArgs:
         final address = await injector<EthereumService>()
@@ -371,7 +397,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                           return;
                         }
 
-                        if (connectionRequest.isWC2connect) {
+                        if (connectionRequest.isAutonomyConnect) {
                           if (stateCategorizedAccounts.isNotEmpty) {
                             final wallet = await injector<AccountService>()
                                 .getDefaultAccount();
@@ -388,7 +414,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                   ),
                 ),
               ),
-              connect()
+              _connect()
             ],
           ),
         ),
@@ -420,7 +446,8 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Widget _appInfo() {
-    if (connectionRequest.isWC2connect) {
+    if (connectionRequest.isAutonomyConnect ||
+        connectionRequest.isWalletConnect2) {
       final wc2Proposer = (connectionRequest as Wc2Proposal).proposer;
       final peer = WCPeerMeta(
         name: wc2Proposer.name,
@@ -430,7 +457,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       );
       return _wcAppInfo(peer);
     }
-    if (connectionRequest.isWCconnect) {
+    if (connectionRequest.isWalletConnect) {
       return _wcAppInfo((connectionRequest as WCConnectPageArgs).peerMeta);
     }
 
@@ -448,14 +475,14 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (stateCategorizedAccounts.isEmpty) {
       return const SizedBox(); // Expanded(child: _createAccountAndConnect());
     }
-    if (connectionRequest.isWC2connect) {
+    if (connectionRequest.isAutonomyConnect) {
       return const SizedBox();
     }
     return _selectPersonaWidget(stateCategorizedAccounts);
   }
 
-  Widget connect() {
-    if (connectionRequest.isWC2connect) {
+  Widget _connect() {
+    if (connectionRequest.isAutonomyConnect) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -465,7 +492,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 child: Padding(
                   padding: padding,
                   child: PrimaryButton(
-                    text: "connect".tr(),
+                    text: "h_confirm".tr(),
                     onTap: () => withDebounce(() => _approveThenNotify()),
                   ),
                 ),
@@ -483,7 +510,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             child: Padding(
               padding: padding,
               child: PrimaryButton(
-                text: "connect".tr(),
+                text: "h_confirm".tr(),
                 onTap: selectedPersona != null
                     ? () {
                         metricClient.addEvent(MixpanelEvent.connectMarket);
@@ -574,7 +601,8 @@ class _WCConnectPageState extends State<WCConnectPage>
     String select = "";
     if (widget.connectionRequest.isBeaconConnect) {
       select = "select_tezos".tr(args: ["1"]);
-    } else if (widget.connectionRequest.isWCconnect) {
+    } else if (widget.connectionRequest.isWalletConnect ||
+        widget.connectionRequest.isWalletConnect2) {
       select = "select_ethereum".tr(args: ["1"]);
     }
 
@@ -638,7 +666,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: "connect".tr(),
+                  text: "h_confirm".tr(),
                   onTap: () {
                     metricClient.addEvent(MixpanelEvent.connectMarket);
                     withDebounce(() => _createAccount());

@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:wallet_connect/wallet_connect.dart';
+import 'package:web3dart/credentials.dart';
 
 import '../database/cloud_database.dart';
 import '../database/entity/connection.dart';
@@ -36,10 +37,22 @@ class Wc2Service extends Wc2Handler {
     Wc2Chain.tezos,
   };
 
-  static final Set<String> _supportedMethods = {
+  static final Set<String> supportedMethods = {
     "au_sign",
     "au_permissions",
-    "au_sendTransaction"
+    "au_sendTransaction",
+    "eth_sendTransaction",
+    "personal_sign",
+    "eth_sign",
+    "eth_signTypedData",
+    "eth_signTypedData_v4",
+    "eth_signTransaction"
+  };
+
+  static final Set<String> autonomyMethods = {
+    "au_sign",
+    "au_permissions",
+    "au_sendTransaction",
   };
 
   final NavigationService _navigationService;
@@ -92,10 +105,10 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future approveSession(Wc2Proposal proposal,
-      {required String accountDid, required String personalUUID}) async {
+      {required String account, required String connectionKey}) async {
     await _wc2channel.approve(
       proposal.id,
-      accountDid,
+      account,
     );
     final wc2Pairings = await injector<Wc2Service>().getPairings();
     final topic = wc2Pairings
@@ -103,11 +116,11 @@ class Wc2Service extends Wc2Handler {
             ?.topic ??
         "";
     final connection = Connection(
-      key: "$personalUUID:$topic",
+      key: "$connectionKey:$topic",
       name: proposal.proposer.name,
       data: json.encode(proposal.proposer),
       connectionType: ConnectionType.walletConnect2.rawValue,
-      accountNumber: accountDid,
+      accountNumber: account,
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
@@ -124,6 +137,7 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future respondOnApprove(String topic, String response) async {
+    log.info("[Wc2Service] respondOnApprove topic $topic, response: $response");
     await _wc2channel.respondOnApprove(topic, response);
   }
 
@@ -170,15 +184,10 @@ class Wc2Service extends Wc2Handler {
         .map((e) => e.methods)
         .flattened
         .toSet();
-    final unsupportedMethods = proposalMethods.difference(_supportedMethods);
+    final unsupportedMethods = proposalMethods.difference(supportedMethods);
     if (unsupportedMethods.isNotEmpty) {
       log.info("[Wc2Service] Proposal contains unsupported methods: "
           "$unsupportedMethods");
-      await rejectSession(
-        proposal.id,
-        reason: "Methods ${unsupportedMethods.join(", ")} not supported",
-      );
-      return;
     }
     _navigationService.navigateTo(AppRouter.wc2ConnectPage,
         arguments: proposal);
@@ -186,99 +195,163 @@ class Wc2Service extends Wc2Handler {
 
   @override
   void onSessionRequest(Wc2Request request) async {
-    if (request.method == "au_sign") {
-      switch (request.chainId.caip2Namespace) {
-        case Wc2Chain.ethereum:
-          await _handleEthereumSignRequest(request);
-          break;
-        case Wc2Chain.tezos:
-          await _handleTezosSignRequest(request);
-          break;
-        case Wc2Chain.autonomy:
-          await _handleAutonomySignRequest(request);
-          break;
-        default:
-          log.info("[Wc2Service] Unsupported chain: ${request.method}");
-          await respondOnReject(
-            request.topic,
-            reason: "Chain ${request.chainId} is not supported",
-          );
-      }
-    } else if (request.method == "au_permissions") {
-      _navigationService.navigateTo(
-        AppRouter.wc2PermissionPage,
-        arguments: request,
-      );
-    } else if (request.method == "au_sendTransaction") {
-      final chain = request.params["chain"] as String;
-      switch (chain.caip2Namespace) {
-        case Wc2Chain.ethereum:
-          try {
-            final walletIndex = await _accountService.getAccountByAddress(
-              chain: chain,
-              address: request.params["address"],
+    switch (request.method) {
+      case "au_sign":
+        switch (request.chainId.caip2Namespace) {
+          case Wc2Chain.ethereum:
+            await _handleEthereumSignRequest(
+                request, WCSignType.PERSONAL_MESSAGE);
+            break;
+          case Wc2Chain.tezos:
+            await _handleTezosSignRequest(request);
+            break;
+          case Wc2Chain.autonomy:
+            await _handleAutonomySignRequest(request);
+            break;
+          default:
+            log.info("[Wc2Service] Unsupported chain: ${request.method}");
+            await respondOnReject(
+              request.topic,
+              reason: "Chain ${request.chainId} is not supported",
             );
-            var transaction =
-                request.params["transactions"][0] as Map<String, dynamic>;
-            if (transaction["data"] == null) transaction["data"] = "";
-            if (transaction["gas"] == null) transaction["gas"] = "";
-            final metaData = request.proposer != null
-                ? request.proposer!.toWCPeerMeta()
-                : WCPeerMeta(icons: [], name: "", url: "", description: "");
-            final args = WCSendTransactionPageArgs(
-              request.id,
-              metaData,
-              WCEthereumTransaction.fromJson(transaction),
-              walletIndex.wallet.uuid,
-              walletIndex.index,
-              topic: request.topic,
-              isWalletConnect2: true,
+        }
+        break;
+      case "au_permissions":
+        _navigationService.navigateTo(
+          AppRouter.wc2PermissionPage,
+          arguments: request,
+        );
+        break;
+      case "au_sendTransaction":
+        final chain = request.params["chain"] as String;
+        switch (chain.caip2Namespace) {
+          case Wc2Chain.ethereum:
+            _handleEthereumSendTransactionRequest(request);
+            break;
+          case Wc2Chain.tezos:
+            try {
+              final beaconReq = request.toBeaconRequest();
+              _navigationService.navigateTo(
+                TBSendTransactionPage.tag,
+                arguments: beaconReq,
+              );
+            } catch (e) {
+              await respondOnReject(request.topic, reason: "$e");
+            }
+            break;
+          default:
+            await respondOnReject(
+              request.topic,
+              reason: "Chain $chain is not supported",
             );
-            _navigationService.navigateTo(
-              WCSendTransactionPage.tag,
-              arguments: args,
-            );
-          } catch (e) {
-            await respondOnReject(request.topic, reason: "$e");
-          }
-          break;
-        case Wc2Chain.tezos:
-          try {
-            final beaconReq = request.toBeaconRequest();
-            _navigationService.navigateTo(
-              TBSendTransactionPage.tag,
-              arguments: beaconReq,
-            );
-          } catch (e) {
-            await respondOnReject(request.topic, reason: "$e");
-          }
-          break;
-        default:
-          await respondOnReject(
-            request.topic,
-            reason: "Chain $chain is not supported",
-          );
-      }
-    } else {
-      log.info("[Wc2Service] Unsupported method: ${request.method}");
-      await respondOnReject(
-        request.topic,
-        reason: "Method ${request.method} is not supported",
-      );
+        }
+        break;
+      case "eth_sendTransaction":
+        await _handleWC2EthereumSendTransactionRequest(request);
+        break;
+      case "personal_sign":
+        await _handleWC2EthereumSignRequest(
+            request, WCSignType.PERSONAL_MESSAGE);
+        break;
+      case "eth_signTypedData":
+      case "eth_signTypedData_v4":
+        await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
+        break;
+      case "eth_sign":
+        await _handleWC2EthereumSignRequest(request, WCSignType.MESSAGE);
+        break;
+      default:
+        log.info("[Wc2Service] Unsupported method: ${request.method}");
+        await respondOnReject(
+          request.topic,
+          reason: "Method ${request.method} is not supported",
+        );
     }
   }
 
   //#endregion
+  Future _handleWC2EthereumSignRequest(
+      Wc2Request request, WCSignType signType) async {
+    String address, message;
+    if (signType == WCSignType.PERSONAL_MESSAGE) {
+      address = request.params[1];
+      message = request.params[0];
+    } else {
+      address = request.params[0];
+      if (request.params[1].runtimeType != String) {
+        message = jsonEncode(request.params[1]);
+      } else {
+        message = request.params[1];
+      }
+    }
+
+    final eip55address = EthereumAddress.fromHex(address).hexEip55;
+    final wallet = await _accountService.getAccountByAddress(
+      chain: "eip155",
+      address: eip55address,
+    );
+    await _navigationService.navigateTo(WCSignMessagePage.tag,
+        arguments: WCSignMessagePageArgs(
+          request.id,
+          request.topic,
+          request.proposer!.toWCPeerMeta(),
+          message,
+          signType,
+          wallet.wallet.uuid,
+          wallet.index,
+          isWalletConnect2: true,
+        ));
+  }
+
+  Future _handleWC2EthereumSendTransactionRequest(Wc2Request request) async {
+    try {
+      var transaction = request.params[0] as Map<String, dynamic>;
+
+      final walletIndex = await _accountService.getAccountByAddress(
+        chain: "eip155",
+        address: transaction["from"],
+      );
+      if (transaction["data"] == null) transaction["data"] = "";
+      if (transaction["gas"] == null) transaction["gas"] = "";
+      if (transaction["to"] == null) {
+        log.info("[Wc2Service] Invalid transaction: no recipient");
+        await respondOnReject(
+          request.topic,
+          reason: "Invalid transaction: no recipient",
+        );
+        return;
+      }
+      final metaData = request.proposer != null
+          ? request.proposer!.toWCPeerMeta()
+          : WCPeerMeta(icons: [], name: "", url: "", description: "");
+      final args = WCSendTransactionPageArgs(
+        request.id,
+        metaData,
+        WCEthereumTransaction.fromJson(transaction),
+        walletIndex.wallet.uuid,
+        walletIndex.index,
+        topic: request.topic,
+        isWalletConnect2: true,
+      );
+      _navigationService.navigateTo(
+        WCSendTransactionPage.tag,
+        arguments: args,
+      );
+    } catch (e) {
+      await respondOnReject(request.topic, reason: "$e");
+    }
+  }
 
   //#region Handle sign request
-  Future _handleEthereumSignRequest(Wc2Request request) async {
+  Future _handleEthereumSignRequest(
+      Wc2Request request, WCSignType signType) async {
     await _navigationService.navigateTo(WCSignMessagePage.tag,
         arguments: WCSignMessagePageArgs(
           request.id,
           request.topic,
           request.proposer!.toWCPeerMeta(),
           request.params["message"],
-          WCSignType.PERSONAL_MESSAGE,
+          signType,
           "",
           0,
           // uuid, index, used for Wallet connect 1 only
@@ -303,6 +376,45 @@ class Wc2Service extends Wc2Handler {
       AUSignMessagePage.tag,
       arguments: request,
     );
+  }
+
+  Future _handleEthereumSendTransactionRequest(Wc2Request request) async {
+    try {
+      final walletIndex = await _accountService.getAccountByAddress(
+        chain: "eip155",
+        address: request.params["address"],
+      );
+      var transaction =
+          request.params["transactions"][0] as Map<String, dynamic>;
+      if (transaction["data"] == null) transaction["data"] = "";
+      if (transaction["gas"] == null) transaction["gas"] = "";
+      if (transaction["to"] == null) {
+        log.info("[Wc2Service] Invalid transaction: no recipient");
+        await respondOnReject(
+          request.topic,
+          reason: "Invalid transaction: no recipient",
+        );
+        return;
+      }
+      final metaData = request.proposer != null
+          ? request.proposer!.toWCPeerMeta()
+          : WCPeerMeta(icons: [], name: "", url: "", description: "");
+      final args = WCSendTransactionPageArgs(
+        request.id,
+        metaData,
+        WCEthereumTransaction.fromJson(transaction),
+        walletIndex.wallet.uuid,
+        walletIndex.index,
+        topic: request.topic,
+        isWalletConnect2: true,
+      );
+      _navigationService.navigateTo(
+        WCSendTransactionPage.tag,
+        arguments: args,
+      );
+    } catch (e) {
+      await respondOnReject(request.topic, reason: "$e");
+    }
   }
 //#endregion
 }

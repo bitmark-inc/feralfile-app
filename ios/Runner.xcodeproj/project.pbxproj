@@ -95,6 +95,8 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
+		E990C0ED2A26F412007CAE7A /* LocaleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */; };
+		E990C0EE2A26F412007CAE7A /* LocaleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -249,6 +251,7 @@
 		DBA43B022090632A811FD5B1 /* Pods-Runner Inhouse Notification.debug-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse Notification.debug-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse Notification/Pods-Runner Inhouse Notification.debug-prd.xcconfig"; sourceTree = "<group>"; };
 		DCF66FD425911EE489B6E718 /* Pods-Runner Inhouse.debug-inhouse.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse.debug-inhouse.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse/Pods-Runner Inhouse.debug-inhouse.xcconfig"; sourceTree = "<group>"; };
 		E16387878DC7F0174C63CE7E /* Pods-Runner Notification.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Notification.profile.xcconfig"; path = "Target Support Files/Pods-Runner Notification/Pods-Runner Notification.profile.xcconfig"; sourceTree = "<group>"; };
+		E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocaleHandler.swift; sourceTree = "<group>"; };
 		EE8CDE6C03F3F785748BF040 /* Pods-Runner-Runner Notification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner-Runner Notification.debug.xcconfig"; path = "Target Support Files/Pods-Runner-Runner Notification/Pods-Runner-Runner Notification.debug.xcconfig"; sourceTree = "<group>"; };
 		F4998FB76BED087D5F59212F /* Pods-Runner Inhouse Notification.profile-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse Notification.profile-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse Notification/Pods-Runner Inhouse Notification.profile-prd.xcconfig"; sourceTree = "<group>"; };
 		FAF8CE1D5921CF3A07F21D56 /* Pods-Runner Notification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Notification.debug.xcconfig"; path = "Target Support Files/Pods-Runner Notification/Pods-Runner Notification.debug.xcconfig"; sourceTree = "<group>"; };
@@ -474,6 +477,7 @@
 				63F1665227B250D600451AAA /* BeaconConnectService.swift */,
 				632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */,
 				6399594127B2C2FA002653E7 /* BeaconChannelHandler.swift */,
+				E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */,
 				6399594327B2C36B002653E7 /* LibAukChannelHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				768E7EEA27CE4C5D00585D12 /* CloudKitManager.swift */,
@@ -916,6 +920,7 @@
 				87460CF3292F786D00A23EB6 /* CustomCodable.swift in Sources */,
 				76F3289B27D1EC1C00C3B9FA /* SystemChannelHandler.swift in Sources */,
 				76F3289C27D1EC1C00C3B9FA /* GeneratedPluginRegistrant.m in Sources */,
+				E990C0EE2A26F412007CAE7A /* LocaleHandler.swift in Sources */,
 				764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */,
 				637862B028B4A91500DBA925 /* WalletConnectService.swift in Sources */,
 			);
@@ -943,6 +948,7 @@
 				87460CF2292F786D00A23EB6 /* CustomCodable.swift in Sources */,
 				76F328B427D1EEAA00C3B9FA /* Constant.swift in Sources */,
 				768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */,
+				E990C0ED2A26F412007CAE7A /* LocaleHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				637862A228B483CB00DBA925 /* WalletConnectService.swift in Sources */,
 			);
@@ -1195,6 +1201,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = InhouseAppIcon;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner InhouseDebug.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1388,6 +1395,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = InhouseAppIcon;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner-Inhouse.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1583,6 +1591,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = InhouseAppIcon;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner InhouseDebug.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1775,6 +1784,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = InhouseAppIcon;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner-Inhouse.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1925,6 +1935,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = InhouseAppIcon;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner-Inhouse.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -2045,7 +2056,7 @@
 			repositoryURL = "https://github.com/autonomy-system/beacon-ios-sdk";
 			requirement = {
 				kind = revision;
-				revision = eac8075a9a6dbaa722af281b11813a1ccb43d8da;
+				revision = 986a2962d5e9bd3bc02d259b696dcd0ffb78d9b8;
 			};
 		};
 		766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */ = {

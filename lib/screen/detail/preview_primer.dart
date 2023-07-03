@@ -4,6 +4,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -13,11 +14,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class PreviewPrimerPage extends StatefulWidget {
   final AssetToken token;
@@ -35,7 +36,9 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     with AfterLayoutMixin, WidgetsBindingObserver {
   bool isFullScreen = false;
   ShakeDetector? _detector;
-  WebViewController? _controller;
+  InAppWebViewController? _controller;
+  final _configurationService = injector<ConfigurationService>();
+
   @override
   void dispose() {
     super.dispose();
@@ -114,6 +117,8 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     final theme = Theme.of(context);
     final token = widget.token;
     final identityBloc = context.read<IdentityBloc>();
+    final version = _configurationService.getVersionInfo();
+    final isShowArtistName = !token.isPostcard;
     return Scaffold(
         appBar: isFullScreen
             ? null
@@ -132,32 +137,33 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      BlocBuilder<IdentityBloc, IdentityState>(
-                        bloc: identityBloc
-                          ..add(GetIdentityEvent([
-                            token.artistName ?? '',
-                          ])),
-                        builder: (context, state) {
-                          final artistName = token.artistName
-                              ?.toIdentityOrMask(state.identityMap);
-                          if (artistName != null) {
-                            return Row(
-                              children: [
-                                const SizedBox(height: 4.0),
-                                Expanded(
-                                  child: Text(
-                                    "by".tr(args: [artistName]),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.ppMori400White14,
+                      if (isShowArtistName)
+                        BlocBuilder<IdentityBloc, IdentityState>(
+                          bloc: identityBloc
+                            ..add(GetIdentityEvent([
+                              token.artistName ?? '',
+                            ])),
+                          builder: (context, state) {
+                            final artistName = token.artistName
+                                ?.toIdentityOrMask(state.identityMap);
+                            if (artistName != null) {
+                              return Row(
+                                children: [
+                                  const SizedBox(height: 4.0),
+                                  Expanded(
+                                    child: Text(
+                                      "by".tr(args: [artistName]),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.ppMori400White14,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            );
-                          }
-                          return const SizedBox();
-                        },
-                      ),
+                                ],
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -186,18 +192,22 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
           child: Column(
             children: [
               Expanded(
-                child: WebView(
-                  initialUrl: WEB3_PRIMER_URL,
+                child: InAppWebView(
+                  initialUrlRequest:
+                      URLRequest(url: Uri.tryParse(WEB3_PRIMER_URL)),
+                  initialOptions: InAppWebViewGroupOptions(
+                      crossPlatform: InAppWebViewOptions(
+                          userAgent: "user_agent"
+                              .tr(namedArgs: {"version": version}))),
                   onWebViewCreated: (controller) {
                     _controller = controller;
                   },
-                  javascriptMode: JavascriptMode.unrestricted,
-                  onPageFinished: (url) {
+                  onLoadStop: (controller, uri) {
                     EasyDebounce.debounce(
                       'screen_rotate',
                       const Duration(milliseconds: 100),
-                      () => _controller?.runJavascript(
-                          "window.dispatchEvent(new Event('resize'));"),
+                      () => _controller?.evaluateJavascript(
+                          source: "window.dispatchEvent(new Event('resize'));"),
                     );
                   },
                 ),

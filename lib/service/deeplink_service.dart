@@ -13,10 +13,14 @@ import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -53,6 +57,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final FeralFileService _feralFileService;
   final NavigationService _navigationService;
   final BranchApi _branchApi;
+  final PostcardService _postcardService;
+  final AirdropService _airdropService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -67,6 +73,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._feralFileService,
     this._navigationService,
     this._branchApi,
+    this._postcardService,
+    this._airdropService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -121,7 +129,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleDappConnectDeeplink(link) ||
           await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link) ||
-          _handleIRL(link);
+          await _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
     });
@@ -293,9 +301,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  bool _handleIRL(String link) {
+  Future<bool> _handleIRL(String link) async {
     log.info("[DeeplinkService] _handleIRL");
 
+    if (!_configurationService.isDoneOnboarding()) {
+      memoryValues.irlLink.value = link;
+      await _restoreIfNeeded(allowCreateNewPersona: true);
+      memoryValues.irlLink.value = null;
+    }
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
       final urlDecode =
           Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
@@ -321,7 +334,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     //star
     memoryValues.airdropFFExhibitionId.value = AirdropQrData(
       exhibitionId: '',
-      artworkId: '',
+      seriesId: '',
     );
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -351,23 +364,46 @@ class DeeplinkServiceImpl extends DeeplinkService {
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
-        final String? artworkId = data["artwork_id"];
+        final String? seriesId = data["series_id"];
         final String? expiredAt = data["expired_at"];
 
         if (expiredAt != null &&
             DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
                 int.tryParse(expiredAt) ?? 0))) {
           log.info("[DeeplinkService] FeralFile Airdrop expired");
-          _navigationService.showAirdropExpired(artworkId);
+          _navigationService.showAirdropExpired(seriesId);
           break;
         }
 
-        if (exhibitionId?.isNotEmpty == true || artworkId?.isNotEmpty == true) {
+        if (exhibitionId?.isNotEmpty == true || seriesId?.isNotEmpty == true) {
           _claimFFAirdropToken(
             exhibitionId: exhibitionId,
-            artworkId: artworkId,
+            seriesId: seriesId,
             otp: _getOtpFromBranchData(data),
           );
+        }
+        break;
+      case "Postcard":
+        final String? type = data["type"];
+        final String? id = data["id"];
+        final DateTime expiredAt = data['expired'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(
+                (int.tryParse(data['expired_at']) ?? 0) * 1000)
+            : DateTime.now().add(const Duration(days: 1));
+        if (expiredAt.isBefore(DateTime.now())) {
+          _navigationService.showPostcardShareLinkExpired();
+          break;
+        }
+        if (type == "claim_empty_postcard" && id != null) {
+          _handleClaimEmptyPostcardDeeplink(id);
+          return;
+        }
+        final String? sharedCode = data["share_code"];
+        if (sharedCode != null) {
+          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          await _handlePostcardDeeplink(sharedCode);
+        } else {
+          _navigationService.waitTooLongDialog();
         }
         break;
       case "autonomy_irl":
@@ -377,6 +413,25 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _handleIRL(url);
         }
         break;
+      case "autonomy_airdrop":
+        final String? sharedCode = data["share_code"];
+        if (sharedCode != null) {
+          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          final sharedInfor = await _airdropService.claimShare(
+            AirdropClaimShareRequest(shareCode: sharedCode),
+          );
+          final series =
+              await _feralFileService.getSeries(sharedInfor.seriesID);
+          _navigationService.navigateTo(
+            AppRouter.claimAirdropPage,
+            arguments: ClaimTokenPagePayload(
+                claimID: "", shareCode: sharedInfor.shareCode, series: series),
+          );
+        } else {
+          _navigationService.waitTooLongDialog();
+        }
+        break;
+
       default:
         memoryValues.airdropFFExhibitionId.value = null;
     }
@@ -404,12 +459,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future _claimFFAirdropToken({
     String? exhibitionId,
-    String? artworkId,
+    String? seriesId,
     Otp? otp,
   }) async {
     log.info(
         "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}");
-    final id = "${exhibitionId}_${artworkId}_${otp?.code}";
+    final id = "${exhibitionId}_${seriesId}_${otp?.code}";
     if (currentExhibitionId == id) {
       return;
     }
@@ -417,34 +472,33 @@ class DeeplinkServiceImpl extends DeeplinkService {
       currentExhibitionId = id;
       final doneOnboarding = _configurationService.isDoneOnboarding();
       if (doneOnboarding) {
-        final artworkFuture = (artworkId?.isNotEmpty == true)
-            ? _feralFileService.getArtwork(artworkId!)
-            : _feralFileService
-                .getAirdropArtworkFromExhibitionId(exhibitionId!);
+        final seriesFuture = (seriesId?.isNotEmpty == true)
+            ? _feralFileService.getSeries(seriesId!)
+            : _feralFileService.getAirdropSeriesFromExhibitionId(exhibitionId!);
 
         await Future.delayed(const Duration(seconds: 1), () {
           _navigationService.popUntilHomeOrSettings();
         });
 
-        final artwork = await artworkFuture;
-        final endTime = artwork.airdropInfo?.endedAt;
-        if (artwork.airdropInfo == null ||
+        final series = await seriesFuture;
+        final endTime = series.airdropInfo?.endedAt;
+        if (series.airdropInfo == null ||
             (endTime != null && endTime.isBefore(DateTime.now()))) {
-          await _navigationService.showAirdropExpired(artworkId);
-        } else if (artwork.airdropInfo?.isAirdropStarted != true) {
-          await _navigationService.showAirdropNotStarted(artworkId);
-        } else if (artwork.airdropInfo?.remainAmount == 0) {
+          await _navigationService.showAirdropExpired(seriesId);
+        } else if (series.airdropInfo?.isAirdropStarted != true) {
+          await _navigationService.showAirdropNotStarted(seriesId);
+        } else if (series.airdropInfo?.remainAmount == 0) {
           await _navigationService.showNoRemainingToken(
-            artwork: artwork,
+            series: series,
           );
         } else if (otp?.isExpired == true) {
-          await _navigationService.showOtpExpired(artworkId);
+          await _navigationService.showOtpExpired(seriesId);
         } else {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;
           });
           await _navigationService.openClaimTokenPage(
-            artwork,
+            series,
             otp: otp,
           );
         }
@@ -452,7 +506,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       } else {
         memoryValues.airdropFFExhibitionId.value = AirdropQrData(
           exhibitionId: exhibitionId,
-          artworkId: artworkId,
+          seriesId: seriesId,
           otp: otp,
         );
         handlingDeepLink = null;
@@ -478,7 +532,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
   }
 
-  Future<void> _restoreIfNeeded() async {
+  Future<void> _restoreIfNeeded({bool allowCreateNewPersona = false}) async {
     final configurationService = injector<ConfigurationService>();
     if (configurationService.isDoneOnboarding()) return;
 
@@ -511,7 +565,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
         injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition);
       }
+    } else if (allowCreateNewPersona) {
+      configurationService.setDoneOnboarding(true);
+      await accountService.createPersona();
+      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
+  }
+
+  _handlePostcardDeeplink(String shareCode) async {
+    final sharedInfor =
+        await _postcardService.getSharedPostcardInfor(shareCode);
+    if (sharedInfor.status == SharedPostcardStatus.claimed) {
+      await _navigationService.showAlreadyDeliveredPostcard();
+      return;
+    }
+    final contractAddress = Environment.postcardContractAddress;
+    final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
+    final postcard = await _postcardService.getPostcard(tokenId);
+    _navigationService.openPostcardReceivedPage(
+        asset: postcard, shareCode: sharedInfor.shareCode);
+  }
+
+  _handleClaimEmptyPostcardDeeplink(String? id) async {
+    if (id == null) {
+      return;
+    }
+    final claimRequest =
+        await _postcardService.requestPostcard(RequestPostcardRequest(id: id));
+    _navigationService.navigatorKey.currentState?.pushNamed(
+      AppRouter.claimEmptyPostCard,
+      arguments: claimRequest,
+    );
   }
 }
 
@@ -525,4 +610,9 @@ Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
     );
   }
   return null;
+}
+
+class SharedPostcardStatus {
+  static String available = "available";
+  static String claimed = "claimed";
 }

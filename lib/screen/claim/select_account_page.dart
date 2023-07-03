@@ -4,9 +4,9 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -24,7 +24,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class SelectAccountPageArgs {
   final String? blockchain;
 
-  final FFArtwork? artwork;
+  final FFSeries? artwork;
   final bool fromWebview;
 
   final Otp? otp;
@@ -39,7 +39,7 @@ class SelectAccountPageArgs {
 
 class SelectAccountPage extends StatefulWidget {
   final String? blockchain;
-  final FFArtwork? artwork;
+  final FFSeries? artwork;
   final bool? fromWebview;
   final Otp? otp;
 
@@ -208,12 +208,12 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     String artworkId, {
     Otp? otp,
   }) async {
-    ClaimRespone? claimRespone;
+    ClaimResponse? claimRespone;
     try {
       _setProcessingState(true);
       final ffService = injector<FeralFileService>();
       claimRespone = await ffService.claimToken(
-        artworkId: artworkId,
+        seriesId: artworkId,
         address: address,
         otp: otp,
       );
@@ -230,7 +230,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       await UIHelper.showClaimTokenError(
         context,
         e,
-        artwork: widget.artwork!,
+        series: widget.artwork!,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     } finally {

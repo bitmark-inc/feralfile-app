@@ -31,22 +31,22 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ClaimTokenPageArgs {
-  final FFArtwork artwork;
+  final FFSeries series;
   final Otp? otp;
 
   ClaimTokenPageArgs({
-    required this.artwork,
+    required this.series,
     this.otp,
   });
 }
 
 class ClaimTokenPage extends StatefulWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
   final Otp? otp;
 
   const ClaimTokenPage({
     Key? key,
-    required this.artwork,
+    required this.series,
     this.otp,
   }) : super(key: key);
 
@@ -63,7 +63,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
 
   @override
   Widget build(BuildContext context) {
-    final artwork = widget.artwork;
+    final artwork = widget.series;
     final artist = artwork.artist;
     final artistName = artist != null ? artist.getDisplayName() : "";
     final artworkThumbnail = artwork.getThumbnailURL();
@@ -153,7 +153,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PreviewTokenClaim(
-                                artwork: widget.artwork,
+                                series: widget.series,
                               ),
                             ),
                           );
@@ -182,14 +182,14 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PreviewTokenClaim(
-                                          artwork: widget.artwork,
+                                          series: widget.series,
                                         ),
                                       ),
                                     );
                                   },
                                 ),
                                 Text(
-                                  "by $artistName",
+                                  "by".tr(args: [artistName]),
                                   style: theme.textTheme.ppMori400White14,
                                 ),
                               ],
@@ -238,14 +238,14 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                         metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            "id": widget.artwork.id,
+                            "id": widget.series.id,
                           },
                         );
                         setState(() {
                           _processing = true;
                         });
                         final blockchain = widget
-                                .artwork.exhibition?.mintBlockchain
+                                .series.exhibition?.mintBlockchain
                                 .capitalize() ??
                             "Tezos";
                         final accountService = injector<AccountService>();
@@ -274,7 +274,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             AppRouter.claimSelectAccountPage,
                             arguments: SelectAccountPageArgs(
                               blockchain,
-                              widget.artwork,
+                              widget.series,
                               widget.otp,
                             ),
                           );
@@ -335,7 +335,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    "id": widget.artwork.id,
+                    "id": widget.series.id,
                   },
                 );
                 memoryValues.airdropFFExhibitionId.value = null;
@@ -349,18 +349,18 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   Future _claimToken(BuildContext context, String receiveAddress) async {
-    ClaimRespone? claimRespone;
+    ClaimResponse? claimRespone;
     final ffService = injector<FeralFileService>();
     try {
       claimRespone = await ffService.claimToken(
-        artworkId: widget.artwork.id,
+        seriesId: widget.series.id,
         address: receiveAddress,
         otp: widget.otp,
       );
       metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.artwork.id,
+          "id": widget.series.id,
         },
       );
 
@@ -370,7 +370,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       await UIHelper.showClaimTokenError(
         context,
         e,
-        artwork: widget.artwork,
+        series: widget.series,
       );
       memoryValues.airdropFFExhibitionId.value = null;
     }
@@ -397,16 +397,16 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   void _openFFArtistCollector() {
-    String uri = (widget.artwork.exhibition?.id == null)
+    String uri = (widget.series.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
-        : "$FF_ARTIST_COLLECTOR/${widget.artwork.exhibition?.id}";
+        : "$FF_ARTIST_COLLECTOR/${widget.series.exhibition?.id}";
     launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
 }
 
-class ClaimRespone {
+class ClaimResponse {
   AssetToken token;
   AirdropInfo airdropInfo;
 
-  ClaimRespone({required this.token, required this.airdropInfo});
+  ClaimResponse({required this.token, required this.airdropInfo});
 }

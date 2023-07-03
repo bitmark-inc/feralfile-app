@@ -12,7 +12,11 @@ import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
@@ -131,7 +135,7 @@ abstract class ConfigurationService {
 
   Future<void> setPreviousBuildNumber(String value);
 
-  List<PlayListModel>? getPlayList();
+  List<PlayListModel> getPlayList();
 
   Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
 
@@ -161,6 +165,10 @@ abstract class ConfigurationService {
   Future<void> setHasFeed(bool value);
 
   bool hasFeed();
+
+  Future setLastTimeOpenEditorial(DateTime time);
+
+  DateTime? getLastTimeOpenEditorial();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -203,6 +211,10 @@ abstract class ConfigurationService {
 
   bool getAlreadyShowLinkOrImportTip();
 
+  DateTime? getShowBackupSettingTip();
+
+  Future setShowBackupSettingTip(DateTime time);
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -229,6 +241,51 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showCreatePlaylistTip;
 
   ValueNotifier<bool> get showLinkOrImportTip;
+
+  ValueNotifier<bool> get showBackupSettingTip;
+
+  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip;
+
+  List<SharedPostcard> getSharedPostcard();
+
+  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
+      {bool override = false, bool isRemoved = false});
+
+  Future<void> removeSharedPostcardWhere(bool Function(SharedPostcard) test);
+
+  List<String> getListPostcardMint();
+
+  Future<void> setListPostcardMint(List<String> tokenID,
+      {bool override = false, bool isRemoved = false});
+
+  List<StampingPostcard> getStampingPostcard();
+
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false});
+
+  Future<void> removeExpiredStampingPostcard();
+
+  Future<void> setAutoShowPostcard(bool value);
+
+  bool isAutoShowPostcard();
+
+  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt();
+
+  Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
+      {bool override = false});
+
+  Future<void> setMixpanelConfig(MixpanelConfig config);
+
+  MixpanelConfig? getMixpanelConfig();
+
+  Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
+      {bool override = false});
+
+  List<PostcardIdentity> getAlreadyShowPostcardUpdates();
+
+  String getVersionInfo();
+
+  Future<void> setVersionInfo(String version);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -258,6 +315,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
+  static const String KEY_SHARED_POSTCARD = "shared_postcard";
 
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
       "announcement_last_pull_time";
@@ -277,6 +335,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
+  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
 
   static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
   static const String TV_CONNECT_ID = "tv_connect_id";
@@ -304,6 +363,28 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
       "show_link_or_import_tip";
+
+  static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
+      "show_back_up_settings_tip";
+
+  static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
+
+  static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
+
+  static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
+      "already_show_you_did_it_postcard";
+
+  static const String KEY_CURRENT_GROUP_CHAT_ID = "current_group_chat_id";
+
+  static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
+      "already_show_postcard_updates";
+
+  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
+
+  static const String KEY_PACKAGE_INFO = "package_info";
+
+  final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
+      ValueNotifier([]);
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -358,6 +439,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
       "sent_tezos_artwork_metric";
+
+  static const String POSTCARD_MINT = "postcard_mint";
 
   final SharedPreferences _preferences;
 
@@ -830,8 +913,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<PlayListModel>? getPlayList() {
-    final playListsString = _preferences.getStringList(PLAYLISTS) ?? [];
+  List<PlayListModel> getPlayList() {
+    final playListsString = _preferences.getStringList(PLAYLISTS);
+    if (playListsString == null || playListsString.isEmpty) {
+      return [];
+    }
     return playListsString
         .map((e) => PlayListModel.fromJson(jsonDecode(e)))
         .toList();
@@ -966,4 +1052,257 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future setSubscriptionTime(DateTime time) async {
     await _preferences.setString(KEY_SUBSCRIPTION_TIME, time.toIso8601String());
   }
+
+  @override
+  DateTime? getShowBackupSettingTip() {
+    final timeString = _preferences.getString(KEY_SHOW_BACK_UP_SETTINGS_TIP);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setShowBackupSettingTip(DateTime time) async {
+    await _preferences.setString(
+        KEY_SHOW_BACK_UP_SETTINGS_TIP, time.toIso8601String());
+  }
+
+  @override
+  ValueNotifier<bool> showBackupSettingTip = ValueNotifier(false);
+
+  @override
+  List<SharedPostcard> getSharedPostcard() {
+    final sharedPostcardString =
+        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
+    return sharedPostcardString
+        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toSet()
+        .toList();
+  }
+
+  @override
+  Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
+      {bool override = false, bool isRemoved = false}) async {
+    const key = KEY_SHARED_POSTCARD;
+    final updatePostcards =
+        sharedPostcards.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updatePostcards);
+      expiredPostcardSharedLinkTip.value =
+          await sharedPostcards.expiredPostcards;
+    } else {
+      var sentPostcard = _preferences.getStringList(key) ?? [];
+      if (isRemoved) {
+        sentPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        sentPostcard.addAll(updatePostcards);
+      }
+      final uniqueSharedPostcard = sentPostcard
+          .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+          .toList();
+      uniqueSharedPostcard.sort((e1, e2) {
+        if (e2.sharedAt == null || e1.sharedAt == null) {
+          return 0;
+        }
+        return e2.sharedAt!.compareTo(e1.sharedAt!);
+      });
+
+      uniqueSharedPostcard.unique((element) => element.tokenID + element.owner);
+      await _preferences.setStringList(key,
+          uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
+      expiredPostcardSharedLinkTip.value =
+          await uniqueSharedPostcard.expiredPostcards;
+    }
+  }
+
+  @override
+  Future<void> removeSharedPostcardWhere(bool Function(SharedPostcard) test) {
+    final sharedPostcardString =
+        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
+    final sharedPostcards = sharedPostcardString
+        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toSet()
+        .toList();
+    sharedPostcards.removeWhere(test);
+    return updateSharedPostcard(sharedPostcards, override: true);
+  }
+
+  @override
+  List<String> getListPostcardMint() {
+    return _preferences.getStringList(POSTCARD_MINT) ?? [];
+  }
+
+  @override
+  Future<void> setListPostcardMint(List<String> tokenID,
+      {bool override = false, bool isRemoved = false}) async {
+    if (override) {
+      await _preferences.setStringList(POSTCARD_MINT, tokenID);
+    } else {
+      var currentPortcardMints =
+          _preferences.getStringList(POSTCARD_MINT) ?? [];
+      if (isRemoved) {
+        currentPortcardMints
+            .removeWhere((element) => tokenID.contains(element));
+      } else {
+        currentPortcardMints.addAll(tokenID);
+      }
+      await _preferences.setStringList(POSTCARD_MINT, currentPortcardMints);
+    }
+  }
+
+  @override
+  List<StampingPostcard> getStampingPostcard() {
+    return _preferences
+            .getStringList(KEY_STAMPING_POSTCARD)
+            ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
+            .toList()
+            .where((element) => element.timestamp
+                .isAfter(DateTime.now().subtract(STAMPING_POSTCARD_LIMIT_TIME)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> updateStampingPostcard(List<StampingPostcard> values,
+      {bool override = false, bool isRemove = false}) async {
+    const key = KEY_STAMPING_POSTCARD;
+    final updatePostcards = values.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updatePostcards);
+    } else {
+      await removeExpiredStampingPostcard();
+      var currentStampingPostcard = _preferences.getStringList(key) ?? [];
+
+      if (isRemove) {
+        currentStampingPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        currentStampingPostcard.addAll(updatePostcards);
+      }
+      await _preferences.setStringList(
+          key, currentStampingPostcard.toSet().toList());
+    }
+  }
+
+  @override
+  Future<void> removeExpiredStampingPostcard() async {
+    final currentStampingPostcard = getStampingPostcard();
+    final now = DateTime.now();
+    final unexpiredStampingPostcard = currentStampingPostcard
+        .where((element) => element.timestamp
+            .isAfter(now.subtract(STAMPING_POSTCARD_LIMIT_TIME)))
+        .toList();
+    _preferences.setStringList(KEY_STAMPING_POSTCARD,
+        unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
+  }
+
+  @override
+  bool isAutoShowPostcard() {
+    return _preferences.getBool(KEY_AUTO_SHOW_POSTCARD) ?? false;
+  }
+
+  @override
+  Future<void> setAutoShowPostcard(bool value) async {
+    log.info('setAutoShowPostcard: $value');
+    await _preferences.setBool(KEY_AUTO_SHOW_POSTCARD, value);
+  }
+
+  @override
+  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt() {
+    return _preferences
+            .getStringList(KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD)
+            ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> values,
+      {bool override = false}) async {
+    const key = KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD;
+    final updateValues = values.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      await _preferences.setStringList(key, updateValues);
+    } else {
+      var currentValue = _preferences.getStringList(key) ?? [];
+
+      currentValue.addAll(updateValues);
+      await _preferences.setStringList(key, currentValue.toSet().toList());
+    }
+  }
+
+  @override
+  DateTime? getLastTimeOpenEditorial() {
+    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
+    if (timeString == null) {
+      return null;
+    }
+    return DateTime.parse(timeString);
+  }
+
+  @override
+  Future setLastTimeOpenEditorial(DateTime time) {
+    return _preferences.setString(
+        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
+  }
+
+  @override
+  MixpanelConfig? getMixpanelConfig() {
+    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
+    if (data == null) {
+      return null;
+    }
+    final config = MixpanelConfig.fromJson(jsonDecode(data));
+    return config;
+  }
+
+  @override
+  Future<void> setMixpanelConfig(MixpanelConfig config) async {
+    await _preferences.setString(
+        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
+  }
+
+  @override
+  List<PostcardIdentity> getAlreadyShowPostcardUpdates() {
+    return _preferences
+            .getStringList(KEY_ALREADY_SHOW_POSTCARD_UPDATES)
+            ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
+      {bool override = false}) {
+    const key = KEY_ALREADY_SHOW_POSTCARD_UPDATES;
+    final updateValues = value.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      return _preferences.setStringList(key, updateValues);
+    } else {
+      var currentValue = _preferences.getStringList(key) ?? [];
+
+      currentValue.addAll(updateValues);
+      return _preferences.setStringList(key, currentValue.toSet().toList());
+    }
+  }
+
+  @override
+  String getVersionInfo() {
+    return _preferences.getString(KEY_PACKAGE_INFO) ?? "";
+  }
+
+  @override
+  Future<void> setVersionInfo(String version) async {
+    await _preferences.setString(KEY_PACKAGE_INFO, version);
+  }
+
+  @override
+  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip =>
+      _expiredPostcardSharedLinkTip;
 }

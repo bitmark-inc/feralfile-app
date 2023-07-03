@@ -1,12 +1,14 @@
+import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
-  ViewPlaylistBloc() : super(ViewPlaylistState()) {
+class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
+  final PlaylistService _playlistService;
+
+  ViewPlaylistBloc(this._playlistService) : super(ViewPlaylistState()) {
     on<GetPlayList>((event, emit) {
       emit(
         ViewPlaylistState(
@@ -22,15 +24,13 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
       playListModel?.name = event.name;
-      final config = injector.get<ConfigurationService>();
 
-      final playlists = config.getPlayList();
+      final playlists = await _playlistService.getPlayList();
       final index =
-          playlists?.indexWhere((element) => element.id == playListModel?.id) ??
-              -1;
+          playlists.indexWhere((element) => element.id == playListModel?.id);
       if (index != -1 && playListModel != null) {
-        playlists?[index] = playListModel;
-        config.setPlayList(playlists, override: true);
+        playlists[index] = playListModel;
+        _playlistService.setPlayList(playlists, override: true);
         injector.get<SettingsDataService>().backup();
       }
       emit(state.copyWith(isRename: false));
@@ -39,15 +39,13 @@ class ViewPlaylistBloc extends Bloc<ViewPlaylistEvent, ViewPlaylistState> {
     on<UpdatePlayControl>((event, emit) async {
       final playListModel = state.playListModel;
       playListModel?.playControlModel = event.playControlModel;
-      final config = injector.get<ConfigurationService>();
 
-      final playlists = config.getPlayList();
+      final playlists = await _playlistService.getPlayList();
       final index =
-          playlists?.indexWhere((element) => element.id == playListModel?.id) ??
-              -1;
+          playlists.indexWhere((element) => element.id == playListModel?.id);
       if (index != -1 && playListModel != null) {
-        playlists?[index] = playListModel;
-        config.setPlayList(playlists, override: true);
+        playlists[index] = playListModel;
+        _playlistService.setPlayList(playlists, override: true);
         injector.get<SettingsDataService>().backup();
       }
       emit(state.copyWith(playListModel: playListModel));

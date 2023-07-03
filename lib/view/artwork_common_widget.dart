@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/any_problem_nft_widget.dart';
-import 'package:autonomy_flutter/screen/detail/report_rendering_issue/report_rendering_issue_widget.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -18,12 +17,13 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,7 +36,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
-import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -51,6 +50,38 @@ String getEditionSubTitle(AssetToken token) {
       ? tr('edition_of',
           args: [token.edition.toString(), token.maxEdition.toString()])
       : '${tr('edition')} ${token.edition}';
+}
+
+class MintTokenWidget extends StatelessWidget {
+  final String? thumbnail;
+  final String? tokenId;
+
+  const MintTokenWidget({Key? key, this.thumbnail, this.tokenId})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      label: "gallery_artwork_${tokenId}_minting",
+      child: Container(
+        color: theme.auLightGrey,
+        padding: const EdgeInsets.all(10),
+        child: Stack(
+          children: [
+            Center(child: SvgPicture.asset('assets/images/mint_icon.svg')),
+            Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: Text(
+                "minting_token".tr(),
+                style: theme.textTheme.ppMori700QuickSilver8,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class PendingTokenWidget extends StatelessWidget {
@@ -137,7 +168,9 @@ Widget tokenGalleryThumbnailWidget(
   return Semantics(
     label: "gallery_artwork_${token.title}",
     child: Hero(
-      tag: useHero ? "gallery_thumbnail_${token.id}" : const Uuid().v4(),
+      tag: useHero
+          ? "gallery_thumbnail_${token.id}_${token.owner}"
+          : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
       child: ext == ".svg"
           ? SvgImage(
@@ -256,6 +289,7 @@ class GalleryThumbnailErrorWidget extends StatelessWidget {
 
 class GalleryNoThumbnailWidget extends StatelessWidget {
   final CompactedAssetToken assetToken;
+
   const GalleryNoThumbnailWidget({Key? key, required this.assetToken})
       : super(key: key);
 
@@ -383,70 +417,6 @@ Widget placeholder(BuildContext context) {
   );
 }
 
-class ReportButton extends StatefulWidget {
-  final AssetToken? assetToken;
-  final ScrollController scrollController;
-
-  const ReportButton({
-    Key? key,
-    this.assetToken,
-    required this.scrollController,
-  }) : super(key: key);
-
-  @override
-  State<ReportButton> createState() => _ReportButtonState();
-}
-
-class _ReportButtonState extends State<ReportButton> {
-  bool isShowingArtwortReportProblemContainer = true;
-
-  _scrollListener() {
-    /*
-    So we see it like that when we are at the top of the page.
-    When we start scrolling down it disappears and we see it again attached at the bottom of the page.
-    And if we scroll all the way up again, we would display again it attached down the screen
-    https://www.figma.com/file/Ze71GH9ZmZlJwtPjeHYZpc?node-id=51:5175#159199971
-    */
-    if (widget.scrollController.offset > 80) {
-      setState(() {
-        isShowingArtwortReportProblemContainer = false;
-      });
-    } else {
-      setState(() {
-        isShowingArtwortReportProblemContainer = true;
-      });
-    }
-
-    if (widget.scrollController.position.pixels + 100 >=
-        widget.scrollController.position.maxScrollExtent) {
-      setState(() {
-        isShowingArtwortReportProblemContainer = true;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    widget.scrollController.addListener(_scrollListener);
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.assetToken == null) return const SizedBox();
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      height: isShowingArtwortReportProblemContainer ? 80 : 0,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: AnyProblemNFTWidget(
-          asset: widget.assetToken!,
-        ),
-      ),
-    );
-  }
-}
-
 INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
   AssetToken assetToken, {
@@ -457,10 +427,13 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
+  String? userAgent,
 }) {
   String mimeType = assetToken.getMimeType;
-
+  final version = injector<ConfigurationService>().getVersionInfo();
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
+
+  userAgent ??= "user_agent".tr(namedArgs: {"version": version.toString()});
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
@@ -476,6 +449,7 @@ INFTRenderingWidget buildRenderingWidget(
     skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
+    userAgent: userAgent,
   ));
 
   return renderingWidget;
@@ -613,54 +587,6 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   }
 }
 
-void showReportIssueDialog(BuildContext context, AssetToken token) {
-  UIHelper.showDialog(
-    context,
-    'report_issue'.tr(),
-    ReportRenderingIssueWidget(
-      token: token,
-      onReported: (githubURL) =>
-          _showReportRenderingDialogSuccess(context, githubURL),
-    ),
-    backgroundColor: Theme.of(context).auGreyBackground,
-  );
-}
-
-void _showReportRenderingDialogSuccess(BuildContext context, String githubURL) {
-  final theme = Theme.of(context);
-  UIHelper.showDialog(
-    context,
-    'share_with_artist'.tr(),
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "thank_for_report".tr(),
-          style: theme.textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 40),
-        PrimaryButton(
-          onTap: () {
-            Share.share(githubURL).then((value) {
-              Navigator.of(context).pop();
-            });
-          },
-          text: "share".tr(),
-        ),
-        const SizedBox(height: 10),
-        OutlineButton(
-          onTap: () => Navigator.pop(context),
-          text: "cancel_dialog".tr(),
-        ),
-        const SizedBox(height: 15),
-      ],
-    ),
-    isDismissible: true,
-    feedback: FeedbackType.success,
-  );
-}
-
 Widget previewPlaceholder(BuildContext context) {
   return const PreviewPlaceholder();
 }
@@ -775,16 +701,106 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId
           : assetToken.id.split("-").last;
-  return assetToken.source == "feralfile"
-      ? ArtworkRightsView(
-          contract: FFContract("", "", assetToken.contractAddress ?? ""),
-          editionID: editionID,
-        )
-      : const SizedBox();
+  if (assetToken.source == "feralfile") {
+    return ArtworkRightsView(
+      contract: FFContract("", "", assetToken.contractAddress ?? ""),
+      artworkID: artworkID,
+    );
+  }
+  if (assetToken.isPostcard) {
+    return PostcardRightsView(
+      editionID: artworkID,
+    );
+  }
+  return const SizedBox();
+}
+
+class ListItemExpandedWidget extends StatefulWidget {
+  final List<TextSpan> children;
+  final int unexpandedCount;
+
+  const ListItemExpandedWidget(
+      {Key? key, required this.children, required this.unexpandedCount})
+      : super(key: key);
+
+  @override
+  State<ListItemExpandedWidget> createState() => _ListItemExpandedWidgetState();
+}
+
+class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
+  bool _isExpanded = false;
+
+  Widget unexpanedWidget(BuildContext context) {
+    final theme = Theme.of(context);
+    final expandText = (widget.children.length - widget.unexpandedCount > 0)
+        ? TextSpan(
+            text: " +${widget.children.length - widget.unexpandedCount}",
+            style: theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                setState(() {
+                  _isExpanded = true;
+                });
+              },
+          )
+        : const TextSpan();
+    final subList = widget.children
+        .sublist(0, min(widget.unexpandedCount, widget.children.length));
+    return RichText(
+      text: TextSpan(
+        children: subList
+            .mapIndexed((index, child) => [
+                  child,
+                  if (index != widget.children.length - 1)
+                    TextSpan(
+                      text: ", ",
+                      style: theme.textTheme.ppMori400White14,
+                    ),
+                ])
+            .flattened
+            .toList()
+          ..add(expandText),
+      ),
+    );
+  }
+
+  Widget expanedWidget(BuildContext context) {
+    // final hideText = TextSpan(
+    //   text: " -",
+    //   style: Theme.of(context).textTheme.ppMori400White14,
+    //   recognizer: TapGestureRecognizer()
+    //     ..onTap = () {
+    //       setState(() {
+    //         _isExpanded = false;
+    //       });
+    //     },
+    // );
+    return RichText(
+      text: TextSpan(
+          children: widget.children
+              .mapIndexed((index, child) => [
+                    child,
+                    if (index != widget.children.length - 1)
+                      TextSpan(
+                        text: ", ",
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                  ])
+              .flattened
+              .toList()
+          // ..add(hideText),
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isExpanded ? expanedWidget(context) : unexpanedWidget(context);
+  }
 }
 
 class SectionExpandedWidget extends StatefulWidget {
@@ -799,7 +815,7 @@ class SectionExpandedWidget extends StatefulWidget {
 }
 
 class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -853,10 +869,111 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
   }
 }
 
+Widget postcardDetailsMetadataSection(
+    BuildContext context, AssetToken assetToken, List<String?> owners) {
+  final theme = Theme.of(context);
+  final ownersList = owners.whereNotNull().toList();
+  return SectionExpandedWidget(
+    header: "metadata".tr(),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MetaDataItem(
+          title: "title".tr(),
+          value: assetToken.title ?? '',
+        ),
+        if (ownersList.isNotEmpty) ...[
+          Divider(
+            height: 32.0,
+            color: theme.auLightGrey,
+          ),
+          CustomMetaDataItem(
+            title: "creators".tr(),
+            content: ListItemExpandedWidget(
+              children: [
+                ...ownersList
+                    .mapIndexed((index, artistName) => TextSpan(
+                          text: artistName,
+                          style: theme.textTheme.ppMori400White14,
+                        ))
+                    .toList(),
+              ],
+              unexpandedCount: 2,
+            ),
+          ),
+        ],
+        (assetToken.fungible == false)
+            ? Column(
+                children: [
+                  Divider(
+                    height: 32.0,
+                    color: theme.auLightGrey,
+                  ),
+                  _getEditionNameRow(context, assetToken),
+                ],
+              )
+            : const SizedBox(),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "token".tr(),
+          value: polishSource(assetToken.source ?? ""),
+          tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "contract".tr(),
+          value: (assetToken.blockchain.toLowerCase() == "tezos")
+              ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
+              : assetToken.blockchain.capitalize(),
+          tapLink: assetToken.getBlockchainUrl(),
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "medium".tr(),
+          value: assetToken.medium?.capitalize() ?? '',
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "date_minted".tr(),
+          value: assetToken.mintedAt != null
+              ? localTimeString(assetToken.mintedAt!)
+              : '',
+        ),
+        assetToken.assetData != null && assetToken.assetData!.isNotEmpty
+            ? Column(
+                children: [
+                  const Divider(height: 32.0),
+                  MetaDataItem(
+                    title: "artwork_data".tr(),
+                    value: assetToken.assetData!,
+                  )
+                ],
+              )
+            : const SizedBox(),
+        const SizedBox(height: 16.0),
+      ],
+    ),
+  );
+}
+
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, String? artistName) {
   final theme = Theme.of(context);
-  final editionID =
+  final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ""
           : assetToken.id.split("-").last;
@@ -916,10 +1033,10 @@ Widget artworkDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        editionID.isNotEmpty
+        artworkID.isNotEmpty
             ? FutureBuilder<Exhibition?>(
                 future: injector<FeralFileService>()
-                    .getExhibitionFromTokenID(editionID),
+                    .getExhibitionFromTokenID(artworkID),
                 builder: (context, snapshot) {
                   if (snapshot.data != null) {
                     return Column(
@@ -996,31 +1113,88 @@ Widget _getEditionNameRow(BuildContext context, AssetToken assetToken) {
   );
 }
 
-Widget tokenOwnership(
+Widget postcardOwnership(
     BuildContext context, AssetToken assetToken, List<String> addresses) {
   final theme = Theme.of(context);
 
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
-  List<String> ownerAddresses = [assetToken.owner];
+  final totalSentQuantity = sentTokens
+      .where((element) =>
+          element.tokenID == assetToken.id &&
+          element.timestamp.isAfter(expiredTime))
+      .fold<int>(
+          0, (previousValue, element) => previousValue + element.sentQuantity);
 
   int ownedTokens = assetToken.balance ?? 0;
-
   if (ownedTokens == 0) {
     ownedTokens =
         addresses.map((address) => assetToken.owners[address] ?? 0).sum;
-    ownerAddresses = addresses;
     if (ownedTokens == 0) {
       ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
-      ownerAddresses = [assetToken.owner];
     }
   }
+
+  if (ownedTokens > 0) {
+    ownedTokens -= totalSentQuantity;
+  }
+
+  return SectionExpandedWidget(
+    header: "token_ownership".tr(),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "how_many_shares_you_own".tr(),
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 32.0),
+        MetaDataItem(
+          title: "shares".tr(),
+          value: "${assetToken.maxEdition}",
+          tapLink: assetToken.tokenURL,
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "owned".tr(),
+          value: "$ownedTokens",
+          tapLink: assetToken.tokenURL,
+          forceSafariVC: true,
+        ),
+        const SizedBox(height: 16.0),
+      ],
+    ),
+  );
+}
+
+Widget tokenOwnership(
+    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
+  final theme = Theme.of(context);
+
+  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+  int ownedTokens = assetToken.balance ?? 0;
+  final ownerAddress = assetToken.owner;
+  final List<MapEntry<String, int>> values = owners.entries.toList()
+    ..sort((a, b) {
+      return a.key == ownerAddress
+          ? -1
+          : b.key == ownerAddress
+              ? 1
+              : a.key.compareTo(b.key);
+    });
+  final tapLink = assetToken.tokenURL;
 
   final totalSentQuantity = sentTokens
       .where((element) =>
           element.tokenID == assetToken.id &&
-          ownerAddresses.contains(element.address) &&
+          ownerAddress == element.address &&
           element.timestamp.isAfter(expiredTime))
       .fold<int>(
           0, (previousValue, element) => previousValue + element.sentQuantity);
@@ -1049,15 +1223,48 @@ Widget tokenOwnership(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
+        MetaDataMultiItem(
           title: "owned".tr(),
-          value: "$ownedTokens",
-          tapLink: assetToken.tokenURL,
+          values: values,
+          tapLink: tapLink,
           forceSafariVC: true,
         ),
       ],
     ),
   );
+}
+
+class CustomMetaDataItem extends StatelessWidget {
+  final String title;
+  final Widget content;
+  final bool? forceSafariVC;
+
+  const CustomMetaDataItem({
+    Key? key,
+    required this.title,
+    required this.content,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(flex: 3, child: content),
+      ],
+    );
+  }
 }
 
 class MetaDataItem extends StatelessWidget {
@@ -1114,6 +1321,94 @@ class MetaDataItem extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class MetaDataMultiItem extends StatelessWidget {
+  final String title;
+  final List<MapEntry<String, int>> values;
+  final String? tapLink;
+  final bool? forceSafariVC;
+
+  const MetaDataMultiItem({
+    Key? key,
+    required this.title,
+    required this.values,
+    this.tapLink,
+    this.forceSafariVC,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400Grey14,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: values
+                .map(
+                  (e) => Column(
+                    children: [
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (tapLink != null &&
+                                      tapLink!.isValidUrl()) {
+                                    final uri = Uri.parse(tapLink!);
+                                    launchUrl(uri,
+                                        mode: forceSafariVC == true
+                                            ? LaunchMode.externalApplication
+                                            : LaunchMode.platformDefault);
+                                  }
+                                },
+                                child: Text(
+                                  e.value.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style:
+                                      tapLink != null && tapLink!.isValidUrl()
+                                          ? theme.textTheme.ppMori400Green14
+                                          : theme.textTheme.ppMori400White14,
+                                ),
+                              ),
+                              Text(
+                                " (${e.key.maskOnly(5)})",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.ppMori400White14,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (e != values.last)
+                        const Divider(
+                          color: AppColor.auLightGrey,
+                        ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        )
       ],
     );
   }
@@ -1282,17 +1577,79 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
   );
 }
 
+class PostcardRightsView extends StatefulWidget {
+  final TextStyle? linkStyle;
+  final String? editionID;
+
+  const PostcardRightsView({
+    Key? key,
+    this.linkStyle,
+    this.editionID,
+  }) : super(key: key);
+
+  @override
+  State<PostcardRightsView> createState() => _PostcardRightsViewState();
+}
+
+class _PostcardRightsViewState extends State<PostcardRightsView> {
+  final dio = Dio(BaseOptions(
+    connectTimeout: 2000,
+  ));
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Response<String>>(
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data?.statusCode == 200) {
+            return SectionExpandedWidget(
+              header: "rights".tr(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Markdown(
+                    key: const Key("rightsSection"),
+                    data: snapshot.data!.data!.replaceAll(".**", "**"),
+                    softLineBreak: true,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(0),
+                    styleSheet: markDownRightStyle(context),
+                    onTapLink: (text, href, title) async {
+                      if (href == null) return;
+                      launchUrl(Uri.parse(href),
+                          mode: LaunchMode.externalApplication);
+                    },
+                  ),
+                  const SizedBox(height: 23.0),
+                ],
+              ),
+            );
+          } else {
+            return const SizedBox();
+          }
+        },
+        future: dio.get<String>(
+          POSTCARD_RIGHTS_DOCS,
+        ));
+  }
+}
+
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
   final FFContract contract;
-  final String? editionID;
+  final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
       {Key? key,
       this.linkStyle,
       required this.contract,
-      this.editionID,
+      this.artworkID,
       this.exhibitionID})
       : super(key: key);
 
@@ -1306,7 +1663,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     super.initState();
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
-        editionID: widget.editionID,
+        artworkID: widget.artworkID,
         contractAddress: widget.contract.address));
   }
 
@@ -1461,20 +1818,20 @@ class ArtworkRightWidget extends StatelessWidget {
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final FFArtwork artwork;
+  final FFSeries series;
 
   const FeralfileArtworkDetailsMetadataSection({
     Key? key,
-    required this.artwork,
+    required this.series,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artist = artwork.artist;
-    final contract = artwork.contract;
+    final artist = series.artist;
+    final contract = series.contract;
     final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = artwork.createdAt;
+    final mintDate = series.createdAt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1483,7 +1840,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           style: theme.textTheme.displayMedium,
         ),
         const SizedBox(height: 23.0),
-        _rowItem(context, "title".tr(), artwork.title),
+        _rowItem(context, "title".tr(), series.title),
         const Divider(
           height: 32.0,
           color: AppColor.secondarySpanishGrey,
@@ -1523,7 +1880,7 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
         _rowItem(
           context,
           "medium".tr(),
-          artwork.medium.capitalize(),
+          series.medium.capitalize(),
         ),
         const Divider(
           height: 32.0,
@@ -1543,8 +1900,11 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
 class ExpandedWidget extends StatefulWidget {
   final Widget? header;
   final Widget? child;
+  final Widget? unexpendedChild;
 
-  const ExpandedWidget({Key? key, this.header, this.child}) : super(key: key);
+  const ExpandedWidget(
+      {Key? key, this.header, this.child, this.unexpendedChild})
+      : super(key: key);
 
   @override
   State<ExpandedWidget> createState() => _ExpandedWidgetState();
@@ -1582,10 +1942,10 @@ class _ExpandedWidgetState extends State<ExpandedWidget> {
           ),
         ),
         const SizedBox(height: 23.0),
-        Visibility(
-          visible: _isExpanded,
-          child: widget.child ?? const SizedBox(),
-        )
+        if (_isExpanded)
+          widget.child ?? const SizedBox()
+        else
+          widget.unexpendedChild ?? const SizedBox(),
       ],
     );
   }

@@ -49,14 +49,14 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
   void initState() {
     super.initState();
 
-    final to = EthereumAddress.fromHex(widget.args.transaction.to);
+    final to = EthereumAddress.fromHex(widget.args.transaction.to!);
     final EtherAmount amount = EtherAmount.fromBase10String(
         EtherUnit.wei, widget.args.transaction.value ?? '0');
 
     context.read<WCSendTransactionBloc>().add(WCSendTransactionEstimateEvent(
         to,
         amount,
-        widget.args.transaction.data,
+        widget.args.transaction.data ?? "",
         widget.args.uuid,
         widget.args.index));
     _selectedPriority = context.read<WCSendTransactionBloc>().state.feeOption;
@@ -239,13 +239,16 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                             Expanded(
                               child: PrimaryButton(
                                 text: "send".tr(),
-                                onTap: (state.fee != null && !state.isSending)
+                                enabled: widget.args.transaction.to != null,
+                                onTap: (state.fee != null &&
+                                        !state.isSending &&
+                                        widget.args.transaction.to != null)
                                     ? () async {
                                         metricClient.addEvent(
                                             MixpanelEvent.confirmTransaction);
 
                                         final to = EthereumAddress.fromHex(
-                                            widget.args.transaction.to);
+                                            widget.args.transaction.to!);
 
                                         context
                                             .read<WCSendTransactionBloc>()
@@ -261,8 +264,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                                 widget.args.index,
                                                 isWalletConnect2: widget
                                                     .args.isWalletConnect2,
-                                                topic: widget.args
-                                                    .topic, // Used for wallet Connect 2.0 only
+                                                topic: widget.args.topic,
+                                                // Used for wallet Connect 2.0 only
                                                 isIRL: widget.args.isIRL,
                                               ),
                                             );
@@ -315,15 +318,17 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        GestureDetector(
-          onTap: onValueTap,
-          child: Text(
-            content,
-            style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+        Expanded(
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              content,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                  decoration:
+                      (onValueTap != null) ? TextDecoration.underline : null),
+            ),
           ),
-        )
+        ),
       ],
     );
   }
@@ -341,7 +346,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
               BigInt.from(10));
       if (!isValid) {
         return Text("gas_fee_insufficient".tr(),
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.ppMori400Black12.copyWith(
               color: AppColor.red,
             ));
       }

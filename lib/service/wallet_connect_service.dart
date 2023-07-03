@@ -5,15 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -41,6 +42,7 @@ class WalletConnectService {
   final List<WCSendTransactionPageArgs> _handlingEthSendTransactions = [];
   bool _addedConnectionFlag = false;
   bool _requestSignMessageForConnectionFlag = false;
+  Timer? _timer;
 
   WalletConnectService(
     this._navigationService,
@@ -100,12 +102,12 @@ class WalletConnectService {
 
       if (wcClient == null || sessionStore == null) continue;
 
-      wcClient.connectFromSessionStore(sessionStore: sessionStore);
+      wcClient.connectFromSessionStore(sessionStore);
       wcClients.add(wcClient);
     }
   }
 
-  connect(String wcUri) {
+  connect(String wcUri, {Function()? onTimeout}) {
     log.info("WalletConnectService.connect: $wcUri");
     final session = WCSession.from(wcUri);
     final peerMeta = WCPeerMeta(
@@ -114,6 +116,10 @@ class WalletConnectService {
       description: 'Autonomy Wallet',
       icons: [],
     );
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
 
     final wcClient = _createWCClient(session.topic, null);
     if (wcClient == null) {
@@ -152,6 +158,8 @@ class WalletConnectService {
     tmpUuids[peerMeta] = Pair(uuid, index);
 
     if (peerMeta.name == AUTONOMY_TV_PEER_NAME) {
+      _configurationService.setAlreadyShowTvAppTip(true);
+      _configurationService.showTvAppTip.value = false;
       final date = peerMeta.description?.split(' -').last;
       final microsecondsSinceEpoch = int.tryParse(date ?? '');
       if (microsecondsSinceEpoch == null) return true;
@@ -161,6 +169,9 @@ class WalletConnectService {
         return false;
       }
       log.info("it's AUTONOMY_TV_PEER_NAME => skip storing connection");
+      injector<MetricClientService>()
+          .addEvent(MixpanelEvent.connectAutonomyDisplay);
+
       return true;
     }
 
@@ -251,6 +262,7 @@ class WalletConnectService {
                 feature: PremiumFeature.AutonomyTV, peerMeta: peerMeta, id: id);
           }
         } else {
+          _timer?.cancel();
           _navigationService.navigateTo(AppRouter.wcConnectPage,
               arguments: WCConnectPageArgs(id, peerMeta));
         }
@@ -270,6 +282,8 @@ class WalletConnectService {
             WCSignMessagePage.tag,
             arguments: WCSignMessagePageArgs(id, topic, currentPeerMeta!,
                 message.data!, message.type, uuid, index));
+        log.info(
+            "[WalletConnectService]: onEthSign id = $id, result = $result");
         if (result) {
           _showYouAllSet();
         }
@@ -288,8 +302,9 @@ class WalletConnectService {
         int? index = wcConnection?.index ?? tmpUuids[currentPeerMeta!]?.second;
         if (uuid == null ||
             index == null ||
-            !wcClients.any(
-                (element) => element.remotePeerMeta == currentPeerMeta)) return;
+            !wcClients
+                .any((element) => element.remotePeerMeta == currentPeerMeta) ||
+            tx.to == null) return;
         final payload =
             WCSendTransactionPageArgs(id, currentPeerMeta!, tx, uuid, index);
         _handlingEthSendTransactions.add(payload);

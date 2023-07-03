@@ -1,24 +1,30 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:wallet_connect/wallet_connect.dart';
-import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:tezart/tezart.dart';
-import 'package:autonomy_flutter/util/log.dart';
+import 'package:wallet_connect/wallet_connect.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final Uri url;
+
   const IRLWebScreen({Key? key, required this.url}) : super(key: key);
 
   @override
@@ -27,6 +33,7 @@ class IRLWebScreen extends StatefulWidget {
 
 class _IRLWebScreenState extends State<IRLWebScreen> {
   InAppWebViewController? _controller;
+  final _metricClient = injector<MetricClientService>();
 
   Future<WalletIndex?> getAccountByAddress(
       {required String chain, required String address}) async {
@@ -43,6 +50,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   JSResult _logAndReturnJSResult(String func, JSResult result) {
     log.info('[IRLWebScreen] $func: ${result.toJson()}');
+    _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+      'function': func,
+      'error': result.errorMessage,
+      'result': result.result.toString(),
+      'url': widget.url.toString(),
+    });
     return result;
   }
 
@@ -192,10 +205,21 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             var transaction = argument.transactions.firstOrNull ?? {};
             if (transaction["data"] == null) transaction["data"] = "";
             if (transaction["gas"] == null) transaction["gas"] = "";
+            if (transaction["to"] == null) {
+              return _logAndReturnJSResult(
+                '_sendTransaction',
+                JSResult.error('Invalid transaction: no recipient'),
+              );
+            }
 
             final args = WCSendTransactionPageArgs(
               1,
-              WCPeerMeta.fromJson(argument.metadata ?? {}),
+              WCPeerMeta.fromJson(argument.metadata ??
+                  {
+                    "name": "",
+                    "url": "",
+                    "icons": [""]
+                  }),
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
               account.index,
@@ -280,13 +304,29 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       handlerName: 'closeWebview',
       callback: (args) async {
         injector.get<NavigationService>().popUntilHomeOrSettings();
+        _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+          'function': IrlWebviewFunction.closeWebview,
+          'url': widget.url.toString(),
+        });
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final version = injector<ConfigurationService>().getVersionInfo();
     return Scaffold(
+      appBar: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        backgroundColor: Colors.white,
+        toolbarHeight: 0,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -294,6 +334,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             Expanded(
               child: InAppWebView(
                 initialUrlRequest: URLRequest(url: widget.url),
+                initialOptions: InAppWebViewGroupOptions(
+                    crossPlatform: InAppWebViewOptions(
+                        userAgent: "user_agent"
+                            .tr(namedArgs: {"version": version.toString()}))),
                 onWebViewCreated: (controller) {
                   _controller = controller;
                   _addJavaScriptHandler();
@@ -311,6 +355,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 class JSResult {
   String? errorMessage;
   dynamic result;
+
   JSResult({
     this.errorMessage,
     this.result,
@@ -330,11 +375,13 @@ class JSResult {
       result: map['result'] != null ? map['result'] as dynamic : null,
     );
   }
+
   factory JSResult.error(String error) {
     return JSResult(
       errorMessage: error,
     );
   }
+
   factory JSResult.result(dynamic result) {
     return JSResult(
       result: result,

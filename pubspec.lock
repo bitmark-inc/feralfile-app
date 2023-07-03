@@ -93,11 +93,28 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1.1.1"
-      resolved-ref: "677db2ba0d1d535ffe2cd3b485334cbfb1812f1a"
+      ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
+      resolved-ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
+  autonomy_tv_proto:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      resolved-ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
+    source: git
+    version: "0.0.1"
+  awesome_notifications:
+    dependency: "direct main"
+    description:
+      name: awesome_notifications
+      sha256: "2b430c75cc879d6cfd52bb6eb2b5c1591ed425347816408cdcbd3f6916bba14c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.4+1"
   background_fetch:
     dependency: "direct main"
     description:
@@ -147,7 +164,7 @@ packages:
     source: hosted
     version: "2.1.1"
   bs58check:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: bs58check
       sha256: c4a164d42b25c2f6bc88a8beccb9fc7d01440f3c60ba23663a20a70faf484ea9
@@ -330,6 +347,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
+  confetti:
+    dependency: "direct main"
+    description:
+      name: confetti
+      sha256: "979aafde2428c53947892c95eb244466c109c129b7eee9011f0a66caaca52267"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   connectivity_plus:
     dependency: "direct main"
     description:
@@ -764,10 +789,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_keyboard_visibility
-      sha256: "86b71bbaffa38e885f5c21b1182408b9be6951fd125432cf6652c636254cef2d"
+      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "5.4.1"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:
@@ -893,6 +918,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.6"
+  flutter_swiper_view:
+    dependency: "direct main"
+    description:
+      name: flutter_swiper_view
+      sha256: "2a165b259e8a4c49d4da5626b967ed42a73dac2d075bd9e266ad8d23b9f01879"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.8"
   flutter_switch:
     dependency: "direct main"
     description:
@@ -1013,6 +1046,86 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.2+5"
+  geocoding:
+    dependency: "direct main"
+    description:
+      name: geocoding
+      sha256: b34c0501bbbaf3190b85bef3078b27cf66c28a8915c6d3af50d67f356aa7da31
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  geocoding_android:
+    dependency: transitive
+    description:
+      name: geocoding_android
+      sha256: "5a1fc0cec9b0497b44ca31c1fa8d1c891f3aded1053e6bb2eac075d3bd1bf046"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  geocoding_ios:
+    dependency: transitive
+    description:
+      name: geocoding_ios
+      sha256: c85495ce8fb34e4fbd2dd8fc5f79263d622d9f88c4af948c965daf6b27a7f3a1
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  geocoding_platform_interface:
+    dependency: transitive
+    description:
+      name: geocoding_platform_interface
+      sha256: "8848605d307d844d89937cdb4b8ad7dfa880552078f310fa24d8a460f6dddab4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  geolocator:
+    dependency: "direct main"
+    description:
+      name: geolocator
+      sha256: "5c23f3613f50586c0bbb2b8f970240ae66b3bd992088cf60dd5ee2e6f7dde3a8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.2"
+  geolocator_android:
+    dependency: transitive
+    description:
+      name: geolocator_android
+      sha256: "2ba24690aee0a3e1b6b7bd47c2711a50c874e95e4c758346589d35194adf6d6a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.7"
+  geolocator_apple:
+    dependency: transitive
+    description:
+      name: geolocator_apple
+      sha256: "22b60ca3b8c0f58e6a9688ff855ee39ab813ca3f0c0609a48d282f6631266f2e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.5"
+  geolocator_platform_interface:
+    dependency: transitive
+    description:
+      name: geolocator_platform_interface
+      sha256: af4d69231452f9620718588f41acc4cb58312368716bfff2e92e770b46ce6386
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.7"
+  geolocator_web:
+    dependency: transitive
+    description:
+      name: geolocator_web
+      sha256: f68a122da48fcfff68bbc9846bb0b74ef651afe84a1b1f6ec20939de4d6860e1
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.6"
+  geolocator_windows:
+    dependency: transitive
+    description:
+      name: geolocator_windows
+      sha256: f5911c88e23f48b598dd506c7c19eff0e001645bdc03bb6fecb9f4549208354d
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   get_it:
     dependency: "direct main"
     description:
@@ -1037,6 +1150,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  googleapis_auth:
+    dependency: transitive
+    description:
+      name: googleapis_auth
+      sha256: f59be210ede1e22718962e4ef48a08ae783eb67fe19b0f4c16b204e20df0869c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   gql:
     dependency: transitive
     description:
@@ -1117,6 +1238,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  grpc:
+    dependency: transitive
+    description:
+      name: grpc
+      sha256: a73c16e4f6a4a819be892bb2c73cc1d0b00e36095f69b0738cc91a733e3d27ba
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   hex:
     dependency: transitive
     description:
@@ -1142,13 +1271,13 @@ packages:
     source: hosted
     version: "1.1.0"
   html:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: html
-      sha256: d9793e10dbe0e6c364f4c59bf3e01fb33a9b2a674bc7a1081693dba0614b6269
+      sha256: "3a7812d5bcd2894edf53dfaf8cd640876cf6cef50a8f238745c8b8120ea74d3a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.15.1"
+    version: "0.15.4"
   html_unescape:
     dependency: "direct dev"
     description:
@@ -1165,6 +1294,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.5"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "58805ebc6513eed3b98ee0a455a8357e61d187bf2e0fdc1e53120770f78de258"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -1182,13 +1319,13 @@ packages:
     source: hosted
     version: "4.0.2"
   image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image
-      sha256: "3686865febd85c57a632d87a0fb1f0a8a9ef602fdb68d909c3e9aa29ec70fd24"
+      sha256: "483a389d6ccb292b570c31b3a193779b1b0178e7eb571986d9a49904b6861227"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.13"
+    version: "4.0.15"
   image_picker:
     dependency: "direct main"
     description:
@@ -1575,16 +1712,18 @@ packages:
   nft_collection:
     dependency: "direct main"
     description:
-      path: "../nft-collection"
-      relative: true
-    source: path
+      path: "."
+      ref: "17fbb337af0783bde563869c0aebe39c6998102f"
+      resolved-ref: "17fbb337af0783bde563869c0aebe39c6998102f"
+      url: "https://github.com/autonomy-system/nft-collection"
+    source: git
     version: "0.0.1"
   nft_rendering:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v1.0.24"
-      resolved-ref: c63c9fa7d240401b1364d91cdf42ea384b53887a
+      ref: c390cdca02b5274f7997768ec1b428e9e56fc255
+      resolved-ref: c390cdca02b5274f7997768ec1b428e9e56fc255
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1909,6 +2048,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  protoc_plugin:
+    dependency: transitive
+    description:
+      name: protoc_plugin
+      sha256: e2be5014ba145dc0f8de20ac425afa2a513aff64fe350d338e481d40de0573df
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.0.1"
   provider:
     dependency: transitive
     description:
@@ -2342,10 +2489,10 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: b3e500b1896d40c8961ab430a94fc22eff8fa1b33af03584e2f0b89371c3fa6a
+      sha256: ab3eac31638e80663eae19c71e362012e1e2f67dfd527dc5c07d9397cd4238f2
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.48"
+    version: "20.4.53"
   syncfusion_flutter_pdf:
     dependency: transitive
     description:
@@ -2362,6 +2509,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "20.4.48"
+  syncfusion_flutter_signaturepad:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_signaturepad
+      sha256: dd29c5b88864dfd6f794183108c7274eee168d4fa6764d0581817fe2f484e966
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.4.53"
   syncfusion_pdfviewer_macos:
     dependency: transitive
     description:
@@ -2467,6 +2622,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
+  undo:
+    dependency: "direct main"
+    description:
+      name: undo
+      sha256: "103f7c15002d2cc551ed290a71a8ebd49d44db3252d46cdcb77dea2f5acb5d5c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   uni_links:
     dependency: "direct main"
     description:
@@ -2595,8 +2758,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  version_check:
+    dependency: "direct main"
+    description:
+      name: version_check
+      sha256: e75605bbffbcc1a72a97414cbbca63e88fd970d4fcbb0b740dc59bb88d354e70
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
   video_player:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: video_player
       sha256: "59f7f31c919c59cbedd37c617317045f5f650dc0eeb568b0b0de9a36472bdb28"
@@ -2711,11 +2882,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
-      resolved-ref: "763516f2013982c8723e1ab1478f52a5ba0699c8"
+      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
+      resolved-ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
       url: "https://github.com/autonomy-system/wallet-connect-dart.git"
     source: git
-    version: "1.0.2"
+    version: "1.0.4"
   watcher:
     dependency: transitive
     description:
@@ -2757,7 +2928,7 @@ packages:
     source: hosted
     version: "1.2.0"
   webview_flutter:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: webview_flutter
       sha256: "392c1d83b70fe2495de3ea2c84531268d5b8de2de3f01086a53334d8b6030a88"
@@ -2788,6 +2959,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.9.5"
+  widgets_to_image:
+    dependency: "direct main"
+    description:
+      name: widgets_to_image
+      sha256: e32c7b77267c01d319dc97333d4f3d894e9d81c8b3a408fd33862fa7775ee398
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   win32:
     dependency: transitive
     description:
@@ -2820,6 +2999,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  youtube_player_iframe:
+    dependency: "direct main"
+    description:
+      name: youtube_player_iframe
+      sha256: a85cdaea199ed3a3e19d115dd520009b4fb0f9af453f0c7a1aae10c2887cb700
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
+  youtube_player_iframe_web:
+    dependency: transitive
+    description:
+      name: youtube_player_iframe_web
+      sha256: ce112e0af418e434465c20e8c941a90297a8c43f83d8956e63f297b9eba828fb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=2.19.0 <3.0.0"
   flutter: ">=3.3.0"

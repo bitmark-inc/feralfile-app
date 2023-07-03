@@ -15,20 +15,27 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
 import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -45,6 +52,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -69,6 +78,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
   final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
+  final _configurationService = injector<ConfigurationService>();
+  final _feedService = injector<FeedService>();
+  final _editorialService = injector<EditorialService>();
+  late Timer? _timer;
+  final _clientTokenService = injector<ClientTokenService>();
+  final _metricClientService = injector<MetricClientService>();
+  final _notificationService = injector<NotificationService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -80,7 +96,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _onItemTapped(int index) {
     if (index != _pages.length) {
-      final feedService = injector<FeedService>();
       if (_selectedIndex == index) {
         if (index == 1) {
           _homePageKey.currentState?.scrollToTop();
@@ -94,21 +109,25 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       });
       _pageController.jumpToPage(_selectedIndex);
       if (index == 1) {
-        _homePageKey.currentState
-            ?.refreshTokens()
-            .then((value) => feedService.checkNewFeeds());
+        _clientTokenService.refreshTokens().then((value) {
+          _feedService.checkNewFeeds();
+          _editorialService.checkNewEditorial();
+        });
       } else if (index == 0) {
-        _homePageKey.currentState
-            ?.refreshTokens()
-            .then((value) => feedService.checkNewFeeds());
+        _clientTokenService.refreshTokens().then((value) {
+          _feedService.checkNewFeeds();
+          _editorialService.checkNewEditorial();
+        });
         final metricClient = injector<MetricClientService>();
-        if (injector<ConfigurationService>().hasFeed()) {
+        if (_configurationService.hasFeed()) {
           final feedBloc = context.read<FeedBloc>();
           feedBloc.add(OpenFeedEvent());
           feedBloc.add(GetFeedsEvent());
           metricClient.addEvent(MixpanelEvent.viewDiscovery);
           metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
         } else {
+          final editorialBloc = context.read<EditorialBloc>();
+          editorialBloc.add(OpenEditorialEvent());
           metricClient.addEvent(MixpanelEvent.viewEditorial);
           metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
         }
@@ -171,19 +190,25 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
     if (memoryValues.homePageInitialTab != HomePageTab.DISCOVER) {
-      _selectedIndex = 1;
+      _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     } else {
-      _selectedIndex = 0;
+      _selectedIndex = HomeNavigatorTab.DISCOVER.index;
+      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
-    final feedService = injector<FeedService>();
-    _homePageKey.currentState
-        ?.refreshTokens()
-        .then((value) => feedService.checkNewFeeds());
+    _clientTokenService.refreshTokens().then((value) {
+      _feedService.checkNewFeeds();
+      _editorialService.checkNewEditorial();
+    });
+
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _clientTokenService.refreshTokens();
+    });
+
     _pages = <Widget>[
       ValueListenableBuilder<bool>(
-          valueListenable: injector<FeedService>().hasFeed,
+          valueListenable: _feedService.hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
             return EditorialPage(
                 key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
@@ -200,10 +225,17 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     ];
     _bottomItems = [
       BottomNavigationBarItem(
-        icon: ValueListenableBuilder<int>(
-            valueListenable: injector<FeedService>().unviewedCount,
-            builder: (BuildContext context, int unreadCount, Widget? child) {
-              if (unreadCount > 0) {
+        icon: MultiValueListenableBuilder(
+            valueListenables: [
+              _feedService.unviewedCount,
+              _editorialService.unviewedCount
+            ],
+            builder:
+                (BuildContext context, List<dynamic> values, Widget? child) {
+              final feedUnviewCount = values[0] as int;
+              final editorialUnviewCount = values[1] as int;
+              final unviewCount = feedUnviewCount + editorialUnviewCount;
+              if (feedUnviewCount > 0) {
                 context.read<FeedBloc>().add(GetFeedsEvent());
               }
               return Stack(
@@ -215,7 +247,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                       size: 25,
                     ),
                   ),
-                  if (unreadCount > 0) ...[
+                  if (unviewCount > 0) ...[
                     Positioned(
                       left: 28,
                       top: 0,
@@ -232,7 +264,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                         constraints: const BoxConstraints(minWidth: 11),
                         child: Center(
                           child: Text(
-                            "$unreadCount",
+                            "$unviewCount",
                             style: Theme.of(context)
                                 .textTheme
                                 .ppMori700White12
@@ -286,8 +318,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
     ];
 
-    final configService = injector<ConfigurationService>();
-    if (!configService.isReadRemoveSupport()) {
+    if (!_configurationService.isReadRemoveSupport()) {
       _showRemoveCustomerSupport();
     }
     OneSignal.shared
@@ -305,6 +336,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
+
+    injector<CanvasClientService>().init();
   }
 
   @override
@@ -342,7 +375,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 actionButtonOnTap: () =>
                     launchUrl(uri, mode: LaunchMode.externalApplication),
                 exitButtonOnTap: () {
-                  injector<ConfigurationService>().readRemoveSupport(true);
+                  _configurationService.readRemoveSupport(true);
                   Navigator.of(context).pop();
                 },
                 exitButton: "i_understand_".tr());
@@ -357,6 +390,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _pageController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _fgbgSubscription?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -387,9 +421,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     log.info("Receive notification: ${event.notification}");
     final data = event.notification.additionalData;
     if (data == null) return;
-    final configurationService = injector<ConfigurationService>();
-    if (configurationService.isNotificationEnabled() != true) {
-      injector<ConfigurationService>().showNotifTip.value = true;
+    if (_configurationService.isNotificationEnabled() != true) {
+      _configurationService.showNotifTip.value = true;
     }
 
     switch (data['notification_type']) {
@@ -406,28 +439,39 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
 
       case 'gallery_new_nft':
-        _homePageKey.currentState?.refreshTokens();
+        _clientTokenService.refreshTokens();
         break;
       case "artwork_created":
       case "artwork_received":
-        injector<FeedService>().checkNewFeeds();
+        _feedService.checkNewFeeds();
         context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
-    if (data['notification_type'] == "customer_support_new_announcement") {
-      showInfoNotification(
-          const Key("Announcement"), "au_has_announcement".tr(),
-          addOnTextSpan: [
-            TextSpan(
-                text: "tap_to_view".tr(),
-                style: Theme.of(context).textTheme.ppMori400Green14),
-          ], openHandler: () async {
-        final announcementID = '${data["id"]}';
-        _openAnnouncement(announcementID);
-      });
-    } else {
-      showNotifications(context, event.notification,
-          notificationOpenedHandler: _handleNotificationClicked);
+    switch (data['notification_type']) {
+      case "customer_support_new_announcement":
+        showInfoNotification(
+            const Key("Announcement"), "au_has_announcement".tr(),
+            addOnTextSpan: [
+              TextSpan(
+                  text: "tap_to_view".tr(),
+                  style: Theme.of(context).textTheme.ppMori400Green14),
+            ], openHandler: () async {
+          final announcementID = '${data["id"]}';
+          _openAnnouncement(announcementID);
+        });
+        break;
+      case "new_message":
+        final groupId = data["group_id"];
+
+        final currentGroupId = memoryValues.currentGroupChatId;
+        if (groupId != currentGroupId) {
+          showNotifications(context, event.notification,
+              notificationOpenedHandler: _handleNotificationClicked);
+        }
+        break;
+      default:
+        showNotifications(context, event.notification,
+            notificationOpenedHandler: _handleNotificationClicked);
     }
     event.complete(null);
   }
@@ -440,14 +484,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
     log.info(
         "Tap to notification: ${notification.body ?? "empty"} \nAdditional data: ${notification.additionalData!}");
-
     final notificationType = notification.additionalData!["notification_type"];
+    _metricClientService.addEvent(MixpanelEvent.tabNotification, data: {
+      'type': notificationType,
+    });
     switch (notificationType) {
       case "gallery_new_nft":
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(1);
+        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
         break;
 
       case "customer_support_new_message":
@@ -477,12 +523,34 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(1);
-        final metricClient = injector<MetricClientService>();
-        metricClient.addEvent(MixpanelEvent.tabNotification, data: {
-          'type': notificationType,
-          'body': notification.body,
+        memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
+        _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
+        break;
+      case "new_message":
+        final data = notification.additionalData;
+        if (data == null) return;
+        final tokenId = data["group_id"];
+        final tokens = await injector<NftCollectionDatabase>()
+            .assetTokenDao
+            .findAllAssetTokensByTokenIDs([tokenId]);
+        final owner = tokens.first.owner;
+        final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
+        final postcardDetailPayload = ArtworkDetailPayload(
+            [ArtworkIdentity(tokenId, owner)], 0,
+            key: key);
+        if (!mounted) return;
+        Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+            arguments: postcardDetailPayload);
+        Timer.periodic(const Duration(milliseconds: 100), (timer) async {
+          final state = key.currentState;
+          final assetToken =
+              key.currentContext?.read<PostcardDetailBloc>().state.assetToken;
+          if (state != null && assetToken != null) {
+            state.gotoChatThread(key.currentContext!);
+            timer.cancel();
+          }
         });
+
         break;
       default:
         log.warning("unhandled notification type: $notificationType");
@@ -527,6 +595,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
     _cloudBackup();
+    final initialAction = _notificationService.initialAction;
+    if (initialAction != null) {
+      NotificationService.onActionReceivedMethod(initialAction);
+    }
   }
 
   Future<void> _cloudBackup() async {

@@ -26,7 +26,7 @@ class Wc2Request {
   int id;
   String method;
   String topic;
-  Map<String, dynamic> params;
+  dynamic params;
   String chainId;
   AppMetadata? proposer;
 

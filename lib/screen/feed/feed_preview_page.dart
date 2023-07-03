@@ -123,6 +123,16 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       body: BlocConsumer<FeedBloc, FeedState>(
           listener: (context, state) {},
           builder: (context, state) {
+            if (state.error != null) {
+              return Padding(
+                padding:
+                    ResponsiveLayout.pageEdgeInsets.copyWith(top: 24, right: 5),
+                child: Text(
+                  "discover_unable_to_load".tr(),
+                  style: theme.textTheme.ppMori400White14,
+                ),
+              );
+            }
             if (state.feedTokenEventsMap?.isEmpty ?? true) {
               return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
             }

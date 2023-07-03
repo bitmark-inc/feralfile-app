@@ -67,6 +67,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: 1, maxQuantity: widget.payload.ownedQuantity, index: index));
+    if (widget.payload.ownedQuantity == 1) {
+      _quantityController.text = "1";
+    }
     if (widget.payload.asset.artistName != null) {
       context
           .read<IdentityBloc>()
@@ -111,6 +114,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           controller: _quantityController,
           isError: hasError,
           keyboardType: TextInputType.number,
+          onChanged: (value) => _onQuantityUpdated(),
           onSubmit: (value) => _onQuantityUpdated(),
         ),
       ],

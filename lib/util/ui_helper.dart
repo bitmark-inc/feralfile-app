@@ -33,11 +33,14 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
+import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -188,6 +191,94 @@ class UIHelper {
     );
   }
 
+  static Future<void> showDialogWithConfetti(
+    BuildContext context,
+    String title,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+    EdgeInsets? padding,
+    EdgeInsets? paddingTitle,
+  }) async {
+    log.info("[UIHelper] showInfoDialog: $title");
+    currentDialogTitle = title;
+    final theme = Theme.of(context);
+    final confettiController =
+        ConfettiController(duration: const Duration(seconds: 15));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      confettiController.play();
+    });
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    await Navigator.push(
+      context,
+      TransparentRoute(
+        color: AppColor.primaryBlack.withOpacity(0.4),
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    color: Colors.transparent,
+                    child: ClipPath(
+                      clipper: isRoundCorner
+                          ? null
+                          : AutonomyTopRightRectangleClipper(),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: backgroundColor ?? theme.auGreyBackground,
+                          borderRadius: isRoundCorner
+                              ? const BorderRadius.only(
+                                  topRight: Radius.circular(20),
+                                )
+                              : null,
+                        ),
+                        padding: padding ??
+                            const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 32),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding:
+                                    paddingTitle ?? const EdgeInsets.all(0),
+                                child: Text(title,
+                                    style: theme
+                                        .primaryTextTheme.ppMori700White24),
+                              ),
+                              const SizedBox(height: 40),
+                              content,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                AllConfettiWidget(controller: confettiController),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   static Future<void> showScrollableDialog(
     BuildContext context,
     Widget content, {
@@ -228,6 +319,61 @@ class UIHelper {
           child: ClipPath(
             clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
             child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              child: content,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Future<void> showFlexibleDialog(
+    BuildContext context,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+  }) async {
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          padding: const EdgeInsets.only(top: 200),
+          child: ClipPath(
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
               decoration: BoxDecoration(
                 color: backgroundColor ?? theme.auGreyBackground,
                 borderRadius: isRoundCorner
@@ -658,15 +804,15 @@ class UIHelper {
 
   static Future showNoRemainingAirdropToken(
     BuildContext context, {
-    required FFArtwork artwork,
+    required FFSeries series,
   }) async {
     final error = FeralfileError(3009, "");
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": artwork.id});
+        data: {"message": error.dialogMessage, "id": series.id});
     return showErrorDialog(
       context,
-      error.getDialogTitle(artwork: artwork),
-      error.getDialogMessage(artwork: artwork),
+      error.getDialogTitle(series: series),
+      error.getDialogMessage(series: series),
       "close".tr(),
     );
   }
@@ -686,28 +832,28 @@ class UIHelper {
   static Future showClaimTokenError(
     BuildContext context,
     Object e, {
-    required FFArtwork artwork,
+    required FFSeries series,
   }) async {
     if (e is AirdropExpired) {
-      await showAirdropExpired(context, artwork.id);
+      await showAirdropExpired(context, series.id);
     } else if (e is DioError) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
-          ? ffError.getDialogMessage(artwork: artwork)
+          ? ffError.getDialogMessage(series: series)
           : "${e.response?.data ?? e.message}";
 
       metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {"message": message, "id": artwork.id});
+          data: {"message": message, "id": series.id});
       await showErrorDialog(
         context,
-        ffError?.getDialogTitle(artwork: artwork) ?? "error".tr(),
+        ffError?.getDialogTitle(series: series) ?? "error".tr(),
         message,
         "close".tr(),
       );
     } else if (e is NoRemainingToken) {
       await showNoRemainingAirdropToken(
         context,
-        artwork: artwork,
+        series: series,
       );
     }
   }
@@ -1207,10 +1353,8 @@ class UIHelper {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) =>
-                      GestureDetector(
-                    onTap: options?[index].onTap,
-                    child: Container(
+                  itemBuilder: (BuildContext context, int index) {
+                    final child = Container(
                       color: Colors.transparent,
                       width: MediaQuery.of(context).size.width,
                       child: Padding(
@@ -1221,10 +1365,10 @@ class UIHelper {
                         child: Row(
                           children: [
                             if (options?[index].icon != null)
-                              options![index].icon!,
+                              SizedBox(width: 30, child: options![index].icon!),
                             if (options?[index].icon != null)
                               const SizedBox(
-                                width: 40,
+                                width: 34,
                               ),
                             Text(
                               options?[index].title ?? '',
@@ -1233,8 +1377,15 @@ class UIHelper {
                           ],
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                    if (options?[index].builder != null) {
+                      return options?[index].builder!.call(context, child);
+                    }
+                    return GestureDetector(
+                      onTap: options?[index].onTap,
+                      child: child,
+                    );
+                  },
                   itemCount: options?.length ?? 0,
                   separatorBuilder: (context, index) => Divider(
                     height: 1,
@@ -1246,6 +1397,120 @@ class UIHelper {
             ),
           );
         });
+  }
+
+  static Future showAlreadyDelivered(BuildContext context) async {
+    final title = "already_delivered".tr();
+    final description = "it_seems_that".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
+  static Future showDeclinedGeolocalization(BuildContext context) async {
+    final title = "unable_to_stamp_postcard".tr();
+    final description = "sharing_your_geolocation".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
+  static Future showWeakGPSSignal(BuildContext context) async {
+    final title = "unable_to_stamp_postcard".tr();
+    final description = "we_are_unable_to_stamp".tr();
+    return showErrorDialog(context, title, description, "close".tr());
+  }
+
+  static Future showMockedLocation(BuildContext context) async {
+    final title = "gps_spoofing_detected".tr();
+    final description = "gps_is_mocked".tr();
+    return showInfoDialog(context, title, description,
+        closeButton: "close".tr());
+  }
+
+  static showReceivePostcardFailed(BuildContext context, DioError error) async {
+    return showErrorDialog(context, "accept_postcard_failed".tr(),
+        error.response?.data['message'], "close".tr());
+  }
+
+  static showSharePostcardFailed(BuildContext context, DioError error) async {
+    return showErrorDialog(context, "Share Failed",
+        "${error.response?.data['message']}", "close".tr());
+  }
+
+  static Future<void> showInvalidURI(BuildContext context) async {
+    await UIHelper.showDialog(
+      context,
+      "invalid_uri".tr(),
+      Column(
+        children: [
+          Text("invalid_uri_desc".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 40),
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: "close".tr(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> showPostcardUpdates(BuildContext context) async {
+    await UIHelper.showDialog(
+        context,
+        "postcard_updates".tr(),
+        Column(
+          children: [
+            Text(
+              "postcard_updates_content".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 40),
+            PrimaryButton(
+              text: "enable_noti".tr(),
+              onTap: () {
+                Navigator.of(context)
+                    .popAndPushNamed(AppRouter.preferencesPage);
+              },
+            ),
+          ],
+        ),
+        isDismissible: true);
+  }
+
+  static showAirdropClaimFailed(BuildContext context) async {
+    return showErrorDialog(
+        context, "airdrop_claim_failed".tr(), "", "close".tr());
+  }
+
+  static showAirdropAlreadyClaim(BuildContext context) async {
+    return showErrorDialog(context, "already_claimed".tr(),
+        "already_claimed_desc".tr(), "close".tr());
+  }
+
+  static showAirdropJustOnce(BuildContext context) async {
+    return showErrorDialog(
+        context, "just_once".tr(), "just_once_desc".tr(), "close".tr());
+  }
+
+  static showAirdropCannotShare(BuildContext context) async {
+    return showErrorDialog(context, "already_claimed".tr(),
+        "cannot_share_aridrop_desc".tr(), "close".tr());
+  }
+
+  static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
+    await UIHelper.showDialog(
+      context,
+      "claim_has_expired".tr(),
+      Column(
+        children: [
+          Text("claim_has_expired_desc".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 40),
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: "close".tr(),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1429,10 +1694,12 @@ class OptionItem {
   String? title;
   Function()? onTap;
   Widget? icon;
+  Widget Function(BuildContext context, Widget child)? builder;
 
   OptionItem({
     this.title,
     this.onTap,
     this.icon,
+    this.builder,
   });
 }

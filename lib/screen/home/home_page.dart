@@ -6,14 +6,15 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -27,14 +28,17 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
+import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/pending_token_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
@@ -50,10 +54,10 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,6 +66,8 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:open_settings/open_settings.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_connect/models/wc_peer_meta.dart';
@@ -99,17 +105,11 @@ class HomePageState extends State<HomePage>
     final accountService = injector<AccountService>();
     return await accountService.getAllAddresses();
   }
+  final _clientTokenService = injector<ClientTokenService>();
+  final _configurationService = injector<ConfigurationService>();
+  final _postcardService = injector<PostcardService>();
 
-  Future<List<String>> getManualTokenIds() async {
-    final cloudDb = injector<CloudDatabase>();
-    final tokenIndexerIDs = (await cloudDb.connectionDao.getConnectionsByType(
-            ConnectionType.manuallyIndexerTokenID.rawValue))
-        .map((e) => e.key)
-        .toList();
-    return tokenIndexerIDs;
-  }
-
-  final nftBloc = injector.get<NftCollectionBloc>();
+  final nftBloc = injector<ClientTokenService>().nftBloc;
 
   @override
   void initState() {
@@ -119,7 +119,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-
+    _configurationService.setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -132,7 +132,7 @@ class HomePageState extends State<HomePage>
     });
 
     refreshFeeds();
-    refreshTokens().then((value) {
+    _clientTokenService.refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
 
@@ -140,9 +140,6 @@ class HomePageState extends State<HomePage>
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      refreshTokens();
-    });
   }
 
   _scrollListenerToLoadMore() {
@@ -173,7 +170,6 @@ class HomePageState extends State<HomePage>
     routeObserver.unsubscribe(this);
     _fgbgSubscription?.cancel();
     _controller.dispose();
-    _timer.cancel();
     super.dispose();
   }
 
@@ -181,13 +177,14 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    refreshTokens().then((value) => refreshFeeds());
+    _clientTokenService.refreshTokens().then((value) => refreshFeeds());
     refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
         if (!mounted) return;
-        nftBloc.add(RequestIndexEvent(await getAddresses()));
+        nftBloc
+            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
     }
     memoryValues.inGalleryView = true;
@@ -207,24 +204,56 @@ class HomePageState extends State<HomePage>
         .toList();
     injector<FeedService>().refreshFollowings(artistIds);
 
+    //check minted postcard and naviagtor to artwork detail
+    final config = injector.get<ConfigurationService>();
+    final listTokenMints = config.getListPostcardMint();
+    if (tokens.any((element) =>
+        listTokenMints.contains(element.id) && element.pending != true)) {
+      final tokenMints = tokens
+          .where(
+            (element) =>
+                listTokenMints.contains(element.id) && element.pending != true,
+          )
+          .map((e) => e.identity)
+          .toList();
+      if (config.isAutoShowPostcard()) {
+        log.info("Auto show minted postcard");
+        final payload = ArtworkDetailPayload(tokenMints, 0);
+        Navigator.of(context).pushNamed(
+          AppRouter.claimedPostcardDetailsPage,
+          arguments: payload,
+        );
+      }
+
+      config.setListPostcardMint(
+        tokenMints.map((e) => e.id).toList(),
+        isRemoved: true,
+      );
+    }
+
     // Check if there is any Tezos token in the list
     List<String> allAccountNumbers =
         await injector<AccountService>().getAllAddresses();
     final hashedAddresses = allAccountNumbers.fold(
         0, (int previousValue, element) => previousValue + element.hashCode);
 
-    if (injector<ConfigurationService>().sentTezosArtworkMetricValue() !=
+    if (_configurationService.sentTezosArtworkMetricValue() !=
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
       _metricClient.addEvent("collection_has_tezos");
-      injector<ConfigurationService>()
-          .setSentTezosArtworkMetric(hashedAddresses);
+      _configurationService.setSentTezosArtworkMetric(hashedAddresses);
     }
   }
 
   List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
     tokens = tokens.filterAssetToken();
+    final nextKey = nftBloc.state.nextKey;
+    if (nextKey != null &&
+        !nextKey.isLoaded &&
+        tokens.length < COLLECTION_INITIAL_MIN_SIZE) {
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
+    }
     return tokens;
   }
 
@@ -235,13 +264,20 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      buildWhen: (previousState, currentState) {
+      listenWhen: (previousState, currentState) {
         final diffLength =
             currentState.tokens.length - previousState.tokens.length;
-        if (diffLength > 0) {
+        if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
           });
+        }
+        if (diffLength != 0) {
+          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
+            'number': currentState.tokens.length,
+          });
+          _metricClient.setLabel(
+              MixpanelProp.numberNft, currentState.tokens.length);
         }
         return true;
       },
@@ -382,6 +418,13 @@ class HomePageState extends State<HomePage>
           (BuildContext context, int index) {
             final asset = tokens[index];
 
+            if (asset.pending == true && asset.isPostcard) {
+              return MintTokenWidget(
+                thumbnail: asset.galleryThumbnailURL,
+                tokenId: asset.tokenId,
+              );
+            }
+
             return GestureDetector(
               child: asset.pending == true && !asset.hasMetadata
                   ? PendingTokenWidget(
@@ -403,8 +446,12 @@ class HomePageState extends State<HomePage>
                     .indexOf(asset);
                 final payload = ArtworkDetailPayload(accountIdentities, index);
 
-                Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                    arguments: payload);
+                final pageName = asset.isPostcard
+                    ? AppRouter.claimedPostcardDetailsPage
+                    : AppRouter.artworkDetailsPage;
+                Navigator.of(context)
+                    .pushNamed(pageName, ////need change to pageName
+                        arguments: payload);
 
                 _metricClient.addEvent(MixpanelEvent.viewArtwork,
                     data: {"id": asset.id});
@@ -425,12 +472,13 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _carouselTipcard(BuildContext context) {
-    final configurationService = injector<ConfigurationService>();
     return MultiValueListenableBuilder(
       valueListenables: [
-        configurationService.showTvAppTip,
-        configurationService.showCreatePlaylistTip,
-        configurationService.showLinkOrImportTip,
+        _configurationService.showTvAppTip,
+        _configurationService.showCreatePlaylistTip,
+        _configurationService.showLinkOrImportTip,
+        _configurationService.showBackupSettingTip,
+        _configurationService.expiredPostcardSharedLinkTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -445,7 +493,9 @@ class HomePageState extends State<HomePage>
     final isShowTvAppTip = values[0] as bool;
     final isShowCreatePlaylistTip = values[1] as bool;
     final isShowLinkOrImportTip = values[2] as bool;
-    final configurationService = injector<ConfigurationService>();
+    final isShowBackupSettingTip = values[3] as bool;
+    final expiredPostcardShareLink = values[4] as List<SharedPostcard>;
+    final compactedToken = nftBloc.state.tokens.items;
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
@@ -456,7 +506,7 @@ class HomePageState extends State<HomePage>
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showLinkOrImportTip),
+            listener: _configurationService.showLinkOrImportTip),
       if (isShowCreatePlaylistTip)
         Tipcard(
             titleText: "create_your_first_playlist".tr(),
@@ -466,7 +516,7 @@ class HomePageState extends State<HomePage>
             buttonText: "create_new_playlist".tr(),
             content: Text("as_a_pro_sub_playlist".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showCreatePlaylistTip),
+            listener: _configurationService.showCreatePlaylistTip),
       if (isShowTvAppTip)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),
@@ -505,7 +555,52 @@ class HomePageState extends State<HomePage>
                 ],
               ),
             ),
-            listener: configurationService.showTvAppTip),
+            listener: _configurationService.showTvAppTip),
+      if (isShowBackupSettingTip)
+        Tipcard(
+            titleText: "backup_failed".tr(),
+            onPressed: Platform.isAndroid
+                ? () {
+                    OpenSettings.openAddAccountSetting();
+                  }
+                : () async {
+                    openAppSettings();
+                  },
+            buttonText: Platform.isAndroid
+                ? "open_device_setting".tr()
+                : "open_icloud_setting".tr(),
+            content: Text(
+                Platform.isAndroid
+                    ? "backup_tip_card_content_android".tr()
+                    : "backup_tip_card_content_ios".tr(),
+                style: theme.textTheme.ppMori400Black14),
+            listener: _configurationService.showBackupSettingTip),
+      if (!(_configurationService.isNotificationEnabled() ?? false))
+        ...expiredPostcardShareLink.map((e) {
+          final title = compactedToken
+                  .firstWhereOrNull((element) => element.id == e.tokenID)
+                  ?.title ??
+              "";
+          return Tipcard(
+            titleText: "moma_postcard".tr(),
+            onPressed: () async {
+              final payload = ArtworkDetailPayload(
+                  [ArtworkIdentity(e.tokenID, e.owner)], 0);
+              Navigator.of(context).pushNamed(
+                  AppRouter.claimedPostcardDetailsPage,
+                  arguments: payload);
+              _configurationService.updateSharedPostcard([e], isRemoved: true);
+            },
+            onClosed: () async {
+              _configurationService.updateSharedPostcard([e], isRemoved: true);
+            },
+            buttonText: "go_to_postcard".tr(),
+            content: Text(
+                "postcard_not_deliveried".tr(namedArgs: {"title": title}),
+                style: theme.textTheme.ppMori400Black14),
+            listener: ValueNotifier<bool>(true),
+          );
+        }).toList(),
     ];
   }
 
@@ -531,57 +626,6 @@ class HomePageState extends State<HomePage>
 
   Future refreshNotification() async {
     await injector<CustomerSupportService>().getIssuesAndAnnouncement();
-  }
-
-  Future refreshTokens({checkPendingToken = false}) async {
-    final accountService = injector<AccountService>();
-
-    final value = await Future.wait([
-      getAddressIndexes(),
-      getManualTokenIds(),
-      accountService.getHiddenAddressIndexes(),
-    ]);
-    final addresses = value[0] as List<AddressIndex>;
-    final indexerIds = value[1] as List<String>;
-    final hiddenAddresses = value[2] as List<AddressIndex>;
-
-    final activeAddresses = addresses
-        .where((element) => !hiddenAddresses.contains(element))
-        .map((e) => e.address)
-        .toList();
-    final isRefresh =
-        !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
-    if (isRefresh) {
-      final listDifferents = activeAddresses
-          .where(
-              (element) => !NftCollectionBloc.activeAddress.contains(element))
-          .toList();
-      if (listDifferents.isNotEmpty) {
-        nftBloc.add(GetTokensBeforeByOwnerEvent(
-          pageKey: nftBloc.state.nextKey,
-          owners: listDifferents,
-        ));
-      }
-    }
-
-    nftBloc.add(RefreshNftCollectionByOwners(
-      hiddenAddresses: hiddenAddresses,
-      addresses: addresses,
-      debugTokens: indexerIds,
-      isRefresh: isRefresh,
-    ));
-
-    if (checkPendingToken) {
-      final pendingTokenService = injector<PendingTokenService>();
-      final pendingResults = await Future.wait(activeAddresses
-          .where((address) => address.startsWith("tz"))
-          .map((address) => pendingTokenService.checkPendingTezosTokens(address,
-              maxRetries: 1)));
-      if (pendingResults.any((e) => e.isNotEmpty)) {
-        nftBloc.add(UpdateTokensEvent(
-            tokens: pendingResults.expand((e) => e).toList()));
-      }
-    }
   }
 
   void _handleForeBackground(FGBGType event) async {
@@ -613,11 +657,34 @@ class HomePageState extends State<HomePage>
             data: {"title": "enjoy_your_collection".tr()});
       }
       if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowCreatePlaylistTip()) {
+          !configurationService.getAlreadyShowCreatePlaylistTip() &&
+          injector<ConfigurationService>().getPlayList().isEmpty != false) {
         configurationService.showCreatePlaylistTip.value = true;
         configurationService.setAlreadyShowCreatePlaylistTip(true);
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "create_your_first_playlist".tr()});
+      }
+    }
+
+    final remindTime = configurationService.getShowBackupSettingTip();
+    final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
+    if (shouldRemindNow) {
+      configurationService
+          .setShowBackupSettingTip(now.add(const Duration(days: 7)));
+      bool showTip = false;
+      if (Platform.isAndroid) {
+        final isAndroidEndToEndEncryptionAvailable =
+            await injector<AccountService>()
+                .isAndroidEndToEndEncryptionAvailable();
+        showTip = isAndroidEndToEndEncryptionAvailable != true;
+      } else {
+        final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
+        showTip = !iCloudAvailable.value;
+      }
+      if (showTip && configurationService.showBackupSettingTip.value == false) {
+        configurationService.showBackupSettingTip.value = true;
+        metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {"title": "backup_failed".tr()});
       }
     }
     if (doneOnboardingTime != null) {
@@ -638,9 +705,12 @@ class HomePageState extends State<HomePage>
             data: {"title": "try_autonomy_pro_free".tr()});
       }
     }
+    await _postcardService.checkNotification();
   }
 
   void _handleForeground() async {
+    final locale = Localizations.localeOf(context);
+    LocaleService.refresh(locale);
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await _checkTipCardShowTime();
@@ -659,12 +729,11 @@ class HomePageState extends State<HomePage>
     injector<Wc2Service>().activateParings();
 
     refreshFeeds();
-    refreshTokens(checkPendingToken: true);
+    _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
     _metricClient.addEvent("device_foreground");
     _subscriptionNotify();
     injector<VersionService>().checkForUpdate();
-
     // Reload token in Isolate
     final jwtToken =
         (await injector<AuthService>().getAuthToken(forceRefresh: true))

@@ -191,3 +191,50 @@ class FeralfileAuthInterceptor extends Interceptor {
     }
   }
 }
+
+class HmacAuthInterceptor extends Interceptor {
+  final String secretKey;
+
+  HmacAuthInterceptor(this.secretKey);
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (options.headers["X-Api-Signature"] == null) {
+      final timestamp =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      String body = "";
+      if (options.data is FormData || options.method.toUpperCase() == "GET") {
+        body = "";
+      } else {
+        body = bytesToHex(
+            sha256.convert(utf8.encode(json.encode(options.data))).bytes);
+      }
+      final canonicalString = List<String>.of([
+        options.path,
+        body,
+        timestamp,
+      ]).join("|");
+      final hmacSha256 = Hmac(sha256, utf8.encode(secretKey));
+      final digest = hmacSha256.convert(utf8.encode(canonicalString));
+      final sig = bytesToHex(digest.bytes);
+      options.headers["X-Api-Signature"] = sig;
+      options.headers["X-Api-Timestamp"] = timestamp;
+    }
+    handler.next(options);
+  }
+}
+
+class AirdropInterceptor extends Interceptor {
+  @override
+  void onError(DioError err, ErrorInterceptorHandler handler) {
+    try {
+      final errorBody = err.response?.data as Map<String, dynamic>;
+      final json = jsonDecode(errorBody["message"]);
+      err.error = FeralfileError.fromJson(json["error"]);
+    } catch (e) {
+      log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
+    } finally {
+      handler.next(err);
+    }
+  }
+}

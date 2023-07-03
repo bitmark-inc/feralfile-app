@@ -46,30 +46,36 @@ Widget accountWithConnectionItem(
             ],
           ),
         ),
+        unexpendedChild: addOnlyDivider(),
         child: Container(
           color: AppColor.auLightGrey.withOpacity(0.5),
           child: Column(
-            children: categorizedAccounts.accounts
-                .map(
-                  (a) => [
-                    addOnlyDivider(),
-                    _blockchainAddressView(
-                      context,
-                      GlobalReceivePayload(
-                          address: a.accountNumber,
-                          blockchain: a.blockchain!,
-                          account: a),
-                      onTap: () => Navigator.of(context).pushNamed(
-                          GlobalReceiveDetailPage.tag,
-                          arguments: GlobalReceivePayload(
-                              address: a.accountNumber,
-                              blockchain: a.blockchain!,
-                              account: a)),
-                    ),
-                  ],
-                )
-                .flattened
-                .toList(),
+            children: [
+              addOnlyDivider(color: AppColor.auQuickSilver),
+              ...categorizedAccounts.accounts
+                  .mapIndexed(
+                    (index, a) => [
+                      _blockchainAddressView(
+                        context,
+                        GlobalReceivePayload(
+                            address: a.accountNumber,
+                            blockchain: a.blockchain!,
+                            account: a),
+                        onTap: () => Navigator.of(context).pushNamed(
+                            GlobalReceiveDetailPage.tag,
+                            arguments: GlobalReceivePayload(
+                                address: a.accountNumber,
+                                blockchain: a.blockchain!,
+                                account: a)),
+                      ),
+                      if (index != categorizedAccounts.accounts.length - 1)
+                        addOnlyDivider(color: AppColor.auLightGrey),
+                    ],
+                  )
+                  .flattened
+                  .toList(),
+              addOnlyDivider(color: AppColor.auQuickSilver),
+            ],
           ),
         ),
       );
@@ -99,26 +105,32 @@ Widget accountWithConnectionItem(
             ],
           ),
         ),
+        unexpendedChild: addOnlyDivider(),
         child: Column(
-          children: categorizedAccounts.accounts
-              .map((a) => [
-                    addOnlyDivider(),
-                    Container(
-                        child: _blockchainAddressView(
-                            context,
-                            GlobalReceivePayload(
-                                address: a.accountNumber,
-                                blockchain: a.blockchain!,
-                                account: a),
-                            onTap: () => Navigator.of(context).pushNamed(
-                                GlobalReceiveDetailPage.tag,
-                                arguments: GlobalReceivePayload(
-                                    address: a.accountNumber,
-                                    blockchain: a.blockchain!,
-                                    account: a)))),
-                  ])
-              .flattened
-              .toList(),
+          children: [
+            addOnlyDivider(color: AppColor.auQuickSilver),
+            ...categorizedAccounts.accounts
+                .mapIndexed((index, a) => [
+                      Container(
+                          child: _blockchainAddressView(
+                              context,
+                              GlobalReceivePayload(
+                                  address: a.accountNumber,
+                                  blockchain: a.blockchain!,
+                                  account: a),
+                              onTap: () => Navigator.of(context).pushNamed(
+                                  GlobalReceiveDetailPage.tag,
+                                  arguments: GlobalReceivePayload(
+                                      address: a.accountNumber,
+                                      blockchain: a.blockchain!,
+                                      account: a)))),
+                      if (index != categorizedAccounts.accounts.length - 1)
+                        addOnlyDivider(color: AppColor.auLightGrey),
+                    ])
+                .flattened
+                .toList(),
+            addOnlyDivider(color: AppColor.auQuickSilver),
+          ],
         ),
       );
 
@@ -215,9 +227,7 @@ Widget _blockchainAddressView(
       onTap: onTap,
       bottomWidget: Text(
         receiver.address,
-        style: ResponsiveLayout.isMobile
-            ? theme.textTheme.ppMori400Black14
-            : theme.textTheme.ppMori400Black16,
+        style: theme.textTheme.ibmBlackNormal14,
       ),
     ),
   );
@@ -332,7 +342,7 @@ Widget _appLogo(Connection connection) {
   }
 }
 
-Widget linkedBox(BuildContext context) {
+Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
   final theme = Theme.of(context);
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
@@ -343,9 +353,7 @@ Widget linkedBox(BuildContext context) {
         )),
     child: Text(
       "linked".tr(),
-      style: ResponsiveLayout.isMobile
-          ? theme.textTheme.ppMori400Grey12
-          : theme.textTheme.ppMori400Grey14,
+      style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
     ),
   );
 }

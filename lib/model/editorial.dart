@@ -26,6 +26,7 @@ class Editorial {
 class EditorialPost {
   String type;
   Publisher publisher;
+  DateTime? publishedAt;
   Map<String, dynamic> content;
   Reference? reference;
   String? tag;
@@ -33,6 +34,7 @@ class EditorialPost {
   EditorialPost({
     required this.type,
     required this.publisher,
+    this.publishedAt,
     required this.content,
     this.reference,
     this.tag,

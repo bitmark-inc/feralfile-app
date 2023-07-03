@@ -99,6 +99,17 @@ import Starscream
             }
         })
         
+        let localeChannel = FlutterMethodChannel(name: "locale",
+                                                    binaryMessenger: controller.binaryMessenger)
+        localeChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "getMeasurementSystem":
+                LocaleHandler.shared.getMeasurementSystem(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+        
         let migrationChannel = FlutterMethodChannel(name: "migration_util",
                                                     binaryMessenger: controller.binaryMessenger)
         migrationChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -201,14 +212,14 @@ import Starscream
 
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
-        
+
         GeneratedPluginRegistrant.register(with: self)
         FlutterDownloaderPlugin.setPluginRegistrantCallback({ registry in
             if (!registry.hasPlugin("FlutterDownloaderPlugin")) {
                 FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
             }
         })
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
                 self?.showAuthenticationOverlay()

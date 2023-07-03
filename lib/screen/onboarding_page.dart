@@ -53,6 +53,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
   bool fromBranchLink = false;
   bool fromDeeplink = false;
+  bool fromIrlLink = false;
   bool creatingAccount = false;
 
   final metricClient = injector.get<MetricClientService>();
@@ -62,6 +63,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.initState();
     handleBranchLink();
     handleDeepLink();
+    handleIrlLink();
   }
 
   @override
@@ -103,6 +105,39 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
+  // make a function to handle irlLink like deepLink
+  void handleIrlLink() {
+    setState(() {
+      fromIrlLink = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      final link = memoryValues.irlLink.value;
+      if (link == null || link.isEmpty) {
+        if (mounted) {
+          setState(() {
+            fromIrlLink = false;
+          });
+        }
+      }
+    });
+    memoryValues.irlLink.addListener(() async {
+      if (memoryValues.irlLink.value != null) {
+        setState(() {
+          fromIrlLink = true;
+        });
+        Future.delayed(const Duration(seconds: 30), () {
+          setState(() {
+            fromIrlLink = false;
+          });
+        });
+      } else {
+        setState(() {
+          fromIrlLink = false;
+        });
+      }
+    });
+  }
+
   void handleBranchLink() async {
     setState(() {
       fromBranchLink = true;
@@ -110,7 +145,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
     Future.delayed(const Duration(seconds: 2), () {
       final data = memoryValues.airdropFFExhibitionId.value;
-      final id = "${data?.artworkId ?? ''}${data?.exhibitionId ?? ''}".trim();
+      final id = "${data?.seriesId ?? ''}${data?.exhibitionId ?? ''}".trim();
       if (id.isEmpty) {
         if (mounted) {
           setState(() {
@@ -133,9 +168,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     memoryValues.airdropFFExhibitionId.addListener(() async {
       try {
         final data = memoryValues.airdropFFExhibitionId.value;
-        final id = "${data?.exhibitionId}_${data?.artworkId}";
+        final id = "${data?.exhibitionId}_${data?.seriesId}";
         if (currentId == id) return;
-        if (data?.artworkId?.isNotEmpty == true ||
+        if (data?.seriesId?.isNotEmpty == true ||
             data?.exhibitionId?.isNotEmpty == true) {
           currentId = id;
           setState(() {
@@ -144,10 +179,10 @@ class _OnboardingPageState extends State<OnboardingPage>
 
           await _restoreIfNeeded();
           final ffService = injector<FeralFileService>();
-          final artwork = data?.artworkId?.isNotEmpty == true
-              ? await ffService.getArtwork(data!.artworkId!)
+          final artwork = data?.seriesId?.isNotEmpty == true
+              ? await ffService.getSeries(data!.seriesId!)
               : await ffService
-                  .getAirdropArtworkFromExhibitionId(data!.exhibitionId!);
+                  .getAirdropSeriesFromExhibitionId(data!.exhibitionId!);
 
           if (artwork.airdropInfo?.isAirdropStarted != true) {
             await injector
@@ -170,7 +205,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
           if (artwork.airdropInfo?.remainAmount == 0) {
             await injector.get<NavigationService>().showNoRemainingToken(
-                  artwork: artwork,
+                  series: artwork,
                 );
             updateDeepLinkState();
             return;
@@ -187,7 +222,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           await Navigator.of(context).pushNamed(
             AppRouter.claimFeralfileTokenPage,
             arguments: ClaimTokenPageArgs(
-              artwork: artwork,
+              series: artwork,
               otp: otp,
             ),
           );
@@ -327,6 +362,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               const Spacer(),
               if (fromBranchLink ||
                   fromDeeplink ||
+                  fromIrlLink ||
                   (state.onboardingStep == OnboardingStep.undefined)) ...[
                 PrimaryButton(
                   text: "h_loading...".tr(),

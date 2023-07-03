@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -26,13 +27,13 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
 
   Future<List<PlayListModel>?> getPlaylist() async {
-    final configurationService = injector.get<ConfigurationService>();
+    final playlistService = injector.get<PlaylistService>();
     final isSubscribed = await injector.get<IAPService>().isSubscribed();
     if (!isSubscribed && !isDemo) return null;
     if (isDemo) {
       return injector<VersionService>().getDemoAccountFromGithub();
     }
-    return configurationService.getPlayList();
+    return playlistService.getPlayList();
   }
 
   _initPlayList() async {
@@ -71,10 +72,10 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   }
 
   _onUpdatePlaylists() async {
-    if (isDemo) return;
+    if (isDemo || _playlists.value == null) return;
     await injector
-        .get<ConfigurationService>()
-        .setPlayList(_playlists.value, override: true);
+        .get<PlaylistService>()
+        .setPlayList(_playlists.value!, override: true);
     injector.get<SettingsDataService>().backup();
   }
 
@@ -106,7 +107,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                     onHold: true,
                   );
                 },
-                itemCount: _playlists.value?.length ?? 0,
+                itemCount: value.length,
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
                     if (oldIndex < newIndex) {
