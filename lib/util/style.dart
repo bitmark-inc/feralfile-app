@@ -630,7 +630,7 @@ Widget redDotIcon({Color color = Colors.red}) {
 
 Widget iconWithRedDot(
     {required Widget icon,
-    Color color = AppColor.red,
+    Color color = Colors.red,
     EdgeInsetsGeometry? padding,
     bool withReddot = true}) {
   return withReddot
