@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
@@ -36,10 +37,10 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -51,6 +52,7 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -88,6 +90,8 @@ class HomePageState extends State<HomePage>
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
+  final _configurationService = injector<ConfigurationService>();
+  final _postcardService = injector<PostcardService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -99,7 +103,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-    injector<ConfigurationService>().setAutoShowPostcard(true);
+    _configurationService.setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -217,13 +221,12 @@ class HomePageState extends State<HomePage>
     final hashedAddresses = allAccountNumbers.fold(
         0, (int previousValue, element) => previousValue + element.hashCode);
 
-    if (injector<ConfigurationService>().sentTezosArtworkMetricValue() !=
+    if (_configurationService.sentTezosArtworkMetricValue() !=
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
       _metricClient.addEvent("collection_has_tezos");
-      injector<ConfigurationService>()
-          .setSentTezosArtworkMetric(hashedAddresses);
+      _configurationService.setSentTezosArtworkMetric(hashedAddresses);
     }
   }
 
@@ -442,13 +445,13 @@ class HomePageState extends State<HomePage>
   }
 
   Widget _carouselTipcard(BuildContext context) {
-    final configurationService = injector<ConfigurationService>();
     return MultiValueListenableBuilder(
       valueListenables: [
-        configurationService.showTvAppTip,
-        configurationService.showCreatePlaylistTip,
-        configurationService.showLinkOrImportTip,
-        configurationService.showBackupSettingTip,
+        _configurationService.showTvAppTip,
+        _configurationService.showCreatePlaylistTip,
+        _configurationService.showLinkOrImportTip,
+        _configurationService.showBackupSettingTip,
+        _configurationService.expiredPostcardSharedLinkTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -464,7 +467,8 @@ class HomePageState extends State<HomePage>
     final isShowCreatePlaylistTip = values[1] as bool;
     final isShowLinkOrImportTip = values[2] as bool;
     final isShowBackupSettingTip = values[3] as bool;
-    final configurationService = injector<ConfigurationService>();
+    final expiredPostcardShareLink = values[4] as List<SharedPostcard>;
+    final compactedToken = nftBloc.state.tokens.items;
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
@@ -475,7 +479,7 @@ class HomePageState extends State<HomePage>
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showLinkOrImportTip),
+            listener: _configurationService.showLinkOrImportTip),
       if (isShowCreatePlaylistTip)
         Tipcard(
             titleText: "create_your_first_playlist".tr(),
@@ -485,7 +489,7 @@ class HomePageState extends State<HomePage>
             buttonText: "create_new_playlist".tr(),
             content: Text("as_a_pro_sub_playlist".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showCreatePlaylistTip),
+            listener: _configurationService.showCreatePlaylistTip),
       if (isShowTvAppTip)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),
@@ -524,7 +528,7 @@ class HomePageState extends State<HomePage>
                 ],
               ),
             ),
-            listener: configurationService.showTvAppTip),
+            listener: _configurationService.showTvAppTip),
       if (isShowBackupSettingTip)
         Tipcard(
             titleText: "backup_failed".tr(),
@@ -543,7 +547,33 @@ class HomePageState extends State<HomePage>
                     ? "backup_tip_card_content_android".tr()
                     : "backup_tip_card_content_ios".tr(),
                 style: theme.textTheme.ppMori400Black14),
-            listener: configurationService.showBackupSettingTip),
+            listener: _configurationService.showBackupSettingTip),
+      if (!(_configurationService.isNotificationEnabled() ?? false))
+        ...expiredPostcardShareLink.map((e) {
+          final title = compactedToken
+                  .firstWhereOrNull((element) => element.id == e.tokenID)
+                  ?.title ??
+              "";
+          return Tipcard(
+            titleText: "moma_postcard".tr(),
+            onPressed: () async {
+              final payload = ArtworkDetailPayload(
+                  [ArtworkIdentity(e.tokenID, e.owner)], 0);
+              Navigator.of(context).pushNamed(
+                  AppRouter.claimedPostcardDetailsPage,
+                  arguments: payload);
+              _configurationService.updateSharedPostcard([e], isRemoved: true);
+            },
+            onClosed: () async {
+              _configurationService.updateSharedPostcard([e], isRemoved: true);
+            },
+            buttonText: "go_to_postcard".tr(),
+            content: Text(
+                "postcard_not_deliveried".tr(namedArgs: {"title": title}),
+                style: theme.textTheme.ppMori400Black14),
+            listener: ValueNotifier<bool>(true),
+          );
+        }).toList(),
     ];
   }
 
@@ -648,6 +678,7 @@ class HomePageState extends State<HomePage>
             data: {"title": "try_autonomy_pro_free".tr()});
       }
     }
+    await _postcardService.checkNotification();
   }
 
   void _handleForeground() async {
@@ -668,7 +699,6 @@ class HomePageState extends State<HomePage>
     }
 
     injector<WalletConnectService>().initSessions(forced: true);
-    injector<Wc2Service>().activateParings();
 
     refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);

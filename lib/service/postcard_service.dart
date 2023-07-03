@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -14,10 +15,13 @@ import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -79,17 +83,25 @@ abstract class PostcardService {
 
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
+
+  Future<void> checkNotification();
 }
 
 class PostcardServiceImpl extends PostcardService {
   final PostcardApi _postcardApi;
   final TezosService _tezosService;
   final IndexerService _indexerService;
-  final _tzktApi = injector<TZKTApi>();
-  final _configurationService = injector<ConfigurationService>();
+  final TZKTApi _tzktApi;
+  final ConfigurationService _configurationService;
+  final NotificationService _notificationService;
 
   PostcardServiceImpl(
-      this._postcardApi, this._tezosService, this._indexerService);
+      this._postcardApi,
+      this._tezosService,
+      this._indexerService,
+      this._tzktApi,
+      this._notificationService,
+      this._configurationService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -317,5 +329,30 @@ class PostcardServiceImpl extends PostcardService {
   Future<RequestPostcardResponse> requestPostcard(
       RequestPostcardRequest request) async {
     return await _postcardApi.request(request);
+  }
+
+  @override
+  Future<void> checkNotification() async {
+    final expiredPostcardShareLink =
+        await _configurationService.getSharedPostcard().expiredPostcards;
+    if (_configurationService.isNotificationEnabled() ?? false) {
+      Timer.periodic(const Duration(seconds: 1), (timer) async {
+        final index = timer.tick - 1;
+        if (index > expiredPostcardShareLink.length) {
+          timer.cancel();
+        } else {
+          final expiredPostcard = expiredPostcardShareLink[index];
+          await _notificationService.showPostcardWasnotDeliveredNotification(
+              PostcardIdentity(
+                  id: expiredPostcard.tokenID, owner: expiredPostcard.owner));
+          await _configurationService
+              .updateSharedPostcard([expiredPostcard], isRemoved: true);
+        }
+      });
+      _configurationService.expiredPostcardSharedLinkTip.value = [];
+    } else {
+      _configurationService.expiredPostcardSharedLinkTip.value =
+          expiredPostcardShareLink;
+    }
   }
 }

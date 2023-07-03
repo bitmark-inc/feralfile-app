@@ -91,16 +91,6 @@ class Wc2Service extends Wc2Handler {
     await _wc2channel.pairClient(uri);
   }
 
-  Future activateParings() async {
-    final connections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
-    for (var connection in connections) {
-      final topic = connection.key.split(":").lastOrNull;
-      if (topic == null) continue;
-      await _wc2channel.activate(topic: topic);
-    }
-  }
-
   Future cleanup() async {
     final connections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.walletConnect2.rawValue);

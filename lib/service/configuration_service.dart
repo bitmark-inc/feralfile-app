@@ -250,10 +250,14 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showWhatNewAddressTip;
 
+  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip;
+
   List<SharedPostcard> getSharedPostcard();
 
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
-      {bool override = false});
+      {bool override = false, bool isRemoved = false});
+
+  Future<void> removeSharedPostcardWhere(bool Function(SharedPostcard) test);
 
   List<String> getListPostcardMint();
 
@@ -387,6 +391,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
   static const String KEY_PACKAGE_INFO = "package_info";
+
+  final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
+      ValueNotifier([]);
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1082,24 +1089,57 @@ class ConfigurationServiceImpl implements ConfigurationService {
         _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
     return sharedPostcardString
         .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toSet()
         .toList();
   }
 
   @override
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
-      {bool override = false}) async {
+      {bool override = false, bool isRemoved = false}) async {
     const key = KEY_SHARED_POSTCARD;
     final updatePostcards =
         sharedPostcards.map((e) => jsonEncode(e.toJson())).toList();
 
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
+      expiredPostcardSharedLinkTip.value =
+          await sharedPostcards.expiredPostcards;
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
+      if (isRemoved) {
+        sentPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        sentPostcard.addAll(updatePostcards);
+      }
+      final uniqueSharedPostcard = sentPostcard
+          .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+          .toList();
+      uniqueSharedPostcard.sort((e1, e2) {
+        if (e2.sharedAt == null || e1.sharedAt == null) {
+          return 0;
+        }
+        return e2.sharedAt!.compareTo(e1.sharedAt!);
+      });
 
-      sentPostcard.addAll(updatePostcards);
-      await _preferences.setStringList(key, sentPostcard.toSet().toList());
+      uniqueSharedPostcard.unique((element) => element.tokenID + element.owner);
+      await _preferences.setStringList(key,
+          uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
+      expiredPostcardSharedLinkTip.value =
+          await uniqueSharedPostcard.expiredPostcards;
     }
+  }
+
+  @override
+  Future<void> removeSharedPostcardWhere(bool Function(SharedPostcard) test) {
+    final sharedPostcardString =
+        _preferences.getStringList(KEY_SHARED_POSTCARD) ?? [];
+    final sharedPostcards = sharedPostcardString
+        .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
+        .toSet()
+        .toList();
+    sharedPostcards.removeWhere(test);
+    return updateSharedPostcard(sharedPostcards, override: true);
   }
 
   @override
@@ -1285,4 +1325,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future setShowWhatNewAddressTipRead(int currentVersion) async {
     await _preferences.setInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP, currentVersion);
   }
+
+  @override
+  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip =>
+      _expiredPostcardSharedLinkTip;
 }
