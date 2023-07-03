@@ -21,7 +21,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -94,35 +93,19 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   }
 
   Future<void> _receivePostcard(AssetToken asset) async {
-    Position? location;
-    final permissions = await checkLocationPermissions();
-    if (!permissions) {
+    GeoLocation? location;
+    try {
+      location = await getGeoLocationWithPermission(
+          timeout: const Duration(seconds: 5));
+      if (location == null) return;
+    } catch (e) {
+      log.info("[Postcard] Error getting location: $e");
       if (!mounted) return;
-      await UIHelper.showDeclinedGeolocalization(context);
+      await UIHelper.showWeakGPSSignal(context);
       setState(() {
         _isProcessing = false;
       });
       return;
-    } else {
-      try {
-        location = await getGeoLocation(timeout: const Duration(seconds: 5));
-        if (location.isMocked) {
-          if (!mounted) return;
-          await UIHelper.showMockedLocation(context);
-          setState(() {
-            _isProcessing = false;
-          });
-          return;
-        }
-      } catch (e) {
-        log.info("[Postcard] Error getting location: $e");
-        if (!mounted) return;
-        await UIHelper.showWeakGPSSignal(context);
-        setState(() {
-          _isProcessing = false;
-        });
-        return;
-      }
     }
 
     final blockchain = asset.blockchain;
@@ -150,11 +133,14 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     if (address != null) {
       try {
         final response = await injector<PostcardService>().receivePostcard(
-            shareCode: widget.shareCode, location: location, address: address);
+            shareCode: widget.shareCode,
+            location: location.position,
+            address: address);
         var postcardMetadata = asset.postcardMetadata;
         postcardMetadata.locationInformation.add(UserLocations(
-            claimedLocation:
-                Location(lat: location.latitude, lon: location.longitude)));
+            claimedLocation: Location(
+                lat: location.position.latitude,
+                lon: location.position.longitude)));
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
         final pendingToken =

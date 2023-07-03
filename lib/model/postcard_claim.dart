@@ -6,6 +6,7 @@ class ClaimPostCardRequest {
   String? publicKey;
   String? address;
   String? signature;
+  List<double> location;
 
   ClaimPostCardRequest({
     this.claimID,
@@ -13,6 +14,7 @@ class ClaimPostCardRequest {
     this.publicKey,
     this.address,
     this.signature,
+    required this.location,
   });
 
   ClaimPostCardRequest copyWith({
@@ -21,6 +23,7 @@ class ClaimPostCardRequest {
     String? publicKey,
     String? address,
     String? signature,
+    List<double>? location,
   }) {
     return ClaimPostCardRequest(
       claimID: claimID ?? this.claimID,
@@ -28,6 +31,7 @@ class ClaimPostCardRequest {
       publicKey: publicKey ?? this.publicKey,
       address: address ?? this.address,
       signature: signature ?? this.signature,
+      location: location ?? this.location,
     );
   }
 
@@ -38,6 +42,7 @@ class ClaimPostCardRequest {
       'publicKey': publicKey,
       'address': address,
       'signature': signature,
+      'location': location,
     };
   }
 
@@ -48,12 +53,15 @@ class ClaimPostCardRequest {
       publicKey: map['publicKey'] != null ? map['publicKey'] as String : null,
       address: map['address'] != null ? map['address'] as String : null,
       signature: map['signature'] != null ? map['signature'] as String : null,
+      location: map['location'] != null
+          ? List<double>.from(map['location'] as List)
+          : [],
     );
   }
 
   @override
   String toString() {
-    return 'ClaimPostCardRequest(claimID: $claimID, timestamp: $timestamp, publicKey: $publicKey, address: $address, signature: $signature)';
+    return 'ClaimPostCardRequest(claimID: $claimID, timestamp: $timestamp, publicKey: $publicKey, address: $address, signature: $signature, location: $location)';
   }
 
   @override
@@ -64,7 +72,8 @@ class ClaimPostCardRequest {
         other.timestamp == timestamp &&
         other.publicKey == publicKey &&
         other.address == address &&
-        other.signature == signature;
+        other.signature == signature &&
+        other.location == location;
   }
 
   @override
@@ -73,7 +82,8 @@ class ClaimPostCardRequest {
         timestamp.hashCode ^
         publicKey.hashCode ^
         address.hashCode ^
-        signature.hashCode;
+        signature.hashCode ^
+        location.hashCode;
   }
 }
 

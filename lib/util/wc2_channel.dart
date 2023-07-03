@@ -116,6 +116,7 @@ class Wc2Channel {
           break;
         case "onSessionRequest":
           log.info("[WC2Channel] onSessionRequest");
+          log.info(params);
           final request = Wc2Request.fromJson(json.decode(params));
           handler?.onSessionRequest(request);
           break;

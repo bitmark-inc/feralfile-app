@@ -458,6 +458,22 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               height: 10,
                             ),
                             _postcardInfo(state),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 16.0, right: 16.0, top: 40),
+                                child: OutlineButton(
+                                  color: Colors.transparent,
+                                  text: "web3_glossary".tr(),
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, AppRouter.previewPrimerPage,
+                                        arguments: asset);
+                                  },
+                                ),
+                              ),
+                            ),
                             _artworkInfo(asset, state.toArtworkDetailState(),
                                 artistNames),
                           ],
