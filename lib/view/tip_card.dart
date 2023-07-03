@@ -3,21 +3,22 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class Tipcard extends StatelessWidget {
   final String titleText;
-  final Function() onPressed;
+  final Function()? onPressed;
   final Function()? onClosed;
-  final String buttonText;
+  final String? buttonText;
   final Widget content;
   final ValueNotifier<bool> listener;
 
   const Tipcard({
     super.key,
     required this.titleText,
-    required this.onPressed,
-    required this.buttonText,
+    this.onPressed,
+    this.buttonText,
     required this.content,
     required this.listener,
     this.onClosed,
@@ -69,20 +70,22 @@ class Tipcard extends StatelessWidget {
                     ),
                     const SizedBox(height: 15),
                     content,
-                    const SizedBox(height: 15),
-                    OutlineButton(
-                        color: AppColor.auSuperTeal,
-                        textColor: AppColor.primaryBlack,
-                        borderColor: AppColor.primaryBlack,
-                        text: buttonText,
-                        onTap: () {
-                          onPressed();
-                          metricClient
-                              .addEvent(MixpanelEvent.pressTipcard, data: {
-                            'title': titleText,
-                          });
-                          listener.value = false;
-                        }),
+                    if (buttonText != null || onPressed != null) ...[
+                      const SizedBox(height: 15),
+                      OutlineButton(
+                          color: AppColor.auSuperTeal,
+                          textColor: AppColor.primaryBlack,
+                          borderColor: AppColor.primaryBlack,
+                          text: buttonText ?? "close".tr(),
+                          onTap: () {
+                            () {};
+                            metricClient
+                                .addEvent(MixpanelEvent.pressTipcard, data: {
+                              'title': titleText,
+                            });
+                            listener.value = false;
+                          }),
+                    ]
                   ],
                 ),
               )

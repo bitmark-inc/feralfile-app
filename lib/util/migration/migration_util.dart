@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -89,6 +90,7 @@ class MigrationUtil {
             defaultAccount: defaultAccount);
 
         await _cloudDB.personaDao.insertPersona(persona);
+        await persona.insertAddress(WalletType.Autonomy, name: persona.name);
         await _auditService.auditPersonaAction(
             '[_migrationkeychain] insert', persona);
       }

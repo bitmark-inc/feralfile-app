@@ -11,6 +11,8 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/eth_utils.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -295,15 +297,25 @@ enum CryptoType {
   UNKNOWN;
 
   static CryptoType fromSource(String source) {
-    switch (source) {
-      case "Ethereum":
+    switch (source.toLowerCase()) {
+      case "ethereum":
         return CryptoType.ETH;
-      case "Tezos":
+      case "tezos":
         return CryptoType.XTZ;
-      case "USDC":
+      case "usdc":
         return CryptoType.USDC;
       default:
         return CryptoType.UNKNOWN;
+    }
+  }
+
+  static CryptoType fromAddress(String source) {
+    if (source.isValidTezosAddress) {
+      return CryptoType.XTZ;
+    } else if (source.toEthereumAddress() != null) {
+      return CryptoType.ETH;
+    } else {
+      return CryptoType.UNKNOWN;
     }
   }
 }

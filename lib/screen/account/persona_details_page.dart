@@ -15,11 +15,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -38,7 +36,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 
 class PersonaDetailsPage extends StatefulWidget {
   final Persona persona;
@@ -139,9 +136,9 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                     height: 16,
                   ),
             const SizedBox(height: 32),
-            _addressesSection(uuid),
+            _addressesSection(context, uuid),
             const SizedBox(height: 16),
-            _backupSection(),
+            _backupSection(context),
             const SizedBox(height: 40),
           ],
         ),
@@ -250,7 +247,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     ]);
   }
 
-  Widget _addressesSection(String uuid) {
+  Widget _addressesSection(BuildContext context, String uuid) {
     final theme = Theme.of(context);
 
     return Column(
@@ -272,7 +269,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
           return Column(
               children: ethAddresses
                   .map((addressIndex) => [
-                        _addressRow(
+                        _addressRow(context,
                             walletAddress: addressIndex,
                             balance: state.ethBalances[addressIndex.address] ==
                                     null
@@ -292,6 +289,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             children: tezosAddress
                 .map((addressIndex) => [
                       _addressRow(
+                        context,
                         walletAddress: addressIndex,
                         balance: state.balances[addressIndex.address] == null
                             ? "-- XTZ"
@@ -356,7 +354,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  Widget _addressRow(
+  Widget _addressRow(BuildContext context,
       {required WalletAddress walletAddress, String balance = ""}) {
     final theme = Theme.of(context);
     final addressStyle = theme.textTheme.ppMori400Black14;
@@ -365,7 +363,7 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
         dragDismissible: false,
-        children: slidableActions(walletAddress),
+        children: slidableActions(context, walletAddress),
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -417,25 +415,12 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             ],
           ),
         ),
-        onTap: () {
-          final payload = WalletDetailsPayload(
-            personaUUID: persona.uuid,
-            address: walletAddress.address,
-            type: CryptoType.fromSource(walletAddress.cryptoType),
-            wallet: LibAukDart.getWallet(persona.uuid),
-            personaName: persona.name,
-            index: walletAddress.index,
-            isHideGalleryEnabled: walletAddress.isHidden,
-            //personaName: widget.persona.name,
-          );
-          Navigator.of(context)
-              .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
-        },
+        onTap: () {},
       ),
     );
   }
 
-  Widget _backupSection() {
+  Widget _backupSection(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -502,7 +487,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
     );
   }
 
-  List<CustomSlidableAction> slidableActions(WalletAddress walletAddress) {
+  List<CustomSlidableAction> slidableActions(
+      BuildContext context, WalletAddress walletAddress) {
     final theme = Theme.of(context);
     final isHidden = walletAddress.isHidden;
     return [

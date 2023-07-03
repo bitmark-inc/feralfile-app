@@ -112,14 +112,18 @@ class TezosPack {
 
 extension TezosExtension on String {
   bool get isValidTezosAddress {
-    final decoded = Base58Decode(this);
-    if (decoded.length < 4) {
+    try {
+      final decoded = Base58Decode(this);
+      if (decoded.length < 4) {
+        return false;
+      }
+      final checksum = sha256
+          .convert(sha256.convert(decoded.sublist(0, decoded.length - 4)).bytes)
+          .bytes
+          .sublist(0, 4);
+      return listEquals(checksum, decoded.sublist(decoded.length - 4));
+    } catch (_) {
       return false;
     }
-    final checksum = sha256
-        .convert(sha256.convert(decoded.sublist(0, decoded.length - 4)).bytes)
-        .bytes
-        .sublist(0, 4);
-    return listEquals(checksum, decoded.sublist(decoded.length - 4));
   }
 }

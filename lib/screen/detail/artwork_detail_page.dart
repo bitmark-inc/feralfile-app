@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -480,25 +479,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 return;
               }
 
-              final tx = payload['tx'] as TZKTOperation;
-
               if (!mounted) return;
               UIHelper.showMessageAction(
                 context,
                 'success'.tr(),
                 'send_success_des'.tr(),
-                onAction: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushNamed(
-                    AppRouter.tezosTXDetailPage,
-                    arguments: {
-                      "current_address": tx.sender?.address,
-                      "tx": tx,
-                      "isBackHome": isSentAll,
-                    },
-                  );
-                },
-                actionButton: 'see_transaction_detail'.tr(),
                 closeButton: "close".tr(),
                 onClose: () => isSentAll
                     ? Navigator.of(context).popAndPushNamed(

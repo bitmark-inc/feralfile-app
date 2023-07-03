@@ -14,12 +14,11 @@ import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -28,6 +27,7 @@ import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -37,7 +37,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 
 import '../database/cloud_database.dart';
-import '../util/migration/migration_util.dart';
 import 'bloc/persona/persona_bloc.dart';
 
 final logger = Logger('App');
@@ -177,7 +176,7 @@ class _OnboardingPageState extends State<OnboardingPage>
             fromBranchLink = true;
           });
 
-          await _restoreIfNeeded();
+          await _createAddressIfNeeded();
           final ffService = injector<FeralFileService>();
           final artwork = data?.seriesId?.isNotEmpty == true
               ? await ffService.getSeries(data!.seriesId!)
@@ -240,35 +239,20 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
-  Future<void> _restoreIfNeeded() async {
+  Future<void> _createAddressIfNeeded() async {
     final configurationService = injector<ConfigurationService>();
     if (configurationService.isDoneOnboarding()) return;
 
     final cloudDB = injector<CloudDatabase>();
-    final backupService = injector<BackupService>();
     final accountService = injector<AccountService>();
-    final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(configurationService, cloudDB,
-        accountService, iapService, auditService, backupService);
-    await accountService.androidBackupKeys();
-    await migrationUtil.migrationFromKeychain();
     final personas = await cloudDB.personaDao.getPersonas();
-    final connections = await cloudDB.connectionDao.getConnections();
-    if (personas.isNotEmpty || connections.isNotEmpty) {
-      configurationService.setOldUser();
-      final defaultAccount = await accountService.getDefaultAccount();
-      final backupVersion =
-          await backupService.fetchBackupVersion(defaultAccount);
-      if (backupVersion.isNotEmpty) {
-        backupService.restoreCloudDatabase(defaultAccount, backupVersion);
-        for (var persona in personas) {
-          if (persona.name != "") {
-            persona.wallet().updateName(persona.name);
-          }
-        }
-        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
-      }
+    if (personas.isEmpty) {
+      logger.info("Onboarding: create new addresses");
+      configurationService.setDoneOnboarding(true);
+      final persona = await accountService.createPersona();
+      await persona.insertAddress(WalletType.Autonomy);
+      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
   }
 
@@ -360,10 +344,11 @@ class _OnboardingPageState extends State<OnboardingPage>
               addBoldDivider(),
               Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
               const Spacer(),
-              if (fromBranchLink ||
-                  fromDeeplink ||
-                  fromIrlLink ||
-                  (state.onboardingStep == OnboardingStep.undefined)) ...[
+              if ((fromBranchLink ||
+                      fromDeeplink ||
+                      fromIrlLink ||
+                      (state.onboardingStep == OnboardingStep.undefined)) &&
+                  (state.onboardingStep != OnboardingStep.restore)) ...[
                 PrimaryButton(
                   text: "h_loading...".tr(),
                   isProcessing: true,
@@ -375,28 +360,31 @@ class _OnboardingPageState extends State<OnboardingPage>
                 const SizedBox(height: 20),
                 PrimaryButton(
                   text: "create_a_new_wallet".tr(),
-                  onTap: () async {
-                    setState(() {
-                      creatingAccount = true;
-                    });
-                    await Future.delayed(const Duration(milliseconds: 200), () {
-                      context.read<PersonaBloc>().add(CreatePersonaEvent());
-                    });
+                  onTap: () {
+                    Navigator.of(context).pushNamed(ChooseChainPage.tag);
                   },
                 ),
-              ] else if (state.onboardingStep == OnboardingStep.restore) ...[
-                Text("retrieve_at_once".tr(),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text("or".tr().toUpperCase(),
+                      style: theme.textTheme.ppMori400Grey14),
+                ),
+                const SizedBox(height: 20),
+                Text("view_existing_address_des".tr(),
                     style: theme.textTheme.ppMori400Grey14),
                 const SizedBox(height: 20),
                 PrimaryButton(
-                  text: "restore_autonomy".tr(),
-                  onTap: !state.isLoading
-                      ? () {
-                          context.read<RouterBloc>().add(
-                              RestoreCloudDatabaseRoutingEvent(
-                                  state.backupVersion));
-                        }
-                      : null,
+                  text: "view_existing_address".tr(),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(ViewExistingAddress.tag,
+                        arguments: ViewExistingAddressPayload(true));
+                  },
+                ),
+              ] else if (state.onboardingStep == OnboardingStep.restore) ...[
+                PrimaryButton(
+                  text: "restoring".tr(),
+                  isProcessing: true,
+                  enabled: false,
                 ),
               ]
             ],

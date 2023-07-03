@@ -70,6 +70,22 @@ class Wc2Service extends Wc2Handler {
     _wc2channel = Wc2Channel(handler: this);
   }
 
+  // These session are approved but addresses permission are not granted.
+  final List<String> _pendingSessions = [];
+
+  void addPendingSession(String id) {
+    _pendingSessions.add(id);
+  }
+
+  String? getFirstSession() {
+    if (_pendingSessions.isEmpty) return null;
+    return _pendingSessions.first;
+  }
+
+  void removePendingSession(String id) {
+    _pendingSessions.remove(id);
+  }
+
   Future connect(String uri) async {
     pendingUri = uri;
     await _wc2channel.pairClient(uri);
@@ -95,7 +111,10 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future approveSession(Wc2Proposal proposal,
-      {required String account, required String connectionKey}) async {
+      {required String account,
+      required String connectionKey,
+      required String accountNumber,
+      isAuConnect = false}) async {
     await _wc2channel.approve(
       proposal.id,
       account,
@@ -105,15 +124,21 @@ class Wc2Service extends Wc2Handler {
             .firstWhereOrNull((element) => pendingUri.contains(element.topic))
             ?.topic ??
         "";
+
     final connection = Connection(
       key: "$connectionKey:$topic",
       name: proposal.proposer.name,
       data: json.encode(proposal.proposer),
-      connectionType: ConnectionType.walletConnect2.rawValue,
-      accountNumber: account,
+      connectionType: isAuConnect
+          ? ConnectionType.walletConnect2.rawValue
+          : ConnectionType.dappConnect2.rawValue,
+      accountNumber: accountNumber,
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
+    if (isAuConnect) {
+      addPendingSession(topic);
+    }
   }
 
   Future rejectSession(

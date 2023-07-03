@@ -128,7 +128,7 @@ class _IRLGetAddressPageState extends State<IRLGetAddressPage> with RouteAware {
 
   Widget _buildAddressList(BuildContext context) {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final categorizedAccounts = state.categorizedAccounts ?? [];
+      final categorizedAccounts = state.accounts ?? [];
       return Column(
         children: categorizedAccounts
             .map((account) => PersonalConnectItem(
