@@ -197,8 +197,6 @@ import Starscream
                 WC2ChannelHandler.shared.respondOnReject(call: call, result: result)
             case "getPairings":
                 WC2ChannelHandler.shared.getPairings(call: call, result: result)
-            case "activate":
-                WC2ChannelHandler.shared.activate(call: call, result: result)
             case "deletePairing":
                 WC2ChannelHandler.shared.deletePairing(call: call, result: result)
             case "cleanup":

@@ -41,7 +41,6 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -700,7 +699,6 @@ class HomePageState extends State<HomePage>
     }
 
     injector<WalletConnectService>().initSessions(forced: true);
-    injector<Wc2Service>().activateParings();
 
     refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);

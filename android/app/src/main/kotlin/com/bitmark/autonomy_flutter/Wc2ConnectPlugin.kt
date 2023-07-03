@@ -70,16 +70,10 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         }
         val namespaces = proposal.requiredNamespaces.mapValues {
             Sign.Model.Namespace.Session(
-                accounts = it.value.chains.map { chain -> "$chain:$account" },
+                chains = it.value.chains,
                 methods = it.value.methods,
                 events = it.value.events,
-                extensions = it.value.extensions?.map { ext ->
-                    Sign.Model.Namespace.Session.Extension(
-                        accounts = listOf("${it.key}:$account"),
-                        methods = ext.methods,
-                        events = ext.events
-                    )
-                }
+                accounts = it.value.chains?.map { chain -> "$chain:$account" } ?: emptyList(),
             )
         }
         try {
@@ -184,12 +178,6 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         }
     }
 
-    private fun activate(topic: String, result: MethodChannel.Result) {
-        Timber.e("activate pairing. Topic: $topic")
-        CoreClient.Pairing.activate(topic)
-        result.success()
-    }
-
     private fun deletePairing(topic: String, result: MethodChannel.Result) {
         try {
             Timber.e("Delete pairing. Topic: $topic")
@@ -243,10 +231,6 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             }
             "getPairings" -> {
                 getPairings(result)
-            }
-            "activate" -> {
-                val topic = call.argument<String?>("topic").orEmpty()
-                activate(topic = topic, result = result)
             }
             "deletePairing" -> {
                 val topic = call.argument<String?>("topic").orEmpty()
@@ -426,7 +410,10 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             relayServerUrl = "wss://relay.walletconnect.com?projectId=33abc0fd433c7a6e1cc198273e4a7d6e",
             connectionType = ConnectionType.AUTOMATIC,
             application = application,
-            relay = null
+            relay = null,
+            onError = {
+                Timber.e("[WalletDelegate] onSessionUpdateResponse $it")
+            }
         )
         val signInitParams = Sign.Params.Init(
             core = CoreClient
