@@ -19,8 +19,8 @@ class CanvasClientService {
   CanvasClientService(this._db);
 
   final List<CanvasDevice> _devices = [];
-  late final String? _deviceId;
-  late final String? _deviceName;
+  late final String _deviceId;
+  late final String _deviceName;
   bool _didInitialized = false;
 
   final _connectDevice = Lock();
