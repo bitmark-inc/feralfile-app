@@ -364,20 +364,28 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                       controller: controller,
                       itemCount: tokens.length,
                       itemBuilder: (context, index) {
-                        if (_canvasDeviceBloc.state.isCasting) {
-                          return const CurrentlyCastingArtwork();
-                        }
-                        if (tokens[index].id.isPostcardId) {
-                          return PostcardPreviewWidget(
-                            identity: tokens[index],
-                            useIndexer: widget.payload.useIndexer,
-                          );
-                        }
-                        return ArtworkPreviewWidget(
-                          identity: tokens[index],
-                          onLoaded: setTimer,
-                          focusNode: _focusNode,
-                          useIndexer: widget.payload.useIndexer,
+                        return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                          bloc: _canvasDeviceBloc,
+                          builder: (context, state) {
+                            final isCasting = state.isCasting;
+                            if (isCasting) {
+                              return const Center(
+                                child: CurrentlyCastingArtwork(),
+                              );
+                            }
+                            if (tokens[index].id.isPostcardId) {
+                              return PostcardPreviewWidget(
+                                identity: tokens[index],
+                                useIndexer: widget.payload.useIndexer,
+                              );
+                            }
+                            return ArtworkPreviewWidget(
+                              identity: tokens[index],
+                              onLoaded: setTimer,
+                              focusNode: _focusNode,
+                              useIndexer: widget.payload.useIndexer,
+                            );
+                          },
                         );
                       },
                     ),

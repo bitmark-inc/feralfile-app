@@ -191,6 +191,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                         ? theme.textTheme.ppMori700Black14
                             .copyWith(color: AppColor.disabledColor)
                         : theme.textTheme.ppMori700White14,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(
@@ -226,6 +227,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
               onPressed: () {
                 _bloc.add(CanvasDeviceRotateEvent(deviceState.device));
               },
+              padding: const EdgeInsets.all(0),
+              constraints: const BoxConstraints(),
               icon: const Icon(AuIcon.rotateRounded, color: AppColor.white),
             ),
             const SizedBox(width: 20),
