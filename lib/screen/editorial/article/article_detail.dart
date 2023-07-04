@@ -150,6 +150,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     _updateEditorialReadingTime();
     _controller.dispose();
     _timer?.cancel();
+    _scrollTimer?.cancel();
     super.dispose();
   }
 
