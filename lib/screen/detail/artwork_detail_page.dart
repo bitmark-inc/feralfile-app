@@ -322,8 +322,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 ),
                 _sendMemento6(context, asset),
                 Visibility(
-                  visible: CHECK_WEB3_CONTRACT_ADDRESS
-                      .contains(asset.contractAddress),
+                  visible:
+                      checkWeb3ContractAddress.contains(asset.contractAddress),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
