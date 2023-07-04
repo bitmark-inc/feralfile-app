@@ -71,7 +71,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   /// Control header show/hide
   /// - When scroll, hide header
   /// - When slightly scroll up, show header, after 5s, hide header
-  /// - When if scroll to top, show header
+  /// - When scroll to top, show header
   _scrollListener() {
     _timer?.cancel();
     _scrollTimer?.cancel();
