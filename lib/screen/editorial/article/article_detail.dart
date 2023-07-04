@@ -52,6 +52,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   late DateTime startReadingTime;
   bool _showHeader = true;
   Timer? _timer;
+  Timer? _scrollTimer;
+  double _lastOffset = 0;
 
   @override
   void initState() {
@@ -66,16 +68,32 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
   }
 
+  /// Control header show/hide
+  /// - When scroll, hide header
+  /// - When slightly scroll up, show header, after 5s, hide header
+  /// - When scroll to top, show header
   _scrollListener() {
+    _timer?.cancel();
+    _scrollTimer?.cancel();
+
     if (_controller.offset > 5) {
       setState(() {
         _showHeader = false;
       });
-      _timer?.cancel();
-      _timer = Timer(const Duration(seconds: 5), () {
-        if (mounted) {
+
+      final difference = _controller.offset - _lastOffset;
+      _scrollTimer = Timer(const Duration(milliseconds: 300), () {
+        if (difference > -5 && difference < 0) {
           setState(() {
             _showHeader = true;
+          });
+
+          _timer = Timer(const Duration(seconds: 5), () {
+            if (mounted) {
+              setState(() {
+                _showHeader = false;
+              });
+            }
           });
         }
       });
@@ -84,6 +102,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
         _showHeader = true;
       });
     }
+    _lastOffset = _controller.offset;
   }
 
   Future<void> _updateEditorialReadingTime() async {
@@ -136,6 +155,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     _updateEditorialReadingTime();
     _controller.dispose();
     _timer?.cancel();
+    _scrollTimer?.cancel();
     super.dispose();
   }
 
