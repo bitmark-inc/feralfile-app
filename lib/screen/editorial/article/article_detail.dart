@@ -68,17 +68,19 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
   }
 
+  /// Control header show/hide
+  /// - When scroll, hide header
+  /// - When slightly scroll up, show header, after 5s, hide header
+  /// - When if scroll to top, show header
   _scrollListener() {
     _timer?.cancel();
     _scrollTimer?.cancel();
 
     if (_controller.offset > 5) {
-      /// if scroll, hide header
       setState(() {
         _showHeader = false;
       });
 
-      /// slightly scroll up, show header
       final difference = _controller.offset - _lastOffset;
       _scrollTimer = Timer(const Duration(milliseconds: 300), () {
         if (difference > -5 && difference < 0) {
@@ -86,7 +88,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             _showHeader = true;
           });
 
-          /// after 5s, hide header
           _timer = Timer(const Duration(seconds: 5), () {
             if (mounted) {
               setState(() {
@@ -97,7 +98,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
         }
       });
     } else {
-      /// if scroll to top, show header
       setState(() {
         _showHeader = true;
       });
