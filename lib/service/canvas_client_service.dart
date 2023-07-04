@@ -21,6 +21,7 @@ class CanvasClientService {
   final List<CanvasDevice> _devices = [];
   late final String _deviceId;
   late final String _deviceName;
+  bool _didInitialized = false;
 
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
@@ -32,11 +33,15 @@ class CanvasClientService {
       compression: const GzipCodec(), timeout: const Duration(seconds: 3));
 
   Future<void> init() async {
+    if (_didInitialized) {
+      return;
+    }
     final device = my_device.DeviceInfo.instance;
     _deviceName = await device.getMachineName() ?? "Autonomy App";
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
     await syncDevices();
+    _didInitialized = true;
   }
 
   Future<void> shutdownAll() async {
