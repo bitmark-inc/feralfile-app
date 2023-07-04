@@ -173,9 +173,7 @@ Widget _blockchainAddressView(
 }) {
   final theme = Theme.of(context);
   return Container(
-    color: AppColor.auLightGrey.withOpacity(0.5),
-    padding:
-        ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0, left: 42),
+    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
     child: TappableForwardRowWithContent(
       leftWidget: Row(
         children: [
