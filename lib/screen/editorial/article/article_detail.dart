@@ -85,6 +85,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           setState(() {
             _showHeader = true;
           });
+
           /// after 5s, hide header
           _timer = Timer(const Duration(seconds: 5), () {
             if (mounted) {
