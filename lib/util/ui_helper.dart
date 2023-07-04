@@ -883,7 +883,27 @@ class UIHelper {
             ),
           );
         }
-
+      case 'dappConnect2':
+        final appMetaData = AppMetadata.fromJson(jsonDecode(connection.data));
+        final appIcons = appMetaData.icons;
+        if (appIcons.isEmpty) {
+          return SizedBox(
+              width: size,
+              height: size,
+              child:
+                  Image.asset("assets/images/walletconnect-alternative.png"));
+        } else {
+          return CachedNetworkImage(
+            imageUrl: appIcons.firstOrNull ?? "",
+            width: size,
+            height: size,
+            errorWidget: (context, url, error) => SizedBox(
+              width: size,
+              height: size,
+              child: Image.asset("assets/images/walletconnect-alternative.png"),
+            ),
+          );
+        }
       case 'walletConnect2':
         final appMetaData = AppMetadata.fromJson(jsonDecode(connection.data));
         final appIcons = appMetaData.icons;
@@ -1493,6 +1513,24 @@ class UIHelper {
   static showAirdropCannotShare(BuildContext context) async {
     return showErrorDialog(context, "already_claimed".tr(),
         "cannot_share_aridrop_desc".tr(), "close".tr());
+  }
+
+  static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
+    await UIHelper.showDialog(
+      context,
+      "claim_has_expired".tr(),
+      Column(
+        children: [
+          Text("claim_has_expired_desc".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 40),
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: "close".tr(),
+          ),
+        ],
+      ),
+    );
   }
 }
 

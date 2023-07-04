@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -105,12 +106,15 @@ _setupApp() async {
   await DeviceInfo.instance.init();
 
   final metricClient = injector.get<MetricClientService>();
-  metricClient.initService();
+  await metricClient.initService();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
   final packageInfo = await PackageInfo.fromPlatform();
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
+  final notificationService = injector<NotificationService>();
+  await notificationService.initNotification();
+  await notificationService.startListeningNotificationEvents();
 
   runApp(EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],

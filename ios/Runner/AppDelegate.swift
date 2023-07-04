@@ -197,8 +197,6 @@ import Starscream
                 WC2ChannelHandler.shared.respondOnReject(call: call, result: result)
             case "getPairings":
                 WC2ChannelHandler.shared.getPairings(call: call, result: result)
-            case "activate":
-                WC2ChannelHandler.shared.activate(call: call, result: result)
             case "deletePairing":
                 WC2ChannelHandler.shared.deletePairing(call: call, result: result)
             case "cleanup":
@@ -212,14 +210,14 @@ import Starscream
 
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
-        
+
         GeneratedPluginRegistrant.register(with: self)
         FlutterDownloaderPlugin.setPluginRegistrantCallback({ registry in
             if (!registry.hasPlugin("FlutterDownloaderPlugin")) {
                 FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
             }
         })
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
                 self?.showAuthenticationOverlay()

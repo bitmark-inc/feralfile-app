@@ -28,6 +28,7 @@ enum ConnectionType {
   manuallyAddress,
   manuallyIndexerTokenID,
   walletConnect2,
+  dappConnect2,
 }
 
 extension RawValue on ConnectionType {
@@ -193,7 +194,8 @@ class Connection {
   }
 
   String? get wc2ConnectedSession {
-    if (connectionType != ConnectionType.walletConnect2.rawValue) return null;
+    if (connectionType != ConnectionType.walletConnect2.rawValue &&
+        connectionType != ConnectionType.dappConnect2.rawValue) return null;
     return data;
   }
 

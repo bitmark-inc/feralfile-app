@@ -8,6 +8,8 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -15,7 +17,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -23,7 +24,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -162,6 +162,20 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       params: params,
     );
     await wc2Service.respondOnApprove(widget.request.topic, response);
+    final cloudDB = injector<CloudDatabase>();
+    final connections = await cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+    final pendingSession = wc2Service.getFirstSession();
+    if (pendingSession != null) {
+      final connection = connections
+          .firstWhereOrNull((element) => element.key.contains(pendingSession));
+      if (connection != null) {
+        final accountNumber = selectedAddress.values.join("||");
+        await cloudDB.connectionDao.updateConnection(
+            connection.copyWith(accountNumber: accountNumber));
+      }
+      wc2Service.removePendingSession(pendingSession);
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -263,34 +277,42 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                 child: SingleChildScrollView(
                   child: BlocConsumer<AccountsBloc, AccountsState>(
                       listener: (context, state) {
-                    final categorizedAccounts = state.categorizedAccounts ?? [];
+                    final categorizedAccounts = state.accounts ?? [];
 
-                    final selectManual = categorizedAccounts.length > 1 ||
-                        (_selectETHAddress &&
-                            categorizedAccounts.first.ethAccounts.length > 1) ||
-                        (_selectXTZAddress &&
-                            categorizedAccounts.first.xtzAccounts.length > 1);
+                    final selectManual = categorizedAccounts
+                                .where((element) => element.isTez)
+                                .length !=
+                            1 ||
+                        categorizedAccounts
+                                .where((element) => element.isEth)
+                                .length !=
+                            1;
 
                     if (selectManual) return;
 
                     if (selectedAddress.containsKey('eip155:1')) {
                       selectedAddress['eip155:1'] = categorizedAccounts
-                          .first.ethAccounts.first.accountNumber;
+                          .firstWhere((element) => element.isEth)
+                          .accountNumber;
                     }
                     if (selectedAddress.containsKey('tezos')) {
                       selectedAddress['tezos'] = categorizedAccounts
-                          .first.xtzAccounts.first.accountNumber;
+                          .firstWhere((element) => element.isTez)
+                          .accountNumber;
                     }
                     setState(() {});
                   }, builder: (context, state) {
-                    final categorizedAccounts = state.categorizedAccounts ?? [];
+                    final categorizedAccounts = state.accounts ?? [];
                     if (categorizedAccounts.isEmpty) return const SizedBox();
 
-                    final selectManual = categorizedAccounts.length > 1 ||
-                        (_selectETHAddress &&
-                            categorizedAccounts.first.ethAccounts.length > 1) ||
-                        (_selectXTZAddress &&
-                            categorizedAccounts.first.xtzAccounts.length > 1);
+                    final selectManual = categorizedAccounts
+                                .where((element) => element.isTez)
+                                .length !=
+                            1 ||
+                        categorizedAccounts
+                                .where((element) => element.isEth)
+                                .length !=
+                            1;
 
                     if (!selectManual) {
                       return Column(
@@ -303,11 +325,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                             ),
                           ),
                           const SizedBox(height: 16.0),
-                          PersonalConnectItem(
-                            categorizedAccount: categorizedAccounts.first,
-                            isAutoSelect: true,
-                            isExpand: true,
-                          ),
+                          ...categorizedAccounts
+                              .map((e) => PersonalConnectItem(
+                                    categorizedAccount: e,
+                                    isAutoSelect: true,
+                                    isExpand: true,
+                                  ))
+                              .toList(),
                         ],
                       );
                     }
@@ -372,7 +396,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 }
 
 class ListAccountConnect extends StatefulWidget {
-  final List<CategorizedAccounts> categorizedAccounts;
+  final List<Account> categorizedAccounts;
   final Function(String)? onSelectEth;
   final Function(String)? onSelectTez;
 
@@ -388,7 +412,7 @@ class ListAccountConnect extends StatefulWidget {
 }
 
 class _ListAccountConnectState extends State<ListAccountConnect> {
-  late List<CategorizedAccounts> categorizedAccounts;
+  late List<Account> categorizedAccounts;
   String? tezSelectedAddress;
   String? ethSelectedAddress;
 
@@ -437,6 +461,7 @@ class AddressItem extends StatelessWidget {
     Key? key,
     required this.cryptoType,
     required this.address,
+    this.name = "",
     this.ethSelectedAddress,
     this.tezSelectedAddress,
     this.onTap,
@@ -449,6 +474,7 @@ class AddressItem extends StatelessWidget {
   final String? tezSelectedAddress;
   final bool isAutoSelect;
   final Function()? onTap;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -456,16 +482,13 @@ class AddressItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        color: AppColor.auLightGrey.withOpacity(0.5),
+        color: AppColor.white,
         padding: ResponsiveLayout.paddingAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const SizedBox(
-                  width: 25,
-                ),
                 LogoCrypto(
                   cryptoType: cryptoType,
                   size: 24,
@@ -474,11 +497,13 @@ class AddressItem extends StatelessWidget {
                   width: 10,
                 ),
                 Text(
-                  cryptoType == CryptoType.ETH
-                      ? 'Ethereum'
-                      : cryptoType == CryptoType.XTZ
-                          ? 'Tezos'
-                          : '',
+                  name.isNotEmpty
+                      ? name
+                      : cryptoType == CryptoType.ETH
+                          ? 'Ethereum'
+                          : cryptoType == CryptoType.XTZ
+                              ? 'Tezos'
+                              : '',
                   style: theme.textTheme.ppMori700Black14,
                 ),
                 const Spacer(),
@@ -491,7 +516,7 @@ class AddressItem extends StatelessWidget {
                 ),
                 Visibility(
                   visible: !isAutoSelect,
-                  child: RadioSelectAddress(
+                  child: AuCheckBox(
                     isChecked: address == ethSelectedAddress ||
                         address == tezSelectedAddress,
                   ),
@@ -506,7 +531,7 @@ class AddressItem extends StatelessWidget {
 }
 
 class PersonalConnectItem extends StatefulWidget {
-  final CategorizedAccounts categorizedAccount;
+  final Account categorizedAccount;
   final String? tezSelectedAddress;
   final String? ethSelectedAddress;
 
@@ -532,98 +557,28 @@ class PersonalConnectItem extends StatefulWidget {
 }
 
 class _PersonalConnectItemState extends State<PersonalConnectItem> {
-  bool _showDetail = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _showDetail = widget.isExpand;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final e = widget.categorizedAccount;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ListTile(
+        AddressItem(
           onTap: () {
-            setState(() {
-              _showDetail = !_showDetail;
-            });
+            if (e.isEth) {
+              widget.onSelectEth?.call(e.accountNumber);
+            }
+            if (e.isTez) {
+              widget.onSelectTez?.call(e.accountNumber);
+            }
           },
-          title: Padding(
-            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-            child: Row(
-              children: [
-                accountLogo(context, widget.categorizedAccount.accounts.first,
-                    size: 24),
-                const SizedBox(width: 16.0),
-                Expanded(
-                  child: Text(
-                    widget.categorizedAccount.category,
-                    style: theme.textTheme.ppMori400Black14,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Visibility(
-                    visible: !widget.categorizedAccount.isPersona,
-                    child: linkedBox(context)),
-                AnimatedRotation(
-                  duration: const Duration(milliseconds: 300),
-                  turns: _showDetail ? 0.75 : 0.5,
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(
-                      AuIcon.chevron,
-                      size: 12,
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-          contentPadding: EdgeInsets.zero,
+          name: e.name,
+          isAutoSelect: widget.isAutoSelect,
+          address: e.accountNumber,
+          cryptoType: e.isEth ? CryptoType.ETH : CryptoType.XTZ,
+          ethSelectedAddress: widget.ethSelectedAddress,
+          tezSelectedAddress: widget.tezSelectedAddress,
         ),
-        Divider(
-          height: 1.0,
-          color: theme.auQuickSilver,
-        ),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _showDetail
-              ? Column(
-                  children: [
-                    ...widget.categorizedAccount.accounts.map(
-                      (e) => Column(
-                        children: [
-                          AddressItem(
-                            onTap: () {
-                              if (e.isEth) {
-                                widget.onSelectEth?.call(e.accountNumber);
-                              }
-                              if (e.isTez) {
-                                widget.onSelectTez?.call(e.accountNumber);
-                              }
-                            },
-                            isAutoSelect: widget.isAutoSelect,
-                            address: e.accountNumber,
-                            cryptoType:
-                                e.isEth ? CryptoType.ETH : CryptoType.XTZ,
-                            ethSelectedAddress: widget.ethSelectedAddress,
-                            tezSelectedAddress: widget.tezSelectedAddress,
-                          ),
-                          Divider(
-                            height: 1.0,
-                            color: theme.auLightGrey,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-        ),
+        addOnlyDivider(),
       ],
     );
   }

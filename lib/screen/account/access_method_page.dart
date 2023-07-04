@@ -10,7 +10,6 @@
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -57,8 +56,6 @@ class _AccessMethodPageState extends State<AccessMethodPage>
         child: SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            addTitleSpace(),
-            Padding(padding: padding, child: _importWallet(context)),
             addDivider(height: 48),
             Padding(
               padding: padding,
@@ -120,16 +117,6 @@ class _AccessMethodPageState extends State<AccessMethodPage>
         content: "link_wallet_description".tr(),
         onTap: () {
           Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
-        });
-  }
-
-  Widget _importWallet(BuildContext context) {
-    return _addWalletItem(
-        context: context,
-        title: "import_wallet".tr().capitalize(),
-        content: "import_wallet_description".tr(),
-        onTap: () {
-          Navigator.of(context).pushNamed(AppRouter.importAccountPage);
         });
   }
 
