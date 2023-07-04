@@ -587,6 +587,51 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   }
 }
 
+class CurrentlyCastingArtwork extends StatefulWidget {
+  const CurrentlyCastingArtwork({Key? key}) : super(key: key);
+
+  @override
+  State<CurrentlyCastingArtwork> createState() {
+    return _CurrentlyCastingArtworkState();
+  }
+}
+
+class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: AppColor.auGreyBackground,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/ipfs_error_icon.svg',
+              width: 40,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Row(
+              children: [
+                Text(
+                  'currently_casting'.tr(),
+                  style: theme.textTheme.ppMori700QuickSilver8
+                      .copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 Widget previewPlaceholder(BuildContext context) {
   return const PreviewPlaceholder();
 }
