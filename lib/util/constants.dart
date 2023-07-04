@@ -62,13 +62,10 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
 ];
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
-const CHECK_WEB3_CONTRACT_ADDRESS = [
+List<String> checkWeb3ContractAddress = [
   "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
-  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
-  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
-  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
-  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
+  ...momaMementoContractAddresses,
+  Environment.autonomyAirDropContractAddress,
 ];
 
 const MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET = [
