@@ -20,10 +20,12 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -51,6 +53,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
   final _tezosBeaconService = injector<TezosBeaconService>();
   final _walletConnecService = injector<WalletConnectService>();
+  final _wallet2ConnectService = injector<Wc2Service>();
 
   @override
   void initState() {
@@ -183,7 +186,11 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       throw ConnectionViaClipboardError("Invalid URI");
     }
     if (code.startsWith("wc:")) {
-      _walletConnecService.connect(code, onTimeout: _onConnectTimeout);
+      if (code.isAutonomyConnectUri) {
+        _wallet2ConnectService.connect(code, onTimeout: _onConnectTimeout);
+      } else {
+        _walletConnecService.connect(code, onTimeout: _onConnectTimeout);
+      }
     } else {
       final tezosUri = "tezos://?type=tzip10&data=$code";
       await _tezosBeaconService.addPeer(tezosUri, onTimeout: _onConnectTimeout);
