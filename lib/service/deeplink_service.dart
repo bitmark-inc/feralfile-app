@@ -205,6 +205,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "https://autonomy.io/apps/wc?uri=",
       "https://autonomy.io/apps/wc/wc?uri=",
       "autonomy://wc?uri=",
+      "autonomy-wc://wc?uri=",
     ];
 
     final tzPrefixes = [
