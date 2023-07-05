@@ -29,7 +29,7 @@ const MUTE_RATING_MESSAGE = "MUTE_RATING_MESSAGE";
 const STAR_RATING = "###STAR#RATING#";
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
-    'https://calendly.com/anais-bitmark/usertesting';
+    'https://calendly.com/bencebitmark/autonomy-user-test';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
