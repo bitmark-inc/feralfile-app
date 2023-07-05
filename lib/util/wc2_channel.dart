@@ -12,6 +12,8 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_events.dart';
 
 class Wc2Channel {
   static const MethodChannel _channel = MethodChannel('wallet_connect_v2');
@@ -19,7 +21,7 @@ class Wc2Channel {
       EventChannel('wallet_connect_v2/event');
 
   Wc2Channel({required this.handler}) {
-    listen();
+    //listen();
   }
 
   Wc2Handler? handler;
@@ -97,13 +99,8 @@ class Wc2Channel {
           final Map<String, dynamic> requiredNamespaces =
               json.decode(params["requiredNamespaces"]);
           final namespaces = requiredNamespaces
-              .map((key, value) => MapEntry(key, Wc2Namespace.fromJson(value)));
-          final request = Wc2Proposal(
-            id,
-            proposer: proposer,
-            requiredNamespaces: namespaces,
-          );
-          handler?.onSessionProposal(request);
+              .map((key, value) => MapEntry(key, Namespace.fromJson(value)));
+          //handler?.onSessionProposal(request);
           break;
         case "onSessionSettle":
           log.info("[WC2Channel] onSessionSettle");
@@ -125,5 +122,5 @@ class Wc2Channel {
 abstract class Wc2Handler {
   void onSessionRequest(Wc2Request request);
 
-  void onSessionProposal(Wc2Proposal proposal);
+  void onSessionProposal(SessionProposalEvent proposal);
 }

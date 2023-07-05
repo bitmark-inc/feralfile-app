@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -26,10 +25,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class AUSignMessagePage extends StatefulWidget {
   static const String tag = 'au_sign_message';
-  final Wc2Request request;
+  final Wc2RequestPayload request;
 
   const AUSignMessagePage({Key? key, required this.request}) : super(key: key);
 
@@ -63,7 +63,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
             "No wallet found for address ${widget.request.params['address']}",
       );
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(false);
       return;
     }
 
@@ -80,7 +80,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     );
   }
 
-  Future _handleAuSignRequest({required Wc2Request request}) async {
+  Future _handleAuSignRequest({required Wc2RequestPayload request}) async {
     final accountService = injector<AccountService>();
     final params = Wc2SignRequestParams.fromJson(request.params);
     final address = params.address;
@@ -89,7 +89,6 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
       chain: chain,
       address: address,
     );
-    final wc2Service = injector<Wc2Service>();
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
       return;
@@ -99,7 +98,8 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         chain: chain,
         message: params.message,
       );
-      wc2Service.respondOnApprove(request.topic, signature);
+      if(!mounted) return;
+      Navigator.of(context).pop(signature);
       log.info("[Wc2RequestPage] _handleAuSignRequest: $signature");
     } catch (e) {
       log.info("[Wc2RequestPage] _handleAuSignRequest $e");
@@ -205,7 +205,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     );
   }
 
-  Widget _wc2AppInfo(AppMetadata? proposer) {
+  Widget _wc2AppInfo(PairingMetadata? proposer) {
     final theme = Theme.of(context);
 
     return proposer != null

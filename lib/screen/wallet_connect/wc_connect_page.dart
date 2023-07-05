@@ -175,7 +175,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               walletAddresses.map((e) => e.address).join("||");
           await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
-            account: accountDid.substring("did:key:".length),
+            accounts: [accountDid.substring("did:key:".length)],
             connectionKey: account.uuid,
             accountNumber: accountNumber,
             isAuConnect: true,
@@ -196,7 +196,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
           await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
-            account: address,
+            accounts: [address],
             connectionKey: address,
             accountNumber: address,
           );

@@ -40,6 +40,10 @@ abstract class ConnectionDao {
   Future<List<Connection>> getRelatedPersonaConnections();
 
   @Query(
+      'SELECT * FROM Connection WHERE connectionType IN ("dappConnect2", "walletConnect2")')
+  Future<List<Connection>> getWc2Connections();
+
+  @Query(
       'SELECT * FROM Connection WHERE connectionType = :type ORDER BY createdAt DESC')
   Future<List<Connection>> getConnectionsByType(String type);
 

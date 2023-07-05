@@ -42,7 +42,6 @@ class MainActivity : FlutterFragmentActivity() {
 
         BackupDartPlugin().createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
-        flutterEngine.plugins.add(Wc2ConnectPlugin(this.application))
     }
 
     private fun getExistingUuids(): String {

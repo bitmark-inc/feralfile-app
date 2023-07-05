@@ -27,6 +27,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WCSendTransactionPage extends StatefulWidget {
@@ -69,17 +70,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     return WillPopScope(
       onWillPop: () async {
         metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
-
-        context.read<WCSendTransactionBloc>().add(
-              WCSendTransactionRejectEvent(
-                widget.args.peerMeta,
-                widget.args.id,
-                isWalletConnect2: widget.args.isWalletConnect2,
-                topic: widget.args.topic,
-                isIRL: widget.args.isIRL,
-              ),
-            );
-        return true;
+        return false;
       },
       child: Scaffold(
         appBar: getBackAppBar(
@@ -87,15 +78,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           title: "confirmation".tr(),
           onBack: () {
             metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
-            context.read<WCSendTransactionBloc>().add(
-                  WCSendTransactionRejectEvent(
-                    widget.args.peerMeta,
-                    widget.args.id,
-                    isWalletConnect2: widget.args.isWalletConnect2,
-                    topic: widget.args.topic,
-                    isIRL: widget.args.isIRL,
-                  ),
-                );
+            Navigator.of(context).pop(false);
           },
         ),
         body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(
@@ -245,15 +228,12 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                             .add(
                                               WCSendTransactionSendEvent(
                                                 widget.args.peerMeta,
-                                                widget.args.id,
                                                 to,
                                                 amount.getInWei,
                                                 state.fee!,
                                                 widget.args.transaction.data,
                                                 widget.args.uuid,
                                                 widget.args.index,
-                                                isWalletConnect2: widget
-                                                    .args.isWalletConnect2,
                                                 topic: widget.args.topic,
                                                 // Used for wallet Connect 2.0 only
                                                 isIRL: widget.args.isIRL,
@@ -464,23 +444,19 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 }
 
 class WCSendTransactionPageArgs {
-  final int id;
-  final AppMetadata peerMeta;
+  final PairingMetadata peerMeta;
   final WCEthereumTransaction transaction;
   final String uuid;
   final int index;
-  final String? topic; // For Wallet Connect 2.0
-  final bool isWalletConnect2;
+  final String? topic;
   final bool isIRL;
 
   WCSendTransactionPageArgs(
-    this.id,
     this.peerMeta,
     this.transaction,
     this.uuid,
     this.index, {
     this.topic,
-    this.isWalletConnect2 = false,
     this.isIRL = false,
   });
 }

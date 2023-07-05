@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final String url;
@@ -237,13 +238,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             }
 
             final args = WCSendTransactionPageArgs(
-              1,
-              AppMetadata.fromJson(argument.metadata ??
-                  {
-                    "name": "",
-                    "url": "",
-                    "icons": [""]
-                  }),
+              const PairingMetadata(
+                  name: '', description: '', url: '', icons: []),
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
               account.index,

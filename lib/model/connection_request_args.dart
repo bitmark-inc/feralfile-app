@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:collection/collection.dart';
 import 'package:tezart/tezart.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 abstract class ConnectionRequest {
   bool get isWalletConnect2 => false;
@@ -86,9 +87,9 @@ class Wc2Proposal extends ConnectionRequest {
     return unsupportedMethods.isEmpty;
   }
 
-  AppMetadata proposer;
-  Map<String, Wc2Namespace> requiredNamespaces;
-  final String _id;
+  PairingMetadata proposer;
+  Map<String, RequiredNamespace> requiredNamespaces;
+  final int _id;
 
   @override
   get id => _id;

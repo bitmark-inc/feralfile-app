@@ -28,13 +28,11 @@ class WCSendTransactionBloc
     extends AuBloc<WCSendTransactionEvent, WCSendTransactionState> {
   final NavigationService _navigationService;
   final EthereumService _ethereumService;
-  final Wc2Service _wc2Service;
   final CurrencyService _currencyService;
 
   WCSendTransactionBloc(
     this._navigationService,
     this._ethereumService,
-    this._wc2Service,
     this._currencyService,
   ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
@@ -90,9 +88,6 @@ class WCSendTransactionBloc
         final signature = await _ethereumService.signPersonalMessage(
             persona, index, Uint8List.fromList(utf8.encode(timestamp)));
 
-        if (!event.isIRL) {
-          await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
-        }
         log.info(
             '[WCSendTransactionBloc][End] send transaction success, txHash: $txHash');
         injector<PendingTokenService>()
@@ -119,14 +114,6 @@ class WCSendTransactionBloc
         emit(newState);
         return;
       }
-    });
-
-    on<WCSendTransactionRejectEvent>((event, emit) async {
-      log.info('[WCSendTransactionBloc][End] send transaction reject');
-      if (!event.isIRL) {
-        _wc2Service.respondOnReject(event.topic ?? "");
-      }
-      _navigationService.goBack();
     });
 
     on<FeeOptionChangedEvent>((event, emit) async {

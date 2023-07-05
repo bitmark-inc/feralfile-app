@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/web3dart.dart';
 
 abstract class WCSendTransactionEvent {}
@@ -25,28 +26,24 @@ class WCSendTransactionEstimateEvent extends WCSendTransactionEvent {
 }
 
 class WCSendTransactionSendEvent extends WCSendTransactionEvent {
-  final AppMetadata peerMeta;
-  final int requestId;
+  final PairingMetadata peerMeta;
   final EthereumAddress to;
   final BigInt value;
   final BigInt? gas;
   final String? data;
   final String uuid;
   final int index;
-  final bool isWalletConnect2;
   final bool isIRL;
   final String? topic;
 
   WCSendTransactionSendEvent(
     this.peerMeta,
-    this.requestId,
     this.to,
     this.value,
     this.gas,
     this.data,
     this.uuid,
     this.index, {
-    required this.isWalletConnect2,
     this.isIRL = false,
     this.topic,
   });
@@ -56,22 +53,6 @@ class FeeOptionChangedEvent extends WCSendTransactionEvent {
   final FeeOption feeOption;
 
   FeeOptionChangedEvent(this.feeOption);
-}
-
-class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
-  final AppMetadata peerMeta;
-  final int requestId;
-  final String? topic;
-  final bool isWalletConnect2;
-  final bool isIRL;
-
-  WCSendTransactionRejectEvent(
-    this.peerMeta,
-    this.requestId, {
-    this.topic,
-    required this.isWalletConnect2,
-    this.isIRL = false,
-  });
 }
 
 class WCSendTransactionState {

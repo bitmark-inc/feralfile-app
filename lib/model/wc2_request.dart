@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 part 'wc2_request.g.dart';
 
@@ -28,7 +29,7 @@ class Wc2Request {
   String topic;
   dynamic params;
   String chainId;
-  AppMetadata? proposer;
+  PairingMetadata? proposer;
 
   factory Wc2Request.fromJson(Map<String, dynamic> json) => Wc2Request(
         id: json["id"] is int ? json["id"] : int.tryParse(json["id"]) ?? 0,
@@ -37,7 +38,7 @@ class Wc2Request {
         params: Platform.isIOS ? json["params"] : jsonDecode(json["params"]),
         chainId: json["chainId"],
         proposer: json["proposer"] != null
-            ? AppMetadata.fromJson(json["proposer"])
+            ? PairingMetadata.fromJson(json["proposer"])
             : null,
       );
 

@@ -34,9 +34,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 class Wc2RequestPage extends StatefulWidget {
-  final Wc2Request request;
+  final Wc2RequestPayload request;
 
   const Wc2RequestPage({Key? key, required this.request}) : super(key: key);
 
@@ -97,18 +98,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     injector<NavigationService>().setIsWCConnectInShow(false);
   }
 
-  Future _reject() async {
-    log.info("[Wc2RequestPage] Reject request.");
-    try {
-      await injector<Wc2Service>().respondOnReject(
-        widget.request.topic,
-        reason: "User reject",
-      );
-    } catch (e) {
-      log.info("[Wc2RequestPage] Reject request error. $e");
-    }
-  }
-
   Future<String> _handleAuPermissionRequest({
     required Wc2PermissionsRequestParams params,
   }) async {
@@ -158,7 +147,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     final response = await _handleAuPermissionRequest(
       params: params,
     );
-    await wc2Service.respondOnApprove(widget.request.topic, response);
     final cloudDB = injector<CloudDatabase>();
     final connections = await cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
@@ -175,7 +163,8 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     }
 
     if (!mounted) return;
-    Navigator.of(context).pop();
+    log.info("approve permission request: $response");
+    Navigator.of(context).pop(response);
 
     showInfoNotification(
       const Key("signed"),
@@ -193,8 +182,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
-    if (proposer == null) return const SizedBox();
-    final peerMeta = AppMetadata(
+    final peerMeta = PairingMetadata(
       name: proposer.name,
       url: proposer.url,
       description: proposer.description,
@@ -243,16 +231,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
     return WillPopScope(
       onWillPop: () async {
-        await _reject();
-        return true;
+        return false;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () async {
-            await _reject();
-            if (!mounted) return;
-            Navigator.pop(context);
+          onBack: () {
+            Navigator.of(context).pop(false);
           },
           title: "address_request".tr(),
         ),

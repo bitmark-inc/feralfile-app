@@ -8,9 +8,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -24,16 +23,16 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
-import 'package:autonomy_flutter/util/wc2_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
 
 import '../database/cloud_database.dart';
 import '../database/entity/connection.dart';
 
-class Wc2Service extends Wc2Handler {
+class Wc2Service {
   static final Set<String> _supportedChains = {
     Wc2Chain.autonomy,
     Wc2Chain.ethereum,
@@ -57,12 +56,25 @@ class Wc2Service extends Wc2Handler {
     "au_permissions",
     "au_sendTransaction",
   };
+  static const PairingMetadata pairingMetadata = PairingMetadata(
+    name: 'Autonomy',
+    description: 'Autonomy Wallet',
+    url: 'https://autonomy.io',
+    icons: [],
+  );
+
+  static const unknownProposer = PairingMetadata(
+    name: 'Unknown',
+    description: 'Unknown',
+    url: 'unknown',
+    icons: [],
+  );
 
   final NavigationService _navigationService;
   final AccountService _accountService;
   final CloudDatabase _cloudDB;
 
-  late Wc2Channel _wc2channel;
+  late Web3Wallet _wcClient;
   String pendingUri = "";
 
   Timer? _timer;
@@ -72,7 +84,145 @@ class Wc2Service extends Wc2Handler {
     this._accountService,
     this._cloudDB,
   ) {
-    _wc2channel = Wc2Channel(handler: this);
+    init();
+  }
+
+  Future<void> init() async {
+    _wcClient = await Web3Wallet.createInstance(
+      projectId: "33abc0fd433c7a6e1cc198273e4a7d6e",
+      metadata: pairingMetadata,
+    );
+    _wcClient.onSessionProposal.subscribe(_onSessionProposal);
+    _registerEthRequest("${Wc2Chain.ethereum}:${Environment.web3ChainId}");
+    _registerAutonomyRequest(
+        "${Wc2Chain.autonomy}:${Environment.appTestnetConfig ? 1 : 0}");
+  }
+
+  void _registerEthRequest(String chainId) {
+    _wcClient.registerRequestHandler(
+        chainId: chainId,
+        method: "personal_sign",
+        handler: _handleEthPersonalSign);
+    _wcClient.registerRequestHandler(
+        chainId: chainId, method: "eth_sign", handler: _handleEthSign);
+    _wcClient.registerRequestHandler(
+        chainId: chainId,
+        method: "eth_signTypedData",
+        handler: _handleEthSignType);
+    _wcClient.registerRequestHandler(
+        chainId: chainId,
+        method: "eth_signTypedData_v4",
+        handler: _handleEthSignType);
+    _wcClient.registerRequestHandler(
+        chainId: chainId,
+        method: "eth_sendTransaction",
+        handler: _handleEthSendTx);
+    _wcClient.registerRequestHandler(
+        chainId: chainId, method: "au_sign", handler: _handleAuSignEth);
+    _wcClient.registerRequestHandler(
+        chainId: chainId,
+        method: "au_sendTransaction",
+        handler: _handleAuSendEthTx);
+  }
+
+  void _registerAutonomyRequest(String chainId) {
+    _wcClient.registerRequestHandler(
+        chainId: chainId, method: "au_sign", handler: _handleAuSign);
+    _wcClient.registerRequestHandler(
+        chainId: chainId,
+        method: "au_permissions",
+        handler: _handleAuPermissions);
+  }
+
+  Future _handleAuPermissions(String topic, dynamic params) async {
+    log.info("[Wc2Service] received autonomy-au_permissions request $params");
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw JsonRpcError(code: 301, message: "proposer not found");
+    }
+    final result = await _navigationService.navigateTo(
+      AppRouter.wc2PermissionPage,
+      arguments:
+          Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
+    );
+    if (result is bool && !result) {
+      throw JsonRpcError(code: 300, message: "User rejected");
+    } else {
+      return result;
+    }
+  }
+
+  Future _handleAuSign(String topic, dynamic params) async {
+    log.info("[Wc2Service] received autonomy-au_sign request $params");
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw JsonRpcError(code: 301, message: "proposer not found");
+    }
+    return await _handleAutonomySignRequest(topic, params, proposer);
+  }
+
+  Future _handleEthPersonalSign(String topic, dynamic params) async {
+    log.info("[Wc2Service] received eip155-eth_sign request $params");
+    return await _ethSign(topic, params, WCSignType.PERSONAL_MESSAGE);
+  }
+
+  Future _handleEthSign(String topic, dynamic params) async {
+    log.info("[Wc2Service] received eip155-eth_sign request $params");
+    return await _ethSign(topic, params, WCSignType.MESSAGE);
+  }
+
+  Future _handleEthSignType(String topic, dynamic params) async {
+    log.info("[Wc2Service] received eip155-eth_sign request $params");
+    return await _ethSign(topic, params, WCSignType.TYPED_MESSAGE);
+  }
+
+  Future _ethSign(String topic, dynamic params, WCSignType wcSignType) async {
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw JsonRpcError(code: 301, message: "proposer not found");
+    }
+    return await _handleWC2EthereumSignRequest(
+        params, topic, proposer, wcSignType);
+  }
+
+  Future _handleEthSendTx(String topic, dynamic params) async {
+    log.info("[Wc2Service] received eip155-eth_sendTx request $params");
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw const JsonRpcError(code: 301, message: "proposer not found");
+    }
+    await _handleEthSendTransactionRequest(params, proposer, topic);
+  }
+
+  Future _handleAuSignEth(String topic, dynamic params) async {
+    log.info("[Wc2Service] received eip155-au_sign request $params");
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw const JsonRpcError(code: 301, message: "proposer not found");
+    }
+    return await _handleEthereumSignRequest(
+        params, proposer, topic, WCSignType.PERSONAL_MESSAGE);
+  }
+
+  Future _handleAuSendEthTx(String topic, dynamic params) async {
+    log.info("[Wc2Service] received eip155-au_sign request $params");
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw JsonRpcError(code: 301, message: "proposer not found");
+    }
+    return await _handleAuEthSendTransactionRequest(params, proposer, topic);
+  }
+
+  Future<PairingMetadata?> _getWc2Request(String topic, dynamic params) async {
+    final connections = await _cloudDB.connectionDao.getWc2Connections();
+    final connection =
+        connections.firstWhereOrNull((element) => element.key.contains(topic));
+    if (connection == null) {
+      log.warning("[Wc2Service] proposer not found for $topic");
+      return null;
+    }
+    final proposer = PairingMetadata.fromJson(jsonDecode(connection.data));
+    return proposer;
   }
 
   // These session are approved but addresses permission are not granted.
@@ -91,14 +241,14 @@ class Wc2Service extends Wc2Handler {
     _pendingSessions.remove(id);
   }
 
-  Future connect(String uri, {Function()? onTimeout}) async {
+  Future connect(String uri, {Function? onTimeout}) async {
     if (uri.isAutonomyConnectUri) {
       pendingUri = uri;
       _timer?.cancel();
       _timer = Timer(CONNECT_FAILED_DURATION, () {
         onTimeout?.call();
       });
-      await _wc2channel.pairClient(uri);
+      await _wcClient.pair(uri: Uri.parse(uri));
     }
   }
 
@@ -112,29 +262,32 @@ class Wc2Service extends Wc2Handler {
             .isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
       connections.removeLast();
     }
-
+    /*
     final ids = connections
         .map((e) => e.key.split(":").lastOrNull)
         .whereNotNull()
         .toList();
 
-    _wc2channel.cleanup(ids);
+    _wcClient.cleanup(ids);
+
+     */
   }
 
   Future approveSession(Wc2Proposal proposal,
-      {required String account,
+      {required List<String> accounts,
       required String connectionKey,
       required String accountNumber,
       isAuConnect = false}) async {
-    await _wc2channel.approve(
-      proposal.id,
-      account,
+    final res = await _wcClient.approveSession(
+      id: proposal.id,
+      namespaces: proposal.requiredNamespaces
+          .map((key, value) => MapEntry(key, value.toNameSpace(accounts))),
     );
-    final wc2Pairings = await injector<Wc2Service>().getPairings();
-    final topic = wc2Pairings
-            .firstWhereOrNull((element) => pendingUri.contains(element.topic))
-            ?.topic ??
-        "";
+    final pairings = _wcClient.pairings.getAll();
+    final pairing = pairings
+        .firstWhereOrNull((element) => pendingUri.contains(element.topic));
+    final topic = res.topic;
+    log.info("[Wc2Service] approveSession topic $topic");
 
     final connection = Connection(
       key: "$connectionKey:$topic",
@@ -153,18 +306,18 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future rejectSession(
-    String id, {
+    int id, {
     String? reason,
   }) async {
-    await _wc2channel.reject(
-      id,
-      reason: reason,
-    );
+    await _wcClient.rejectSession(
+        id: id,
+        reason: WalletConnectError(
+            code: 300, message: reason ?? "Rejected by user"));
   }
 
   Future respondOnApprove(String topic, String response) async {
     log.info("[Wc2Service] respondOnApprove topic $topic, response: $response");
-    await _wc2channel.respondOnApprove(topic, response);
+    //await _wc2channel.respondOnApprove(topic, response);
   }
 
   Future respondOnReject(
@@ -172,31 +325,26 @@ class Wc2Service extends Wc2Handler {
     String? reason,
   }) async {
     log.info("[Wc2Service] respondOnReject topic $topic, reason: $reason");
-    await _wc2channel.respondOnReject(
-      topic: topic,
-      reason: reason,
-    );
   }
 
   //#region Pairing
-  Future<List<Wc2Pairing>> getPairings() async {
-    return await _wc2channel.getPairings();
-  }
 
   Future deletePairing({required String topic}) async {
     log.info("[Wc2Service] Delete pairing. Topic: $topic");
-    return await _wc2channel.deletePairing(topic: topic);
+    //return await _wc2channel.deletePairing(topic: topic);
   }
 
   //#endregion
 
   //#region Events handling
-  @override
-  void onSessionProposal(Wc2Proposal proposal) async {
+
+  void _onSessionProposal(SessionProposalEvent? proposal) async {
+    if (proposal == null) return;
     log.info("[WC2Service] onSessionProposal: id = ${proposal.id}");
     _timer?.cancel();
-    final unsupportedChains =
-        proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
+    final unsupportedChains = proposal.params.requiredNamespaces.keys
+        .toSet()
+        .difference(_supportedChains);
     if (unsupportedChains.isNotEmpty) {
       log.info("[Wc2Service] Proposal contains unsupported chains: "
           "$unsupportedChains");
@@ -207,7 +355,7 @@ class Wc2Service extends Wc2Handler {
       return;
     }
 
-    final proposalMethods = proposal.requiredNamespaces.values
+    final proposalMethods = proposal.params.requiredNamespaces.values
         .map((e) => e.methods)
         .flattened
         .toSet();
@@ -216,24 +364,26 @@ class Wc2Service extends Wc2Handler {
       log.info("[Wc2Service] Proposal contains unsupported methods: "
           "$unsupportedMethods");
     }
+    final wc2Proposal = Wc2Proposal(proposal.id,
+        proposer: proposal.params.proposer.metadata,
+        requiredNamespaces: proposal.params.requiredNamespaces);
     _navigationService.navigateTo(AppRouter.wc2ConnectPage,
-        arguments: proposal);
+        arguments: wc2Proposal);
   }
 
-  @override
   void onSessionRequest(Wc2Request request) async {
     switch (request.method) {
       case "au_sign":
         switch (request.chainId.caip2Namespace) {
           case Wc2Chain.ethereum:
-            await _handleEthereumSignRequest(
-                request, WCSignType.PERSONAL_MESSAGE);
+            //await _handleEthereumSignRequest(
+            //  request, WCSignType.PERSONAL_MESSAGE);
             break;
           case Wc2Chain.tezos:
             await _handleTezosSignRequest(request);
             break;
           case Wc2Chain.autonomy:
-            await _handleAutonomySignRequest(request);
+            //await _handleAutonomySignRequest(request);
             break;
           default:
             log.info("[Wc2Service] Unsupported chain: ${request.method}");
@@ -253,7 +403,7 @@ class Wc2Service extends Wc2Handler {
         final chain = request.params["chain"] as String;
         switch (chain.caip2Namespace) {
           case Wc2Chain.ethereum:
-            _handleEthereumSendTransactionRequest(request);
+            //_handleAuEthSendTransactionRequest(request);
             break;
           case Wc2Chain.tezos:
             try {
@@ -274,18 +424,18 @@ class Wc2Service extends Wc2Handler {
         }
         break;
       case "eth_sendTransaction":
-        await _handleWC2EthereumSendTransactionRequest(request);
+        //await _handleEthSendTransactionRequest(request);
         break;
       case "personal_sign":
-        await _handleWC2EthereumSignRequest(
-            request, WCSignType.PERSONAL_MESSAGE);
+        //await _handleWC2EthereumSignRequest(
+        //  request, WCSignType.PERSONAL_MESSAGE);
         break;
       case "eth_signTypedData":
       case "eth_signTypedData_v4":
-        await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
+        //await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
         break;
       case "eth_sign":
-        await _handleWC2EthereumSignRequest(request, WCSignType.MESSAGE);
+        //await _handleWC2EthereumSignRequest(request, WCSignType.MESSAGE);
         break;
       default:
         log.info("[Wc2Service] Unsupported method: ${request.method}");
@@ -297,18 +447,18 @@ class Wc2Service extends Wc2Handler {
   }
 
   //#endregion
-  Future _handleWC2EthereumSignRequest(
-      Wc2Request request, WCSignType signType) async {
+  Future _handleWC2EthereumSignRequest(dynamic params, String topic,
+      PairingMetadata proposer, WCSignType signType) async {
     String address, message;
     if (signType == WCSignType.PERSONAL_MESSAGE) {
-      address = request.params[1];
-      message = request.params[0];
+      address = params[1];
+      message = params[0];
     } else {
-      address = request.params[0];
-      if (request.params[1].runtimeType != String) {
-        message = jsonEncode(request.params[1]);
+      address = params[0];
+      if (params[1].runtimeType != String) {
+        message = jsonEncode(params[1]);
       } else {
-        message = request.params[1];
+        message = params[1];
       }
     }
 
@@ -317,25 +467,28 @@ class Wc2Service extends Wc2Handler {
       chain: "eip155",
       address: eip55address,
     );
-    await _navigationService.navigateTo(WCSignMessagePage.tag,
+    final result = await _navigationService.navigateTo(WCSignMessagePage.tag,
         arguments: WCSignMessagePageArgs(
-          request.id,
-          request.topic,
-          request.proposer!,
+          topic,
+          proposer,
           message,
           signType,
           wallet.wallet.uuid,
           wallet.index,
-          isWalletConnect2: true,
         ));
+    if (result is bool && !result) {
+      throw JsonRpcError(code: 300, message: "User rejected");
+    } else {
+      return result;
+    }
   }
 
-  Future _handleWC2EthereumSendTransactionRequest(Wc2Request request) async {
+  Future _handleEthSendTransactionRequest(
+      dynamic params, PairingMetadata proposer, String topic) async {
     try {
-      var transaction = request.params[0] as Map<String, dynamic>;
+      var transaction = params[0] as Map<String, dynamic>;
       final eip55address =
           EthereumAddress.fromHex(transaction["from"]).hexEip55;
-
       final walletIndex = await _accountService.getAccountByAddress(
         chain: "eip155",
         address: eip55address,
@@ -344,51 +497,36 @@ class Wc2Service extends Wc2Handler {
       if (transaction["gas"] == null) transaction["gas"] = "";
       if (transaction["to"] == null) {
         log.info("[Wc2Service] Invalid transaction: no recipient");
-        await respondOnReject(
-          request.topic,
-          reason: "Invalid transaction: no recipient",
-        );
-        return;
+        throw JsonRpcError(
+            code: 302, message: "Invalid transaction: no recipient");
       }
-      final metaData = request.proposer != null
-          ? request.proposer!
-          : AppMetadata(icons: [], name: "", url: "", description: "");
       final args = WCSendTransactionPageArgs(
-        request.id,
-        metaData,
+        proposer,
         WCEthereumTransaction.fromJson(transaction),
         walletIndex.wallet.uuid,
         walletIndex.index,
-        topic: request.topic,
-        isWalletConnect2: true,
+        topic: topic,
       );
-      _navigationService.navigateTo(
+      return await _navigationService.navigateTo(
         WCSendTransactionPage.tag,
         arguments: args,
       );
     } catch (e) {
-      await respondOnReject(request.topic, reason: "$e");
+      throw JsonRpcError.invalidParams(e.toString());
     }
   }
 
   //#region Handle sign request
-  Future _handleEthereumSignRequest(
-      Wc2Request request, WCSignType signType) async {
-    await _navigationService.navigateTo(WCSignMessagePage.tag,
+  Future _handleEthereumSignRequest(dynamic params, PairingMetadata proposer,
+      String topic, WCSignType signType) async {
+    return await _navigationService.navigateTo(WCSignMessagePage.tag,
         arguments: WCSignMessagePageArgs(
-          request.id,
-          request.topic,
-          request.proposer!,
-          request.params["message"],
+          topic,
+          proposer,
+          params["message"],
           signType,
           "",
           0,
-          // uuid, index, used for Wallet connect 1 only
-          wc2Params: Wc2SignRequestParams(
-            chain: request.params["chain"],
-            address: request.params["address"],
-            message: request.params["message"],
-          ),
         ));
   }
 
@@ -400,50 +538,58 @@ class Wc2Service extends Wc2Handler {
     );
   }
 
-  Future _handleAutonomySignRequest(Wc2Request request) async {
-    await _navigationService.navigateTo(
+  Future _handleAutonomySignRequest(
+      dynamic params, String topic, PairingMetadata proposer) async {
+    return await _navigationService.navigateTo(
       AUSignMessagePage.tag,
-      arguments: request,
+      arguments:
+          Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
     );
   }
 
-  Future _handleEthereumSendTransactionRequest(Wc2Request request) async {
+  Future _handleAuEthSendTransactionRequest(
+      dynamic params, PairingMetadata proposer, String topic) async {
     try {
       final walletIndex = await _accountService.getAccountByAddress(
         chain: "eip155",
-        address: request.params["address"],
+        address: params["address"],
       );
-      var transaction =
-          request.params["transactions"][0] as Map<String, dynamic>;
+      var transaction = params["transactions"][0] as Map<String, dynamic>;
       if (transaction["data"] == null) transaction["data"] = "";
       if (transaction["gas"] == null) transaction["gas"] = "";
       if (transaction["to"] == null) {
         log.info("[Wc2Service] Invalid transaction: no recipient");
-        await respondOnReject(
-          request.topic,
-          reason: "Invalid transaction: no recipient",
-        );
-        return;
+        throw JsonRpcError(
+            code: 302, message: "Invalid transaction: no recipient");
       }
-      final metaData = request.proposer != null
-          ? request.proposer!
-          : AppMetadata(icons: [], name: "", url: "", description: "");
       final args = WCSendTransactionPageArgs(
-        request.id,
-        metaData,
+        proposer,
         WCEthereumTransaction.fromJson(transaction),
         walletIndex.wallet.uuid,
         walletIndex.index,
-        topic: request.topic,
-        isWalletConnect2: true,
+        topic: topic,
       );
-      _navigationService.navigateTo(
+      return await _navigationService.navigateTo(
         WCSendTransactionPage.tag,
         arguments: args,
       );
     } catch (e) {
-      await respondOnReject(request.topic, reason: "$e");
+      throw JsonRpcError.invalidParams(e.toString());
     }
   }
 //#endregion
+}
+
+//enum WCSignType { MESSAGE, PERSONAL_MESSAGE, TYPED_MESSAGE }
+
+class Wc2RequestPayload {
+  dynamic params;
+  String topic;
+  PairingMetadata proposer;
+
+  Wc2RequestPayload({
+    required this.params,
+    required this.topic,
+    required this.proposer,
+  });
 }
