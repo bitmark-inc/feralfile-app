@@ -11,7 +11,7 @@ extension AnnouncementLocalExt on AnnouncementLocal {
   }
 
   bool get isMemento6 {
-    return announcementType == AnnouncementType.Memento6;
+    return announcementType == AnnouncementType.Memento6 || true;
   }
 }
 
