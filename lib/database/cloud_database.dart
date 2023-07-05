@@ -24,7 +24,7 @@ import 'entity/wallet_address.dart';
 part 'cloud_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 6, entities: [Persona, Connection, Audit, WalletAddress])
+@Database(version: 7, entities: [Persona, Connection, Audit, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
 
@@ -168,5 +168,15 @@ final migrateCloudV5ToV6 = Migration(5, 6, (database) async {
           },
           conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
     }
+  }
+});
+
+final migrateCloudV6ToV7 = Migration(6, 7, (database) async {
+  final countNameCol = sqflite.Sqflite.firstIntValue(await database.rawQuery(
+      "SELECT COUNT(*) FROM pragma_table_info('WalletAddress') WHERE name='name';"));
+  if (countNameCol == 0) {
+    await database.execute("""
+      ALTER TABLE Persona ADD WalletAddress name TEXT;
+      """);
   }
 });

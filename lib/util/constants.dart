@@ -11,6 +11,8 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/eth_utils.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -60,13 +62,10 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
 ];
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
-const CHECK_WEB3_CONTRACT_ADDRESS = [
+List<String> checkWeb3ContractAddress = [
   "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
-  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
-  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
-  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
-  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
+  ...momaMementoContractAddresses,
+  Environment.autonomyAirDropContractAddress,
 ];
 
 const MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET = [
@@ -118,6 +117,8 @@ double get postcardAspectRatio => Platform.isAndroid
     : POSTCARD_ASPECT_RATIO_IOS;
 
 const double STAMP_ASPECT_RATIO = 345.0 / 378;
+
+const POSTCARD_SHARE_LINK_VALID_DURATION = Duration(hours: 24);
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
@@ -293,15 +294,25 @@ enum CryptoType {
   UNKNOWN;
 
   static CryptoType fromSource(String source) {
-    switch (source) {
-      case "Ethereum":
+    switch (source.toLowerCase()) {
+      case "ethereum":
         return CryptoType.ETH;
-      case "Tezos":
+      case "tezos":
         return CryptoType.XTZ;
-      case "USDC":
+      case "usdc":
         return CryptoType.USDC;
       default:
         return CryptoType.UNKNOWN;
+    }
+  }
+
+  static CryptoType fromAddress(String source) {
+    if (source.isValidTezosAddress) {
+      return CryptoType.XTZ;
+    } else if (source.toEthereumAddress() != null) {
+      return CryptoType.ETH;
+    } else {
+      return CryptoType.UNKNOWN;
     }
   }
 }

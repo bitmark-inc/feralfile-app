@@ -71,6 +71,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           emit(RouterState(
               onboardingStep: OnboardingStep.restore,
               backupVersion: backupVersion));
+          add(RestoreCloudDatabaseRoutingEvent(backupVersion));
           return;
         } else {
           await _configurationService.setDoneOnboarding(true);
@@ -84,11 +85,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
-      emit(RouterState(
-          onboardingStep: state.onboardingStep,
-          backupVersion: state.backupVersion,
-          isLoading: true));
-
+      if (_configurationService.isDoneOnboarding()) return;
       await _backupService.restoreCloudDatabase(
           await _accountService.getDefaultAccount(), event.version);
 
@@ -103,7 +100,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         final hasAddress =
             addresses.any((element) => element.uuid == persona.uuid);
 
-        if (!hasAddress) {
+        if (!hasAddress && persona.isDefault()) {
           final ethAddress = await persona.wallet().getETHEip55Address();
           final ethAddressInfo =
               EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
@@ -119,6 +116,8 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         await _configurationService.setDoneOnboarding(false);
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } else {
+        await _configurationService.setOldUser();
+        if (_configurationService.isDoneOnboarding()) return;
         await _configurationService.setDoneOnboarding(true);
         injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));

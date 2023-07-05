@@ -65,7 +65,7 @@ class WCConnectPage extends StatefulWidget {
 class _WCConnectPageState extends State<WCConnectPage>
     with RouteAware, WidgetsBindingObserver {
   WalletIndex? selectedPersona;
-  List<CategorizedAccounts>? categorizedAccounts;
+  List<Account>? categorizedAccounts;
   bool createPersona = false;
   final metricClient = injector.get<MetricClientService>();
   bool isAccountSelected = false;
@@ -167,10 +167,17 @@ class _WCConnectPageState extends State<WCConnectPage>
         if (connectionRequest.isAutonomyConnect) {
           final account = await injector<AccountService>().getDefaultAccount();
           final accountDid = await account.getAccountDID();
+          final walletAddresses = await injector<CloudDatabase>()
+              .addressDao
+              .findByWalletID(account.uuid);
+          final accountNumber =
+              walletAddresses.map((e) => e.address).join("||");
           await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
             account: accountDid.substring("did:key:".length),
             connectionKey: account.uuid,
+            accountNumber: accountNumber,
+            isAuConnect: true,
           );
           payloadType = CryptoType.ETH;
           payloadAddress =
@@ -190,6 +197,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             connectionRequest as Wc2Proposal,
             account: address,
             connectionKey: address,
+            accountNumber: address,
           );
           payloadType = CryptoType.ETH;
           payloadAddress = address;
@@ -387,8 +395,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                       const SizedBox(height: 40),
                       BlocConsumer<AccountsBloc, AccountsState>(
                           listener: (context, state) async {
-                        var stateCategorizedAccounts =
-                            state.categorizedAccounts;
+                        var stateCategorizedAccounts = state.accounts;
                         if (stateCategorizedAccounts == null ||
                             stateCategorizedAccounts.isEmpty) {
                           setState(() {
@@ -422,15 +429,14 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future _autoSelectDefault(
-      List<CategorizedAccounts>? categorizedAccounts) async {
+  Future _autoSelectDefault(List<Account>? categorizedAccounts) async {
     if (categorizedAccounts == null) return;
     if (categorizedAccounts.length != 1) return;
     final persona = categorizedAccounts.first.persona;
     if (persona == null) return;
 
-    final ethAccounts = categorizedAccounts.first.ethAccounts;
-    final xtzAccounts = categorizedAccounts.first.xtzAccounts;
+    final ethAccounts = categorizedAccounts.where((element) => element.isEth);
+    final xtzAccounts = categorizedAccounts.where((element) => element.isTez);
 
     if (ethAccounts.length == 1) {
       ethSelectedAddress = ethAccounts.first.accountNumber;
@@ -596,7 +602,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _selectPersonaWidget(List<CategorizedAccounts> accounts) {
+  Widget _selectPersonaWidget(List<Account> accounts) {
     final theme = Theme.of(context);
     String select = "";
     if (widget.connectionRequest.isBeaconConnect) {
@@ -647,7 +653,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                           });
                         },
                       ),
-                      const SizedBox(height: 15.0)
                     ])
                 .flattened
                 .toList(),

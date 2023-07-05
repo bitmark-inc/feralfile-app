@@ -109,14 +109,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
+        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(
+            personUUID, widget.payload.index, widget.payload.address));
         break;
       case CryptoType.XTZ:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
+        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(
+            personUUID, widget.payload.index, widget.payload.address));
         break;
       default:
         // do nothing
@@ -200,8 +198,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         return false;
       },
       child: Scaffold(
-        appBar: getBackAppBar(context, title: 'connections_with_dapps'.tr(),
-            onBack: () {
+        appBar: getBackAppBar(context, title: 'connections'.tr(), onBack: () {
           if (widget.payload.isBackHome) {
             Navigator.of(context).pushNamedAndRemoveUntil(
               AppRouter.homePage,

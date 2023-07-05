@@ -71,6 +71,8 @@ abstract class AddressInfo {
   String getBalance();
 
   CryptoType getCryptoType();
+
+  bool hasBalance();
 }
 
 class EthereumAddressInfo implements AddressInfo {
@@ -98,6 +100,9 @@ class EthereumAddressInfo implements AddressInfo {
   getCryptoType() {
     return CryptoType.ETH;
   }
+
+  @override
+  bool hasBalance() => balance.getInWei > BigInt.zero;
 }
 
 class TezosAddressInfo implements AddressInfo {
@@ -125,4 +130,7 @@ class TezosAddressInfo implements AddressInfo {
   CryptoType getCryptoType() {
     return CryptoType.XTZ;
   }
+
+  @override
+  bool hasBalance() => balance > 0;
 }

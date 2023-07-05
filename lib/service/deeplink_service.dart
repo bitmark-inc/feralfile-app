@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -35,13 +36,7 @@ import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
-import '../database/cloud_database.dart';
 import '../screen/app_router.dart';
-import '../util/migration/migration_util.dart';
-import 'account_service.dart';
-import 'audit_service.dart';
-import 'backup_service.dart';
-import 'iap_service.dart';
 
 abstract class DeeplinkService {
   Future setup();
@@ -83,6 +78,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future setup() async {
     FlutterBranchSdk.initSession().listen((data) async {
       log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
+      log.info("[DeeplinkService] data: $data");
       _addScanQREvent(link: "", linkType: "", prefix: "", addData: data);
       if (data["+clicked_branch_link"] == true &&
           _deepLinkHandlingMap[data["~referring_link"]] == null) {
@@ -132,6 +128,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
+      memoryValues.irlLink.value = null;
     });
   }
 
@@ -224,7 +221,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
-      await _restoreIfNeeded();
+      await injector<AccountService>().restoreIfNeeded(isCreateNew: false);
     }
     // Check Universal Link
     final callingWCPrefix =
@@ -304,11 +301,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<bool> _handleIRL(String link) async {
     log.info("[DeeplinkService] _handleIRL");
-
+    memoryValues.irlLink.value = link;
     if (!_configurationService.isDoneOnboarding()) {
-      memoryValues.irlLink.value = link;
-      await _restoreIfNeeded(allowCreateNewPersona: true);
-      memoryValues.irlLink.value = null;
+      await injector<AccountService>().restoreIfNeeded();
     }
     if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
       final urlDecode =
@@ -323,7 +318,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         );
         if (!validUrl) return false;
       }
-      _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
+      await _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
       return true;
     }
 
@@ -387,6 +382,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
       case "Postcard":
         final String? type = data["type"];
         final String? id = data["id"];
+        final DateTime expiredAt = data['expired'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(
+                (int.tryParse(data['expired_at']) ?? 0) * 1000)
+            : DateTime.now().add(const Duration(days: 1));
+        if (expiredAt.isBefore(DateTime.now())) {
+          _navigationService.showPostcardShareLinkExpired();
+          break;
+        }
         if (type == "claim_empty_postcard" && id != null) {
           _handleClaimEmptyPostcardDeeplink(id);
           return;
@@ -403,7 +406,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         final url = data["irl_url"];
         if (url != null) {
           log.info("[DeeplinkService] _handleIRL $url");
-          _handleIRL(url);
+          await _handleIRL(url);
+          memoryValues.irlLink.value = null;
         }
         break;
       case "autonomy_airdrop":
@@ -523,47 +527,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       handlingDeepLink = null;
     });
-  }
-
-  Future<void> _restoreIfNeeded({bool allowCreateNewPersona = false}) async {
-    final configurationService = injector<ConfigurationService>();
-    if (configurationService.isDoneOnboarding()) return;
-
-    final cloudDB = injector<CloudDatabase>();
-    final backupService = injector<BackupService>();
-    final accountService = injector<AccountService>();
-    final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(configurationService, cloudDB,
-        accountService, iapService, auditService, backupService);
-    await accountService.androidBackupKeys();
-    await migrationUtil.migrationFromKeychain();
-    final personas = await cloudDB.personaDao.getPersonas();
-    final connections = await cloudDB.connectionDao.getConnections();
-    if (personas.isNotEmpty || connections.isNotEmpty) {
-      configurationService.setOldUser();
-      final defaultAccount = await accountService.getDefaultAccount();
-      final backupVersion =
-          await backupService.fetchBackupVersion(defaultAccount);
-      if (backupVersion.isNotEmpty) {
-        backupService.restoreCloudDatabase(defaultAccount, backupVersion);
-        for (var persona in personas) {
-          if (persona.name != "") {
-            persona.wallet().updateName(persona.name);
-          }
-        }
-        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        configurationService.setDoneOnboarding(true);
-        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-        injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition);
-      }
-    } else if (allowCreateNewPersona) {
-      configurationService.setDoneOnboarding(true);
-      await accountService.createPersona();
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
-    }
   }
 
   _handlePostcardDeeplink(String shareCode) async {
