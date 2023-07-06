@@ -149,7 +149,8 @@ Future<Pair<String, String>> getAddressBalance(
     String address, CryptoType cryptoType) async {
   final tokenDao = injector<TokenDao>();
   final tokens = await tokenDao.findTokenIDsByOwners([address]);
-  final nftBalance = "${tokens.length} ${tokens.length > 1 ? 'Works' : 'Work'}";
+  final nftBalance =
+      "${tokens.length} ${tokens.length > 1 ? 'nfts'.tr() : 'nft'.tr()}";
   switch (cryptoType) {
     case CryptoType.ETH:
       final etherAmount = await injector<EthereumService>().getBalance(address);
