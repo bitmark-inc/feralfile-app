@@ -132,7 +132,7 @@ Widget accountItem(BuildContext context, Account account,
             children: [
               Expanded(
                 child: Text(
-                  account.key,
+                  account.accountNumber,
                   style: theme.textTheme.ppMori400Black14,
                   key: const Key("fullAccount_address"),
                 ),
