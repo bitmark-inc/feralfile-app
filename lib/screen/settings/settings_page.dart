@@ -326,8 +326,9 @@ class _SettingsPageState extends State<SettingsPage>
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLatestVersion = _versionCheck?.storeVersion
-                ?.compareTo(_versionCheck?.packageVersion ?? "") ==
+        final isLatestVersion = (_versionCheck?.storeVersion
+                    ?.compareTo(_versionCheck?.packageVersion ?? "") ??
+                1) >=
             0;
         return GestureDetector(
           onTap: () async {
