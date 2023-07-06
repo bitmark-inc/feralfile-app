@@ -46,6 +46,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:synchronized/synchronized.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -70,6 +71,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   late TabController _tabController;
   final metricClient = injector<MetricClientService>();
   final _navigationService = injector<NavigationService>();
+  late Lock _lock;
 
   @override
   void initState() {
@@ -80,6 +82,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     }
     _tabController = TabController(length: 2, vsync: this);
     checkPermission();
+    _lock = Lock();
   }
 
   @override
@@ -554,27 +557,31 @@ class _ScanQRPageState extends State<ScanQRPage>
             }
             */
           } else if (_isCanvasQrCode(code)) {
-            final result = await _handleCanvasQrCode(code);
-            if (result) {
-              if (!mounted) return;
-              await UIHelper.showInfoDialog(
-                context,
-                "connected".tr(),
-                "canvas_connected".tr(),
-                closeButton: "close".tr(),
-                onClose: () => UIHelper.hideInfoDialog(
-                    injector<NavigationService>().navigatorKey.currentContext!),
-                autoDismissAfter: 3,
-                isDismissible: true,
-              );
-            }
+            _lock.synchronized(() async {
+              final result = await _handleCanvasQrCode(code);
+              if (result) {
+                if (!mounted) return;
+                await UIHelper.showInfoDialog(
+                  context,
+                  "connected".tr(),
+                  "canvas_connected".tr(),
+                  closeButton: "close".tr(),
+                  onClose: () => UIHelper.hideInfoDialog(
+                      injector<NavigationService>()
+                          .navigatorKey
+                          .currentContext!),
+                  autoDismissAfter: 3,
+                  isDismissible: true,
+                );
+              }
+            });
           } else {
             _handleError(code);
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
           if (_isCanvasQrCode(code)) {
-            await _handleCanvasQrCode(code);
+            _lock.synchronized(() => _handleCanvasQrCode(code));
           } else {
             _handleError(code);
           }
