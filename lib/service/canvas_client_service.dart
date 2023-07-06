@@ -77,10 +77,7 @@ class CanvasClientService {
   Future<bool> _connectToDevice(CanvasDevice device) async {
     final stub = _getStub(device);
     try {
-      final index = _devices.indexWhere((element) =>
-          element.id == device.id &&
-          element.ip == device.ip &&
-          element.port == device.port);
+      final index = _devices.indexWhere((element) => element.id == device.id);
       final request = ConnectRequest(
           device: DeviceInfo(deviceId: _deviceId, deviceName: _deviceName));
       final response = await stub.connect(
