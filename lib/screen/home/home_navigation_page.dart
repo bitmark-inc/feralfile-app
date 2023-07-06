@@ -523,6 +523,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
+        _editorialPageStateKey.currentState?.selectTap(HomePageTab.DISCOVER);
         _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
         break;
       case "new_message":

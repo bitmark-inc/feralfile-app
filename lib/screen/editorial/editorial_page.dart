@@ -69,6 +69,13 @@ class EditorialPageState extends State<EditorialPage>
     context.read<EditorialBloc>().add(GetEditorialEvent());
   }
 
+  void selectTap(HomePageTab tab) {
+    int index = widget.isShowDiscover && tab == HomePageTab.EDITORIAL ? 1 : 0;
+    if (_tabController.index != index) {
+      _tabController.animateTo(index);
+    }
+  }
+
   void _scrollListener() {
     final controller =
         _tabController.index == 0 ? _feedController : _editorialController;
