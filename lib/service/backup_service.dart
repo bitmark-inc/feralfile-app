@@ -158,6 +158,7 @@ class BackupService {
             migrateCloudV4ToV5,
             migrateCloudV5ToV6,
             migrateCloudV6ToV7,
+            migrateCloudV7ToV8,
           ]);
         }
 
