@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -326,8 +327,9 @@ class _SettingsPageState extends State<SettingsPage>
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLatestVersion = _versionCheck?.storeVersion
-                ?.compareTo(_versionCheck?.packageVersion ?? "") ==
+        final isLatestVersion = compareVersion(
+                _versionCheck?.packageVersion ?? "",
+                _versionCheck?.storeVersion ?? "") >=
             0;
         return GestureDetector(
           onTap: () async {
