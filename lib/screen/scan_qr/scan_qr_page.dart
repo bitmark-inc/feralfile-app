@@ -68,8 +68,8 @@ class _ScanQRPageState extends State<ScanQRPage>
   bool cameraPermission = false;
   String? currentCode;
   late TabController _tabController;
-
   final metricClient = injector<MetricClientService>();
+  final _navigationService = injector<NavigationService>();
 
   @override
   void initState() {
@@ -554,30 +554,30 @@ class _ScanQRPageState extends State<ScanQRPage>
             }
             */
           } else if (_isCanvasQrCode(code)) {
-            if (await isPremium()) {
-              final result = await _handleCanvasQrCode(code);
-              if (result) {
-                if (!mounted) return;
-                await UIHelper.showInfoDialog(
-                  context,
-                  "connected".tr(),
-                  "canvas_connected".tr(),
-                  closeButton: "close".tr(),
-                  onClose: () => UIHelper.hideInfoDialog(
-                      injector<NavigationService>()
-                          .navigatorKey
-                          .currentContext!),
-                  autoDismissAfter: 3,
-                  isDismissible: true,
-                );
-              }
+            final result = await _handleCanvasQrCode(code);
+            if (result) {
+              if (!mounted) return;
+              await UIHelper.showInfoDialog(
+                context,
+                "connected".tr(),
+                "canvas_connected".tr(),
+                closeButton: "close".tr(),
+                onClose: () => UIHelper.hideInfoDialog(
+                    injector<NavigationService>().navigatorKey.currentContext!),
+                autoDismissAfter: 3,
+                isDismissible: true,
+              );
             }
           } else {
             _handleError(code);
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
-          await _handleCanvasQrCode(code);
+          if (_isCanvasQrCode(code)) {
+            await _handleCanvasQrCode(code);
+          } else {
+            _handleError(code);
+          }
           break;
       }
     });
@@ -594,21 +594,31 @@ class _ScanQRPageState extends State<ScanQRPage>
 
   Future<bool> _handleCanvasQrCode(String code) async {
     log.info("Canvas device scanned: $code");
+    setState(() {
+      _isLoading = true;
+    });
+    controller.pauseCamera();
     try {
+      final premium = await isPremium();
+      if (!premium) {
+        return false;
+      }
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
       final result = await canvasClient.connectToDevice(device);
       if (result) {
         device.isConnecting = true;
-        if (!mounted) return false;
-        Navigator.pop(context, device);
-        return true;
-      } else {
-        _handleError(code);
-        return false;
       }
-    } catch (err) {
-      _handleError(code);
+      if (!mounted) return false;
+      Navigator.pop(context, device);
+      return result;
+    } catch (e) {
+      Navigator.pop(context);
+      if (e.toString().contains("DEADLINE_EXCEEDED") || true) {
+        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
+            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
+            closeButton: "close".tr());
+      }
     }
     return false;
   }
