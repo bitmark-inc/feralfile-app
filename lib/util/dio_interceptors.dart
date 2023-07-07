@@ -22,6 +22,8 @@ import 'package:web3dart/crypto.dart';
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
 
+  static final List<String> _skipLogPaths = [Environment.pubdocURL];
+
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
@@ -41,8 +43,9 @@ class LoggingInterceptor extends Interceptor {
   Future writeAPILog(Response response) async {
     final apiPath =
         response.requestOptions.baseUrl + response.requestOptions.path;
+    final skipLog = _skipLogPaths.any((element) => apiPath.contains(element));
+    if (skipLog) return;
     bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
-
     if (shortCurlLog) {
       final request = response.requestOptions;
       apiLog.info(
