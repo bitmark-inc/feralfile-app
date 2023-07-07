@@ -5,11 +5,9 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -104,12 +102,7 @@ class CanvasClientService {
       }
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
-      if (e.toString().contains("DEADLINE_EXCEEDED")) {
-        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
-            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
-            closeButton: "close".tr());
-      }
-      return false;
+      rethrow;
     }
   }
 

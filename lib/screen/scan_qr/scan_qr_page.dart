@@ -46,6 +46,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:synchronized/synchronized.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -68,8 +69,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   bool cameraPermission = false;
   String? currentCode;
   late TabController _tabController;
-
   final metricClient = injector<MetricClientService>();
+  final _navigationService = injector<NavigationService>();
+  late Lock _lock;
 
   @override
   void initState() {
@@ -80,6 +82,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     }
     _tabController = TabController(length: 2, vsync: this);
     checkPermission();
+    _lock = Lock();
   }
 
   @override
@@ -554,7 +557,7 @@ class _ScanQRPageState extends State<ScanQRPage>
             }
             */
           } else if (_isCanvasQrCode(code)) {
-            if (await isPremium()) {
+            _lock.synchronized(() async {
               final result = await _handleCanvasQrCode(code);
               if (result) {
                 if (!mounted) return;
@@ -571,13 +574,17 @@ class _ScanQRPageState extends State<ScanQRPage>
                   isDismissible: true,
                 );
               }
-            }
+            });
           } else {
             _handleError(code);
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
-          await _handleCanvasQrCode(code);
+          if (_isCanvasQrCode(code)) {
+            _lock.synchronized(() => _handleCanvasQrCode(code));
+          } else {
+            _handleError(code);
+          }
           break;
       }
     });
@@ -594,21 +601,34 @@ class _ScanQRPageState extends State<ScanQRPage>
 
   Future<bool> _handleCanvasQrCode(String code) async {
     log.info("Canvas device scanned: $code");
+    setState(() {
+      _isLoading = true;
+    });
+    controller.pauseCamera();
     try {
+      final premium = await isPremium();
+      if (!premium) {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        return false;
+      }
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
       final result = await canvasClient.connectToDevice(device);
       if (result) {
         device.isConnecting = true;
-        if (!mounted) return false;
-        Navigator.pop(context, device);
-        return true;
-      } else {
-        _handleError(code);
-        return false;
       }
-    } catch (err) {
-      _handleError(code);
+      if (!mounted) return false;
+      Navigator.pop(context, device);
+      return result;
+    } catch (e) {
+      Navigator.pop(context);
+      if (e.toString().contains("DEADLINE_EXCEEDED") || true) {
+        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
+            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
+            closeButton: "close".tr());
+      }
     }
     return false;
   }
