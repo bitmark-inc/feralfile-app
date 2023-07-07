@@ -608,6 +608,10 @@ class _ScanQRPageState extends State<ScanQRPage>
     try {
       final premium = await isPremium();
       if (!premium) {
+        setState(() {
+          _isLoading = false;
+        });
+        controller.resumeCamera();
         return false;
       }
       final device = CanvasDevice.fromJson(jsonDecode(code));
