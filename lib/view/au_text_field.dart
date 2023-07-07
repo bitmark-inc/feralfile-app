@@ -106,6 +106,7 @@ class AuTextField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextField(
+        autocorrect: false,
         maxLines: maxLines,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.fromLTRB(0, 3, 0, 0),

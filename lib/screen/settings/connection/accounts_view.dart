@@ -229,6 +229,7 @@ class _AccountsViewState extends State<AccountsView> {
             child: Semantics(
               label: '${account.name}_editing',
               child: TextField(
+                autocorrect: false,
                 autofocus: true,
                 decoration: const InputDecoration(
                   isDense: true,
