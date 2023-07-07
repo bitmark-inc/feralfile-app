@@ -43,9 +43,9 @@ class LoggingInterceptor extends Interceptor {
   Future writeAPILog(Response response) async {
     final apiPath =
         response.requestOptions.baseUrl + response.requestOptions.path;
-    bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
     final skipLog = _skipLogPaths.any((element) => apiPath.contains(element));
     if (skipLog) return;
+    bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
     if (shortCurlLog) {
       final request = response.requestOptions;
       apiLog.info(
