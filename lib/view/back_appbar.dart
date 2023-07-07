@@ -125,6 +125,7 @@ AppBar getTitleEditAppBar(BuildContext context,
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 100.0),
           child: TextField(
+            autocorrect: false,
             focusNode: focusNode,
             controller: controller,
             style: theme.textTheme.ppMori700Black16,
