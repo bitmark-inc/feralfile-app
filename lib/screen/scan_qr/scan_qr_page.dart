@@ -183,7 +183,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                         qrSize / 2 -
                                         cutPaddingTop,
                                     0,
-                                    30,
+                                    15,
                                   ),
                                   child: Center(
                                     child: Column(
@@ -304,26 +304,47 @@ class _ScanQRPageState extends State<ScanQRPage>
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
-    return QRView(
-      key: qrKey,
-      overlay: QrScannerOverlayShape(
-        borderColor:
-            isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-        overlayColor: (cameraPermission || Platform.isIOS)
-            ? const Color.fromRGBO(0, 0, 0, 80)
-            : const Color.fromRGBO(255, 255, 255, 60),
-        cutOutSize: qrSize,
-        borderWidth: 8,
-        borderRadius: 40,
-        // borderLength: qrSize / 2,
-        cutOutBottomOffset: 32 + cutPaddingTop,
-      ),
-      onQRViewCreated: _onQRViewCreated,
-      onPermissionSet: (ctrl, p) {
-        setState(() {
-          cameraPermission = ctrl.hasPermissions;
-        });
-      },
+    final cutOutBottomOffset = 80 + cutPaddingTop;
+    return Stack(
+      children: [
+        QRView(
+          key: qrKey,
+          overlay: QrScannerOverlayShape(
+            borderColor:
+                isScanDataError ? AppColor.red : theme.colorScheme.secondary,
+            overlayColor: (cameraPermission || Platform.isIOS)
+                ? const Color.fromRGBO(0, 0, 0, 80)
+                : const Color.fromRGBO(255, 255, 255, 60),
+            cutOutSize: qrSize,
+            borderWidth: 8,
+            borderRadius: 40,
+            cutOutBottomOffset: cutOutBottomOffset,
+          ),
+          onQRViewCreated: _onQRViewCreated,
+          onPermissionSet: (ctrl, p) {
+            setState(() {
+              cameraPermission = ctrl.hasPermissions;
+            });
+          },
+        ),
+        if (isScanDataError)
+          Positioned(
+            left: (MediaQuery.of(context).size.width - qrSize) / 2,
+            top: (MediaQuery.of(context).size.height - qrSize) / 2 -
+                cutOutBottomOffset,
+            child: SizedBox(
+              height: qrSize,
+              width: qrSize,
+              child: Center(
+                child: Text(
+                  'invalid_qr_code'.tr(),
+                  style: theme.textTheme.ppMori700Black14
+                      .copyWith(color: Colors.red),
+                ),
+              ),
+            ),
+          )
+      ],
     );
   }
 
@@ -431,24 +452,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 const SizedBox(height: 15),
                 RichText(
                   text: TextSpan(
-                    text: "wallets".tr(),
-                    children: [
-                      TextSpan(
-                        text: ' ',
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                      TextSpan(
-                        text: 'such_as_metamask'.tr(),
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                    ],
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                RichText(
-                  text: TextSpan(
-                    text: "h_autonomy".tr(),
+                    text: "autonomy_canvas".tr(),
                     children: [
                       TextSpan(
                         text: ' ',
