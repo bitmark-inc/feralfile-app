@@ -99,7 +99,6 @@ class HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _metricClient = injector.get<MetricClientService>();
-    _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
@@ -146,6 +145,7 @@ class HomePageState extends State<HomePage>
     injector<FeralFileService>().completeDelayedFFConnections();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
+    _checkForKeySync(context);
   }
 
   @override
@@ -577,7 +577,7 @@ class HomePageState extends State<HomePage>
     ];
   }
 
-  Future<void> _checkForKeySync() async {
+  Future<void> _checkForKeySync(BuildContext context) async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
