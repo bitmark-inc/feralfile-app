@@ -314,7 +314,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 isScanDataError ? AppColor.red : theme.colorScheme.secondary,
             overlayColor: (cameraPermission || Platform.isIOS)
                 ? const Color.fromRGBO(0, 0, 0, 80)
-                : const Color.fromRGBO(255, 255, 255, 60),
+                : const Color.fromRGBO(0, 0, 0, 1.0),
             cutOutSize: qrSize,
             borderWidth: 8,
             borderRadius: 40,
@@ -339,7 +339,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 child: Text(
                   'invalid_qr_code'.tr(),
                   style: theme.textTheme.ppMori700Black14
-                      .copyWith(color: Colors.red),
+                      .copyWith(color: AppColor.red),
                 ),
               ),
             ),
@@ -354,13 +354,17 @@ class _ScanQRPageState extends State<ScanQRPage>
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
+    final cutOutBottomOffset = 80 + cutPaddingTop;
     return Stack(
       children: [
         _qrView(),
         Padding(
           padding: EdgeInsets.fromLTRB(
             0,
-            MediaQuery.of(context).size.height / 2 + qrSize / 2 - cutPaddingTop,
+            MediaQuery.of(context).size.height / 2 +
+                qrSize / 2 -
+                cutOutBottomOffset +
+                32,
             0,
             30,
           ),
