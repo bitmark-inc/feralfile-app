@@ -151,6 +151,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
                         }
                         if (widget.artwork != null) {
                           await _claimToken(
+                            context,
                             _selectedAddress!,
                             widget.artwork!.id,
                             otp: widget.otp,
@@ -204,15 +205,16 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   Future _claimToken(
+    BuildContext context,
     String address,
     String artworkId, {
     Otp? otp,
   }) async {
-    ClaimResponse? claimRespone;
+    ClaimResponse? claimResponse;
     try {
       _setProcessingState(true);
       final ffService = injector<FeralFileService>();
-      claimRespone = await ffService.claimToken(
+      claimResponse = await ffService.claimToken(
         seriesId: artworkId,
         address: address,
         otp: otp,
@@ -242,8 +244,8 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       AppRouter.homePage,
       (route) => false,
     );
-    final token = claimRespone?.token;
-    final caption = claimRespone?.airdropInfo.twitterCaption;
+    final token = claimResponse?.token;
+    final caption = claimResponse?.airdropInfo.twitterCaption;
     if (token == null) {
       return;
     }

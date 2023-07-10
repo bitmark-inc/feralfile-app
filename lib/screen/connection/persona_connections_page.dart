@@ -253,7 +253,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         if (connectionItems == null) return const SizedBox();
 
         if (connectionItems.isEmpty) {
-          return _emptyConnectionsWidget();
+          return _emptyConnectionsWidget(context);
         } else {
           return Column(
             children: [
@@ -265,12 +265,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                       endActionPane: ActionPane(
                         motion: const DrawerMotion(),
                         dragDismissible: false,
-                        children: _slidableActions(connectionItem),
+                        children: _slidableActions(context, connectionItem),
                       ),
                       child: Padding(
                         padding: ResponsiveLayout.pageEdgeInsets
                             .copyWith(top: 0, bottom: 0),
-                        child: _connectionItemWidget(connectionItem),
+                        child: _connectionItemWidget(context, connectionItem),
                       ),
                     ),
                     addOnlyDivider()
@@ -284,7 +284,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     ]);
   }
 
-  Widget _emptyConnectionsWidget() {
+  Widget _emptyConnectionsWidget(BuildContext context) {
     final theme = Theme.of(context);
     return Column(children: [
       Padding(
@@ -319,7 +319,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     ]);
   }
 
-  Widget _connectionItemWidget(ConnectionItem connectionItem) {
+  Widget _connectionItemWidget(
+      BuildContext context, ConnectionItem connectionItem) {
     final connection = connectionItem.representative;
     final theme = Theme.of(context);
 
@@ -342,7 +343,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     );
   }
 
-  List<CustomSlidableAction> _slidableActions(ConnectionItem connectionItem) {
+  List<CustomSlidableAction> _slidableActions(
+      BuildContext context, ConnectionItem connectionItem) {
     final connection = connectionItem.representative;
     final theme = Theme.of(context);
 

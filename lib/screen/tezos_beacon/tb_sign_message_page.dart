@@ -117,7 +117,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     }
   }
 
-  _sign(Uint8List message) async {
+  _sign(BuildContext context, Uint8List message) async {
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
       return;
@@ -183,7 +183,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       addTitleSpace(),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _tbAppInfo(widget.request),
+                        child: _tbAppInfo(context, widget.request),
                       ),
                       const SizedBox(height: 60),
                       addOnlyDivider(),
@@ -223,7 +223,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       child: PrimaryButton(
                         text: "sign".tr(),
                         onTap: _currentPersona != null
-                            ? () => withDebounce(() => _sign(message))
+                            ? () => withDebounce(() => _sign(context, message))
                             : null,
                       ),
                     )
@@ -237,7 +237,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     );
   }
 
-  Widget _tbAppInfo(BeaconRequest request) {
+  Widget _tbAppInfo(BuildContext context, BeaconRequest request) {
     final theme = Theme.of(context);
 
     return Row(
