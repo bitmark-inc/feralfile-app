@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -63,7 +64,7 @@ class WCConnectPage extends StatefulWidget {
 }
 
 class _WCConnectPageState extends State<WCConnectPage>
-    with RouteAware, WidgetsBindingObserver {
+    with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<WCConnectPage> {
   WalletIndex? selectedPersona;
   List<Account>? categorizedAccounts;
   bool createPersona = false;
@@ -81,6 +82,10 @@ class _WCConnectPageState extends State<WCConnectPage>
     callAccountBloc();
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
     metricClient.timerEvent(MixpanelEvent.backConnectMarket);
   }
 

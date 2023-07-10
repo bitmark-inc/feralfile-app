@@ -192,7 +192,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     } else {
       _selectedIndex = HomeNavigatorTab.DISCOVER.index;
-      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
@@ -598,6 +597,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
+    }
+    if (_selectedIndex == HomeNavigatorTab.DISCOVER.index) {
+      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
   }
 

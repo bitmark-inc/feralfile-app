@@ -7,6 +7,7 @@
 
 import 'dart:collection';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -42,23 +43,28 @@ class FeedArtworkDetailsPage extends StatefulWidget {
   State<FeedArtworkDetailsPage> createState() => _FeedArtworkDetailsPageState();
 }
 
-class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage> {
+class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
+    with AfterLayoutMixin<FeedArtworkDetailsPage> {
   late ScrollController _scrollController;
   late List<FeedEvent> feedEvents;
   AssetToken? assetToken;
   HashSet<String> _accountNumberHash = HashSet.identity();
+  final _metricClient = injector<MetricClientService>();
 
   @override
   void initState() {
     _scrollController = ScrollController();
-    injector<MetricClientService>()
-        .addEvent(MixpanelEvent.viewDiscoveryArtwork, data: {
+    fetchIdentities();
+    super.initState();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    _metricClient.addEvent(MixpanelEvent.viewDiscoveryArtwork, data: {
       "id": widget.payload.feedToken?.id,
       "eventId": widget.payload.feedEvents.first.id,
       "action": widget.payload.feedEvents.first.action
     });
-    fetchIdentities();
-    super.initState();
   }
 
   @override
