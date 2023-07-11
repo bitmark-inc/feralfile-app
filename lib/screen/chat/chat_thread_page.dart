@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
+import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -176,13 +176,13 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         await _payload.wallet.getTezosPublicKey(index: _payload.index);
     final authSig = await injector<TezosService>().signMessage(_payload.wallet,
         _payload.index, Uint8List.fromList(utf8.encode(timestamp.toString())));
-    final token = await injector<ChatApi>().getToken({
+    final token = await injector<ChatAuthService>().getAuthToken({
       "address": _payload.address,
       "public_key": pubKey,
       "signature": authSig,
       "timestamp": timestamp
     });
-    header["Authorization"] = "Bearer ${token.token}";
+    header["Authorization"] = "Bearer $token";
     return header;
   }
 
