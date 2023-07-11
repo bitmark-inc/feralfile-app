@@ -429,6 +429,23 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         break;
 
+      case "Objkt_Airdrop":
+        final String? activationID = data["activationID"];
+        final String? expiredAt = data["expired_at"];
+
+        if (expiredAt != null &&
+            DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
+                int.tryParse(expiredAt) ?? 0))) {
+          log.info("[DeeplinkService] FeralFile Airdrop expired");
+          // _navigationService.showAirdropExpired(seriesId);
+          break;
+        }
+
+        if (activationID?.isNotEmpty == true) {
+          _handleObjktAirdropDeeplink(
+              activationID, _getOtpFromBranchData(data));
+        }
+        break;
       default:
         memoryValues.airdropFFExhibitionId.value = null;
     }
@@ -553,6 +570,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
       AppRouter.claimEmptyPostCard,
       arguments: claimRequest,
     );
+  }
+
+  _handleObjktAirdropDeeplink(String? activationID, Otp? otp) async {
+    if (activationID == null) {
+      return;
+    }
   }
 }
 

@@ -172,6 +172,9 @@ class Environment {
 
   static String get autonomyAirDropContractAddress =>
       dotenv.env['AUTONOMY_AIRDROP_CONTRACT_ADDRESS'] ?? '';
+
+  static String get autonomyActivationURL =>
+      dotenv.env['AUTONOMY_ACTIVATION_URL'] ?? '';
 }
 
 class Secret {

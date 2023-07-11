@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
@@ -31,6 +32,7 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -344,12 +346,27 @@ Future<void> setup() async {
     ),
   );
 
+  injector.registerLazySingleton<ActivationService>(() => ActivationService(
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+        injector(),
+      ));
+
   injector
       .registerLazySingleton<NotificationService>(() => NotificationService());
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
-      _mementoAirdropDio(dioOptions.copyWith(followRedirects: true)),
+      _airdropDio(dioOptions.copyWith(followRedirects: true)),
       baseUrl: Environment.autonomyAirdropURL));
+
+  injector.registerLazySingleton<ActivationApi>(() => ActivationApi(
+      _airdropDio(dioOptions.copyWith(followRedirects: true)),
+      baseUrl: Environment.autonomyActivationURL));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
@@ -419,7 +436,7 @@ Dio _postcardDio(BaseOptions options) {
   return dio;
 }
 
-Dio _mementoAirdropDio(BaseOptions options) {
+Dio _airdropDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
