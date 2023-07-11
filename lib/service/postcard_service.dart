@@ -51,6 +51,8 @@ abstract class PostcardService {
 
   Future<SharePostcardResponse> sharePostcard(AssetToken asset);
 
+  Future<void> cancelSharePostcard(AssetToken asset);
+
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode);
 
   Future<AssetToken> getPostcard(String tokenId);
@@ -354,5 +356,10 @@ class PostcardServiceImpl extends PostcardService {
       _configurationService.expiredPostcardSharedLinkTip.value =
           expiredPostcardShareLink;
     }
+  }
+
+  @override
+  Future<void> cancelSharePostcard(AssetToken asset) async {
+    await sharePostcard(asset);
   }
 }

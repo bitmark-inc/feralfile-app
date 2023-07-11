@@ -72,9 +72,6 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool isSending() {
-    if (!isLoaded) {
-      return false;
-    }
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
     final id = assetToken?.id;
