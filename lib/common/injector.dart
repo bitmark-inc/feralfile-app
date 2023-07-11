@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
+import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/crowd_sourcing_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
@@ -206,6 +207,8 @@ Future<void> setup() async {
         injector(),
       ));
 
+  injector.registerLazySingleton(() => ChatApi(authenticatedDio,
+      baseUrl: Environment.postcardChatServerUrl.replaceFirst("ws", "http")));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
   injector.registerLazySingleton(() =>
