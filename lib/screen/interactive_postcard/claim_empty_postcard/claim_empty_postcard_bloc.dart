@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,18 +97,16 @@ class ClaimEmptyPostCardBloc
               account.index, Uint8List.fromList(utf8.encode(timestamp)));
           final publicKey =
               await account.wallet.getTezosPublicKey(index: account.index);
-          final location = await getGeoLocationWithPermission();
-          if (location == null) {
-            emit(state.copyWith(isClaimed: false, isClaiming: false));
-            return;
-          }
           final claimRequest = ClaimPostCardRequest(
             address: address,
             claimID: event.claimRequest.claimID,
             timestamp: timestamp,
             publicKey: publicKey,
             signature: signature,
-            location: [location.position.latitude, location.position.longitude],
+            location: [
+              moMAGeoLocation.position.lat,
+              moMAGeoLocation.position.lon
+            ],
           );
           final result =
               await _postcardService.claimEmptyPostcard(claimRequest);

@@ -26,7 +26,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -259,9 +258,7 @@ class _StampPreviewState extends State<StampPreview> {
 
       if (widget.payload.location != null) {
         var postcardMetadata = asset.postcardMetadata;
-        final stampedLocation = Location(
-            lat: widget.payload.location!.latitude,
-            lon: widget.payload.location!.longitude);
+        final stampedLocation = widget.payload.location!;
         postcardMetadata.locationInformation.last.stampedLocation =
             stampedLocation;
         var newAsset = asset.asset;
@@ -282,7 +279,7 @@ class StampPreviewPayload {
   final AssetToken asset;
   final String imagePath;
   final String metadataPath;
-  final Position? location;
+  final Location? location;
 
   // constructor
   StampPreviewPayload({
