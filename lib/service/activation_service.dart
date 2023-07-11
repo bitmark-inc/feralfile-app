@@ -34,12 +34,23 @@ class ActivationService {
       this._indexerService,
       this._navigationService);
 
-  Future<ActivationInfo> getActivation(String activationID) {
+  Future<ActivationInfo> getActivation({required String activationID}) {
     return _airdropApi.getActivation(activationID);
   }
 
   Future<ActivationClaimResponse> claimActivation(
-      ActivationClaimRequest request) async {
+      {required ActivationClaimRequest request}) async {
     return _airdropApi.claim(request);
+  }
+
+  String getIndexerID(String chain, String contract, String tokenID) {
+    switch (chain) {
+      case 'ethereum':
+        return "eth-$contract-$tokenID";
+      case 'tezos':
+        return "tez-$contract-$tokenID";
+      default:
+        return '';
+    }
   }
 }

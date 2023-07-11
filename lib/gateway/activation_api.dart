@@ -50,7 +50,9 @@ class ActivationClaimRequest {
   String airdropTOTPPasscode;
 
   ActivationClaimRequest(
-      this.activationID, this.address, this.airdropTOTPPasscode);
+      {required this.activationID,
+      required this.address,
+      required this.airdropTOTPPasscode});
 
   Map<String, dynamic> toJson() => {
         'activationID': activationID,
@@ -60,9 +62,9 @@ class ActivationClaimRequest {
 
   factory ActivationClaimRequest.fromJson(Map<String, dynamic> json) {
     return ActivationClaimRequest(
-      json['activationID'],
-      json['address'],
-      json['airdropTOTPPasscode'],
+      activationID: json['activationID'],
+      address: json['address'],
+      airdropTOTPPasscode: json['airdropTOTPPasscode'],
     );
   }
 }

@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -33,6 +34,8 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -54,6 +57,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final BranchApi _branchApi;
   final PostcardService _postcardService;
   final AirdropService _airdropService;
+  final ActivationService _activationService;
+  final IndexerService _indexerService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -70,6 +75,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
     this._postcardService,
     this._airdropService,
+    this._activationService,
+    this._indexerService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -442,8 +449,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
         if (activationID?.isNotEmpty == true) {
-          _handleObjktAirdropDeeplink(
-              activationID, _getOtpFromBranchData(data));
+          _handleActivationDeeplink(activationID, _getOtpFromBranchData(data));
         }
         break;
       default:
@@ -572,10 +578,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
     );
   }
 
-  _handleObjktAirdropDeeplink(String? activationID, Otp? otp) async {
+  _handleActivationDeeplink(String? activationID, Otp? otp) async {
     if (activationID == null) {
       return;
     }
+    final activationInfo =
+        await _activationService.getActivation(activationID: activationID);
+    final indexerId = _activationService.getIndexerID(activationInfo.blockchain,
+        activationInfo.contractAddress, activationInfo.tokenID);
+    final request = QueryListTokensRequest(
+      ids: [indexerId],
+    );
+    final assetToken = await _indexerService.getNftTokens(request);
   }
 }
 
