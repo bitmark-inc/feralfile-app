@@ -85,6 +85,8 @@ abstract class PostcardService {
       {bool override = false, bool isRemove = false});
 
   Future<void> checkNotification();
+
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard();
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -354,5 +356,21 @@ class PostcardServiceImpl extends PostcardService {
       _configurationService.expiredPostcardSharedLinkTip.value =
           expiredPostcardShareLink;
     }
+  }
+
+  @override
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
+    // return _postcardApi.fetchPostcardLeaderboard();
+    final leaderBoardItems = List.generate(
+        50,
+        (index) => PostcardLeaderboardItem(
+              id: "id",
+              owner: "owner",
+              rank: index + 1,
+              title: "Postcard $index",
+              totalDistance: index * 100,
+            ));
+    return PostcardLeaderboard(
+        items: leaderBoardItems, lastUpdated: DateTime.now());
   }
 }

@@ -86,6 +86,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  late Timer _leaderboardTimer;
 
   @override
   void initState() {
@@ -96,6 +97,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
+    _setTimer();
+  }
+
+  void _setTimer() {
+    _leaderboardTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
+    });
   }
 
   @override
@@ -225,6 +233,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     timer?.cancel();
+    _leaderboardTimer.cancel();
     super.dispose();
   }
 
@@ -1017,78 +1026,129 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _leaderboard(BuildContext context, PostcardDetailState state) {
+    final leaderBoard = state.leaderboard;
+    if (leaderBoard == null) {
+      return const SizedBox();
+    }
+    final _listKey = GlobalKey<AnimatedListState>();
+    return SizedBox(
+      height: 500,
+      child: Column(
+        children: [
+          Expanded(
+            child: AnimatedList(
+              key: _listKey,
+              initialItemCount: leaderBoard.items.length + 1,
+              itemBuilder: (context, index, animation) {
+                if (index == 0) {
+                  return _leaderboardHeader(context, leaderBoard.lastUpdated);
+                }
+                final item = leaderBoard.items[index - 1];
+                final isYours = item.id == state.assetToken?.id;
+                return _leaderboardItem(item, isYour: isYours);
+              },
+            ),
+            // ListView.builder(
+            //   itemBuilder: (BuildContext context, int index) {
+            //     if (index == 0) {
+            //       return _leaderboardHeader(context, leaderBoard.lastUpdated);
+            //     }
+            //     final item = leaderBoard.items[index - 1];
+            //     final isYours = item.id == state.assetToken?.id;
+            //     return _leaderboardItem(item, isYour: isYours);
+            //   },
+            //   itemCount: leaderBoard.items.length + 1,
+            // ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _leaderboardHeader(BuildContext context, DateTime lastUpdated) {
     final theme = Theme.of(context);
-    final leaderBoard = List.generate(
-        50,
-        (index) => PostcardLeaderboard(
-              id: "id",
-              owner: "owner",
-              rank: index + 1,
-              title: "Postcard $index",
-              totalDistance: index * 100,
-            ));
+    final dateFormater = DateFormat("yyyy-MM-dd HH:mm:ss");
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
+        const SizedBox(height: 12),
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Center(
-              child: Text(
-                "last_updated".tr(),
-                style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
-              ),
+            Text(
+              "last_updated"
+                  .tr(namedArgs: {"time": dateFormater.format(lastUpdated)}),
+              style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
             )
           ],
         ),
-        Expanded(
-          child: ListView.separated(
-            itemBuilder: (BuildContext context, int index) {
-              final item = leaderBoard[index];
-              return _leaderboardItem(item);
-            },
-            separatorBuilder: (BuildContext context, int index) {
-              return addDivider(color: Colors.amber);
-            },
-            itemCount: leaderBoard.length,
-          ),
-        ),
+        const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _leaderboardItem(PostcardLeaderboard leaderBoard) {
+  Widget _leaderboardItem(PostcardLeaderboardItem leaderBoardItem,
+      {required bool isYour}) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          Text(
-            numberFormatter.format(leaderBoard.rank),
-            style: theme.textTheme.moMASans400Black16,
+    const moMAColor = Color.fromRGBO(131, 79, 196, 1);
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: Container(
+            color: isYour ? moMAColor : Colors.transparent,
+            width: 12,
+            height: 24,
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  leaderBoard.title,
-                  style: theme.textTheme.moMASans400Black16,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                child: Row(
+                  children: [
+                    Text(
+                      numberFormatter.format(leaderBoardItem.rank),
+                      style: theme.textTheme.moMASans400Black12,
+                    ),
+                    const SizedBox(width: 36),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: leaderBoardItem.title,
+                              style: theme.textTheme.moMASans400Black12
+                                  .copyWith(
+                                      color: const Color.fromRGBO(
+                                          131, 79, 196, 1)),
+                            ),
+                            if (isYour)
+                              TextSpan(
+                                text: "_your".tr(),
+                                style: const TextStyle(
+                                    color: AppColor.auLightGrey),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Text(
+                      distanceFormatter.format(
+                          distance: leaderBoardItem.totalDistance),
+                      style: theme.textTheme.moMASans400Black12,
+                    ),
+                  ],
                 ),
-                Text(
-                  leaderBoard.owner,
-                  style: theme.textTheme.moMASans400Black12
-                      .copyWith(color: AppColor.auQuickSilver),
-                ),
-              ],
-            ),
+              ),
+              addOnlyDivider(color: AppColor.auLightGrey),
+            ],
           ),
-          Text(
-            distanceFormatter.format(distance: leaderBoard.totalDistance),
-            style: theme.textTheme.moMASans400Black16,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -1114,14 +1174,14 @@ class PostcardIdentity {
   }
 }
 
-class PostcardLeaderboard {
+class PostcardLeaderboardItem {
   String id;
   String owner;
   int rank;
   String title;
   double totalDistance;
 
-  PostcardLeaderboard({
+  PostcardLeaderboardItem({
     required this.id,
     required this.owner,
     required this.rank,
@@ -1129,8 +1189,8 @@ class PostcardLeaderboard {
     required this.totalDistance,
   });
 
-  static PostcardLeaderboard fromJson(Map<String, dynamic> json) {
-    return PostcardLeaderboard(
+  static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) {
+    return PostcardLeaderboardItem(
       id: json['id'],
       owner: json['owner'],
       rank: json['rank'],
@@ -1146,6 +1206,33 @@ class PostcardLeaderboard {
       "rank": rank,
       "title": title,
       "totalDistance": totalDistance,
+    };
+  }
+}
+
+class PostcardLeaderboard {
+  List<PostcardLeaderboardItem> items;
+  DateTime lastUpdated;
+
+  PostcardLeaderboard({
+    required this.items,
+    required this.lastUpdated,
+  });
+
+  static PostcardLeaderboard fromJson(Map<String, dynamic> json) {
+    return PostcardLeaderboard(
+      items: json['items']
+          .map<PostcardLeaderboardItem>(
+              (item) => PostcardLeaderboardItem.fromJson(item))
+          .toList(),
+      lastUpdated: DateTime.parse(json['lastUpdated']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "items": items.map((item) => item.toJson()).toList(),
+      "lastUpdated": lastUpdated.toIso8601String(),
     };
   }
 }

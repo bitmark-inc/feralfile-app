@@ -454,6 +454,7 @@ class AppRouter {
                               injector(),
                               injector(),
                               injector(),
+                              injector(),
                             )),
                   ],
                   child: StampPreview(
@@ -851,8 +852,8 @@ class AppRouter {
                   ),
                 ),
                 BlocProvider(
-                    create: (_) => PostcardDetailBloc(
-                        injector(), injector(), injector(), injector())),
+                    create: (_) => PostcardDetailBloc(injector(), injector(),
+                        injector(), injector(), injector())),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
@@ -975,6 +976,7 @@ class AppRouter {
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(
                       create: (_) => PostcardDetailBloc(
+                            injector(),
                             injector(),
                             injector(),
                             injector(),
@@ -1391,6 +1393,7 @@ class AppRouter {
                     BlocProvider(create: (_) => TravelInfoBloc()),
                     BlocProvider(
                         create: (_) => PostcardDetailBloc(
+                              injector(),
                               injector(),
                               injector(),
                               injector(),

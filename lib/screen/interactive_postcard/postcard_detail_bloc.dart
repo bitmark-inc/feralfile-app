@@ -41,18 +41,22 @@ class PostcardDetailGetValueEvent extends PostcardDetailEvent {
   });
 }
 
+class FetchLeaderboardEvent extends PostcardDetailEvent {}
+
 class PostcardDetailBloc
     extends AuBloc<PostcardDetailEvent, PostcardDetailState> {
   final AssetTokenDao _assetTokenDao;
   final AssetDao _assetDao;
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
+  final PostcardService _postcardService;
 
   PostcardDetailBloc(
     this._assetTokenDao,
     this._assetDao,
     this._provenanceDao,
     this._indexerService,
+    this._postcardService,
   ) : super(PostcardDetailState(provenances: [], postcardValueLoaded: false)) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
@@ -115,11 +119,15 @@ class PostcardDetailBloc
     });
 
     on<PostcardDetailGetValueEvent>((event, emit) async {
-      final postcardService = injector<PostcardService>();
-      final postcardValue = await postcardService.getPostcardValue(
+      final postcardValue = await _postcardService.getPostcardValue(
           contractAddress: event.contractAddress, tokenId: event.tokenId);
       emit(state.copyWith(
           postcardValue: postcardValue, postcardValueLoaded: true));
+    });
+
+    on<FetchLeaderboardEvent>((event, emit) async {
+      final leaderboard = await _postcardService.fetchPostcardLeaderboard();
+      emit(state.copyWith(leaderboard: leaderboard));
     });
   }
 
