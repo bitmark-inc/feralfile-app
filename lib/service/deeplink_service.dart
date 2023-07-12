@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
@@ -590,6 +591,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       ids: [indexerId],
     );
     final assetToken = await _indexerService.getNftTokens(request);
+    await _navigationService.openActivationPage(
+      payload: ClaimActivationPagePayload(
+        activationID: activationID,
+        assetToken: assetToken.first,
+        otp: otp!,
+      ),
+    );
   }
 }
 

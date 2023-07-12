@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -7,6 +8,7 @@ import 'package:autonomy_flutter/screen/claim/activation/preview_activation_clai
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -55,6 +57,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
   final _metricClient = injector.get<MetricClientService>();
   final _accountService = injector<AccountService>();
   final _configService = injector<ConfigurationService>();
+  final _activationService = injector<ActivationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -338,7 +341,15 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
       required String activationID,
       required String receiveAddress,
       required Otp otp}) async {
+    ActivationClaimResponse? response;
     try {
+      response = await _activationService.claimActivation(
+        request: ActivationClaimRequest(
+          activationID: activationID,
+          address: receiveAddress,
+          airdropTOTPPasscode: otp.code,
+        ),
+      );
       _metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
