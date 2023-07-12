@@ -47,6 +47,10 @@ Future<Placemark?> getPlaceMarkFromCoordinates(
 // get location name from longitude and latitude
 Future<String> getLocationNameFromCoordinates(
     double latitude, double longitude) async {
+  if (latitude == moMAGeoLocation.position.lat &&
+      longitude == moMAGeoLocation.position.lon) {
+    return moMAGeoLocation.address;
+  }
   final box = await Hive.openBox(POSTCARD_LOCATION_HIVE_BOX);
   final key =
       "${latitude.toStringAsFixed(coordinate_digit_number)}|${longitude.toStringAsFixed(coordinate_digit_number)}";
