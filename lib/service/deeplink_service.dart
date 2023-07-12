@@ -437,7 +437,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         break;
 
-      case "Objkt_Airdrop":
+      case "Autonomy_Activation":
         final String? activationID = data["activationID"];
         final String? expiredAt = data["expired_at"];
 
