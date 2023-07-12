@@ -115,7 +115,7 @@ class HomePageState extends State<HomePage>
     });
 
     refreshFeeds();
-    _clientTokenService.refreshTokens().then((value) {
+    _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
 
