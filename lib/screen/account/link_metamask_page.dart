@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -35,16 +36,16 @@ class LinkMetamaskPage extends StatefulWidget {
   State<LinkMetamaskPage> createState() => _LinkMetamaskPageState();
 }
 
-class _LinkMetamaskPageState extends State<LinkMetamaskPage> {
+class _LinkMetamaskPageState extends State<LinkMetamaskPage>
+    with AfterLayoutMixin<LinkMetamaskPage> {
   WebSocketChannel? _websocketChannel;
 
   final metricClient = injector.get<MetricClientService>();
 
   @override
-  void initState() {
+  void afterFirstLayout(BuildContext context) {
     metricClient.timerEvent(MixpanelEvent.backGenerateLink);
     metricClient.timerEvent(MixpanelEvent.generateLink);
-    super.initState();
   }
 
   @override

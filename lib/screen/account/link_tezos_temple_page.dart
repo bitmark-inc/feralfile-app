@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
@@ -41,17 +42,17 @@ class LinkTezosTemplePage extends StatefulWidget {
   State<LinkTezosTemplePage> createState() => _LinkTezosTemplePageState();
 }
 
-class _LinkTezosTemplePageState extends State<LinkTezosTemplePage> {
+class _LinkTezosTemplePageState extends State<LinkTezosTemplePage>
+    with AfterLayoutMixin<LinkTezosTemplePage> {
   WebSocketChannel? _websocketChannel;
   Peer? _peer;
 
   final metricClient = injector.get<MetricClientService>();
 
   @override
-  void initState() {
+  void afterFirstLayout(BuildContext context) {
     metricClient.timerEvent(MixpanelEvent.backGenerateLink);
     metricClient.timerEvent(MixpanelEvent.generateLink);
-    super.initState();
   }
 
   @override

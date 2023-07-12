@@ -7,6 +7,7 @@
 
 import 'dart:io';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
@@ -44,7 +45,8 @@ class ImportAccountPage extends StatefulWidget {
   State<ImportAccountPage> createState() => _ImportAccountPageState();
 }
 
-class _ImportAccountPageState extends State<ImportAccountPage> {
+class _ImportAccountPageState extends State<ImportAccountPage>
+    with AfterLayoutMixin<ImportAccountPage> {
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
   bool _isImporting = false;
@@ -58,9 +60,8 @@ class _ImportAccountPageState extends State<ImportAccountPage> {
   final metricClient = injector.get<MetricClientService>();
 
   @override
-  void initState() {
+  void afterFirstLayout(BuildContext context) {
     metricClient.timerEvent(MixpanelEvent.backImportAccount);
-    super.initState();
   }
 
   @override

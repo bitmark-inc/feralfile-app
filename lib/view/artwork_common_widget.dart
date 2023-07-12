@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
@@ -524,17 +525,22 @@ class BrokenTokenWidget extends StatefulWidget {
   }
 }
 
-class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
+class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
+    with AfterLayoutMixin<BrokenTokenWidget> {
   final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
     injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
+    super.initState();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
     metricClient.addEvent(
       MixpanelEvent.displayUnableLoadIPFS,
       data: {'id': widget.token.id},
     );
-    super.initState();
   }
 
   @override
@@ -645,21 +651,21 @@ class PreviewPlaceholder extends StatefulWidget {
   State<PreviewPlaceholder> createState() => _PreviewPlaceholderState();
 }
 
-class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
+class _PreviewPlaceholderState extends State<PreviewPlaceholder>
+    with AfterLayoutMixin<PreviewPlaceholder> {
   final metricClient = injector.get<MetricClientService>();
-
-  @override
-  void initState() {
-    metricClient.timerEvent(
-      MixpanelEvent.showLoadingArtwork,
-    );
-    super.initState();
-  }
 
   @override
   void dispose() {
     super.dispose();
     metricClient.addEvent(
+      MixpanelEvent.showLoadingArtwork,
+    );
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    metricClient.timerEvent(
       MixpanelEvent.showLoadingArtwork,
     );
   }

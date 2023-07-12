@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -82,7 +83,11 @@ class FeedPreviewScreen extends StatefulWidget {
 }
 
 class _FeedPreviewScreenState extends State<FeedPreviewScreen>
-    with RouteAware, WidgetsBindingObserver, TickerProviderStateMixin {
+    with
+        RouteAware,
+        WidgetsBindingObserver,
+        TickerProviderStateMixin,
+        AfterLayoutMixin<FeedPreviewScreen> {
   String? swipeDirection;
 
   late FeedBloc _bloc;
@@ -91,7 +96,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   @override
   void initState() {
     super.initState();
-    _metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
     _bloc = context.read<FeedBloc>();
     _bloc.add(GetFeedsEvent());
   }
@@ -100,6 +104,11 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
     super.didChangeDependencies();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    _metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
   }
 
   @override
