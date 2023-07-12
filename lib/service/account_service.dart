@@ -37,13 +37,8 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/database/nft_collection_database.dart';
-import 'package:nft_collection/models/address_collection.dart';
 import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:nft_collection/nft_collection.dart';
-import 'package:nft_collection/services/configuration_service.dart';
+import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
@@ -137,7 +132,7 @@ class AccountServiceImpl extends AccountService {
   final AutonomyService _autonomyService;
   final BackupService _backupService;
   final AutonomyApi _autonomyApi;
-  final NftCollectionDatabase _nftDb;
+  final AddressService _addressService;
 
   final _defaultAccountLock = Lock();
 
@@ -150,7 +145,7 @@ class AccountServiceImpl extends AccountService {
     this._autonomyService,
     this._backupService,
     this._autonomyApi,
-    this._nftDb,
+    this._addressService,
   );
 
   @override
@@ -375,7 +370,7 @@ class AccountServiceImpl extends AccountService {
     Future.wait(addressIndexes.map((element) async {
       await setHideLinkedAccountInGallery(element.address, false);
     }));
-    await _nftDb.addressCollectionDao
+    await _addressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.deleteLinkedAccount,
@@ -395,9 +390,7 @@ class AccountServiceImpl extends AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
-    await _nftDb.addressCollectionDao.insertAddressesAbort([
-      AddressCollection(address: address, lastRefreshedTime: DateTime.now())
-    ]);
+    await _addressService.addAddresses([address]);
     _autonomyService.postLinkedAddresses();
     return connection;
   }
@@ -488,7 +481,7 @@ class AccountServiceImpl extends AccountService {
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     await _configurationService
         .setHideLinkedAccountInGallery([address], isEnabled);
-    _nftDb.addressCollectionDao.setAddressIsHidden([address], isEnabled);
+    _addressService.setIsHiddenAddresses([address], isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
@@ -499,7 +492,7 @@ class AccountServiceImpl extends AccountService {
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled) async {
     Future.wait(addresses
         .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
-    _nftDb.addressCollectionDao.setAddressIsHidden(addresses, isEnabled);
+    _addressService.setIsHiddenAddresses(addresses, isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.hideAddresses,
@@ -735,10 +728,8 @@ class AccountServiceImpl extends AccountService {
             name: e.getCryptoType().source))
         .toList();
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
-    await _nftDb.addressCollectionDao.insertAddressesAbort(addresses
-        .map((e) => AddressCollection(
-            address: e.address, lastRefreshedTime: DateTime.now()))
-        .toList());
+    await _addressService
+        .addAddresses(addresses.map((e) => e.address).toList());
     return newPersona;
   }
 
@@ -770,7 +761,7 @@ class AccountServiceImpl extends AccountService {
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
     _cloudDB.addressDao.deleteAddress(walletAddress);
-    await _nftDb.addressCollectionDao.deleteAddresses([walletAddress.address]);
+    await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
         final connections = await _cloudDB.connectionDao

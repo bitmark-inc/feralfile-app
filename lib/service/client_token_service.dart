@@ -34,9 +34,10 @@ class ClientTokenService {
     if (syncAddresses && !_nftBloc.prefs.getDidSyncAddress()) {
       final addresses = await _accountService.getAllAddresses();
       final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
-      _nftBloc.add(AddAddressesEvent(
-          addresses: addresses,
-          hiddenAddresses: hiddenAddresses.map((e) => e.address).toList()));
+
+      await _nftBloc.addressService.addAddresses(addresses);
+      await _nftBloc.addressService.setIsHiddenAddresses(
+          hiddenAddresses.map((e) => e.address).toList(), true);
       _nftBloc.prefs.setDidSyncAddress(true);
     }
     final indexerIds = await getManualTokenIds();
