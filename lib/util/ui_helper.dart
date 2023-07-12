@@ -811,8 +811,23 @@ class UIHelper {
         data: {"message": error.dialogMessage, "id": series.id});
     return showErrorDialog(
       context,
-      error.getDialogTitle(series: series),
+      error.getDialogTitle(),
       error.getDialogMessage(series: series),
+      "close".tr(),
+    );
+  }
+
+  static Future showNoRemainingActivationToken(
+    BuildContext context, {
+    required String id,
+  }) async {
+    final error = FeralfileError(3009, "");
+    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {"message": error.dialogMessage, "id": id});
+    return showErrorDialog(
+      context,
+      error.getDialogTitle(),
+      error.getDialogMessage(),
       "close".tr(),
     );
   }
@@ -846,7 +861,7 @@ class UIHelper {
           data: {"message": message, "id": series.id});
       await showErrorDialog(
         context,
-        ffError?.getDialogTitle(series: series) ?? "error".tr(),
+        ffError?.getDialogTitle() ?? "error".tr(),
         message,
         "close".tr(),
       );
@@ -855,6 +870,29 @@ class UIHelper {
         context,
         series: series,
       );
+    }
+  }
+
+  static Future showActivationError(
+      BuildContext context, Object e, String id) async {
+    if (e is AirdropExpired) {
+      await showAirdropExpired(context, id);
+    } else if (e is DioError) {
+      final ffError = e.error as FeralfileError?;
+      final message = ffError != null
+          ? ffError.dialogMessage
+          : "${e.response?.data ?? e.message}";
+
+      metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+          data: {"message": message, "id": id});
+      await showErrorDialog(
+        context,
+        ffError?.dialogMessage ?? "error".tr(),
+        message,
+        "close".tr(),
+      );
+    } else if (e is NoRemainingToken) {
+      await showNoRemainingActivationToken(context, id: id);
     }
   }
 

@@ -24,6 +24,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ClaimActivationPagePayload {
   final AssetToken assetToken;
@@ -268,6 +269,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                             activationID: widget.payload.activationID,
                             receiveAddress: address,
                             otp: widget.payload.otp,
+                            assetToken: widget.payload.assetToken,
                           );
                         } else {
                           setState(() {
@@ -340,15 +342,16 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
       {required BuildContext context,
       required String activationID,
       required String receiveAddress,
+      required AssetToken assetToken,
       required Otp otp}) async {
-    ActivationClaimResponse? response;
     try {
-      response = await _activationService.claimActivation(
+      await _activationService.claimActivation(
         request: ActivationClaimRequest(
           activationID: activationID,
           address: receiveAddress,
           airdropTOTPPasscode: otp.code,
         ),
+        assetToken: assetToken,
       );
       _metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
@@ -382,9 +385,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
   }
 
   void _openFFArtistCollector() {
-    // String uri = (widget.payload.series.exhibition?.id == null)
-    //     ? FF_ARTIST_COLLECTOR
-    //     : "$FF_ARTIST_COLLECTOR/${widget.payload.series.exhibition?.id}";
-    // launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
+    String uri = FF_ARTIST_COLLECTOR;
+    launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
 }
