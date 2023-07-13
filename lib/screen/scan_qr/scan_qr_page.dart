@@ -110,7 +110,7 @@ class _ScanQRPageState extends State<ScanQRPage>
         });
         if (Platform.isAndroid) {
           _timer?.cancel();
-          _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          _timer = Timer(const Duration(seconds: 1), () {
             controller.resumeCamera();
           });
         }
