@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/skeleton.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:dio/dio.dart';
@@ -74,12 +75,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
+  late ScrollController _leaderboardScrollController;
 
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
   Timer? timer;
   bool isUpdating = false;
   NumberFormat numberFormatter = NumberFormat("00");
+  final _pageStorageBucket = PageStorageBucket();
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -91,6 +94,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
+    _leaderboardScrollController = ScrollController();
     super.initState();
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
@@ -101,7 +105,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   void _setTimer() {
-    _leaderboardTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _leaderboardTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     });
   }
@@ -232,6 +236,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       },
     );
     _scrollController.dispose();
+    _leaderboardScrollController.dispose();
     timer?.cancel();
     _leaderboardTimer.cancel();
     super.dispose();
@@ -698,7 +703,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               addOnlyDivider(color: AppColor.auGrey),
             ],
           ),
-          Positioned.fill(child: Container()),
+          Positioned.fill(
+              child: Container(
+            color: Colors.transparent,
+          )),
         ],
       ),
     );
@@ -1028,40 +1036,74 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _leaderboard(BuildContext context, PostcardDetailState state) {
     final leaderBoard = state.leaderboard;
     if (leaderBoard == null) {
-      return const SizedBox();
+      return _loadingLeaderboard(context);
     }
-    final _listKey = GlobalKey<AnimatedListState>();
+    final listKey =
+        PageStorageKey("leaderboard"); //GlobalKey<AnimatedListState>();
+    return SizedBox(
+      height: 500,
+      child: Column(
+        children: [
+          Expanded(
+            child: PageStorage(
+              bucket: _pageStorageBucket,
+              child: AnimatedList(
+                key: listKey,
+                controller: _leaderboardScrollController,
+                initialItemCount: leaderBoard.items.length + 1,
+                itemBuilder: (context, index, animation) {
+                  if (index == 0) {
+                    return _leaderboardHeader(context, leaderBoard.lastUpdated);
+                  }
+                  final item = leaderBoard.items[index - 1];
+                  final isYours = item.id == state.assetToken?.id;
+                  return _leaderboardItem(item, isYour: isYours);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _loadingLeaderboard(BuildContext context) {
     return SizedBox(
       height: 500,
       child: Column(
         children: [
           Expanded(
             child: AnimatedList(
-              key: _listKey,
-              initialItemCount: leaderBoard.items.length + 1,
+              initialItemCount: 51,
               itemBuilder: (context, index, animation) {
                 if (index == 0) {
-                  return _leaderboardHeader(context, leaderBoard.lastUpdated);
+                  return _loadingLeaderboardHeader(context);
                 }
-                final item = leaderBoard.items[index - 1];
-                final isYours = item.id == state.assetToken?.id;
-                return _leaderboardItem(item, isYour: isYours);
+                return _loadingLeaderboardItem(context, index: index);
               },
             ),
-            // ListView.builder(
-            //   itemBuilder: (BuildContext context, int index) {
-            //     if (index == 0) {
-            //       return _leaderboardHeader(context, leaderBoard.lastUpdated);
-            //     }
-            //     final item = leaderBoard.items[index - 1];
-            //     final isYours = item.id == state.assetToken?.id;
-            //     return _leaderboardItem(item, isYour: isYours);
-            //   },
-            //   itemCount: leaderBoard.items.length + 1,
-            // ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _loadingLeaderboardHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "updating_leaderboard".tr(),
+              style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
+            )
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 
@@ -1083,6 +1125,46 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _loadingLeaderboardItem(BuildContext context, {int index = 1}) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: Row(
+              children: [
+                Text(
+                  numberFormatter.format(index),
+                  style: theme.textTheme.moMASans400Black12,
+                ),
+                const SizedBox(width: 36),
+                Expanded(
+                  flex: 2,
+                  child: SkeletonContainer(
+                    width: 64,
+                    height: 17,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Expanded(child: Container()),
+                Expanded(
+                  child: SkeletonContainer(
+                    width: 64,
+                    height: 17,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          addOnlyDivider(color: AppColor.auLightGrey),
+        ],
+      ),
     );
   }
 
