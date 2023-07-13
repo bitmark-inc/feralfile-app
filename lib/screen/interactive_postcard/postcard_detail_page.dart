@@ -1176,14 +1176,12 @@ class PostcardIdentity {
 
 class PostcardLeaderboardItem {
   String id;
-  String owner;
   int rank;
   String title;
   double totalDistance;
 
   PostcardLeaderboardItem({
     required this.id,
-    required this.owner,
     required this.rank,
     required this.title,
     required this.totalDistance,
@@ -1191,18 +1189,16 @@ class PostcardLeaderboardItem {
 
   static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) {
     return PostcardLeaderboardItem(
-      id: json['id'],
-      owner: json['owner'],
+      id: json['token_id'],
       rank: json['rank'],
-      title: json['title'],
-      totalDistance: json['totalDistance'],
+      title: json['title'] ?? "",
+      totalDistance: json['mileage'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       "id": id,
-      "owner": owner,
       "rank": rank,
       "title": title,
       "totalDistance": totalDistance,

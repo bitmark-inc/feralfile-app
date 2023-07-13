@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -41,4 +43,28 @@ abstract class PostcardApi {
     @Part(name: "lon") double? lon,
     @Part(name: "counter") required int counter,
   });
+
+  @GET("/v1/leaderboard?unit={unit}")
+  Future<GetLeaderboardResponse> getLeaderboard(@Path("unit") String unit);
+}
+
+class GetLeaderboardResponse {
+  List<PostcardLeaderboardItem> items;
+
+  GetLeaderboardResponse(this.items);
+
+  factory GetLeaderboardResponse.fromJson(Map<String, dynamic> map) {
+    final listPostcard = map['postcards'] as List<dynamic>;
+    return GetLeaderboardResponse(List<PostcardLeaderboardItem>.from(
+        listPostcard.mapIndexed((index, element) =>
+            PostcardLeaderboardItem.fromJson(
+                element..addEntries([MapEntry("rank", index + 1)])))));
+  }
+
+  //toJson method
+  Map<String, dynamic> toJson() {
+    return {
+      'postcards': items.map((x) => x.toJson()).toList(),
+    };
+  }
 }

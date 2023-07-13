@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
@@ -360,17 +361,38 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
-    // return _postcardApi.fetchPostcardLeaderboard();
-    final leaderBoardItems = List.generate(
-        50,
-        (index) => PostcardLeaderboardItem(
-              id: "id",
-              owner: "owner",
-              rank: index + 1,
-              title: "Postcard $index",
-              totalDistance: index * 100,
-            ));
+    final leaderboardResponse =
+        await _postcardApi.getLeaderboard(DistanceUnit.km.name);
+    final ids = leaderboardResponse.items
+        .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
+        .toList();
+    final request = QueryListTokensRequest(
+      ids: ids,
+    );
+    final tokens = await _indexerService.getNftTokens(request);
+    leaderboardResponse.items.map((e) {
+      e.title = tokens
+              .firstWhereOrNull((element) => element.tokenId == e.id)
+              ?.title ??
+          "Unknown";
+      return e;
+    }).toList();
+
     return PostcardLeaderboard(
-        items: leaderBoardItems, lastUpdated: DateTime.now());
+        items: leaderboardResponse.items, lastUpdated: DateTime.now());
+  }
+}
+
+enum DistanceUnit {
+  km,
+  mile;
+
+  String get name {
+    switch (this) {
+      case DistanceUnit.km:
+        return "km";
+      case DistanceUnit.mile:
+        return "mile";
+    }
   }
 }

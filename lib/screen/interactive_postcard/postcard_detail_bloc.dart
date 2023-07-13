@@ -126,8 +126,12 @@ class PostcardDetailBloc
     });
 
     on<FetchLeaderboardEvent>((event, emit) async {
-      final leaderboard = await _postcardService.fetchPostcardLeaderboard();
-      emit(state.copyWith(leaderboard: leaderboard));
+      try {
+        final leaderboard = await _postcardService.fetchPostcardLeaderboard();
+        emit(state.copyWith(leaderboard: leaderboard));
+      } catch (e) {
+        log.info("FetchLeaderboardEvent: error", e);
+      }
     });
   }
 
