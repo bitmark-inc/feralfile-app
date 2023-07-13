@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -40,7 +41,8 @@ class ArticleDetailPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ArticleDetailPageState();
 }
 
-class _ArticleDetailPageState extends State<ArticleDetailPage> {
+class _ArticleDetailPageState extends State<ArticleDetailPage>
+    with AfterLayoutMixin<ArticleDetailPage> {
   final _dio = Dio(BaseOptions(
     connectTimeout: 2000,
   ));
@@ -64,8 +66,12 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
     _controller.addListener(_scrollListener);
-    _trackEvent();
     metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    _trackEvent();
   }
 
   /// Control header show/hide

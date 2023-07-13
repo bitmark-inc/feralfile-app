@@ -81,6 +81,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   bool viewJourney = true;
   Timer? timer;
   bool isUpdating = false;
+  bool canceling = false;
   NumberFormat numberFormatter = NumberFormat("00");
   final _pageStorageBucket = PageStorageBucket();
 
@@ -600,6 +601,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
+  Future<void> cancelShare(AssetToken asset) async {
+    try {
+      await _postcardService.cancelSharePostcard(asset);
+      await _configurationService.removeSharedPostcardWhere((sharedPostcard) =>
+          sharedPostcard.tokenID == asset.id &&
+          sharedPostcard.owner == asset.owner);
+      setState(() {});
+    } catch (error) {
+      log.info("Cancel share postcard failed: error ${error.toString()}");
+    }
+  }
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
     return Column(
       children: [
@@ -1014,12 +1026,47 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const Spacer(),
             GestureDetector(
               child: Text(
-                "resend_".tr(),
+                "cancel".tr(),
                 style: theme.textTheme.moMASans400Grey12
                     .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
               ),
               onTap: () {
-                _sharePostcard(asset);
+                UIHelper.showDialog(context, "cancel_invitation".tr(),
+                    StatefulBuilder(builder: (context, setState) {
+                  return Column(
+                    children: [
+                      Text(
+                        "cancel_invitation_desc".tr(),
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      const SizedBox(height: 40),
+                      PrimaryButton(
+                        text: "cancel".tr(),
+                        isProcessing: canceling,
+                        enabled: !canceling,
+                        onTap: () async {
+                          setState(() {
+                            canceling = true;
+                          });
+                          await cancelShare(asset);
+                          setState(() {
+                            canceling = false;
+                          });
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      OutlineButton(
+                        text: "close".tr(),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                }), isDismissible: true);
               },
             ),
           ],

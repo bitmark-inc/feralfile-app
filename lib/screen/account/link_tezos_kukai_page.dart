@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -27,14 +28,14 @@ class LinkTezosKukaiPage extends StatefulWidget {
   State<LinkTezosKukaiPage> createState() => _LinkTezosKukaiPageState();
 }
 
-class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage> {
+class _LinkTezosKukaiPageState extends State<LinkTezosKukaiPage>
+    with AfterLayoutMixin<LinkTezosKukaiPage> {
   final metricClient = injector.get<MetricClientService>();
 
   @override
-  void initState() {
+  void afterFirstLayout(BuildContext context) {
     metricClient.timerEvent(MixpanelEvent.backGenerateLink);
     metricClient.timerEvent(MixpanelEvent.generateLink);
-    super.initState();
   }
 
   @override
