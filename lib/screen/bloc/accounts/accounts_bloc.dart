@@ -47,8 +47,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
-      List<Account> accounts =
-          await getAccountPersona(addresses, addDefault: true);
+      List<Account> accounts = await getAccountPersona(addresses);
 
       final connections = await connectionsFuture;
       for (var connection in connections) {
@@ -95,8 +94,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<GetAccountsIRLEvent>((event, emit) async {
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
-      List<Account> accounts =
-          await getAccountPersona(addresses, addDefault: true);
+      List<Account> accounts = await getAccountPersona(addresses);
 
       accounts.sort(_compareAccount);
       emit(AccountsState(accounts: accounts));
@@ -122,8 +120,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           addresses = [];
       }
 
-      List<Account> accounts = await getAccountPersona(addresses,
-          addDefault: type == WalletType.Autonomy);
+      List<Account> accounts = await getAccountPersona(addresses);
       accounts.sort(_compareAccount);
       emit(state.copyWith(accounts: accounts));
     });
@@ -257,18 +254,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     return existingConnections.first;
   }
 
-  Future<List<Account>> getAccountPersona(List<WalletAddress> walletAddresses,
-      {bool addDefault = false}) async {
+  Future<List<Account>> getAccountPersona(
+      List<WalletAddress> walletAddresses) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     final List<WalletAddress> addresses = [];
     addresses.addAll(walletAddresses);
-    if (walletAddresses.isEmpty && addDefault) {
-      final defaultPersona =
-          personas.firstWhere((element) => element.isDefault());
-      final defaultAddresses =
-          await defaultPersona.insertAddress(WalletType.Autonomy);
-      addresses.addAll(defaultAddresses);
-    }
     List<Account> accounts = [];
     for (var e in addresses) {
       final name = e.name != null && e.name!.isNotEmpty ? e.name : e.cryptoType;
