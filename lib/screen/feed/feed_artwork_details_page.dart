@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -108,45 +107,26 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
     final artistName =
         assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
     final editionSubTitle = getEditionSubTitle(assetToken!);
+    var subTitle = "";
+    if (artistName != null && artistName.isNotEmpty) {
+      subTitle = artistName;
+    }
 
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 0,
         centerTitle: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              assetToken?.title ?? '',
-              style: theme.textTheme.ppMori400White14,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (artistName?.isNotEmpty == true) ...[
-              RichText(
-                text: TextSpan(
-                  style: theme.textTheme.ppMori400White12,
-                  children: [
-                    TextSpan(text: "by".tr(args: [""])),
-                    TextSpan(
-                      text: artistName,
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = assetToken!.artistID != null
-                            ? () => Navigator.of(context)
-                                .pushNamed(AppRouter.galleryPage,
-                                    arguments: GalleryPagePayload(
-                                      address: assetToken!.artistID!,
-                                      artistName: artistName!,
-                                      artistURL: assetToken!.artistURL,
-                                    ))
-                            : null,
-                      style: theme.textTheme.ppMori400White12,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
+        title: ArtworkDetailsHeader(
+          title: assetToken?.title ?? '',
+          subTitle: subTitle,
+          onSubTitleTap: assetToken!.artistID != null
+              ? () => Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                  arguments: GalleryPagePayload(
+                    address: assetToken!.artistID!,
+                    artistName: artistName!,
+                    artistURL: assetToken!.artistURL,
+                  ))
+              : null,
         ),
         actions: [
           IconButton(

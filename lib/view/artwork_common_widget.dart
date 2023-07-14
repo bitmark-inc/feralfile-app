@@ -2006,12 +2006,16 @@ class ArtworkDetailsHeader extends StatelessWidget {
   final String title;
   final String subTitle;
   final bool hideArtist;
+  final Function? onTitleTap;
+  final Function? onSubTitleTap;
 
   const ArtworkDetailsHeader({
     Key? key,
     required this.title,
     required this.subTitle,
     this.hideArtist = false,
+    this.onTitleTap,
+    this.onSubTitleTap,
   }) : super(key: key);
 
   @override
@@ -2021,19 +2025,29 @@ class ArtworkDetailsHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!hideArtist)
-          Text(
-            subTitle,
-            style: theme.textTheme.ppMori700White14
+          GestureDetector(
+            onTap: () {
+              onSubTitleTap?.call();
+            },
+            child: Text(
+              subTitle,
+              style: theme.textTheme.ppMori700White14
+                  .copyWith(color: AppColor.auSuperTeal),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        GestureDetector(
+          onTap: () {
+            onTitleTap?.call();
+          },
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400White14
                 .copyWith(color: AppColor.auSuperTeal),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-        Text(
-          title,
-          style: theme.textTheme.ppMori400White14
-              .copyWith(color: AppColor.auSuperTeal),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
