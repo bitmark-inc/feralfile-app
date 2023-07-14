@@ -663,8 +663,8 @@ String polishSource(String source) {
   }
 }
 
-void enableLandscapeMode() {
-  SystemChrome.setPreferredOrientations([
+Future<void> enableLandscapeMode() async {
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
     DeviceOrientation.landscapeLeft,
@@ -672,8 +672,8 @@ void enableLandscapeMode() {
   ]);
 }
 
-void disableLandscapeMode() {
-  SystemChrome.setPreferredOrientations([
+Future<void> disableLandscapeMode() async {
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
 }
