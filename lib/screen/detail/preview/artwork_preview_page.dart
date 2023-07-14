@@ -263,7 +263,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final identityBloc = context.read<IdentityBloc>();
     return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
       builder: (context, state) {
         AssetToken? assetToken;
@@ -276,6 +275,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
         final hideArtist = assetToken?.isPostcard ?? false;
+        final identityState = context.watch<IdentityBloc>().state;
+        final artistName =
+            assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
+
+        var subTitle = "";
+        if (artistName != null && artistName.isNotEmpty) {
+          subTitle = artistName;
+        }
         return Scaffold(
           appBar: isFullScreen
               ? null
@@ -284,47 +291,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   leadingWidth: 0,
                   centerTitle: false,
                   title: GestureDetector(
-                    onTap: () => _moveToInfo(assetToken),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          assetToken?.title ?? '',
-                          style: theme.textTheme.ppMori400White16,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (hideArtist != true) ...[
-                          BlocBuilder<IdentityBloc, IdentityState>(
-                            bloc: identityBloc
-                              ..add(GetIdentityEvent([
-                                assetToken?.artistName ?? '',
-                              ])),
-                            builder: (context, state) {
-                              final artistName = assetToken?.artistName
-                                  ?.toIdentityOrMask(state.identityMap);
-                              if (artistName != null) {
-                                return Row(
-                                  children: [
-                                    const SizedBox(height: 4.0),
-                                    Expanded(
-                                      child: Text(
-                                        "by".tr(args: [artistName]),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.ppMori400White14,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }
-                              return const SizedBox();
-                            },
-                          ),
-                        ]
-                      ],
-                    ),
-                  ),
+                      onTap: () => _moveToInfo(assetToken),
+                      child: ArtworkDetailsHeader(
+                        title: assetToken?.title ?? '',
+                        subTitle: subTitle,
+                        hideArtist: hideArtist,
+                      )),
                   actions: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -469,7 +441,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           ),
         );
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+        AssetToken? assetToken;
+        if (state is ArtworkPreviewLoadedState) {
+          assetToken = state.assetToken;
+        }
+        final identitiesList = [
+          assetToken?.artistName ?? '',
+        ];
+        context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+      },
     );
   }
 }
