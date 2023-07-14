@@ -612,6 +612,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       log.info("Cancel share postcard failed: error ${error.toString()}");
     }
   }
+
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
     return Column(
       children: [
@@ -1085,7 +1086,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (leaderBoard == null) {
       return _loadingLeaderboard(context);
     }
-    final listKey =
+    const listKey =
         PageStorageKey("leaderboard"); //GlobalKey<AnimatedListState>();
     return SizedBox(
       height: 500,
