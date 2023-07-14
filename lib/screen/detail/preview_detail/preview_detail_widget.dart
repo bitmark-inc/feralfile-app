@@ -17,12 +17,14 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
-  final Function({int? time})? onLoaded;
+  final Function({InAppWebViewController? webViewController, int? time})?
+      onLoaded;
   final Function({int? time})? onDispose;
   final bool isMute;
   final FocusNode? focusNode;
