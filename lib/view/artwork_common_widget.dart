@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -423,7 +424,7 @@ INFTRenderingWidget buildRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time})? onLoaded,
+  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
