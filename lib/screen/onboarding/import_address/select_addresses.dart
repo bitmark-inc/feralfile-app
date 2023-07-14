@@ -106,13 +106,16 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                         style: theme.textTheme.ppMori400Black14,
                       ),
                       const Spacer(),
-                      AuToggle(
-                        value: _onlyBalance,
-                        onToggle: (value) {
-                          setState(() {
-                            _onlyBalance = value;
-                          });
-                        },
+                      Semantics(
+                        label: "only_show_balance_toggle",
+                        child: AuToggle(
+                          value: _onlyBalance,
+                          onToggle: (value) {
+                            setState(() {
+                              _onlyBalance = value;
+                            });
+                          },
+                        ),
                       )
                     ],
                   )),
