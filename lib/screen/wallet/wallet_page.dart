@@ -127,10 +127,13 @@ class _WalletPageState extends State<WalletPage>
       appBar: getBackAppBar(context,
           title: "addresses".tr(),
           onBack: null,
-          icon: SvgPicture.asset(
-            'assets/images/more_circle.svg',
-            width: 22,
-            color: AppColor.primaryBlack,
+          icon: Semantics(
+            label: "address_menu",
+            child: SvgPicture.asset(
+              'assets/images/more_circle.svg',
+              width: 22,
+              color: AppColor.primaryBlack,
+            ),
           ),
           action: _showAddWalletOption),
       body: SafeArea(
