@@ -137,10 +137,8 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             location: location.position,
             address: address);
         var postcardMetadata = asset.postcardMetadata;
-        postcardMetadata.locationInformation.add(UserLocations(
-            claimedLocation: Location(
-                lat: location.position.latitude,
-                lon: location.position.longitude)));
+        postcardMetadata.locationInformation
+            .add(UserLocations(claimedLocation: location.position));
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
         final pendingToken =

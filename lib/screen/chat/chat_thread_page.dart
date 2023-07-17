@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
+import 'package:autonomy_flutter/service/chat_auth_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -64,7 +68,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   Future<void> _websocketInit() async {
     final link =
         "/v1/chat/ws?index_id=${_payload.tokenId}&address=${_payload.address}";
-    final header = getHeader(link);
+    final header = await _getHeader(link);
     _websocketChannel = IOWebSocketChannel.connect(
         "${Environment.postcardChatServerUrl}$link",
         headers: header);
@@ -154,7 +158,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _historyRequestId = id;
   }
 
-  Map<String, dynamic> getHeader(String link) {
+  Future<Map<String, dynamic>> _getHeader(String link) async {
     final Map<String, dynamic> header = {};
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     header["X-Api-Timestamp"] = timestamp;
@@ -167,6 +171,18 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final digest = hmacSha256.convert(utf8.encode(canonicalString));
     final sig = bytesToHex(digest.bytes);
     header["X-Api-Signature"] = sig;
+
+    final pubKey =
+        await _payload.wallet.getTezosPublicKey(index: _payload.index);
+    final authSig = await injector<TezosService>().signMessage(_payload.wallet,
+        _payload.index, Uint8List.fromList(utf8.encode(timestamp.toString())));
+    final token = await injector<ChatAuthService>().getAuthToken({
+      "address": _payload.address,
+      "public_key": pubKey,
+      "signature": authSig,
+      "timestamp": timestamp
+    });
+    header["Authorization"] = "Bearer $token";
     return header;
   }
 

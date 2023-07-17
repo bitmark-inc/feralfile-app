@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -72,6 +73,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   final metricClient = injector<MetricClientService>();
   final _navigationService = injector<NavigationService>();
   late Lock _lock;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -106,11 +108,12 @@ class _ScanQRPageState extends State<ScanQRPage>
         setState(() {
           cameraPermission = true;
         });
-      }
-      if (Platform.isAndroid) {
-        Future.delayed(const Duration(seconds: 1), () {
-          controller.resumeCamera();
-        });
+        if (Platform.isAndroid) {
+          _timer?.cancel();
+          _timer = Timer(const Duration(seconds: 1), () {
+            controller.resumeCamera();
+          });
+        }
       }
     }
   }
@@ -739,6 +742,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   @override
   void dispose() {
     controller.dispose();
+    _timer?.cancel();
     routeObserver.unsubscribe(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);

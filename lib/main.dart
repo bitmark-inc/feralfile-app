@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -115,6 +116,7 @@ _setupApp() async {
   final notificationService = injector<NotificationService>();
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
+  await disableLandscapeMode();
 
   runApp(EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],

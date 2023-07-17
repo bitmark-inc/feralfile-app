@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
@@ -14,7 +15,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
@@ -215,7 +215,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 class HandSignaturePayload {
   final Uint8List image;
   final AssetToken asset;
-  final Position? location;
+  final Location? location;
   final String address;
 
   HandSignaturePayload(this.image, this.asset, this.location, this.address);

@@ -3,8 +3,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -109,10 +112,16 @@ class _PostcardStartedPageState extends State<PostcardStartedPage>
 
   Future<void> _onStarted(BuildContext context) async {
     if (_isGetLocation) {
-      final location = await getGeoLocationWithPermission();
-      if (!mounted || location == null) return;
+      final counter = widget.assetToken.postcardMetadata.counter;
+      GeoLocation? geoLocation;
+      if (counter <= 1) {
+        geoLocation = moMAGeoLocation;
+      } else {
+        geoLocation = await getGeoLocationWithPermission();
+      }
+      if (!mounted || geoLocation == null) return;
       Navigator.of(context).pushNamed(AppRouter.designStamp,
-          arguments: DesignStampPayload(widget.assetToken, location));
+          arguments: DesignStampPayload(widget.assetToken, geoLocation));
     }
   }
 }

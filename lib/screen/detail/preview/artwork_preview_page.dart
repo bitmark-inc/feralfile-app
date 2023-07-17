@@ -34,6 +34,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -353,7 +354,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             }
                             return ArtworkPreviewWidget(
                               identity: tokens[index],
-                              onLoaded: setTimer,
+                              onLoaded: (
+                                  {InAppWebViewController? webViewController,
+                                  int? time}) {
+                                setTimer(time: time);
+                              },
                               focusNode: _focusNode,
                               useIndexer: widget.payload.useIndexer,
                             );

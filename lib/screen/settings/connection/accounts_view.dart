@@ -79,10 +79,7 @@ class _AccountsViewState extends State<AccountsView> {
                         endActionPane: ActionPane(
                           motion: const DrawerMotion(),
                           dragDismissible: false,
-                          children: slidableActions(
-                              account,
-                              account.persona?.defaultAccount == 1 &&
-                                  account.walletAddress?.index == 0),
+                          children: slidableActions(account),
                         ),
                         child: Column(
                           children: [
@@ -113,7 +110,7 @@ class _AccountsViewState extends State<AccountsView> {
     });
   }
 
-  List<CustomSlidableAction> slidableActions(Account account, bool isDefault) {
+  List<CustomSlidableAction> slidableActions(Account account) {
     final theme = Theme.of(context);
     final isHidden = account.isHidden;
     var actions = [
@@ -145,11 +142,8 @@ class _AccountsViewState extends State<AccountsView> {
             _editingAccountKey = account.key;
           });
         },
-      )
-    ];
-
-    if (!isDefault) {
-      actions.add(CustomSlidableAction(
+      ),
+      CustomSlidableAction(
         backgroundColor: Colors.red,
         foregroundColor: theme.colorScheme.secondary,
         child: Semantics(
@@ -158,8 +152,8 @@ class _AccountsViewState extends State<AccountsView> {
         onPressed: (_) {
           _showDeleteAccountConfirmation(context, account);
         },
-      ));
-    }
+      )
+    ];
     return actions;
   }
 

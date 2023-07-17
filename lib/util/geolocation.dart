@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart' as postcard;
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/number_utils.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
@@ -62,9 +63,9 @@ Future<GeoLocation?> getGeoLocationWithPermission(
       final address = getLocationName(placeMark);
       final geolocation = isFuzzy
           ? await getFuzzyGeolocation(address, location)
-          : GeoLocation(position: location, address: address);
+          : GeoLocation(position: location.toLocation(), address: address);
       log.info(
-          "Fuzzy Location: ${geolocation.position.latitude}, ${geolocation.position.longitude}");
+          "Fuzzy Location: ${geolocation.position.lat}, ${geolocation.position.lon}");
       return geolocation;
     } catch (e) {
       await UIHelper.showWeakGPSSignal(
@@ -82,7 +83,7 @@ Future<GeoLocation> getFuzzyGeolocation(
         isValidLocation(element, element.latitude, element.longitude));
     if (location != null) {
       return GeoLocation(
-          position: position.copyWith(
+          position: position.toLocation().copyWith(
               latitude: location.latitude.floorAtDigit(coordinate_digit_number),
               longitude:
                   location.longitude.floorAtDigit(coordinate_digit_number)),
@@ -90,7 +91,7 @@ Future<GeoLocation> getFuzzyGeolocation(
     }
   } catch (_) {}
   return GeoLocation(
-      position: position.copyWith(
+      position: position.toLocation().copyWith(
           latitude: position.latitude.floorAtDigit(2),
           longitude: position.longitude.floorAtDigit(2)),
       address: address);
@@ -102,7 +103,7 @@ bool isValidLocation(Location position, double latitude, double longitude) {
 }
 
 class GeoLocation {
-  final Position position;
+  final postcard.Location position;
   final String address;
 
   //constructor
@@ -123,5 +124,16 @@ extension PositionExtension on Position {
       floor: floor,
       isMocked: isMocked,
     );
+  }
+
+  postcard.Location toLocation() {
+    return postcard.Location(lat: latitude, lon: longitude);
+  }
+}
+
+extension LocationExtension on postcard.Location {
+  postcard.Location copyWith(
+      {required double latitude, required double longitude}) {
+    return postcard.Location(lat: latitude, lon: longitude);
   }
 }
