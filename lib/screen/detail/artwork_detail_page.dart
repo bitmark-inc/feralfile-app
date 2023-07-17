@@ -91,10 +91,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  void _manualShare(String caption, String url) async {
+  void _manualShare(String caption, String url, List<String> hashTags) async {
     final encodeCaption = Uri.encodeQueryComponent(caption);
+    final hashTagsString = hashTags.join(",");
     final twitterUrl =
-        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
+        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption&hashtags=$hashTagsString";
     final twitterUri = Uri.parse(twitterUrl);
     launchUrl(twitterUri, mode: LaunchMode.externalApplication);
   }
@@ -103,11 +104,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final prefix = Environment.tokenWebviewPrefix;
     final url = '$prefix/token/${token.id}';
     final caption = widget.payload.twitterCaption ?? "";
+    final hashTags = getTags(token);
     SocialShare.checkInstalledAppsForShare().then((data) {
       if (data?[SocialApp.twitter]) {
-        SocialShare.shareTwitter(caption, url: url);
+        SocialShare.shareTwitter(caption, url: url, hashtags: hashTags);
       } else {
-        _manualShare(caption, url);
+        _manualShare(caption, url, hashTags);
       }
     });
     metricClient.addEvent(MixpanelEvent.share, data: {
@@ -119,13 +121,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     });
   }
 
-  Future<void> _socialShare(BuildContext context, AssetToken asset) {
-    final theme = Theme.of(context);
-    final tags = [
+  List<String> getTags(AssetToken asset) {
+    final defaultTags = [
       'autonomy',
       'digitalartwallet',
       'NFT',
     ];
+    List<String> tags = defaultTags;
+    if (asset.isMoMAMemento) {
+      tags = [
+        'refikunsupervised',
+        'autonomyapp',
+      ];
+    }
+    return tags;
+  }
+
+  Future<void> _socialShare(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    final tags = getTags(asset);
     final tagsText = tags.map((e) => '#$e').join(" ");
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
