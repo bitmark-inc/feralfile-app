@@ -360,7 +360,7 @@ extension AssetTokenExtension on AssetToken {
     return Environment.autonomyAirDropContractAddress == contractAddress;
   }
 
-  bool get ismoMAMemento {
+  bool get isMoMAMemento {
     return [
       ...momaMementoContractAddresses,
       Environment.autonomyAirDropContractAddress
