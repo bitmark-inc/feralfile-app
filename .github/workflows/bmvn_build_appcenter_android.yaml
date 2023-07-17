@@ -93,7 +93,7 @@ jobs:
           ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
           echo AUTONOMY_AIRDROP_URL=${{ secrets.AUTONOMY_AIRDROP_URL }} >> .env
           echo AUTONOMY_AIRDROP_CONTRACT_ADDRESS=${{ secrets.AUTONOMY_AIRDROP_CONTRACT_ADDRESS }} >> .env
-          echo AUTONOMY_ACTIVATION_URL=${{ secrets.AUTONOMY_ACTIVATION_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_ACTIVATION_URL=${{ secrets.AUTONOMY_ACTIVATION_URL_TESTNET }} >> .env || echo AUTONOMY_ACTIVATION_URL=${{ secrets.AUTONOMY_ACTIVATION_URL_MAINNET }} >> .env
           
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
