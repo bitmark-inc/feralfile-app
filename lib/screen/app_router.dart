@@ -249,7 +249,7 @@ class AppRouter {
   static const postcardDetailPage = 'postcard_detail_page';
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
-  static const irlWebview = 'irl_web_claim';
+  static const irlWebView = 'irl_web_claim';
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
@@ -1343,7 +1343,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
-              return InappWebviewPage(url: settings.arguments as String);
+              return InAppWebViewPage(
+                  payload: settings.arguments as InAppWebViewPayload);
             });
       case claimEmptyPostCard:
         final claimRequest = settings.arguments as RequestPostcardResponse;
@@ -1427,8 +1428,8 @@ class AppRouter {
           );
         });
 
-      case irlWebview:
-        final url = settings.arguments as Uri;
+      case irlWebView:
+        final url = settings.arguments as String;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {

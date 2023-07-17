@@ -193,16 +193,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
         _moveToInfo(entry.key, entry.value);
       },
       child: Column(children: [
-        Center(
-          child: IgnorePointer(
-            child: FeedArtwork(
-              assetToken: entry.key,
-            ),
-          ),
-        ),
-        const SizedBox(
-          height: 15,
-        ),
         BlocProvider(
           create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
           child: Align(
@@ -590,69 +580,52 @@ class _ControlViewState extends State<ControlView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          asset.title != null && asset.title!.isEmpty
-                              ? 'nft'
-                              : '${asset.title} ',
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.ppMori400White16,
-                        ),
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        if (artistName != null) ...[
-                          RichText(
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                                text: 'by'.tr(args: [artistName]),
-                                style: theme.textTheme.ppMori400White14),
-                          ),
-                        ],
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        Wrap(
-                          runSpacing: 4.0,
+                        Row(
                           children: [
-                            RichText(
-                              text: TextSpan(
-                                style: theme.textTheme.ppMori400White14,
-                                children: [
-                                  TextSpan(
-                                    text: "_by".tr(args: [
-                                      events.first.actionRepresentation
-                                    ]),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ...events
-                                .mapIndexed((i, event) => [
-                                      GestureDetector(
-                                        child: Text(
-                                          followingNames[i],
-                                          style: theme
-                                              .textTheme.ppMori400White14
-                                              .copyWith(
-                                                  color: AppColor.auSuperTeal),
-                                        ),
-                                        onTap: () {
-                                          Navigator.of(context).pushNamed(
-                                            AppRouter.galleryPage,
-                                            arguments: GalleryPagePayload(
-                                              address: event.recipient,
-                                              artistName: followingNames[i],
+                            Wrap(
+                              runSpacing: 4.0,
+                              children: [
+                                ...events
+                                    .mapIndexed((i, event) => [
+                                          GestureDetector(
+                                            child: Text(
+                                              followingNames[i],
+                                              style: theme
+                                                  .textTheme.ppMori400White14
+                                                  .copyWith(
+                                                      color:
+                                                          AppColor.auSuperTeal),
                                             ),
-                                          );
-                                        },
+                                            onTap: () {
+                                              Navigator.of(context).pushNamed(
+                                                AppRouter.galleryPage,
+                                                arguments: GalleryPagePayload(
+                                                  address: event.recipient,
+                                                  artistName: followingNames[i],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          if (i < events.length - 1)
+                                            Text(", ",
+                                                style: theme
+                                                    .textTheme.ppMori400White14)
+                                        ])
+                                    .flattened,
+                                const SizedBox(width: 4),
+                                RichText(
+                                  text: TextSpan(
+                                    style: theme.textTheme.ppMori400White14,
+                                    children: [
+                                      TextSpan(
+                                        text: events.first.actionRepresentation,
                                       ),
-                                      if (i < events.length - 1)
-                                        Text(", ",
-                                            style: theme
-                                                .textTheme.ppMori400White14)
-                                    ])
-                                .flattened,
-                            Text(" • ", style: theme.textTheme.ppMori400Grey14),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
                             Text(
                                 events.length > 1
                                     ? "last_time_format"
@@ -660,6 +633,38 @@ class _ControlViewState extends State<ControlView> {
                                     : followingTime,
                                 style: theme.textTheme.ppMori400Grey14),
                           ],
+                        ),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: IgnorePointer(
+                            child: FeedArtwork(
+                              assetToken: widget.feedToken,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        ArtworkDetailsHeader(
+                          title: asset.title != null && asset.title!.isEmpty
+                              ? 'nft'
+                              : '${asset.title} ',
+                          subTitle: artistName ?? '',
+                          onTitleTap: () {
+                            Navigator.of(context).pushNamed(
+                              AppRouter.irlWebView,
+                              arguments: asset.secondaryMarketURL,
+                            );
+                          },
+                          onSubTitleTap: asset.artistID != null
+                              ? () => Navigator.of(context)
+                                  .pushNamed(AppRouter.galleryPage,
+                                      arguments: GalleryPagePayload(
+                                        address: asset.artistID!,
+                                        artistName: artistName!,
+                                        artistURL: asset.artistURL,
+                                      ))
+                              : null,
                         ),
                       ],
                     ),

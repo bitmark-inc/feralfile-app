@@ -44,6 +44,20 @@ extension AssetTokenExtension on AssetToken {
     return galleryThumbnailURL != null;
   }
 
+  String get secondaryMarketURL {
+    if (blockchain == "ethereum") {
+      return "https://opensea.io/assets/$contractAddress/$tokenId";
+    } else {
+      if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
+        return "https://teia.art/objkt/$tokenId";
+      } else if (sourceURL?.contains("fxhash.xyz") == true) {
+        return assetURL ?? "";
+      } else {
+        return "https://objkt.com/asset/$contractAddress/$tokenId";
+      }
+    }
+  }
+
   bool get isAirdrop {
     final saleModel = initialSaleModel?.toLowerCase();
     return ["airdrop", "shopping_airdrop"].contains(saleModel);

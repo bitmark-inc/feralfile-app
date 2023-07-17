@@ -19,11 +19,10 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -99,11 +98,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
     assetToken = currentToken;
 
     final identityState = context.watch<IdentityBloc>().state;
-    final followingNames = feedEvents
-        .map((event) =>
-            event.recipient.toIdentityOrMask(identityState.identityMap) ??
-            event.recipient)
-        .toList();
     final artistName =
         assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
     final editionSubTitle = getEditionSubTitle(assetToken!);
@@ -119,6 +113,10 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
         title: ArtworkDetailsHeader(
           title: assetToken?.title ?? '',
           subTitle: subTitle,
+          onTitleTap: () {
+            Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                arguments: assetToken?.secondaryMarketURL ?? '');
+          },
           onSubTitleTap: assetToken!.artistID != null
               ? () => Navigator.of(context).pushNamed(AppRouter.galleryPage,
                   arguments: GalleryPagePayload(
@@ -174,49 +172,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
                       editionSubTitle,
                       style: theme.textTheme.ppMori400Grey14,
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: Wrap(
-                    runSpacing: 4.0,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          style: theme.textTheme.ppMori400White14,
-                          children: [
-                            TextSpan(
-                              text: "_by".tr(args: [
-                                feedEvents.first.actionRepresentation
-                              ]),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ...feedEvents
-                          .mapIndexed((i, event) => [
-                                GestureDetector(
-                                  child: Text(
-                                    followingNames[i],
-                                    style: theme.textTheme.ppMori400White14
-                                        .copyWith(color: AppColor.auSuperTeal),
-                                  ),
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                      AppRouter.galleryPage,
-                                      arguments: GalleryPagePayload(
-                                        address: event.recipient,
-                                        artistName: followingNames[i],
-                                      ),
-                                    );
-                                  },
-                                ),
-                                if (i < feedEvents.length - 1)
-                                  Text(", ",
-                                      style: theme.textTheme.ppMori400White14)
-                              ])
-                          .flattened,
-                    ],
                   ),
                 ),
                 Padding(
