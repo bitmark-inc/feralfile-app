@@ -192,18 +192,12 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       onTap: () {
         _moveToInfo(entry.key, entry.value);
       },
-      child: Column(children: [
-        BlocProvider(
-          create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
-          child: Align(
-              alignment: Alignment.topCenter,
-              child:
-                  ControlView(feedEvents: entry.value, feedToken: entry.key)),
-        ),
-        const SizedBox(
-          height: 60,
-        ),
-      ]),
+      child: BlocProvider(
+        create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
+        child: Align(
+            alignment: Alignment.topCenter,
+            child: FeedView(feedEvents: entry.value, feedToken: entry.key)),
+      ),
     );
   }
 
@@ -432,18 +426,18 @@ class FeedDetailPayload {
   }
 }
 
-class ControlView extends StatefulWidget {
+class FeedView extends StatefulWidget {
   final List<FeedEvent> feedEvents;
   final AssetToken? feedToken;
 
-  const ControlView({Key? key, required this.feedEvents, this.feedToken})
+  const FeedView({Key? key, required this.feedEvents, this.feedToken})
       : super(key: key);
 
   @override
-  State<ControlView> createState() => _ControlViewState();
+  State<FeedView> createState() => _FeedViewState();
 }
 
-class _ControlViewState extends State<ControlView> {
+class _FeedViewState extends State<FeedView> {
   @override
   void initState() {
     fetchIdentities();
@@ -666,6 +660,7 @@ class _ControlViewState extends State<ControlView> {
                                       ))
                               : null,
                         ),
+                        const SizedBox(height: 60)
                       ],
                     ),
                   ),
