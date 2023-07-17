@@ -99,8 +99,9 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                 switch (cryptoType) {
                   case CryptoType.ETH:
                   case CryptoType.XTZ:
-                    final connection = await injector<AccountService>().linkManuallyAddress(
-                        _controller.text.trim(), cryptoType);
+                    final connection = await injector<AccountService>()
+                        .linkManuallyAddress(
+                            _controller.text.trim(), cryptoType);
                     if (!mounted) return;
                     Navigator.of(context).pushNamed(
                         AppRouter.nameLinkedAccountPage,

@@ -378,7 +378,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType) async {
+  Future<Connection> linkManuallyAddress(
+      String address, CryptoType cryptoType) async {
     final connection = Connection(
       key: address,
       name: cryptoType.source,
