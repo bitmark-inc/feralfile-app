@@ -80,7 +80,7 @@ abstract class AccountService {
 
   Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
 
-  Future linkManuallyAddress(String address, CryptoType cryptoType);
+  Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType);
 
   Future<bool> isLinkedIndexerTokenID(String indexerTokenID);
 
@@ -113,6 +113,8 @@ abstract class AccountService {
 
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress);
+
+  Future<WalletAddress?> getAddressPersona(String address);
 
   Future<void> updateAddressPersona(WalletAddress walletAddress);
 
@@ -376,7 +378,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future linkManuallyAddress(String address, CryptoType cryptoType) async {
+  Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType) async {
     final connection = Connection(
       key: address,
       name: cryptoType.source,
@@ -388,6 +390,7 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     _autonomyService.postLinkedAddresses();
+    return connection;
   }
 
   @override
@@ -824,6 +827,11 @@ class AccountServiceImpl extends AccountService {
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
       injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
+  }
+
+  @override
+  Future<WalletAddress?> getAddressPersona(String address) async {
+    return await _cloudDB.addressDao.findByAddress(address);
   }
 }
 
