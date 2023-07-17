@@ -128,7 +128,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       'NFT',
     ];
     List<String> tags = defaultTags;
-    if (asset.isAirdrop) {
+    if (asset.ismoMAMemento) {
       tags = [
         'refikunsupervised',
         'autonomyapp',
