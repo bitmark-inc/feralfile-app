@@ -73,7 +73,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   final metricClient = injector<MetricClientService>();
   final _navigationService = injector<NavigationService>();
   late Lock _lock;
-  late Timer? _timer;
+  Timer? _timer;
 
   @override
   void initState() {
