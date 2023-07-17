@@ -79,23 +79,6 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  Future<String> getConnectionURI() {
-    return _beaconChannel.getConnectionURI();
-  }
-
-  Future<String> getPostMessageConnectionURI() {
-    return _beaconChannel.getPostMessageConnectionURI();
-  }
-
-  Future<List> handlePostMessageOpenChannel(String payload) {
-    return _beaconChannel.handlePostMessageOpenChannel(payload);
-  }
-
-  Future<List> handlePostMessageMessage(
-      String extensionPublicKey, String payload) {
-    return _beaconChannel.handlePostMessageMessage(extensionPublicKey, payload);
-  }
-
   Future addPeer(String link, {Function()? onTimeout}) async {
     const maxRetries = 3;
     _timer?.cancel();

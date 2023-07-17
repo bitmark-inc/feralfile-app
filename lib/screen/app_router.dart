@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
@@ -20,15 +19,7 @@ import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
-import 'package:autonomy_flutter/screen/account/link_account_page.dart';
-import 'package:autonomy_flutter/screen/account/link_app_options_page.dart';
-import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
-import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
-import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
-import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
-import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
-import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
@@ -148,7 +139,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -157,7 +147,6 @@ import 'package:page_transition/page_transition.dart';
 import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
-import 'account/link_manually_page.dart';
 import 'detail/preview/canvas_device_bloc.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 import 'onboarding/import_address/import_seeds.dart';
@@ -498,14 +487,6 @@ class AppRouter {
                     ),
                 child: const AddAccountPage()));
 
-      case AppRouter.linkAccountpage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(create: (_) => FeralfileBloc.create()),
-                ], child: const LinkAccountPage()));
-
       case accountsPreviewPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -538,44 +519,11 @@ class AppRouter {
                   ),
                 ], child: const AccessMethodPage()));
 
-      case linkAppOptionPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: LinkAppOptionsPage(
-                  walletApp: settings.arguments as WalletApp,
-                )));
-
-      case linkMetamaskPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: const LinkMetamaskPage()));
-
-      case linkTezosKukaiPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const LinkTezosKukaiPage());
-
-      case linkTezosTemplePage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const LinkTezosTemplePage());
-
       case linkBeaconConnectPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) =>
                 LinkBeaconConnectPage(uri: settings.arguments as String));
-
-      case linkLedgerWalletPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc,
-                child: LinkLedgerPage(payload: settings.arguments as String)));
 
       case selectLedgerWalletPage:
         return CupertinoPageRoute(
@@ -608,14 +556,6 @@ class AppRouter {
           settings: settings,
           builder: (context) => const TestArtworkScreen(),
         );
-
-      case AppRouter.nameLinkedAccountPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc,
-                child: NameLinkedAccountPage(
-                    connection: settings.arguments as Connection)));
 
       case importAccountPage:
         return CupertinoPageRoute(
@@ -757,16 +697,6 @@ class AppRouter {
                 child: ConnectionDetailsPage(
                   connectionItem: settings.arguments as ConnectionItem,
                 )));
-
-      case linkedAccountDetailsPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider(create: (_) => FeralfileBloc.create()),
-                    ],
-                    child: LinkedAccountDetailsPage(
-                        connection: settings.arguments as Connection)));
 
       case walletDetailsPage:
         return CupertinoPageRoute(
@@ -1099,13 +1029,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => const ParticipateUserTestPage());
-
-      case linkManually:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => LinkManuallyPage(
-                  type: settings.arguments as String,
-                ));
 
       case hiddenArtworksPage:
         return CupertinoPageRoute(
