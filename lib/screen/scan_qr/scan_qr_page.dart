@@ -151,23 +151,20 @@ class _ScanQRPageState extends State<ScanQRPage>
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
-        appBar: AppBar(
-          systemOverlayStyle: _tabController.index == 0
-              ? const SystemUiOverlayStyle(
-                  statusBarColor: AppColor.primaryBlack,
-                  statusBarIconBrightness: Brightness.light,
-                  statusBarBrightness: Brightness.dark,
-                )
-              : const SystemUiOverlayStyle(
+        appBar: _tabController.index == 0
+            ? _qrCodeAppBar()
+            : AppBar(
+                systemOverlayStyle: const SystemUiOverlayStyle(
                   statusBarColor: Colors.white,
                   statusBarIconBrightness: Brightness.dark,
                   statusBarBrightness: Brightness.light,
                 ),
-          toolbarHeight: 0,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-        ),
+                toolbarHeight: 0,
+                shadowColor: Colors.transparent,
+                elevation: 0,
+              ),
         body: Stack(
           children: <Widget>[
             if (!cameraPermission)
@@ -184,15 +181,6 @@ class _ScanQRPageState extends State<ScanQRPage>
                             Stack(
                               children: [
                                 _qrView(),
-                                Scaffold(
-                                  backgroundColor: Colors.transparent,
-                                  appBar: getCloseAppBar(
-                                    context,
-                                    onClose: () => Navigator.of(context).pop(),
-                                    withBottomDivider: false,
-                                    icon: closeIcon(color: AppColor.white),
-                                  ),
-                                ),
                                 Padding(
                                   padding: EdgeInsets.fromLTRB(
                                     0,
@@ -314,6 +302,16 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
+  AppBar _qrCodeAppBar() {
+    return getCloseAppBar(
+      context,
+      onClose: () => Navigator.of(context).pop(),
+      withBottomDivider: false,
+      icon: closeIcon(color: AppColor.white),
+      isWhite: false,
+    );
+  }
+
   Widget _qrView() {
     final theme = Theme.of(context);
     final size1 = MediaQuery.of(context).size.height / 2;
@@ -375,15 +373,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     return Stack(
       children: [
         _qrView(),
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: getCloseAppBar(
-            context,
-            onClose: () => Navigator.of(context).pop(),
-            withBottomDivider: false,
-            icon: closeIcon(color: AppColor.white),
-          ),
-        ),
         Padding(
           padding: EdgeInsets.fromLTRB(
             0,
