@@ -113,8 +113,7 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
         title: ArtworkDetailsHeader(
           title: assetToken?.title ?? '',
           subTitle: subTitle,
-          onTitleTap: assetToken?.secondaryMarketURL != null &&
-                  assetToken!.secondaryMarketURL.isNotEmpty
+          onTitleTap: assetToken?.secondaryMarketURL.isValidUrl() == true
               ? () {
                   Navigator.of(context).pushNamed(AppRouter.irlWebView,
                       arguments: assetToken!.secondaryMarketURL);
