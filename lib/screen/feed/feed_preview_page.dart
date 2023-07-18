@@ -641,8 +641,8 @@ class _FeedViewState extends State<FeedView> {
                         ),
                         ArtworkDetailsHeader(
                           title: asset.title != null && asset.title!.isEmpty
-                              ? 'nft'
-                              : '${asset.title} ',
+                              ? 'nft'.tr()
+                              : asset.title ?? "",
                           subTitle: artistName ?? '',
                           onTitleTap: () {
                             Navigator.of(context).pushNamed(
