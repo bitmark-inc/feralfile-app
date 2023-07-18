@@ -59,10 +59,12 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                       crossPlatform: InAppWebViewOptions(
                           userAgent: "user_agent"
                               .tr(namedArgs: {"version": version}))),
-                  onWebViewCreated: widget.payload.onWebViewCreated ??
-                      (controller) {
-                        webViewController = controller;
-                      },
+                  onWebViewCreated: (controller) {
+                    if (widget.payload.onWebViewCreated != null) {
+                      widget.payload.onWebViewCreated!(controller);
+                    }
+                    webViewController = controller;
+                  },
                   onConsoleMessage: widget.payload.onConsoleMessage,
                   onLoadStart: (controller, uri) {
                     setState(() {
