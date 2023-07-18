@@ -12,19 +12,16 @@ import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ClaimActivationPagePayload {
   final AssetToken assetToken;
@@ -288,28 +285,6 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                     const SizedBox(
                       height: 16,
                     ),
-                    RichText(
-                      text: TextSpan(
-                        text: "airdrop_accept_privacy_policy".tr(),
-                        style: theme.textTheme.ppMori400Grey12,
-                        children: [
-                          TextSpan(
-                              text: "airdrop_privacy_policy".tr(),
-                              style: makeLinkStyle(
-                                theme.textTheme.ppMori400Grey12,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _openFFArtistCollector();
-                                }),
-                          TextSpan(
-                            text: ".",
-                            style: theme.primaryTextTheme.bodyLarge
-                                ?.copyWith(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -379,13 +354,8 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
       const caption = "";
       Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.owner)], 0,
+              [ArtworkIdentity(token.id, receiveAddress)], 0,
               twitterCaption: caption));
     }
-  }
-
-  void _openFFArtistCollector() {
-    String uri = FF_ARTIST_COLLECTOR;
-    launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
 }

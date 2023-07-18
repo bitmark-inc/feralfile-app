@@ -31,8 +31,9 @@ class ActivationService {
       required AssetToken assetToken}) async {
     try {
       final response = await _airdropApi.claim(request);
-      await _tokensService.setCustomTokens(
-          [assetToken.copyWith(owner: request.address, pending: true)]);
+      await _tokensService.setCustomTokens([
+        assetToken.copyWith(owner: request.address, pending: true, balance: 1)
+      ]);
       return response;
     } catch (e) {
       log.info("[Activation service] claimActivation: $e");
