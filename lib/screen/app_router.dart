@@ -101,6 +101,7 @@ import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
@@ -889,6 +890,14 @@ class AppRouter {
                   child: SelectAddressesPage(
                       payload: settings.arguments as SelectAddressesPayload),
                 ));
+
+      case NameAddressPersona.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => NameAddressPersona(
+                  payload: settings.arguments as NameAddressPersonaPayload,
+                ));
+
       case AddressAlias.tag:
         return CupertinoPageRoute(
             settings: settings,

@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -182,10 +179,19 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                         });
                         await injector<AccountService>().addAddressPersona(
                             widget.payload.persona, _selectedAddresses);
-                        await _doneAdding();
                         setState(() {
                           _addingAddresses = false;
                         });
+                        if (_selectedAddresses.length > 1) {
+                          if (!mounted) return;
+                          doneNaming(context);
+                        } else {
+                          if (!mounted) return;
+                          Navigator.of(context).pushNamed(
+                              NameAddressPersona.tag,
+                              arguments: NameAddressPersonaPayload(
+                                  _selectedAddresses.first));
+                        }
                       },
                     )
                   ],
@@ -196,34 +202,6 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
         );
       }),
     );
-  }
-
-  Future _doneAdding() async {
-    if (Platform.isAndroid) {
-      final isAndroidEndToEndEncryptionAvailable =
-          await injector<AccountService>()
-              .isAndroidEndToEndEncryptionAvailable();
-
-      if (!mounted) return;
-
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
-            arguments: isAndroidEndToEndEncryptionAvailable);
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.cloudAndroidPage, (route) => false,
-            arguments: isAndroidEndToEndEncryptionAvailable);
-      }
-    } else {
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context)
-            .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.cloudPage, (route) => false,
-            arguments: "nameAlias");
-      }
-    }
   }
 
   Widget _addressOption(

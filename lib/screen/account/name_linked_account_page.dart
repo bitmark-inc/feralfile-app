@@ -43,18 +43,6 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (_nameController.text.isEmpty) {
-      _nameController.text = widget.connection.name;
-      setState(() {
-        isSavingAliasDisabled = widget.connection.name.isEmpty;
-      });
-    }
-  }
-
-  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -68,8 +56,9 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
         return canPop;
       },
       child: Scaffold(
-        appBar:
-            getBackAppBar(context, onBack: null, title: "wallet_alias".tr()),
+        appBar: getBackAppBar(context,
+            title: "view_existing_address".tr(),
+            onBack: () => Navigator.of(context).pop()),
         body: Container(
           margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
@@ -102,36 +91,20 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
                   ),
                 ),
               ),
-              Column(
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: PrimaryButton(
-                          text: "save_alias".tr(),
-                          onTap: isSavingAliasDisabled
-                              ? null
-                              : () {
-                                  context.read<AccountsBloc>().add(
-                                      NameLinkedAccountEvent(widget.connection,
-                                          _nameController.text));
-                                  _doneNaming();
-                                },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  OutlineButton(
-                    onTap: () {
-                      context.read<AccountsBloc>().add(NameLinkedAccountEvent(
-                          widget.connection, widget.connection.accountNumber));
-                      _doneNaming();
-                    },
-                    text: "skip".tr(),
-                    borderColor: AppColor.primaryBlack,
-                    textColor: AppColor.primaryBlack,
-                    color: AppColor.white,
+                  Expanded(
+                    child: PrimaryButton(
+                      text: "continue".tr(),
+                      onTap: isSavingAliasDisabled
+                          ? null
+                          : () {
+                              context.read<AccountsBloc>().add(
+                                  NameLinkedAccountEvent(
+                                      widget.connection, _nameController.text));
+                              _doneNaming();
+                            },
+                    ),
                   ),
                 ],
               ),
@@ -146,10 +119,10 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
           route.settings.name == AppRouter.homePageNoTransition ||
-          route.settings.name == AppRouter.claimSelectAccountPage);
+          route.settings.name == AppRouter.walletPage);
     } else {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.accountsPreviewPage, (route) => false);
+      injector<ConfigurationService>().setDoneOnboarding(true);
+      Navigator.of(context).pushNamed(AppRouter.homePage);
     }
   }
 }

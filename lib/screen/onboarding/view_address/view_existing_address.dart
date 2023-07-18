@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -49,12 +48,12 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    Text("enter_address".tr(),
+                    Text("name_address".tr(),
                         style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 10),
                     AuTextField(
                       title: "",
-                      placeholder: "enter_address_placeholder".tr(),
+                      placeholder: "enter_address_alias".tr(),
                       controller: _controller,
                       isError: _isError,
                       suffix: IconButton(
@@ -100,15 +99,13 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                 switch (cryptoType) {
                   case CryptoType.ETH:
                   case CryptoType.XTZ:
-                    await injector<AccountService>().linkManuallyAddress(
-                        _controller.text.trim(), cryptoType);
+                    final connection = await injector<AccountService>()
+                        .linkManuallyAddress(
+                            _controller.text.trim(), cryptoType);
                     if (!mounted) return;
-                    if (widget.payload.isOnboarding) {
-                      injector<ConfigurationService>().setDoneOnboarding(true);
-                      Navigator.of(context).pushNamed(AppRouter.homePage);
-                    } else {
-                      Navigator.of(context).pop();
-                    }
+                    Navigator.of(context).pushNamed(
+                        AppRouter.nameLinkedAccountPage,
+                        arguments: connection);
                     break;
                   default:
                     setState(() {
