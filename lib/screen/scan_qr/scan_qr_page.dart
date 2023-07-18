@@ -151,6 +151,23 @@ class _ScanQRPageState extends State<ScanQRPage>
         }
       },
       child: Scaffold(
+        backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
+        appBar: AppBar(
+          systemOverlayStyle: _tabController.index == 0
+              ? const SystemUiOverlayStyle(
+                  statusBarColor: AppColor.primaryBlack,
+                  statusBarIconBrightness: Brightness.light,
+                  statusBarBrightness: Brightness.dark,
+                )
+              : const SystemUiOverlayStyle(
+                  statusBarColor: Colors.white,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
+                ),
+          toolbarHeight: 0,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+        ),
         body: Stack(
           children: <Widget>[
             if (!cameraPermission)
@@ -312,8 +329,8 @@ class _ScanQRPageState extends State<ScanQRPage>
           overlay: QrScannerOverlayShape(
             borderColor:
                 isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-            overlayColor: (cameraPermission || Platform.isIOS)
-                ? const Color.fromRGBO(0, 0, 0, 80)
+            overlayColor: (cameraPermission)
+                ? const Color.fromRGBO(0, 0, 0, 0.6)
                 : const Color.fromRGBO(0, 0, 0, 1.0),
             cutOutSize: qrSize,
             borderWidth: 8,
@@ -358,6 +375,15 @@ class _ScanQRPageState extends State<ScanQRPage>
     return Stack(
       children: [
         _qrView(),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: getCloseAppBar(
+            context,
+            onClose: () => Navigator.of(context).pop(),
+            withBottomDivider: false,
+            icon: closeIcon(color: AppColor.white),
+          ),
+        ),
         Padding(
           padding: EdgeInsets.fromLTRB(
             0,
