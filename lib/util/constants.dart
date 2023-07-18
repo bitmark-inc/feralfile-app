@@ -69,7 +69,6 @@ const OBJKT_ASSET_PREFIX = "https://objkt.com/asset/";
 const TEIA_ART_ASSET_PREFIX = "https://teia.art/objkt/";
 const FXHASH_IDENTIFIER = "fxhash.xyz";
 
-
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 List<String> checkWeb3ContractAddress = [
