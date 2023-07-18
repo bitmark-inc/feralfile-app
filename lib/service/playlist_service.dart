@@ -9,6 +9,8 @@ abstract class PlaylistService {
 
   Future<void> setPlayList(List<PlayListModel> playlists,
       {bool override = false});
+
+  Future<void> refreshPlayLists();
 }
 
 class PlayListServiceImp implements PlaylistService {
@@ -21,7 +23,7 @@ class PlayListServiceImp implements PlaylistService {
 
   @override
   Future<List<PlayListModel>> getPlayList() async {
-    final playlists = _configurationService.getPlayList();
+    final playlists = _getRawPlayList();
     if (playlists.isEmpty) {
       return [];
     }
@@ -42,10 +44,41 @@ class PlayListServiceImp implements PlaylistService {
     return playlists;
   }
 
+  List<PlayListModel> _getRawPlayList() {
+    return _configurationService.getPlayList();
+  }
+
   @override
   Future<void> setPlayList(List<PlayListModel> playlists,
       {bool override = false}) async {
     _configurationService.setPlayList(playlists, override: override);
     return;
+  }
+
+  @override
+  Future<void> refreshPlayLists() async {
+    print('refreshPlayLists-----------------');
+    final addresses = await _accountService.getAllAddresses();
+    final List<String> ids = await _tokenDao.findTokenIDsOwnersOwn(addresses);
+    print('ids: ${ids.length}}');
+    final playlists = _getRawPlayList();
+    for (int i = 0; i < playlists.length; i++) {
+      playlists[i].tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
+      if ((playlists[i].tokenIDs?.isEmpty ?? true) == true) {
+        playlists.removeAt(i);
+        i--;
+      }
+    }
+    setPlayList(playlists, override: true);
+  }
+
+  Future<void> _refreshPlaylist(
+      PlayListModel playlist, List<String> ids) async {
+    playlist.tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
+    if (playlist.tokenIDs?.isNotEmpty == true) {
+      _configurationService.setPlayList([playlist]);
+    } else {
+      _configurationService.removePlayList(playlist.id ?? '');
+    }
   }
 }

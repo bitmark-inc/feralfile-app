@@ -50,11 +50,7 @@ class PlayListModel {
 
   @override
   int get hashCode {
-    return id.hashCode ^
-        name.hashCode ^
-        thumbnailURL.hashCode ^
-        tokenIDs.hashCode ^
-        playControlModel.hashCode;
+    return id.hashCode;
   }
 
   Map<String, dynamic> toJson() {
