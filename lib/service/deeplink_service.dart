@@ -318,7 +318,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         );
         if (!validUrl) return false;
       }
-      await _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
+      await _navigationService.navigateTo(AppRouter.irlWebView,
+          arguments: urlDecode);
       return true;
     }
 

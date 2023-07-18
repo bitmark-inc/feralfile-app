@@ -62,6 +62,13 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
 ];
+
+const TEIA_ART_CONTRACT_ADDRESSES = ["KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"];
+const OPENSEA_ASSET_PREFIX = "https://opensea.io/assets/";
+const OBJKT_ASSET_PREFIX = "https://objkt.com/asset/";
+const TEIA_ART_ASSET_PREFIX = "https://teia.art/objkt/";
+const FXHASH_IDENTIFIER = "fxhash.xyz";
+
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 List<String> checkWeb3ContractAddress = [
