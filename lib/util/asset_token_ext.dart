@@ -45,16 +45,19 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String get secondaryMarketURL {
-    if (blockchain == "ethereum") {
-      return "https://opensea.io/assets/$contractAddress/$tokenId";
-    } else {
-      if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
-        return "https://teia.art/objkt/$tokenId";
-      } else if (sourceURL?.contains("fxhash.xyz") == true) {
-        return assetURL ?? "";
-      } else {
-        return "https://objkt.com/asset/$contractAddress/$tokenId";
-      }
+    switch (blockchain) {
+      case "ethereum":
+        return "$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId";
+      case "tezos":
+        if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
+          return "$TEIA_ART_ASSET_PREFIX$tokenId";
+        } else if (sourceURL?.contains(FXHASH_IDENTIFIER) == true) {
+          return assetURL ?? "";
+        } else {
+          return "$OBJKT_ASSET_PREFIX$contractAddress/$tokenId";
+        }
+      default:
+        return "";
     }
   }
 
