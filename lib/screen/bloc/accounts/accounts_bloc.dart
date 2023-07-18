@@ -293,7 +293,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     final name = connection.name.isNotEmpty ? connection.name : cryptoType;
     return Account(
       key: connection.key,
-      accountNumber: connection.accountNumber,
+      accountNumber: address,
       connections: [connection],
       blockchain: cryptoType,
       name: name,
