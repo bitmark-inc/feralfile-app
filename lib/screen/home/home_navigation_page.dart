@@ -580,6 +580,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     _cloudBackup();
+    injector<CustomerSupportService>().fetchAnnouncement();
   }
 
   void _handleForeBackground(FGBGType event) async {
