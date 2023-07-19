@@ -32,7 +32,13 @@ class ActivationService {
     try {
       final response = await _airdropApi.claim(request);
       await _tokensService.setCustomTokens([
-        assetToken.copyWith(owner: request.address, pending: true, balance: 1)
+        assetToken.copyWith(
+            owner: request.address,
+            pending: true,
+            balance: 1,
+            lastActivityTime: DateTime.now(),
+            lastRefreshedTime: DateTime(1),
+            asset: assetToken.asset?.copyWith(initialSaleModel: "airdrop"))
       ]);
       return response;
     } catch (e) {
