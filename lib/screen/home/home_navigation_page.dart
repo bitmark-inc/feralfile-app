@@ -585,11 +585,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
+        _handleForeground();
         break;
       case FGBGType.background:
         _handleBackground();
         break;
     }
+  }
+
+  void _handleForeground() {
+    injector<CustomerSupportService>().fetchAnnouncement();
   }
 
   @override
