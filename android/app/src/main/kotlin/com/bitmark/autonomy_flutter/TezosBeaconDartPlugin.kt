@@ -18,7 +18,11 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import it.airgap.beaconsdk.blockchain.substrate.substrate
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosAccount
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosPermission
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosNetwork
 import it.airgap.beaconsdk.blockchain.tezos.data.operation.*
+import it.airgap.beaconsdk.blockchain.tezos.internal.wallet.*
 import it.airgap.beaconsdk.blockchain.tezos.message.request.BroadcastTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.OperationTezosRequest
 import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
@@ -400,6 +404,29 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
         CoroutineScope(Dispatchers.IO).launch {
             val response = when (request) {
+                is PermissionTezosRequest -> {
+                    val publicKey: String? = call.argument("publicKey")
+                    val address: String? = call.argument("address")
+
+                    publicKey?.let {
+
+                        PermissionTezosResponse.from(
+                            request,
+                            TezosAccount(
+                                publicKey = it,
+                                address = address ?: "",
+                                network = TezosNetwork.Mainnet(),
+                                beaconScope = BeaconScope.Global
+
+                            ),
+                            listOf(
+                                TezosPermission.Scope.Sign,
+                                TezosPermission.Scope.OperationRequest
+                            )
+                        )
+                    } ?: ErrorBeaconResponse.from(request, BeaconError.Aborted)
+                }
+
 
                 is OperationTezosRequest -> {
                     val txHash: String? = call.argument("txHash")
