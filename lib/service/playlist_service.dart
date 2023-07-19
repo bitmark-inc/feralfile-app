@@ -29,7 +29,11 @@ class PlayListServiceImp implements PlaylistService {
     }
 
     final hiddenTokens = _configurationService.getTempStorageHiddenTokenIDs();
-
+    final recentlySent = _configurationService.getRecentlySentToken();
+    hiddenTokens.addAll(recentlySent
+        .where((element) => element.isSentAll)
+        .map((e) => e.tokenID)
+        .toList());
     final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
     final tokens = await _tokenDao
         .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
@@ -57,10 +61,8 @@ class PlayListServiceImp implements PlaylistService {
 
   @override
   Future<void> refreshPlayLists() async {
-    print('refreshPlayLists-----------------');
     final addresses = await _accountService.getAllAddresses();
     final List<String> ids = await _tokenDao.findTokenIDsOwnersOwn(addresses);
-    print('ids: ${ids.length}}');
     final playlists = _getRawPlayList();
     for (int i = 0; i < playlists.length; i++) {
       playlists[i].tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
@@ -70,15 +72,5 @@ class PlayListServiceImp implements PlaylistService {
       }
     }
     setPlayList(playlists, override: true);
-  }
-
-  Future<void> _refreshPlaylist(
-      PlayListModel playlist, List<String> ids) async {
-    playlist.tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
-    if (playlist.tokenIDs?.isNotEmpty == true) {
-      _configurationService.setPlayList([playlist]);
-    } else {
-      _configurationService.removePlayList(playlist.id ?? '');
-    }
   }
 }
