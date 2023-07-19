@@ -139,6 +139,8 @@ abstract class ConfigurationService {
 
   Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
 
+  Future<void> removePlayList(String id);
+
   List<String> getFinishedSurveys();
 
   Future<void> setFinishedSurvey(List<String> surveyNames);
@@ -946,6 +948,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           PLAYLISTS, playlistsSave.toSet().toList());
     }
+  }
+
+  @override
+  Future<void> removePlayList(String id) async {
+    final playlists = getPlayList();
+    playlists.removeWhere((element) => element.id == id);
+    await setPlayList(playlists, override: true);
   }
 
   @override
