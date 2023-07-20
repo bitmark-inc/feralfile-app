@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -14,6 +13,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -167,32 +167,23 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
 
   Widget _buildAddressList(BuildContext context) {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final categorizedAccounts = state.accounts ?? [];
-      return Column(
-        children: categorizedAccounts
-            .map(
-              (account) => PersonalConnectItem(
-                categorizedAccount: account,
-                ethSelectedAddress: _selectedAddress,
-                tezSelectedAddress: _selectedAddress,
-                isExpand: true,
-                onSelectEth: (value) {
-                  setState(() {
-                    if (widget.blockchain?.toLowerCase() != "tezos") {
-                      _selectedAddress = value;
-                    }
-                  });
-                },
-                onSelectTez: (value) {
-                  setState(() {
-                    if (widget.blockchain?.toLowerCase() == "tezos") {
-                      _selectedAddress = value;
-                    }
-                  });
-                },
-              ),
-            )
-            .toList(),
+      final accounts = state.accounts ?? [];
+      return ListAccountConnect(
+        accounts: accounts,
+        onSelectEth: (value) {
+          setState(() {
+            if (widget.blockchain?.toLowerCase() != "tezos") {
+              _selectedAddress = value.accountNumber;
+            }
+          });
+        },
+        onSelectTez: (value) {
+          setState(() {
+            if (widget.blockchain?.toLowerCase() == "tezos") {
+              _selectedAddress = value.accountNumber;
+            }
+          });
+        },
       );
     });
   }
