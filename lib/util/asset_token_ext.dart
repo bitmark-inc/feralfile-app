@@ -44,6 +44,23 @@ extension AssetTokenExtension on AssetToken {
     return galleryThumbnailURL != null;
   }
 
+  String get secondaryMarketURL {
+    switch (blockchain) {
+      case "ethereum":
+        return "$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId";
+      case "tezos":
+        if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
+          return "$TEIA_ART_ASSET_PREFIX$tokenId";
+        } else if (sourceURL?.contains(FXHASH_IDENTIFIER) == true) {
+          return assetURL ?? "";
+        } else {
+          return "$OBJKT_ASSET_PREFIX$contractAddress/$tokenId";
+        }
+      default:
+        return "";
+    }
+  }
+
   bool get isAirdrop {
     final saleModel = initialSaleModel?.toLowerCase();
     return ["airdrop", "shopping_airdrop"].contains(saleModel);

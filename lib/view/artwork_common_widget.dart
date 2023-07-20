@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -424,7 +425,7 @@ INFTRenderingWidget buildRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time})? onLoaded,
+  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
@@ -1365,7 +1366,7 @@ class MetaDataItem extends StatelessWidget {
             child: Text(
               value,
               overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+              maxLines: 3,
               style: onValueTap != null
                   ? theme.textTheme.ppMori400Green14
                   : theme.textTheme.ppMori400White14,
@@ -1997,6 +1998,58 @@ class _ExpandedWidgetState extends State<ExpandedWidget> {
           widget.child ?? const SizedBox()
         else
           widget.unexpendedChild ?? const SizedBox(),
+      ],
+    );
+  }
+}
+
+class ArtworkDetailsHeader extends StatelessWidget {
+  final String title;
+  final String subTitle;
+  final bool hideArtist;
+  final Function? onTitleTap;
+  final Function? onSubTitleTap;
+
+  const ArtworkDetailsHeader({
+    Key? key,
+    required this.title,
+    required this.subTitle,
+    this.hideArtist = false,
+    this.onTitleTap,
+    this.onSubTitleTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!hideArtist)
+          GestureDetector(
+            onTap: () {
+              onSubTitleTap?.call();
+            },
+            child: Text(
+              subTitle,
+              style: theme.textTheme.ppMori700White14
+                  .copyWith(color: AppColor.auSuperTeal),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        GestureDetector(
+          onTap: () {
+            onTitleTap?.call();
+          },
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400White14
+                .copyWith(color: AppColor.auSuperTeal),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

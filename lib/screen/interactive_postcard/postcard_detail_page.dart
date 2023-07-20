@@ -357,16 +357,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               appBar: AppBar(
                 leadingWidth: 0,
                 centerTitle: false,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      asset.title ?? '',
-                      style: theme.textTheme.ppMori400White16,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                title: ArtworkDetailsHeader(
+                  title: asset.title ?? '',
+                  subTitle: '',
+                  hideArtist: true,
                 ),
                 actions: [
                   Semantics(

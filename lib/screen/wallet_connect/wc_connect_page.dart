@@ -75,6 +75,9 @@ class _WCConnectPageState extends State<WCConnectPage>
   String? ethSelectedAddress;
   String? tezSelectedAddress;
 
+  bool get _confirmEnable =>
+      categorizedAccounts != null && categorizedAccounts!.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -503,6 +506,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 child: Padding(
                   padding: padding,
                   child: PrimaryButton(
+                    enabled: _confirmEnable,
                     text: "h_confirm".tr(),
                     onTap: () => withDebounce(() => _approveThenNotify()),
                   ),
@@ -521,6 +525,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             child: Padding(
               padding: padding,
               child: PrimaryButton(
+                enabled: _confirmEnable,
                 text: "h_confirm".tr(),
                 onTap: selectedPersona != null
                     ? () {
@@ -676,6 +681,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             children: [
               Expanded(
                 child: PrimaryButton(
+                  enabled: _confirmEnable,
                   text: "h_confirm".tr(),
                   onTap: () {
                     metricClient.addEvent(MixpanelEvent.connectMarket);

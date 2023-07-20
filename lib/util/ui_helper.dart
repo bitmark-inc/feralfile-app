@@ -117,7 +117,7 @@ class UIHelper {
   static String currentDialogTitle = '';
   static final metricClient = injector.get<MetricClientService>();
 
-  static Future<void> showDialog(
+  static Future<dynamic> showDialog(
     BuildContext context,
     String title,
     Widget content, {
@@ -142,7 +142,7 @@ class UIHelper {
       Vibrate.feedback(feedback);
     }
 
-    await showModalBottomSheet<dynamic>(
+    return await showModalBottomSheet<dynamic>(
       context: context,
       isDismissible: isDismissible,
       backgroundColor: Colors.transparent,

@@ -132,7 +132,7 @@ Widget accountItem(BuildContext context, Account account,
             children: [
               Expanded(
                 child: Text(
-                  account.key,
+                  account.accountNumber,
                   style: theme.textTheme.ppMori400Black14,
                   key: const Key("fullAccount_address"),
                 ),
@@ -148,7 +148,7 @@ Widget accountItem(BuildContext context, Account account,
 Future<Pair<String, String>> getAddressBalance(
     String address, CryptoType cryptoType) async {
   final tokenDao = injector<TokenDao>();
-  final tokens = await tokenDao.findTokenIDsByOwners([address]);
+  final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
   final nftBalance =
       "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
   switch (cryptoType) {
