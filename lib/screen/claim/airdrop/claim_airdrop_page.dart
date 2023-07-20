@@ -343,7 +343,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                     "id": widget.payload.series.id,
                   },
                 );
-                memoryValues.airdropFFExhibitionId.value = null;
+                memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
             ),

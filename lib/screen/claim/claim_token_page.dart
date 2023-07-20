@@ -338,7 +338,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     "id": widget.series.id,
                   },
                 );
-                memoryValues.airdropFFExhibitionId.value = null;
+                memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
             ),
@@ -364,7 +364,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         },
       );
 
-      memoryValues.airdropFFExhibitionId.value = null;
+      memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
       await UIHelper.showClaimTokenError(
@@ -372,7 +372,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         e,
         series: widget.series,
       );
-      memoryValues.airdropFFExhibitionId.value = null;
+      memoryValues.branchDeeplinkData.value = null;
     }
     setState(() {
       _processing = false;

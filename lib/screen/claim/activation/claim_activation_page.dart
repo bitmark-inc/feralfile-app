@@ -303,7 +303,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                     "id": widget.payload.assetToken.id,
                   },
                 );
-                memoryValues.airdropFFExhibitionId.value = null;
+                memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
             ),
