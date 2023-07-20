@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
@@ -46,6 +45,8 @@ abstract class DeeplinkService {
   Future setup();
 
   void handleDeeplink(String? link, {Duration delay});
+
+  void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -93,7 +94,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         _deepLinkHandlingMap[data["~referring_link"]] = true;
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
-        await _handleBranchDeeplinkData(data);
+        await handleBranchDeeplinkData(data);
         handlingDeepLink = null;
         _deepLinkHandlingMap.remove(data["~referring_link"]);
       }
@@ -336,10 +337,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
     //star
-    memoryValues.airdropFFExhibitionId.value = AirdropQrData(
-      exhibitionId: '',
-      seriesId: '',
-    );
+    memoryValues.airdropFFExhibitionId.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
@@ -349,13 +347,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
           linkType: LinkType.branch,
           prefix: callingBranchDeepLinkPrefix,
           addData: response["data"]);
-      _handleBranchDeeplinkData(response["data"]);
+      handleBranchDeeplinkData(response["data"]);
       return true;
     }
     return false;
   }
 
-  Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
+  @override
+  Future<void> handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
+    final doneOnboarding = _configurationService.isDoneOnboarding();
+    if (!doneOnboarding) {
+      memoryValues.airdropFFExhibitionId.value = data;
+      return;
+    }
     final source = data["source"];
     switch (source) {
       case "FeralFile":
@@ -380,11 +384,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
         if (exhibitionId?.isNotEmpty == true || seriesId?.isNotEmpty == true) {
-          _claimFFAirdropToken(
-            exhibitionId: exhibitionId,
-            seriesId: seriesId,
-            otp: _getOtpFromBranchData(data),
-          );
+            _claimFFAirdropToken(
+              exhibitionId: exhibitionId,
+              seriesId: seriesId,
+              otp: _getOtpFromBranchData(data),
+            );
         }
         break;
       case "Postcard":
@@ -525,11 +529,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         currentExhibitionId = null;
       } else {
-        memoryValues.airdropFFExhibitionId.value = AirdropQrData(
-          exhibitionId: exhibitionId,
-          seriesId: seriesId,
-          otp: otp,
-        );
         handlingDeepLink = null;
         await Future.delayed(const Duration(seconds: 5), () {
           currentExhibitionId = null;

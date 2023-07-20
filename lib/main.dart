@@ -12,7 +12,6 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -196,7 +195,7 @@ class MemoryValues {
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
-  ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
+  ValueNotifier<Map<dynamic, dynamic>?> airdropFFExhibitionId;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;

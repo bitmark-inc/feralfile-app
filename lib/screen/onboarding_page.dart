@@ -13,12 +13,11 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -144,8 +143,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
     Future.delayed(const Duration(seconds: 2), () {
       final data = memoryValues.airdropFFExhibitionId.value;
-      final id = "${data?.seriesId ?? ''}${data?.exhibitionId ?? ''}".trim();
-      if (id.isEmpty) {
+      if (data == null || data.isEmpty) {
         if (mounted) {
           setState(() {
             fromBranchLink = false;
@@ -154,12 +152,12 @@ class _OnboardingPageState extends State<OnboardingPage>
       }
     });
 
-    String? currentId;
+    Map<dynamic, dynamic>? currentData;
 
     void updateDeepLinkState() {
       setState(() {
         fromBranchLink = false;
-        currentId = null;
+        currentData = null;
         memoryValues.airdropFFExhibitionId.value = null;
       });
     }
@@ -167,69 +165,16 @@ class _OnboardingPageState extends State<OnboardingPage>
     memoryValues.airdropFFExhibitionId.addListener(() async {
       try {
         final data = memoryValues.airdropFFExhibitionId.value;
-        final id = "${data?.exhibitionId}_${data?.seriesId}";
-        if (currentId == id) return;
-        if (data?.seriesId?.isNotEmpty == true ||
-            data?.exhibitionId?.isNotEmpty == true) {
-          currentId = id;
+        if (data == currentData) return;
+        if (data != null) {
           setState(() {
             fromBranchLink = true;
           });
 
           await _createAddressIfNeeded();
-          final ffService = injector<FeralFileService>();
-          final artwork = data?.seriesId?.isNotEmpty == true
-              ? await ffService.getSeries(data!.seriesId!)
-              : await ffService
-                  .getAirdropSeriesFromExhibitionId(data!.exhibitionId!);
-
-          if (artwork.airdropInfo?.isAirdropStarted != true) {
-            await injector
-                .get<NavigationService>()
-                .showAirdropNotStarted(artwork.id);
-            updateDeepLinkState();
-            return;
-          }
-
-          final endTime = artwork.airdropInfo?.endedAt;
-
-          if (artwork.airdropInfo == null ||
-              (endTime != null && endTime.isBefore(DateTime.now()))) {
-            await injector
-                .get<NavigationService>()
-                .showAirdropExpired(artwork.id);
-            updateDeepLinkState();
-            return;
-          }
-
-          if (artwork.airdropInfo?.remainAmount == 0) {
-            await injector.get<NavigationService>().showNoRemainingToken(
-                  series: artwork,
-                );
-            updateDeepLinkState();
-            return;
-          }
-
-          final otp = memoryValues.airdropFFExhibitionId.value?.otp;
-          if (otp?.isExpired == true) {
-            await injector.get<NavigationService>().showOtpExpired(artwork.id);
-            updateDeepLinkState();
-            return;
-          }
-
-          if (!mounted) return;
-          await Navigator.of(context).pushNamed(
-            AppRouter.claimFeralfileTokenPage,
-            arguments: ClaimTokenPageArgs(
-              series: artwork,
-              otp: otp,
-            ),
-          );
-          currentId = null;
-
-          setState(() {
-            fromBranchLink = false;
-          });
+          final deepLinkService = injector.get<DeeplinkService>();
+          deepLinkService.handleBranchDeeplinkData(data);
+          updateDeepLinkState();
         }
       } catch (e) {
         setState(() {
