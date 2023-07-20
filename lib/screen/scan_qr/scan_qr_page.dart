@@ -154,6 +154,20 @@ class _ScanQRPageState extends State<ScanQRPage>
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
+        appBar: _tabController.index == 0
+            ? _qrCodeAppBar()
+            : AppBar(
+                systemOverlayStyle: const SystemUiOverlayStyle(
+                  statusBarColor: Colors.white,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
+                ),
+                toolbarHeight: 0,
+                shadowColor: Colors.transparent,
+                elevation: 0,
+              ),
         body: Stack(
           children: <Widget>[
             if (!cameraPermission)
@@ -170,15 +184,6 @@ class _ScanQRPageState extends State<ScanQRPage>
                             Stack(
                               children: [
                                 _qrView(),
-                                Scaffold(
-                                  backgroundColor: Colors.transparent,
-                                  appBar: getCloseAppBar(
-                                    context,
-                                    onClose: () => Navigator.of(context).pop(),
-                                    withBottomDivider: false,
-                                    icon: closeIcon(color: AppColor.white),
-                                  ),
-                                ),
                                 Padding(
                                   padding: EdgeInsets.fromLTRB(
                                     0,
@@ -300,6 +305,16 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
+  AppBar _qrCodeAppBar() {
+    return getCloseAppBar(
+      context,
+      onClose: () => Navigator.of(context).pop(),
+      withBottomDivider: false,
+      icon: closeIcon(color: AppColor.white),
+      isWhite: false,
+    );
+  }
+
   Widget _qrView() {
     final theme = Theme.of(context);
     final size1 = MediaQuery.of(context).size.height / 2;
@@ -315,8 +330,8 @@ class _ScanQRPageState extends State<ScanQRPage>
           overlay: QrScannerOverlayShape(
             borderColor:
                 isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-            overlayColor: (cameraPermission || Platform.isIOS)
-                ? const Color.fromRGBO(0, 0, 0, 80)
+            overlayColor: (cameraPermission)
+                ? const Color.fromRGBO(0, 0, 0, 0.6)
                 : const Color.fromRGBO(0, 0, 0, 1.0),
             cutOutSize: qrSize,
             borderWidth: 8,
