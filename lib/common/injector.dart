@@ -141,6 +141,7 @@ Future<void> setup() async {
       .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
   injector.registerLazySingleton(() => NftCollection.prefs);
   injector.registerLazySingleton(() => NftCollection.database);
+  injector.registerLazySingleton(() => NftCollection.addressService);
   injector.registerLazySingleton(() => NftCollection.database.assetDao);
   injector.registerLazySingleton(() => NftCollection.database.tokenDao);
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
@@ -206,6 +207,7 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
+        injector(),
       ));
 
   injector.registerLazySingleton(() => ChatApi(dio,
@@ -239,6 +241,7 @@ Future<void> setup() async {
 
   injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
       (p1, p2) => NftCollectionBloc(
+            injector(),
             injector(),
             injector(),
             injector(),

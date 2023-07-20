@@ -2,9 +2,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter/foundation.dart';
-import 'package:nft_collection/models/address_index.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
@@ -19,10 +16,6 @@ class ClientTokenService {
 
   NftCollectionBloc get nftBloc => _nftBloc;
 
-  Future<List<AddressIndex>> getAddressIndexes() async {
-    return await _accountService.getAllAddressIndexes();
-  }
-
   Future<List<String>> getAddresses() async {
     return await _accountService.getAllAddresses();
   }
@@ -36,46 +29,25 @@ class ClientTokenService {
     return tokenIndexerIDs;
   }
 
-  Future refreshTokens({checkPendingToken = false}) async {
-    final value = await Future.wait([
-      getAddressIndexes(),
-      getManualTokenIds(),
-      _accountService.getHiddenAddressIndexes(),
-    ]);
-    final addresses = value[0] as List<AddressIndex>;
-    final indexerIds = value[1] as List<String>;
-    final hiddenAddresses = value[2] as List<AddressIndex>;
+  Future refreshTokens(
+      {checkPendingToken = false, bool syncAddresses = false}) async {
+    if (syncAddresses && !_nftBloc.prefs.getDidSyncAddress()) {
+      final addresses = await _accountService.getAllAddresses();
+      final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
 
-    final activeAddresses = addresses
-        .where((element) => !hiddenAddresses.contains(element))
-        .map((e) => e.address)
-        .toList();
-    final isRefresh =
-        !listEquals(activeAddresses, NftCollectionBloc.activeAddress);
-    log.info("[ClientTokenService] activeAddresses: $activeAddresses");
-    log.info(
-        "[ClientTokenService] NftCollectionBloc.activeAddress: ${NftCollectionBloc.activeAddress}");
-    if (isRefresh) {
-      final listDifferents = activeAddresses
-          .where(
-              (element) => !NftCollectionBloc.activeAddress.contains(element))
-          .toList();
-      if (listDifferents.isNotEmpty) {
-        _nftBloc.add(GetTokensBeforeByOwnerEvent(
-          pageKey: nftBloc.state.nextKey,
-          owners: listDifferents,
-        ));
-      }
+      await _nftBloc.addressService.addAddresses(addresses);
+      await _nftBloc.addressService.setIsHiddenAddresses(
+          hiddenAddresses.map((e) => e.address).toList(), true);
+      _nftBloc.prefs.setDidSyncAddress(true);
     }
+    final indexerIds = await getManualTokenIds();
 
     _nftBloc.add(RefreshNftCollectionByOwners(
-      hiddenAddresses: hiddenAddresses,
-      addresses: addresses,
       debugTokens: indexerIds,
-      isRefresh: isRefresh,
     ));
 
     if (checkPendingToken) {
+      final activeAddresses = await _accountService.getShowedAddresses();
       final pendingResults = await Future.wait(activeAddresses
           .where((address) => address.startsWith("tz"))
           .map((address) => _pendingTokenService
