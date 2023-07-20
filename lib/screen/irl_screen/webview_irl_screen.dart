@@ -107,7 +107,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           SelectAddressView(
             addresses: addresses,
           ),
-          isDismissible: true,
         );
       }
       if (address != null) {
@@ -116,7 +115,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.result(address),
         );
       }
-      return null;
+      return _logAndReturnJSResult(
+        '_getAddress',
+        JSResult.error("User rejected"),
+      );
     } catch (e) {
       return _logAndReturnJSResult(
         '_getAddress',
