@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -12,9 +12,12 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
+import 'package:autonomy_flutter/view/select_address.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -77,20 +80,35 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         );
       }
 
-      if (chain == null) {
+      final cryptoType = _getCryptoType(chain);
+      if (cryptoType == null) {
         return _logAndReturnJSResult(
           '_getAddress',
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final address = await Navigator.of(context).pushNamed(
-        AppRouter.irlGetAddress,
-        arguments: IRLGetAddressPayLoad(
-          blockchain: chain,
-          params: arguments['params'],
-          metadata: arguments['metadata'],
-        ),
-      );
+      final addresses = await injector<CloudDatabase>()
+          .addressDao
+          .getAddressesByType(cryptoType.source);
+      if (addresses.isEmpty) {
+        return _logAndReturnJSResult(
+          '_getAddress',
+          JSResult.error('$chain addresses not found'),
+        );
+      }
+      String? address;
+      if (addresses.length == 1) {
+        address = addresses.first.address;
+      } else {
+        if (!mounted) return null;
+        address = await UIHelper.showDialog(
+          context,
+          "select_address_to_connect".tr(),
+          SelectAddressView(
+            addresses: addresses,
+          ),
+        );
+      }
       if (address != null) {
         return _logAndReturnJSResult(
           '_getAddress',
@@ -342,6 +360,18 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         ),
       ),
     );
+  }
+
+  CryptoType? _getCryptoType(String chain) {
+    switch (chain.toLowerCase()) {
+      case 'ethereum':
+      case 'eip155':
+        return CryptoType.ETH;
+      case 'tezos':
+        return CryptoType.XTZ;
+      default:
+        return null;
+    }
   }
 }
 
