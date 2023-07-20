@@ -142,7 +142,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
 
     Future.delayed(const Duration(seconds: 2), () {
-      final data = memoryValues.airdropFFExhibitionId.value;
+      final data = memoryValues.branchDeeplinkData.value;
       if (data == null || data.isEmpty) {
         if (mounted) {
           setState(() {
@@ -158,13 +158,13 @@ class _OnboardingPageState extends State<OnboardingPage>
       setState(() {
         fromBranchLink = false;
         currentData = null;
-        memoryValues.airdropFFExhibitionId.value = null;
+        memoryValues.branchDeeplinkData.value = null;
       });
     }
 
-    memoryValues.airdropFFExhibitionId.addListener(() async {
+    memoryValues.branchDeeplinkData.addListener(() async {
       try {
-        final data = memoryValues.airdropFFExhibitionId.value;
+        final data = memoryValues.branchDeeplinkData.value;
         if (data == currentData) return;
         if (data != null) {
           setState(() {

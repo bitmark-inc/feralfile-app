@@ -337,7 +337,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
     //star
-    memoryValues.airdropFFExhibitionId.value = null;
+    memoryValues.branchDeeplinkData.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
@@ -357,7 +357,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<void> handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
     final doneOnboarding = _configurationService.isDoneOnboarding();
     if (!doneOnboarding) {
-      memoryValues.airdropFFExhibitionId.value = data;
+      memoryValues.branchDeeplinkData.value = data;
       return;
     }
     final source = data["source"];
@@ -368,7 +368,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
           await _linkFeralFileToken(tokenId);
         }
-        memoryValues.airdropFFExhibitionId.value = null;
+        memoryValues.branchDeeplinkData.value = null;
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
@@ -458,7 +458,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         break;
       default:
-        memoryValues.airdropFFExhibitionId.value = null;
+        memoryValues.branchDeeplinkData.value = null;
     }
   }
 
