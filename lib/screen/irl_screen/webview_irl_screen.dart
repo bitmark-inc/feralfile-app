@@ -107,6 +107,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           SelectAddressView(
             addresses: addresses,
           ),
+          isDismissible: true,
         );
       }
       if (address != null) {

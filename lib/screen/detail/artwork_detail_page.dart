@@ -257,6 +257,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             title: ArtworkDetailsHeader(
               title: asset.title ?? "",
               subTitle: subTitle,
+              onTitleTap: widget.payload.useIndexer &&
+                      asset.secondaryMarketURL.isValidUrl() == true
+                  ? () {
+                      Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                          arguments: asset.secondaryMarketURL);
+                    }
+                  : null,
             ),
             actions: [
               widget.payload.useIndexer
@@ -566,7 +573,7 @@ class ArtworkDetailPayload {
   final int currentIndex;
   final PlayControlModel? playControl;
   final String? twitterCaption;
-  final bool useIndexer;
+  final bool useIndexer; // set true when navigate from discover/gallery page
 
   ArtworkDetailPayload(
     this.identities,
