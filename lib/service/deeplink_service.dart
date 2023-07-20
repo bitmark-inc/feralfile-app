@@ -384,11 +384,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
 
         if (exhibitionId?.isNotEmpty == true || seriesId?.isNotEmpty == true) {
-            _claimFFAirdropToken(
-              exhibitionId: exhibitionId,
-              seriesId: seriesId,
-              otp: _getOtpFromBranchData(data),
-            );
+          _claimFFAirdropToken(
+            exhibitionId: exhibitionId,
+            seriesId: seriesId,
+            otp: _getOtpFromBranchData(data),
+          );
         }
         break;
       case "Postcard":

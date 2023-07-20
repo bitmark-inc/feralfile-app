@@ -214,8 +214,7 @@ class FeralFileServiceImpl extends FeralFileService {
       String? address,
       Otp? otp,
       Future<bool> Function(FFSeries)? onConfirm}) async {
-    log.info(
-        "[FeralFileService] Claim token - series: $seriesId");
+    log.info("[FeralFileService] Claim token - series: $seriesId");
     final series = await getSeries(seriesId);
 
     if (series.airdropInfo == null ||
