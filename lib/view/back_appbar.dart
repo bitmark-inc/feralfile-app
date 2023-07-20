@@ -171,7 +171,7 @@ AppBar getCloseAppBar(BuildContext context,
   final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: theme.colorScheme.secondary,
+      statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
