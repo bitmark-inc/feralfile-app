@@ -321,6 +321,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
     MomaPallet.cloudBlue,
     MomaPallet.blue,
     MomaPallet.purple,
+    MomaPallet.black,
+    MomaPallet.white,
   ];
 
   void _modifyStackUndo() {
@@ -373,7 +375,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
                 border: Border.all(
                   color: _selectedColor == color
                       ? AppColor.primaryBlack
-                      : Colors.transparent,
+                      : color == MomaPallet.white
+                          ? AppColor.auGrey
+                          : Colors.transparent,
                   width: 2,
                 ),
               ),
