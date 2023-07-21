@@ -116,7 +116,8 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
                   tezSelectedAddress = value.accountNumber;
                 });
               },
-              isAutoSelect: widget.isAutoSelect,
+              isAutoSelect:
+                  widget.isAutoSelect && account == widget.accounts.first,
             ))
         .toList();
   }
