@@ -1151,7 +1151,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _leaderboardHeader(BuildContext context, DateTime lastUpdated) {
     final theme = Theme.of(context);
-    final dateFormater = DateFormat("yyyy-MM-dd HH:mm:ss");
+    final dateFormater = DateFormat("yyyy-MM-dd HH:mm");
     return Column(
       children: [
         const SizedBox(height: 12),
@@ -1261,8 +1261,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       ),
                     ),
                     Text(
-                      distanceFormatter.format(
-                          distance: leaderBoardItem.totalDistance),
+                      distanceFormatter.showDistance(
+                          distance: leaderBoardItem.totalDistance, distanceUnit: DistanceFormatter.getDistanceUnit),
                       style: theme.textTheme.moMASans400Black12,
                     ),
                   ],

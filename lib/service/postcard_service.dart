@@ -369,9 +369,8 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
-    final unit = DistanceFormatter().isMiles() ? DistanceUnit.mile : DistanceUnit.km;
     final leaderboardResponse =
-        await _postcardApi.getLeaderboard(unit.name);
+        await _postcardApi.getLeaderboard(DistanceFormatter.getDistanceUnit.name);
     final ids = leaderboardResponse.items
         .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
         .toList();

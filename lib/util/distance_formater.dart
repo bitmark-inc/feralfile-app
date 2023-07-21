@@ -18,8 +18,12 @@ class DistanceFormatter {
   final _numberFormat = NumberFormat("#,##0", "en_US");
 
   // check is miles or km
-  bool isMiles() {
+  static bool isMiles() {
     return LocaleService.measurementSystem == "imperial";
+  }
+
+  static DistanceUnit get getDistanceUnit {
+    return isMiles() ? DistanceUnit.mile : DistanceUnit.km;
   }
 
   DistanceFormatter();
@@ -41,8 +45,8 @@ class DistanceFormatter {
     return '${_numberFormat.format(distance)} km';
   }
 
-  String formatBySystem({required double distance, DistanceUnit unit = DistanceUnit.km}) {
-    if (unit == DistanceUnit.mile) {
+  String showDistance({required double distance, DistanceUnit distanceUnit = DistanceUnit.km}) {
+    if (distanceUnit == DistanceUnit.mile) {
       return '${_numberFormat.format(convertKmToMiles(distance))} mi';
     }
     return '${_numberFormat.format(distance)} km';
