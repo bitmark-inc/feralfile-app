@@ -1247,8 +1247,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               text: leaderBoardItem.title,
                               style: theme.textTheme.moMASans400Black12
                                   .copyWith(
-                                      color: const Color.fromRGBO(
-                                          131, 79, 196, 1)),
+                                      color: moMAColor),
                             ),
                             if (isYour)
                               TextSpan(
@@ -1317,7 +1316,7 @@ class PostcardLeaderboardItem {
       id: json['token_id'],
       rank: json['rank'],
       title: json['title'] ?? "",
-      totalDistance: json['mileage'],
+      totalDistance: json['mileage'].toDouble(),
     );
   }
 
