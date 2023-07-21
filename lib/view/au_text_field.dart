@@ -43,6 +43,8 @@ class AuTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isEmpty = controller.text.isEmpty;
+    controller.selection =
+        TextSelection.collapsed(offset: controller.text.length);
     return Semantics(
       label: labelSemantics,
       child: Container(
