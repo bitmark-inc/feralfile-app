@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -368,8 +369,9 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
+    final unit = DistanceFormatter().isMiles() ? DistanceUnit.mile : DistanceUnit.km;
     final leaderboardResponse =
-        await _postcardApi.getLeaderboard(DistanceUnit.km.name);
+        await _postcardApi.getLeaderboard(unit.name);
     final ids = leaderboardResponse.items
         .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
         .toList();
