@@ -330,10 +330,12 @@ class Wc2Service extends Wc2Handler {
   Future _handleWC2EthereumSendTransactionRequest(Wc2Request request) async {
     try {
       var transaction = request.params[0] as Map<String, dynamic>;
+      final eip55address =
+          EthereumAddress.fromHex(transaction["from"]).hexEip55;
 
       final walletIndex = await _accountService.getAccountByAddress(
         chain: "eip155",
-        address: transaction["from"],
+        address: eip55address,
       );
       if (transaction["data"] == null) transaction["data"] = "";
       if (transaction["gas"] == null) transaction["gas"] = "";

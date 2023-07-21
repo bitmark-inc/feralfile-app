@@ -15,9 +15,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -31,12 +28,8 @@ part 'accounts_state.dart';
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
-  final BackupService _backupService;
-  final AuditService _auditService;
-  final AccountService _accountService;
 
-  AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
-      this._auditService, this._accountService)
+  AccountsBloc(this._configurationService, this._cloudDB)
       : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
@@ -76,14 +69,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
             }
             break;
         }
-      }
-
-      if (accounts.isEmpty) {
-        await _backupService
-            .deleteAllProfiles(await _accountService.getDefaultAccount());
-        await _cloudDB.personaDao.removeAll();
-        await _cloudDB.connectionDao.removeAll();
-        await _auditService.auditPersonaAction('cleanUp', null);
       }
 
       accounts.sort(_compareAccount);

@@ -89,7 +89,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
 
       final difference = _controller.offset - _lastOffset;
       _scrollTimer = Timer(const Duration(milliseconds: 300), () {
-        if (difference > -5 && difference < 0) {
+        if (difference > -25 && difference < 0) {
           setState(() {
             _showHeader = true;
           });
@@ -98,17 +98,18 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
             if (mounted) {
               setState(() {
                 _showHeader = false;
+                _lastOffset = _controller.offset;
               });
             }
           });
         }
+        _lastOffset = _controller.offset;
       });
     } else {
       setState(() {
         _showHeader = true;
       });
     }
-    _lastOffset = _controller.offset;
   }
 
   Future<void> _updateEditorialReadingTime() async {

@@ -71,7 +71,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     super.dispose();
   }
 
-  void _unfocus() {
+  void _unFocus(BuildContext context) {
     FocusScopeNode currentFocus = FocusScope.of(context);
     if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
       FocusManager.instance.primaryFocus?.unfocus();
@@ -96,7 +96,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
         return GestureDetector(
           behavior: HitTestBehavior.deferToChild,
           onTap: () {
-            _unfocus();
+            _unFocus(context);
           },
           child: Container(
             padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
@@ -200,7 +200,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                           labelSemantics:
                               "amount_send_${widget.data.type.code}",
                           title: "",
-                          placeholder: "0.00 ${widget.data.type.code}",
+                          placeholder:
+                              "0.00 ${state.isCrypto ? widget.data.type.code : "USD"}",
                           isError: state.isAmountError,
                           controller: _amountController,
                           keyboardType: const TextInputType.numberWithOptions(
@@ -216,26 +217,29 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                       .text
                                       .replaceAll(",", ".")) ??
                                   0;
-                              if (state.isCrypto) {
-                                if (type == CryptoType.ETH) {
-                                  _amountController.text = state.exchangeRate
-                                      .ethToUsd(
-                                          BigInt.from(amount * pow(10, 18)));
-                                } else if (type == CryptoType.XTZ) {
-                                  _amountController.text = state.exchangeRate
-                                      .xtzToUsd((amount * pow(10, 6)).toInt());
-                                }
-                              } else {
-                                if (type == CryptoType.ETH) {
-                                  _amountController.text =
-                                      (double.parse(state.exchangeRate.eth) *
-                                              amount)
-                                          .toStringAsFixed(5);
+                              if (amount != 0) {
+                                if (state.isCrypto) {
+                                  if (type == CryptoType.ETH) {
+                                    _amountController.text = state.exchangeRate
+                                        .ethToUsd(
+                                            BigInt.from(amount * pow(10, 18)));
+                                  } else if (type == CryptoType.XTZ) {
+                                    _amountController.text = state.exchangeRate
+                                        .xtzToUsd(
+                                            (amount * pow(10, 6)).toInt());
+                                  }
                                 } else {
-                                  _amountController.text =
-                                      (double.parse(state.exchangeRate.xtz) *
-                                              amount)
-                                          .toStringAsFixed(6);
+                                  if (type == CryptoType.ETH) {
+                                    _amountController.text =
+                                        (double.parse(state.exchangeRate.eth) *
+                                                amount)
+                                            .toStringAsFixed(5);
+                                  } else {
+                                    _amountController.text =
+                                        (double.parse(state.exchangeRate.xtz) *
+                                                amount)
+                                            .toStringAsFixed(6);
+                                  }
                                 }
                               }
 
@@ -268,7 +272,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                         text: "review".tr(),
                         onTap: state.isValid
                             ? () async {
-                                _unfocus();
+                                _unFocus(context);
                                 final payload = SendCryptoPayload(
                                     type,
                                     state.wallet!,
@@ -405,7 +409,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                 backgroundColor: AppColor.auGreyBackground,
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets);
-            _unfocus();
+            _unFocus(context);
           },
           child: Text("edit_priority".tr(),
               style: theme.textTheme.linkStyle

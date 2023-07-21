@@ -691,6 +691,8 @@ class MomaPallet {
   static const cloudBlue = Color.fromRGBO(0, 175, 215, 1);
   static const blue = Color.fromRGBO(0, 87, 184, 1);
   static const purple = Color.fromRGBO(117, 59, 189, 1);
+  static const black = Color.fromRGBO(0, 0, 0, 1);
+  static const white = Color.fromRGBO(255, 255, 255, 1);
 }
 
 Map<String, String>? auHtmlStyle(dom.Element element) {
