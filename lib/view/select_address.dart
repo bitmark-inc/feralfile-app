@@ -25,7 +25,7 @@ class _SelectAddressViewState extends State<SelectAddressView> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 250),
+        constraints: const BoxConstraints(maxHeight: 325),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -48,12 +48,24 @@ class _SelectAddressViewState extends State<SelectAddressView> {
             Row(
               children: [
                 Expanded(
-                    child: PrimaryButton(
+                    child: Column(
+                  children: [
+                    PrimaryButton(
                         text: "connect".tr(),
                         enabled: _selectedAddress != null,
                         onTap: () {
                           Navigator.pop(context, _selectedAddress);
-                        })),
+                        }),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    OutlineButton(
+                        text: "cancel".tr(),
+                        onTap: () {
+                          Navigator.pop(context, null);
+                        })
+                  ],
+                )),
               ],
             )
           ],
