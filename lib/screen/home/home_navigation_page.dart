@@ -219,8 +219,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       MultiBlocProvider(
         providers: [
           BlocProvider.value(
-              value: AccountsBloc(injector(), injector<CloudDatabase>(),
-                  injector(), injector<AuditService>(), injector())),
+              value: AccountsBloc(injector(), injector<CloudDatabase>())),
         ],
         child: const WalletPage(),
       ),

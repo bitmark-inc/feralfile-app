@@ -203,11 +203,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                             MultiBlocProvider(providers: [
                               BlocProvider(
                                   create: (_) => accounts.AccountsBloc(
-                                      injector(),
-                                      injector<CloudDatabase>(),
-                                      injector(),
-                                      injector<AuditService>(),
-                                      injector())),
+                                      injector(), injector<CloudDatabase>())),
                               BlocProvider(
                                 create: (_) => PersonaBloc(
                                   injector<CloudDatabase>(),
