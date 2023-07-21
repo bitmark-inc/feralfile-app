@@ -49,11 +49,11 @@ Future<GeoLocation?> getGeoLocationWithPermission(
     try {
       final location =
           await _getGeoLocation(timeout: const Duration(seconds: 2));
-      if (location.isMocked) {
-        UIHelper.showMockedLocation(
-            navigationService.navigatorKey.currentContext!);
-        return null;
-      }
+      // if (location.isMocked) {
+      //   UIHelper.showMockedLocation(
+      //       navigationService.navigatorKey.currentContext!);
+      //   return null;
+      // }
       log.info("Location: ${location.latitude}, ${location.longitude}");
       final placeMark = await getPlaceMarkFromCoordinates(
           location.latitude, location.longitude);
