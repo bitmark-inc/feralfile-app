@@ -263,8 +263,7 @@ class AppRouter {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
-    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
-        injector(), injector<AuditService>(), injector());
+    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
 
     switch (settings.name) {
       case viewPlayListPage:
