@@ -1262,7 +1262,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     ),
                     Text(
                       distanceFormatter.showDistance(
-                          distance: leaderBoardItem.totalDistance, distanceUnit: DistanceFormatter.getDistanceUnit),
+                          distance: leaderBoardItem.totalDistance,
+                          distanceUnit: DistanceFormatter.getDistanceUnit),
                       style: theme.textTheme.moMASans400Black12,
                     ),
                   ],
