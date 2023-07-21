@@ -48,7 +48,7 @@ class DistanceFormatter {
   String showDistance(
       {required double distance, DistanceUnit distanceUnit = DistanceUnit.km}) {
     if (distanceUnit == DistanceUnit.mile) {
-      return '${_numberFormat.format(convertKmToMiles(distance))} mi';
+      return '${_numberFormat.format(distance)} mi';
     }
     return '${_numberFormat.format(distance)} km';
   }
