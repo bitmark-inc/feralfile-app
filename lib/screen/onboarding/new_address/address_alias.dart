@@ -29,6 +29,25 @@ class AddressAlias extends StatefulWidget {
 class _AddressAliasState extends State<AddressAlias> {
   final TextEditingController _nameController = TextEditingController();
   bool isSavingAliasDisabled = true;
+  late String _nameAddress;
+  final focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    switch (widget.payload.walletType) {
+      case WalletType.Ethereum:
+        _nameAddress = "enter_eth_alias".tr();
+        break;
+      case WalletType.Tezos:
+        _nameAddress = "enter_tex_alias".tr();
+        break;
+      default:
+        _nameAddress = "enter_address_alias".tr();
+        break;
+    }
+    focusNode.requestFocus();
+  }
 
   void saveAliasButtonChangedState() {
     setState(() {
@@ -70,15 +89,16 @@ class _AddressAliasState extends State<AddressAlias> {
               children: [
                 const SizedBox(height: 40),
                 Text(
-                  "enter_address_alias".tr(),
+                  _nameAddress,
                   style: theme.textTheme.ppMori400Black14,
                 ),
                 const SizedBox(height: 10),
                 AuTextField(
                     labelSemantics: "enter_alias_full",
                     title: "",
-                    placeholder: "enter_address_alias".tr(),
+                    placeholder: _nameAddress,
                     controller: _nameController,
+                    focusNode: focusNode,
                     onChanged: (valueChanged) {
                       if (_nameController.text.trim().isEmpty !=
                           isSavingAliasDisabled) {
