@@ -209,8 +209,9 @@ class _PostcardExplainState extends State<PostcardExplain> {
           (totalDistance != null)
               ? Text(
                   "total_distance".tr(namedArgs: {
-                    "distance":
-                        distanceFormatter.showDistance(distance: totalDistance, distanceUnit: DistanceUnit.mile)
+                    "distance": distanceFormatter.showDistance(
+                        distance: totalDistance,
+                        distanceUnit: DistanceUnit.mile)
                   }),
                   style: theme.textTheme.moMASans400Black14.copyWith(
                       fontSize: 18,
@@ -291,7 +292,9 @@ class _PostcardExplainState extends State<PostcardExplain> {
             Text(title,
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18)),
-            Text(distanceFormatter.showDistance(distance: totalDistance, distanceUnit: DistanceUnit.mile),
+            Text(
+                distanceFormatter.showDistance(
+                    distance: totalDistance, distanceUnit: DistanceUnit.mile),
                 style: theme.textTheme.moMASans400Black14.copyWith(
                     fontSize: 18,
                     color: const Color.fromRGBO(131, 79, 196, 1))),
