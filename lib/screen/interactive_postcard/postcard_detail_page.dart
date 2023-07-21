@@ -1246,8 +1246,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             TextSpan(
                               text: leaderBoardItem.title,
                               style: theme.textTheme.moMASans400Black12
-                                  .copyWith(
-                                      color: moMAColor),
+                                  .copyWith(color: moMAColor),
                             ),
                             if (isYour)
                               TextSpan(
