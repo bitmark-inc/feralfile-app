@@ -241,7 +241,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                           await _configService.setDoneOnboarding(true);
                           _metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
-                          address = blockchain == "Tezos"
+                          address = blockchain.toLowerCase() == "tezos"
                               ? await defaultAccount.getTezosAddress()
                               : await defaultAccount.getETHEip55Address();
                         } else if (addresses.length == 1) {
