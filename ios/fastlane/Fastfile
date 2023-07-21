@@ -53,7 +53,7 @@ platform :ios do
 		old_build_number = get_max_appcenter_build
 		next_build_number = old_build_number.to_i + 1
 		increment_build_number(build_number: next_build_number)
-		app_identifier = 'com.bitmark.autonomy.inhouse'
+		app_identifier = 'com.bitmark.autonomy-wallet.inhouse'
 
 		increment_version_number(
   			version_number: ENV["APP_VERSION"]
@@ -70,8 +70,8 @@ platform :ios do
 			    compileBitcode: false,
 				method: "enterprise",
 				provisioningProfiles: {
-					"com.bitmark.autonomy.inhouse": "Autonomy Inhouse",
-					"com.bitmark.autonomy.inhouse.notification": "Autonomy Inhouse Notification",
+					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
+					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
@@ -117,7 +117,7 @@ platform :ios do
 		old_build_number = get_max_appcenter_test_build
 		next_build_number = old_build_number.to_i + 1
 		increment_build_number(build_number: next_build_number)
-		app_identifier = 'com.bitmark.autonomy.inhouse'
+		app_identifier = 'com.bitmark.autonomy-wallet.inhouse'
 
 		increment_version_number(
   			version_number: ENV["APP_VERSION"]
@@ -134,8 +134,8 @@ platform :ios do
 			    compileBitcode: false,
 				method: "enterprise",
 				provisioningProfiles: {
-					"com.bitmark.autonomy.inhouse": "Autonomy Inhouse",
-					"com.bitmark.autonomy.inhouse.notification": "Autonomy Inhouse Notification",
+					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
+					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
@@ -169,14 +169,14 @@ platform :ios do
 		)
 
 		import_certificate(
-			certificate_path: "mobile-signing-key-vault/ios/autonomy-wallet/enterprise/Certificates.p12",
+			certificate_path: "mobile-signing-key-vault/ios/autonomy-wallet/inhouse/Certificates.p12",
 			certificate_password: ENV["ENTERPRISE_CERTIFICATE_PASSWORD"],
 			keychain_name: keychainName,
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse.mobileprovision")
-		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Notification.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Adhoc.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Adhoc_Notification.mobileprovision")
 
         if env == 'test'
 		    build_appcenter_test

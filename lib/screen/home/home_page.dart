@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -54,6 +55,7 @@ import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -359,7 +361,13 @@ class HomePageState extends State<HomePage>
     const double cellSpacing = 3.0;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-
+    final playlistIDsString = injector<ConfigurationService>()
+        .getPlayList()
+        .map((e) => e.id)
+        .toList()
+        .join();
+    final playlistKeyBytes = utf8.encode(playlistIDsString);
+    final playlistKey = sha256.convert(playlistKeyBytes).toString();
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
           MediaQuery.of(context).size.width / cellPerRow -
@@ -375,10 +383,12 @@ class HomePageState extends State<HomePage>
       SliverToBoxAdapter(
         child: _carouselTipcard(context),
       ),
-      const SliverToBoxAdapter(
+      SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.only(bottom: 15),
-          child: ListPlaylistsScreen(),
+          padding: const EdgeInsets.only(bottom: 15),
+          child: ListPlaylistsScreen(
+            key: Key(playlistKey),
+          ),
         ),
       ),
       SliverGrid(

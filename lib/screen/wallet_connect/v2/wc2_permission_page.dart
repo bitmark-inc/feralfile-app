@@ -17,17 +17,14 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/crypto_view.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -325,13 +322,10 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                             ),
                           ),
                           const SizedBox(height: 16.0),
-                          ...categorizedAccounts
-                              .map((e) => PersonalConnectItem(
-                                    categorizedAccount: e,
-                                    isAutoSelect: true,
-                                    isExpand: true,
-                                  ))
-                              .toList(),
+                          ListAccountConnect(
+                            accounts: categorizedAccounts,
+                            isAutoSelect: true,
+                          ),
                         ],
                       );
                     }
@@ -354,15 +348,15 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         ),
                         const SizedBox(height: 16.0),
                         ListAccountConnect(
-                          categorizedAccounts: categorizedAccounts,
+                          accounts: categorizedAccounts,
                           onSelectEth: (value) {
                             setState(() {
-                              selectedAddress['eip155:1'] = value;
+                              selectedAddress['eip155:1'] = value.accountNumber;
                             });
                           },
                           onSelectTez: (value) {
                             setState(() {
-                              selectedAddress['tezos'] = value;
+                              selectedAddress['tezos'] = value.accountNumber;
                             });
                           },
                         ),
@@ -391,195 +385,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
           ),
         ),
       ),
-    );
-  }
-}
-
-class ListAccountConnect extends StatefulWidget {
-  final List<Account> categorizedAccounts;
-  final Function(String)? onSelectEth;
-  final Function(String)? onSelectTez;
-
-  const ListAccountConnect({
-    Key? key,
-    required this.categorizedAccounts,
-    this.onSelectEth,
-    this.onSelectTez,
-  }) : super(key: key);
-
-  @override
-  State<ListAccountConnect> createState() => _ListAccountConnectState();
-}
-
-class _ListAccountConnectState extends State<ListAccountConnect> {
-  late List<Account> categorizedAccounts;
-  String? tezSelectedAddress;
-  String? ethSelectedAddress;
-
-  @override
-  void initState() {
-    categorizedAccounts = widget.categorizedAccounts;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...categorizedAccounts
-            .map((categorizedAccount) => Column(
-                  children: [
-                    PersonalConnectItem(
-                      categorizedAccount: categorizedAccount,
-                      ethSelectedAddress: ethSelectedAddress,
-                      tezSelectedAddress: tezSelectedAddress,
-                      isExpand: categorizedAccounts.first == categorizedAccount,
-                      onSelectEth: (value) {
-                        widget.onSelectEth?.call(value);
-                        setState(() {
-                          ethSelectedAddress = value;
-                        });
-                      },
-                      onSelectTez: (value) {
-                        widget.onSelectTez?.call(value);
-                        setState(() {
-                          tezSelectedAddress = value;
-                        });
-                      },
-                    )
-                  ],
-                ))
-            .toList(),
-      ],
-    );
-  }
-}
-
-class AddressItem extends StatelessWidget {
-  const AddressItem({
-    Key? key,
-    required this.cryptoType,
-    required this.address,
-    this.name = "",
-    this.ethSelectedAddress,
-    this.tezSelectedAddress,
-    this.onTap,
-    this.isAutoSelect = false,
-  }) : super(key: key);
-
-  final CryptoType cryptoType;
-  final String address;
-  final String? ethSelectedAddress;
-  final String? tezSelectedAddress;
-  final bool isAutoSelect;
-  final Function()? onTap;
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        color: AppColor.white,
-        padding: ResponsiveLayout.paddingAll,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                LogoCrypto(
-                  cryptoType: cryptoType,
-                  size: 24,
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Text(
-                  name.isNotEmpty
-                      ? name
-                      : cryptoType == CryptoType.ETH
-                          ? 'Ethereum'
-                          : cryptoType == CryptoType.XTZ
-                              ? 'Tezos'
-                              : '',
-                  style: theme.textTheme.ppMori700Black14,
-                ),
-                const Spacer(),
-                Text(
-                  address.toIdentityOrMask({}) ?? '',
-                  style: theme.textTheme.ibmBlackNormal14,
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Visibility(
-                  visible: !isAutoSelect,
-                  child: AuCheckBox(
-                    isChecked: address == ethSelectedAddress ||
-                        address == tezSelectedAddress,
-                  ),
-                )
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PersonalConnectItem extends StatefulWidget {
-  final Account categorizedAccount;
-  final String? tezSelectedAddress;
-  final String? ethSelectedAddress;
-
-  final Function(String)? onSelectEth;
-  final Function(String)? onSelectTez;
-
-  final bool isAutoSelect;
-  final bool isExpand;
-
-  const PersonalConnectItem({
-    Key? key,
-    required this.categorizedAccount,
-    this.tezSelectedAddress,
-    this.ethSelectedAddress,
-    this.onSelectEth,
-    this.onSelectTez,
-    this.isAutoSelect = false,
-    this.isExpand = false,
-  }) : super(key: key);
-
-  @override
-  State<PersonalConnectItem> createState() => _PersonalConnectItemState();
-}
-
-class _PersonalConnectItemState extends State<PersonalConnectItem> {
-  @override
-  Widget build(BuildContext context) {
-    final e = widget.categorizedAccount;
-    return Column(
-      children: [
-        AddressItem(
-          onTap: () {
-            if (e.isEth) {
-              widget.onSelectEth?.call(e.accountNumber);
-            }
-            if (e.isTez) {
-              widget.onSelectTez?.call(e.accountNumber);
-            }
-          },
-          name: e.name,
-          isAutoSelect: widget.isAutoSelect,
-          address: e.accountNumber,
-          cryptoType: e.isEth ? CryptoType.ETH : CryptoType.XTZ,
-          ethSelectedAddress: widget.ethSelectedAddress,
-          tezSelectedAddress: widget.tezSelectedAddress,
-        ),
-        addOnlyDivider(),
-      ],
     );
   }
 }

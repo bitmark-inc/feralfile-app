@@ -376,6 +376,13 @@ extension AssetTokenExtension on AssetToken {
   bool get isAirdropToken {
     return Environment.autonomyAirDropContractAddress == contractAddress;
   }
+
+  bool get isMoMAMemento {
+    return [
+      ...momaMementoContractAddresses,
+      Environment.autonomyAirDropContractAddress
+    ].contains(contractAddress);
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
