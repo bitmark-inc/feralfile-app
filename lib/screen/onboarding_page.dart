@@ -16,17 +16,14 @@ import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -35,7 +32,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 
-import '../database/cloud_database.dart';
 import 'bloc/persona/persona_bloc.dart';
 
 final logger = Logger('App');
@@ -173,7 +169,7 @@ class _OnboardingPageState extends State<OnboardingPage>
             fromBranchLink = true;
           });
 
-          await _createAddressIfNeeded();
+          await injector<AccountService>().restoreIfNeeded();
           final deepLinkService = injector.get<DeeplinkService>();
           deepLinkService.handleBranchDeeplinkData(data);
           updateDeepLinkState();
@@ -184,23 +180,6 @@ class _OnboardingPageState extends State<OnboardingPage>
         });
       }
     });
-  }
-
-  Future<void> _createAddressIfNeeded() async {
-    final configurationService = injector<ConfigurationService>();
-    if (configurationService.isDoneOnboarding()) return;
-
-    final cloudDB = injector<CloudDatabase>();
-    final accountService = injector<AccountService>();
-    final personas = await cloudDB.personaDao.getPersonas();
-    if (personas.isEmpty) {
-      logger.info("Onboarding: create new addresses");
-      configurationService.setDoneOnboarding(true);
-      final persona = await accountService.createPersona();
-      await persona.insertAddress(WalletType.Autonomy);
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
-    }
   }
 
   // @override
