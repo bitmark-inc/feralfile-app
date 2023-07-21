@@ -120,9 +120,11 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
     memoryValues.irlLink.addListener(() async {
       if (memoryValues.irlLink.value != null) {
-        setState(() {
-          fromIrlLink = true;
-        });
+        if (mounted) {
+          setState(() {
+            fromIrlLink = true;
+          });
+        }
         Future.delayed(const Duration(seconds: 30), () {
           setState(() {
             fromIrlLink = false;

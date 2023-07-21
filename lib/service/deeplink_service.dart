@@ -96,7 +96,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
             "Handle Branch Deep Link Data Time Out", data["source"]);
         await handleBranchDeeplinkData(data);
         handlingDeepLink = null;
-        _deepLinkHandlingMap.remove(data["~referring_link"]);
       }
     }, onError: (error) {
       log.warning(
@@ -460,6 +459,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       default:
         memoryValues.branchDeeplinkData.value = null;
     }
+    _deepLinkHandlingMap.remove(data["~referring_link"]);
   }
 
   Future<void> _linkFeralFileToken(String tokenId) async {
