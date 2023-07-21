@@ -90,9 +90,7 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
               )
             ]),
           ),
-          if (showHiddenAddresses) ...[
-            ..._listAddresses(hiddenAccounts),
-          ]
+          if (showHiddenAddresses) ..._listAddresses(hiddenAccounts),
         ]
       ],
     );
