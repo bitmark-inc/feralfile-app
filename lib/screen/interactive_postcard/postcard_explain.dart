@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -209,7 +210,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
               ? Text(
                   "total_distance".tr(namedArgs: {
                     "distance":
-                        distanceFormatter.format(distance: totalDistance)
+                        distanceFormatter.showDistance(distance: totalDistance, distanceUnit: DistanceUnit.mile)
                   }),
                   style: theme.textTheme.moMASans400Black14.copyWith(
                       fontSize: 18,
@@ -290,7 +291,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
             Text(title,
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18)),
-            Text(distanceFormatter.format(distance: totalDistance),
+            Text(distanceFormatter.showDistance(distance: totalDistance, distanceUnit: DistanceUnit.mile),
                 style: theme.textTheme.moMASans400Black14.copyWith(
                     fontSize: 18,
                     color: const Color.fromRGBO(131, 79, 196, 1))),
