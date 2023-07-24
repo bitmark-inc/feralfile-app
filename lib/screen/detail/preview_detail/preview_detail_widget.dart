@@ -166,7 +166,11 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   }
 
   Widget _artworkView(AssetToken assetToken) {
-    return _renderingWidget?.build(context) ?? const SizedBox();
+    return GestureDetector(
+        onTap: () async {
+          await _renderingWidget?.pauseOrResume();
+        },
+        child: _renderingWidget?.build(context) ?? const SizedBox());
   }
 }
 

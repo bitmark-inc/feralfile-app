@@ -324,48 +324,46 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             child: Column(
               children: [
                 Expanded(
-                  child: GestureDetector(
-                    child: PageView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (value) {
-                        _timer?.cancel();
-                        final currentId = tokens[value];
-                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
-                            useIndexer: widget.payload.useIndexer));
-                        keyboardManagerKey.currentState?.hideKeyboard();
-                      },
-                      controller: controller,
-                      itemCount: tokens.length,
-                      itemBuilder: (context, index) {
-                        return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                          bloc: _canvasDeviceBloc,
-                          builder: (context, state) {
-                            final isCasting = state.isCasting;
-                            if (isCasting) {
-                              return const Center(
-                                child: CurrentlyCastingArtwork(),
-                              );
-                            }
-                            if (tokens[index].id.isPostcardId) {
-                              return PostcardPreviewWidget(
-                                identity: tokens[index],
-                                useIndexer: widget.payload.useIndexer,
-                              );
-                            }
-                            return ArtworkPreviewWidget(
+                  child: PageView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (value) {
+                      _timer?.cancel();
+                      final currentId = tokens[value];
+                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
+                          useIndexer: widget.payload.useIndexer));
+                      keyboardManagerKey.currentState?.hideKeyboard();
+                    },
+                    controller: controller,
+                    itemCount: tokens.length,
+                    itemBuilder: (context, index) {
+                      return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                        bloc: _canvasDeviceBloc,
+                        builder: (context, state) {
+                          final isCasting = state.isCasting;
+                          if (isCasting) {
+                            return const Center(
+                              child: CurrentlyCastingArtwork(),
+                            );
+                          }
+                          if (tokens[index].id.isPostcardId) {
+                            return PostcardPreviewWidget(
                               identity: tokens[index],
-                              onLoaded: (
-                                  {InAppWebViewController? webViewController,
-                                  int? time}) {
-                                setTimer(time: time);
-                              },
-                              focusNode: _focusNode,
                               useIndexer: widget.payload.useIndexer,
                             );
-                          },
-                        );
-                      },
-                    ),
+                          }
+                          return ArtworkPreviewWidget(
+                            identity: tokens[index],
+                            onLoaded: (
+                                {InAppWebViewController? webViewController,
+                                int? time}) {
+                              setTimer(time: time);
+                            },
+                            focusNode: _focusNode,
+                            useIndexer: widget.payload.useIndexer,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 Visibility(
