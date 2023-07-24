@@ -232,7 +232,9 @@ class AirdropInterceptor extends Interceptor {
   void onError(DioError err, ErrorInterceptorHandler handler) {
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      final json = jsonDecode(errorBody["message"]);
+      final json = errorBody["message"] != null
+          ? jsonDecode(errorBody["message"])
+          : errorBody;
       err.error = FeralfileError.fromJson(json["error"]);
     } catch (e) {
       log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");

@@ -51,6 +51,9 @@ import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_b
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/activation_token_detail_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
@@ -259,6 +262,9 @@ class AppRouter {
   static const keyboardControlPage = "keyboard_control_page";
   static const touchPadPage = "touch_pad_page";
   static const claimAirdropPage = 'claim_airdrop_page';
+  static const activationTokenDetailPage = 'activation_token_detail_page';
+  static const claimActivationPage = 'claim_activation_page';
+  static const previewActivationClaimPage = 'preview_activation_claim_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1505,6 +1511,45 @@ class AppRouter {
               value: accountsBloc,
               child: ClaimAirdropPage(
                 payload: settings.arguments as ClaimTokenPagePayload,
+              ),
+            );
+          },
+        );
+
+      case activationTokenDetailPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: ActivationTokenDetailPage(
+                assetToken: settings.arguments as AssetToken,
+              ),
+            );
+          },
+        );
+
+      case claimActivationPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: ClaimActivationPage(
+                payload: settings.arguments as ClaimActivationPagePayload,
+              ),
+            );
+          },
+        );
+
+      case previewActivationClaimPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: PreviewActivationTokenPage(
+                assetToken: settings.arguments as AssetToken,
               ),
             );
           },

@@ -13,21 +13,17 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -36,7 +32,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 
-import '../database/cloud_database.dart';
 import 'bloc/persona/persona_bloc.dart';
 
 final logger = Logger('App');
@@ -121,9 +116,11 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
     memoryValues.irlLink.addListener(() async {
       if (memoryValues.irlLink.value != null) {
-        setState(() {
-          fromIrlLink = true;
-        });
+        if (mounted) {
+          setState(() {
+            fromIrlLink = true;
+          });
+        }
         Future.delayed(const Duration(seconds: 30), () {
           setState(() {
             fromIrlLink = false;
@@ -143,9 +140,8 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
 
     Future.delayed(const Duration(seconds: 2), () {
-      final data = memoryValues.airdropFFExhibitionId.value;
-      final id = "${data?.seriesId ?? ''}${data?.exhibitionId ?? ''}".trim();
-      if (id.isEmpty) {
+      final data = memoryValues.branchDeeplinkData.value;
+      if (data == null || data.isEmpty) {
         if (mounted) {
           setState(() {
             fromBranchLink = false;
@@ -154,82 +150,29 @@ class _OnboardingPageState extends State<OnboardingPage>
       }
     });
 
-    String? currentId;
+    Map<dynamic, dynamic>? currentData;
 
     void updateDeepLinkState() {
       setState(() {
         fromBranchLink = false;
-        currentId = null;
-        memoryValues.airdropFFExhibitionId.value = null;
+        currentData = null;
+        memoryValues.branchDeeplinkData.value = null;
       });
     }
 
-    memoryValues.airdropFFExhibitionId.addListener(() async {
+    memoryValues.branchDeeplinkData.addListener(() async {
       try {
-        final data = memoryValues.airdropFFExhibitionId.value;
-        final id = "${data?.exhibitionId}_${data?.seriesId}";
-        if (currentId == id) return;
-        if (data?.seriesId?.isNotEmpty == true ||
-            data?.exhibitionId?.isNotEmpty == true) {
-          currentId = id;
+        final data = memoryValues.branchDeeplinkData.value;
+        if (data == currentData) return;
+        if (data != null) {
           setState(() {
             fromBranchLink = true;
           });
 
-          await _createAddressIfNeeded();
-          final ffService = injector<FeralFileService>();
-          final artwork = data?.seriesId?.isNotEmpty == true
-              ? await ffService.getSeries(data!.seriesId!)
-              : await ffService
-                  .getAirdropSeriesFromExhibitionId(data!.exhibitionId!);
-
-          if (artwork.airdropInfo?.isAirdropStarted != true) {
-            await injector
-                .get<NavigationService>()
-                .showAirdropNotStarted(artwork.id);
-            updateDeepLinkState();
-            return;
-          }
-
-          final endTime = artwork.airdropInfo?.endedAt;
-
-          if (artwork.airdropInfo == null ||
-              (endTime != null && endTime.isBefore(DateTime.now()))) {
-            await injector
-                .get<NavigationService>()
-                .showAirdropExpired(artwork.id);
-            updateDeepLinkState();
-            return;
-          }
-
-          if (artwork.airdropInfo?.remainAmount == 0) {
-            await injector.get<NavigationService>().showNoRemainingToken(
-                  series: artwork,
-                );
-            updateDeepLinkState();
-            return;
-          }
-
-          final otp = memoryValues.airdropFFExhibitionId.value?.otp;
-          if (otp?.isExpired == true) {
-            await injector.get<NavigationService>().showOtpExpired(artwork.id);
-            updateDeepLinkState();
-            return;
-          }
-
-          if (!mounted) return;
-          await Navigator.of(context).pushNamed(
-            AppRouter.claimFeralfileTokenPage,
-            arguments: ClaimTokenPageArgs(
-              series: artwork,
-              otp: otp,
-            ),
-          );
-          currentId = null;
-
-          setState(() {
-            fromBranchLink = false;
-          });
+          await injector<AccountService>().restoreIfNeeded();
+          final deepLinkService = injector.get<DeeplinkService>();
+          deepLinkService.handleBranchDeeplinkData(data);
+          updateDeepLinkState();
         }
       } catch (e) {
         setState(() {
@@ -237,23 +180,6 @@ class _OnboardingPageState extends State<OnboardingPage>
         });
       }
     });
-  }
-
-  Future<void> _createAddressIfNeeded() async {
-    final configurationService = injector<ConfigurationService>();
-    if (configurationService.isDoneOnboarding()) return;
-
-    final cloudDB = injector<CloudDatabase>();
-    final accountService = injector<AccountService>();
-    final personas = await cloudDB.personaDao.getPersonas();
-    if (personas.isEmpty) {
-      logger.info("Onboarding: create new addresses");
-      configurationService.setDoneOnboarding(true);
-      final persona = await accountService.createPersona();
-      await persona.insertAddress(WalletType.Autonomy);
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
-    }
   }
 
   // @override

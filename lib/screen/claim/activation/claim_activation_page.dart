@@ -1,74 +1,67 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
-import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/feralfile_extension.dart';
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-class ClaimTokenPageArgs {
-  final FFSeries series;
-  final Otp? otp;
+class ClaimActivationPagePayload {
+  final AssetToken assetToken;
+  final String activationID;
+  final Otp otp;
 
-  ClaimTokenPageArgs({
-    required this.series,
-    this.otp,
+  ClaimActivationPagePayload({
+    required this.assetToken,
+    required this.activationID,
+    required this.otp,
   });
 }
 
-class ClaimTokenPage extends StatefulWidget {
-  final FFSeries series;
-  final Otp? otp;
+class ClaimActivationPage extends StatefulWidget {
+  final ClaimActivationPagePayload payload;
 
-  const ClaimTokenPage({
+  const ClaimActivationPage({
     Key? key,
-    required this.series,
-    this.otp,
+    required this.payload,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _ClaimTokenPageState();
+  State<ClaimActivationPage> createState() {
+    return _ClaimActivationPageState();
   }
 }
 
-class _ClaimTokenPageState extends State<ClaimTokenPage> {
+class _ClaimActivationPageState extends State<ClaimActivationPage> {
   bool _processing = false;
 
-  final metricClient = injector.get<MetricClientService>();
+  final _metricClient = injector.get<MetricClientService>();
+  final _accountService = injector<AccountService>();
+  final _configService = injector<ConfigurationService>();
+  final _activationService = injector<ActivationService>();
 
   @override
   Widget build(BuildContext context) {
-    final artwork = widget.series;
-    final artist = artwork.artist;
-    final artistName = artist != null ? artist.getDisplayName() : "";
-    final artworkThumbnail = artwork.getThumbnailURL();
-    String gifter =
-        artwork.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
+    final assetToken = widget.payload.assetToken;
+    final artistName = widget.payload.assetToken.artistName!;
+    String gifter = "Gitfer";
     String giftIntro = "you_can_receive_free_gift".tr();
     if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
@@ -113,7 +106,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     direction: MarqueerDirection.ltr,
                                     pps: 30,
                                     child: Text(
-                                      'gift_edition'.tr().toUpperCase(),
+                                      'gift_edition'.tr(),
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                   ),
@@ -127,7 +120,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     color: Colors.black,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      imageUrl: artworkThumbnail,
+                                      imageUrl: assetToken.previewURL!,
                                       width: 225,
                                       height: 225,
                                     ),
@@ -148,16 +141,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             ),
                           ),
                         ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PreviewTokenClaim(
-                                series: widget.series,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () {},
                       ),
                     ),
                     Padding(
@@ -171,7 +155,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                 GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   child: AutoSizeText(
-                                    artwork.title,
+                                    assetToken.title!,
                                     style: theme.textTheme.ppMori400White14,
                                     maxFontSize: 14,
                                     minFontSize: 14,
@@ -181,8 +165,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => PreviewTokenClaim(
-                                          series: widget.series,
+                                        builder: (context) =>
+                                            PreviewActivationTokenPage(
+                                          assetToken: widget.payload.assetToken,
                                         ),
                                       ),
                                     );
@@ -235,52 +220,54 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        metricClient.addEvent(
+                        _metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            "id": widget.series.id,
+                            "id": widget.payload.assetToken.id,
                           },
                         );
                         setState(() {
                           _processing = true;
                         });
-                        final blockchain = widget
-                                .series.exhibition?.mintBlockchain
-                                .capitalize() ??
-                            "Tezos";
-                        final accountService = injector<AccountService>();
+                        final blockchain = widget.payload.assetToken.blockchain;
                         final addresses =
-                            await accountService.getAddress(blockchain);
+                            await _accountService.getAddress(blockchain);
 
                         String? address;
                         if (addresses.isEmpty) {
                           final defaultAccount =
-                              await accountService.getDefaultAccount();
-                          final configService =
-                              injector<ConfigurationService>();
-                          await configService.setDoneOnboarding(true);
-                          injector<MetricClientService>()
-                              .mixPanelClient
-                              .initIfDefaultAccount();
-                          await configService.setPendingSettings(true);
-                          address = blockchain == "Tezos"
+                              await _accountService.getDefaultAccount();
+
+                          await _configService.setDoneOnboarding(true);
+                          _metricClient.mixPanelClient.initIfDefaultAccount();
+                          await _configService.setPendingSettings(true);
+                          address = blockchain.toLowerCase() == "tezos"
                               ? await defaultAccount.getTezosAddress()
                               : await defaultAccount.getETHEip55Address();
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {
-                          if (!mounted) return;
-                          await Navigator.of(context).pushNamed(
-                            AppRouter.claimSelectAccountPage,
-                            arguments: SelectAccountPageArgs(
-                              blockchain,
-                              widget.series,
-                              widget.otp,
-                            ),
-                          );
+                          if (mounted) {
+                            final response =
+                                await Navigator.of(context).pushNamed(
+                              AppRouter.receivePostcardSelectAccountPage,
+                              arguments: ReceivePostcardSelectAccountPageArgs(
+                                blockchain,
+                                withLinked: false,
+                              ),
+                            );
+                            address = response as String?;
+                          }
                         }
+
                         if (address != null && mounted) {
-                          _claimToken(context, address);
+                          _claimActivation(
+                            context: context,
+                            activationID: widget.payload.activationID,
+                            receiveAddress: address,
+                            otp: widget.payload.otp,
+                            assetToken: widget.payload.assetToken,
+                          );
                         } else {
                           setState(() {
                             _processing = false;
@@ -298,28 +285,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     const SizedBox(
                       height: 16,
                     ),
-                    RichText(
-                      text: TextSpan(
-                        text: "airdrop_accept_privacy_policy".tr(),
-                        style: theme.textTheme.ppMori400Grey12,
-                        children: [
-                          TextSpan(
-                              text: "airdrop_privacy_policy".tr(),
-                              style: makeLinkStyle(
-                                theme.textTheme.ppMori400Grey12,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _openFFArtistCollector();
-                                }),
-                          TextSpan(
-                            text: ".",
-                            style: theme.primaryTextTheme.bodyLarge
-                                ?.copyWith(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -332,10 +297,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                metricClient.addEvent(
+                _metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    "id": widget.series.id,
+                    "id": widget.payload.assetToken.id,
                   },
                 );
                 memoryValues.branchDeeplinkData.value = null;
@@ -348,31 +313,32 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
     );
   }
 
-  Future _claimToken(BuildContext context, String receiveAddress) async {
-    ClaimResponse? claimRespone;
-    final ffService = injector<FeralFileService>();
+  Future _claimActivation(
+      {required BuildContext context,
+      required String activationID,
+      required String receiveAddress,
+      required AssetToken assetToken,
+      required Otp otp}) async {
     try {
-      claimRespone = await ffService.claimToken(
-        seriesId: widget.series.id,
-        address: receiveAddress,
-        otp: widget.otp,
+      await _activationService.claimActivation(
+        request: ActivationClaimRequest(
+          activationID: activationID,
+          address: receiveAddress,
+          airdropTOTPPasscode: otp.code,
+        ),
+        assetToken: assetToken,
       );
-      metricClient.addEvent(
+      _metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.series.id,
+          "id": widget.payload.assetToken.id,
         },
       );
-
-      memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
-      log.info("[ClaimTokenPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(
-        context,
-        e,
-        series: widget.series,
-      );
-      memoryValues.branchDeeplinkData.value = null;
+      setState(() {
+        _processing = false;
+      });
+      return;
     }
     setState(() {
       _processing = false;
@@ -384,29 +350,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       );
       NftCollectionBloc.eventController
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-      final token = claimRespone?.token;
-      final caption = claimRespone?.airdropInfo.twitterCaption;
-      if (token == null) {
-        return;
-      }
+      final token = widget.payload.assetToken;
+      const caption = "";
       Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.owner)], 0,
-              twitterCaption: caption ?? ""));
+              [ArtworkIdentity(token.id, receiveAddress)], 0,
+              twitterCaption: caption));
     }
   }
-
-  void _openFFArtistCollector() {
-    String uri = (widget.series.exhibition?.id == null)
-        ? FF_ARTIST_COLLECTOR
-        : "$FF_ARTIST_COLLECTOR/${widget.series.exhibition?.id}";
-    launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
-  }
-}
-
-class ClaimResponse {
-  AssetToken token;
-  AirdropInfo airdropInfo;
-
-  ClaimResponse({required this.token, required this.airdropInfo});
 }

@@ -12,7 +12,6 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -189,7 +188,7 @@ final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
 var memoryValues = MemoryValues(
-    airdropFFExhibitionId: ValueNotifier(null),
+    branchDeeplinkData: ValueNotifier(null),
     deepLink: ValueNotifier(null),
     irlLink: ValueNotifier(null));
 
@@ -198,7 +197,7 @@ class MemoryValues {
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
   bool inGalleryView;
-  ValueNotifier<AirdropQrData?> airdropFFExhibitionId;
+  ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
   List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
@@ -210,7 +209,7 @@ class MemoryValues {
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
-    required this.airdropFFExhibitionId,
+    required this.branchDeeplinkData,
     this.linkedFFConnections,
     required this.deepLink,
     required this.irlLink,
@@ -221,7 +220,7 @@ class MemoryValues {
   }) {
     return MemoryValues(
       scopedPersona: scopedPersona ?? this.scopedPersona,
-      airdropFFExhibitionId: airdropFFExhibitionId,
+      branchDeeplinkData: branchDeeplinkData,
       deepLink: deepLink,
       irlLink: irlLink,
     );
