@@ -11,11 +11,12 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -33,6 +34,8 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -42,6 +45,8 @@ abstract class DeeplinkService {
   Future setup();
 
   void handleDeeplink(String? link, {Duration delay});
+
+  void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -54,6 +59,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final BranchApi _branchApi;
   final PostcardService _postcardService;
   final AirdropService _airdropService;
+  final ActivationService _activationService;
+  final IndexerService _indexerService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -70,6 +77,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
     this._postcardService,
     this._airdropService,
+    this._activationService,
+    this._indexerService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -85,9 +94,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         _deepLinkHandlingMap[data["~referring_link"]] = true;
         _deepLinkHandleClock(
             "Handle Branch Deep Link Data Time Out", data["source"]);
-        await _handleBranchDeeplinkData(data);
+        await handleBranchDeeplinkData(data);
         handlingDeepLink = null;
-        _deepLinkHandlingMap.remove(data["~referring_link"]);
       }
     }, onError: (error) {
       log.warning(
@@ -318,7 +326,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         );
         if (!validUrl) return false;
       }
-      await _navigationService.navigateTo(AppRouter.irlWebview, arguments: uri);
+      await _navigationService.navigateTo(AppRouter.irlWebView,
+          arguments: urlDecode);
       return true;
     }
 
@@ -328,10 +337,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info("[DeeplinkService] _handleBranchDeeplink");
     //star
-    memoryValues.airdropFFExhibitionId.value = AirdropQrData(
-      exhibitionId: '',
-      seriesId: '',
-    );
+    memoryValues.branchDeeplinkData.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
@@ -341,13 +347,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
           linkType: LinkType.branch,
           prefix: callingBranchDeepLinkPrefix,
           addData: response["data"]);
-      _handleBranchDeeplinkData(response["data"]);
+      handleBranchDeeplinkData(response["data"]);
       return true;
     }
     return false;
   }
 
-  Future<void> _handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
+  @override
+  Future<void> handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
+    final doneOnboarding = _configurationService.isDoneOnboarding();
+    if (!doneOnboarding) {
+      memoryValues.branchDeeplinkData.value = data;
+      return;
+    }
     final source = data["source"];
     switch (source) {
       case "FeralFile":
@@ -356,7 +368,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
           await _linkFeralFileToken(tokenId);
         }
-        memoryValues.airdropFFExhibitionId.value = null;
+        memoryValues.branchDeeplinkData.value = null;
         break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
@@ -429,9 +441,26 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         break;
 
+      case "Autonomy_Activation":
+        final String? activationID = data["activationID"];
+        final String? expiredAt = data["expired_at"];
+
+        if (expiredAt != null &&
+            DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
+                int.tryParse(expiredAt) ?? 0))) {
+          log.info("[DeeplinkService] FeralFile Airdrop expired");
+          // _navigationService.showAirdropExpired(seriesId);
+          break;
+        }
+
+        if (activationID?.isNotEmpty == true) {
+          _handleActivationDeeplink(activationID, _getOtpFromBranchData(data));
+        }
+        break;
       default:
-        memoryValues.airdropFFExhibitionId.value = null;
+        memoryValues.branchDeeplinkData.value = null;
     }
+    _deepLinkHandlingMap.remove(data["~referring_link"]);
   }
 
   Future<void> _linkFeralFileToken(String tokenId) async {
@@ -501,11 +530,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         currentExhibitionId = null;
       } else {
-        memoryValues.airdropFFExhibitionId.value = AirdropQrData(
-          exhibitionId: exhibitionId,
-          seriesId: seriesId,
-          otp: otp,
-        );
         handlingDeepLink = null;
         await Future.delayed(const Duration(seconds: 5), () {
           currentExhibitionId = null;
@@ -552,6 +576,27 @@ class DeeplinkServiceImpl extends DeeplinkService {
     _navigationService.navigatorKey.currentState?.pushNamed(
       AppRouter.claimEmptyPostCard,
       arguments: claimRequest,
+    );
+  }
+
+  _handleActivationDeeplink(String? activationID, Otp? otp) async {
+    if (activationID == null) {
+      return;
+    }
+    final activationInfo =
+        await _activationService.getActivation(activationID: activationID);
+    final indexerId = _activationService.getIndexerID(activationInfo.blockchain,
+        activationInfo.contractAddress, activationInfo.tokenID);
+    final request = QueryListTokensRequest(
+      ids: [indexerId],
+    );
+    final assetToken = await _indexerService.getNftTokens(request);
+    await _navigationService.openActivationPage(
+      payload: ClaimActivationPagePayload(
+        activationID: activationID,
+        assetToken: assetToken.first,
+        otp: otp!,
+      ),
     );
   }
 }

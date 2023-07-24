@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -114,32 +114,23 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
 
   Widget _buildAddressList(BuildContext context) {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final categorizedAccounts = state.accounts ?? [];
-      return Column(
-        children: [
-          ...categorizedAccounts.map((account) {
-            return PersonalConnectItem(
-              categorizedAccount: account,
-              ethSelectedAddress: _selectedAddress,
-              tezSelectedAddress: _selectedAddress,
-              isExpand: true,
-              onSelectEth: (value) {
-                setState(() {
-                  if (widget.blockchain.toLowerCase() != "tezos") {
-                    _selectedAddress = value;
-                  }
-                });
-              },
-              onSelectTez: (value) {
-                setState(() {
-                  if (widget.blockchain.toLowerCase() == "tezos") {
-                    _selectedAddress = value;
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ],
+      final accounts = state.accounts ?? [];
+      return ListAccountConnect(
+        accounts: accounts,
+        onSelectEth: (value) {
+          setState(() {
+            if (widget.blockchain.toLowerCase() != "tezos") {
+              _selectedAddress = value.accountNumber;
+            }
+          });
+        },
+        onSelectTez: (value) {
+          setState(() {
+            if (widget.blockchain.toLowerCase() == "tezos") {
+              _selectedAddress = value.accountNumber;
+            }
+          });
+        },
       );
     });
   }

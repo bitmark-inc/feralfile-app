@@ -79,6 +79,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   bool viewJourney = true;
   Timer? timer;
   bool isUpdating = false;
+  bool canceling = false;
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -341,16 +342,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               appBar: AppBar(
                 leadingWidth: 0,
                 centerTitle: false,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      asset.title ?? '',
-                      style: theme.textTheme.ppMori400White16,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                title: ArtworkDetailsHeader(
+                  title: asset.title ?? '',
+                  subTitle: '',
+                  hideArtist: true,
                 ),
                 actions: [
                   Semantics(
@@ -582,6 +577,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           UIHelper.showSharePostcardFailed(context, e);
         }
       }
+    }
+  }
+
+  Future<void> cancelShare(AssetToken asset) async {
+    try {
+      await _postcardService.cancelSharePostcard(asset);
+      await _configurationService.removeSharedPostcardWhere((sharedPostcard) =>
+          sharedPostcard.tokenID == asset.id &&
+          sharedPostcard.owner == asset.owner);
+      setState(() {});
+    } catch (error) {
+      log.info("Cancel share postcard failed: error ${error.toString()}");
     }
   }
 
@@ -977,12 +984,47 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const Spacer(),
             GestureDetector(
               child: Text(
-                "resend_".tr(),
+                "cancel".tr(),
                 style: theme.textTheme.moMASans400Grey12
                     .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
               ),
               onTap: () {
-                _sharePostcard(asset);
+                UIHelper.showDialog(context, "cancel_invitation".tr(),
+                    StatefulBuilder(builder: (context, setState) {
+                  return Column(
+                    children: [
+                      Text(
+                        "cancel_invitation_desc".tr(),
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      ),
+                      const SizedBox(height: 40),
+                      PrimaryButton(
+                        text: "cancel".tr(),
+                        isProcessing: canceling,
+                        enabled: !canceling,
+                        onTap: () async {
+                          setState(() {
+                            canceling = true;
+                          });
+                          await cancelShare(asset);
+                          setState(() {
+                            canceling = false;
+                          });
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      OutlineButton(
+                        text: "close".tr(),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                }), isDismissible: true);
               },
             ),
           ],

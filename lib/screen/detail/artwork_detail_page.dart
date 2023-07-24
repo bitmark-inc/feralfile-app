@@ -91,10 +91,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  void _manualShare(String caption, String url) async {
+  void _manualShare(String caption, String url, List<String> hashTags) async {
     final encodeCaption = Uri.encodeQueryComponent(caption);
+    final hashTagsString = hashTags.join(",");
     final twitterUrl =
-        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
+        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption&hashtags=$hashTagsString";
     final twitterUri = Uri.parse(twitterUrl);
     launchUrl(twitterUri, mode: LaunchMode.externalApplication);
   }
@@ -103,11 +104,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final prefix = Environment.tokenWebviewPrefix;
     final url = '$prefix/token/${token.id}';
     final caption = widget.payload.twitterCaption ?? "";
+    final hashTags = getTags(token);
     SocialShare.checkInstalledAppsForShare().then((data) {
       if (data?[SocialApp.twitter]) {
-        SocialShare.shareTwitter(caption, url: url);
+        SocialShare.shareTwitter(caption, url: url, hashtags: hashTags);
       } else {
-        _manualShare(caption, url);
+        _manualShare(caption, url, hashTags);
       }
     });
     metricClient.addEvent(MixpanelEvent.share, data: {
@@ -119,13 +121,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     });
   }
 
-  Future<void> _socialShare(BuildContext context, AssetToken asset) {
-    final theme = Theme.of(context);
-    final tags = [
+  List<String> getTags(AssetToken asset) {
+    final defaultTags = [
       'autonomy',
       'digitalartwallet',
       'NFT',
     ];
+    List<String> tags = defaultTags;
+    if (asset.isMoMAMemento) {
+      tags = [
+        'refikunsupervised',
+        'autonomyapp',
+      ];
+    }
+    return tags;
+  }
+
+  Future<void> _socialShare(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    final tags = getTags(asset);
     final tagsText = tags.map((e) => '#$e').join(" ");
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +257,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
         var subTitle = "";
         if (artistName != null && artistName.isNotEmpty) {
-          subTitle = "by".tr(args: [artistName]);
+          subTitle = artistName;
         }
 
         final editionSubTitle = getEditionSubTitle(asset);
@@ -254,22 +268,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           appBar: AppBar(
             leadingWidth: 0,
             centerTitle: false,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  asset.title ?? '',
-                  style: theme.textTheme.ppMori400White16,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subTitle,
-                  style: theme.textTheme.ppMori400White14,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            title: ArtworkDetailsHeader(
+              title: asset.title ?? "",
+              subTitle: subTitle,
+              onTitleTap: widget.payload.useIndexer &&
+                      asset.secondaryMarketURL.isValidUrl() == true
+                  ? () {
+                      Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                          arguments: asset.secondaryMarketURL);
+                    }
+                  : null,
             ),
             actions: [
               widget.payload.useIndexer
@@ -579,7 +587,7 @@ class ArtworkDetailPayload {
   final int currentIndex;
   final PlayControlModel? playControl;
   final String? twitterCaption;
-  final bool useIndexer;
+  final bool useIndexer; // set true when navigate from discover/gallery page
 
   ArtworkDetailPayload(
     this.identities,

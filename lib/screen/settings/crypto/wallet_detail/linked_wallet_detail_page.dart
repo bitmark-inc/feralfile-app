@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -499,7 +500,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         onTap: () {
           Navigator.of(context).pushNamed(
             AppRouter.inappWebviewPage,
-            arguments: _txURL(_address, widget.payload.type),
+            arguments:
+                InAppWebViewPayload(_txURL(_address, widget.payload.type)),
           );
         },
       ),

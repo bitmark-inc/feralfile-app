@@ -15,9 +15,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -31,12 +28,8 @@ part 'accounts_state.dart';
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
-  final BackupService _backupService;
-  final AuditService _auditService;
-  final AccountService _accountService;
 
-  AccountsBloc(this._configurationService, this._cloudDB, this._backupService,
-      this._auditService, this._accountService)
+  AccountsBloc(this._configurationService, this._cloudDB)
       : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
@@ -47,8 +40,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
-      List<Account> accounts =
-          await getAccountPersona(addresses, addDefault: true);
+      List<Account> accounts = await getAccountPersona(addresses);
 
       final connections = await connectionsFuture;
       for (var connection in connections) {
@@ -79,14 +71,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         }
       }
 
-      if (accounts.isEmpty) {
-        await _backupService
-            .deleteAllProfiles(await _accountService.getDefaultAccount());
-        await _cloudDB.personaDao.removeAll();
-        await _cloudDB.connectionDao.removeAll();
-        await _auditService.auditPersonaAction('cleanUp', null);
-      }
-
       accounts.sort(_compareAccount);
 
       emit(AccountsState(accounts: accounts));
@@ -95,8 +79,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<GetAccountsIRLEvent>((event, emit) async {
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
-      List<Account> accounts =
-          await getAccountPersona(addresses, addDefault: true);
+      List<Account> accounts = await getAccountPersona(addresses);
 
       accounts.sort(_compareAccount);
       emit(AccountsState(accounts: accounts));
@@ -122,8 +105,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           addresses = [];
       }
 
-      List<Account> accounts = await getAccountPersona(addresses,
-          addDefault: type == WalletType.Autonomy);
+      List<Account> accounts = await getAccountPersona(addresses);
       accounts.sort(_compareAccount);
       emit(state.copyWith(accounts: accounts));
     });
@@ -257,18 +239,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     return existingConnections.first;
   }
 
-  Future<List<Account>> getAccountPersona(List<WalletAddress> walletAddresses,
-      {bool addDefault = false}) async {
+  Future<List<Account>> getAccountPersona(
+      List<WalletAddress> walletAddresses) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     final List<WalletAddress> addresses = [];
     addresses.addAll(walletAddresses);
-    if (walletAddresses.isEmpty && addDefault) {
-      final defaultPersona =
-          personas.firstWhere((element) => element.isDefault());
-      final defaultAddresses =
-          await defaultPersona.insertAddress(WalletType.Autonomy);
-      addresses.addAll(defaultAddresses);
-    }
     List<Account> accounts = [];
     for (var e in addresses) {
       final name = e.name != null && e.name!.isNotEmpty ? e.name : e.cryptoType;
@@ -303,7 +278,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     final name = connection.name.isNotEmpty ? connection.name : cryptoType;
     return Account(
       key: connection.key,
-      accountNumber: connection.accountNumber,
+      accountNumber: address,
       connections: [connection],
       blockchain: cryptoType,
       name: name,

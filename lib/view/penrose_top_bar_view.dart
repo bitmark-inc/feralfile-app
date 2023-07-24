@@ -110,37 +110,37 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     return SafeArea(
       child: AnimatedBuilder(
         builder: (context, value) => Stack(children: [
-          Opacity(opacity: _opacity, child: _headerWidget()),
+          Opacity(opacity: _opacity, child: _headerWidget(context)),
         ]),
         animation: widget.scrollController,
       ),
     );
   }
 
-  Widget _headerWidget() {
+  Widget _headerWidget(BuildContext context) {
     switch (widget.style) {
       case PenroseTopBarViewStyle.main:
         return Container(
           alignment: Alignment.topCenter,
           padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
-          child: _mainHeaderWidget(isInSettingsPage: false),
+          child: _mainHeaderWidget(context, isInSettingsPage: false),
         );
       case PenroseTopBarViewStyle.settings:
         return Container(
           alignment: Alignment.topCenter,
           padding: const EdgeInsets.fromLTRB(7, 0, 2, 90),
-          child: _mainHeaderWidget(isInSettingsPage: true),
+          child: _mainHeaderWidget(context, isInSettingsPage: true),
         );
       case PenroseTopBarViewStyle.back:
         return Container(
           alignment: Alignment.topCenter,
           padding: const EdgeInsets.fromLTRB(16, 12, 12, 90),
-          child: _backHeaderWidget(),
+          child: _backHeaderWidget(context),
         );
     }
   }
 
-  Widget _backHeaderWidget() {
+  Widget _backHeaderWidget(BuildContext context) {
     final theme = Theme.of(context);
 
     return GestureDetector(
@@ -166,7 +166,8 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
     );
   }
 
-  Widget _mainHeaderWidget({required bool isInSettingsPage}) {
+  Widget _mainHeaderWidget(BuildContext context,
+      {required bool isInSettingsPage}) {
     final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

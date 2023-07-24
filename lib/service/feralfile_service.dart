@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/airdrop_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
@@ -53,7 +52,6 @@ abstract class FeralFileService {
     required String seriesId,
     String? address,
     Otp? otp,
-    bool delayed = false,
     Future<bool> Function(FFSeries)? onConfirm,
   });
 
@@ -215,18 +213,8 @@ class FeralFileServiceImpl extends FeralFileService {
       {required String seriesId,
       String? address,
       Otp? otp,
-      bool delayed = false,
       Future<bool> Function(FFSeries)? onConfirm}) async {
-    log.info(
-        "[FeralFileService] Claim token - series: $seriesId, delayed: $delayed");
-    if (delayed) {
-      memoryValues.airdropFFExhibitionId.value = AirdropQrData(
-        seriesId: seriesId,
-        otp: otp,
-      );
-      return null;
-    }
-
+    log.info("[FeralFileService] Claim token - series: $seriesId");
     final series = await getSeries(seriesId);
 
     if (series.airdropInfo == null ||

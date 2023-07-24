@@ -10,8 +10,10 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +62,13 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
 ];
+
+const TEIA_ART_CONTRACT_ADDRESSES = ["KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"];
+const OPENSEA_ASSET_PREFIX = "https://opensea.io/assets/";
+const OBJKT_ASSET_PREFIX = "https://objkt.com/asset/";
+const TEIA_ART_ASSET_PREFIX = "https://teia.art/objkt/";
+const FXHASH_IDENTIFIER = "fxhash.xyz";
+
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
 List<String> checkWeb3ContractAddress = [
@@ -100,6 +109,9 @@ const double cellSpacing = 3.0;
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
+
+final moMAGeoLocation =
+    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 

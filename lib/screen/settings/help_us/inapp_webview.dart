@@ -10,16 +10,16 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class InappWebviewPage extends StatefulWidget {
-  final String url;
+class InAppWebViewPage extends StatefulWidget {
+  final InAppWebViewPayload payload;
 
-  const InappWebviewPage({super.key, required this.url});
+  const InAppWebViewPage({super.key, required this.payload});
 
   @override
-  State<InappWebviewPage> createState() => _InappWebviewPageState();
+  State<InAppWebViewPage> createState() => _InAppWebViewPageState();
 }
 
-class _InappWebviewPageState extends State<InappWebviewPage> {
+class _InAppWebViewPageState extends State<InAppWebViewPage> {
   late InAppWebViewController webViewController;
   late String title;
   late bool isLoading;
@@ -27,7 +27,7 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
 
   @override
   void initState() {
-    title = Uri.parse(widget.url).host;
+    title = Uri.parse(widget.payload.url).host;
     isLoading = false;
     super.initState();
   }
@@ -53,14 +53,19 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
             child: Stack(
               children: [
                 InAppWebView(
-                  initialUrlRequest: URLRequest(url: Uri.tryParse(widget.url)),
+                  initialUrlRequest:
+                      URLRequest(url: Uri.tryParse(widget.payload.url)),
                   initialOptions: InAppWebViewGroupOptions(
                       crossPlatform: InAppWebViewOptions(
                           userAgent: "user_agent"
                               .tr(namedArgs: {"version": version}))),
-                  onWebViewCreated: (c) {
-                    webViewController = c;
+                  onWebViewCreated: (controller) {
+                    if (widget.payload.onWebViewCreated != null) {
+                      widget.payload.onWebViewCreated!(controller);
+                    }
+                    webViewController = controller;
                   },
+                  onConsoleMessage: widget.payload.onConsoleMessage,
                   onLoadStart: (controller, uri) {
                     setState(() {
                       isLoading = true;
@@ -206,4 +211,13 @@ class _InappWebviewPageState extends State<InappWebviewPage> {
       ),
     );
   }
+}
+
+class InAppWebViewPayload {
+  final String url;
+  Function(InAppWebViewController controler)? onWebViewCreated;
+  Function(InAppWebViewController controler, ConsoleMessage consoleMessage)?
+      onConsoleMessage;
+
+  InAppWebViewPayload(this.url, {this.onWebViewCreated, this.onConsoleMessage});
 }

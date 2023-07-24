@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -84,6 +85,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _clientTokenService = injector<ClientTokenService>();
   final _metricClientService = injector<MetricClientService>();
   final _notificationService = injector<NotificationService>();
+  final _playListService = injector<PlaylistService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -112,6 +114,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           _feedService.checkNewFeeds();
           _editorialService.checkNewEditorial();
         });
+        _playListService.refreshPlayLists();
       } else if (index == 0) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
@@ -192,7 +195,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     } else {
       _selectedIndex = HomeNavigatorTab.DISCOVER.index;
-      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
@@ -216,8 +218,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       MultiBlocProvider(
         providers: [
           BlocProvider.value(
-              value: AccountsBloc(injector(), injector<CloudDatabase>(),
-                  injector(), injector<AuditService>(), injector())),
+              value: AccountsBloc(injector(), injector<CloudDatabase>())),
         ],
         child: const WalletPage(),
       ),
@@ -585,11 +586,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
+        _handleForeground();
         break;
       case FGBGType.background:
         _handleBackground();
         break;
     }
+  }
+
+  void _handleForeground() {
+    injector<CustomerSupportService>().fetchAnnouncement();
   }
 
   @override
@@ -598,6 +604,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
+    }
+    if (_selectedIndex == HomeNavigatorTab.DISCOVER.index) {
+      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
   }
 

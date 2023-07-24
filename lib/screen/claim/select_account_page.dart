@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -14,6 +13,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -151,6 +151,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
                         }
                         if (widget.artwork != null) {
                           await _claimToken(
+                            context,
                             _selectedAddress!,
                             widget.artwork!.id,
                             otp: widget.otp,
@@ -167,32 +168,23 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
 
   Widget _buildAddressList(BuildContext context) {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final categorizedAccounts = state.accounts ?? [];
-      return Column(
-        children: categorizedAccounts
-            .map(
-              (account) => PersonalConnectItem(
-                categorizedAccount: account,
-                ethSelectedAddress: _selectedAddress,
-                tezSelectedAddress: _selectedAddress,
-                isExpand: true,
-                onSelectEth: (value) {
-                  setState(() {
-                    if (widget.blockchain?.toLowerCase() != "tezos") {
-                      _selectedAddress = value;
-                    }
-                  });
-                },
-                onSelectTez: (value) {
-                  setState(() {
-                    if (widget.blockchain?.toLowerCase() == "tezos") {
-                      _selectedAddress = value;
-                    }
-                  });
-                },
-              ),
-            )
-            .toList(),
+      final accounts = state.accounts ?? [];
+      return ListAccountConnect(
+        accounts: accounts,
+        onSelectEth: (value) {
+          setState(() {
+            if (widget.blockchain?.toLowerCase() != "tezos") {
+              _selectedAddress = value.accountNumber;
+            }
+          });
+        },
+        onSelectTez: (value) {
+          setState(() {
+            if (widget.blockchain?.toLowerCase() == "tezos") {
+              _selectedAddress = value.accountNumber;
+            }
+          });
+        },
       );
     });
   }
@@ -204,15 +196,16 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   Future _claimToken(
+    BuildContext context,
     String address,
     String artworkId, {
     Otp? otp,
   }) async {
-    ClaimResponse? claimRespone;
+    ClaimResponse? claimResponse;
     try {
       _setProcessingState(true);
       final ffService = injector<FeralFileService>();
-      claimRespone = await ffService.claimToken(
+      claimResponse = await ffService.claimToken(
         seriesId: artworkId,
         address: address,
         otp: otp,
@@ -224,7 +217,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
           "id": widget.artwork?.id,
         },
       );
-      memoryValues.airdropFFExhibitionId.value = null;
+      memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
       await UIHelper.showClaimTokenError(
@@ -232,7 +225,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         e,
         series: widget.artwork!,
       );
-      memoryValues.airdropFFExhibitionId.value = null;
+      memoryValues.branchDeeplinkData.value = null;
     } finally {
       _setProcessingState(false);
     }
@@ -242,8 +235,8 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       AppRouter.homePage,
       (route) => false,
     );
-    final token = claimRespone?.token;
-    final caption = claimRespone?.airdropInfo.twitterCaption;
+    final token = claimResponse?.token;
+    final caption = claimResponse?.airdropInfo.twitterCaption;
     if (token == null) {
       return;
     }

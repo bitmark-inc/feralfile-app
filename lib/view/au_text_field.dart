@@ -22,6 +22,7 @@ class AuTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmit;
   final int? maxLines;
   final int? hintMaxLines;
+  final FocusNode? focusNode;
 
   const AuTextField({
     Key? key,
@@ -37,12 +38,15 @@ class AuTextField extends StatelessWidget {
     this.onChanged,
     this.onSubmit,
     this.labelSemantics,
+    this.focusNode,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isEmpty = controller.text.isEmpty;
+    controller.selection =
+        TextSelection.collapsed(offset: controller.text.length);
     return Semantics(
       label: labelSemantics,
       child: Container(
@@ -107,6 +111,7 @@ class AuTextField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextField(
         autocorrect: false,
+        focusNode: focusNode,
         maxLines: maxLines,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.fromLTRB(0, 3, 0, 0),

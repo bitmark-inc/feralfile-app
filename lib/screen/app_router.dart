@@ -42,6 +42,9 @@ import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_b
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/activation_token_detail_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
@@ -92,6 +95,7 @@ import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
@@ -237,7 +241,7 @@ class AppRouter {
   static const postcardDetailPage = 'postcard_detail_page';
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
-  static const irlWebview = 'irl_web_claim';
+  static const irlWebView = 'irl_web_claim';
   static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
@@ -247,13 +251,15 @@ class AppRouter {
   static const keyboardControlPage = "keyboard_control_page";
   static const touchPadPage = "touch_pad_page";
   static const claimAirdropPage = 'claim_airdrop_page';
+  static const activationTokenDetailPage = 'activation_token_detail_page';
+  static const claimActivationPage = 'claim_activation_page';
+  static const previewActivationClaimPage = 'preview_activation_claim_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
-    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>(),
-        injector(), injector<AuditService>(), injector());
+    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -819,6 +825,14 @@ class AppRouter {
                   child: SelectAddressesPage(
                       payload: settings.arguments as SelectAddressesPayload),
                 ));
+
+      case NameAddressPersona.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => NameAddressPersona(
+                  payload: settings.arguments as NameAddressPersonaPayload,
+                ));
+
       case AddressAlias.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -1257,7 +1271,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
-              return InappWebviewPage(url: settings.arguments as String);
+              return InAppWebViewPage(
+                  payload: settings.arguments as InAppWebViewPayload);
             });
       case claimEmptyPostCard:
         final claimRequest = settings.arguments as RequestPostcardResponse;
@@ -1341,8 +1356,8 @@ class AppRouter {
           );
         });
 
-      case irlWebview:
-        final url = settings.arguments as Uri;
+      case irlWebView:
+        final url = settings.arguments as String;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
@@ -1419,6 +1434,45 @@ class AppRouter {
               value: accountsBloc,
               child: ClaimAirdropPage(
                 payload: settings.arguments as ClaimTokenPagePayload,
+              ),
+            );
+          },
+        );
+
+      case activationTokenDetailPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: ActivationTokenDetailPage(
+                assetToken: settings.arguments as AssetToken,
+              ),
+            );
+          },
+        );
+
+      case claimActivationPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: ClaimActivationPage(
+                payload: settings.arguments as ClaimActivationPagePayload,
+              ),
+            );
+          },
+        );
+
+      case previewActivationClaimPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: PreviewActivationTokenPage(
+                assetToken: settings.arguments as AssetToken,
               ),
             );
           },
