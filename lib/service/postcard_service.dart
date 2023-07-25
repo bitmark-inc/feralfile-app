@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
@@ -26,6 +27,7 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -87,6 +89,8 @@ abstract class PostcardService {
       {bool override = false, bool isRemove = false});
 
   Future<void> checkNotification();
+
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard();
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -361,5 +365,42 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<void> cancelSharePostcard(AssetToken asset) async {
     await sharePostcard(asset);
+  }
+
+  @override
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
+    final leaderboardResponse = await _postcardApi
+        .getLeaderboard(DistanceFormatter.getDistanceUnit.name);
+    final ids = leaderboardResponse.items
+        .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
+        .toList();
+    final request = QueryListTokensRequest(
+      ids: ids,
+    );
+    final tokens = await _indexerService.getNftTokens(request);
+    leaderboardResponse.items.map((e) {
+      e.title = tokens
+              .firstWhereOrNull((element) => element.tokenId == e.id)
+              ?.title ??
+          "Unknown";
+      return e;
+    }).toList();
+
+    return PostcardLeaderboard(
+        items: leaderboardResponse.items, lastUpdated: DateTime.now());
+  }
+}
+
+enum DistanceUnit {
+  km,
+  mile;
+
+  String get name {
+    switch (this) {
+      case DistanceUnit.km:
+        return "km";
+      case DistanceUnit.mile:
+        return "mile";
+    }
   }
 }
