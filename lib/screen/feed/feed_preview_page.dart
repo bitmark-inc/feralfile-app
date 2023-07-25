@@ -622,16 +622,18 @@ class _FeedViewState extends State<FeedView> {
                                       ],
                                     ),
                                   ),
-                                  const Spacer(),
-                                  Text(
-                                      events.length > 1
-                                          ? "last_time_format"
-                                              .tr(args: [followingTime])
-                                          : followingTime,
-                                      style: theme.textTheme.ppMori400Grey14),
                                 ]
                               ],
                             ),
+                            if (followingNames.join().trim().isNotEmpty) ...[
+                              const Spacer(),
+                              Text(
+                                  events.length > 1
+                                      ? "last_time_format"
+                                          .tr(args: [followingTime])
+                                      : followingTime,
+                                  style: theme.textTheme.ppMori400Grey14),
+                            ]
                           ],
                         ),
                         const SizedBox(height: 10),
