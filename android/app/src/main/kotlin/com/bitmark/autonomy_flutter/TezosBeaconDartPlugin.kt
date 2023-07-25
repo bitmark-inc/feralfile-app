@@ -100,18 +100,6 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                 startBeacon()
             }
 
-//            "getConnectionURI" ->
-//                getConnectionURI(result)
-//
-//            "getPostMessageConnectionURI" ->
-//                getPostMessageConnectionURI(result)
-
-//            "handlePostMessageOpenChannel" ->
-//                handlePostMessageOpenChannel(call, result)
-//
-//            "handlePostMessageMessage" ->
-//                handlePostMessageMessage(call, result)
-
             "addPeer" -> {
                 val link: String = call.argument("link") ?: ""
                 addPeer(link, result)
@@ -392,7 +380,6 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
                     }
             }
 
-//            startOpenChannelListener()
         }
     }
 
@@ -522,38 +509,6 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
 
         return jsonKT.decodeFromString(messageData.toString(Charsets.UTF_8))
     }
-
-//    private suspend fun startOpenChannelListener() {
-//        beaconClient?.let { client ->
-//            client. .startOpenChannelListener()
-//                .collect {
-//                    val peer = it.getOrNull() ?: return@collect
-//
-//                    val metadata = client.getOwnAppMetadata()
-//                    val request = PermissionTezosRequest(
-//                        id = UUID.randomUUID().toString().lowercase(),
-//                        version = "2",
-//                        blockchainIdentifier = "tezos",
-//                        senderId = metadata.senderId,
-//                        appMetadata = TezosAppMetadata(
-//                            metadata.senderId,
-//                            metadata.name,
-//                            metadata.icon
-//                        ),
-//                        origin = Origin.forPeer(peer = peer),
-//                        network = TezosNetwork.Mainnet(),
-//                        scopes = listOf(
-//                            TezosPermission.Scope.OperationRequest,
-//                            TezosPermission.Scope.Sign
-//                        )
-//                    )
-//
-//                    client.request(request)
-//
-//                    dappPermissionPublisher.emit(peer)
-//                }
-//        }
-//    }
 }
 
 data class TezosWalletConnection(
@@ -564,129 +519,3 @@ data class TezosWalletConnection(
     @SerialName("permissionResponse")
     val permissionResponse: PermissionTezosResponse
 )
-
-
-//@Serializable
-//data class PostMessagePairingRequest(
-//    @SerialName("id")
-//    val id: String,
-//    @SerialName("name")
-//    val name: String,
-//    @SerialName("icon")
-//    val icon: String?,
-//    @SerialName("appUrl")
-//    val appUrl: String?,
-//    @SerialName("publicKey")
-//    val publicKey: String,
-//    @SerialName("type")
-//    val type: String
-//)
-
-//@Serializable
-//data class ExtendedPostMessagePairingResponse(
-//    @SerialName("id")
-//    val id: String,
-//    @SerialName("type")
-//    val type: String,
-//    @SerialName("name")
-//    val name: String,
-//    @SerialName("publicKey")
-//    val publicKey: String,
-//    @SerialName("icon")
-//    val icon: String?,
-//    @SerialName("appUrl")
-//    val appUrl: String?,
-//    @SerialName("senderId")
-//    val senderId: String,
-//) {
-//    fun extractPeer(): P2pPeer { // should be postMessagePeer; but we use that just for field values
-//        return P2pPeer(
-//            id = id,
-//            name = name,
-//            publicKey = publicKey,
-//            relayServer = "",
-//            version = "",
-//            icon = icon,
-//            appUrl = appUrl
-//        )
-//    }
-//}
-
-//@Serializable
-//data class PostMessagePermissionRequest(
-//    @SerialName("type")
-//    val type: String,
-//    @SerialName("id")
-//    val id: String,
-//    @SerialName("blockchainIdentifier")
-//    val blockchainIdentifier: String,
-//    @SerialName("senderID")
-//    val senderID: String,
-//    @SerialName("appMetadata")
-//    val appMetadata: AppMetadata,
-//    @SerialName("network")
-//    val network: Network,
-//    @SerialName("scopes")
-//    val scopes: List<TezosPermission.Scope>,
-//    @SerialName("version")
-//    val version: String
-//)
-
-//@Serializable
-//data class PostMessageResponse(
-//    @SerialName("id")
-//    val id: String,
-//    @SerialName("publicKey")
-//    val publicKey: String,
-//    @SerialName("network")
-//    val network: TezosNetwork,
-//    @SerialName("scopes")
-//    val scopes: List<TezosPermission.Scope>,
-//    @SerialName("version")
-//    val version: String,
-//    @SerialName("senderId")
-//    val senderId: String,
-//    @SerialName("type")
-//    val type: String
-//) {
-//    fun convertToPermissionResponse(): PermissionTezosResponse {
-//        val request = PermissionTezosRequest(
-//            id = id,
-//            blockchainIdentifier = "tezos",
-//            network = network,
-//            scopes = scopes,
-//            version = version,
-//            appMetadata = TezosAppMetadata(senderId, ""),
-//            origin = Origin.P2P(senderId),
-//            senderId = senderId
-//        )
-//        val tzAddress = TezosWallet(
-//            dependencyRegistry.crypto,
-//            dependencyRegistry.base58Check
-//        ).address(publicKey).getOrDefault("")
-//
-//        return PermissionTezosResponse.from(
-//            request,
-//            TezosAccount(
-//                publicKey = publicKey,
-//                address = tzAddress,
-//                network = network
-//            ),
-//            scopes
-//        )
-//    }
-//}
-
-//@Serializable
-//data class PostMessageErrorResponse(
-//    @SerialName("id")
-//    val id: String,
-//    @SerialName("version")
-//    val version: String,
-//    @SerialName("senderId")
-//    val senderId: String,
-//    @SerialName("type")
-//    val type: String,
-//    @SerialName("errorType")
-//    val errorType: String
-//)
