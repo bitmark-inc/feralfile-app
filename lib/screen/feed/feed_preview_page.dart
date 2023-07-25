@@ -625,15 +625,12 @@ class _FeedViewState extends State<FeedView> {
                                 ]
                               ],
                             ),
-                            if (followingNames
-                                .join()
-                                .trim()
-                                .isNotEmpty) ...[
+                            if (followingNames.join().trim().isNotEmpty) ...[
                               const Spacer(),
                               Text(
                                   events.length > 1
                                       ? "last_time_format"
-                                      .tr(args: [followingTime])
+                                          .tr(args: [followingTime])
                                       : followingTime,
                                   style: theme.textTheme.ppMori400Grey14),
                             ]
