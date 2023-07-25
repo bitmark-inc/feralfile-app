@@ -607,25 +607,31 @@ class _FeedViewState extends State<FeedView> {
                                         ])
                                     .flattened,
                                 const SizedBox(width: 4),
-                                RichText(
-                                  text: TextSpan(
-                                    style: theme.textTheme.ppMori400White14,
-                                    children: [
-                                      TextSpan(
-                                        text: events.first.actionRepresentation,
-                                      ),
-                                    ],
+                                if (followingNames
+                                    .join()
+                                    .trim()
+                                    .isNotEmpty) ...[
+                                  RichText(
+                                    text: TextSpan(
+                                      style: theme.textTheme.ppMori400White14,
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              events.first.actionRepresentation,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                  const Spacer(),
+                                  Text(
+                                      events.length > 1
+                                          ? "last_time_format"
+                                              .tr(args: [followingTime])
+                                          : followingTime,
+                                      style: theme.textTheme.ppMori400Grey14),
+                                ]
                               ],
                             ),
-                            const Spacer(),
-                            Text(
-                                events.length > 1
-                                    ? "last_time_format"
-                                        .tr(args: [followingTime])
-                                    : followingTime,
-                                style: theme.textTheme.ppMori400Grey14),
                           ],
                         ),
                         const SizedBox(height: 10),
