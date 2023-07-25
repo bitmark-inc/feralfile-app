@@ -607,16 +607,22 @@ class _FeedViewState extends State<FeedView> {
                                         ])
                                     .flattened,
                                 const SizedBox(width: 4),
-                                RichText(
-                                  text: TextSpan(
-                                    style: theme.textTheme.ppMori400White14,
-                                    children: [
-                                      TextSpan(
-                                        text: events.first.actionRepresentation,
-                                      ),
-                                    ],
+                                if (followingNames
+                                    .join()
+                                    .trim()
+                                    .isNotEmpty) ...[
+                                  RichText(
+                                    text: TextSpan(
+                                      style: theme.textTheme.ppMori400White14,
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              events.first.actionRepresentation,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                ]
                               ],
                             ),
                             const Spacer(),
