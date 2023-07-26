@@ -177,6 +177,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 ErrorEvent(e, "estimation_failed".tr(), e.toString(),
                     ErrorItemState.tryAgain), cancelAction: () {
               _navigationService.hideInfoDialog();
+              return;
             }, defaultAction: () {
               add(event);
             });
