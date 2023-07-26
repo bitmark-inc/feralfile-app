@@ -29,6 +29,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   final EthereumService _ethereumService;
   final TezosService _tezosService;
   final CurrencyService _currencyService;
+  final NavigationService _navigationService;
   final AssetToken _asset;
   String? cachedAddress;
   BigInt? cachedBalance;
@@ -39,6 +40,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     this._ethereumService,
     this._tezosService,
     this._currencyService,
+    this._navigationService,
     this._asset,
   ) : super(SendArtworkState()) {
     final type =
@@ -166,9 +168,19 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                   contractAddress, from, to, event.tokenId,
                   feeOption: state.feeOption);
 
-          feeOptionValue = await _ethereumService.estimateFee(
-              wallet, index, contractAddress, EtherAmount.zero(), data);
-          fee = feeOptionValue.getFee(state.feeOption);
+          try {
+            feeOptionValue = await _ethereumService.estimateFee(
+                wallet, index, contractAddress, EtherAmount.zero(), data);
+            fee = feeOptionValue.getFee(state.feeOption);
+          } catch (e) {
+            _navigationService.showErrorDialog(
+                ErrorEvent(e, "estimation_failed".tr(), e.toString(),
+                    ErrorItemState.tryAgain), cancelAction: () {
+              _navigationService.hideInfoDialog();
+            }, defaultAction: () {
+              add(event);
+            });
+          }
           break;
         case CryptoType.XTZ:
           final wallet = state.wallet;
