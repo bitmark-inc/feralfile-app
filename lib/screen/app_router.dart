@@ -813,8 +813,12 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => SendCryptoBloc(injector(), injector(),
-                      injector(), (settings.arguments as SendData).type),
+                  create: (_) => SendCryptoBloc(
+                      injector(),
+                      injector(),
+                      injector(),
+                      (settings.arguments as SendData).type,
+                      injector()),
                   child: SendCryptoPage(data: settings.arguments as SendData),
                 ));
       case SendReviewPage.tag:
@@ -1169,6 +1173,7 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => SendArtworkBloc(
+                        injector(),
                         injector(),
                         injector(),
                         injector(),

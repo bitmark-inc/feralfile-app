@@ -18,8 +18,10 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/nft_collection.dart';
 
@@ -43,8 +45,18 @@ class WCSendTransactionBloc
       final newState = state.clone();
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
-      newState.feeOptionValue = await _ethereumService.estimateFee(
-          persona, event.index, event.address, event.amount, event.data);
+      try {
+        newState.feeOptionValue = await _ethereumService.estimateFee(
+            persona, event.index, event.address, event.amount, event.data);
+      } catch (e) {
+        _navigationService.showErrorDialog(
+            ErrorEvent(e, "estimation_failed".tr(), e.toString(),
+                ErrorItemState.tryAgain), cancelAction: () {
+          _navigationService.hideInfoDialog();
+        }, defaultAction: () {
+          add(event);
+        });
+      }
       newState.fee = newState.feeOptionValue!.getFee(state.feeOption);
 
       final balance =
