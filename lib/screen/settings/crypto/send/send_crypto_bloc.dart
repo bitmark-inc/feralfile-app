@@ -29,6 +29,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final TezosService _tezosService;
   final CurrencyService _currencyService;
   final CryptoType _type;
+  final NavigationService _navigationService;
   String? cachedAddress;
   BigInt? cachedAmount;
   bool isEstimating = false;
@@ -41,6 +42,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     this._tezosService,
     this._currencyService,
     this._type,
+    this._navigationService,
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
       final newState = state.clone();
@@ -194,8 +196,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       final newState =
           event.newState == null ? state.clone() : event.newState!.clone();
 
-      BigInt fee;
-      FeeOptionValue feeOptionValue;
+      BigInt fee = BigInt.zero;
+      FeeOptionValue feeOptionValue = FeeOptionValue(fee, fee, fee);
 
       switch (_type) {
         case CryptoType.ETH:
@@ -258,10 +260,20 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
           final data = await _ethereumService.getERC20TransferTransactionData(
               contractAddress, ownerAddress, toAddress, event.amount);
-
-          feeOptionValue = await _ethereumService.estimateFee(
-              wallet, index, contractAddress, EtherAmount.zero(), data);
-          fee = feeOptionValue.getFee(state.feeOption);
+          try {
+            feeOptionValue = await _ethereumService.estimateFee(
+                wallet, index, contractAddress, EtherAmount.zero(), data);
+            fee = feeOptionValue.getFee(state.feeOption);
+          } catch (e) {
+            _navigationService.showErrorDialog(
+                ErrorEvent(e, "estimation_failed".tr(), e.toString(),
+                    ErrorItemState.tryAgain), cancelAction: () {
+              _navigationService.hideInfoDialog();
+              return;
+            }, defaultAction: () {
+              add(event);
+            });
+          }
           break;
         default:
           fee = BigInt.zero;
