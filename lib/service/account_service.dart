@@ -829,7 +829,9 @@ class AccountServiceImpl extends AccountService {
       }
     } else if (isCreateNew) {
       _configurationService.setDoneOnboarding(true);
-      await createPersona();
+      final persona = await createPersona();
+      await persona.insertAddress(WalletType.Tezos);
+      await persona.insertAddress(WalletType.Ethereum);
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
       injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
