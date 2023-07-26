@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -103,8 +102,6 @@ void main() async {
 
 _setupApp() async {
   await setup();
-
-  await injector<Wc2Service>().cleanup();
 
   await DeviceInfo.instance.init();
 
