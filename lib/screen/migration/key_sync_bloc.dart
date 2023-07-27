@@ -44,7 +44,8 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
 
         final tmpCloudDb = await $FloorCloudDatabase
             .databaseBuilder(tmpCloudDbName)
-            .addMigrations(migrateCloud).build();
+            .addMigrations(migrations)
+            .build();
 
         final connections = await tmpCloudDb.connectionDao.getConnections();
         await _cloudDatabase.connectionDao.insertConnections(connections);

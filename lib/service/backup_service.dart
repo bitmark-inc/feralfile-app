@@ -151,7 +151,7 @@ class BackupService {
         final backUpVersion = await tempDbOld.getVersion();
         if (version > backUpVersion) {
           await MigrationAdapter.runMigrations(
-              tempDbOld, backUpVersion, version, migrateCloud);
+              tempDbOld, backUpVersion, version, migrations);
         }
 
         final tempDb =

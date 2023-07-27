@@ -57,7 +57,7 @@ abstract class CloudDatabase extends FloorDatabase {
   }
 }
 
-final migrateCloud = [
+final migrations = [
   migrateCloudV1ToV2,
   migrateCloudV2ToV3,
   migrateCloudV3ToV4,

@@ -122,7 +122,7 @@ Future<void> setup() async {
 
   final cloudDB = await $FloorCloudDatabase
       .databaseBuilder('cloud_database.db')
-      .addMigrations(migrateCloud)
+      .addMigrations(migrations)
       .build();
 
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
