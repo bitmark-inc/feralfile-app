@@ -24,7 +24,7 @@ import 'entity/wallet_address.dart';
 part 'cloud_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 9, entities: [Persona, Connection, Audit, WalletAddress])
+@Database(version: 8, entities: [Persona, Connection, Audit, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
 
