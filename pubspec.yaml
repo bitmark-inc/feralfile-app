@@ -177,7 +177,7 @@ dependencies:
   video_player: ^2.4.8
   youtube_player_iframe: ^3.1.0
   awesome_notifications: ^0.7.4+1
-  skeleton_loader: ^2.0.0+4
+  shimmer: ^2.0.0
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
