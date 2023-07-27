@@ -2337,21 +2337,13 @@ packages:
     source: hosted
     version: "1.0.3"
   shimmer:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shimmer
       sha256: "1f1009b5845a1f88f1c5630212279540486f97409e9fc3f63883e71070d107bf"
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  skeleton_loader:
-    dependency: "direct main"
-    description:
-      name: skeleton_loader
-      sha256: "49440f69c9f0187265c6579f9bddfff7a4f200467469788e1ef12c42241e72da"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0+4"
   sky_engine:
     dependency: transitive
     description: flutter

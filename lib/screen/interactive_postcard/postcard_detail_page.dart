@@ -1077,6 +1077,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _leaderboard(BuildContext context, PostcardDetailState state) {
     final leaderBoard = state.leaderboard;
+    return _loadingLeaderboard(context);
     if (leaderBoard == null) {
       return _loadingLeaderboard(context);
     }
