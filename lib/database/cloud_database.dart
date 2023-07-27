@@ -176,7 +176,7 @@ final migrateCloudV6ToV7 = Migration(6, 7, (database) async {
       "SELECT COUNT(*) FROM pragma_table_info('WalletAddress') WHERE name='name';"));
   if (countNameCol == 0) {
     await database.execute("""
-      ALTER TABLE Persona ADD WalletAddress name TEXT;
+      ALTER TABLE WalletAddress ADD COLUMN name TEXT;
       """);
   }
 });
@@ -185,7 +185,7 @@ final migrateCloudV7ToV8 = Migration(7, 8, (database) async {
       "SELECT COUNT(*) FROM pragma_table_info('WalletAddress') WHERE name='name';"));
   if (countNameCol == 0) {
     await database.execute("""
-      ALTER TABLE Persona ADD WalletAddress name TEXT;
+      ALTER TABLE WalletAddress ADD COLUMN name TEXT;
       """);
   }
 });
