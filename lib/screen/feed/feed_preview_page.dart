@@ -585,7 +585,7 @@ class _FeedViewState extends State<FeedView> {
                                             child: Text(
                                               followingNames[i],
                                               style: theme
-                                                  .textTheme.ppMori400White14
+                                                  .textTheme.ppMori700White14
                                                   .copyWith(
                                                       color:
                                                           AppColor.auSuperTeal),
@@ -632,7 +632,7 @@ class _FeedViewState extends State<FeedView> {
                                       ? "last_time_format"
                                           .tr(args: [followingTime])
                                       : followingTime,
-                                  style: theme.textTheme.ppMori400Grey14),
+                                  style: theme.textTheme.ppMori400Grey12),
                             ]
                           ],
                         ),

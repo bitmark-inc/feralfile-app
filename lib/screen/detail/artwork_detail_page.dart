@@ -271,8 +271,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             title: ArtworkDetailsHeader(
               title: asset.title ?? "",
               subTitle: subTitle,
-              onTitleTap: widget.payload.useIndexer &&
-                      asset.secondaryMarketURL.isValidUrl() == true
+              onTitleTap: asset.secondaryMarketURL.isValidUrl() == true
                   ? () {
                       Navigator.of(context).pushNamed(AppRouter.irlWebView,
                           arguments: asset.secondaryMarketURL);
