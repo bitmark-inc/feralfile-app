@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -266,13 +267,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
           appBar: AppBar(
+            systemOverlayStyle: systemUiOverlayDarkStyle,
             leadingWidth: 0,
             centerTitle: false,
             title: ArtworkDetailsHeader(
               title: asset.title ?? "",
               subTitle: subTitle,
-              onTitleTap: widget.payload.useIndexer &&
-                      asset.secondaryMarketURL.isValidUrl() == true
+              onTitleTap: asset.secondaryMarketURL.isValidUrl() == true
                   ? () {
                       Navigator.of(context).pushNamed(AppRouter.irlWebView,
                           arguments: asset.secondaryMarketURL);
