@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -38,6 +39,7 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -594,8 +596,42 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     }
   }
 
-  void _handleForeground() {
-    injector<CustomerSupportService>().fetchAnnouncement();
+  Future<void> showAnnouncementNotification(
+      AnnouncementLocal announcement) async {
+    showInfoNotification(
+        const Key("Announcement"), announcement.notificationTitle,
+        addOnTextSpan: [
+          TextSpan(
+              text: "tap_to_view".tr(),
+              style: Theme.of(context).textTheme.ppMori400Green14),
+        ], openHandler: () async {
+      final announcementID = announcement.announcementContextId;
+      _openAnnouncement(announcementID);
+    });
+  }
+
+  void announcementNotificationIfNeed() async {
+    final announcements =
+        (await injector<CustomerSupportService>().getIssuesAndAnnouncement())
+            .whereType<AnnouncementLocal>()
+            .toList();
+    final showAnnouncementInfo =
+        _configurationService.getShowAnouncementNotificationInfo();
+    final shouldShowAnnouncements = announcements.where((element) =>
+        element.isMemento6 &&
+        showAnnouncementInfo.shouldShowAnnouncementNotification(element));
+    if (shouldShowAnnouncements.isEmpty) return;
+    Future.forEach<AnnouncementLocal>(shouldShowAnnouncements,
+        (announcement) async {
+      await showAnnouncementNotification(announcement);
+      await _configurationService
+          .updateShowAnouncementNotificationInfo(announcement);
+    });
+  }
+
+  void _handleForeground() async {
+    await injector<CustomerSupportService>().fetchAnnouncement();
+    announcementNotificationIfNeed();
   }
 
   @override

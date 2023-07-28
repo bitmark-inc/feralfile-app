@@ -115,6 +115,9 @@ final moMAGeoLocation =
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
+const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
+const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
+
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
