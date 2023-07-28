@@ -64,10 +64,9 @@ class ShowAnouncementNotificationInfo {
       return true;
     }
     final isExpired = DateTime.now()
-            .subtract(MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION)
-            .isAfter(DateTime.fromMillisecondsSinceEpoch(
-                announcementLocal.announceAt)) ||
-        false;
+        .subtract(MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION)
+        .isAfter(
+            DateTime.fromMillisecondsSinceEpoch(announcementLocal.announceAt));
     if (showAnnouncementMap[announcementContextId]! < maxShowCount &&
         !isExpired) {
       return true;
