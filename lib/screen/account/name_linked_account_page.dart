@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -117,9 +118,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
 
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.homePageNoTransition ||
-          route.settings.name == AppRouter.walletPage);
+      injector<NavigationService>().popUntilHomeOrSettings();
     } else {
       injector<ConfigurationService>().setDoneOnboarding(true);
       Navigator.of(context).pushNamed(AppRouter.homePage);

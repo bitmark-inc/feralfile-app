@@ -25,6 +25,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -209,6 +210,7 @@ class NavigationService {
     navigatorKey.currentState?.popUntil((route) =>
         route.settings.name == AppRouter.settingsPage ||
         route.settings.name == AppRouter.homePage ||
+        route.settings.name == AppRouter.walletPage ||
         route.settings.name == AppRouter.homePageNoTransition);
   }
 
