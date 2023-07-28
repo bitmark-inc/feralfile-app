@@ -210,7 +210,6 @@ class NavigationService {
     navigatorKey.currentState?.popUntil((route) =>
         route.settings.name == AppRouter.settingsPage ||
         route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.walletPage ||
         route.settings.name == AppRouter.homePageNoTransition);
   }
 
