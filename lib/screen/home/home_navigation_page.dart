@@ -610,7 +610,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     });
   }
 
-  void announcementNotificationIfNeed() async {
+  Future<void> announcementNotificationIfNeed() async {
     final announcements =
         (await injector<CustomerSupportService>().getIssuesAndAnnouncement())
             .whereType<AnnouncementLocal>()
@@ -629,7 +629,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     });
   }
 
-  void _handleForeground() async {
+  Future<void> _handleForeground() async {
     await injector<CustomerSupportService>().fetchAnnouncement();
     announcementNotificationIfNeed();
   }
