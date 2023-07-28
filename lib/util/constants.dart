@@ -101,6 +101,13 @@ List<String> get momaMementoContractAddresses {
 
 const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
 
+const MEMENTO_6_SERIES_ID_MAINNET = "2b75da9b-c605-4842-bf59-8e2e1fe04be6";
+const MEMENTO_6_SERIES_ID_TESTNET = "b95fc2e8-c7ca-4db8-9f81-7bd231ff1c48";
+
+String get memento6SeriesId => Environment.appTestnetConfig
+    ? MEMENTO_6_SERIES_ID_TESTNET
+    : MEMENTO_6_SERIES_ID_MAINNET;
+
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;

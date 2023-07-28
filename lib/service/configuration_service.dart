@@ -302,6 +302,10 @@ abstract class ConfigurationService {
   );
 
   ShowAnouncementNotificationInfo getShowAnouncementNotificationInfo();
+
+  bool getAlreadyClaimedAirdrop(String seriesId);
+
+  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -404,6 +408,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
       "show_anouncement_notification_info";
+
+  static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
 
   final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
       ValueNotifier([]);
@@ -1371,5 +1377,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return ShowAnouncementNotificationInfo();
     }
     return ShowAnouncementNotificationInfo.fromJson(jsonDecode(data));
+  }
+
+  @override
+  bool getAlreadyClaimedAirdrop(String seriesId) {
+    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP);
+    if (data == null) {
+      return false;
+    }
+    return data.contains(seriesId);
+  }
+
+  @override
+  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value) async {
+    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP);
+    if (data == null) {
+      await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, [seriesId]);
+    } else {
+      if (value) {
+        data.add(seriesId);
+      } else {
+        data.remove(seriesId);
+      }
+      await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
+    }
   }
 }

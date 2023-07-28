@@ -372,6 +372,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           "id": widget.payload.series.id,
         },
       );
+      _configService.setAlreadyClaimedAirdrop(seriesId, true);
     } catch (e) {
       setState(() {
         _processing = false;

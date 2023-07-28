@@ -415,3 +415,17 @@ class AirdropTokenIdentity {
     );
   }
 }
+
+enum AirdropType {
+  Memento6,
+  Unknown;
+
+  String get seriesId {
+    switch (this) {
+      case AirdropType.Memento6:
+        return memento6SeriesId;
+      default:
+        return "unknown";
+    }
+  }
+}

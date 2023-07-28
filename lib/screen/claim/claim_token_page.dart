@@ -60,6 +60,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   bool _processing = false;
 
   final metricClient = injector.get<MetricClientService>();
+  final configurationService = injector.get<ConfigurationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -363,7 +364,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
           "id": widget.series.id,
         },
       );
-
+      configurationService.setAlreadyClaimedAirdrop(widget.series.id, true);
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");

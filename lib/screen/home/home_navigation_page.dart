@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
@@ -615,10 +616,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         (await injector<CustomerSupportService>().getIssuesAndAnnouncement())
             .whereType<AnnouncementLocal>()
             .toList();
+
     final showAnnouncementInfo =
         _configurationService.getShowAnouncementNotificationInfo();
     final shouldShowAnnouncements = announcements.where((element) =>
-        element.isMemento6 &&
+        (element.isMemento6 &&
+            !_configurationService
+                .getAlreadyClaimedAirdrop(AirdropType.Memento6.seriesId)) &&
         showAnnouncementInfo.shouldShowAnnouncementNotification(element));
     if (shouldShowAnnouncements.isEmpty) return;
     Future.forEach<AnnouncementLocal>(shouldShowAnnouncements,
