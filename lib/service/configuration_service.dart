@@ -1390,16 +1390,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value) async {
-    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP);
-    if (data == null) {
-      await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, [seriesId]);
+    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP) ?? [];
+    if (value) {
+      data.add(seriesId);
     } else {
-      if (value) {
-        data.add(seriesId);
-      } else {
-        data.remove(seriesId);
-      }
-      await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
+      data.remove(seriesId);
     }
+    await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
   }
 }
