@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/util/geolocation.dart';
+
 class PostcardMetadata {
   List<UserLocations> locationInformation;
 
@@ -171,8 +173,8 @@ class Location {
   // from json method
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
-      lat: json['lat'] as double,
-      lon: json['lon'] as double,
+      lat: double.tryParse(json['lat'].toString()) ?? 0.0,
+      lon: double.tryParse(json['lon'].toString()) ?? 0.0,
     );
   }
 
@@ -182,5 +184,17 @@ class Location {
       'lat': lat,
       'lon': lon,
     };
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Location && other.lat == lat && other.lon == lon;
+  }
+
+  bool get isDefault {
+    final defaultGeolocations = GeoLocation.defaultGeolocations;
+    return defaultGeolocations.any((element) => element.position == this);
   }
 }

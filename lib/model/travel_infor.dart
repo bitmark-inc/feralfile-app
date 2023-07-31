@@ -40,6 +40,11 @@ class TravelInfo {
     if (to == null) {
       return null;
     }
+
+    if (from.stampedLocation!.isDefault || to!.claimedLocation!.isDefault) {
+      return 0.0;
+    }
+
     return _getDistanceFromLatLonInKm(
         from.stampedLocation!.lat,
         from.stampedLocation!.lon,
