@@ -46,7 +46,8 @@ class ArtworkPreviewWidget extends StatefulWidget {
 
 class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
+  final bloc =
+      ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
 
   INFTRenderingWidget? _renderingWidget;
 
