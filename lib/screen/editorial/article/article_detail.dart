@@ -65,7 +65,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
     adjustSize = _selectedSize - 16;
     _controller = ScrollController();
     _controller.addListener(_trackEventWhenScrollToEnd);
-    _controller.addListener(_scrollListener);
     metricClient.timerEvent(MixpanelEvent.editorialReadingArticle);
   }
 
@@ -78,38 +77,44 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
   /// - When scroll, hide header
   /// - When slightly scroll up, show header, after 5s, hide header
   /// - When scroll to top, show header
-  _scrollListener() {
-    _timer?.cancel();
-    _scrollTimer?.cancel();
 
-    if (_controller.offset > 5) {
-      setState(() {
-        _showHeader = false;
-      });
-
-      final difference = _controller.offset - _lastOffset;
-      _scrollTimer = Timer(const Duration(milliseconds: 300), () {
-        if (difference > -25 && difference < 0) {
-          setState(() {
-            _showHeader = true;
-          });
-
-          _timer = Timer(const Duration(seconds: 5), () {
-            if (mounted) {
-              setState(() {
-                _showHeader = false;
-                _lastOffset = _controller.offset;
-              });
-            }
-          });
-        }
-        _lastOffset = _controller.offset;
-      });
-    } else {
+  _onScroll(ScrollUpdateNotification notification) {
+    if (notification.metrics.pixels < 5) {
       setState(() {
         _showHeader = true;
       });
+      return;
     }
+
+    final difference = notification.metrics.pixels - _lastOffset;
+    if (difference < -25) {
+      if (!_showHeader) {
+        setState(() {
+          _showHeader = true;
+          _lastOffset = notification.metrics.pixels;
+        });
+      }
+      _timer?.cancel();
+      _timer = Timer(const Duration(seconds: 5), () {
+        if (mounted) {
+          _scrollTimer?.cancel();
+          setState(() {
+            _showHeader = false;
+            _lastOffset = notification.metrics.pixels;
+          });
+        }
+      });
+    } else if (difference > 0) {
+      setState(() {
+        _showHeader = false;
+      });
+    }
+  }
+
+  _onScrollEnd(ScrollEndNotification notification) {
+    setState(() {
+      _lastOffset = notification.metrics.pixels;
+    });
   }
 
   Future<void> _updateEditorialReadingTime() async {
@@ -186,153 +191,171 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
             child: _header(context),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              controller: _controller,
-              padding: ResponsiveLayout.pageEdgeInsets,
-              child: Column(
-                children: [
-                  const SizedBox(height: 32.0),
-                  Visibility(
-                    visible: !_showHeader,
-                    child: const SizedBox(height: 50.0),
-                  ),
-                  Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                              color: AppColor.greyMedium,
-                            ),
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(64))),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4.0, horizontal: 8.0),
-                        child: Text(widget.post.tag ?? "",
-                            style: theme.textTheme.ppMori400Grey14
-                                .adjustSize(adjustSize)),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "originally_published_at".tr(),
-                            style: theme.textTheme.ppMori400Grey12
-                                .adjustSize(adjustSize),
-                          ),
-                          GestureDetector(
-                            onTap: () async {
-                              final website =
-                                  widget.post.reference?.website.toUrl() ?? "";
-
-                              if (website.isValidUrl()) {
-                                await launchUrlString(website,
-                                    mode: LaunchMode.externalApplication);
-                              }
-                            },
-                            child: Text(
-                              widget.post.reference?.website ??
-                                  widget.post.publisher.name,
-                              style: theme.textTheme.ppMori400SupperTeal12
+            child: NotificationListener(
+              child: SingleChildScrollView(
+                controller: _controller,
+                padding: ResponsiveLayout.pageEdgeInsets,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32.0),
+                    Visibility(
+                      visible: !_showHeader,
+                      child: const SizedBox(height: 50.0),
+                    ),
+                    Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColor.greyMedium,
+                              ),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(64))),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 4.0, horizontal: 8.0),
+                          child: Text(widget.post.tag ?? "",
+                              style: theme.textTheme.ppMori400Grey14
+                                  .adjustSize(adjustSize)),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "originally_published_at".tr(),
+                              style: theme.textTheme.ppMori400Grey12
                                   .adjustSize(adjustSize),
                             ),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32.0),
-                  FutureBuilder<Response<String>>(
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData &&
-                            snapshot.data?.statusCode == 200) {
-                          return Column(
-                            children: [
-                              AuMarkdown(
-                                  data: snapshot.data!.data!,
-                                  styleSheet: editorialMarkDownStyle(context,
-                                      adjustSize: adjustSize)),
-                              const SizedBox(height: 50),
-                              if (widget.post.reference != null)
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    border:
-                                        Border.all(color: AppColor.auSuperTeal),
-                                  ),
-                                  padding: const EdgeInsets.all(15.0),
-                                  child: Column(
-                                    children: [
-                                      if (widget.post.tag == "Essay") ...[
-                                        PublisherView(
-                                            publisher: widget.post.publisher),
-                                        const SizedBox(height: 10.0),
-                                        Text(
-                                          widget.post.publisher.intro ?? "",
-                                          style: theme
-                                              .textTheme.ppMori400White12
-                                              .adjustSize(adjustSize),
-                                        ),
-                                        const SizedBox(height: 32.0),
-                                      ],
-                                      _referenceRow(
-                                        context,
-                                        name: "location".tr(),
-                                        value:
-                                            widget.post.reference?.location ??
-                                                "",
-                                      ),
-                                      const Divider(
-                                          height: 20,
-                                          color: AppColor.greyMedium),
-                                      _referenceRowWithLinks(
-                                        context,
-                                        name: "web".tr(),
-                                        links: [
-                                          Pair(
-                                              widget.post.reference?.website ??
-                                                  "",
-                                              widget.post.reference?.website
-                                                      .toUrl() ??
-                                                  "")
-                                        ],
-                                      ),
-                                      const Divider(
-                                          height: 20,
-                                          color: AppColor.greyMedium),
-                                      _referenceRowWithLinks(
-                                        context,
-                                        name: "social".tr(),
-                                        links: widget.post.reference?.socials
-                                                .map((e) => Pair(e.name, e.url))
-                                                .toList() ??
-                                            [],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          );
-                        } else if (snapshot.hasError ||
-                            (snapshot.data != null &&
-                                snapshot.data?.statusCode != 200)) {
-                          return Center(
+                            GestureDetector(
+                              onTap: () async {
+                                final website =
+                                    widget.post.reference?.website.toUrl() ??
+                                        "";
+
+                                if (website.isValidUrl()) {
+                                  await launchUrlString(website,
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              },
                               child: Text(
-                            "error_loading_content".tr(),
-                            style: theme.textTheme.ppMori400White12
-                                .adjustSize(adjustSize),
-                          ));
-                        } else {
-                          return const Center(
-                              child: CupertinoActivityIndicator());
-                        }
-                      },
-                      future: _dio.get<String>(
-                        widget.post.content["data"],
-                      )),
-                  const SizedBox(height: 64.0),
-                ],
+                                widget.post.reference?.website ??
+                                    widget.post.publisher.name,
+                                style: theme.textTheme.ppMori400SupperTeal12
+                                    .adjustSize(adjustSize),
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32.0),
+                    FutureBuilder<Response<String>>(
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData &&
+                              snapshot.data?.statusCode == 200) {
+                            return Column(
+                              children: [
+                                AuMarkdown(
+                                    data: snapshot.data!.data!,
+                                    styleSheet: editorialMarkDownStyle(context,
+                                        adjustSize: adjustSize)),
+                                const SizedBox(height: 50),
+                                if (widget.post.reference != null)
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      border: Border.all(
+                                          color: AppColor.auSuperTeal),
+                                    ),
+                                    padding: const EdgeInsets.all(15.0),
+                                    child: Column(
+                                      children: [
+                                        if (widget.post.tag == "Essay") ...[
+                                          PublisherView(
+                                              publisher: widget.post.publisher),
+                                          const SizedBox(height: 10.0),
+                                          Text(
+                                            widget.post.publisher.intro ?? "",
+                                            style: theme
+                                                .textTheme.ppMori400White12
+                                                .adjustSize(adjustSize),
+                                          ),
+                                          const SizedBox(height: 32.0),
+                                        ],
+                                        _referenceRow(
+                                          context,
+                                          name: "location".tr(),
+                                          value:
+                                              widget.post.reference?.location ??
+                                                  "",
+                                        ),
+                                        const Divider(
+                                            height: 20,
+                                            color: AppColor.greyMedium),
+                                        _referenceRowWithLinks(
+                                          context,
+                                          name: "web".tr(),
+                                          links: [
+                                            Pair(
+                                                widget.post.reference
+                                                        ?.website ??
+                                                    "",
+                                                widget.post.reference?.website
+                                                        .toUrl() ??
+                                                    "")
+                                          ],
+                                        ),
+                                        const Divider(
+                                            height: 20,
+                                            color: AppColor.greyMedium),
+                                        _referenceRowWithLinks(
+                                          context,
+                                          name: "social".tr(),
+                                          links: widget.post.reference?.socials
+                                                  .map((e) =>
+                                                      Pair(e.name, e.url))
+                                                  .toList() ??
+                                              [],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            );
+                          } else if (snapshot.hasError ||
+                              (snapshot.data != null &&
+                                  snapshot.data?.statusCode != 200)) {
+                            return Center(
+                                child: Text(
+                              "error_loading_content".tr(),
+                              style: theme.textTheme.ppMori400White12
+                                  .adjustSize(adjustSize),
+                            ));
+                          } else {
+                            return const Center(
+                                child: CupertinoActivityIndicator());
+                          }
+                        },
+                        future: _dio.get<String>(
+                          widget.post.content["data"],
+                        )),
+                    const SizedBox(height: 64.0),
+                  ],
+                ),
               ),
+              onNotification: (notification) {
+                switch (notification.runtimeType) {
+                  case ScrollUpdateNotification:
+                    _onScroll(notification as ScrollUpdateNotification);
+                    break;
+                  case ScrollEndNotification:
+                    _onScrollEnd(notification as ScrollEndNotification);
+                    break;
+                  default:
+                    break;
+                }
+                return false;
+              },
             ),
           ),
         ],
