@@ -216,6 +216,7 @@ AppBar getDarkEmptyAppBar() {
 AppBar getLightEmptyAppBar() {
   return AppBar(
     systemOverlayStyle: systemUiOverlayLightStyle,
+    backgroundColor: Colors.transparent,
     toolbarHeight: 0,
     shadowColor: Colors.transparent,
     elevation: 0,
