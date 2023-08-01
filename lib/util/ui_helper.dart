@@ -1747,7 +1747,7 @@ Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
 }
 
 String getDateTimeRepresentation(DateTime dateTime) {
-  return Jiffy(dateTime).fromNow();
+  return Jiffy.parseFromDateTime(dateTime).fromNow();
 }
 
 class OptionItem {

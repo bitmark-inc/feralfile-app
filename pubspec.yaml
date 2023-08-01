@@ -18,7 +18,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 0.36.0+121
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
 
 dependencies:
   after_layout: ^1.2.0
@@ -29,9 +29,9 @@ dependencies:
   cast: ^1.1.0
   collection: ^1.15.0
   confetti: ^0.7.0
-  connectivity_plus: ^3.0.0
+  connectivity_plus: ^4.0.1
   crypto: ^3.0.1
-  device_info_plus: ^8.2.2
+  device_info_plus: ^9.0.2
   dio: ^5.1.2
   dio_smart_retry: ^5.0.0
   easy_debounce: ^2.0.2+1
@@ -52,11 +52,11 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
       ref: 77fe59498333190976959001fe9960a1fb4d27e2
-  flutter_fgbg: ^0.2.0
-  flutter_image_compress: ^1.1.0
+  flutter_fgbg: ^0.3.0
+  flutter_image_compress: ^2.0.4
   flutter_markdown: ^0.6.9
   flutter_native_splash: ^2.0.5
-  flutter_slidable: ^1.2.0
+  flutter_slidable: ^3.0.0
   flutter_svg: ^1.1.5
   flutter_switch: ^0.3.2
   flutter_to_airplay:
@@ -70,11 +70,11 @@ dependencies:
   hive: ^2.2.1
   hive_flutter: ^1.1.0
   http: ^0.13.2
-  image_picker: ^0.8.4+9
+  image_picker: ^1.0.1
   in_app_purchase: ^3.0.6
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.18.0
-  jiffy: ^5.0.0
+  jiffy: ^6.2.1
   flutter_keyboard_visibility: ^5.4.1
   libauk_dart:
     git:
@@ -130,7 +130,7 @@ dependencies:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
       ref: 9010ebc5d282391d174b90f3f1e3aa4f7f00388c
   marqueer: ^1.2.0
-  markdown: ^6.0.1
+  markdown: ^7.1.1
   easy_localization: ^3.0.1
   rxdart: ^0.27.1
   in_app_review: ^2.0.4
@@ -166,7 +166,7 @@ dependencies:
   in_app_purchase_android: ^0.2.3+7
   convert: ^3.1.1
   sqflite: ^2.2.2
-  slidable_button: ^2.0.0+1
+  slidable_button: ^3.0.0+1
   background_fetch: ^1.1.3
   syncfusion_flutter_signaturepad: ^20.4.53
   image: ^4.0.15
@@ -178,7 +178,7 @@ dependencies:
   video_player: ^2.4.8
   youtube_player_iframe: ^3.1.0
   awesome_notifications: ^0.7.4+1
-  shimmer: ^2.0.0
+  shimmer: ^3.0.0
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
@@ -198,7 +198,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  appium_driver: ^0.5.2
+  appium_driver: ^0.6.0
   json_serializable: null
   mockito: null
   retrofit_generator: null
