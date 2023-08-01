@@ -66,6 +66,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
       _page4(5)
     ];
     final theme = Theme.of(context);
+    final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
     return Scaffold(
       backgroundColor: AppColor.chatPrimaryColor,
       appBar: AppBar(
@@ -109,7 +110,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
         elevation: 0,
       ),
       body: Padding(
-        padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+        padding: const EdgeInsets.only(bottom: 32),
         child: Stack(
           children: [
             Swiper(
@@ -119,7 +120,10 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 });
               },
               itemBuilder: (context, index) {
-                return pages[index];
+                return Padding(
+                  padding: padding,
+                  child: pages[index],
+                );
               },
               itemCount: pages.length,
               pagination: const SwiperPagination(
@@ -138,7 +142,10 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: widget.payload.startButton,
+                child: Padding(
+                  padding: padding,
+                  child: widget.payload.startButton,
+                ),
               ),
             )
           ],

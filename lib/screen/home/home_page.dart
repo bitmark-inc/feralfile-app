@@ -251,8 +251,13 @@ class HomePageState extends State<HomePage>
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
       listenWhen: (previousState, currentState) {
-        final diffLength =
-            currentState.tokens.length - previousState.tokens.length;
+        final currentNumber = currentState.tokens.items
+            .filterAssetToken(isShowHidden: true)
+            .length;
+        final previousNumber = previousState.tokens.items
+            .filterAssetToken(isShowHidden: true)
+            .length;
+        final diffLength = currentNumber - previousNumber;
         if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
@@ -260,10 +265,9 @@ class HomePageState extends State<HomePage>
         }
         if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.numberNft, data: {
-            'number': currentState.tokens.length,
+            'number': currentNumber,
           });
-          _metricClient.setLabel(
-              MixpanelProp.numberNft, currentState.tokens.length);
+          _metricClient.setLabel(MixpanelProp.numberNft, currentNumber);
         }
         return true;
       },

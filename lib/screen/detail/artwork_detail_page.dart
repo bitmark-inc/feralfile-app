@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -278,6 +279,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       Navigator.of(context).pushNamed(AppRouter.irlWebView,
                           arguments: asset.secondaryMarketURL);
                     }
+                  : null,
+              onSubTitleTap: asset.artistID != null
+                  ? () => Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                      arguments: GalleryPagePayload(
+                        address: asset.artistID!,
+                        artistName: artistName!,
+                        artistURL: asset.artistURL,
+                      ))
                   : null,
             ),
             actions: [
