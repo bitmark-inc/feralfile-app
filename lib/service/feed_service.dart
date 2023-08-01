@@ -293,7 +293,7 @@ class FeedServiceImpl extends FeedService {
       final exception = result.exception;
       _fetchFeedsCompleters[result.uuid]?.completeError(exception);
       _fetchFeedsCompleters.remove(result.uuid);
-      if (exception is DioError && exception.response?.statusCode == 403) {
+      if (exception is DioException && exception.response?.statusCode == 403) {
         _isolateRetryParams = result.fetchParams;
         injector<AuthService>().getAuthToken(forceRefresh: true);
       } else {
@@ -349,7 +349,7 @@ class FeedServiceImpl extends FeedService {
     final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
     authenticatedDio.interceptors.add(_quickAuthInterceptor);
     authenticatedDio.interceptors.add(LoggingInterceptor());
-    (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
+    (authenticatedDio.transformer as BackgroundTransformer).jsonDecodeCallback =
         parseJson;
     authenticatedDio.options = BaseOptions(followRedirects: true);
     injector.registerLazySingleton(

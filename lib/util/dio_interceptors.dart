@@ -25,7 +25,7 @@ class LoggingInterceptor extends Interceptor {
   static final List<String> _skipLogPaths = [Environment.pubdocURL];
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
     final message = err.message;
     apiLog.info("API Request: $curl");
@@ -113,7 +113,7 @@ class SentryInterceptor extends InterceptorsWrapper {
   }
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
     Sentry.addBreadcrumb(
       Breadcrumb(
         type: 'http',

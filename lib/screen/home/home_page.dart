@@ -702,7 +702,7 @@ class HomePageState extends State<HomePage>
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {
-      if (exception is DioError && exception.response?.statusCode == 404) {
+      if (exception is DioException && exception.response?.statusCode == 404) {
         // if there is no backup, upload one.
         await injector<SettingsDataService>().backup();
       } else {

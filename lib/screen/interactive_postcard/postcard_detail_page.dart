@@ -584,7 +584,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       _configurationService.updateSharedPostcard(
           [SharedPostcard(asset.id, asset.owner, DateTime.now())]);
     } catch (e) {
-      if (e is DioError) {
+      if (e is DioException) {
         if (mounted) {
           UIHelper.showSharePostcardFailed(context, e);
         }
