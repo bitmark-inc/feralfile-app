@@ -1482,12 +1482,14 @@ class UIHelper {
         closeButton: "close".tr());
   }
 
-  static showReceivePostcardFailed(BuildContext context, DioException error) async {
+  static showReceivePostcardFailed(
+      BuildContext context, DioException error) async {
     return showErrorDialog(context, "accept_postcard_failed".tr(),
         error.response?.data['message'], "close".tr());
   }
 
-  static showSharePostcardFailed(BuildContext context, DioException error) async {
+  static showSharePostcardFailed(
+      BuildContext context, DioException error) async {
     return showErrorDialog(context, "Share Failed",
         "${error.response?.data['message']}", "close".tr());
   }

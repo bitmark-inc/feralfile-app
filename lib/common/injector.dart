@@ -314,8 +314,9 @@ Future<void> setup() async {
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      _postcardDio(
-          dioOptions.copyWith(connectTimeout: const Duration(seconds: 30), receiveTimeout: const Duration(seconds: 30))),
+      _postcardDio(dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30))),
       baseUrl: Environment.auClaimAPIURL));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
