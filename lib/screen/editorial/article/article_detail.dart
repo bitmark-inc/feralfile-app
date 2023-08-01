@@ -44,7 +44,7 @@ class ArticleDetailPage extends StatefulWidget {
 class _ArticleDetailPageState extends State<ArticleDetailPage>
     with AfterLayoutMixin<ArticleDetailPage> {
   final _dio = Dio(BaseOptions(
-    connectTimeout: 2000,
+    connectTimeout: const Duration(seconds: 5),
   ));
 
   late ScrollController _controller;

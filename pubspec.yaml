@@ -31,9 +31,9 @@ dependencies:
   confetti: ^0.7.0
   connectivity_plus: ^3.0.0
   crypto: ^3.0.1
-  device_info_plus: ^3.2.1
-  dio: ^4.0.6
-  dio_smart_retry: ^1.2.0
+  device_info_plus: ^8.2.2
+  dio: ^5.1.2
+  dio_smart_retry: ^5.0.0
   easy_debounce: ^2.0.2+1
   fast_base58: ^0.2.1
   floor: ^1.2.0
@@ -73,7 +73,7 @@ dependencies:
   image_picker: ^0.8.4+9
   in_app_purchase: ^3.0.6
   infinite_scroll_pagination: ^3.2.0
-  intl: ^0.17.0
+  intl: ^0.18.0
   jiffy: ^5.0.0
   flutter_keyboard_visibility: ^5.4.1
   libauk_dart:
@@ -88,11 +88,11 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 4af920d485073af6b0b52634ad1726c96ac9a2ee
+      ref: e802c1cddbdc4061af0778e2a34520cecf200ed0
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
-  package_info_plus: ^1.4.0
+  package_info_plus: ^4.0.2
   page_transition: ^2.0.5
   path_provider: ^2.0.9
   permission_handler: ^10.0.0
@@ -100,8 +100,8 @@ dependencies:
   qr_flutter: ^4.0.0
   retrofit: null
   roundcheckbox: ^2.0.4+1
-  sentry_dio: ^6.4.0
-  sentry_flutter: ^6.4.0
+  sentry_dio: ^7.9.0
+  sentry_flutter: ^7.9.0
   shake: ^2.0.0
   share: ^2.0.4
   shared_preferences: ^2.0.0
@@ -110,12 +110,13 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 0cd68a902c8d2554227738594c62046571e57b4c
+      ref: 6780ff6374a254a2787a5bcfd850fc46f40351b6
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
-  version_check: ^0.3.0
-  wakelock: ^0.6.1+2
+  version_check: ^0.4.0
+  wakelock:
+  chewie: ^1.7.0
   wallet_connect:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
@@ -136,7 +137,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: c8cec315932ad48207c4e262588096307901c882
+      ref: 121a70c355dcdc165e714645ec9d5d94bf2a82e8
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -159,7 +160,7 @@ dependencies:
   flutter_widget_from_html: ^0.9.0+1
   readmore: ^2.2.0
   elliptic: ^0.3.8
-  sentry: 6.9.1
+  sentry: ^7.9.0
   path: ^1.8.2
   in_app_purchase_storekit: ^0.3.4
   in_app_purchase_android: ^0.2.3+7
@@ -185,6 +186,8 @@ dependency_overrides:
     git:
       url: https://github.com/bluefireteam/photo_view
       ref: c5fcfd
+  intl: 0.18.0
+  flutter_svg: ^1.1.5
 
 dev_dependencies:
   flutter_lints: null

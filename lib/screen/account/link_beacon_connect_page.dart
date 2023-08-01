@@ -57,7 +57,7 @@ class _LinkBeaconConnectPageState extends State<LinkBeaconConnectPage> {
                         alignment: Alignment.center,
                         width: 180,
                         height: 180,
-                        child: QrImage(
+                        child: QrImageView(
                           data: "tezos://${widget.uri}",
                           size: 180.0,
                         ),

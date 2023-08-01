@@ -1646,7 +1646,7 @@ class PostcardRightsView extends StatefulWidget {
 
 class _PostcardRightsViewState extends State<PostcardRightsView> {
   final dio = Dio(BaseOptions(
-    connectTimeout: 2000,
+    connectTimeout: const Duration(seconds: 5),
   ));
 
   @override

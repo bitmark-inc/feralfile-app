@@ -45,10 +45,10 @@ extension Logger {
         self.info(logger)
 
         // Add sentry breadcrumb
-        let crumb = Breadcrumb()
-        crumb.level = SentryLevel.info
-        crumb.message = message
-        SentrySDK.addBreadcrumb(crumb: crumb)
+//         let crumb = Breadcrumb()
+//         crumb.level = SentryLevel.info
+//        crumb.message = message
+//         SentrySDK.addBreadcrumb(crumb: crumb)
     }
 
     func debug(_ message: String) {
