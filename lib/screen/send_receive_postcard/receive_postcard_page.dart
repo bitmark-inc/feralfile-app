@@ -114,7 +114,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     if (addresses.isEmpty) {
       final defaultPersona = await accountService.getOrCreateDefaultPersona();
       final walletAddress =
-          await defaultPersona.insertNextAddress(WalletType.Tezos);
+          await defaultPersona.insertAddress(WalletType.Tezos);
       address = walletAddress.first.address;
     } else if (addresses.length == 1) {
       address = addresses.first;

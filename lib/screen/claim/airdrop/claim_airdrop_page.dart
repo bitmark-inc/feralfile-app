@@ -255,11 +255,10 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                         if (addresses.isEmpty) {
                           final defaultPersona =
                               await _accountService.getOrCreateDefaultPersona();
-                          final walletAddress =
-                              await defaultPersona.insertNextAddress(
-                                  blockchain.toLowerCase() == "tezos"
-                                      ? WalletType.Tezos
-                                      : WalletType.Ethereum);
+                          final walletAddress = await defaultPersona
+                              .insertAddress(blockchain.toLowerCase() == "tezos"
+                                  ? WalletType.Tezos
+                                  : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
                           _metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
