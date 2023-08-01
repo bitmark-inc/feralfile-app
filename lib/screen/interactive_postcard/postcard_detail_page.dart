@@ -1098,7 +1098,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     return _leaderboardHeader(context, leaderBoard.lastUpdated);
                   }
                   final item = leaderBoard.items[index - 1];
-                  final isYours = item.id == state.assetToken?.id;
+                  final isYours = item.id == state.assetToken?.tokenId;
                   return _leaderboardItem(item, isYour: isYours);
                 },
               ),
