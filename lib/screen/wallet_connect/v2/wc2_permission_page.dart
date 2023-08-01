@@ -76,10 +76,10 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
     context.read<AccountsBloc>().add(
           GetCategorizedAccountsEvent(
-            includeLinkedAccount: _includeLinkedAccount,
-            getEth: _selectETHAddress,
-            getTezos: _selectXTZAddress,
-          ),
+              includeLinkedAccount: _includeLinkedAccount,
+              getEth: _selectETHAddress,
+              getTezos: _selectXTZAddress,
+              autoAddAddress: true),
         );
     injector<NavigationService>().setIsWCConnectInShow(true);
   }
@@ -190,7 +190,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     });
   }
 
-  Widget _wcAppInfo() {
+  Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
     if (proposer == null) return const SizedBox();
@@ -266,7 +266,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               ),
               Padding(
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _wcAppInfo(),
+                child: _wcAppInfo(context),
               ),
               const SizedBox(height: 32),
               addDivider(height: 52),
@@ -276,59 +276,22 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                       listener: (context, state) {
                     final categorizedAccounts = state.accounts ?? [];
 
-                    final selectManual = categorizedAccounts
-                                .where((element) => element.isTez)
-                                .length !=
-                            1 ||
-                        categorizedAccounts
-                                .where((element) => element.isEth)
-                                .length !=
-                            1;
-
-                    if (selectManual) return;
-
-                    if (selectedAddress.containsKey('eip155:1')) {
-                      selectedAddress['eip155:1'] = categorizedAccounts
-                          .firstWhere((element) => element.isEth)
-                          .accountNumber;
-                    }
-                    if (selectedAddress.containsKey('tezos')) {
-                      selectedAddress['tezos'] = categorizedAccounts
-                          .firstWhere((element) => element.isTez)
-                          .accountNumber;
+                    if (state.accounts?.length == 2) {
+                      if (selectedAddress.containsKey('eip155:1')) {
+                        selectedAddress['eip155:1'] = categorizedAccounts
+                            .firstWhere((element) => element.isEth)
+                            .accountNumber;
+                      }
+                      if (selectedAddress.containsKey('tezos')) {
+                        selectedAddress['tezos'] = categorizedAccounts
+                            .firstWhere((element) => element.isTez)
+                            .accountNumber;
+                      }
                     }
                     setState(() {});
                   }, builder: (context, state) {
-                    final categorizedAccounts = state.accounts ?? [];
-                    if (categorizedAccounts.isEmpty) return const SizedBox();
-
-                    final selectManual = categorizedAccounts
-                                .where((element) => element.isTez)
-                                .length !=
-                            1 ||
-                        categorizedAccounts
-                                .where((element) => element.isEth)
-                                .length !=
-                            1;
-
-                    if (!selectManual) {
-                      return Column(
-                        children: [
-                          Padding(
-                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                            child: Text(
-                              'verify_the_addresses'.tr(),
-                              style: theme.textTheme.ppMori400Black16,
-                            ),
-                          ),
-                          const SizedBox(height: 16.0),
-                          ListAccountConnect(
-                            accounts: categorizedAccounts,
-                            isAutoSelect: true,
-                          ),
-                        ],
-                      );
-                    }
+                    final accounts = state.accounts ?? [];
+                    if (accounts.isEmpty) return const SizedBox();
 
                     return Column(
                       children: [
@@ -348,7 +311,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         ),
                         const SizedBox(height: 16.0),
                         ListAccountConnect(
-                          accounts: categorizedAccounts,
+                          accounts: accounts,
                           onSelectEth: (value) {
                             setState(() {
                               selectedAddress['eip155:1'] = value.accountNumber;
@@ -359,6 +322,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                               selectedAddress['tezos'] = value.accountNumber;
                             });
                           },
+                          isAutoSelect: accounts.length == 2,
                         ),
                       ],
                     );

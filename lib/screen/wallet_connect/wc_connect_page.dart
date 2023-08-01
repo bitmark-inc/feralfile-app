@@ -76,9 +76,10 @@ class _WCConnectPageState extends State<WCConnectPage>
   String? tezSelectedAddress;
 
   bool get _confirmEnable =>
-      categorizedAccounts != null &&
-      categorizedAccounts!.isNotEmpty &&
-      (selectedPersona != null || widget.connectionRequest.isAutonomyConnect);
+      (categorizedAccounts != null &&
+          categorizedAccounts!.isNotEmpty &&
+          selectedPersona != null) ||
+      widget.connectionRequest.isAutonomyConnect;
 
   @override
   void initState() {
@@ -406,20 +407,18 @@ class _WCConnectPageState extends State<WCConnectPage>
                       BlocConsumer<AccountsBloc, AccountsState>(
                           listener: (context, state) async {
                         var stateCategorizedAccounts = state.accounts;
+
+                        if (connectionRequest.isAutonomyConnect) {
+                          final persona = await injector<AccountService>()
+                              .getOrCreateDefaultPersona();
+                          selectedPersona = WalletIndex(persona.wallet(), 0);
+                        }
                         if (stateCategorizedAccounts == null ||
                             stateCategorizedAccounts.isEmpty) {
                           setState(() {
                             createPersona = true;
                           });
                           return;
-                        }
-
-                        if (connectionRequest.isAutonomyConnect) {
-                          if (stateCategorizedAccounts.isNotEmpty) {
-                            final wallet = await injector<AccountService>()
-                                .getDefaultAccount();
-                            selectedPersona = WalletIndex(wallet, 0);
-                          }
                         }
                         categorizedAccounts = stateCategorizedAccounts;
                         await _autoSelectDefault(categorizedAccounts);
