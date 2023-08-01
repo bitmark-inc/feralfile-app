@@ -66,6 +66,7 @@ class ClaimEmptyPostCardBloc
         final defaultPersona = await accountService.getOrCreateDefaultPersona();
         final configService = injector<ConfigurationService>();
         await configService.setDoneOnboarding(true);
+        await configService.setPendingSettings(true);
         injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
 
         final walletAddress =
