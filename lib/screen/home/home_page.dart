@@ -310,7 +310,7 @@ class HomePageState extends State<HomePage>
       child: PrimaryScrollController(
         controller: _controller,
         child: Scaffold(
-          appBar: Platform.isAndroid ? getLightEmptyAppBar() : null,
+          appBar: getLightEmptyAppBar(),
           backgroundColor: theme.colorScheme.background,
           body: contentWidget,
         ),
