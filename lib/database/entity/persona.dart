@@ -134,20 +134,33 @@ class Persona {
     return null;
   }
 
-  Future<List<WalletAddress>> insertAddress(WalletType walletType,
-      {int index = 0, String? name}) async {
+  Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
+      {String? name}) async {
     final List<WalletAddress> addresses = [];
+    final walletAddresses = await getWalletAddresses();
+    final ethIndexes = walletAddresses
+        .where((element) => element.cryptoType == CryptoType.ETH.source)
+        .map((e) => e.index)
+        .toSet()
+        .toList();
+    final ethIndex = _getNextIndex(ethIndexes);
+    final tezIndexes = walletAddresses
+        .where((element) => element.cryptoType == CryptoType.XTZ.source)
+        .map((e) => e.index)
+        .toSet()
+        .toList();
+    final tezIndex = _getNextIndex(tezIndexes);
     final ethAddress = WalletAddress(
-        address: await wallet().getETHEip55Address(index: index),
+        address: await wallet().getETHEip55Address(index: ethIndex),
         uuid: uuid,
-        index: index,
+        index: ethIndex,
         cryptoType: CryptoType.ETH.source,
         createdAt: DateTime.now(),
         name: name ?? CryptoType.ETH.source);
     final tezAddress = WalletAddress(
-        address: await wallet().getTezosAddress(index: index),
+        address: await wallet().getTezosAddress(index: tezIndex),
         uuid: uuid,
-        index: index,
+        index: tezIndex,
         cryptoType: CryptoType.XTZ.source,
         createdAt: DateTime.now(),
         name: name ?? CryptoType.XTZ.source);
@@ -163,6 +176,26 @@ class Persona {
     }
     await injector<CloudDatabase>().addressDao.insertAddresses(addresses);
     return addresses;
+  }
+
+  int _getNextIndex(List<int> indexes) {
+    indexes.sort();
+    if (indexes.isEmpty || indexes.first != 0) {
+      return 0;
+    }
+    var index = 0;
+    for (int i = 0; i < indexes.length; i++) {
+      final element = indexes[i];
+      if (element == indexes.last) {
+        index = indexes.last + 1;
+        break;
+      }
+      if (element + 1 != indexes[i + 1]) {
+        index = element + 1;
+        break;
+      }
+    }
+    return index;
   }
 
   @override
