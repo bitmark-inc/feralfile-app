@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -54,8 +54,8 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
 
   final _metricClient = injector.get<MetricClientService>();
   final _accountService = injector<AccountService>();
-  final _configService = injector<ConfigurationService>();
   final _activationService = injector<ActivationService>();
+  final _configService = injector<ConfigurationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -235,15 +235,16 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
 
                         String? address;
                         if (addresses.isEmpty) {
-                          final defaultAccount =
-                              await _accountService.getDefaultAccount();
-
+                          final defaultPersona =
+                              await _accountService.getOrCreateDefaultPersona();
+                          final walletAddress = await defaultPersona
+                              .insertAddress(blockchain.toLowerCase() == "tezos"
+                                  ? WalletType.Tezos
+                                  : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
                           _metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
-                          address = blockchain.toLowerCase() == "tezos"
-                              ? await defaultAccount.getTezosAddress()
-                              : await defaultAccount.getETHEip55Address();
+                          address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {
