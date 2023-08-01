@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -75,7 +76,9 @@ class _WCConnectPageState extends State<WCConnectPage>
   String? tezSelectedAddress;
 
   bool get _confirmEnable =>
-      categorizedAccounts != null && categorizedAccounts!.isNotEmpty;
+      categorizedAccounts != null &&
+      categorizedAccounts!.isNotEmpty &&
+      (selectedPersona != null || widget.connectionRequest.isAutonomyConnect);
 
   @override
   void initState() {
@@ -428,7 +431,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                   ),
                 ),
               ),
-              _connect()
+              _connect(context)
             ],
           ),
         ),
@@ -494,7 +497,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     return _selectPersonaWidget(stateCategorizedAccounts);
   }
 
-  Widget _connect() {
+  Widget _connect(BuildContext context) {
     if (connectionRequest.isAutonomyConnect) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -516,7 +519,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         ],
       );
     } else if (createPersona == true) {
-      return _createAccountAndConnect();
+      return _createAccountAndConnect(context);
     } else {
       return Row(
         children: [
@@ -648,12 +651,13 @@ class _WCConnectPageState extends State<WCConnectPage>
               selectedPersona = WalletIndex(value.persona!.wallet(), index);
             });
           },
+          isAutoSelect: accounts.length == 1,
         ),
       ],
     );
   }
 
-  Widget _createAccountAndConnect() {
+  Widget _createAccountAndConnect(BuildContext context) {
     return Padding(
       padding: ResponsiveLayout.pageHorizontalEdgeInsets,
       child: Column(
@@ -662,11 +666,10 @@ class _WCConnectPageState extends State<WCConnectPage>
             children: [
               Expanded(
                 child: PrimaryButton(
-                  enabled: _confirmEnable,
                   text: "h_confirm".tr(),
                   onTap: () {
                     metricClient.addEvent(MixpanelEvent.connectMarket);
-                    withDebounce(() => _createAccount());
+                    withDebounce(() => _createAccount(context));
                   },
                 ),
               )
@@ -677,23 +680,18 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future _createAccount() async {
+  Future _createAccount(BuildContext context) async {
     UIHelper.showLoadingScreen(context, text: "connecting".tr());
-    final account = await injector<AccountService>().getDefaultAccount();
-    final defaultName = await account.getAccountDID();
-    var persona =
-        await injector<CloudDatabase>().personaDao.findById(account.uuid);
-    if (persona == null) {
-      log.info("[wc_connect_page] could not find default account");
-      return;
-    }
-    persona.tezosIndexes = ",0";
-    persona.ethereumIndexes = ",0";
-    final namedPersona =
-        await injector<AccountService>().namePersona(persona, defaultName);
+    final persona =
+        await injector<AccountService>().getOrCreateDefaultPersona();
+    await persona.insertAddress(connectionRequest.isBeaconConnect
+        ? WalletType.Tezos
+        : WalletType.Ethereum);
     injector<ConfigurationService>().setDoneOnboarding(true);
     injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-    selectedPersona = WalletIndex(namedPersona.wallet(), 0);
+    setState(() {
+      selectedPersona = WalletIndex(persona.wallet(), 0);
+    });
     _approveThenNotify(onBoarding: true);
   }
 }
