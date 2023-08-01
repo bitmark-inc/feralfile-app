@@ -180,22 +180,10 @@ class Persona {
 
   int _getNextIndex(List<int> indexes) {
     indexes.sort();
-    if (indexes.isEmpty || indexes.first != 0) {
+    if (indexes.isEmpty) {
       return 0;
     }
-    var index = 0;
-    for (int i = 0; i < indexes.length; i++) {
-      final element = indexes[i];
-      if (element == indexes.last) {
-        index = indexes.last + 1;
-        break;
-      }
-      if (element + 1 != indexes[i + 1]) {
-        index = element + 1;
-        break;
-      }
-    }
-    return index;
+    return indexes.last + 1;
   }
 
   @override
