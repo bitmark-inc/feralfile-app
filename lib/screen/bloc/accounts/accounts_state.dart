@@ -17,11 +17,13 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool includeLinkedAccount;
   final bool getTezos;
   final bool getEth;
+  final bool autoAddAddress;
 
   GetCategorizedAccountsEvent({
     this.includeLinkedAccount = true,
     this.getTezos = true,
     this.getEth = true,
+    this.autoAddAddress = false,
   });
 }
 

@@ -97,7 +97,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_pa
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
-import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
@@ -253,7 +252,6 @@ class AppRouter {
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
-  static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
@@ -1375,18 +1373,6 @@ class AppRouter {
             builder: (context) {
               return IRLWebScreen(url: url);
             });
-
-      case irlGetAddress:
-        final payload = settings.arguments as IRLGetAddressPayLoad?;
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: IRLGetAddressPage(payload: payload),
-            );
-          },
-        );
 
       case irlSignMessage:
         final payload = settings.arguments as IRLSignMessagePayload;

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/services/address_service.dart';
 
 class DateTimeConverter extends TypeConverter<DateTime, int> {
   @override
@@ -175,6 +176,8 @@ class Persona {
         addresses.addAll([ethAddress, tezAddress]);
     }
     await injector<CloudDatabase>().addressDao.insertAddresses(addresses);
+    await injector<AddressService>()
+        .addAddresses(addresses.map((e) => e.address).toList());
     return addresses;
   }
 
