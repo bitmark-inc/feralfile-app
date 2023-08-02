@@ -684,7 +684,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     UIHelper.showLoadingScreen(context, text: "connecting".tr());
     final persona =
         await injector<AccountService>().getOrCreateDefaultPersona();
-    await persona.insertAddress(connectionRequest.isBeaconConnect
+    await persona.insertNextAddress(connectionRequest.isBeaconConnect
         ? WalletType.Tezos
         : WalletType.Ethereum);
     injector<ConfigurationService>().setDoneOnboarding(true);

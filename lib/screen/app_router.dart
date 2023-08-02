@@ -269,6 +269,11 @@ class AppRouter {
     final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
+    final personaBloc = PersonaBloc(
+      injector<CloudDatabase>(),
+      injector(),
+      injector<AuditService>(),
+    );
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -307,12 +312,7 @@ class AppRouter {
               ),
             ),
             BlocProvider(
-              create: (_) => PersonaBloc(
-                injector<CloudDatabase>(),
-                injector(),
-                injector(),
-                injector<AuditService>(),
-              ),
+              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );
@@ -361,12 +361,7 @@ class AppRouter {
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
+                      create: (_) => personaBloc,
                     ),
                   ],
                   child: const HomeNavigationPage(fromOnboarding: true),
@@ -400,12 +395,7 @@ class AppRouter {
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
+                      create: (_) => personaBloc,
                     ),
                   ],
                   child: const HomeNavigationPage(),
@@ -483,25 +473,13 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: NewAccountPage()));
+                create: (_) => personaBloc, child: NewAccountPage()));
 
       case addAccountPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: const AddAccountPage()));
+                create: (_) => personaBloc, child: const AddAccountPage()));
 
       case AppRouter.linkAccountpage:
         return CupertinoPageRoute(
@@ -517,12 +495,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                 ], child: const AccountsPreviewPage()));
 
@@ -534,12 +507,7 @@ class AppRouter {
                     create: (_) => FeralfileBloc.create(),
                   ),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                 ], child: const AccessMethodPage()));
 
@@ -599,12 +567,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => PersonaBloc(
-                    injector<CloudDatabase>(),
-                    injector(),
-                    injector(),
-                    injector<AuditService>(),
-                  ),
+                  create: (_) => personaBloc,
                   child: NamePersonaPage(
                       payload: settings.arguments as NamePersonaPayload),
                 ));
@@ -696,13 +659,7 @@ class AppRouter {
             fullscreenDialog: true,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => PersonaBloc(
-                            injector<CloudDatabase>(),
-                            injector(),
-                            injector(),
-                            injector<AuditService>(),
-                          )),
+                  BlocProvider(create: (_) => personaBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
                   BlocProvider(
@@ -910,12 +867,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => PersonaBloc(
-                    injector<CloudDatabase>(),
-                    injector(),
-                    injector(),
-                    injector<AuditService>(),
-                  ),
+                  create: (_) => personaBloc,
                   child: AddressAlias(
                       payload: settings.arguments as AddressAliasPayload),
                 ));
@@ -1047,12 +999,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
@@ -1169,12 +1116,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: accountsBloc),
                       BlocProvider(
-                        create: (_) => PersonaBloc(
-                          injector<CloudDatabase>(),
-                          injector(),
-                          injector(),
-                          injector<AuditService>(),
-                        ),
+                        create: (_) => personaBloc,
                       ),
                     ],
                     child: TVConnectPage(
@@ -1255,12 +1197,7 @@ class AppRouter {
             providers: [
               BlocProvider.value(value: accountsBloc),
               BlocProvider(
-                create: (_) => PersonaBloc(
-                  injector<CloudDatabase>(),
-                  injector(),
-                  injector(),
-                  injector<AuditService>(),
-                ),
+                create: (_) => personaBloc,
               ),
             ],
             child: WCConnectPage(
@@ -1276,12 +1213,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: accountsBloc),
                       BlocProvider(
-                        create: (_) => PersonaBloc(
-                          injector<CloudDatabase>(),
-                          injector(),
-                          injector(),
-                          injector<AuditService>(),
-                        ),
+                        create: (_) => personaBloc,
                       ),
                     ],
                     child: Wc2RequestPage(
@@ -1301,12 +1233,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                 ],
                 child: const WalletPage(),

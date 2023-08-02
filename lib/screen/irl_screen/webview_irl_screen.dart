@@ -94,7 +94,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       if (addresses.isEmpty) {
         final persona =
             await injector<AccountService>().getOrCreateDefaultPersona();
-        final addedAddress = await persona.insertAddress(
+        final addedAddress = await persona.insertNextAddress(
             cryptoType == CryptoType.XTZ
                 ? WalletType.Tezos
                 : WalletType.Ethereum);

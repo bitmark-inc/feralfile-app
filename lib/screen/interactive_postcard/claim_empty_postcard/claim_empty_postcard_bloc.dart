@@ -70,7 +70,7 @@ class ClaimEmptyPostCardBloc
         injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
 
         final walletAddress =
-            await defaultPersona.insertAddress(WalletType.Tezos);
+            await defaultPersona.insertNextAddress(WalletType.Tezos);
         address = walletAddress.first.address;
       } else if (addresses.length == 1) {
         address = addresses.first;

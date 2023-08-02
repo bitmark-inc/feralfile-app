@@ -257,10 +257,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                         if (addresses.isEmpty) {
                           final defaultPersona =
                               await accountService.getOrCreateDefaultPersona();
-                          final walletAddress = await defaultPersona
-                              .insertAddress(blockchain.toLowerCase() == "tezos"
-                                  ? WalletType.Tezos
-                                  : WalletType.Ethereum);
+                          final walletAddress =
+                              await defaultPersona.insertNextAddress(
+                                  blockchain.toLowerCase() == "tezos"
+                                      ? WalletType.Tezos
+                                      : WalletType.Ethereum);
 
                           final configService =
                               injector<ConfigurationService>();
