@@ -16,21 +16,21 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/account/access_method_page.dart';
-import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
-import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
+import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
+import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
+import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
+import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
+import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
-import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
-import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -94,7 +94,6 @@ import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
-import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -137,10 +136,8 @@ import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -149,7 +146,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
 import 'account/link_beacon_connect_page.dart';
 import 'detail/preview/canvas_device_bloc.dart';
@@ -164,19 +160,10 @@ class AppRouter {
   static const editPlayListPage = "editPlayList";
   static const previewPrimerPage = "preview_primer";
   static const onboardingPage = "onboarding";
-  static const beOwnGalleryPage = 'be_own_gallery';
-  static const moreAutonomyPage = 'more_autonomy';
   static const notificationOnboardingPage = 'notification_onboarding';
-  static const newAccountPage = "new_account";
-  static const addAccountPage = 'add_account';
-  static const linkAccountpage = "link_account";
   static const linkLedgerWalletPage = "link_ledger_wallet";
   static const selectLedgerWalletPage = "select_ledger_waller";
-  static const linkWalletConnectPage = "link_wallet_connect";
   static const linkBeaconConnectPage = "link_beacon_connect";
-  static const accountsPreviewPage = 'accounts_preview';
-  static const accessMethodPage = 'access_method_page';
-  static const linkAppOptionPage = 'link_app_option_page';
   static const linkMetamaskPage = 'link_metamask';
   static const linkTezosKukaiPage = 'link_tezos_kukai_page';
   static const linkTezosTemplePage = 'link_tezos_temple_page';
@@ -333,7 +320,6 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => HomeBloc(
                               injector(),
-                              injector(),
                             )),
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
@@ -367,7 +353,6 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => HomeBloc(
                               injector(),
-                              injector(),
                             )),
                     BlocProvider(
                         create: (_) => IdentityBloc(injector(), injector())),
@@ -391,11 +376,6 @@ class AppRouter {
                   ],
                   child: const HomeNavigationPage(),
                 ));
-      case beOwnGalleryPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => const BeOwnGalleryPage(),
-        );
 
       case ChatThreadPage.tag:
         return CupertinoPageRoute(
@@ -446,14 +426,6 @@ class AppRouter {
                       payload: settings.arguments as StampPreviewPayload),
                 ));
 
-      case moreAutonomyPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => UpgradesBloc(injector(), injector()),
-            child: const MoreAutonomyPage(),
-          ),
-        );
       case notificationOnboardingPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -494,6 +466,24 @@ class AppRouter {
                   ),
                 ], child: const AccessMethodPage()));
 
+
+      case linkMetamaskPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                create: (_) => FeralfileBloc.create(),
+                child: const LinkMetamaskPage()));
+
+      case linkTezosKukaiPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const LinkTezosKukaiPage());
+
+      case linkTezosTemplePage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const LinkTezosTemplePage());
+
       case linkBeaconConnectPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -503,15 +493,6 @@ class AppRouter {
       case selectLedgerWalletPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const SelectLedgerPage());
-
-      case linkWalletConnectPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc,
-                child: LinkWalletConnectPage(
-                  unableOpenAppname: (settings.arguments as String?) ?? "",
-                )));
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(
@@ -564,12 +545,6 @@ class AppRouter {
         }
         throw Exception('Invalid route: ${settings.name}');
 
-      case WCDisconnectPage.tag:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) =>
-              WCDisconnectPage(client: settings.arguments as WCClient),
-        );
       case WCSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -583,7 +558,6 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-              injector(),
               injector(),
               injector(),
               injector(),
@@ -649,7 +623,6 @@ class AppRouter {
                         injector<CloudDatabase>(),
                         injector(),
                         injector(),
-                        injector(),
                       ))
                     ],
                     child: PersonaConnectionsPage(
@@ -662,7 +635,6 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => ConnectionsBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                       injector(),
                     ),
@@ -682,7 +654,6 @@ class AppRouter {
                     BlocProvider.value(
                         value: ConnectionsBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                       injector(),
                     )),
@@ -1041,20 +1012,6 @@ class AppRouter {
                   create: (_) => KeySyncBloc(injector(), injector()),
                   child: const KeySyncPage(),
                 ));
-
-      case tvConnectPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                        create: (_) => personaBloc,
-                      ),
-                    ],
-                    child: TVConnectPage(
-                        wcConnectArgs:
-                            settings.arguments as WCConnectPageArgs)));
 
       case sendArtworkPage:
         return CupertinoPageRoute(

@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
@@ -15,7 +14,6 @@ import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_ad
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -109,14 +107,7 @@ class _WalletPageState extends State<WalletPage>
               arguments: ViewExistingAddressPayload(false));
         },
       ),
-      OptionItem(
-        onTap: () async {
-          final debug = await isAppCenterBuild();
-          if (debug && mounted) {
-            Navigator.of(context).popAndPushNamed(AppRouter.accessMethodPage);
-          }
-        },
-      ),
+      OptionItem(),
     ];
     UIHelper.showDrawerAction(context, options: options);
   }

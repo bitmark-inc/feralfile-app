@@ -13,7 +13,6 @@ import 'package:floor/floor.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 import 'package:nft_collection/models/address_index.dart';
 
 enum ConnectionType {
@@ -27,7 +26,7 @@ enum ConnectionType {
   ledger, // Autonomy connect to Ledger: ETH, TZ
   manuallyAddress,
   manuallyIndexerTokenID,
-  walletConnect2,
+  walletConnect2, // Autonomy connect
   dappConnect2,
 }
 
@@ -77,17 +76,6 @@ class Connection {
       data: json.encode(ffConnection),
       connectionType: ConnectionType.feralFileToken.rawValue,
       accountNumber: ffAccount.id,
-      createdAt: DateTime.now(),
-    );
-  }
-
-  factory Connection.fromETHWallet(WCConnectedSession connectedSession) {
-    return Connection(
-      key: connectedSession.accounts.first,
-      name: "",
-      data: json.encode(connectedSession),
-      connectionType: ConnectionType.walletConnect.rawValue,
-      accountNumber: connectedSession.accounts.first,
       createdAt: DateTime.now(),
     );
   }
@@ -165,13 +153,6 @@ class Connection {
     return FeralFileWeb3Connection.fromJson(jsonData);
   }
 
-  WalletConnectConnection? get wcConnection {
-    if (connectionType != ConnectionType.dappConnect.rawValue) return null;
-
-    final jsonData = json.decode(data);
-    return WalletConnectConnection.fromJson(jsonData);
-  }
-
   TezosConnection? get walletBeaconConnection {
     if (connectionType != ConnectionType.walletBeacon.rawValue) return null;
 
@@ -184,13 +165,6 @@ class Connection {
 
     final jsonData = json.decode(data);
     return BeaconConnectConnection.fromJson(jsonData);
-  }
-
-  WCConnectedSession? get wcConnectedSession {
-    if (connectionType != ConnectionType.walletConnect.rawValue) return null;
-
-    final jsonData = json.decode(data);
-    return WCConnectedSession.fromJson(jsonData);
   }
 
   String? get wc2ConnectedSession {
@@ -207,10 +181,6 @@ class Connection {
   }
 
   String get appName {
-    if (wcConnection != null) {
-      return wcConnection?.sessionStore.remotePeerMeta.name ?? "";
-    }
-
     if (beaconConnectConnection != null) {
       return beaconConnectConnection?.peer.name ?? "";
     }

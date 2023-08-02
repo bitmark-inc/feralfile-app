@@ -65,8 +65,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -197,13 +195,9 @@ Future<void> setup() async {
       () => MetricClientService(injector()));
   injector.registerLazySingleton<MixPanelClientService>(
       () => MixPanelClientService(injector(), injector()));
-  injector.registerLazySingleton(
-      () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
-  injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
-        injector(),
         injector(),
         injector(),
         auditService,
@@ -380,7 +374,6 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
-        injector(),
         injector(),
         injector(),
         injector(),

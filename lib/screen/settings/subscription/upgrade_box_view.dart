@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
@@ -12,11 +13,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 class UpgradeBoxView {
   static Widget getMoreAutonomyWidget(ThemeData theme, PremiumFeature feature,
-      {bool autoClose = true, WCPeerMeta? peerMeta, int? id}) {
+      {bool autoClose = true, AppMetadata? peerMeta, int? id}) {
     return GetMoreAUWidget(
       feature: feature,
       autoClose: autoClose,
@@ -29,7 +29,7 @@ class UpgradeBoxView {
 class GetMoreAUWidget extends StatefulWidget {
   final PremiumFeature feature;
   final bool autoClose;
-  final WCPeerMeta? peerMeta;
+  final AppMetadata? peerMeta;
   final int? id;
   const GetMoreAUWidget({
     Key? key,
@@ -108,7 +108,7 @@ class _GetMoreAUWidgetState extends State<GetMoreAUWidget> {
 class _SubscribeView extends StatefulWidget {
   final PremiumFeature? feature;
   final bool autoClose;
-  final WCPeerMeta? peerMeta;
+  final AppMetadata? peerMeta;
   final int? id;
 
   const _SubscribeView(

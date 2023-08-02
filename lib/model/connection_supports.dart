@@ -6,7 +6,6 @@
 //
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:wallet_connect/wc_session_store.dart';
 
 import 'package:autonomy_flutter/model/ff_account.dart';
 
@@ -46,24 +45,6 @@ class FeralFileWeb3Connection {
       _$FeralFileWeb3ConnectionFromJson(json);
 
   Map<String, dynamic> toJson() => _$FeralFileWeb3ConnectionToJson(this);
-}
-
-@JsonSerializable()
-class WalletConnectConnection {
-  String personaUuid;
-  int index;
-  WCSessionStore sessionStore;
-
-  WalletConnectConnection({
-    required this.personaUuid,
-    required this.index,
-    required this.sessionStore,
-  });
-
-  factory WalletConnectConnection.fromJson(Map<String, dynamic> json) =>
-      _$WalletConnectConnectionFromJson(json);
-
-  Map<String, dynamic> toJson() => _$WalletConnectConnectionToJson(this);
 }
 
 @JsonSerializable()

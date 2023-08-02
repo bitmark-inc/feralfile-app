@@ -6,10 +6,11 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -26,8 +27,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wallet_connect/models/ethereum/wc_ethereum_transaction.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WCSendTransactionPage extends StatefulWidget {
@@ -60,15 +59,6 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         widget.args.uuid,
         widget.args.index));
     _selectedPriority = context.read<WCSendTransactionBloc>().state.feeOption;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    Future.delayed(const Duration(seconds: 2), () {
-      injector<WalletConnectService>()
-          .handleEthSendTransaction(isRemoved: true);
-    });
   }
 
   @override
@@ -475,7 +465,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
 
 class WCSendTransactionPageArgs {
   final int id;
-  final WCPeerMeta peerMeta;
+  final AppMetadata peerMeta;
   final WCEthereumTransaction transaction;
   final String uuid;
   final int index;

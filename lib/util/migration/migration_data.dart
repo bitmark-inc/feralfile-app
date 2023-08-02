@@ -8,7 +8,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wc_connected_session.dart';
 
 part 'migration_data.g.dart';
 
@@ -18,14 +17,12 @@ class MigrationData {
   List<MigrationFFTokenConnection> ffTokenConnections;
   List<MigrationFFWeb3Connection> ffWeb3Connections;
   List<MigrationWalletBeaconConnection> walletBeaconConnections;
-  List<MigrationWalletConnectConnection> walletConnectConnections;
 
   MigrationData({
     required this.personas,
     required this.ffTokenConnections,
     required this.ffWeb3Connections,
     required this.walletBeaconConnections,
-    required this.walletConnectConnections,
   });
 
   factory MigrationData.fromJson(Map<String, dynamic> json) =>
@@ -109,24 +106,4 @@ class MigrationWalletBeaconConnection {
 
   Map<String, dynamic> toJson() =>
       _$MigrationWalletBeaconConnectionToJson(this);
-}
-
-@JsonSerializable()
-class MigrationWalletConnectConnection {
-  WCConnectedSession wcConnectedSession;
-  String name;
-  DateTime createdAt;
-
-  MigrationWalletConnectConnection({
-    required this.wcConnectedSession,
-    required this.name,
-    required this.createdAt,
-  });
-
-  factory MigrationWalletConnectConnection.fromJson(
-          Map<String, dynamic> json) =>
-      _$MigrationWalletConnectConnectionFromJson(json);
-
-  Map<String, dynamic> toJson() =>
-      _$MigrationWalletConnectConnectionToJson(this);
 }

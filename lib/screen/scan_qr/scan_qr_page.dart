@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -35,7 +34,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -521,11 +519,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       switch (widget.scannerItem) {
         case ScannerItem.WALLET_CONNECT:
           if (code.startsWith("wc:") == true) {
-            if (code.isAutonomyConnectUri) {
-              _handleAutonomyConnect(code);
-            } else {
-              _handleWalletConnect(code);
-            }
+            _handleAutonomyConnect(code);
           } else {
             _handleError(code);
           }
@@ -555,11 +549,7 @@ class _ScanQRPageState extends State<ScanQRPage>
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
-            if (code.isAutonomyConnectUri) {
-              _handleAutonomyConnect(code);
-            } else {
-              _handleWalletConnect(code);
-            }
+            _handleAutonomyConnect(code);
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
           } else if (code.startsWith(FF_TOKEN_DEEPLINK_PREFIX) == true) {
@@ -694,14 +684,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     _addScanQREvent(
         link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
     injector<Wc2Service>().connect(code);
-    Navigator.of(context).pop();
-  }
-
-  void _handleWalletConnect(String code) {
-    controller.dispose();
-    injector<WalletConnectService>().connect(code);
-    _addScanQREvent(
-        link: code, linkType: LinkType.walletConnect, prefix: "wc:");
     Navigator.of(context).pop();
   }
 

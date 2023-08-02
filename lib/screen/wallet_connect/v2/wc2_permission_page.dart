@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -33,7 +34,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 class Wc2RequestPage extends StatefulWidget {
   final Wc2Request request;
@@ -194,7 +194,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
     if (proposer == null) return const SizedBox();
-    final peerMeta = WCPeerMeta(
+    final peerMeta = AppMetadata(
       name: proposer.name,
       url: proposer.url,
       description: proposer.description,

@@ -249,19 +249,6 @@ Widget _appLogo(Connection connection) {
     case 'ledger':
       return SvgPicture.asset("assets/images/iconLedger.svg");
 
-    case 'walletConnect':
-      final walletName =
-          connection.wcConnectedSession?.sessionStore.remotePeerMeta.name;
-
-      switch (walletName) {
-        case "MetaMask":
-          return Image.asset("assets/images/metamask-alternative.png");
-        case "Trust Wallet":
-          return Image.asset("assets/images/trust-alternative.png");
-        default:
-          return Image.asset("assets/images/walletconnect-alternative.png");
-      }
-
     case 'walletBeacon':
       final walletName = connection.walletBeaconConnection?.peer.name;
       switch (walletName) {

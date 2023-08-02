@@ -196,20 +196,6 @@ class MigrationUtil {
       await _cloudDB.connectionDao.insertConnection(connection);
     }
 
-    for (var con in migrationData.walletConnectConnections) {
-      if (con.wcConnectedSession.accounts.isEmpty) continue;
-      final connection = Connection(
-        key: con.wcConnectedSession.accounts.first,
-        name: con.name,
-        data: json.encode(con.wcConnectedSession),
-        connectionType: ConnectionType.walletConnect.rawValue,
-        accountNumber: con.wcConnectedSession.accounts.first,
-        createdAt: con.createdAt,
-      );
-
-      await _cloudDB.connectionDao.insertConnection(connection);
-    }
-
     await _channel.invokeMethod("cleariOSMigrationData", {});
     log.info('[_migrationIOS] Done');
   }

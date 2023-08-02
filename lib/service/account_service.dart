@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -42,11 +41,9 @@ import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
 
 import 'iap_service.dart';
-import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
@@ -78,8 +75,6 @@ abstract class AccountService {
   Future<Persona> namePersona(Persona persona, String name);
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
-
-  Future<Connection> linkETHWallet(WCConnectedSession session);
 
   Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
 
@@ -126,7 +121,6 @@ abstract class AccountService {
 
 class AccountServiceImpl extends AccountService {
   final CloudDatabase _cloudDB;
-  final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
@@ -140,7 +134,6 @@ class AccountServiceImpl extends AccountService {
 
   AccountServiceImpl(
     this._cloudDB,
-    this._walletConnectService,
     this._tezosBeaconService,
     this._configurationService,
     this._auditService,
@@ -319,22 +312,12 @@ class AccountServiceImpl extends AccountService {
     await LibAukDart.getWallet(persona.uuid).removeKeys();
 
     final connections = await _cloudDB.connectionDao.getConnections();
-    Set<WCPeerMeta> wcPeers = {};
     Set<P2PPeer> bcPeers = {};
 
     log.info(
         "[AccountService] deletePersona - deleteConnections ${connections.length}");
     for (var connection in connections) {
       switch (connection.connectionType) {
-        case 'dappConnect':
-          if (persona.uuid == connection.wcConnection?.personaUuid) {
-            await _cloudDB.connectionDao.deleteConnection(connection);
-
-            final wcPeer = connection.wcConnection?.sessionStore.peerMeta;
-            if (wcPeer != null) wcPeers.add(wcPeer);
-          }
-          break;
-
         case 'beaconP2PPeer':
           if (persona.uuid == connection.beaconConnectConnection?.personaUuid) {
             await _cloudDB.connectionDao.deleteConnection(connection);
@@ -349,10 +332,6 @@ class AccountServiceImpl extends AccountService {
     }
 
     try {
-      for (var peer in wcPeers) {
-        await _walletConnectService.disconnect(peer);
-      }
-
       for (var peer in bcPeers) {
         await _tezosBeaconService.removePeer(peer);
       }
@@ -424,29 +403,6 @@ class AccountServiceImpl extends AccountService {
 
     return connection.connectionType ==
         ConnectionType.manuallyIndexerTokenID.rawValue;
-  }
-
-  @override
-  Future<Connection> linkETHWallet(WCConnectedSession session) async {
-    final connection = Connection.fromETHWallet(session);
-    final alreadyLinkedAccount =
-        await getExistingAccount(connection.accountNumber);
-    if (alreadyLinkedAccount != null) {
-      throw AlreadyLinkedException(alreadyLinkedAccount);
-    }
-
-    await _cloudDB.connectionDao.insertConnection(connection);
-    final metricClient = injector.get<MetricClientService>();
-
-    metricClient.addEvent(MixpanelEvent.linkWallet, data: {
-      "wallet": connection.appName,
-      "type": "app",
-      "connectionType": connection.connectionType
-    }, hashedData: {
-      "address": connection.accountNumber
-    });
-    _autonomyService.postLinkedAddresses();
-    return connection;
   }
 
   @override
@@ -773,12 +729,9 @@ class AccountServiceImpl extends AccountService {
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
         final connections = await _cloudDB.connectionDao
-            .getConnectionsByType(ConnectionType.dappConnect.rawValue);
+            .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
-          final wcConnection = connection.wcConnection;
-          if (wcConnection == null) continue;
-          if (wcConnection.personaUuid == persona.uuid &&
-              wcConnection.index == walletAddress.index) {
+          if (connection.accountNumber.contains(walletAddress.address)) {
             _cloudDB.connectionDao.deleteConnection(connection);
           }
         }

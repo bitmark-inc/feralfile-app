@@ -403,14 +403,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
-  cryptography:
-    dependency: transitive
-    description:
-      name: cryptography
-      sha256: e0e37f79665cd5c86e8897f9abe1accfe813c0cc5299dab22256e22fddc1fef8
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.5"
   csslib:
     dependency: transitive
     description:
@@ -2886,15 +2878,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.7"
-  wallet_connect:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
-      resolved-ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
-      url: "https://github.com/autonomy-system/wallet-connect-dart.git"
-    source: git
-    version: "1.0.4"
   watcher:
     dependency: transitive
     description:

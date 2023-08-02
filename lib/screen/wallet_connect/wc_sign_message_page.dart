@@ -9,12 +9,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -31,7 +31,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
 
 class WCSignMessagePage extends StatefulWidget {
@@ -66,30 +65,20 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        if (widget.args.wc2Params != null || widget.args.isWalletConnect2) {
-          await injector<Wc2Service>().respondOnReject(
-            widget.args.topic,
-            reason: "User reject",
-          );
-        } else {
-          injector<WalletConnectService>()
-              .rejectRequest(widget.args.peerMeta, widget.args.id);
-        }
+        await injector<Wc2Service>().respondOnReject(
+          widget.args.topic,
+          reason: "User reject",
+        );
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () async {
-            if (widget.args.wc2Params != null || widget.args.isWalletConnect2) {
-              await injector<Wc2Service>().respondOnReject(
-                widget.args.topic,
-                reason: "User reject",
-              );
-            } else {
-              injector<WalletConnectService>()
-                  .rejectRequest(widget.args.peerMeta, widget.args.id);
-            }
+            await injector<Wc2Service>().respondOnReject(
+              widget.args.topic,
+              reason: "User reject",
+            );
             if (!mounted) return;
             Navigator.of(context).pop(false);
           },
@@ -151,7 +140,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     );
   }
 
-  Widget _wcAppInfo(WCPeerMeta peerMeta) {
+  Widget _wcAppInfo(AppMetadata peerMeta) {
     final theme = Theme.of(context);
 
     return Row(
@@ -239,24 +228,20 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 final args = widget.args;
                 final wc2Params = args.wc2Params;
                 final WalletIndex wallet;
+                String signature;
                 if (wc2Params != null) {
                   final accountService = injector<AccountService>();
                   wallet = await accountService.getAccountByAddress(
                     chain: wc2Params.chain,
                     address: wc2Params.address,
                   );
-                  final signature = await wallet.signMessage(
+                  signature = await wallet.signMessage(
                     chain: wc2Params.chain,
                     message: wc2Params.message,
-                  );
-                  await injector<Wc2Service>().respondOnApprove(
-                    args.topic,
-                    signature,
                   );
                 } else {
                   wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),
                       widget.args.index);
-                  final String signature;
 
                   switch (widget.args.type) {
                     case WCSignType.PERSONAL_MESSAGE:
@@ -270,17 +255,11 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                           .signMessage(wallet.wallet, wallet.index, message);
                       break;
                   }
-
-                  if (widget.args.isWalletConnect2) {
-                    await injector<Wc2Service>().respondOnApprove(
-                      args.topic,
-                      signature,
-                    );
-                  } else {
-                    injector<WalletConnectService>().approveRequest(
-                        widget.args.peerMeta, widget.args.id, signature);
-                  }
                 }
+                await injector<Wc2Service>().respondOnApprove(
+                  args.topic,
+                  signature,
+                );
 
                 if (!mounted) return;
 
@@ -336,7 +315,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 class WCSignMessagePageArgs {
   final int id;
   final String topic;
-  final WCPeerMeta peerMeta;
+  final AppMetadata peerMeta;
   final String message;
   final WCSignType type;
   final String uuid;
@@ -355,4 +334,29 @@ class WCSignMessagePageArgs {
     this.isWalletConnect2 = false,
     this.wc2Params,
   });
+}
+
+enum WCSignType { MESSAGE, PERSONAL_MESSAGE, TYPED_MESSAGE }
+
+class WCEthereumSignMessage {
+  final List<String> raw;
+  final WCSignType type;
+
+  WCEthereumSignMessage({
+    required this.raw,
+    required this.type,
+  });
+
+  String? get data {
+    switch (type) {
+      case WCSignType.MESSAGE:
+        return raw[1];
+      case WCSignType.TYPED_MESSAGE:
+        return raw[1];
+      case WCSignType.PERSONAL_MESSAGE:
+        return raw[0];
+      default:
+        return null;
+    }
+  }
 }

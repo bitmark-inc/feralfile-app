@@ -116,7 +116,6 @@ class _AccessMethodPageState extends State<AccessMethodPage>
         title: "link_existing_wallet".tr(),
         content: "link_wallet_description".tr(),
         onTap: () {
-          Navigator.of(context).pushNamed(AppRouter.linkAccountpage);
         });
   }
 
