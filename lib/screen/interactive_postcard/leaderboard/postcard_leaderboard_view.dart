@@ -212,8 +212,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     if (leaderBoard == null) {
       return _loadingLeaderboard(context);
     }
-    const listKey =
-        PageStorageKey("leaderboard"); //GlobalKey<AnimatedListState>();
+    const listKey = PageStorageKey("leaderboard");
     return SizedBox(
       height: 500,
       child: Column(
