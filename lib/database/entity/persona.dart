@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
+import 'package:collection/collection.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/services/address_service.dart';
@@ -142,13 +143,11 @@ class Persona {
     final ethIndexes = walletAddresses
         .where((element) => element.cryptoType == CryptoType.ETH.source)
         .map((e) => e.index)
-        .toSet()
         .toList();
     final ethIndex = _getNextIndex(ethIndexes);
     final tezIndexes = walletAddresses
         .where((element) => element.cryptoType == CryptoType.XTZ.source)
         .map((e) => e.index)
-        .toSet()
         .toList();
     final tezIndex = _getNextIndex(tezIndexes);
     final ethAddress = WalletAddress(
@@ -181,13 +180,7 @@ class Persona {
     return addresses;
   }
 
-  int _getNextIndex(List<int> indexes) {
-    indexes.sort();
-    if (indexes.isEmpty) {
-      return 0;
-    }
-    return indexes.last + 1;
-  }
+  int _getNextIndex(List<int> indexes) => (indexes.maxOrNull ?? -1) + 1;
 
   @override
   bool operator ==(covariant Persona other) {
