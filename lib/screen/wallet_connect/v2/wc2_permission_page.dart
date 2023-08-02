@@ -50,12 +50,12 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   List<Persona>? personas;
 
   bool get _isAccountSelected =>
-      selectedAddress.values.every((element) => element != null);
+      selectedAddresses.values.every((element) => element != null);
   late Wc2PermissionsRequestParams params;
   bool _selectETHAddress = false;
   bool _selectXTZAddress = false;
 
-  final selectedAddress = {};
+  final selectedAddresses = {};
   bool _includeLinkedAccount = false;
 
   @override
@@ -65,14 +65,14 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
     // ignore: avoid_function_literals_in_foreach_calls
     params.permissions.firstOrNull?.request.chains.forEach((element) {
-      selectedAddress[element] = null;
+      selectedAddresses[element] = null;
     });
 
     _includeLinkedAccount =
         params.permissions.firstOrNull?.includeLinkedAccount ?? false;
 
-    _selectETHAddress = selectedAddress.containsKey('eip155:1');
-    _selectXTZAddress = selectedAddress.containsKey('tezos');
+    _selectETHAddress = selectedAddresses.containsKey('eip155:1');
+    _selectXTZAddress = selectedAddresses.containsKey('tezos');
 
     context.read<AccountsBloc>().add(
           GetCategorizedAccountsEvent(
@@ -120,7 +120,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final chainFutures = permission.request.chains.map((chain) async {
         try {
           final account = await accountService.getAccountByAddress(
-              chain: chain, address: selectedAddress[chain]);
+              chain: chain, address: selectedAddresses[chain]);
           final chainResp = await account.signPermissionRequest(
             chain: chain,
             message: params.message,
@@ -129,7 +129,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         } on AccountException {
           return Wc2Chain(
             chain: chain,
-            address: selectedAddress[chain],
+            address: selectedAddresses[chain],
           );
         }
       });
@@ -167,7 +167,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final connection = connections
           .firstWhereOrNull((element) => element.key.contains(pendingSession));
       if (connection != null) {
-        final accountNumber = selectedAddress.values.join("||");
+        final accountNumber = selectedAddresses.values.join("||");
         await cloudDB.connectionDao.updateConnection(
             connection.copyWith(accountNumber: accountNumber));
       }
@@ -277,13 +277,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                     final categorizedAccounts = state.accounts ?? [];
 
                     if (state.accounts?.length == 2) {
-                      if (selectedAddress.containsKey('eip155:1')) {
-                        selectedAddress['eip155:1'] = categorizedAccounts
+                      if (selectedAddresses.containsKey('eip155:1')) {
+                        selectedAddresses['eip155:1'] = categorizedAccounts
                             .firstWhere((element) => element.isEth)
                             .accountNumber;
                       }
-                      if (selectedAddress.containsKey('tezos')) {
-                        selectedAddress['tezos'] = categorizedAccounts
+                      if (selectedAddresses.containsKey('tezos')) {
+                        selectedAddresses['tezos'] = categorizedAccounts
                             .firstWhere((element) => element.isTez)
                             .accountNumber;
                       }
@@ -314,12 +314,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                           accounts: accounts,
                           onSelectEth: (value) {
                             setState(() {
-                              selectedAddress['eip155:1'] = value.accountNumber;
+                              selectedAddresses['eip155:1'] =
+                                  value.accountNumber;
                             });
                           },
                           onSelectTez: (value) {
                             setState(() {
-                              selectedAddress['tezos'] = value.accountNumber;
+                              selectedAddresses['tezos'] = value.accountNumber;
                             });
                           },
                           isAutoSelect: accounts.length == 2,
