@@ -60,9 +60,11 @@ class SelectAccountPage extends StatefulWidget {
 class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   bool _processing = false;
   String? _selectedAddress;
+  late final bool _isTezos;
 
   @override
   void initState() {
+    _isTezos = widget.blockchain?.toLowerCase() == "tezos";
     _callAccountEvent();
     super.initState();
   }
@@ -86,15 +88,8 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   void _callAccountEvent() {
-    if (widget.blockchain?.toLowerCase() == "tezos") {
-      context
-          .read<AccountsBloc>()
-          .add(GetCategorizedAccountsEvent(getEth: false));
-    } else {
-      context
-          .read<AccountsBloc>()
-          .add(GetCategorizedAccountsEvent(getTezos: false));
-    }
+    context.read<AccountsBloc>().add(
+        GetCategorizedAccountsEvent(getEth: !_isTezos, getTezos: _isTezos));
   }
 
   @override
@@ -134,7 +129,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             ),
             const SizedBox(height: 30),
             Expanded(
-              child: SingleChildScrollView(child: _buildAddressList(context)),
+              child: SingleChildScrollView(child: _buildAddressList()),
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -166,25 +161,19 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     );
   }
 
-  Widget _buildAddressList(BuildContext context) {
+  Widget _buildAddressList() {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
       final accounts = state.accounts ?? [];
+      void select(Account value) {
+        setState(() {
+          _selectedAddress = value.accountNumber;
+        });
+      }
+
       return ListAccountConnect(
         accounts: accounts,
-        onSelectEth: (value) {
-          setState(() {
-            if (widget.blockchain?.toLowerCase() != "tezos") {
-              _selectedAddress = value.accountNumber;
-            }
-          });
-        },
-        onSelectTez: (value) {
-          setState(() {
-            if (widget.blockchain?.toLowerCase() == "tezos") {
-              _selectedAddress = value.accountNumber;
-            }
-          });
-        },
+        onSelectEth: !_isTezos ? select : null,
+        onSelectTez: _isTezos ? select : null,
       );
     });
   }

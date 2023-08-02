@@ -50,12 +50,12 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   List<Persona>? personas;
 
   bool get _isAccountSelected =>
-      selectedAddress.values.every((element) => element != null);
+      selectedAddresses.values.every((element) => element != null);
   late Wc2PermissionsRequestParams params;
   bool _selectETHAddress = false;
   bool _selectXTZAddress = false;
 
-  final selectedAddress = {};
+  final selectedAddresses = {};
   bool _includeLinkedAccount = false;
 
   @override
@@ -65,21 +65,21 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
     // ignore: avoid_function_literals_in_foreach_calls
     params.permissions.firstOrNull?.request.chains.forEach((element) {
-      selectedAddress[element] = null;
+      selectedAddresses[element] = null;
     });
 
     _includeLinkedAccount =
         params.permissions.firstOrNull?.includeLinkedAccount ?? false;
 
-    _selectETHAddress = selectedAddress.containsKey('eip155:1');
-    _selectXTZAddress = selectedAddress.containsKey('tezos');
+    _selectETHAddress = selectedAddresses.containsKey('eip155:1');
+    _selectXTZAddress = selectedAddresses.containsKey('tezos');
 
     context.read<AccountsBloc>().add(
           GetCategorizedAccountsEvent(
-            includeLinkedAccount: _includeLinkedAccount,
-            getEth: _selectETHAddress,
-            getTezos: _selectXTZAddress,
-          ),
+              includeLinkedAccount: _includeLinkedAccount,
+              getEth: _selectETHAddress,
+              getTezos: _selectXTZAddress,
+              autoAddAddress: true),
         );
     injector<NavigationService>().setIsWCConnectInShow(true);
   }
@@ -120,7 +120,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final chainFutures = permission.request.chains.map((chain) async {
         try {
           final account = await accountService.getAccountByAddress(
-              chain: chain, address: selectedAddress[chain]);
+              chain: chain, address: selectedAddresses[chain]);
           final chainResp = await account.signPermissionRequest(
             chain: chain,
             message: params.message,
@@ -129,7 +129,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         } on AccountException {
           return Wc2Chain(
             chain: chain,
-            address: selectedAddress[chain],
+            address: selectedAddresses[chain],
           );
         }
       });
@@ -167,7 +167,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final connection = connections
           .firstWhereOrNull((element) => element.key.contains(pendingSession));
       if (connection != null) {
-        final accountNumber = selectedAddress.values.join("||");
+        final accountNumber = selectedAddresses.values.join("||");
         await cloudDB.connectionDao.updateConnection(
             connection.copyWith(accountNumber: accountNumber));
       }
@@ -190,7 +190,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     });
   }
 
-  Widget _wcAppInfo() {
+  Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
     if (proposer == null) return const SizedBox();
@@ -266,7 +266,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               ),
               Padding(
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _wcAppInfo(),
+                child: _wcAppInfo(context),
               ),
               const SizedBox(height: 32),
               addDivider(height: 52),
@@ -276,59 +276,22 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                       listener: (context, state) {
                     final categorizedAccounts = state.accounts ?? [];
 
-                    final selectManual = categorizedAccounts
-                                .where((element) => element.isTez)
-                                .length !=
-                            1 ||
-                        categorizedAccounts
-                                .where((element) => element.isEth)
-                                .length !=
-                            1;
-
-                    if (selectManual) return;
-
-                    if (selectedAddress.containsKey('eip155:1')) {
-                      selectedAddress['eip155:1'] = categorizedAccounts
-                          .firstWhere((element) => element.isEth)
-                          .accountNumber;
-                    }
-                    if (selectedAddress.containsKey('tezos')) {
-                      selectedAddress['tezos'] = categorizedAccounts
-                          .firstWhere((element) => element.isTez)
-                          .accountNumber;
+                    if (state.accounts?.length == 2) {
+                      if (selectedAddresses.containsKey('eip155:1')) {
+                        selectedAddresses['eip155:1'] = categorizedAccounts
+                            .firstWhere((element) => element.isEth)
+                            .accountNumber;
+                      }
+                      if (selectedAddresses.containsKey('tezos')) {
+                        selectedAddresses['tezos'] = categorizedAccounts
+                            .firstWhere((element) => element.isTez)
+                            .accountNumber;
+                      }
                     }
                     setState(() {});
                   }, builder: (context, state) {
-                    final categorizedAccounts = state.accounts ?? [];
-                    if (categorizedAccounts.isEmpty) return const SizedBox();
-
-                    final selectManual = categorizedAccounts
-                                .where((element) => element.isTez)
-                                .length !=
-                            1 ||
-                        categorizedAccounts
-                                .where((element) => element.isEth)
-                                .length !=
-                            1;
-
-                    if (!selectManual) {
-                      return Column(
-                        children: [
-                          Padding(
-                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                            child: Text(
-                              'verify_the_addresses'.tr(),
-                              style: theme.textTheme.ppMori400Black16,
-                            ),
-                          ),
-                          const SizedBox(height: 16.0),
-                          ListAccountConnect(
-                            accounts: categorizedAccounts,
-                            isAutoSelect: true,
-                          ),
-                        ],
-                      );
-                    }
+                    final accounts = state.accounts ?? [];
+                    if (accounts.isEmpty) return const SizedBox();
 
                     return Column(
                       children: [
@@ -348,17 +311,19 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         ),
                         const SizedBox(height: 16.0),
                         ListAccountConnect(
-                          accounts: categorizedAccounts,
+                          accounts: accounts,
                           onSelectEth: (value) {
                             setState(() {
-                              selectedAddress['eip155:1'] = value.accountNumber;
+                              selectedAddresses['eip155:1'] =
+                                  value.accountNumber;
                             });
                           },
                           onSelectTez: (value) {
                             setState(() {
-                              selectedAddress['tezos'] = value.accountNumber;
+                              selectedAddresses['tezos'] = value.accountNumber;
                             });
                           },
+                          isAutoSelect: accounts.length == 2,
                         ),
                       ],
                     );
