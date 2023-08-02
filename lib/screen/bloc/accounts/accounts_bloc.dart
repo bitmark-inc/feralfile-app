@@ -111,13 +111,15 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         if (event.getEth &&
             addresses.none(
                 (element) => element.cryptoType == CryptoType.ETH.source)) {
-          final ethAddress = await persona.insertAddress(WalletType.Ethereum);
+          final ethAddress =
+              await persona.insertNextAddress(WalletType.Ethereum);
           addresses.add(ethAddress.first);
         }
         if (event.getTezos &&
             addresses.none(
                 (element) => element.cryptoType == CryptoType.XTZ.source)) {
-          final tezosAddress = await persona.insertAddress(WalletType.Tezos);
+          final tezosAddress =
+              await persona.insertNextAddress(WalletType.Tezos);
           addresses.add(tezosAddress.first);
         }
       }
