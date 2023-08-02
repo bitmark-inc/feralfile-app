@@ -535,7 +535,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         return TappableForwardRow(
           padding: EdgeInsets.zero,
           leftWidget: Text(
-            "connection_with_dApps".tr(),
+            "connections".tr(),
             style: theme.textTheme.ppMori400Black14,
           ),
           rightWidget: Container(
