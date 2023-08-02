@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/wc_peer_meta.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:collection/collection.dart';
 import 'package:tezart/tezart.dart';
