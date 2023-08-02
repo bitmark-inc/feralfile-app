@@ -354,7 +354,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                       addTitleSpace(),
                       Padding(
                         padding: padding,
-                        child: _appInfo(),
+                        child: _appInfo(context),
                       ),
                       const SizedBox(height: 32),
                       addDivider(height: 52),
@@ -424,7 +424,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                         await _autoSelectDefault(categorizedAccounts);
                         setState(() {});
                       }, builder: (context, state) {
-                        return _selectAccount();
+                        return _selectAccount(context);
                       }),
                     ],
                   ),
@@ -460,7 +460,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
   }
 
-  Widget _appInfo() {
+  Widget _appInfo(BuildContext context) {
     if (connectionRequest.isAutonomyConnect ||
         connectionRequest.isWalletConnect2) {
       final wc2Proposer = (connectionRequest as Wc2Proposal).proposer;
@@ -470,20 +470,21 @@ class _WCConnectPageState extends State<WCConnectPage>
         description: wc2Proposer.description,
         icons: wc2Proposer.icons,
       );
-      return _wcAppInfo(peer);
+      return _wcAppInfo(context, peer);
     }
     if (connectionRequest.isWalletConnect) {
-      return _wcAppInfo((connectionRequest as WCConnectPageArgs).peerMeta);
+      return _wcAppInfo(
+          context, (connectionRequest as WCConnectPageArgs).peerMeta);
     }
 
     if (connectionRequest.isBeaconConnect) {
-      return _tbAppInfo(connectionRequest as BeaconRequest);
+      return _tbAppInfo(context, connectionRequest as BeaconRequest);
     }
 
     return const SizedBox();
   }
 
-  Widget _selectAccount() {
+  Widget _selectAccount(BuildContext context) {
     final stateCategorizedAccounts = categorizedAccounts;
     if (stateCategorizedAccounts == null) return const SizedBox();
 
@@ -493,7 +494,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (connectionRequest.isAutonomyConnect) {
       return const SizedBox();
     }
-    return _selectPersonaWidget(stateCategorizedAccounts);
+    return _selectPersonaWidget(context, stateCategorizedAccounts);
   }
 
   Widget _connect(BuildContext context) {
@@ -542,7 +543,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
   }
 
-  Widget _wcAppInfo(WCPeerMeta peerMeta) {
+  Widget _wcAppInfo(BuildContext context, WCPeerMeta peerMeta) {
     final theme = Theme.of(context);
 
     return Row(
@@ -578,7 +579,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _tbAppInfo(BeaconRequest request) {
+  Widget _tbAppInfo(BuildContext context, BeaconRequest request) {
     final theme = Theme.of(context);
 
     return Row(
@@ -613,7 +614,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _selectPersonaWidget(List<Account> accounts) {
+  Widget _selectPersonaWidget(BuildContext context, List<Account> accounts) {
     final theme = Theme.of(context);
     String select = "";
     if (widget.connectionRequest.isBeaconConnect) {
