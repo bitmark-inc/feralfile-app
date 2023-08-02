@@ -115,8 +115,7 @@ class _AccessMethodPageState extends State<AccessMethodPage>
         context: context,
         title: "link_existing_wallet".tr(),
         content: "link_wallet_description".tr(),
-        onTap: () {
-        });
+        onTap: () {});
   }
 
   Widget _linkDebugWidget(BuildContext context) {

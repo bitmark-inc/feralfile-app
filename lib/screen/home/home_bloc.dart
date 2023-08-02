@@ -20,7 +20,6 @@ class HomeBloc extends AuBloc<HomeEvent, HomeState> {
   HomeBloc(
     this._tezosBeaconService,
   ) : super(HomeState()) {
-
     on<HomeConnectTZEvent>((event, emit) {
       log.info('[HomeConnectTZEvent] addPeer ${event.uri}');
       _tezosBeaconService.addPeer(event.uri);

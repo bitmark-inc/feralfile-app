@@ -9,6 +9,7 @@ class WCEthereumTransaction {
   final String? gasLimit;
   final String? value;
   final String? data;
+
   WCEthereumTransaction({
     required this.from,
     this.to,
@@ -24,6 +25,7 @@ class WCEthereumTransaction {
 
   factory WCEthereumTransaction.fromJson(Map<String, dynamic> json) =>
       _$WCEthereumTransactionFromJson(json);
+
   Map<String, dynamic> toJson() => _$WCEthereumTransactionToJson(this);
 
   @override
@@ -31,8 +33,9 @@ class WCEthereumTransaction {
     return 'WCEthereumTransaction(from: $from, to: $to, nonce: $nonce, gasPrice: $gasPrice, gas: $gas, gasLimit: $gasLimit, value: $value, data: $data)';
   }
 }
+
 WCEthereumTransaction _$WCEthereumTransactionFromJson(
-    Map<String, dynamic> json) =>
+        Map<String, dynamic> json) =>
     WCEthereumTransaction(
       from: json['from'] as String,
       to: json['to'] as String?,
@@ -47,7 +50,7 @@ WCEthereumTransaction _$WCEthereumTransactionFromJson(
     );
 
 Map<String, dynamic> _$WCEthereumTransactionToJson(
-    WCEthereumTransaction instance) =>
+        WCEthereumTransaction instance) =>
     <String, dynamic>{
       'from': instance.from,
       'to': instance.to,
