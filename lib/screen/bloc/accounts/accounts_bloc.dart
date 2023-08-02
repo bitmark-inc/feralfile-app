@@ -108,20 +108,17 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       if (event.autoAddAddress) {
         final persona =
             await injector<AccountService>().getOrCreateDefaultPersona();
-        if (event.getEth) {
-          if (addresses
-              .none((element) => element.cryptoType == CryptoType.ETH.source)) {
-            final ethAddress = await persona.insertAddress(WalletType.Ethereum);
-            addresses.add(ethAddress.first);
-          }
-          if (event.getTezos) {
-            if (addresses.none(
+        if (event.getEth &&
+            addresses.none(
+                (element) => element.cryptoType == CryptoType.ETH.source)) {
+          final ethAddress = await persona.insertAddress(WalletType.Ethereum);
+          addresses.add(ethAddress.first);
+        }
+        if (event.getTezos &&
+            addresses.none(
                 (element) => element.cryptoType == CryptoType.XTZ.source)) {
-              final tezosAddress =
-                  await persona.insertAddress(WalletType.Tezos);
-              addresses.add(tezosAddress.first);
-            }
-          }
+          final tezosAddress = await persona.insertAddress(WalletType.Tezos);
+          addresses.add(tezosAddress.first);
         }
       }
 
