@@ -23,7 +23,7 @@ class _CurrencyExchangeApi implements CurrencyExchangeApi {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
         _setStreamType<Map<String, CurrencyExchange>>(Options(
       method: 'GET',
@@ -36,7 +36,11 @@ class _CurrencyExchangeApi implements CurrencyExchangeApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     var value = _result.data!.map((k, dynamic v) =>
         MapEntry(k, CurrencyExchange.fromJson(v as Map<String, dynamic>)));
     return value;
@@ -53,5 +57,22 @@ class _CurrencyExchangeApi implements CurrencyExchangeApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

@@ -19,7 +19,8 @@ class _AirdropApi implements AirdropApi {
   String? baseUrl;
 
   @override
-  Future<AirdropRequestClaimResponse> requestClaim(body) async {
+  Future<AirdropRequestClaimResponse> requestClaim(
+      AirdropRequestClaimRequest body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -37,13 +38,17 @@ class _AirdropApi implements AirdropApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = AirdropRequestClaimResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<TokenClaimResponse> claim(body) async {
+  Future<TokenClaimResponse> claim(AirdropClaimRequest body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -61,17 +66,21 @@ class _AirdropApi implements AirdropApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = TokenClaimResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<AirdropClaimShareResponse> claimShare(shareCode) async {
+  Future<AirdropClaimShareResponse> claimShare(String shareCode) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
         _setStreamType<AirdropClaimShareResponse>(Options(
       method: 'GET',
@@ -84,15 +93,19 @@ class _AirdropApi implements AirdropApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = AirdropClaimShareResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
   Future<AirdropShareResponse> share(
-    tokenId,
-    body,
+    String tokenId,
+    AirdropShareRequest body,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -111,7 +124,11 @@ class _AirdropApi implements AirdropApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = AirdropShareResponse.fromJson(_result.data!);
     return value;
   }
@@ -127,5 +144,22 @@ class _AirdropApi implements AirdropApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

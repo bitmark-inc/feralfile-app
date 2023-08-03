@@ -19,7 +19,7 @@ class _PostcardApi implements PostcardApi {
   String? baseUrl;
 
   @override
-  Future<ClaimPostCardResponse> claim(body) async {
+  Future<ClaimPostCardResponse> claim(ClaimPostCardRequest body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -37,13 +37,17 @@ class _PostcardApi implements PostcardApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ClaimPostCardResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<RequestPostcardResponse> request(body) async {
+  Future<RequestPostcardResponse> request(RequestPostcardRequest body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -61,13 +65,17 @@ class _PostcardApi implements PostcardApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = RequestPostcardResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<ReceivePostcardResponse> receive(body) async {
+  Future<ReceivePostcardResponse> receive(Map<String, dynamic> body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -85,15 +93,19 @@ class _PostcardApi implements PostcardApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ReceivePostcardResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
   Future<dynamic> share(
-    tokenId,
-    body,
+    String tokenId,
+    Map<String, dynamic> body,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -111,17 +123,21 @@ class _PostcardApi implements PostcardApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
     final value = _result.data;
     return value;
   }
 
   @override
-  Future<dynamic> claimShareCode(shareCode) async {
+  Future<dynamic> claimShareCode(String shareCode) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'GET',
       headers: _headers,
@@ -133,22 +149,26 @@ class _PostcardApi implements PostcardApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
     final value = _result.data;
     return value;
   }
 
   @override
   Future<dynamic> updatePostcard({
-    required tokenId,
-    required data,
-    required metadata,
-    required signature,
-    required address,
-    required publicKey,
-    lat,
-    lon,
-    required counter,
+    required String tokenId,
+    required File data,
+    required File metadata,
+    required String signature,
+    required String address,
+    required String publicKey,
+    double? lat,
+    double? lon,
+    required int counter,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -209,17 +229,21 @@ class _PostcardApi implements PostcardApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
     final value = _result.data;
     return value;
   }
 
   @override
-  Future<GetLeaderboardResponse> getLeaderboard(unit) async {
+  Future<GetLeaderboardResponse> getLeaderboard(String unit) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
         _setStreamType<GetLeaderboardResponse>(Options(
       method: 'GET',
@@ -232,7 +256,11 @@ class _PostcardApi implements PostcardApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = GetLeaderboardResponse.fromJson(_result.data!);
     return value;
   }
@@ -248,5 +276,22 @@ class _PostcardApi implements PostcardApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
