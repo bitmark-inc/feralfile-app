@@ -22,13 +22,13 @@ import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
 import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
+import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
-import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -148,6 +148,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
 import 'account/link_beacon_connect_page.dart';
+import 'account/link_manually_page.dart';
 import 'detail/preview/canvas_device_bloc.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 import 'onboarding/import_address/import_seeds.dart';
@@ -161,15 +162,8 @@ class AppRouter {
   static const previewPrimerPage = "preview_primer";
   static const onboardingPage = "onboarding";
   static const notificationOnboardingPage = 'notification_onboarding';
-  static const linkLedgerWalletPage = "link_ledger_wallet";
-  static const selectLedgerWalletPage = "select_ledger_waller";
-  static const linkBeaconConnectPage = "link_beacon_connect";
-  static const linkMetamaskPage = 'link_metamask';
-  static const linkTezosKukaiPage = 'link_tezos_kukai_page';
-  static const linkTezosTemplePage = 'link_tezos_temple_page';
   static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
-  static const importAccountPage = 'import_account';
   static const homePage = "home_page";
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
@@ -398,6 +392,11 @@ class AppRouter {
               payload: settings.arguments as DesignStampPayload),
         );
 
+      case AccessMethodPage.tag:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const AccessMethodPage(),
+        );
       case handSignaturePage:
         return CupertinoPageRoute(
           settings: settings,
@@ -515,18 +514,6 @@ class AppRouter {
                 value: accountsBloc,
                 child: NameLinkedAccountPage(
                     connection: settings.arguments as Connection)));
-
-      case importAccountPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => ScanWalletBloc(
-              injector(),
-              injector(),
-            ),
-            child: const ImportAccountPage(),
-          ),
-        );
 
       case wcConnectPage:
         final argument = settings.arguments;

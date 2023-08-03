@@ -7,7 +7,6 @@
 
 // ignore_for_file: unused_field
 
-import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -22,50 +21,33 @@ import 'package:flutter_svg/svg.dart';
 import '../../common/injector.dart';
 import '../../database/cloud_database.dart';
 import '../../database/entity/connection.dart';
-import '../../util/constants.dart';
 
 class AccessMethodPage extends StatefulWidget {
+  static const tag = "access_method_page";
+
   const AccessMethodPage({Key? key}) : super(key: key);
 
   @override
   State<AccessMethodPage> createState() => _AccessMethodPageState();
 }
 
-class _AccessMethodPageState extends State<AccessMethodPage>
-    with AfterLayoutMixin {
+class _AccessMethodPageState extends State<AccessMethodPage> {
   var _redrawObject = Object();
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    injector<ConfigurationService>().setAlreadyShowLinkOrImportTip(true);
-    injector<ConfigurationService>().showLinkOrImportTip.value = false;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "add_existing_wallet".tr(),
+        title: "Test page",
         onBack: () {
           Navigator.of(context).pop();
         },
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            addDivider(height: 48),
-            Padding(
-              padding: padding,
-              child: _linkAccount(context),
-            ),
-            addDivider(height: 48),
-            injector<ConfigurationService>().isDoneOnboarding()
-                ? _linkDebugWidget(context)
-                : const SizedBox(),
-          ]),
+          child: _linkDebugWidget(context),
         ),
       ),
     );
@@ -110,76 +92,48 @@ class _AccessMethodPageState extends State<AccessMethodPage>
     );
   }
 
-  Widget _linkAccount(BuildContext context) {
-    return _addWalletItem(
-        context: context,
-        title: "link_existing_wallet".tr(),
-        content: "link_wallet_description".tr(),
-        onTap: () {});
-  }
-
   Widget _linkDebugWidget(BuildContext context) {
     final theme = Theme.of(context);
-    return FutureBuilder<bool>(
-        future: isAppCenterBuild(),
-        builder: (context, snapshot) {
-          if (snapshot.data == true) {
-            return Column(
-              children: [
-                Padding(
-                  padding: padding,
-                  child: _addWalletItem(
-                      context: context,
-                      title: 'debug_address'.tr(),
-                      content: "da_manually_input_an".tr(),
-                      onTap: () => Navigator.of(context).pushNamed(
-                          AppRouter.linkManually,
-                          arguments: 'address')),
-                ),
-                addDivider(height: 48),
-                Padding(
-                  padding: padding,
-                  child: _addWalletItem(
-                      context: context,
-                      title: 'test_artwork'.tr(),
-                      onTap: () => Navigator.of(context).pushNamed(
-                            AppRouter.testArtwork,
-                          )),
-                ),
-                addDivider(height: 48),
-                Padding(
-                  padding: padding,
-                  child: _linkTokenIndexerIDWidget(context),
-                ),
-                addDivider(height: 48),
-                Padding(
-                  padding: padding,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("show_token_debug_log".tr(),
-                          style: theme.textTheme.headlineMedium),
-                      AuToggle(
-                        value: injector<ConfigurationService>()
-                            .showTokenDebugInfo(),
-                        onToggle: (isEnabled) async {
-                          await injector<ConfigurationService>()
-                              .setShowTokenDebugInfo(isEnabled);
-                          setState(() {
-                            _redrawObject = Object();
-                          });
-                        },
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 40),
-              ],
-            );
-          }
-
-          return const SizedBox();
-        });
+    return Column(
+      children: [
+        Padding(
+          padding: padding,
+          child: _addWalletItem(
+              context: context,
+              title: 'test_artwork'.tr(),
+              onTap: () => Navigator.of(context).pushNamed(
+                    AppRouter.testArtwork,
+                  )),
+        ),
+        addDivider(height: 48),
+        Padding(
+          padding: padding,
+          child: _linkTokenIndexerIDWidget(context),
+        ),
+        addDivider(height: 48),
+        Padding(
+          padding: padding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("show_token_debug_log".tr(),
+                  style: theme.textTheme.headlineMedium),
+              AuToggle(
+                value: injector<ConfigurationService>().showTokenDebugInfo(),
+                onToggle: (isEnabled) async {
+                  await injector<ConfigurationService>()
+                      .setShowTokenDebugInfo(isEnabled);
+                  setState(() {
+                    _redrawObject = Object();
+                  });
+                },
+              )
+            ],
+          ),
+        ),
+        const SizedBox(height: 40),
+      ],
+    );
   }
 
   Widget _linkTokenIndexerIDWidget(BuildContext context) {

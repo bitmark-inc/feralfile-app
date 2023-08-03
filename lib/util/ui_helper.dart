@@ -1587,48 +1587,6 @@ learnMoreAboutAutonomySecurityWidget(BuildContext context,
   );
 }
 
-wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
-  var introText = 'you_can_get_all'.tr();
-  if (walletApp == WalletApp.Kukai || walletApp == WalletApp.Temple) {
-    introText += "_tezos".tr();
-  }
-  introText += "functionality".tr(args: [walletApp.rawValue]);
-  final theme = Theme.of(context);
-  return GestureDetector(
-    onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
-    child: Container(
-      padding: const EdgeInsets.all(10),
-      color: AppColor.secondaryDimGreyBackground,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          "want_more_sec".tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasDimgreyBold14
-              : theme.textTheme.atlasDimgreyBold16,
-        ),
-        const SizedBox(height: 5),
-        Text(
-          introText,
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasBlackNormal14
-              : theme.textTheme.atlasBlackNormal16,
-        ),
-        const SizedBox(height: 10),
-        TextButton(
-          onPressed: () =>
-              Navigator.of(context).pushNamed(AppRouter.unsafeWebWalletPage),
-          style: TextButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: EdgeInsets.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text("learn_ex_unsafe".tr(), style: theme.textTheme.linkStyle),
-        ),
-      ]),
-    ),
-  );
-}
-
 Widget loadingScreen(ThemeData theme, String text) {
   return Scaffold(
     backgroundColor: AppColor.white,

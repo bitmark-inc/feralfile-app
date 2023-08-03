@@ -53,7 +53,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -188,7 +187,6 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton(() => NavigationService());
-  injector.registerLazySingleton(() => LedgerHardwareService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
   injector.registerLazySingleton<MetricClientService>(
