@@ -171,9 +171,14 @@ class _DataManagementPageState extends State<DataManagementPage> {
       () async {
         await injector<TokensService>().purgeCachedGallery();
         await injector<CacheManager>().emptyCache();
-        await injector<ClientTokenService>().refreshTokens(syncAddresses: true);
-        NftCollectionBloc.eventController
-            .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+        NftCollectionBloc.eventController.add(UpdateTokensEvent());
+        Future.delayed(const Duration(seconds: 1), () async {
+          await injector<ClientTokenService>()
+              .refreshTokens(syncAddresses: true);
+          NftCollectionBloc.eventController
+              .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+        });
+
         if (!mounted) return;
         context.read<IdentityBloc>().add(RemoveAllEvent());
         Navigator.of(context).popUntil((route) =>
