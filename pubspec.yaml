@@ -26,7 +26,6 @@ dependencies:
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   carousel_slider: ^4.2.1
-  cast: ^1.1.0
   collection: ^1.15.0
   confetti: ^0.7.0
   connectivity_plus: ^4.0.1
@@ -79,7 +78,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 6ab6dd6e42d577115783bc60279de559ed5cefc1
+      ref: 668ee3522ef6610d1323c0bb15cfd69b3602ea8c
   local_auth: ^2.1.0
   logging: ^1.0.2
   measured_size: ^1.0.0
@@ -115,7 +114,7 @@ dependencies:
   url_launcher: ^6.0.20
   uuid: ^3.0.5
   version_check: ^0.4.0
-  wakelock:
+  wakelock_plus: ^1.1.1
   chewie: ^1.7.0
   wallet_connect:
     git:
@@ -179,6 +178,7 @@ dependencies:
   youtube_player_iframe: ^3.1.0
   awesome_notifications: ^0.7.4+1
   shimmer: ^3.0.0
+  bonsoir: ^2.2.0+1
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
