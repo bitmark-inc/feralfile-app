@@ -64,7 +64,8 @@ class MainActivity : FlutterFragmentActivity() {
             val biometricManager = BiometricManager.from(this)
             val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
             if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure) {
+                == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
+            ) {
                 val intent = Intent(this@MainActivity, AuthenticatorActivity::class.java)
                 startActivity(intent)
             }
