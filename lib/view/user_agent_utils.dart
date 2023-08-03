@@ -74,8 +74,8 @@ class _MobileInfo extends IDeviceInfo {
   Future<bool> _checkIsTablet() async {
     if (isIOS) {
       final info = await _deviceInfo.iosInfo;
-      final machine = info.utsname.machine!.toLowerCase();
-      final model = info.model!.toLowerCase();
+      final machine = info.utsname.machine.toLowerCase();
+      final model = info.model.toLowerCase();
       return machine.contains('ipad') || model.contains('ipad');
     }
     if (isAndroid) {
@@ -105,7 +105,7 @@ class _MobileInfo extends IDeviceInfo {
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
       final version = iOSInfo.systemVersion;
-      return version == null || int.parse(version.split(".")[0]) > 14;
+      return version.isEmpty || int.parse(version.split(".")[0]) > 14;
     }
   }
 }
