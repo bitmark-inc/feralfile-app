@@ -13,13 +13,13 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -92,10 +93,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     );
   }
 
-  void _manualShare(String caption, String url) async {
+  void _manualShare(String caption, String url, List<String> hashTags) async {
     final encodeCaption = Uri.encodeQueryComponent(caption);
+    final hashTagsString = hashTags.join(",");
     final twitterUrl =
-        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
+        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption&hashtags=$hashTagsString";
     final twitterUri = Uri.parse(twitterUrl);
     launchUrl(twitterUri, mode: LaunchMode.externalApplication);
   }
@@ -104,11 +106,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final prefix = Environment.tokenWebviewPrefix;
     final url = '$prefix/token/${token.id}';
     final caption = widget.payload.twitterCaption ?? "";
+    final hashTags = getTags(token);
     SocialShare.checkInstalledAppsForShare().then((data) {
       if (data?[SocialApp.twitter]) {
-        SocialShare.shareTwitter(caption, url: url);
+        SocialShare.shareTwitter(caption, url: url, hashtags: hashTags);
       } else {
-        _manualShare(caption, url);
+        _manualShare(caption, url, hashTags);
       }
     });
     metricClient.addEvent(MixpanelEvent.share, data: {
@@ -120,13 +123,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     });
   }
 
-  Future<void> _socialShare(BuildContext context, AssetToken asset) {
-    final theme = Theme.of(context);
-    final tags = [
+  List<String> getTags(AssetToken asset) {
+    final defaultTags = [
       'autonomy',
       'digitalartwallet',
       'NFT',
     ];
+    List<String> tags = defaultTags;
+    if (asset.isMoMAMemento) {
+      tags = [
+        'refikunsupervised',
+        'autonomyapp',
+      ];
+    }
+    return tags;
+  }
+
+  Future<void> _socialShare(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    final tags = getTags(asset);
     final tagsText = tags.map((e) => '#$e').join(" ");
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +259,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
         var subTitle = "";
         if (artistName != null && artistName.isNotEmpty) {
-          subTitle = "by".tr(args: [artistName]);
+          subTitle = artistName;
         }
 
         final editionSubTitle = getEditionSubTitle(asset);
@@ -253,24 +268,26 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
           appBar: AppBar(
+            systemOverlayStyle: systemUiOverlayDarkStyle,
             leadingWidth: 0,
             centerTitle: false,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  asset.title ?? '',
-                  style: theme.textTheme.ppMori400White16,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subTitle,
-                  style: theme.textTheme.ppMori400White14,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            title: ArtworkDetailsHeader(
+              title: asset.title ?? "",
+              subTitle: subTitle,
+              onTitleTap: asset.secondaryMarketURL.isValidUrl() == true
+                  ? () {
+                      Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                          arguments: asset.secondaryMarketURL);
+                    }
+                  : null,
+              onSubTitleTap: asset.artistID != null
+                  ? () => Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                      arguments: GalleryPagePayload(
+                        address: asset.artistID!,
+                        artistName: artistName!,
+                        artistURL: asset.artistURL,
+                      ))
+                  : null,
             ),
             actions: [
               widget.payload.useIndexer
@@ -323,8 +340,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 ),
                 _sendMemento6(context, asset),
                 Visibility(
-                  visible: CHECK_WEB3_CONTRACT_ADDRESS
-                      .contains(asset.contractAddress),
+                  visible:
+                      checkWeb3ContractAddress.contains(asset.contractAddress),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
@@ -480,25 +497,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 return;
               }
 
-              final tx = payload['tx'] as TZKTOperation;
-
               if (!mounted) return;
               UIHelper.showMessageAction(
                 context,
                 'success'.tr(),
                 'send_success_des'.tr(),
-                onAction: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushNamed(
-                    AppRouter.tezosTXDetailPage,
-                    arguments: {
-                      "current_address": tx.sender?.address,
-                      "tx": tx,
-                      "isBackHome": isSentAll,
-                    },
-                  );
-                },
-                actionButton: 'see_transaction_detail'.tr(),
                 closeButton: "close".tr(),
                 onClose: () => isSentAll
                     ? Navigator.of(context).popAndPushNamed(
@@ -594,7 +597,7 @@ class ArtworkDetailPayload {
   final int currentIndex;
   final PlayControlModel? playControl;
   final String? twitterCaption;
-  final bool useIndexer;
+  final bool useIndexer; // set true when navigate from discover/gallery page
 
   ArtworkDetailPayload(
     this.identities,

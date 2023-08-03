@@ -44,6 +44,23 @@ extension AssetTokenExtension on AssetToken {
     return galleryThumbnailURL != null;
   }
 
+  String get secondaryMarketURL {
+    switch (blockchain) {
+      case "ethereum":
+        return "$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId";
+      case "tezos":
+        if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
+          return "$TEIA_ART_ASSET_PREFIX$tokenId";
+        } else if (sourceURL?.contains(FXHASH_IDENTIFIER) == true) {
+          return assetURL ?? "";
+        } else {
+          return "$OBJKT_ASSET_PREFIX$contractAddress/$tokenId";
+        }
+      default:
+        return "";
+    }
+  }
+
   bool get isAirdrop {
     final saleModel = initialSaleModel?.toLowerCase();
     return ["airdrop", "shopping_airdrop"].contains(saleModel);
@@ -126,6 +143,13 @@ extension AssetTokenExtension on AssetToken {
       return url;
     }
     return null;
+  }
+
+  Future<bool> isViewOnly() async {
+    final cloudDB = injector<CloudDatabase>();
+    final walletAddress = await cloudDB.addressDao.findByAddress(owner);
+    final connection = await cloudDB.connectionDao.findById(owner);
+    return walletAddress == null && connection != null;
   }
 
   String? getBlockchainUrl() {
@@ -352,6 +376,13 @@ extension AssetTokenExtension on AssetToken {
   bool get isAirdropToken {
     return Environment.autonomyAirDropContractAddress == contractAddress;
   }
+
+  bool get isMoMAMemento {
+    return [
+      ...momaMementoContractAddresses,
+      Environment.autonomyAirDropContractAddress
+    ].contains(contractAddress);
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
@@ -530,4 +561,61 @@ AssetToken createPendingAssetToken({
     originTokenInfo: [],
     provenance: [],
   );
+}
+
+extension AssetExt on Asset {
+  // copyWith method
+  Asset copyWith({
+    String? indexID,
+    String? thumbnailID,
+    DateTime? lastRefreshedTime,
+    String? artistID,
+    String? artistNam,
+    String? artistURL,
+    String? artists,
+    String? assetID,
+    String? title,
+    String? description,
+    String? mimeType,
+    String? medium,
+    int? maxEdition,
+    String? source,
+    String? sourceURL,
+    String? previewURL,
+    String? thumbnailURL,
+    String? galleryThumbnailURL,
+    String? assetData,
+    String? assetURL,
+    bool? isFeralfileFrame,
+    String? initialSaleModel,
+    String? originalFileURL,
+    String? artworkMetadata,
+  }) {
+    return Asset(
+      indexID ?? this.indexID,
+      thumbnailID ?? this.thumbnailID,
+      lastRefreshedTime ?? this.lastRefreshedTime,
+      artistID ?? this.artistID,
+      artistName ?? artistName,
+      artistURL ?? this.artistURL,
+      artists ?? this.artists,
+      assetID ?? this.assetID,
+      title ?? this.title,
+      description ?? this.description,
+      mimeType ?? this.mimeType,
+      medium ?? this.medium,
+      maxEdition ?? this.maxEdition,
+      source ?? this.source,
+      sourceURL ?? this.sourceURL,
+      previewURL ?? this.previewURL,
+      thumbnailURL ?? this.thumbnailURL,
+      galleryThumbnailURL ?? this.galleryThumbnailURL,
+      assetData ?? this.assetData,
+      assetURL ?? this.assetURL,
+      initialSaleModel ?? this.initialSaleModel,
+      originalFileURL ?? this.originalFileURL,
+      isFeralfileFrame ?? this.isFeralfileFrame,
+      artworkMetadata ?? this.artworkMetadata,
+    );
+  }
 }

@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
@@ -85,7 +86,11 @@ class FeedPreviewScreen extends StatefulWidget {
 }
 
 class _FeedPreviewScreenState extends State<FeedPreviewScreen>
-    with RouteAware, WidgetsBindingObserver, TickerProviderStateMixin {
+    with
+        RouteAware,
+        WidgetsBindingObserver,
+        TickerProviderStateMixin,
+        AfterLayoutMixin<FeedPreviewScreen> {
   String? swipeDirection;
 
   late FeedBloc _bloc;
@@ -94,7 +99,6 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   @override
   void initState() {
     super.initState();
-    _metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
     _bloc = context.read<FeedBloc>();
     _bloc.add(GetFeedsEvent());
   }
@@ -103,6 +107,11 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
     super.didChangeDependencies();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    _metricClient.timerEvent(MixpanelEvent.loadingDiscovery);
   }
 
   @override
@@ -186,31 +195,12 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       onTap: () {
         _moveToInfo(entry.key, entry.value);
       },
-      child: Column(children: [
-        Center(
-          child: IgnorePointer(
-            child: FeedArtwork(
-              assetToken: entry.key,
-            ),
-          ),
-        ),
-        const SizedBox(
-          height: 15,
-        ),
-        BlocProvider(
-          create: (_) => IdentityBloc(
-            NftCollection.database,
-            injector(),
-          ),
-          child: Align(
-              alignment: Alignment.topCenter,
-              child:
-                  ControlView(feedEvents: entry.value, feedToken: entry.key)),
-        ),
-        const SizedBox(
-          height: 60,
-        ),
-      ]),
+      child: BlocProvider(
+        create: (_) => IdentityBloc(NftCollection.database, injector()),
+        child: Align(
+            alignment: Alignment.topCenter,
+            child: FeedView(feedEvents: entry.value, feedToken: entry.key)),
+      ),
     );
   }
 
@@ -286,7 +276,8 @@ class _FeedArtworkState extends State<FeedArtwork>
     with RouteAware, WidgetsBindingObserver {
   INFTRenderingWidget? _renderingWidget;
 
-  final _bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
+  final _bloc =
+      ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
 
   @override
   void initState() {
@@ -439,18 +430,18 @@ class FeedDetailPayload {
   }
 }
 
-class ControlView extends StatefulWidget {
+class FeedView extends StatefulWidget {
   final List<FeedEvent> feedEvents;
   final AssetToken? feedToken;
 
-  const ControlView({Key? key, required this.feedEvents, this.feedToken})
+  const FeedView({Key? key, required this.feedEvents, this.feedToken})
       : super(key: key);
 
   @override
-  State<ControlView> createState() => _ControlViewState();
+  State<FeedView> createState() => _FeedViewState();
 }
 
-class _ControlViewState extends State<ControlView> {
+class _FeedViewState extends State<FeedView> {
   @override
   void initState() {
     fetchIdentities();
@@ -587,77 +578,101 @@ class _ControlViewState extends State<ControlView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          asset.title != null && asset.title!.isEmpty
-                              ? 'nft'
-                              : '${asset.title} ',
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.ppMori400White16,
-                        ),
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        if (artistName != null) ...[
-                          RichText(
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                                text: 'by'.tr(args: [artistName]),
-                                style: theme.textTheme.ppMori400White14),
-                          ),
-                        ],
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        Wrap(
-                          runSpacing: 4.0,
+                        Row(
                           children: [
-                            RichText(
-                              text: TextSpan(
-                                style: theme.textTheme.ppMori400White14,
-                                children: [
-                                  TextSpan(
-                                    text: "_by".tr(args: [
-                                      events.first.actionRepresentation
-                                    ]),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ...events
-                                .mapIndexed((i, event) => [
-                                      GestureDetector(
-                                        child: Text(
-                                          followingNames[i],
-                                          style: theme
-                                              .textTheme.ppMori400White14
-                                              .copyWith(
-                                                  color: AppColor.auSuperTeal),
-                                        ),
-                                        onTap: () {
-                                          Navigator.of(context).pushNamed(
-                                            AppRouter.galleryPage,
-                                            arguments: GalleryPagePayload(
-                                              address: event.recipient,
-                                              artistName: followingNames[i],
+                            Wrap(
+                              runSpacing: 4.0,
+                              children: [
+                                ...events
+                                    .mapIndexed((i, event) => [
+                                          GestureDetector(
+                                            child: Text(
+                                              followingNames[i],
+                                              style: theme
+                                                  .textTheme.ppMori700White14
+                                                  .copyWith(
+                                                      color:
+                                                          AppColor.auSuperTeal),
                                             ),
-                                          );
-                                        },
-                                      ),
-                                      if (i < events.length - 1)
-                                        Text(", ",
-                                            style: theme
-                                                .textTheme.ppMori400White14)
-                                    ])
-                                .flattened,
-                            Text(" • ", style: theme.textTheme.ppMori400Grey14),
-                            Text(
-                                events.length > 1
-                                    ? "last_time_format"
-                                        .tr(args: [followingTime])
-                                    : followingTime,
-                                style: theme.textTheme.ppMori400Grey14),
+                                            onTap: () {
+                                              Navigator.of(context).pushNamed(
+                                                AppRouter.galleryPage,
+                                                arguments: GalleryPagePayload(
+                                                  address: event.recipient,
+                                                  artistName: followingNames[i],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          if (i < events.length - 1)
+                                            Text(", ",
+                                                style: theme
+                                                    .textTheme.ppMori400White14)
+                                        ])
+                                    .flattened,
+                                const SizedBox(width: 4),
+                                if (followingNames
+                                    .join()
+                                    .trim()
+                                    .isNotEmpty) ...[
+                                  RichText(
+                                    text: TextSpan(
+                                      style: theme.textTheme.ppMori400White14,
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              events.first.actionRepresentation,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ]
+                              ],
+                            ),
+                            if (followingNames.join().trim().isNotEmpty) ...[
+                              const Spacer(),
+                              Text(
+                                  events.length > 1
+                                      ? "last_time_format"
+                                          .tr(args: [followingTime])
+                                      : followingTime,
+                                  style: theme.textTheme.ppMori400Grey12),
+                            ]
                           ],
                         ),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: IgnorePointer(
+                            child: FeedArtwork(
+                              assetToken: widget.feedToken,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        ArtworkDetailsHeader(
+                          title: asset.title != null && asset.title!.isEmpty
+                              ? 'nft'.tr()
+                              : asset.title ?? "",
+                          subTitle: artistName ?? '',
+                          onTitleTap: () {
+                            Navigator.of(context).pushNamed(
+                              AppRouter.irlWebView,
+                              arguments: asset.secondaryMarketURL,
+                            );
+                          },
+                          onSubTitleTap: asset.artistID != null
+                              ? () => Navigator.of(context)
+                                  .pushNamed(AppRouter.galleryPage,
+                                      arguments: GalleryPagePayload(
+                                        address: asset.artistID!,
+                                        artistName: artistName!,
+                                        artistURL: asset.artistURL,
+                                      ))
+                              : null,
+                        ),
+                        const SizedBox(height: 60)
                       ],
                     ),
                   ),

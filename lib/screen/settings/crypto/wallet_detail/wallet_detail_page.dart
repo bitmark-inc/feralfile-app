@@ -8,6 +8,8 @@
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -20,9 +22,9 @@ import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/tezos_transaction_list_view.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -33,6 +35,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -42,7 +45,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class WalletDetailPage extends StatefulWidget {
   final WalletDetailsPayload payload;
@@ -60,32 +62,33 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   bool hideAddress = false;
   bool hideBalance = false;
   bool isHideGalleryEnabled = false;
+  late String address;
+  late WalletAddress walletAddress;
+  bool _isRename = false;
+  final TextEditingController _renameController = TextEditingController();
+  final FocusNode _renameFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    final personUUID = widget.payload.personaUUID;
-    isHideGalleryEnabled = widget.payload.isHideGalleryEnabled;
-    context.read<AccountsBloc>().add(
-        FindAccount(personUUID, widget.payload.address, widget.payload.type));
+    walletAddress = widget.payload.walletAddress;
+    isHideGalleryEnabled = walletAddress.isHidden;
+    _renameController.text = walletAddress.name ?? widget.payload.type.source;
+    address = walletAddress.address;
     switch (widget.payload.type) {
       case CryptoType.ETH:
         context
             .read<EthereumBloc>()
-            .add(GetEthereumBalanceWithAddressEvent([widget.payload.address]));
-        context
-            .read<USDCBloc>()
-            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
+            .add(GetEthereumBalanceWithAddressEvent([address]));
+        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
         break;
       case CryptoType.XTZ:
         context
             .read<TezosBloc>()
-            .add(GetTezosBalanceWithAddressEvent([widget.payload.address]));
+            .add(GetTezosBalanceWithAddressEvent([address]));
         break;
       case CryptoType.USDC:
-        context
-            .read<USDCBloc>()
-            .add(GetUSDCBalanceWithAddressEvent(widget.payload.address));
+        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
         break;
       case CryptoType.UNKNOWN:
         // do nothing
@@ -112,7 +115,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   void didPopNext() {
     final cryptoType = widget.payload.type;
-    final address = widget.payload.address;
+    final address = widget.payload.walletAddress.address;
     context
         .read<WalletDetailBloc>()
         .add(WalletDetailBalanceEvent(cryptoType, address));
@@ -135,18 +138,17 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   }
 
   void _callFetchConnections() {
-    final personUUID = widget.payload.personaUUID;
+    final personUUID = widget.payload.persona.uuid;
+    final address = widget.payload.walletAddress.address;
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
+        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(
+            personUUID, widget.payload.walletAddress.index, address));
         break;
       case CryptoType.XTZ:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
+        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(
+            personUUID, widget.payload.walletAddress.index, address));
         break;
       default:
         // do nothing
@@ -157,147 +159,168 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   @override
   Widget build(BuildContext context) {
     final cryptoType = widget.payload.type;
-    final address = widget.payload.address;
+    final address = widget.payload.walletAddress.address;
     context
         .read<WalletDetailBloc>()
         .add(WalletDetailBalanceEvent(cryptoType, address));
-    final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final showConnection = (widget.payload.type == CryptoType.ETH ||
         widget.payload.type == CryptoType.XTZ);
 
     return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: widget.payload.type.name,
-        icon: SvgPicture.asset(
-          'assets/images/more_circle.svg',
-          width: 22,
-          color: AppColor.primaryBlack,
-        ),
-        action: _showOptionDialog,
-        //showConnection ? _connectionIconTap : null,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: BlocConsumer<WalletDetailBloc, WalletDetailState>(
-          listener: (context, state) async {},
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                hideConnection ? const SizedBox(height: 16) : addTitleSpace(),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 3000),
-                  height: hideConnection ? 60 : null,
-                  child: _balanceSection(state.balance, state.balanceInUSD),
-                ),
-                Visibility(
-                    visible: hideConnection,
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        addOnlyDivider(),
-                      ],
-                    )),
-                Expanded(
-                  child: CustomScrollView(
-                    controller: controller,
-                    slivers: [
-                      SliverToBoxAdapter(
+      appBar: _isRename
+          ? getTitleEditAppBar(
+              context,
+              titleIcon: LogoCrypto(
+                cryptoType: widget.payload.type,
+                size: 24,
+              ),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                color: AppColor.disabledColor,
+              ),
+              controller: _renameController,
+              focusNode: _renameFocusNode,
+              onSubmit: (String value) {
+                if (value.trim().isNotEmpty) {
+                  walletAddress = walletAddress.copyWith(name: value);
+                  injector<AccountService>()
+                      .updateAddressPersona(walletAddress);
+                  setState(() {
+                    _isRename = false;
+                  });
+                }
+              },
+            )
+          : getBackAppBar(
+              context,
+              title: walletAddress.name ?? widget.payload.type.source,
+              titleIcon: LogoCrypto(
+                cryptoType: widget.payload.type,
+                size: 24,
+              ),
+              icon: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                width: 22,
+                color: AppColor.primaryBlack,
+              ),
+              action: _showOptionDialog,
+              //showConnection ? _connectionIconTap : null,
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+            ),
+      body: Stack(
+        children: [
+          BlocConsumer<WalletDetailBloc, WalletDetailState>(
+              listener: (context, state) async {},
+              builder: (context, state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    hideConnection
+                        ? const SizedBox(height: 16)
+                        : addTitleSpace(),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 3000),
+                      height: hideConnection ? 60 : null,
+                      child: _balanceSection(
+                          context, state.balance, state.balanceInUSD),
+                    ),
+                    Visibility(
+                        visible: hideConnection,
                         child: Column(
                           children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 3000),
-                              child: Column(
-                                children: [
-                                  cryptoType == CryptoType.USDC
-                                      ? Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              0, 26, 0, 12),
-                                          child: _erc20Tag(),
-                                        )
-                                      : SizedBox(
-                                          height: hideConnection ? 84 : 52),
-                                  Padding(
-                                    padding: padding,
-                                    child: _addressSection(),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  Padding(
-                                    padding: padding,
-                                    child: _sendReceiveSection(),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  if (widget.payload.type ==
-                                      CryptoType.ETH) ...[
-                                    BlocBuilder<USDCBloc, USDCState>(
-                                        builder: (context, state) {
-                                      final address = widget.payload.address;
-                                      final usdcBalance =
-                                          state.usdcBalances[address];
-                                      final balance = usdcBalance == null
-                                          ? "-- USDC"
-                                          : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-                                      return Padding(
-                                        padding: padding,
-                                        child: _usdcBalance(balance),
-                                      );
-                                    })
-                                  ],
-                                  addDivider(),
-                                  if (showConnection) ...[
-                                    Padding(
-                                      padding: padding,
-                                      child: _connectionsSection(),
-                                    ),
-                                    addDivider(),
-                                  ],
-                                ],
-                              ),
+                            const SizedBox(
+                              height: 12,
                             ),
+                            addOnlyDivider(),
                           ],
-                        ),
-                      ),
-                      widget.payload.type == CryptoType.XTZ
-                          ? TezosTXListView(
-                              address: widget.payload.address,
-                            )
-                          : const SliverToBoxAdapter(
-                              child: SizedBox(),
-                            )
-                    ],
-                  ),
-                ),
-                widget.payload.type == CryptoType.XTZ
-                    ? GestureDetector(
-                        onTap: () =>
-                            launchUrlString(_txURL(widget.payload.address)),
-                        child: Container(
-                          alignment: Alignment.bottomCenter,
-                          padding: const EdgeInsets.fromLTRB(0, 17, 0, 20),
-                          color: AppColor.secondaryDimGreyBackground,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("powered_by_tzkt".tr(),
-                                  style: theme.textTheme.ppMori400Black14),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              SvgPicture.asset(
-                                  "assets/images/external_link.svg"),
-                            ],
+                        )),
+                    Expanded(
+                      child: CustomScrollView(
+                        controller: controller,
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 3000),
+                                  child: Column(
+                                    children: [
+                                      cryptoType == CryptoType.USDC
+                                          ? Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      0, 26, 0, 12),
+                                              child: _erc20Tag(context),
+                                            )
+                                          : SizedBox(
+                                              height: hideConnection ? 84 : 52),
+                                      Padding(
+                                        padding: padding,
+                                        child: _addressSection(context),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      Padding(
+                                        padding: padding,
+                                        child: _sendReceiveSection(context),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      if (widget.payload.type ==
+                                          CryptoType.ETH) ...[
+                                        BlocBuilder<USDCBloc, USDCState>(
+                                            builder: (context, state) {
+                                          final address = widget
+                                              .payload.walletAddress.address;
+                                          final usdcBalance =
+                                              state.usdcBalances[address];
+                                          final balance = usdcBalance == null
+                                              ? "-- USDC"
+                                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+                                          return Padding(
+                                            padding: padding,
+                                            child: _usdcBalance(balance),
+                                          );
+                                        })
+                                      ],
+                                      if (showConnection) ...[
+                                        addDivider(),
+                                        Padding(
+                                          padding: padding,
+                                          child: _connectionsSection(context),
+                                        ),
+                                        addDivider(),
+                                        Padding(
+                                          padding: padding,
+                                          child: _recoverySection(context),
+                                        ),
+                                        addDivider(),
+                                        Padding(
+                                            padding: padding,
+                                            child: _txSection(context)),
+                                        addDivider(),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : Container(),
-              ],
-            );
-          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }),
+          if (_isRename)
+            Container(
+              color: const Color.fromRGBO(0, 0, 0, 0.5),
+              child: Container(),
+            ),
+        ],
+      ),
     );
   }
 
@@ -317,6 +340,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
     Navigator.of(context)
         .popAndPushNamed(AppRouter.scanQRPage, arguments: scanItem);
+  }
+
+  void _onRenameTap() {
+    Navigator.of(context).pop();
+    setState(() {
+      _isRename = true;
+      _renameFocusNode.requestFocus();
+    });
   }
 
   Widget _usdcBalance(String balance) {
@@ -340,7 +371,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 style: theme.textTheme.ppMori700Black14,
               ),
               const SizedBox(width: 10),
-              _erc20Tag()
+              _erc20Tag(context)
             ],
           ),
         ),
@@ -350,19 +381,16 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         ),
         onTap: () {
           final payload = WalletDetailsPayload(
-              type: CryptoType.USDC,
-              wallet: widget.payload.wallet,
-              personaUUID: widget.payload.personaUUID,
-              address: widget.payload.address,
-              personaName: widget.payload.personaName,
-              index: widget.payload.index,
-              isHideGalleryEnabled: isHideGalleryEnabled);
+            type: CryptoType.USDC,
+            persona: widget.payload.persona,
+            walletAddress: walletAddress,
+          );
           Navigator.of(context)
               .pushNamed(AppRouter.walletDetailsPage, arguments: payload);
         });
   }
 
-  Widget _erc20Tag() {
+  Widget _erc20Tag(BuildContext context) {
     final theme = Theme.of(context);
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -381,7 +409,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     );
   }
 
-  Widget _balanceSection(String balance, String balanceInUSD) {
+  Widget _balanceSection(
+      BuildContext context, String balance, String balanceInUSD) {
     final theme = Theme.of(context);
     if (widget.payload.type == CryptoType.ETH ||
         widget.payload.type == CryptoType.XTZ) {
@@ -408,7 +437,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     if (widget.payload.type == CryptoType.USDC) {
       return BlocBuilder<USDCBloc, USDCState>(
         builder: (context, state) {
-          final usdcBalance = state.usdcBalances[widget.payload.address];
+          final usdcBalance = state.usdcBalances[address];
           final balance = usdcBalance == null
               ? "-- USDC"
               : "${USDCAmountFormatter(usdcBalance).format()} USDC";
@@ -426,8 +455,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     return Container();
   }
 
-  Widget _addressSection() {
-    var address = widget.payload.address;
+  Widget _addressSection(BuildContext context) {
     final theme = Theme.of(context);
     bool isCopied = false;
 
@@ -498,7 +526,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     );
   }
 
-  Widget _connectionsSection() {
+  Widget _connectionsSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       BlocBuilder<ConnectionsBloc, ConnectionsState>(builder: (context, state) {
@@ -507,7 +535,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         return TappableForwardRow(
           padding: EdgeInsets.zero,
           leftWidget: Text(
-            "connection_with_dApps".tr(),
+            "connections".tr(),
             style: theme.textTheme.ppMori400Black14,
           ),
           rightWidget: Container(
@@ -526,9 +554,9 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           ),
           onTap: () {
             final payload = PersonaConnectionsPayload(
-              personaUUID: widget.payload.personaUUID,
-              index: widget.payload.index,
-              address: widget.payload.address,
+              personaUUID: widget.payload.persona.uuid,
+              index: walletAddress.index,
+              address: address,
               type: widget.payload.type,
             );
             Navigator.of(context).pushNamed(AppRouter.personaConnectionsPage,
@@ -539,11 +567,60 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     ]);
   }
 
-  String _txURL(String address) {
-    return "https://tzkt.io/$address/operations";
+  Widget _txSection(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      TappableForwardRow(
+        padding: EdgeInsets.zero,
+        leftWidget: Text(
+          "show_history".tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            AppRouter.inappWebviewPage,
+            arguments:
+                InAppWebViewPayload(_txURL(address, widget.payload.type)),
+          );
+        },
+      ),
+    ]);
   }
 
-  Widget _sendReceiveSection() {
+  Widget _recoverySection(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      TappableForwardRow(
+        padding: EdgeInsets.zero,
+        leftWidget: Text(
+          "recovery_phrase".tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        onTap: () async {
+          final words =
+              await widget.payload.persona.wallet().exportMnemonicWords();
+          if (!mounted) return;
+          Navigator.of(context).pushNamed(AppRouter.recoveryPhrasePage,
+              arguments: words.split(" "));
+        },
+      ),
+    ]);
+  }
+
+  String _txURL(String address, CryptoType cryptoType) {
+    switch (cryptoType) {
+      case CryptoType.ETH:
+        return "https://etherscan.io/address/$address";
+      case CryptoType.XTZ:
+        return "https://tzkt.io/$address/operations";
+      case CryptoType.USDC:
+        return "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=$address";
+      default:
+        return "";
+    }
+  }
+
+  Widget _sendReceiveSection(BuildContext context) {
     final theme = Theme.of(context);
     if (widget.payload.type == CryptoType.ETH ||
         widget.payload.type == CryptoType.XTZ ||
@@ -572,32 +649,21 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 final payload = await Navigator.of(context).pushNamed(
                     SendCryptoPage.tag,
                     arguments: SendData(
-                        LibAukDart.getWallet(widget.payload.personaUUID),
+                        LibAukDart.getWallet(widget.payload.persona.uuid),
                         widget.payload.type,
                         null,
-                        widget.payload.index)) as Map?;
+                        walletAddress.index)) as Map?;
                 if (payload == null || !payload["isTezos"]) {
                   return;
                 }
 
                 if (!mounted) return;
                 final tx = payload['tx'] as TZKTOperation;
-                tx.sender = TZKTActor(address: widget.payload.address);
+                tx.sender = TZKTActor(address: address);
                 UIHelper.showMessageAction(
                   context,
                   'success'.tr(),
                   'send_success_des'.tr(),
-                  onAction: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed(
-                      AppRouter.tezosTXDetailPage,
-                      arguments: {
-                        "current_address": tx.sender?.address,
-                        "tx": tx,
-                      },
-                    );
-                  },
-                  actionButton: 'see_transaction_detail'.tr(),
                   closeButton: "close".tr(),
                 );
               },
@@ -607,46 +673,39 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             width: 16.0,
           ),
           Expanded(
-            child: BlocConsumer<AccountsBloc, AccountsState>(
-              listener: (context, accountState) async {},
-              builder: (context, accountState) {
-                final account = accountState.accounts?.firstWhere((element) =>
-                    element.blockchain == widget.payload.type.source);
-                final blockChain =
-                    (widget.payload.type.source == CryptoType.USDC.source)
-                        ? CryptoType.ETH.source
-                        : widget.payload.type.source;
-                return AuCustomButton(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Transform.rotate(
-                        angle: pi,
-                        child: SvgPicture.asset(
-                          'assets/images/Recieve.svg',
-                          width: 18,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 8,
-                      ),
-                      Text(
-                        '${"receive".tr()} ${widget.payload.type.name}',
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                    ],
+            child: AuCustomButton(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Transform.rotate(
+                    angle: pi,
+                    child: SvgPicture.asset(
+                      'assets/images/Recieve.svg',
+                      width: 18,
+                    ),
                   ),
-                  onPressed: () {
-                    if (account != null && account.accountNumber.isNotEmpty) {
-                      Navigator.of(context).pushNamed(
-                          GlobalReceiveDetailPage.tag,
-                          arguments: GlobalReceivePayload(
-                              address: widget.payload.address,
-                              blockchain: blockChain,
-                              account: account));
-                    }
-                  },
-                );
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  Text(
+                    '${"receive".tr()} ${widget.payload.type.name}',
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+                ],
+              ),
+              onPressed: () {
+                final account = Account(
+                    key: address,
+                    persona: widget.payload.persona,
+                    name: walletAddress.name ?? widget.payload.type.source,
+                    blockchain: widget.payload.type.source,
+                    accountNumber: address,
+                    createdAt: walletAddress.createdAt);
+                Navigator.of(context).pushNamed(GlobalReceiveDetailPage.tag,
+                    arguments: GlobalReceivePayload(
+                        address: address,
+                        blockchain: widget.payload.type.source,
+                        account: account));
               },
             ),
           ),
@@ -669,8 +728,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 color: AppColor.primaryBlack,
               ),
               onTap: () {
-                injector<AccountService>().setHideAddressInGallery(
-                    [widget.payload.address], !isHideGalleryEnabled);
+                injector<AccountService>()
+                    .setHideAddressInGallery([address], !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -684,8 +743,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 color: AppColor.primaryBlack,
               ),
               onTap: () {
-                injector<AccountService>().setHideAddressInGallery(
-                    [widget.payload.address], !isHideGalleryEnabled);
+                injector<AccountService>()
+                    .setHideAddressInGallery([address], !isHideGalleryEnabled);
                 setState(() {
                   isHideGalleryEnabled = !isHideGalleryEnabled;
                 });
@@ -700,6 +759,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         ),
         onTap: _connectionIconTap,
       ),
+      OptionItem(
+        title: 'rename'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/rename_icon.svg',
+          color: AppColor.primaryBlack,
+        ),
+        onTap: _onRenameTap,
+      ),
       OptionItem(),
     ]);
   }
@@ -707,20 +774,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
 class WalletDetailsPayload {
   final CryptoType type;
-  final WalletStorage wallet;
-  final String personaUUID;
-  final String address;
-  final String personaName;
-  final int index;
-  final bool isHideGalleryEnabled;
+  final Persona persona;
+  final WalletAddress walletAddress;
 
   WalletDetailsPayload({
     required this.type,
-    required this.wallet,
-    required this.personaUUID,
-    required this.address,
-    required this.personaName,
-    required this.index,
-    required this.isHideGalleryEnabled,
+    required this.persona,
+    required this.walletAddress,
   });
 }

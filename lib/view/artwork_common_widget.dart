@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
@@ -28,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -423,7 +425,7 @@ INFTRenderingWidget buildRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time})? onLoaded,
+  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
@@ -524,17 +526,22 @@ class BrokenTokenWidget extends StatefulWidget {
   }
 }
 
-class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
+class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
+    with AfterLayoutMixin<BrokenTokenWidget> {
   final metricClient = injector.get<MetricClientService>();
 
   @override
   void initState() {
     injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
+    super.initState();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
     metricClient.addEvent(
       MixpanelEvent.displayUnableLoadIPFS,
       data: {'id': widget.token.id},
     );
-    super.initState();
   }
 
   @override
@@ -587,6 +594,51 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget> {
   }
 }
 
+class CurrentlyCastingArtwork extends StatefulWidget {
+  const CurrentlyCastingArtwork({Key? key}) : super(key: key);
+
+  @override
+  State<CurrentlyCastingArtwork> createState() {
+    return _CurrentlyCastingArtworkState();
+  }
+}
+
+class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width,
+      height: size.width,
+      padding: const EdgeInsets.all(10),
+      color: AppColor.auGreyBackground,
+      child: Stack(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/ipfs_error_icon.svg',
+              width: 40,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Row(
+              children: [
+                Text(
+                  'currently_casting'.tr(),
+                  style: theme.textTheme.ppMori700QuickSilver8
+                      .copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 Widget previewPlaceholder(BuildContext context) {
   return const PreviewPlaceholder();
 }
@@ -600,21 +652,21 @@ class PreviewPlaceholder extends StatefulWidget {
   State<PreviewPlaceholder> createState() => _PreviewPlaceholderState();
 }
 
-class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
+class _PreviewPlaceholderState extends State<PreviewPlaceholder>
+    with AfterLayoutMixin<PreviewPlaceholder> {
   final metricClient = injector.get<MetricClientService>();
-
-  @override
-  void initState() {
-    metricClient.timerEvent(
-      MixpanelEvent.showLoadingArtwork,
-    );
-    super.initState();
-  }
 
   @override
   void dispose() {
     super.dispose();
     metricClient.addEvent(
+      MixpanelEvent.showLoadingArtwork,
+    );
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    metricClient.timerEvent(
       MixpanelEvent.showLoadingArtwork,
     );
   }
@@ -1297,6 +1349,7 @@ class MetaDataItem extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           flex: 2,
@@ -1314,7 +1367,7 @@ class MetaDataItem extends StatelessWidget {
             child: Text(
               value,
               overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+              maxLines: 3,
               style: onValueTap != null
                   ? theme.textTheme.ppMori400Green14
                   : theme.textTheme.ppMori400White14,
@@ -1946,6 +1999,58 @@ class _ExpandedWidgetState extends State<ExpandedWidget> {
           widget.child ?? const SizedBox()
         else
           widget.unexpendedChild ?? const SizedBox(),
+      ],
+    );
+  }
+}
+
+class ArtworkDetailsHeader extends StatelessWidget {
+  final String title;
+  final String subTitle;
+  final bool hideArtist;
+  final Function? onTitleTap;
+  final Function? onSubTitleTap;
+
+  const ArtworkDetailsHeader({
+    Key? key,
+    required this.title,
+    required this.subTitle,
+    this.hideArtist = false,
+    this.onTitleTap,
+    this.onSubTitleTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!hideArtist)
+          GestureDetector(
+            onTap: () {
+              onSubTitleTap?.call();
+            },
+            child: Text(
+              subTitle,
+              style: theme.textTheme.ppMori700White14
+                  .copyWith(color: AppColor.auSuperTeal),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        GestureDetector(
+          onTap: () {
+            onTitleTap?.call();
+          },
+          child: Text(
+            title,
+            style: theme.textTheme.ppMori400White14
+                .copyWith(color: AppColor.auSuperTeal),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

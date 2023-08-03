@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -26,6 +27,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
@@ -36,8 +38,10 @@ import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -85,6 +89,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _clientTokenService = injector<ClientTokenService>();
   final _metricClientService = injector<MetricClientService>();
   final _notificationService = injector<NotificationService>();
+  final _playListService = injector<PlaylistService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -113,6 +118,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           _feedService.checkNewFeeds();
           _editorialService.checkNewEditorial();
         });
+        _playListService.refreshPlayLists();
       } else if (index == 0) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
@@ -193,7 +199,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     } else {
       _selectedIndex = HomeNavigatorTab.DISCOVER.index;
-      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
     _pageController = PageController(initialPage: _selectedIndex);
 
@@ -217,8 +222,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       MultiBlocProvider(
         providers: [
           BlocProvider.value(
-              value: AccountsBloc(injector(), injector<CloudDatabase>(),
-                  injector(), injector<AuditService>(), injector())),
+              value: AccountsBloc(injector(), injector<CloudDatabase>())),
         ],
         child: const WalletPage(),
       ),
@@ -524,6 +528,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
+        _editorialPageStateKey.currentState?.selectTab(HomePageTab.DISCOVER);
         _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
         break;
       case "new_message":
@@ -585,11 +590,53 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
+        _handleForeground();
         break;
       case FGBGType.background:
         _handleBackground();
         break;
     }
+  }
+
+  Future<void> showAnnouncementNotification(
+      AnnouncementLocal announcement) async {
+    showInfoNotification(
+        const Key("Announcement"), announcement.notificationTitle,
+        addOnTextSpan: [
+          TextSpan(
+              text: "tap_to_view".tr(),
+              style: Theme.of(context).textTheme.ppMori400Green14),
+        ], openHandler: () async {
+      final announcementID = announcement.announcementContextId;
+      _openAnnouncement(announcementID);
+    });
+  }
+
+  Future<void> announcementNotificationIfNeed() async {
+    final announcements =
+        (await injector<CustomerSupportService>().getIssuesAndAnnouncement())
+            .whereType<AnnouncementLocal>()
+            .toList();
+
+    final showAnnouncementInfo =
+        _configurationService.getShowAnouncementNotificationInfo();
+    final shouldShowAnnouncements = announcements.where((element) =>
+        (element.isMemento6 &&
+            !_configurationService
+                .getAlreadyClaimedAirdrop(AirdropType.Memento6.seriesId)) &&
+        showAnnouncementInfo.shouldShowAnnouncementNotification(element));
+    if (shouldShowAnnouncements.isEmpty) return;
+    Future.forEach<AnnouncementLocal>(shouldShowAnnouncements,
+        (announcement) async {
+      await showAnnouncementNotification(announcement);
+      await _configurationService
+          .updateShowAnouncementNotificationInfo(announcement);
+    });
+  }
+
+  Future<void> _handleForeground() async {
+    await injector<CustomerSupportService>().fetchAnnouncement();
+    announcementNotificationIfNeed();
   }
 
   @override
@@ -598,6 +645,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
+    }
+    if (_selectedIndex == HomeNavigatorTab.DISCOVER.index) {
+      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
   }
 

@@ -5,133 +5,51 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/account_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/database/dao/dao.dart';
 
 Widget accountWithConnectionItem(
-    BuildContext context, CategorizedAccounts categorizedAccounts) {
-  final theme = Theme.of(context);
-
+    BuildContext context, Account categorizedAccounts) {
+  final a = categorizedAccounts;
   switch (categorizedAccounts.className) {
     case 'Persona':
-      return ExpandedWidget(
-        header: Padding(
-          padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Image.asset("assets/images/moma_logo.png"),
-              ),
-              const SizedBox(width: 32),
-              Expanded(
-                child: Text(
-                    categorizedAccounts.category.replaceFirst('did:key:', ''),
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.ppMori400Black14),
-              ),
-            ],
-          ),
-        ),
-        unexpendedChild: addOnlyDivider(),
-        child: Container(
-          color: AppColor.auLightGrey.withOpacity(0.5),
-          child: Column(
-            children: [
-              addOnlyDivider(color: AppColor.auQuickSilver),
-              ...categorizedAccounts.accounts
-                  .mapIndexed(
-                    (index, a) => [
-                      _blockchainAddressView(
-                        context,
-                        GlobalReceivePayload(
-                            address: a.accountNumber,
-                            blockchain: a.blockchain!,
-                            account: a),
-                        onTap: () => Navigator.of(context).pushNamed(
-                            GlobalReceiveDetailPage.tag,
-                            arguments: GlobalReceivePayload(
-                                address: a.accountNumber,
-                                blockchain: a.blockchain!,
-                                account: a)),
-                      ),
-                      if (index != categorizedAccounts.accounts.length - 1)
-                        addOnlyDivider(color: AppColor.auLightGrey),
-                    ],
-                  )
-                  .flattened
-                  .toList(),
-              addOnlyDivider(color: AppColor.auQuickSilver),
-            ],
-          ),
-        ),
-      );
     case 'Connection':
-      final connection = categorizedAccounts.accounts.first.connections?.first;
-      if (connection == null) return const SizedBox();
-      return ExpandedWidget(
-        header: Padding(
-          padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: _appLogo(connection),
-              ),
-              const SizedBox(width: 32),
-              Expanded(
-                child: Text(
-                    connection.name.isNotEmpty
-                        ? connection.name
-                        : "unnamed".tr(),
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.ppMori400Black14),
-              ),
-              linkedBox(context),
-            ],
+      return Column(
+        children: [
+          _blockchainAddressView(
+            context,
+            GlobalReceivePayload(
+                address: a.accountNumber,
+                blockchain: a.blockchain!,
+                account: a),
+            onTap: () => Navigator.of(context).pushNamed(
+                GlobalReceiveDetailPage.tag,
+                arguments: GlobalReceivePayload(
+                    address: a.accountNumber,
+                    blockchain: a.blockchain!,
+                    account: a)),
           ),
-        ),
-        unexpendedChild: addOnlyDivider(),
-        child: Column(
-          children: [
-            addOnlyDivider(color: AppColor.auQuickSilver),
-            ...categorizedAccounts.accounts
-                .mapIndexed((index, a) => [
-                      Container(
-                          child: _blockchainAddressView(
-                              context,
-                              GlobalReceivePayload(
-                                  address: a.accountNumber,
-                                  blockchain: a.blockchain!,
-                                  account: a),
-                              onTap: () => Navigator.of(context).pushNamed(
-                                  GlobalReceiveDetailPage.tag,
-                                  arguments: GlobalReceivePayload(
-                                      address: a.accountNumber,
-                                      blockchain: a.blockchain!,
-                                      account: a)))),
-                      if (index != categorizedAccounts.accounts.length - 1)
-                        addOnlyDivider(color: AppColor.auLightGrey),
-                    ])
-                .flattened
-                .toList(),
-            addOnlyDivider(color: AppColor.auQuickSilver),
-          ],
-        ),
+          addOnlyDivider(color: AppColor.auLightGrey),
+        ],
       );
 
     default:
@@ -141,65 +59,112 @@ Widget accountWithConnectionItem(
 
 Widget accountItem(BuildContext context, Account account,
     {Function()? onPersonaTap, Function()? onConnectionTap}) {
+  if ((account.persona == null || account.walletAddress == null) &&
+      account.connections?.first == null) {
+    return const SizedBox();
+  }
   final theme = Theme.of(context);
-  final persona = account.persona;
-  if (persona != null) {
-    final getDidKey = persona.wallet().getAccountDID();
-    return TappableForwardRow(
-      leftWidget: Row(
+  final balance = getAddressBalance(account.key, account.cryptoType);
+  final isViewAccount =
+      account.persona == null || account.walletAddress == null;
+  return GestureDetector(
+    onTap: isViewAccount ? onConnectionTap : onPersonaTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: const BoxDecoration(color: Colors.transparent),
+      child: Column(
         children: [
-          accountLogo(context, account),
-          const SizedBox(width: 32),
-          FutureBuilder<String>(
-            future: getDidKey,
-            builder: (context, snapshot) {
-              final name =
-                  account.name.isNotEmpty ? account.name : snapshot.data ?? '';
-              return Expanded(
-                child: Text(
-                  name.replaceFirst('did:key:', ''),
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.ppMori400Black14,
+          Row(
+            children: [
+              Expanded(
+                child: Row(children: [
+                  LogoCrypto(cryptoType: account.cryptoType, size: 24),
+                  const SizedBox(width: 10),
+                  Text(
+                    account.name.maskIfNeeded(),
+                    style: theme.textTheme.ppMori700Black16,
+                  ),
+                  const Expanded(child: SizedBox()),
+                ]),
+              ),
+              if (account.isHidden) ...[
+                SvgPicture.asset(
+                  'assets/images/hide.svg',
+                  color: theme.colorScheme.surface,
                 ),
+              ],
+              if (isViewAccount) ...[
+                const SizedBox(width: 10),
+                Container(
+                  decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      border: Border.all(color: AppColor.auGrey),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                    child: Text("view_only".tr(),
+                        style: theme.textTheme.ppMori400Grey14),
+                  ),
+                )
+              ],
+              const SizedBox(width: 20),
+              SvgPicture.asset('assets/images/iconForward.svg'),
+            ],
+          ),
+          const SizedBox(height: 10),
+          FutureBuilder<Pair<String, String>>(
+            future: balance,
+            builder: (context, snapshot) {
+              final balances = snapshot.data ?? Pair("--", "--");
+              final style = theme.textTheme.ppMori400Grey14;
+              return Row(
+                children: [
+                  Text(balances.first, style: style),
+                  const SizedBox(width: 20),
+                  Text(balances.second, style: style),
+                ],
               );
             },
           ),
-        ],
-      ),
-      onTap: onPersonaTap,
-    );
-  }
-
-  final connection = account.connections?.first;
-
-  if (connection != null) {
-    return TappableForwardRow(
-      leftWidget: Row(
-        children: [
-          accountLogo(context, account),
-          const SizedBox(width: 32),
-          Expanded(
-            child: Text(
-              connection.name.isNotEmpty
-                  ? connection.name.maskIfNeeded()
-                  : connection.accountNumber,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.ppMori400Black14,
-            ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  account.accountNumber,
+                  style: theme.textTheme.ppMori400Black14,
+                  key: const Key("fullAccount_address"),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      rightWidget: Row(
-        children: [
-          linkedBox(context),
-          const SizedBox(width: 8),
-        ],
-      ),
-      onTap: onConnectionTap,
-    );
-  }
+    ),
+  );
+}
 
-  return const SizedBox();
+Future<Pair<String, String>> getAddressBalance(
+    String address, CryptoType cryptoType) async {
+  final tokenDao = injector<TokenDao>();
+  final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
+  final nftBalance =
+      "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
+  switch (cryptoType) {
+    case CryptoType.ETH:
+      final etherAmount = await injector<EthereumService>().getBalance(address);
+      final cryptoBalance =
+          "${EthAmountFormatter(etherAmount.getInWei).format()} ETH";
+      return Pair(cryptoBalance, nftBalance);
+    case CryptoType.XTZ:
+      final tezosAmount = await injector<TezosService>().getBalance(address);
+      final cryptoBalance = "${XtzAmountFormatter(tezosAmount).format()} XTZ";
+      return Pair(cryptoBalance, nftBalance);
+    case CryptoType.USDC:
+    case CryptoType.UNKNOWN:
+      return Pair("", "");
+  }
 }
 
 Widget _blockchainAddressView(
@@ -209,16 +174,14 @@ Widget _blockchainAddressView(
 }) {
   final theme = Theme.of(context);
   return Container(
-    color: AppColor.auLightGrey.withOpacity(0.5),
-    padding:
-        ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0, left: 42),
+    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
     child: TappableForwardRowWithContent(
       leftWidget: Row(
         children: [
           _blockchainLogo(receiver.blockchain),
           const SizedBox(width: 10),
           Text(
-            _blockchainName(receiver.blockchain),
+            receiver.account.name,
             style: theme.textTheme.ppMori700Black14,
           ),
           const SizedBox(width: 8),
@@ -248,19 +211,6 @@ Widget _blockchainLogo(String? blockchain) {
       return SvgPicture.asset('assets/images/tez.svg');
     default:
       return const SizedBox();
-  }
-}
-
-String _blockchainName(String? blockchain) {
-  switch (blockchain) {
-    case "Ethereum":
-    case "walletConnect":
-      return "ethereum".tr();
-    case "Tezos":
-    case "walletBeacon":
-      return "tezos".tr();
-    default:
-      return "";
   }
 }
 
@@ -352,7 +302,7 @@ Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
           color: theme.colorScheme.surface,
         )),
     child: Text(
-      "linked".tr(),
+      "view_only".tr(),
       style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
     ),
   );

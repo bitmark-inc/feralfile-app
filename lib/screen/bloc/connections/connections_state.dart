@@ -13,15 +13,17 @@ abstract class ConnectionsEvent {}
 class GetETHConnectionsEvent extends ConnectionsEvent {
   final String personUUID;
   final int index;
+  final String address;
 
-  GetETHConnectionsEvent(this.personUUID, this.index);
+  GetETHConnectionsEvent(this.personUUID, this.index, this.address);
 }
 
 class GetXTZConnectionsEvent extends ConnectionsEvent {
   final String personUUID;
   final int index;
+  final String address;
 
-  GetXTZConnectionsEvent(this.personUUID, this.index);
+  GetXTZConnectionsEvent(this.personUUID, this.index, this.address);
 }
 
 class DeleteConnectionsEvent extends ConnectionsEvent {

@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -121,7 +122,7 @@ class ParticipateUserTestPage extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).pushNamed(
                         AppRouter.inappWebviewPage,
-                        arguments: USER_TEST_CALENDAR_LINK,
+                        arguments: InAppWebViewPayload(USER_TEST_CALENDAR_LINK),
                       );
                     },
                   ),

@@ -451,6 +451,78 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
   );
 }
 
+MarkdownStyleSheet markDownStyleTipCard(BuildContext context) {
+  final theme = Theme.of(context);
+  final bodyText2 = theme.textTheme.ppMori400Black14.copyWith(height: 1.7);
+  return MarkdownStyleSheet(
+    a: const TextStyle(
+      fontFamily: AppTheme.atlasGrotesk,
+      color: Colors.transparent,
+      fontWeight: FontWeight.w400,
+      shadows: [Shadow(offset: Offset(0, -1))],
+      decoration: TextDecoration.underline,
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: AppColor.primaryBlack,
+      decorationThickness: 1,
+    ),
+    p: bodyText2,
+    pPadding: const EdgeInsets.only(bottom: 15),
+    code: bodyText2.copyWith(backgroundColor: Colors.transparent),
+    h1: theme.textTheme.ppMori700Black16,
+    h1Padding: const EdgeInsets.only(bottom: 40),
+    h2: theme.textTheme.ppMori700Black16,
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.ppMori700Black16,
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.ppMori700Black16,
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.ppMori700Black16,
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.ppMori700Black16,
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(
+        fontStyle: FontStyle.italic, color: AppColor.primaryBlack),
+    strong: const TextStyle(
+        fontWeight: FontWeight.bold, color: AppColor.primaryBlack),
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: AppColor.primaryBlack),
+    blockquote: bodyText2,
+    img: bodyText2,
+    checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
+    blockSpacing: 15.0,
+    listIndent: 24.0,
+    listBullet: bodyText2,
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: bodyText2,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquoteDecoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          width: 5.0,
+          color: theme.dividerColor,
+        ),
+      ),
+    ),
+  );
+}
+
 class CustomBoxDecoration extends ShapeDecoration {
   CustomBoxDecoration({
     color,
@@ -558,7 +630,7 @@ Widget redDotIcon({Color color = Colors.red}) {
 
 Widget iconWithRedDot(
     {required Widget icon,
-    Color color = AppColor.red,
+    Color color = Colors.red,
     EdgeInsetsGeometry? padding,
     bool withReddot = true}) {
   return withReddot
@@ -591,8 +663,8 @@ String polishSource(String source) {
   }
 }
 
-void enableLandscapeMode() {
-  SystemChrome.setPreferredOrientations([
+Future<void> enableLandscapeMode() async {
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
     DeviceOrientation.landscapeLeft,
@@ -600,8 +672,8 @@ void enableLandscapeMode() {
   ]);
 }
 
-void disableLandscapeMode() {
-  SystemChrome.setPreferredOrientations([
+Future<void> disableLandscapeMode() async {
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
 }
@@ -619,6 +691,8 @@ class MomaPallet {
   static const cloudBlue = Color.fromRGBO(0, 175, 215, 1);
   static const blue = Color.fromRGBO(0, 87, 184, 1);
   static const purple = Color.fromRGBO(117, 59, 189, 1);
+  static const black = Color.fromRGBO(0, 0, 0, 1);
+  static const white = Color.fromRGBO(255, 255, 255, 1);
 }
 
 Map<String, String>? auHtmlStyle(dom.Element element) {

@@ -24,12 +24,13 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
 
-  Future<List<ConnectionItem>> _getWc2Connections(String personaUUID) async {
-    final connections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+  Future<List<ConnectionItem>> _getWc2Connections(
+      String address, ConnectionType type) async {
+    final connections =
+        await _cloudDB.connectionDao.getConnectionsByType(type.rawValue);
     List<Connection> personaConnections = [];
     for (var connection in connections) {
-      if (connection.key.split(":").firstOrNull == personaUUID) {
+      if (connection.accountNumber.contains(address)) {
         personaConnections.add(connection);
       }
     }
@@ -71,7 +72,11 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
           .map((conns) =>
               ConnectionItem(representative: conns.first, connections: conns))
           .toList();
-      final wc2Connections = await _getWc2Connections(personaUUID);
+      final auConnections = await _getWc2Connections(
+          event.address, ConnectionType.walletConnect2);
+      connectionItems.addAll(auConnections);
+      final wc2Connections =
+          await _getWc2Connections(event.address, ConnectionType.dappConnect2);
       connectionItems.addAll(wc2Connections);
 
       emit(state.copyWith(connectionItems: connectionItems));
@@ -100,7 +105,11 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
               ConnectionItem(representative: conns.first, connections: conns))
           .toList();
 
-      final wc2Connections = await _getWc2Connections(personaUUID);
+      final auConnections = await _getWc2Connections(
+          event.address, ConnectionType.walletConnect2);
+      connectionItems.addAll(auConnections);
+      final wc2Connections =
+          await _getWc2Connections(event.address, ConnectionType.dappConnect2);
       connectionItems.addAll(wc2Connections);
 
       emit(state.copyWith(connectionItems: connectionItems));
@@ -112,8 +121,10 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
       for (var connection in event.connectionItem.connections) {
         _cloudDB.connectionDao.deleteConnection(connection);
-        if (connection.connectionType ==
-            ConnectionType.walletConnect2.rawValue) {
+        if ([
+          ConnectionType.walletConnect2.rawValue,
+          ConnectionType.dappConnect2.rawValue
+        ].contains(connection.connectionType)) {
           final topic = connection.key.split(":").lastOrNull;
           if (topic != null) {
             await _wc2Service.deletePairing(topic: topic);

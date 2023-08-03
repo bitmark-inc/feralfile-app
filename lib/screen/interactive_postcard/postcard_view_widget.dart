@@ -92,9 +92,11 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
               if (widget.zoomIndex != null) {
                 _zoomIntoStamp(index: widget.zoomIndex!);
               }
-              setState(() {
-                isLoading = false;
-              });
+              if (mounted) {
+                setState(() {
+                  isLoading = false;
+                });
+              }
             }
           },
           initialUrlRequest: URLRequest(

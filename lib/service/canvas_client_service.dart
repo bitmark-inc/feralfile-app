@@ -5,11 +5,9 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -21,6 +19,7 @@ class CanvasClientService {
   final List<CanvasDevice> _devices = [];
   late final String _deviceId;
   late final String _deviceName;
+  bool _didInitialized = false;
 
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
@@ -32,11 +31,15 @@ class CanvasClientService {
       compression: const GzipCodec(), timeout: const Duration(seconds: 3));
 
   Future<void> init() async {
+    if (_didInitialized) {
+      return;
+    }
     final device = my_device.DeviceInfo.instance;
     _deviceName = await device.getMachineName() ?? "Autonomy App";
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
     await syncDevices();
+    _didInitialized = true;
   }
 
   Future<void> shutdownAll() async {
@@ -72,10 +75,7 @@ class CanvasClientService {
   Future<bool> _connectToDevice(CanvasDevice device) async {
     final stub = _getStub(device);
     try {
-      final index = _devices.indexWhere((element) =>
-          element.id == device.id &&
-          element.ip == device.ip &&
-          element.port == device.port);
+      final index = _devices.indexWhere((element) => element.id == device.id);
       final request = ConnectRequest(
           device: DeviceInfo(deviceId: _deviceId, deviceName: _deviceName));
       final response = await stub.connect(
@@ -102,12 +102,7 @@ class CanvasClientService {
       }
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
-      if (e.toString().contains("DEADLINE_EXCEEDED")) {
-        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
-            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
-            closeButton: "close".tr());
-      }
-      return false;
+      rethrow;
     }
   }
 

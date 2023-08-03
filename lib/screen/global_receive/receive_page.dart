@@ -40,7 +40,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
         onClose: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-        final categorizedAccounts = state.categorizedAccounts;
+        final categorizedAccounts = state.accounts;
         if (categorizedAccounts == null) {
           return Container(
             alignment: Alignment.center,

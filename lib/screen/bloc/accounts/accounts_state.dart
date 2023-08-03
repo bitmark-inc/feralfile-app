@@ -17,17 +17,20 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool includeLinkedAccount;
   final bool getTezos;
   final bool getEth;
+  final bool autoAddAddress;
 
   GetCategorizedAccountsEvent({
     this.includeLinkedAccount = true,
     this.getTezos = true,
     this.getEth = true,
+    this.autoAddAddress = false,
   });
 }
 
 class GetAccountsIRLEvent extends AccountsEvent {
   final Map<String, dynamic>? param;
   final String? blockchain;
+
   GetAccountsIRLEvent({this.param, this.blockchain});
 }
 
@@ -76,6 +79,7 @@ class Account {
   List<Connection>? connections;
   String name;
   String? blockchain;
+  WalletAddress? walletAddress;
   String accountNumber;
   DateTime createdAt;
 
@@ -85,11 +89,15 @@ class Account {
 
   bool get isUsdc => blockchain == "USDC";
 
+  String get className =>
+      persona != null && walletAddress != null ? "Persona" : "Connection";
+
   Account({
     required this.key,
     this.persona,
     this.connections,
     this.blockchain,
+    this.walletAddress,
     this.accountNumber = "",
     this.name = "",
     required this.createdAt,
@@ -104,6 +112,7 @@ class Account {
         listEquals(other.connections, connections) &&
         other.name == name &&
         other.blockchain == blockchain &&
+        other.walletAddress == walletAddress &&
         other.accountNumber == accountNumber &&
         other.createdAt == createdAt;
   }
@@ -115,51 +124,27 @@ class Account {
         connections.hashCode ^
         name.hashCode ^
         blockchain.hashCode ^
+        walletAddress.hashCode ^
         accountNumber.hashCode ^
         createdAt.hashCode;
   }
 }
 
-class CategorizedAccounts {
-  String category;
-  List<Account> accounts;
-  String className;
-
-  CategorizedAccounts(this.category, this.accounts, this.className);
-
-  List<Account> get ethAccounts =>
-      accounts.where((element) => element.isEth).toList();
-
-  List<Account> get xtzAccounts =>
-      accounts.where((element) => element.isTez).toList();
-
-  bool get isPersona => className == 'Persona';
-
-  Persona? get persona => accounts.firstWhere((e) => e.persona != null).persona;
-}
-
 class AccountsState {
   List<String> addresses;
   List<Account>? accounts;
-  List<CategorizedAccounts>? categorizedAccounts;
   AccountBlocStateEvent? event;
 
-  AccountsState(
-      {this.addresses = const [],
-      this.accounts,
-      this.categorizedAccounts,
-      this.event});
+  AccountsState({this.addresses = const [], this.accounts, this.event});
 
   AccountsState copyWith(
       {List<String>? addresses,
       List<Account>? accounts,
-      List<CategorizedAccounts>? categorizedAccounts,
       Network? network,
       AccountBlocStateEvent? event}) {
     return AccountsState(
       addresses: addresses ?? this.addresses,
       accounts: accounts ?? this.accounts,
-      categorizedAccounts: categorizedAccounts ?? this.categorizedAccounts,
       event: event ?? this.event,
     );
   }
@@ -168,7 +153,6 @@ class AccountsState {
     return AccountsState(
       addresses: addresses,
       accounts: accounts,
-      categorizedAccounts: categorizedAccounts,
       event: event,
     );
   }

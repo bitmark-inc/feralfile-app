@@ -5,20 +5,22 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wc2_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
@@ -62,6 +64,8 @@ class Wc2Service extends Wc2Handler {
   late Wc2Channel _wc2channel;
   String pendingUri = "";
 
+  Timer? _timer;
+
   Wc2Service(
     this._navigationService,
     this._accountService,
@@ -70,19 +74,29 @@ class Wc2Service extends Wc2Handler {
     _wc2channel = Wc2Channel(handler: this);
   }
 
-  Future connect(String uri) async {
-    pendingUri = uri;
-    await _wc2channel.pairClient(uri);
+  // These session are approved but addresses permission are not granted.
+  final List<String> _pendingSessions = [];
+
+  void addPendingSession(String id) {
+    _pendingSessions.add(id);
   }
 
-  Future activateParings() async {
-    final connections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
-    for (var connection in connections) {
-      final topic = connection.key.split(":").lastOrNull;
-      if (topic == null) continue;
-      await _wc2channel.activate(topic: topic);
-    }
+  String? getFirstSession() {
+    if (_pendingSessions.isEmpty) return null;
+    return _pendingSessions.first;
+  }
+
+  void removePendingSession(String id) {
+    _pendingSessions.remove(id);
+  }
+
+  Future connect(String uri, {Function()? onTimeout}) async {
+    pendingUri = uri;
+    _timer?.cancel();
+    _timer = Timer(CONNECT_FAILED_DURATION, () {
+      onTimeout?.call();
+    });
+    await _wc2channel.pairClient(uri);
   }
 
   Future cleanup() async {
@@ -105,7 +119,10 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future approveSession(Wc2Proposal proposal,
-      {required String account, required String connectionKey}) async {
+      {required String account,
+      required String connectionKey,
+      required String accountNumber,
+      isAuConnect = false}) async {
     await _wc2channel.approve(
       proposal.id,
       account,
@@ -115,15 +132,21 @@ class Wc2Service extends Wc2Handler {
             .firstWhereOrNull((element) => pendingUri.contains(element.topic))
             ?.topic ??
         "";
+
     final connection = Connection(
       key: "$connectionKey:$topic",
       name: proposal.proposer.name,
       data: json.encode(proposal.proposer),
-      connectionType: ConnectionType.walletConnect2.rawValue,
-      accountNumber: account,
+      connectionType: isAuConnect
+          ? ConnectionType.walletConnect2.rawValue
+          : ConnectionType.dappConnect2.rawValue,
+      accountNumber: accountNumber,
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
+    if (isAuConnect) {
+      addPendingSession(topic);
+    }
   }
 
   Future rejectSession(
@@ -168,6 +191,7 @@ class Wc2Service extends Wc2Handler {
   @override
   void onSessionProposal(Wc2Proposal proposal) async {
     log.info("[WC2Service] onSessionProposal: id = ${proposal.id}");
+    _timer?.cancel();
     final unsupportedChains =
         proposal.requiredNamespaces.keys.toSet().difference(_supportedChains);
     if (unsupportedChains.isNotEmpty) {
@@ -306,10 +330,12 @@ class Wc2Service extends Wc2Handler {
   Future _handleWC2EthereumSendTransactionRequest(Wc2Request request) async {
     try {
       var transaction = request.params[0] as Map<String, dynamic>;
+      final eip55address =
+          EthereumAddress.fromHex(transaction["from"]).hexEip55;
 
       final walletIndex = await _accountService.getAccountByAddress(
         chain: "eip155",
-        address: transaction["from"],
+        address: eip55address,
       );
       if (transaction["data"] == null) transaction["data"] = "";
       if (transaction["gas"] == null) transaction["gas"] = "";

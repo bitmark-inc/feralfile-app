@@ -72,12 +72,6 @@ class Wc2Channel {
     return json.map((e) => Wc2Pairing.fromJson(e)).toList();
   }
 
-  Future activate({required String topic}) async {
-    await _channel.invokeMethod("activate", {
-      "topic": topic,
-    });
-  }
-
   Future deletePairing({required String topic}) async {
     await _channel.invokeMethod("deletePairing", {
       "topic": topic,

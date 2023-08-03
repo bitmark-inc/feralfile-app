@@ -121,11 +121,6 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
   void _link() async {
     switch (widget.type) {
       case 'address':
-        await injector<AccountService>()
-            .linkManuallyAddress(_addressController.text.trim());
-        if (!mounted) return;
-        UIHelper.showInfoDialog(context, 'account_linked'.tr(),
-            'autonomy_has_linked_your_address'.tr());
         break;
 
       case 'indexerTokenID':

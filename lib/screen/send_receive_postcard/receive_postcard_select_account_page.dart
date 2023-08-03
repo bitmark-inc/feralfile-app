@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -38,9 +38,11 @@ class _ReceivePostcardSelectAccountPageState
     extends State<ReceivePostcardSelectAccountPage> with RouteAware {
   final bool _processing = false;
   String? _selectedAddress;
+  late final bool _isTezos;
 
   @override
   void initState() {
+    _isTezos = widget.blockchain?.toLowerCase() == "tezos";
     _callAccountEvent();
     super.initState();
   }
@@ -64,15 +66,8 @@ class _ReceivePostcardSelectAccountPageState
   }
 
   void _callAccountEvent() {
-    if (widget.blockchain?.toLowerCase() == "tezos") {
-      context
-          .read<AccountsBloc>()
-          .add(GetCategorizedAccountsEvent(getEth: false));
-    } else {
-      context
-          .read<AccountsBloc>()
-          .add(GetCategorizedAccountsEvent(getTezos: false));
-    }
+    context.read<AccountsBloc>().add(
+        GetCategorizedAccountsEvent(getEth: !_isTezos, getTezos: _isTezos));
   }
 
   @override
@@ -111,9 +106,7 @@ class _ReceivePostcardSelectAccountPageState
               ),
             ),
             const SizedBox(height: 30),
-            Expanded(
-                child:
-                    SingleChildScrollView(child: _buildAddressList(context))),
+            Expanded(child: SingleChildScrollView(child: _buildAddressList())),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryButton(
@@ -132,37 +125,19 @@ class _ReceivePostcardSelectAccountPageState
     );
   }
 
-  Widget _buildAddressList(BuildContext context) {
+  Widget _buildAddressList() {
     return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final categorizedAccounts = state.categorizedAccounts ?? [];
-      return Column(
-        children: [
-          ...categorizedAccounts.map((account) {
-            if (!widget.withLinked && !account.isPersona) {
-              return const SizedBox();
-            }
-            return PersonalConnectItem(
-              categorizedAccount: account,
-              ethSelectedAddress: _selectedAddress,
-              tezSelectedAddress: _selectedAddress,
-              isExpand: true,
-              onSelectEth: (value) {
-                setState(() {
-                  if (widget.blockchain?.toLowerCase() != "tezos") {
-                    _selectedAddress = value;
-                  }
-                });
-              },
-              onSelectTez: (value) {
-                setState(() {
-                  if (widget.blockchain?.toLowerCase() == "tezos") {
-                    _selectedAddress = value;
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ],
+      final accounts = state.accounts ?? [];
+      void select(Account value) {
+        setState(() {
+          _selectedAddress = value.accountNumber;
+        });
+      }
+
+      return ListAccountConnect(
+        accounts: accounts,
+        onSelectEth: !_isTezos ? select : null,
+        onSelectTez: _isTezos ? select : null,
       );
     });
   }

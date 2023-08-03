@@ -42,6 +42,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
     super.initState();
     _fetchCustomerSupportAvailability();
     injector<CustomerSupportService>().getIssues();
+    fetchAnnouncements();
   }
 
   Future<void> fetchAnnouncements() async {

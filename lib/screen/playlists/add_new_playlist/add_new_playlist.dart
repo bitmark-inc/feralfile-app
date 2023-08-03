@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -92,28 +91,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   }
 
   Future refreshTokens() async {
-    final accountService = injector<AccountService>();
+    final indexerIds = await getManualTokenIds();
 
-    Future.wait([
-      getAddressIndexes(),
-      getManualTokenIds(),
-      accountService.getHiddenAddressIndexes(),
-    ]).then((value) async {
-      final addresses = value[0] as List<AddressIndex>;
-      final indexerIds = value[1] as List<String>;
-      final hiddenAddresses = value[2] as List<AddressIndex>;
-
-      nftBloc.add(RefreshNftCollectionByOwners(
-        hiddenAddresses: hiddenAddresses,
-        addresses: addresses,
-        debugTokens: indexerIds,
-      ));
-
-      if (!listEquals(addresses, NftCollectionBloc.addresses) ||
-          !listEquals(hiddenAddresses, NftCollectionBloc.hiddenAddresses)) {
-        nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-      }
-    });
+    nftBloc.add(RefreshNftCollectionByOwners(
+      debugTokens: indexerIds,
+    ));
   }
 
   @override

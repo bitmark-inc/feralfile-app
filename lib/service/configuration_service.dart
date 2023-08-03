@@ -8,6 +8,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
+import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
@@ -139,6 +141,8 @@ abstract class ConfigurationService {
 
   Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
 
+  Future<void> removePlayList(String id);
+
   List<String> getFinishedSurveys();
 
   Future<void> setFinishedSurvey(List<String> surveyNames);
@@ -215,6 +219,10 @@ abstract class ConfigurationService {
 
   Future setShowBackupSettingTip(DateTime time);
 
+  bool getShowWhatNewAddressTip(int currentVersion);
+
+  Future setShowWhatNewAddressTipRead(int currentVersion);
+
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -243,6 +251,8 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showLinkOrImportTip;
 
   ValueNotifier<bool> get showBackupSettingTip;
+
+  ValueNotifier<bool> get showWhatNewAddressTip;
 
   ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip;
 
@@ -286,6 +296,16 @@ abstract class ConfigurationService {
   String getVersionInfo();
 
   Future<void> setVersionInfo(String version);
+
+  Future<void> updateShowAnouncementNotificationInfo(
+    AnnouncementLocal announcement,
+  );
+
+  ShowAnouncementNotificationInfo getShowAnouncementNotificationInfo();
+
+  bool getAlreadyClaimedAirdrop(String seriesId);
+
+  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -367,6 +387,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
       "show_back_up_settings_tip";
 
+  static const String KEY_SHOW_WHAT_NEW_ADDRESS_TIP =
+      "show_what_new_address_tip";
+
   static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
 
   static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
@@ -382,6 +405,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
   static const String KEY_PACKAGE_INFO = "package_info";
+
+  static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
+      "show_anouncement_notification_info";
+
+  static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
 
   final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
       ValueNotifier([]);
@@ -940,6 +968,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  Future<void> removePlayList(String id) async {
+    final playlists = getPlayList();
+    playlists.removeWhere((element) => element.id == id);
+    await setPlayList(playlists, override: true);
+  }
+
+  @override
   Future<void> setHasFeed(bool value) async {
     await _preferences.setBool(HAVE_FEED, value);
   }
@@ -1023,6 +1058,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
+
+  @override
+  ValueNotifier<bool> showWhatNewAddressTip = ValueNotifier(false);
 
   @override
   DateTime? getDoneOnboardingTime() {
@@ -1303,6 +1341,61 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
+  bool getShowWhatNewAddressTip(int currentVersion) {
+    final latestReadVersion =
+        _preferences.getInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP) ?? 0;
+    return latestReadVersion < currentVersion;
+  }
+
+  @override
+  Future setShowWhatNewAddressTipRead(int currentVersion) async {
+    await _preferences.setInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP, currentVersion);
+  }
+
+  @override
   ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip =>
       _expiredPostcardSharedLinkTip;
+
+  @override
+  Future<void> updateShowAnouncementNotificationInfo(
+    AnnouncementLocal announcement,
+  ) async {
+    const key = KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO;
+    final announcementId = announcement.announcementContextId;
+    var currentValue = _preferences.getString(key) ?? "{}";
+    final currentInfo =
+        ShowAnouncementNotificationInfo.fromJson(jsonDecode(currentValue));
+    currentInfo.showAnnouncementMap.update(announcementId, (value) => value + 1,
+        ifAbsent: () => announcement.unread ? 1 : 2);
+    await _preferences.setString(key, jsonEncode(currentInfo.toJson()));
+  }
+
+  @override
+  ShowAnouncementNotificationInfo getShowAnouncementNotificationInfo() {
+    final data = _preferences.getString(KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO);
+    if (data == null) {
+      return ShowAnouncementNotificationInfo();
+    }
+    return ShowAnouncementNotificationInfo.fromJson(jsonDecode(data));
+  }
+
+  @override
+  bool getAlreadyClaimedAirdrop(String seriesId) {
+    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP);
+    if (data == null) {
+      return false;
+    }
+    return data.contains(seriesId);
+  }
+
+  @override
+  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value) async {
+    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP) ?? [];
+    if (value) {
+      data.add(seriesId);
+    } else {
+      data.remove(seriesId);
+    }
+    await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
+  }
 }

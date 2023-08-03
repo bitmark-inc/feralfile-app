@@ -20,10 +20,12 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -51,6 +53,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
   final _tezosBeaconService = injector<TezosBeaconService>();
   final _walletConnecService = injector<WalletConnectService>();
+  final _wallet2ConnectService = injector<Wc2Service>();
 
   @override
   void initState() {
@@ -109,14 +112,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetETHConnectionsEvent(personUUID, widget.payload.index));
+        context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(
+            personUUID, widget.payload.index, widget.payload.address));
         break;
       case CryptoType.XTZ:
-        context
-            .read<ConnectionsBloc>()
-            .add(GetXTZConnectionsEvent(personUUID, widget.payload.index));
+        context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(
+            personUUID, widget.payload.index, widget.payload.address));
         break;
       default:
         // do nothing
@@ -185,7 +186,11 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       throw ConnectionViaClipboardError("Invalid URI");
     }
     if (code.startsWith("wc:")) {
-      _walletConnecService.connect(code, onTimeout: _onConnectTimeout);
+      if (code.isAutonomyConnectUri) {
+        _wallet2ConnectService.connect(code, onTimeout: _onConnectTimeout);
+      } else {
+        _walletConnecService.connect(code, onTimeout: _onConnectTimeout);
+      }
     } else {
       final tezosUri = "tezos://?type=tzip10&data=$code";
       await _tezosBeaconService.addPeer(tezosUri, onTimeout: _onConnectTimeout);
@@ -195,48 +200,42 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
+    return Scaffold(
+      appBar: getBackAppBar(context, title: 'connections'.tr(), onBack: () {
+        if (widget.payload.isBackHome) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pop();
+        }
       },
-      child: Scaffold(
-        appBar: getBackAppBar(context, title: 'connections_with_dapps'.tr(),
-            onBack: () {
-          if (widget.payload.isBackHome) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.homePage,
-              (route) => false,
-            );
-          } else {
-            Navigator.of(context).pop();
-          }
-        },
-            icon: SvgPicture.asset(
-              'assets/images/more_circle.svg',
-              width: 22,
-              color: AppColor.primaryBlack,
-            ),
-            action: _showConnectionOption),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              addTitleSpace(),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.payload.type == CryptoType.ETH ||
-                          widget.payload.type == CryptoType.XTZ) ...[
-                        _connectionsSection(),
-                      ],
+          icon: SvgPicture.asset(
+            'assets/images/more_circle.svg',
+            width: 22,
+            color: AppColor.primaryBlack,
+          ),
+          action: _showConnectionOption),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.payload.type == CryptoType.ETH ||
+                        widget.payload.type == CryptoType.XTZ) ...[
+                      _connectionsSection(),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -249,7 +248,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         if (connectionItems == null) return const SizedBox();
 
         if (connectionItems.isEmpty) {
-          return _emptyConnectionsWidget();
+          return _emptyConnectionsWidget(context);
         } else {
           return Column(
             children: [
@@ -261,12 +260,12 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                       endActionPane: ActionPane(
                         motion: const DrawerMotion(),
                         dragDismissible: false,
-                        children: _slidableActions(connectionItem),
+                        children: _slidableActions(context, connectionItem),
                       ),
                       child: Padding(
                         padding: ResponsiveLayout.pageEdgeInsets
                             .copyWith(top: 0, bottom: 0),
-                        child: _connectionItemWidget(connectionItem),
+                        child: _connectionItemWidget(context, connectionItem),
                       ),
                     ),
                     addOnlyDivider()
@@ -280,7 +279,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     ]);
   }
 
-  Widget _emptyConnectionsWidget() {
+  Widget _emptyConnectionsWidget(BuildContext context) {
     final theme = Theme.of(context);
     return Column(children: [
       Padding(
@@ -315,7 +314,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     ]);
   }
 
-  Widget _connectionItemWidget(ConnectionItem connectionItem) {
+  Widget _connectionItemWidget(
+      BuildContext context, ConnectionItem connectionItem) {
     final connection = connectionItem.representative;
     final theme = Theme.of(context);
 
@@ -338,7 +338,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     );
   }
 
-  List<CustomSlidableAction> _slidableActions(ConnectionItem connectionItem) {
+  List<CustomSlidableAction> _slidableActions(
+      BuildContext context, ConnectionItem connectionItem) {
     final connection = connectionItem.representative;
     final theme = Theme.of(context);
 

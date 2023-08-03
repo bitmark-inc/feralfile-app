@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -42,13 +43,13 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wallet_connect_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -56,11 +57,11 @@ import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
@@ -115,7 +116,6 @@ class HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _metricClient = injector.get<MetricClientService>();
-    _checkForKeySync();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
@@ -132,7 +132,7 @@ class HomePageState extends State<HomePage>
     });
 
     refreshFeeds();
-    _clientTokenService.refreshTokens().then((value) {
+    _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
 
@@ -162,6 +162,7 @@ class HomePageState extends State<HomePage>
     injector<FeralFileService>().completeDelayedFFConnections();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
+    _checkForKeySync(context);
   }
 
   @override
@@ -265,8 +266,13 @@ class HomePageState extends State<HomePage>
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
       listenWhen: (previousState, currentState) {
-        final diffLength =
-            currentState.tokens.length - previousState.tokens.length;
+        final currentNumber = currentState.tokens.items
+            .filterAssetToken(isShowHidden: true)
+            .length;
+        final previousNumber = previousState.tokens.items
+            .filterAssetToken(isShowHidden: true)
+            .length;
+        final diffLength = currentNumber - previousNumber;
         if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
@@ -274,10 +280,9 @@ class HomePageState extends State<HomePage>
         }
         if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.numberNft, data: {
-            'number': currentState.tokens.length,
+            'number': currentNumber,
           });
-          _metricClient.setLabel(
-              MixpanelProp.numberNft, currentState.tokens.length);
+          _metricClient.setLabel(MixpanelProp.numberNft, currentNumber);
         }
         return true;
       },
@@ -331,11 +336,9 @@ class HomePageState extends State<HomePage>
       child: PrimaryScrollController(
         controller: _controller,
         child: Scaffold(
+          appBar: getLightEmptyAppBar(),
           backgroundColor: theme.colorScheme.background,
-          body: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: SystemUiOverlayStyle.dark,
-            child: contentWidget,
-          ),
+          body: contentWidget,
         ),
       ),
     );
@@ -386,7 +389,13 @@ class HomePageState extends State<HomePage>
     const double cellSpacing = 3.0;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-
+    final playlistIDsString = injector<ConfigurationService>()
+        .getPlayList()
+        .map((e) => e.id)
+        .toList()
+        .join();
+    final playlistKeyBytes = utf8.encode(playlistIDsString);
+    final playlistKey = sha256.convert(playlistKeyBytes).toString();
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
           MediaQuery.of(context).size.width / cellPerRow -
@@ -402,10 +411,12 @@ class HomePageState extends State<HomePage>
       SliverToBoxAdapter(
         child: _carouselTipcard(context),
       ),
-      const SliverToBoxAdapter(
+      SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.only(bottom: 15),
-          child: ListPlaylistsScreen(),
+          padding: const EdgeInsets.only(bottom: 15),
+          child: ListPlaylistsScreen(
+            key: Key(playlistKey),
+          ),
         ),
       ),
       SliverGrid(
@@ -604,7 +615,7 @@ class HomePageState extends State<HomePage>
     ];
   }
 
-  Future<void> _checkForKeySync() async {
+  Future<void> _checkForKeySync(BuildContext context) async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
@@ -726,7 +737,6 @@ class HomePageState extends State<HomePage>
     }
 
     injector<WalletConnectService>().initSessions(forced: true);
-    injector<Wc2Service>().activateParings();
 
     refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);

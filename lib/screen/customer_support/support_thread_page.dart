@@ -9,6 +9,7 @@
 
 import 'dart:convert';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
@@ -103,7 +104,8 @@ class SupportThreadPage extends StatefulWidget {
   State<SupportThreadPage> createState() => _SupportThreadPageState();
 }
 
-class _SupportThreadPageState extends State<SupportThreadPage> {
+class _SupportThreadPageState extends State<SupportThreadPage>
+    with AfterLayoutMixin<SupportThreadPage> {
   String _reportIssueType = '';
   String? _issueID;
 
@@ -176,11 +178,6 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         .addListener(_loadCustomerSupportUpdates);
 
     final payload = widget.payload;
-    if (payload.announcement != null && payload.announcement!.unread) {
-      _customerSupportService
-          .markAnnouncementAsRead(payload.announcement!.announcementContextId);
-      _callMixpanelReadAnnouncementEvent(payload.announcement!);
-    }
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
       if (_reportIssueType == ReportIssueType.Bug) {
@@ -221,6 +218,16 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
 
     if (_issueID != null && !_issueID!.startsWith("TEMP")) {
       _loadIssueDetails();
+    }
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    final payload = widget.payload;
+    if (payload.announcement != null && payload.announcement!.unread) {
+      _customerSupportService
+          .markAnnouncementAsRead(payload.announcement!.announcementContextId);
+      _callMixpanelReadAnnouncementEvent(payload.announcement!);
     }
   }
 
@@ -407,6 +414,9 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
                                       loading = false;
                                     });
                                   }
+                                  setState(() {
+                                    loading = false;
+                                  });
                                 },
                               ),
                             );

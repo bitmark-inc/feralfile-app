@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -13,7 +14,6 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -28,12 +28,13 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,9 +64,9 @@ class WCConnectPage extends StatefulWidget {
 }
 
 class _WCConnectPageState extends State<WCConnectPage>
-    with RouteAware, WidgetsBindingObserver {
+    with RouteAware, WidgetsBindingObserver, AfterLayoutMixin<WCConnectPage> {
   WalletIndex? selectedPersona;
-  List<CategorizedAccounts>? categorizedAccounts;
+  List<Account>? categorizedAccounts;
   bool createPersona = false;
   final metricClient = injector.get<MetricClientService>();
   bool isAccountSelected = false;
@@ -74,6 +75,12 @@ class _WCConnectPageState extends State<WCConnectPage>
   String? ethSelectedAddress;
   String? tezSelectedAddress;
 
+  bool get _confirmEnable =>
+      (categorizedAccounts != null &&
+          categorizedAccounts!.isNotEmpty &&
+          selectedPersona != null) ||
+      widget.connectionRequest.isAutonomyConnect;
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +88,10 @@ class _WCConnectPageState extends State<WCConnectPage>
     callAccountBloc();
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
     metricClient.timerEvent(MixpanelEvent.backConnectMarket);
   }
 
@@ -167,10 +178,17 @@ class _WCConnectPageState extends State<WCConnectPage>
         if (connectionRequest.isAutonomyConnect) {
           final account = await injector<AccountService>().getDefaultAccount();
           final accountDid = await account.getAccountDID();
+          final walletAddresses = await injector<CloudDatabase>()
+              .addressDao
+              .findByWalletID(account.uuid);
+          final accountNumber =
+              walletAddresses.map((e) => e.address).join("||");
           await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
             account: accountDid.substring("did:key:".length),
             connectionKey: account.uuid,
+            accountNumber: accountNumber,
+            isAuConnect: true,
           );
           payloadType = CryptoType.ETH;
           payloadAddress =
@@ -190,6 +208,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             connectionRequest as Wc2Proposal,
             account: address,
             connectionKey: address,
+            accountNumber: address,
           );
           payloadType = CryptoType.ETH;
           payloadAddress = address;
@@ -335,7 +354,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                       addTitleSpace(),
                       Padding(
                         padding: padding,
-                        child: _appInfo(),
+                        child: _appInfo(context),
                       ),
                       const SizedBox(height: 32),
                       addDivider(height: 52),
@@ -387,8 +406,13 @@ class _WCConnectPageState extends State<WCConnectPage>
                       const SizedBox(height: 40),
                       BlocConsumer<AccountsBloc, AccountsState>(
                           listener: (context, state) async {
-                        var stateCategorizedAccounts =
-                            state.categorizedAccounts;
+                        var stateCategorizedAccounts = state.accounts;
+
+                        if (connectionRequest.isAutonomyConnect) {
+                          final persona = await injector<AccountService>()
+                              .getOrCreateDefaultPersona();
+                          selectedPersona = WalletIndex(persona.wallet(), 0);
+                        }
                         if (stateCategorizedAccounts == null ||
                             stateCategorizedAccounts.isEmpty) {
                           setState(() {
@@ -396,25 +420,17 @@ class _WCConnectPageState extends State<WCConnectPage>
                           });
                           return;
                         }
-
-                        if (connectionRequest.isAutonomyConnect) {
-                          if (stateCategorizedAccounts.isNotEmpty) {
-                            final wallet = await injector<AccountService>()
-                                .getDefaultAccount();
-                            selectedPersona = WalletIndex(wallet, 0);
-                          }
-                        }
                         categorizedAccounts = stateCategorizedAccounts;
                         await _autoSelectDefault(categorizedAccounts);
                         setState(() {});
                       }, builder: (context, state) {
-                        return _selectAccount();
+                        return _selectAccount(context);
                       }),
                     ],
                   ),
                 ),
               ),
-              _connect()
+              _connect(context)
             ],
           ),
         ),
@@ -422,15 +438,14 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future _autoSelectDefault(
-      List<CategorizedAccounts>? categorizedAccounts) async {
+  Future _autoSelectDefault(List<Account>? categorizedAccounts) async {
     if (categorizedAccounts == null) return;
     if (categorizedAccounts.length != 1) return;
     final persona = categorizedAccounts.first.persona;
     if (persona == null) return;
 
-    final ethAccounts = categorizedAccounts.first.ethAccounts;
-    final xtzAccounts = categorizedAccounts.first.xtzAccounts;
+    final ethAccounts = categorizedAccounts.where((element) => element.isEth);
+    final xtzAccounts = categorizedAccounts.where((element) => element.isTez);
 
     if (ethAccounts.length == 1) {
       ethSelectedAddress = ethAccounts.first.accountNumber;
@@ -445,7 +460,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
   }
 
-  Widget _appInfo() {
+  Widget _appInfo(BuildContext context) {
     if (connectionRequest.isAutonomyConnect ||
         connectionRequest.isWalletConnect2) {
       final wc2Proposer = (connectionRequest as Wc2Proposal).proposer;
@@ -455,20 +470,21 @@ class _WCConnectPageState extends State<WCConnectPage>
         description: wc2Proposer.description,
         icons: wc2Proposer.icons,
       );
-      return _wcAppInfo(peer);
+      return _wcAppInfo(context, peer);
     }
     if (connectionRequest.isWalletConnect) {
-      return _wcAppInfo((connectionRequest as WCConnectPageArgs).peerMeta);
+      return _wcAppInfo(
+          context, (connectionRequest as WCConnectPageArgs).peerMeta);
     }
 
     if (connectionRequest.isBeaconConnect) {
-      return _tbAppInfo(connectionRequest as BeaconRequest);
+      return _tbAppInfo(context, connectionRequest as BeaconRequest);
     }
 
     return const SizedBox();
   }
 
-  Widget _selectAccount() {
+  Widget _selectAccount(BuildContext context) {
     final stateCategorizedAccounts = categorizedAccounts;
     if (stateCategorizedAccounts == null) return const SizedBox();
 
@@ -478,10 +494,10 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (connectionRequest.isAutonomyConnect) {
       return const SizedBox();
     }
-    return _selectPersonaWidget(stateCategorizedAccounts);
+    return _selectPersonaWidget(context, stateCategorizedAccounts);
   }
 
-  Widget _connect() {
+  Widget _connect(BuildContext context) {
     if (connectionRequest.isAutonomyConnect) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -492,6 +508,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 child: Padding(
                   padding: padding,
                   child: PrimaryButton(
+                    enabled: _confirmEnable,
                     text: "h_confirm".tr(),
                     onTap: () => withDebounce(() => _approveThenNotify()),
                   ),
@@ -502,7 +519,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         ],
       );
     } else if (createPersona == true) {
-      return _createAccountAndConnect();
+      return _createAccountAndConnect(context);
     } else {
       return Row(
         children: [
@@ -510,6 +527,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             child: Padding(
               padding: padding,
               child: PrimaryButton(
+                enabled: _confirmEnable,
                 text: "h_confirm".tr(),
                 onTap: selectedPersona != null
                     ? () {
@@ -525,7 +543,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
   }
 
-  Widget _wcAppInfo(WCPeerMeta peerMeta) {
+  Widget _wcAppInfo(BuildContext context, WCPeerMeta peerMeta) {
     final theme = Theme.of(context);
 
     return Row(
@@ -561,7 +579,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _tbAppInfo(BeaconRequest request) {
+  Widget _tbAppInfo(BuildContext context, BeaconRequest request) {
     final theme = Theme.of(context);
 
     return Row(
@@ -596,7 +614,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _selectPersonaWidget(List<CategorizedAccounts> accounts) {
+  Widget _selectPersonaWidget(BuildContext context, List<Account> accounts) {
     final theme = Theme.of(context);
     String select = "";
     if (widget.connectionRequest.isBeaconConnect) {
@@ -617,47 +635,29 @@ class _WCConnectPageState extends State<WCConnectPage>
           ),
         ),
         const SizedBox(height: 16.0),
-        Column(
-          children: [
-            ...accounts
-                .map((account) => [
-                      PersonalConnectItem(
-                        categorizedAccount: account,
-                        ethSelectedAddress: ethSelectedAddress,
-                        tezSelectedAddress: tezSelectedAddress,
-                        isExpand: true,
-                        onSelectEth: (value) async {
-                          int index =
-                              await account.persona?.getAddressIndex(value) ??
-                                  0;
-                          setState(() {
-                            ethSelectedAddress = value;
-                            selectedPersona =
-                                WalletIndex(account.persona!.wallet(), index);
-                          });
-                        },
-                        onSelectTez: (value) async {
-                          int index =
-                              await account.persona?.getAddressIndex(value) ??
-                                  0;
-                          setState(() {
-                            tezSelectedAddress = value;
-                            selectedPersona =
-                                WalletIndex(account.persona!.wallet(), index);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 15.0)
-                    ])
-                .flattened
-                .toList(),
-          ],
+        ListAccountConnect(
+          accounts: accounts,
+          onSelectEth: (value) {
+            int index = value.walletAddress?.index ?? 0;
+            setState(() {
+              ethSelectedAddress = value.accountNumber;
+              selectedPersona = WalletIndex(value.persona!.wallet(), index);
+            });
+          },
+          onSelectTez: (value) {
+            int index = value.walletAddress?.index ?? 0;
+            setState(() {
+              tezSelectedAddress = value.accountNumber;
+              selectedPersona = WalletIndex(value.persona!.wallet(), index);
+            });
+          },
+          isAutoSelect: accounts.length == 1,
         ),
       ],
     );
   }
 
-  Widget _createAccountAndConnect() {
+  Widget _createAccountAndConnect(BuildContext context) {
     return Padding(
       padding: ResponsiveLayout.pageHorizontalEdgeInsets,
       child: Column(
@@ -669,7 +669,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                   text: "h_confirm".tr(),
                   onTap: () {
                     metricClient.addEvent(MixpanelEvent.connectMarket);
-                    withDebounce(() => _createAccount());
+                    withDebounce(() => _createAccount(context));
                   },
                 ),
               )
@@ -680,23 +680,18 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Future _createAccount() async {
+  Future _createAccount(BuildContext context) async {
     UIHelper.showLoadingScreen(context, text: "connecting".tr());
-    final account = await injector<AccountService>().getDefaultAccount();
-    final defaultName = await account.getAccountDID();
-    var persona =
-        await injector<CloudDatabase>().personaDao.findById(account.uuid);
-    if (persona == null) {
-      log.info("[wc_connect_page] could not find default account");
-      return;
-    }
-    persona.tezosIndexes = ",0";
-    persona.ethereumIndexes = ",0";
-    final namedPersona =
-        await injector<AccountService>().namePersona(persona, defaultName);
+    final persona =
+        await injector<AccountService>().getOrCreateDefaultPersona();
+    await persona.insertNextAddress(connectionRequest.isBeaconConnect
+        ? WalletType.Tezos
+        : WalletType.Ethereum);
     injector<ConfigurationService>().setDoneOnboarding(true);
     injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-    selectedPersona = WalletIndex(namedPersona.wallet(), 0);
+    setState(() {
+      selectedPersona = WalletIndex(persona.wallet(), 0);
+    });
     _approveThenNotify(onBoarding: true);
   }
 }

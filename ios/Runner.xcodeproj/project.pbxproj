@@ -1204,9 +1204,12 @@
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner InhouseDebug.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1215,9 +1218,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.32.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = INHOUSE;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1238,10 +1242,12 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Runner Inhouse Notification/Runner Inhouse Notification.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
@@ -1256,9 +1262,10 @@
 				MARKETING_VERSION = 0.32.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse.notification;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse.notification";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse Notification";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc Notification";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1398,10 +1405,12 @@
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner-Inhouse.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1410,9 +1419,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.32.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = INHOUSE;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -1432,10 +1442,12 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Runner Inhouse Notification/Runner Inhouse Notification.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
@@ -1449,9 +1461,10 @@
 				);
 				MARKETING_VERSION = 0.32.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse.notification;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse.notification";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse Notification";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc Notification";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1594,9 +1607,10 @@
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner InhouseDebug.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1605,9 +1619,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.32.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Dev Inhouse";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = INHOUSE;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1628,10 +1642,10 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Runner Inhouse Notification/Runner Inhouse Notification.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = Z5CE7A3A7N;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
@@ -1646,9 +1660,9 @@
 				MARKETING_VERSION = 0.32.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse.notification;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse.notification";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse Notification";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1787,10 +1801,12 @@
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner-Inhouse.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1799,9 +1815,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.32.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = INHOUSE;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -1821,10 +1838,12 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Runner Inhouse Notification/Runner Inhouse Notification.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
@@ -1838,9 +1857,10 @@
 				);
 				MARKETING_VERSION = 0.32.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse.notification;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse.notification";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse Notification";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc Notification";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1861,10 +1881,12 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Runner Inhouse Notification/Runner Inhouse Notification.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Runner Inhouse Notification/Info.plist";
@@ -1878,9 +1900,10 @@
 				);
 				MARKETING_VERSION = 0.32.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse.notification;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse.notification";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse Notification";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc Notification";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1938,10 +1961,12 @@
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Runner/Runner-Inhouse.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = A52M7AQ8B2;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = Z5CE7A3A7N;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Runner-Inhouse-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -1950,9 +1975,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.32.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bitmark.autonomy.inhouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmark.autonomy-wallet.inhouse";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Autonomy Inhouse";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Autonomy Inhouse Adhoc";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = INHOUSE;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -2032,7 +2058,7 @@
 			repositoryURL = "https://github.com/WalletConnect/WalletConnectSwiftV2";
 			requirement = {
 				kind = exactVersion;
-				version = 1.1.0;
+				version = 1.6.10;
 			};
 		};
 		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */ = {

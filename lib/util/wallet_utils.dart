@@ -1,6 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 
-enum WalletType { Autonomy, Ethereum, Tezos }
+enum WalletType {
+  Autonomy,
+  Ethereum,
+  Tezos;
+
+  static WalletType? getWallet({required bool eth, required bool tezos}) {
+    if (eth && tezos) {
+      return WalletType.Autonomy;
+    } else if (eth) {
+      return WalletType.Ethereum;
+    } else if (tezos) {
+      return WalletType.Tezos;
+    } else {
+      return null;
+    }
+  }
+}
 
 extension WalletTypeExtension on WalletType {
   String getString() {

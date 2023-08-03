@@ -63,7 +63,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     _linkAccountOption(context),
                     addDivider(),
                     _createAccountOption(context),
-                    _linkDebugWidget(),
+                    _linkDebugWidget(context),
                   ],
                 ),
               ),
@@ -74,7 +74,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     );
   }
 
-  Widget _linkDebugWidget() {
+  Widget _linkDebugWidget(BuildContext context) {
     final theme = Theme.of(context);
     return FutureBuilder<bool>(
         future: isAppCenterBuild(),
@@ -187,7 +187,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
             if (state.createAccountState == ActionState.loading) return;
             UIHelper.showInfoDialog(context, "generating".tr(), "",
                 isDismissible: true);
-            context.read<PersonaBloc>().add(CreatePersonaEvent());
+            //context.read<PersonaBloc>().add(CreatePersonaEvent());
           },
         );
       },

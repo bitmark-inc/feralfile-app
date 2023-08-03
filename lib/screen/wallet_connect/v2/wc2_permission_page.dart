@@ -8,6 +8,8 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -15,19 +17,14 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/crypto_view.dart';
+import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -53,12 +50,12 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   List<Persona>? personas;
 
   bool get _isAccountSelected =>
-      selectedAddress.values.every((element) => element != null);
+      selectedAddresses.values.every((element) => element != null);
   late Wc2PermissionsRequestParams params;
   bool _selectETHAddress = false;
   bool _selectXTZAddress = false;
 
-  final selectedAddress = {};
+  final selectedAddresses = {};
   bool _includeLinkedAccount = false;
 
   @override
@@ -68,21 +65,21 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
 
     // ignore: avoid_function_literals_in_foreach_calls
     params.permissions.firstOrNull?.request.chains.forEach((element) {
-      selectedAddress[element] = null;
+      selectedAddresses[element] = null;
     });
 
     _includeLinkedAccount =
         params.permissions.firstOrNull?.includeLinkedAccount ?? false;
 
-    _selectETHAddress = selectedAddress.containsKey('eip155:1');
-    _selectXTZAddress = selectedAddress.containsKey('tezos');
+    _selectETHAddress = selectedAddresses.containsKey('eip155:1');
+    _selectXTZAddress = selectedAddresses.containsKey('tezos');
 
     context.read<AccountsBloc>().add(
           GetCategorizedAccountsEvent(
-            includeLinkedAccount: _includeLinkedAccount,
-            getEth: _selectETHAddress,
-            getTezos: _selectXTZAddress,
-          ),
+              includeLinkedAccount: _includeLinkedAccount,
+              getEth: _selectETHAddress,
+              getTezos: _selectXTZAddress,
+              autoAddAddress: true),
         );
     injector<NavigationService>().setIsWCConnectInShow(true);
   }
@@ -123,7 +120,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final chainFutures = permission.request.chains.map((chain) async {
         try {
           final account = await accountService.getAccountByAddress(
-              chain: chain, address: selectedAddress[chain]);
+              chain: chain, address: selectedAddresses[chain]);
           final chainResp = await account.signPermissionRequest(
             chain: chain,
             message: params.message,
@@ -132,7 +129,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         } on AccountException {
           return Wc2Chain(
             chain: chain,
-            address: selectedAddress[chain],
+            address: selectedAddresses[chain],
           );
         }
       });
@@ -162,6 +159,20 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       params: params,
     );
     await wc2Service.respondOnApprove(widget.request.topic, response);
+    final cloudDB = injector<CloudDatabase>();
+    final connections = await cloudDB.connectionDao
+        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+    final pendingSession = wc2Service.getFirstSession();
+    if (pendingSession != null) {
+      final connection = connections
+          .firstWhereOrNull((element) => element.key.contains(pendingSession));
+      if (connection != null) {
+        final accountNumber = selectedAddresses.values.join("||");
+        await cloudDB.connectionDao.updateConnection(
+            connection.copyWith(accountNumber: accountNumber));
+      }
+      wc2Service.removePendingSession(pendingSession);
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -179,7 +190,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     });
   }
 
-  Widget _wcAppInfo() {
+  Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
     if (proposer == null) return const SizedBox();
@@ -255,7 +266,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               ),
               Padding(
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _wcAppInfo(),
+                child: _wcAppInfo(context),
               ),
               const SizedBox(height: 32),
               addDivider(height: 52),
@@ -263,54 +274,24 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                 child: SingleChildScrollView(
                   child: BlocConsumer<AccountsBloc, AccountsState>(
                       listener: (context, state) {
-                    final categorizedAccounts = state.categorizedAccounts ?? [];
+                    final categorizedAccounts = state.accounts ?? [];
 
-                    final selectManual = categorizedAccounts.length > 1 ||
-                        (_selectETHAddress &&
-                            categorizedAccounts.first.ethAccounts.length > 1) ||
-                        (_selectXTZAddress &&
-                            categorizedAccounts.first.xtzAccounts.length > 1);
-
-                    if (selectManual) return;
-
-                    if (selectedAddress.containsKey('eip155:1')) {
-                      selectedAddress['eip155:1'] = categorizedAccounts
-                          .first.ethAccounts.first.accountNumber;
-                    }
-                    if (selectedAddress.containsKey('tezos')) {
-                      selectedAddress['tezos'] = categorizedAccounts
-                          .first.xtzAccounts.first.accountNumber;
+                    if (state.accounts?.length == 2) {
+                      if (selectedAddresses.containsKey('eip155:1')) {
+                        selectedAddresses['eip155:1'] = categorizedAccounts
+                            .firstWhere((element) => element.isEth)
+                            .accountNumber;
+                      }
+                      if (selectedAddresses.containsKey('tezos')) {
+                        selectedAddresses['tezos'] = categorizedAccounts
+                            .firstWhere((element) => element.isTez)
+                            .accountNumber;
+                      }
                     }
                     setState(() {});
                   }, builder: (context, state) {
-                    final categorizedAccounts = state.categorizedAccounts ?? [];
-                    if (categorizedAccounts.isEmpty) return const SizedBox();
-
-                    final selectManual = categorizedAccounts.length > 1 ||
-                        (_selectETHAddress &&
-                            categorizedAccounts.first.ethAccounts.length > 1) ||
-                        (_selectXTZAddress &&
-                            categorizedAccounts.first.xtzAccounts.length > 1);
-
-                    if (!selectManual) {
-                      return Column(
-                        children: [
-                          Padding(
-                            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                            child: Text(
-                              'verify_the_addresses'.tr(),
-                              style: theme.textTheme.ppMori400Black16,
-                            ),
-                          ),
-                          const SizedBox(height: 16.0),
-                          PersonalConnectItem(
-                            categorizedAccount: categorizedAccounts.first,
-                            isAutoSelect: true,
-                            isExpand: true,
-                          ),
-                        ],
-                      );
-                    }
+                    final accounts = state.accounts ?? [];
+                    if (accounts.isEmpty) return const SizedBox();
 
                     return Column(
                       children: [
@@ -330,17 +311,19 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         ),
                         const SizedBox(height: 16.0),
                         ListAccountConnect(
-                          categorizedAccounts: categorizedAccounts,
+                          accounts: accounts,
                           onSelectEth: (value) {
                             setState(() {
-                              selectedAddress['eip155:1'] = value;
+                              selectedAddresses['eip155:1'] =
+                                  value.accountNumber;
                             });
                           },
                           onSelectTez: (value) {
                             setState(() {
-                              selectedAddress['tezos'] = value;
+                              selectedAddresses['tezos'] = value.accountNumber;
                             });
                           },
+                          isAutoSelect: accounts.length == 2,
                         ),
                       ],
                     );
@@ -367,264 +350,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
           ),
         ),
       ),
-    );
-  }
-}
-
-class ListAccountConnect extends StatefulWidget {
-  final List<CategorizedAccounts> categorizedAccounts;
-  final Function(String)? onSelectEth;
-  final Function(String)? onSelectTez;
-
-  const ListAccountConnect({
-    Key? key,
-    required this.categorizedAccounts,
-    this.onSelectEth,
-    this.onSelectTez,
-  }) : super(key: key);
-
-  @override
-  State<ListAccountConnect> createState() => _ListAccountConnectState();
-}
-
-class _ListAccountConnectState extends State<ListAccountConnect> {
-  late List<CategorizedAccounts> categorizedAccounts;
-  String? tezSelectedAddress;
-  String? ethSelectedAddress;
-
-  @override
-  void initState() {
-    categorizedAccounts = widget.categorizedAccounts;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...categorizedAccounts
-            .map((categorizedAccount) => Column(
-                  children: [
-                    PersonalConnectItem(
-                      categorizedAccount: categorizedAccount,
-                      ethSelectedAddress: ethSelectedAddress,
-                      tezSelectedAddress: tezSelectedAddress,
-                      isExpand: categorizedAccounts.first == categorizedAccount,
-                      onSelectEth: (value) {
-                        widget.onSelectEth?.call(value);
-                        setState(() {
-                          ethSelectedAddress = value;
-                        });
-                      },
-                      onSelectTez: (value) {
-                        widget.onSelectTez?.call(value);
-                        setState(() {
-                          tezSelectedAddress = value;
-                        });
-                      },
-                    )
-                  ],
-                ))
-            .toList(),
-      ],
-    );
-  }
-}
-
-class AddressItem extends StatelessWidget {
-  const AddressItem({
-    Key? key,
-    required this.cryptoType,
-    required this.address,
-    this.ethSelectedAddress,
-    this.tezSelectedAddress,
-    this.onTap,
-    this.isAutoSelect = false,
-  }) : super(key: key);
-
-  final CryptoType cryptoType;
-  final String address;
-  final String? ethSelectedAddress;
-  final String? tezSelectedAddress;
-  final bool isAutoSelect;
-  final Function()? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        color: AppColor.auLightGrey.withOpacity(0.5),
-        padding: ResponsiveLayout.paddingAll,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const SizedBox(
-                  width: 25,
-                ),
-                LogoCrypto(
-                  cryptoType: cryptoType,
-                  size: 24,
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Text(
-                  cryptoType == CryptoType.ETH
-                      ? 'Ethereum'
-                      : cryptoType == CryptoType.XTZ
-                          ? 'Tezos'
-                          : '',
-                  style: theme.textTheme.ppMori700Black14,
-                ),
-                const Spacer(),
-                Text(
-                  address.toIdentityOrMask({}) ?? '',
-                  style: theme.textTheme.ibmBlackNormal14,
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Visibility(
-                  visible: !isAutoSelect,
-                  child: RadioSelectAddress(
-                    isChecked: address == ethSelectedAddress ||
-                        address == tezSelectedAddress,
-                  ),
-                )
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PersonalConnectItem extends StatefulWidget {
-  final CategorizedAccounts categorizedAccount;
-  final String? tezSelectedAddress;
-  final String? ethSelectedAddress;
-
-  final Function(String)? onSelectEth;
-  final Function(String)? onSelectTez;
-
-  final bool isAutoSelect;
-  final bool isExpand;
-
-  const PersonalConnectItem({
-    Key? key,
-    required this.categorizedAccount,
-    this.tezSelectedAddress,
-    this.ethSelectedAddress,
-    this.onSelectEth,
-    this.onSelectTez,
-    this.isAutoSelect = false,
-    this.isExpand = false,
-  }) : super(key: key);
-
-  @override
-  State<PersonalConnectItem> createState() => _PersonalConnectItemState();
-}
-
-class _PersonalConnectItemState extends State<PersonalConnectItem> {
-  bool _showDetail = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _showDetail = widget.isExpand;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          onTap: () {
-            setState(() {
-              _showDetail = !_showDetail;
-            });
-          },
-          title: Padding(
-            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-            child: Row(
-              children: [
-                accountLogo(context, widget.categorizedAccount.accounts.first,
-                    size: 24),
-                const SizedBox(width: 16.0),
-                Expanded(
-                  child: Text(
-                    widget.categorizedAccount.category,
-                    style: theme.textTheme.ppMori400Black14,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Visibility(
-                    visible: !widget.categorizedAccount.isPersona,
-                    child: linkedBox(context)),
-                AnimatedRotation(
-                  duration: const Duration(milliseconds: 300),
-                  turns: _showDetail ? 0.75 : 0.5,
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(
-                      AuIcon.chevron,
-                      size: 12,
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-          contentPadding: EdgeInsets.zero,
-        ),
-        Divider(
-          height: 1.0,
-          color: theme.auQuickSilver,
-        ),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _showDetail
-              ? Column(
-                  children: [
-                    ...widget.categorizedAccount.accounts.map(
-                      (e) => Column(
-                        children: [
-                          AddressItem(
-                            onTap: () {
-                              if (e.isEth) {
-                                widget.onSelectEth?.call(e.accountNumber);
-                              }
-                              if (e.isTez) {
-                                widget.onSelectTez?.call(e.accountNumber);
-                              }
-                            },
-                            isAutoSelect: widget.isAutoSelect,
-                            address: e.accountNumber,
-                            cryptoType:
-                                e.isEth ? CryptoType.ETH : CryptoType.XTZ,
-                            ethSelectedAddress: widget.ethSelectedAddress,
-                            tezSelectedAddress: widget.tezSelectedAddress,
-                          ),
-                          Divider(
-                            height: 1.0,
-                            color: theme.auLightGrey,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-        ),
-      ],
     );
   }
 }

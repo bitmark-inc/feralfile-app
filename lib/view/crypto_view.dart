@@ -295,6 +295,12 @@ class LogoCrypto extends StatelessWidget {
           width: size,
           height: size,
         );
+      case CryptoType.USDC:
+        return SvgPicture.asset(
+          'assets/images/usdc.svg',
+          width: size,
+          height: size,
+        );
       default:
         return Container();
     }

@@ -6,10 +6,11 @@
 //
 
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -86,7 +87,16 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                 padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
                 child: Column(
                   children: [
-                    accountItem(context, _account),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(children: [
+                        LogoCrypto(cryptoType: _account.cryptoType, size: 24),
+                        const SizedBox(width: 10),
+                        Text(_account.name,
+                            style: theme.textTheme.ppMori700Black16),
+                        const Expanded(child: SizedBox()),
+                      ]),
+                    ),
                     GestureDetector(
                         onTap: copy,
                         child: Column(

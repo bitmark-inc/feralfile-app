@@ -6,28 +6,61 @@
 //
 
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/cloud_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:open_settings/open_settings.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class RecoveryPhrasePage extends StatelessWidget {
+class RecoveryPhrasePage extends StatefulWidget {
   final List<String> words;
 
   const RecoveryPhrasePage({Key? key, required this.words}) : super(key: key);
 
   @override
+  State<RecoveryPhrasePage> createState() => _RecoveryPhrasePageState();
+}
+
+class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
+  bool _isShow = false;
+  bool? _isBackUpAvailable;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((context) {
+      _checkBackUpAvailable();
+    });
+  }
+
+  Future<void> _checkBackUpAvailable() async {
+    if (Platform.isIOS) {
+      final isAvailable = injector<CloudService>().isAvailableNotifier.value;
+      _isBackUpAvailable = isAvailable;
+    } else {
+      final isAndroidEndToEndEncryptionAvailable =
+          await injector<AccountService>()
+              .isAndroidEndToEndEncryptionAvailable();
+      _isBackUpAvailable = isAndroidEndToEndEncryptionAvailable != null;
+    }
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final itemsEachRow = words.length ~/ 2;
-    final roundNumber = words.length ~/ 2;
-    final theme = Theme.of(context);
-    final customLinkStyle = theme.textTheme.ppMori400Black14
-        .copyWith(decoration: TextDecoration.underline);
+    final roundNumber = widget.words.length ~/ 2 + widget.words.length % 2;
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -38,7 +71,7 @@ class RecoveryPhrasePage extends StatelessWidget {
         },
       ),
       body: Container(
-        margin: ResponsiveLayout.pageEdgeInsets,
+        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,64 +81,56 @@ class RecoveryPhrasePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    RichText(
-                      text: TextSpan(
-                        style: theme.textTheme.ppMori400Black14,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'yrp_we’ve_safely'.tr(),
-                            //'We’ve safely and securely backed up your recovery phrase to your',
+                    _getBackUpState(context),
+                    Stack(
+                      children: [
+                        Table(
+                          children: List.generate(
+                            roundNumber,
+                            (index) {
+                              return _tableRow(context, index, roundNumber);
+                            },
                           ),
-                          Platform.isIOS
-                              ? TextSpan(
-                                  text: 'icloud_keychain'.tr(),
-                                  style: customLinkStyle,
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () => Navigator.of(context)
-                                            .pushNamed(AppRouter.githubDocPage,
-                                                arguments: {
-                                              "prefix":
-                                                  "/bitmark-inc/autonomy.io/main/apps/docs/",
-                                              "document": "security-ios.md",
-                                              "title": ""
-                                            }),
-                                )
-                              : TextSpan(
-                                  text: 'android_block_store'.tr(),
-                                  style: customLinkStyle,
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () => Navigator.of(context)
-                                            .pushNamed(AppRouter.githubDocPage,
-                                                arguments: {
-                                              "prefix":
-                                                  "/bitmark-inc/autonomy.io/main/apps/docs/",
-                                              "document": "security-android.md",
-                                              "title": ""
-                                            }),
+                          border: TableBorder.all(
+                              color: AppColor.auLightGrey,
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        if (!_isShow)
+                          Positioned.fill(
+                            child: ClipRect(
+                                child: BackdropFilter(
+                              filter:
+                                  ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                              child: Center(
+                                  child: ConstrainedBox(
+                                constraints: const BoxConstraints.tightFor(
+                                    width: 168, height: 45),
+                                child: PrimaryButton(
+                                  text: "tap_to_reveal".tr(),
+                                  onTap: () async {
+                                    final didAuthenticate =
+                                        await LocalAuthenticationService
+                                            .checkLocalAuth();
+
+                                    if (!didAuthenticate) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _isShow = !_isShow;
+                                    });
+                                  },
                                 ),
-                          TextSpan(
-                            text: 'yrp_you_may_also'.tr(),
-                            //'. You may also back it up to use it in another BIP-39 standard wallet:',
+                              )),
+                            )),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 40),
-                    Table(
-                      children: List.generate(
-                        roundNumber,
-                        (index) {
-                          return _tableRow(context, index, itemsEachRow);
-                        },
-                      ),
-                      border: TableBorder.all(
-                          color: AppColor.auLightGrey,
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
+                    _recommend(context),
                   ],
                 ),
               ),
             ),
+            _settingButton(context)
           ],
         ),
       ),
@@ -114,7 +139,8 @@ class RecoveryPhrasePage extends StatelessWidget {
 
   Widget _rowItem(BuildContext context, int index) {
     final theme = Theme.of(context);
-    final word = words[index];
+    final isNull = index >= widget.words.length;
+    final word = isNull ? "" : widget.words[index];
     NumberFormat formatter = NumberFormat("00");
 
     return Padding(
@@ -124,13 +150,169 @@ class RecoveryPhrasePage extends StatelessWidget {
           Container(
             width: 32,
             alignment: Alignment.centerRight,
-            child: Text(formatter.format(index + 1),
+            child: Text(isNull ? "" : formatter.format(index + 1),
                 style: theme.textTheme.ppMori400Grey14),
           ),
           const SizedBox(width: 16),
           Text(word, style: theme.textTheme.ppMori400Black14),
         ],
       ),
+    );
+  }
+
+  Widget _getBackUpState(BuildContext context) {
+    final theme = Theme.of(context);
+    final customLinkStyle = theme.textTheme.ppMori400Black14
+        .copyWith(decoration: TextDecoration.underline);
+    if (_isBackUpAvailable == null) {
+      return const SizedBox();
+    }
+    if (_isBackUpAvailable!) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              style: theme.textTheme.ppMori400Black14,
+              children: <TextSpan>[
+                TextSpan(
+                  text: 'yrp_we’ve_safely'.tr(),
+                  //'We’ve safely and securely backed up your recovery phrase to your',
+                ),
+                Platform.isIOS
+                    ? TextSpan(
+                        text: 'icloud_keychain'.tr(),
+                        style: customLinkStyle,
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Navigator.of(context).pushNamed(
+                                  AppRouter.githubDocPage,
+                                  arguments: {
+                                    "prefix":
+                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                    "document": "security-ios.md",
+                                    "title": ""
+                                  }),
+                      )
+                    : TextSpan(
+                        text: 'android_block_store'.tr(),
+                        style: customLinkStyle,
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Navigator.of(context).pushNamed(
+                                  AppRouter.githubDocPage,
+                                  arguments: {
+                                    "prefix":
+                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                    "document": "security-android.md",
+                                    "title": ""
+                                  }),
+                      ),
+                TextSpan(
+                  text: 'yrp_you_may_also'.tr(),
+                  //'. You may also back it up to use it in another BIP-39 standard wallet:',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              style: theme.textTheme.ppMori400Black14,
+              children: <TextSpan>[
+                Platform.isIOS
+                    ? TextSpan(
+                        text: 'icloud_keychain'.tr(),
+                        style: customLinkStyle,
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Navigator.of(context).pushNamed(
+                                  AppRouter.githubDocPage,
+                                  arguments: {
+                                    "prefix":
+                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                    "document": "security-ios.md",
+                                    "title": ""
+                                  }),
+                      )
+                    : TextSpan(
+                        text: 'android_block_store'.tr(),
+                        style: customLinkStyle,
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Navigator.of(context).pushNamed(
+                                  AppRouter.githubDocPage,
+                                  arguments: {
+                                    "prefix":
+                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
+                                    "document": "security-android.md",
+                                    "title": ""
+                                  }),
+                      ),
+                TextSpan(
+                  text: '_is_'.tr(),
+                ),
+                TextSpan(
+                  text: 'turned_off'.tr().toLowerCase(),
+                  style: theme.textTheme.ppMori700Black14,
+                ),
+                TextSpan(
+                  text: 'unable_backup'.tr(),
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
+      );
+    }
+  }
+
+  Widget _recommend(BuildContext context) {
+    final theme = Theme.of(context);
+    if (_isBackUpAvailable != false) {
+      return const SizedBox();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 30),
+        Text(
+            Platform.isAndroid
+                ? "recommend_google_cloud".tr()
+                : "recommend_icloud_key".tr(),
+            style: theme.textTheme.ppMori700Black14),
+      ],
+    );
+  }
+
+  Widget _settingButton(BuildContext context) {
+    if (_isBackUpAvailable != false) {
+      return const SizedBox();
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: Platform.isAndroid
+              ? OutlineButton(
+                  text: "open_device_setting".tr(),
+                  onTap: () => OpenSettings.openAddAccountSetting(),
+                  color: AppColor.white,
+                  borderColor: AppColor.primaryBlack,
+                  textColor: AppColor.primaryBlack,
+                )
+              : OutlineButton(
+                  onTap: () => openAppSettings(),
+                  text: "open_icloud_setting".tr(),
+                  color: AppColor.white,
+                  borderColor: AppColor.primaryBlack,
+                  textColor: AppColor.primaryBlack,
+                ),
+        ),
+      ],
     );
   }
 

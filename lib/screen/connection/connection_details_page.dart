@@ -32,7 +32,7 @@ class ConnectionDetailsPage extends StatelessWidget {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: 'connections_with_dapps'.tr(),
+        title: 'connections'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },

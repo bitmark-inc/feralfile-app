@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -46,6 +47,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:synchronized/synchronized.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -68,8 +70,10 @@ class _ScanQRPageState extends State<ScanQRPage>
   bool cameraPermission = false;
   String? currentCode;
   late TabController _tabController;
-
   final metricClient = injector<MetricClientService>();
+  final _navigationService = injector<NavigationService>();
+  late Lock _lock;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -80,6 +84,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     }
     _tabController = TabController(length: 2, vsync: this);
     checkPermission();
+    _lock = Lock();
   }
 
   @override
@@ -103,11 +108,12 @@ class _ScanQRPageState extends State<ScanQRPage>
         setState(() {
           cameraPermission = true;
         });
-      }
-      if (Platform.isAndroid) {
-        Future.delayed(const Duration(seconds: 1), () {
-          controller.resumeCamera();
-        });
+        if (Platform.isAndroid) {
+          _timer?.cancel();
+          _timer = Timer(const Duration(seconds: 1), () {
+            controller.resumeCamera();
+          });
+        }
       }
     }
   }
@@ -148,6 +154,20 @@ class _ScanQRPageState extends State<ScanQRPage>
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
+        appBar: _tabController.index == 0
+            ? _qrCodeAppBar()
+            : AppBar(
+                systemOverlayStyle: const SystemUiOverlayStyle(
+                  statusBarColor: Colors.white,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
+                ),
+                toolbarHeight: 0,
+                shadowColor: Colors.transparent,
+                elevation: 0,
+              ),
         body: Stack(
           children: <Widget>[
             if (!cameraPermission)
@@ -164,15 +184,6 @@ class _ScanQRPageState extends State<ScanQRPage>
                             Stack(
                               children: [
                                 _qrView(),
-                                Scaffold(
-                                  backgroundColor: Colors.transparent,
-                                  appBar: getCloseAppBar(
-                                    context,
-                                    onClose: () => Navigator.of(context).pop(),
-                                    withBottomDivider: false,
-                                    icon: closeIcon(color: AppColor.white),
-                                  ),
-                                ),
                                 Padding(
                                   padding: EdgeInsets.fromLTRB(
                                     0,
@@ -180,7 +191,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                         qrSize / 2 -
                                         cutPaddingTop,
                                     0,
-                                    30,
+                                    15,
                                   ),
                                   child: Center(
                                     child: Column(
@@ -197,15 +208,10 @@ class _ScanQRPageState extends State<ScanQRPage>
                             MultiBlocProvider(providers: [
                               BlocProvider(
                                   create: (_) => accounts.AccountsBloc(
-                                      injector(),
-                                      injector<CloudDatabase>(),
-                                      injector(),
-                                      injector<AuditService>(),
-                                      injector())),
+                                      injector(), injector<CloudDatabase>())),
                               BlocProvider(
                                 create: (_) => PersonaBloc(
                                   injector<CloudDatabase>(),
-                                  injector(),
                                   injector(),
                                   injector<AuditService>(),
                                 ),
@@ -294,6 +300,16 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
+  AppBar _qrCodeAppBar() {
+    return getCloseAppBar(
+      context,
+      onClose: () => Navigator.of(context).pop(),
+      withBottomDivider: false,
+      icon: closeIcon(color: AppColor.white),
+      isWhite: false,
+    );
+  }
+
   Widget _qrView() {
     final theme = Theme.of(context);
     final size1 = MediaQuery.of(context).size.height / 2;
@@ -301,26 +317,47 @@ class _ScanQRPageState extends State<ScanQRPage>
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
-    return QRView(
-      key: qrKey,
-      overlay: QrScannerOverlayShape(
-        borderColor:
-            isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-        overlayColor: (cameraPermission || Platform.isIOS)
-            ? const Color.fromRGBO(0, 0, 0, 80)
-            : const Color.fromRGBO(255, 255, 255, 60),
-        cutOutSize: qrSize,
-        borderWidth: 8,
-        borderRadius: 40,
-        // borderLength: qrSize / 2,
-        cutOutBottomOffset: 32 + cutPaddingTop,
-      ),
-      onQRViewCreated: _onQRViewCreated,
-      onPermissionSet: (ctrl, p) {
-        setState(() {
-          cameraPermission = ctrl.hasPermissions;
-        });
-      },
+    final cutOutBottomOffset = 80 + cutPaddingTop;
+    return Stack(
+      children: [
+        QRView(
+          key: qrKey,
+          overlay: QrScannerOverlayShape(
+            borderColor:
+                isScanDataError ? AppColor.red : theme.colorScheme.secondary,
+            overlayColor: (cameraPermission)
+                ? const Color.fromRGBO(0, 0, 0, 0.6)
+                : const Color.fromRGBO(0, 0, 0, 1.0),
+            cutOutSize: qrSize,
+            borderWidth: 8,
+            borderRadius: 40,
+            cutOutBottomOffset: cutOutBottomOffset,
+          ),
+          onQRViewCreated: _onQRViewCreated,
+          onPermissionSet: (ctrl, p) {
+            setState(() {
+              cameraPermission = ctrl.hasPermissions;
+            });
+          },
+        ),
+        if (isScanDataError)
+          Positioned(
+            left: (MediaQuery.of(context).size.width - qrSize) / 2,
+            top: (MediaQuery.of(context).size.height - qrSize) / 2 -
+                cutOutBottomOffset,
+            child: SizedBox(
+              height: qrSize,
+              width: qrSize,
+              child: Center(
+                child: Text(
+                  'invalid_qr_code'.tr(),
+                  style: theme.textTheme.ppMori700Black14
+                      .copyWith(color: AppColor.red),
+                ),
+              ),
+            ),
+          )
+      ],
     );
   }
 
@@ -330,13 +367,17 @@ class _ScanQRPageState extends State<ScanQRPage>
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
+    final cutOutBottomOffset = 80 + cutPaddingTop;
     return Stack(
       children: [
         _qrView(),
         Padding(
           padding: EdgeInsets.fromLTRB(
             0,
-            MediaQuery.of(context).size.height / 2 + qrSize / 2 - cutPaddingTop,
+            MediaQuery.of(context).size.height / 2 +
+                qrSize / 2 -
+                cutOutBottomOffset +
+                32,
             0,
             30,
           ),
@@ -428,24 +469,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 const SizedBox(height: 15),
                 RichText(
                   text: TextSpan(
-                    text: "wallets".tr(),
-                    children: [
-                      TextSpan(
-                        text: ' ',
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                      TextSpan(
-                        text: 'such_as_metamask'.tr(),
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                    ],
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                RichText(
-                  text: TextSpan(
-                    text: "h_autonomy".tr(),
+                    text: "autonomy_canvas".tr(),
                     children: [
                       TextSpan(
                         text: ' ',
@@ -554,7 +578,7 @@ class _ScanQRPageState extends State<ScanQRPage>
             }
             */
           } else if (_isCanvasQrCode(code)) {
-            if (await isPremium()) {
+            _lock.synchronized(() async {
               final result = await _handleCanvasQrCode(code);
               if (result) {
                 if (!mounted) return;
@@ -571,13 +595,17 @@ class _ScanQRPageState extends State<ScanQRPage>
                   isDismissible: true,
                 );
               }
-            }
+            });
           } else {
             _handleError(code);
           }
           break;
         case ScannerItem.CANVAS_DEVICE:
-          await _handleCanvasQrCode(code);
+          if (_isCanvasQrCode(code)) {
+            _lock.synchronized(() => _handleCanvasQrCode(code));
+          } else {
+            _handleError(code);
+          }
           break;
       }
     });
@@ -594,21 +622,34 @@ class _ScanQRPageState extends State<ScanQRPage>
 
   Future<bool> _handleCanvasQrCode(String code) async {
     log.info("Canvas device scanned: $code");
+    setState(() {
+      _isLoading = true;
+    });
+    controller.pauseCamera();
     try {
+      final premium = await isPremium();
+      if (!premium) {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        return false;
+      }
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
       final result = await canvasClient.connectToDevice(device);
       if (result) {
         device.isConnecting = true;
-        if (!mounted) return false;
-        Navigator.pop(context, device);
-        return true;
-      } else {
-        _handleError(code);
-        return false;
       }
-    } catch (err) {
-      _handleError(code);
+      if (!mounted) return false;
+      Navigator.pop(context, device);
+      return result;
+    } catch (e) {
+      Navigator.pop(context);
+      if (e.toString().contains("DEADLINE_EXCEEDED") || true) {
+        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
+            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
+            closeButton: "close".tr());
+      }
     }
     return false;
   }
@@ -711,6 +752,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   @override
   void dispose() {
     controller.dispose();
+    _timer?.cancel();
     routeObserver.unsubscribe(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);

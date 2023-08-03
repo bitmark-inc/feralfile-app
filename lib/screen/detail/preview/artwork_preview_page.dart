@@ -27,12 +27,14 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -262,7 +264,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final identityBloc = context.read<IdentityBloc>();
     return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
       builder: (context, state) {
         AssetToken? assetToken;
@@ -275,6 +276,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             assetToken?.medium == "other" ||
             assetToken?.medium == null;
         final hideArtist = assetToken?.isPostcard ?? false;
+        final identityState = context.watch<IdentityBloc>().state;
+        final artistName =
+            assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
+
+        var subTitle = "";
+        if (artistName != null && artistName.isNotEmpty) {
+          subTitle = artistName;
+        }
         return Scaffold(
           appBar: isFullScreen
               ? null
@@ -283,47 +292,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   leadingWidth: 0,
                   centerTitle: false,
                   title: GestureDetector(
-                    onTap: () => _moveToInfo(assetToken),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          assetToken?.title ?? '',
-                          style: theme.textTheme.ppMori400White16,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (hideArtist != true) ...[
-                          BlocBuilder<IdentityBloc, IdentityState>(
-                            bloc: identityBloc
-                              ..add(GetIdentityEvent([
-                                assetToken?.artistName ?? '',
-                              ])),
-                            builder: (context, state) {
-                              final artistName = assetToken?.artistName
-                                  ?.toIdentityOrMask(state.identityMap);
-                              if (artistName != null) {
-                                return Row(
-                                  children: [
-                                    const SizedBox(height: 4.0),
-                                    Expanded(
-                                      child: Text(
-                                        "by".tr(args: [artistName]),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.ppMori400White14,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }
-                              return const SizedBox();
-                            },
-                          ),
-                        ]
-                      ],
-                    ),
-                  ),
+                      onTap: () => _moveToInfo(assetToken),
+                      child: ArtworkDetailsHeader(
+                        title: assetToken?.title ?? '',
+                        subTitle: subTitle,
+                        hideArtist: hideArtist,
+                      )),
                   actions: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -350,113 +324,136 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             child: Column(
               children: [
                 Expanded(
-                  child: GestureDetector(
-                    child: PageView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (value) {
-                        _timer?.cancel();
-                        final currentId = tokens[value];
-                        _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
-                            useIndexer: widget.payload.useIndexer));
-                        keyboardManagerKey.currentState?.hideKeyboard();
-                      },
-                      controller: controller,
-                      itemCount: tokens.length,
-                      itemBuilder: (context, index) {
-                        if (tokens[index].id.isPostcardId) {
-                          return PostcardPreviewWidget(
+                  child: PageView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (value) {
+                      _timer?.cancel();
+                      final currentId = tokens[value];
+                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
+                          useIndexer: widget.payload.useIndexer));
+                      keyboardManagerKey.currentState?.hideKeyboard();
+                    },
+                    controller: controller,
+                    itemCount: tokens.length,
+                    itemBuilder: (context, index) {
+                      return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                        bloc: _canvasDeviceBloc,
+                        builder: (context, state) {
+                          final isCasting = state.isCasting;
+                          if (isCasting) {
+                            return const Center(
+                              child: CurrentlyCastingArtwork(),
+                            );
+                          }
+                          if (tokens[index].id.isPostcardId) {
+                            return PostcardPreviewWidget(
+                              identity: tokens[index],
+                              useIndexer: widget.payload.useIndexer,
+                            );
+                          }
+                          return ArtworkPreviewWidget(
                             identity: tokens[index],
+                            onLoaded: (
+                                {InAppWebViewController? webViewController,
+                                int? time}) {
+                              setTimer(time: time);
+                            },
+                            focusNode: _focusNode,
                             useIndexer: widget.payload.useIndexer,
                           );
-                        }
-                        return ArtworkPreviewWidget(
-                          identity: tokens[index],
-                          onLoaded: setTimer,
-                          focusNode: _focusNode,
-                          useIndexer: widget.payload.useIndexer,
-                        );
-                      },
-                    ),
+                        },
+                      );
+                    },
                   ),
                 ),
                 Visibility(
                   visible: !isFullScreen && _isPremium,
                   child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                      bloc: _canvasDeviceBloc,
                       builder: (context, state) {
-                    final isCasting = state.isCasting;
-                    final playingDevice = state.playingDevice;
-                    return Container(
-                      color: theme.colorScheme.primary,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 15,
-                          bottom: 30,
-                          right: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const SizedBox(
-                              width: 20,
+                        final isCasting = state.isCasting;
+                        final playingDevice = state.playingDevice;
+                        return Container(
+                          color: theme.colorScheme.primary,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              top: 15,
+                              bottom: 30,
+                              right: 20,
                             ),
-                            Visibility(
-                              visible: (assetToken?.medium == 'software' ||
-                                  assetToken?.medium == 'other' ||
-                                  (assetToken?.medium?.isEmpty ?? true) ||
-                                  isCasting),
-                              child: KeyboardManagerWidget(
-                                key: keyboardManagerKey,
-                                focusNode: _focusNode,
-                                onTap: isCasting
-                                    ? () {
-                                        Navigator.of(context).pushNamed(
-                                            AppRouter.keyboardControlPage,
-                                            arguments:
-                                                KeyboardControlPagePayload(
-                                                    assetToken!,
-                                                    playingDevice));
-                                      }
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            CastButton(
-                              assetToken: assetToken,
-                              onCastTap: () => _onCastTap(assetToken),
-                              isCasting: isCasting,
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            GestureDetector(
-                              onTap: isCasting
-                                  ? null
-                                  : () => onClickFullScreen(assetToken),
-                              child: Semantics(
-                                label: "fullscreen_icon",
-                                child: SvgPicture.asset(
-                                  'assets/images/fullscreen_icon.svg',
-                                  color: isCasting
-                                      ? AppColor.disabledColor
-                                      : AppColor.white,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const SizedBox(
+                                  width: 20,
                                 ),
-                              ),
+                                Visibility(
+                                  visible: (assetToken?.medium == 'software' ||
+                                      assetToken?.medium == 'other' ||
+                                      (assetToken?.medium?.isEmpty ?? true) ||
+                                      isCasting),
+                                  child: KeyboardManagerWidget(
+                                    key: keyboardManagerKey,
+                                    focusNode: _focusNode,
+                                    onTap: isCasting
+                                        ? () {
+                                            Navigator.of(context).pushNamed(
+                                                AppRouter.keyboardControlPage,
+                                                arguments:
+                                                    KeyboardControlPagePayload(
+                                                        assetToken!,
+                                                        playingDevice));
+                                          }
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                CastButton(
+                                  assetToken: assetToken,
+                                  onCastTap: () => _onCastTap(assetToken),
+                                  isCasting: isCasting,
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                GestureDetector(
+                                  onTap: isCasting
+                                      ? null
+                                      : () => onClickFullScreen(assetToken),
+                                  child: Semantics(
+                                    label: "fullscreen_icon",
+                                    child: SvgPicture.asset(
+                                      'assets/images/fullscreen_icon.svg',
+                                      color: isCasting
+                                          ? AppColor.disabledColor
+                                          : AppColor.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
+                          ),
+                        );
+                      }),
                 ),
               ],
             ),
           ),
         );
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+        AssetToken? assetToken;
+        if (state is ArtworkPreviewLoadedState) {
+          assetToken = state.assetToken;
+        }
+        final identitiesList = [
+          assetToken?.artistName ?? '',
+        ];
+        context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
+      },
     );
   }
 }

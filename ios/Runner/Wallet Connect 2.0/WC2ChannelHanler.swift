@@ -74,17 +74,6 @@ class WC2ChannelHandler: NSObject {
     }
     
     @MainActor
-    func activate(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args: NSDictionary = call.arguments as! NSDictionary
-        let topic: String = args["topic"] as! String
-        
-        try WalletConnectService.shared.activate(topic: topic)
-        result([
-            "error": 0
-        ])
-    }
-    
-    @MainActor
     func deletePairing(call: FlutterMethodCall, result: @escaping FlutterResult) {
         do {
             let args: NSDictionary = call.arguments as! NSDictionary
@@ -139,13 +128,8 @@ class WC2ChannelHandler: NSObject {
         proposal.requiredNamespaces.forEach {
             let caip2Namespace = $0.key
             let proposalNamespace = $0.value
-            let accounts = Set(proposalNamespace.chains.compactMap { Account($0.absoluteString + ":\(account)") })
-
-            let extensions: [SessionNamespace.Extension]? = proposalNamespace.extensions?.map { element in
-                let accounts = Set(element.chains.compactMap { Account($0.absoluteString + ":\(account)") })
-                return SessionNamespace.Extension(accounts: accounts, methods: element.methods, events: element.events)
-            }
-            let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events, extensions: extensions)
+            let accounts = Set(proposalNamespace.chains!.compactMap { Account($0.absoluteString + ":\(account)") })
+            let sessionNamespace = SessionNamespace(chains: proposalNamespace.chains, accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
             sessionNamespaces[caip2Namespace] = sessionNamespace
         }
         
@@ -175,7 +159,7 @@ extension WC2ChannelHandler: FlutterStreamHandler {
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         Sign.instance.sessionProposalPublisher
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] sessionProposal in
+            .sink { [weak self] sessionProposal, _ in
                 print("[RESPONDER] WC: Did receive session proposal")
                 self?.pendingProposals.append(sessionProposal)
                 
@@ -203,7 +187,7 @@ extension WC2ChannelHandler: FlutterStreamHandler {
 
         Sign.instance.sessionRequestPublisher
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] sessionRequest in
+            .sink { [weak self] sessionRequest, _ in
                 print("[RESPONDER] WC: Did receive session request")
                 self?.pendingRequests.append(sessionRequest)
                 let sessions = Sign.instance.getSessions();

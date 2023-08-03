@@ -17,11 +17,14 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
-  final Function({int? time})? onLoaded;
+  final Function({InAppWebViewController? webViewController, int? time})?
+      onLoaded;
   final Function({int? time})? onDispose;
   final bool isMute;
   final FocusNode? focusNode;
@@ -43,7 +46,8 @@ class ArtworkPreviewWidget extends StatefulWidget {
 
 class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
+  final bloc =
+      ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
 
   INFTRenderingWidget? _renderingWidget;
 
@@ -142,12 +146,12 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           minScale: 1,
                           maxScale: 4,
                           child: Center(
-                            child: _renderingWidget?.build(context),
+                            child: _artworkView(assetToken),
                           ),
                         );
                       default:
                         return Center(
-                          child: _renderingWidget?.build(context),
+                          child: _artworkView(assetToken),
                         );
                     }
                   },
@@ -160,6 +164,14 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         }
       },
     );
+  }
+
+  Widget _artworkView(AssetToken assetToken) {
+    return GestureDetector(
+        onTap: () async {
+          await _renderingWidget?.pauseOrResume();
+        },
+        child: _renderingWidget?.build(context) ?? const SizedBox());
   }
 }
 
@@ -179,8 +191,8 @@ class PostcardPreviewWidget extends StatefulWidget {
 
 class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc =
-      PostcardDetailBloc(injector(), injector(), injector(), injector());
+  final bloc = PostcardDetailBloc(
+      injector(), injector(), injector(), injector(), injector());
 
   @override
   void initState() {

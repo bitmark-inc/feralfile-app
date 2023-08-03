@@ -77,7 +77,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       injector<MetricClientService>().mixPanelClient.reset();
       _feedService.unviewedCount.value = 0;
       memoryValues = MemoryValues(
-        airdropFFExhibitionId: ValueNotifier(null),
+        branchDeeplinkData: ValueNotifier(null),
         deepLink: ValueNotifier(null),
         irlLink: ValueNotifier(null),
       );

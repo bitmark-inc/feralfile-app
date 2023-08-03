@@ -87,7 +87,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
@@ -191,17 +191,11 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                         ? theme.textTheme.ppMori700Black14
                             .copyWith(color: AppColor.disabledColor)
                         : theme.textTheme.ppMori700White14,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
                 const SizedBox(
                   width: 20,
-                ),
-                IconButton(
-                  onPressed: () {
-                    _bloc.add(CanvasDeviceRotateEvent(deviceState.device));
-                  },
-                  icon: const Icon(AuIcon.rotateRounded, color: AppColor.white),
                 ),
                 _deviceStatus(deviceState),
               ],
@@ -229,6 +223,15 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       case DeviceStatus.playing:
         return Row(
           children: [
+            IconButton(
+              onPressed: () {
+                _bloc.add(CanvasDeviceRotateEvent(deviceState.device));
+              },
+              padding: const EdgeInsets.all(0),
+              constraints: const BoxConstraints(),
+              icon: const Icon(AuIcon.rotateRounded, color: AppColor.white),
+            ),
+            const SizedBox(width: 20),
             Container(
               decoration: BoxDecoration(
                 color: Colors.transparent,

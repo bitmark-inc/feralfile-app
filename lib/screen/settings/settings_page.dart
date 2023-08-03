@@ -5,16 +5,21 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
@@ -23,6 +28,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version_check/version_check.dart';
 
@@ -82,10 +88,12 @@ class _SettingsPageState extends State<SettingsPage>
     injector<SettingsDataService>().backup();
   }
 
-  Widget _settingItem(
-      {required String title,
-      required Widget icon,
-      required Function() onTap}) {
+  Widget _settingItem({
+    required String title,
+    required Widget icon,
+    required Function() onTap,
+    Widget? stateWidget,
+  }) {
     final theme = Theme.of(context);
     return Padding(
       padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
@@ -97,7 +105,9 @@ class _SettingsPageState extends State<SettingsPage>
             Text(
               title,
               style: theme.textTheme.ppMori400Black16,
-            )
+            ),
+            const Spacer(),
+            if (stateWidget != null) stateWidget,
           ],
         ),
         onTap: onTap,
@@ -144,6 +154,26 @@ class _SettingsPageState extends State<SettingsPage>
                       Navigator.of(context)
                           .pushNamed(AppRouter.preferencesPage);
                     },
+                  ),
+                  addOnlyDivider(),
+                  _settingItem(
+                    title: "back_up".tr(),
+                    icon: SvgPicture.asset("assets/images/icon_backup.svg"),
+                    onTap: () async {
+                      if (Platform.isAndroid) {
+                        final isAndroidEndToEndEncryptionAvailable =
+                            await injector<AccountService>()
+                                .isAndroidEndToEndEncryptionAvailable();
+                        if (!mounted) return;
+                        Navigator.of(context).pushNamed(
+                            AppRouter.cloudAndroidPage,
+                            arguments: isAndroidEndToEndEncryptionAvailable);
+                      } else {
+                        Navigator.of(context).pushNamed(AppRouter.cloudPage,
+                            arguments: "settings");
+                      }
+                    },
+                    stateWidget: const CloudState(),
                   ),
                   addOnlyDivider(),
                   _settingItem(
@@ -297,8 +327,9 @@ class _SettingsPageState extends State<SettingsPage>
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-        final isLatestVersion = _versionCheck?.storeVersion
-                ?.compareTo(_versionCheck?.packageVersion ?? "") ==
+        final isLatestVersion = compareVersion(
+                _versionCheck?.packageVersion ?? "",
+                _versionCheck?.storeVersion ?? "") >=
             0;
         return GestureDetector(
           onTap: () async {

@@ -238,6 +238,7 @@ void showErrorDiablog(
 
     case ErrorItemState.tryAgain:
       defaultButton = "try_again".tr();
+      cancelButton = cancelAction != null ? "close".tr() : null;
       break;
 
     case ErrorItemState.camera:

@@ -37,7 +37,7 @@ class CloudPage extends StatelessWidget {
                 Navigator.of(context).pop();
               }
             : null,
-        title: "backed_up".tr(),
+        title: "back_up".tr(),
       ),
       body: _contentWidget(context),
     );

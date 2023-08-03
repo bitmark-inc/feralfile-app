@@ -88,7 +88,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: c390cdca02b5274f7997768ec1b428e9e56fc255
+      ref: 4af920d485073af6b0b52634ad1726c96ac9a2ee
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -136,7 +136,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 17fbb337af0783bde563869c0aebe39c6998102f
+      ref: 12ab9c6b4a64213392581d125913c59b0958f3af
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -177,6 +177,7 @@ dependencies:
   video_player: ^2.4.8
   youtube_player_iframe: ^3.1.0
   awesome_notifications: ^0.7.4+1
+  shimmer: ^2.0.0
 dependency_overrides:
   # Error using when import photo_view from dependencies:
   # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204

@@ -22,6 +22,8 @@ import 'package:web3dart/crypto.dart';
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
 
+  static final List<String> _skipLogPaths = [Environment.pubdocURL];
+
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
@@ -41,8 +43,9 @@ class LoggingInterceptor extends Interceptor {
   Future writeAPILog(Response response) async {
     final apiPath =
         response.requestOptions.baseUrl + response.requestOptions.path;
+    final skipLog = _skipLogPaths.any((element) => apiPath.contains(element));
+    if (skipLog) return;
     bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
-
     if (shortCurlLog) {
       final request = response.requestOptions;
       apiLog.info(
@@ -210,7 +213,7 @@ class HmacAuthInterceptor extends Interceptor {
             sha256.convert(utf8.encode(json.encode(options.data))).bytes);
       }
       final canonicalString = List<String>.of([
-        options.path,
+        options.path.split("?").first,
         body,
         timestamp,
       ]).join("|");
@@ -229,7 +232,9 @@ class AirdropInterceptor extends Interceptor {
   void onError(DioError err, ErrorInterceptorHandler handler) {
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      final json = jsonDecode(errorBody["message"]);
+      final json = errorBody["message"] != null
+          ? jsonDecode(errorBody["message"])
+          : errorBody;
       err.error = FeralfileError.fromJson(json["error"]);
     } catch (e) {
       log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");

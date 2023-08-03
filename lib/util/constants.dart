@@ -10,7 +10,11 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/eth_utils.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -29,7 +33,7 @@ const MUTE_RATING_MESSAGE = "MUTE_RATING_MESSAGE";
 const STAR_RATING = "###STAR#RATING#";
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
-    'https://calendly.com/anais-bitmark/usertesting';
+    'https://calendly.com/bencebitmark/autonomy-user-test';
 const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
@@ -58,15 +62,19 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
 ];
+
+const TEIA_ART_CONTRACT_ADDRESSES = ["KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"];
+const OPENSEA_ASSET_PREFIX = "https://opensea.io/assets/";
+const OBJKT_ASSET_PREFIX = "https://objkt.com/asset/";
+const TEIA_ART_ASSET_PREFIX = "https://teia.art/objkt/";
+const FXHASH_IDENTIFIER = "fxhash.xyz";
+
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
-const CHECK_WEB3_CONTRACT_ADDRESS = [
+List<String> checkWeb3ContractAddress = [
   "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
-  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
-  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
-  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
-  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
+  ...momaMementoContractAddresses,
+  Environment.autonomyAirDropContractAddress,
 ];
 
 const MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET = [
@@ -93,6 +101,13 @@ List<String> get momaMementoContractAddresses {
 
 const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
 
+const MEMENTO_6_SERIES_ID_MAINNET = "2b75da9b-c605-4842-bf59-8e2e1fe04be6";
+const MEMENTO_6_SERIES_ID_TESTNET = "b95fc2e8-c7ca-4db8-9f81-7bd231ff1c48";
+
+String get memento6SeriesId => Environment.appTestnetConfig
+    ? MEMENTO_6_SERIES_ID_TESTNET
+    : MEMENTO_6_SERIES_ID_MAINNET;
+
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
 const int cellPerRowPhone = 3;
@@ -102,7 +117,15 @@ const double cellSpacing = 3.0;
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
+final moMAGeoLocation =
+    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
+
 const int MAX_STAMP_IN_POSTCARD = 15;
+
+const int STAMP_SIZE = 1080;
+
+const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
+const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
@@ -295,15 +318,25 @@ enum CryptoType {
   UNKNOWN;
 
   static CryptoType fromSource(String source) {
-    switch (source) {
-      case "Ethereum":
+    switch (source.toLowerCase()) {
+      case "ethereum":
         return CryptoType.ETH;
-      case "Tezos":
+      case "tezos":
         return CryptoType.XTZ;
-      case "USDC":
+      case "usdc":
         return CryptoType.USDC;
       default:
         return CryptoType.UNKNOWN;
+    }
+  }
+
+  static CryptoType fromAddress(String source) {
+    if (source.isValidTezosAddress) {
+      return CryptoType.XTZ;
+    } else if (source.toEthereumAddress() != null) {
+      return CryptoType.ETH;
+    } else {
+      return CryptoType.UNKNOWN;
     }
   }
 }

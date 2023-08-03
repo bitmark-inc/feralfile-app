@@ -10,10 +10,10 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 
 part 'persona_state.dart';
 
@@ -21,11 +21,10 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
   final CloudDatabase _cloudDB;
   final AccountService _accountService;
   final AuditService _auditService;
-  final ConfigurationService _configurationService;
 
-  PersonaBloc(this._cloudDB, this._accountService, this._configurationService,
-      this._auditService)
+  PersonaBloc(this._cloudDB, this._accountService, this._auditService)
       : super(PersonaState()) {
+    /*
     on<CreatePersonaEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
       // await Future.delayed(SHOW_DIALOG_DURATION);
@@ -45,6 +44,8 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
         emit(state.copyWith(createAccountState: ActionState.notRequested));
       });
     });
+
+     */
 
     on<GetListPersonaEvent>((event, emit) async {
       final personas = await _cloudDB.personaDao.getPersonas();
@@ -89,6 +90,19 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
     on<DeletePersonaEvent>((event, emit) async {
       await _accountService.deletePersona(event.persona);
       emit(state.copyWith(deletePersonaState: ActionState.done));
+    });
+
+    on<CreatePersonaAddressesEvent>((event, emit) async {
+      emit(PersonaState(createAccountState: ActionState.loading));
+      // await Future.delayed(SHOW_DIALOG_DURATION);
+      Persona persona = await _accountService.getOrCreateDefaultPersona();
+      await persona.insertNextAddress(event.walletType, name: event.name);
+      emit(
+          PersonaState(createAccountState: ActionState.done, persona: persona));
+
+      await Future.delayed(const Duration(microseconds: 500), () {
+        emit(state.copyWith(createAccountState: ActionState.error));
+      });
     });
   }
 }

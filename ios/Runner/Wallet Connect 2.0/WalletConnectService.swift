@@ -83,12 +83,6 @@ class WalletConnectService {
         logger.info("[WALLET] getPairings")
         return Pair.instance.getPairings()
     }
-    
-    @MainActor
-    func activate(topic: String) {
-        logger.info("[WALLET] activate \(topic)")
-        Pair.registerer.activate(pairingTopic: topic)
-    }
 
     @MainActor
     func deletePairing(topic: String) throws {

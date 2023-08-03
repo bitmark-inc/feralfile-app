@@ -10,11 +10,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
@@ -25,11 +27,11 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -40,7 +42,7 @@ import 'account_service.dart';
 abstract class PostcardService {
   Future<ReceivePostcardResponse> receivePostcard(
       {required String shareCode,
-      required Position location,
+      required Location location,
       required String address});
 
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -50,6 +52,8 @@ abstract class PostcardService {
       RequestPostcardRequest request);
 
   Future<SharePostcardResponse> sharePostcard(AssetToken asset);
+
+  Future<void> cancelSharePostcard(AssetToken asset);
 
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode);
 
@@ -61,7 +65,7 @@ abstract class PostcardService {
       int index,
       File image,
       File metadata,
-      Position? location,
+      Location? location,
       int counter,
       String contractAddress);
 
@@ -85,6 +89,8 @@ abstract class PostcardService {
       {bool override = false, bool isRemove = false});
 
   Future<void> checkNotification();
+
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard();
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -112,7 +118,7 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<ReceivePostcardResponse> receivePostcard({
     required String shareCode,
-    required Position location,
+    required Location location,
     required String address,
   }) async {
     try {
@@ -127,7 +133,7 @@ class PostcardServiceImpl extends PostcardService {
           walletIndex.index, Uint8List.fromList(utf8.encode(timestamp)));
       final body = {
         "shareCode": shareCode,
-        "location": [location.latitude, location.longitude],
+        "location": [location.lat, location.lon],
         "address": address,
         "publicKey": publicKey,
         "signature": signature,
@@ -206,7 +212,7 @@ class PostcardServiceImpl extends PostcardService {
       int index,
       File image,
       File metadata,
-      Position? location,
+      Location? location,
       int counter,
       String contractAddress) async {
     try {
@@ -222,8 +228,8 @@ class PostcardServiceImpl extends PostcardService {
           wallet, index, Uint8List.fromList(message2sign));
       final address = await wallet.getTezosAddress(index: index);
       final publicKey = await wallet.getTezosPublicKey(index: index);
-      final lat = location?.latitude;
-      final lon = location?.longitude;
+      final lat = location?.lat;
+      final lon = location?.lon;
       final result = await _postcardApi.updatePostcard(
           tokenId: tokenId,
           data: image,
@@ -338,7 +344,7 @@ class PostcardServiceImpl extends PostcardService {
     if (_configurationService.isNotificationEnabled() ?? false) {
       Timer.periodic(const Duration(seconds: 1), (timer) async {
         final index = timer.tick - 1;
-        if (index > expiredPostcardShareLink.length) {
+        if (index >= expiredPostcardShareLink.length) {
           timer.cancel();
         } else {
           final expiredPostcard = expiredPostcardShareLink[index];
@@ -353,6 +359,48 @@ class PostcardServiceImpl extends PostcardService {
     } else {
       _configurationService.expiredPostcardSharedLinkTip.value =
           expiredPostcardShareLink;
+    }
+  }
+
+  @override
+  Future<void> cancelSharePostcard(AssetToken asset) async {
+    await sharePostcard(asset);
+  }
+
+  @override
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
+    final leaderboardResponse = await _postcardApi
+        .getLeaderboard(DistanceFormatter.getDistanceUnit.name);
+    final ids = leaderboardResponse.items
+        .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
+        .toList();
+    final request = QueryListTokensRequest(
+      ids: ids,
+    );
+    final tokens = await _indexerService.getNftTokens(request);
+    leaderboardResponse.items.map((e) {
+      e.title = tokens
+              .firstWhereOrNull((element) => element.tokenId == e.id)
+              ?.title ??
+          "Unknown";
+      return e;
+    }).toList();
+
+    return PostcardLeaderboard(
+        items: leaderboardResponse.items, lastUpdated: DateTime.now());
+  }
+}
+
+enum DistanceUnit {
+  km,
+  mile;
+
+  String get name {
+    switch (this) {
+      case DistanceUnit.km:
+        return "km";
+      case DistanceUnit.mile:
+        return "mile";
     }
   }
 }

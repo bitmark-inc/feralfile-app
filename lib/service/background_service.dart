@@ -144,7 +144,7 @@ class BackgroundService {
     if (_configurationService.isNotificationEnabled() ?? false) {
       Timer.periodic(const Duration(milliseconds: 500), (timer) async {
         final index = timer.tick - 1;
-        if (index > expiredPostcardShareLink.length) {
+        if (index >= expiredPostcardShareLink.length) {
           timer.cancel();
         } else {
           final expiredPostcard = expiredPostcardShareLink[index];

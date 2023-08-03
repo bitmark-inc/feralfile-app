@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -18,8 +17,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:web3dart/web3dart.dart';
 
 part 'router_state.dart';
 
@@ -71,6 +68,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           emit(RouterState(
               onboardingStep: OnboardingStep.restore,
               backupVersion: backupVersion));
+          add(RestoreCloudDatabaseRoutingEvent(backupVersion));
           return;
         } else {
           await _configurationService.setDoneOnboarding(true);
@@ -84,33 +82,16 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
-      emit(RouterState(
-          onboardingStep: state.onboardingStep,
-          backupVersion: state.backupVersion,
-          isLoading: true));
-
+      if (_configurationService.isDoneOnboarding()) return;
       await _backupService.restoreCloudDatabase(
           await _accountService.getDefaultAccount(), event.version);
 
       await _accountService.androidRestoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
-      final addresses = await _cloudDB.addressDao.getAllAddresses();
       for (var persona in personas) {
         if (persona.name != "") {
           persona.wallet().updateName(persona.name);
-        }
-        final hasAddress =
-            addresses.any((element) => element.uuid == persona.uuid);
-
-        if (!hasAddress) {
-          final ethAddress = await persona.wallet().getETHEip55Address();
-          final ethAddressInfo =
-              EthereumAddressInfo(0, ethAddress, EtherAmount.zero());
-          final tezAddress = await persona.wallet().getTezosAddress();
-          final tezAddressInfo = TezosAddressInfo(0, tezAddress, 0);
-          await _accountService
-              .addAddressPersona(persona, [ethAddressInfo, tezAddressInfo]);
         }
       }
       final connections =
@@ -119,6 +100,8 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         await _configurationService.setDoneOnboarding(false);
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } else {
+        await _configurationService.setOldUser();
+        if (_configurationService.isDoneOnboarding()) return;
         await _configurationService.setDoneOnboarding(true);
         injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));

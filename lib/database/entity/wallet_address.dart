@@ -16,6 +16,7 @@ class WalletAddress {
   final String cryptoType;
   final DateTime createdAt;
   final bool isHidden;
+  final String? name;
 
   WalletAddress(
       {required this.address,
@@ -23,7 +24,8 @@ class WalletAddress {
       required this.index,
       required this.cryptoType,
       required this.createdAt,
-      this.isHidden = false});
+      this.isHidden = false,
+      this.name});
 
   WalletAddress copyWith({
     String? address,
@@ -32,6 +34,7 @@ class WalletAddress {
     String? cryptoType,
     DateTime? createdAt,
     bool? isHidden,
+    String? name,
   }) {
     return WalletAddress(
       address: address ?? this.address,
@@ -40,6 +43,7 @@ class WalletAddress {
       cryptoType: cryptoType ?? this.cryptoType,
       createdAt: createdAt ?? this.createdAt,
       isHidden: isHidden ?? this.isHidden,
+      name: name ?? this.name,
     );
   }
 
