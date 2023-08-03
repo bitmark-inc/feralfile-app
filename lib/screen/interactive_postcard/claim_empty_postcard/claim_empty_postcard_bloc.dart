@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/models.dart';
@@ -63,12 +63,15 @@ class ClaimEmptyPostCardBloc
       final accountService = injector<AccountService>();
       final addresses = await accountService.getAddress('Tezos');
       if (addresses.isEmpty) {
-        final defaultAccount = await accountService.getDefaultAccount();
+        final defaultPersona = await accountService.getOrCreateDefaultPersona();
         final configService = injector<ConfigurationService>();
         await configService.setDoneOnboarding(true);
-        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
         await configService.setPendingSettings(true);
-        address = await defaultAccount.getTezosAddress();
+        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+
+        final walletAddress =
+            await defaultPersona.insertNextAddress(WalletType.Tezos);
+        address = walletAddress.first.address;
       } else if (addresses.length == 1) {
         address = addresses.first;
       } else {

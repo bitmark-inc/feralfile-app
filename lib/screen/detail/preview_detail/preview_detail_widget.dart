@@ -46,7 +46,8 @@ class ArtworkPreviewWidget extends StatefulWidget {
 
 class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
+  final bloc =
+      ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
 
   INFTRenderingWidget? _renderingWidget;
 
@@ -166,7 +167,11 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   }
 
   Widget _artworkView(AssetToken assetToken) {
-    return _renderingWidget?.build(context) ?? const SizedBox();
+    return GestureDetector(
+        onTap: () async {
+          await _renderingWidget?.pauseOrResume();
+        },
+        child: _renderingWidget?.build(context) ?? const SizedBox());
   }
 }
 
@@ -186,8 +191,8 @@ class PostcardPreviewWidget extends StatefulWidget {
 
 class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
-  final bloc =
-      PostcardDetailBloc(injector(), injector(), injector(), injector());
+  final bloc = PostcardDetailBloc(
+      injector(), injector(), injector(), injector(), injector());
 
   @override
   void initState() {

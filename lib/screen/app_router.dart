@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
@@ -20,6 +21,7 @@ import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
 import 'package:autonomy_flutter/screen/account/add_account_page.dart';
 import 'package:autonomy_flutter/screen/account/import_account_page.dart';
 import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
+import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/new_account_page.dart';
 import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
@@ -88,7 +90,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_pa
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
-import 'package:autonomy_flutter/screen/irl_screen/get_address_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
@@ -242,7 +243,6 @@ class AppRouter {
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
-  static const irlGetAddress = 'irl_get_address';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
@@ -260,6 +260,11 @@ class AppRouter {
     final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
+    final personaBloc = PersonaBloc(
+      injector<CloudDatabase>(),
+      injector(),
+      injector<AuditService>(),
+    );
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -298,12 +303,7 @@ class AppRouter {
               ),
             ),
             BlocProvider(
-              create: (_) => PersonaBloc(
-                injector<CloudDatabase>(),
-                injector(),
-                injector(),
-                injector<AuditService>(),
-              ),
+              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );
@@ -352,12 +352,7 @@ class AppRouter {
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
+                      create: (_) => personaBloc,
                     ),
                   ],
                   child: const HomeNavigationPage(fromOnboarding: true),
@@ -391,12 +386,7 @@ class AppRouter {
                     ),
                     BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
+                      create: (_) => personaBloc,
                     ),
                   ],
                   child: const HomeNavigationPage(),
@@ -449,6 +439,7 @@ class AppRouter {
                               injector(),
                               injector(),
                               injector(),
+                              injector(),
                             )),
                   ],
                   child: StampPreview(
@@ -473,25 +464,13 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: NewAccountPage()));
+                create: (_) => personaBloc, child: NewAccountPage()));
 
       case addAccountPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                child: const AddAccountPage()));
+                create: (_) => personaBloc, child: const AddAccountPage()));
 
       case accountsPreviewPage:
         return CupertinoPageRoute(
@@ -499,12 +478,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                 ], child: const AccountsPreviewPage()));
 
@@ -516,12 +490,7 @@ class AppRouter {
                     create: (_) => FeralfileBloc.create(),
                   ),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                 ], child: const AccessMethodPage()));
 
@@ -548,12 +517,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => PersonaBloc(
-                    injector<CloudDatabase>(),
-                    injector(),
-                    injector(),
-                    injector<AuditService>(),
-                  ),
+                  create: (_) => personaBloc,
                   child: NamePersonaPage(
                       payload: settings.arguments as NamePersonaPayload),
                 ));
@@ -562,6 +526,14 @@ class AppRouter {
           settings: settings,
           builder: (context) => const TestArtworkScreen(),
         );
+
+      case AppRouter.nameLinkedAccountPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider.value(
+                value: accountsBloc,
+                child: NameLinkedAccountPage(
+                    connection: settings.arguments as Connection)));
 
       case importAccountPage:
         return CupertinoPageRoute(
@@ -637,13 +609,7 @@ class AppRouter {
             fullscreenDialog: true,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => PersonaBloc(
-                            injector<CloudDatabase>(),
-                            injector(),
-                            injector(),
-                            injector<AuditService>(),
-                          )),
+                  BlocProvider(create: (_) => personaBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
                   BlocProvider(
@@ -750,8 +716,12 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => SendCryptoBloc(injector(), injector(),
-                      injector(), (settings.arguments as SendData).type),
+                  create: (_) => SendCryptoBloc(
+                      injector(),
+                      injector(),
+                      injector(),
+                      (settings.arguments as SendData).type,
+                      injector()),
                   child: SendCryptoPage(data: settings.arguments as SendData),
                 ));
       case SendReviewPage.tag:
@@ -787,8 +757,8 @@ class AppRouter {
                   ),
                 ),
                 BlocProvider(
-                    create: (_) => PostcardDetailBloc(
-                        injector(), injector(), injector(), injector())),
+                    create: (_) => PostcardDetailBloc(injector(), injector(),
+                        injector(), injector(), injector())),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments as ArtworkDetailPayload,
@@ -837,12 +807,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => PersonaBloc(
-                    injector<CloudDatabase>(),
-                    injector(),
-                    injector(),
-                    injector<AuditService>(),
-                  ),
+                  create: (_) => personaBloc,
                   child: AddressAlias(
                       payload: settings.arguments as AddressAliasPayload),
                 ));
@@ -923,6 +888,7 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
+                            injector(),
                           )),
                 ],
                 child: ClaimedPostcardDetailPage(
@@ -973,12 +939,7 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
@@ -1088,12 +1049,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: accountsBloc),
                       BlocProvider(
-                        create: (_) => PersonaBloc(
-                          injector<CloudDatabase>(),
-                          injector(),
-                          injector(),
-                          injector<AuditService>(),
-                        ),
+                        create: (_) => personaBloc,
                       ),
                     ],
                     child: TVConnectPage(
@@ -1107,6 +1063,7 @@ class AppRouter {
               providers: [
                 BlocProvider(
                     create: (_) => SendArtworkBloc(
+                        injector(),
                         injector(),
                         injector(),
                         injector(),
@@ -1173,12 +1130,7 @@ class AppRouter {
             providers: [
               BlocProvider.value(value: accountsBloc),
               BlocProvider(
-                create: (_) => PersonaBloc(
-                  injector<CloudDatabase>(),
-                  injector(),
-                  injector(),
-                  injector<AuditService>(),
-                ),
+                create: (_) => personaBloc,
               ),
             ],
             child: WCConnectPage(
@@ -1194,12 +1146,7 @@ class AppRouter {
                     providers: [
                       BlocProvider.value(value: accountsBloc),
                       BlocProvider(
-                        create: (_) => PersonaBloc(
-                          injector<CloudDatabase>(),
-                          injector(),
-                          injector(),
-                          injector<AuditService>(),
-                        ),
+                        create: (_) => personaBloc,
                       ),
                     ],
                     child: Wc2RequestPage(
@@ -1219,12 +1166,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
+                    create: (_) => personaBloc,
                   ),
                 ],
                 child: const WalletPage(),
@@ -1333,6 +1275,7 @@ class AppRouter {
                               injector(),
                               injector(),
                               injector(),
+                              injector(),
                             )),
                     BlocProvider.value(value: accountsBloc),
                     BlocProvider(
@@ -1363,18 +1306,6 @@ class AppRouter {
             builder: (context) {
               return IRLWebScreen(url: url);
             });
-
-      case irlGetAddress:
-        final payload = settings.arguments as IRLGetAddressPayLoad?;
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: IRLGetAddressPage(payload: payload),
-            );
-          },
-        );
 
       case irlSignMessage:
         final payload = settings.arguments as IRLSignMessagePayload;

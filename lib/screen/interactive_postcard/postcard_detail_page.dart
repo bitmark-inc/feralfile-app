@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard_view.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
@@ -80,12 +81,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Timer? timer;
   bool isUpdating = false;
   bool canceling = false;
+  NumberFormat numberFormatter = NumberFormat("00");
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  late Timer _leaderboardTimer;
 
   @override
   void initState() {
@@ -93,9 +96,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     super.initState();
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
+    context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
+    _setTimer();
+  }
+
+  void _setTimer() {
+    _leaderboardTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
+    });
   }
 
   @override
@@ -225,6 +236,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     timer?.cancel();
+    _leaderboardTimer.cancel();
     super.dispose();
   }
 
@@ -450,9 +462,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             ),
                             _postcardAction(state),
                             const SizedBox(
-                              height: 10,
+                              height: 32,
                             ),
-                            _postcardInfo(state),
+                            _postcardInfo(context, state),
                             Align(
                               alignment: Alignment.centerRight,
                               child: Padding(
@@ -592,19 +604,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Widget _postcardInfo(PostcardDetailState state) {
-    return Container(
-      color: AppColor.white,
-      child: Column(
-        children: [
-          //TODO: remove IF
-          if (!viewJourney) _tabBar(),
-          const SizedBox(
-            height: 15,
+  Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
+    return Column(
+      children: [
+        _tabBar(context),
+        const SizedBox(
+          height: 24,
+        ),
+        Container(
+          color: AppColor.white,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: viewJourney
+                ? _travelInfoWidget(state)
+                : _leaderboard(context, state),
           ),
-          viewJourney ? _travelInfoWidget(state) : _leaderboard(state),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -656,29 +672,48 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _tabBar() {
+  Widget _tabBar(BuildContext context) {
     return Row(
       children: [
-        _tab("journey".tr(), viewJourney),
-        _tab("leaderboard".tr(), !viewJourney),
+        Expanded(child: _tab(context, "journey".tr(), viewJourney)),
+        const SizedBox(width: 15),
+        Expanded(child: _tab(context, "leaderboard".tr(), !viewJourney)),
       ],
     );
   }
 
-  Widget _tab(String text, bool isSelected) {
-    const activeBackground = Color.fromRGBO(240, 148, 62, 1);
-    return Expanded(
-        child: PostcardButton(
-            color: isSelected ? activeBackground : AppColor.auGreyBackground,
-            textColor: isSelected ? null : AppColor.white,
-            text: text,
-            onTap: () {
-              if (!isSelected) {
-                setState(() {
-                  viewJourney = !viewJourney;
-                });
-              }
-            }));
+  Widget _tab(BuildContext context, String text, bool isSelected) {
+    final theme = Theme.of(context);
+    const selectedColor = Color.fromRGBO(247, 207, 70, 1);
+    return GestureDetector(
+      onTap: () {
+        if (!isSelected) {
+          setState(() {
+            viewJourney = !viewJourney;
+          });
+        }
+      },
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                text,
+                style: theme.textTheme.moMASans700Black12.copyWith(
+                    color: isSelected ? selectedColor : AppColor.auGrey),
+              ),
+              const SizedBox(height: 12),
+              addOnlyDivider(color: AppColor.auGrey),
+            ],
+          ),
+          Positioned.fill(
+              child: Container(
+            color: Colors.transparent,
+          )),
+        ],
+      ),
+    );
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
@@ -745,7 +780,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardProgress(AssetToken asset) {
     final theme = Theme.of(context);
-    NumberFormat numberFormatter = NumberFormat("00");
     final travelInfo = asset.postcardMetadata.listTravelInfoWithoutLocationName;
     final currentStampNumber = asset.postcardMetadata.numberOfStamp;
     return Column(
@@ -1038,8 +1072,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return _travelWidget(lastTravelInfo, onTap: () {});
   }
 
-  Widget _leaderboard(PostcardDetailState state) {
-    return const Text("Here is leader board");
+  Widget _leaderboard(BuildContext context, PostcardDetailState state) {
+    return PostcardLeaderboardView(
+      leaderboard: state.leaderboard,
+      assetToken: state.assetToken,
+    );
   }
 }
 
@@ -1060,6 +1097,65 @@ class PostcardIdentity {
     return {
       "id": id,
       "owner": owner,
+    };
+  }
+}
+
+class PostcardLeaderboardItem {
+  String id;
+  int rank;
+  String title;
+  double totalDistance;
+
+  PostcardLeaderboardItem({
+    required this.id,
+    required this.rank,
+    required this.title,
+    required this.totalDistance,
+  });
+
+  static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) {
+    return PostcardLeaderboardItem(
+      id: json['token_id'],
+      rank: json['rank'],
+      title: json['title'] ?? "",
+      totalDistance: json['mileage'].toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "rank": rank,
+      "title": title,
+      "totalDistance": totalDistance,
+    };
+  }
+}
+
+class PostcardLeaderboard {
+  List<PostcardLeaderboardItem> items;
+  DateTime lastUpdated;
+
+  PostcardLeaderboard({
+    required this.items,
+    required this.lastUpdated,
+  });
+
+  static PostcardLeaderboard fromJson(Map<String, dynamic> json) {
+    return PostcardLeaderboard(
+      items: json['items']
+          .map<PostcardLeaderboardItem>(
+              (item) => PostcardLeaderboardItem.fromJson(item))
+          .toList(),
+      lastUpdated: DateTime.parse(json['lastUpdated']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "items": items.map((item) => item.toJson()).toList(),
+      "lastUpdated": lastUpdated.toIso8601String(),
     };
   }
 }

@@ -15,7 +15,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -253,15 +253,17 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
 
                         String? address;
                         if (addresses.isEmpty) {
-                          final defaultAccount =
-                              await _accountService.getDefaultAccount();
-
+                          final defaultPersona =
+                              await _accountService.getOrCreateDefaultPersona();
+                          final walletAddress =
+                              await defaultPersona.insertNextAddress(
+                                  blockchain.toLowerCase() == "tezos"
+                                      ? WalletType.Tezos
+                                      : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
                           _metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
-                          address = blockchain == "Tezos"
-                              ? await defaultAccount.getTezosAddress()
-                              : await defaultAccount.getETHEip55Address();
+                          address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {
@@ -372,6 +374,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           "id": widget.payload.series.id,
         },
       );
+      _configService.setAlreadyClaimedAirdrop(seriesId, true);
     } catch (e) {
       setState(() {
         _processing = false;

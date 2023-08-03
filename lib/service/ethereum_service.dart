@@ -96,10 +96,10 @@ class EthereumServiceImpl extends EthereumService {
       );
       return gasPrice.multipleBy(gas);
     } catch (err) {
-      //Cannot estimate return default value
       if (data != null && data.isNotEmpty) {
-        return gasPrice.multipleBy(BigInt.from(100000));
+        rethrow;
       } else {
+        //Cannot estimate return default value for sending ETH
         return gasPrice.multipleBy(BigInt.from(21000));
       }
     }

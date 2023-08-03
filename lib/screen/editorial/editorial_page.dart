@@ -17,12 +17,12 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'article/article_view.dart';
@@ -141,115 +141,110 @@ class EditorialPageState extends State<EditorialPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 0,
-      ),
+      appBar: getDarkEmptyAppBar(),
       backgroundColor: theme.primaryColor,
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            headDivider(),
-            Container(
-              padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    mainAxisAlignment: _showFullHeader
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (_showFullHeader)
-                        const AutonomyLogo(
-                          isWhite: true,
-                        ),
-                      Hero(
-                        tag: "discover_tab",
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (widget.isShowDiscover) ...[
-                                  _tabWidget(
-                                      title: 'discover'.tr(),
-                                      unread: _feedService.unviewedCount),
-                                ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          headDivider(),
+          Container(
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  mainAxisAlignment: _showFullHeader
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (_showFullHeader)
+                      const AutonomyLogo(
+                        isWhite: true,
+                      ),
+                    Hero(
+                      tag: "discover_tab",
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (widget.isShowDiscover) ...[
                                 _tabWidget(
-                                    title: 'editorial'.tr(),
-                                    unread: _editorialService.unviewedCount),
+                                    title: 'discover'.tr(),
+                                    unread: _feedService.unviewedCount),
                               ],
-                            ),
-                            TabBar(
-                              controller: _tabController,
-                              indicatorSize: TabBarIndicatorSize.label,
-                              labelPadding: const EdgeInsets.symmetric(
-                                horizontal: 5.0,
-                                vertical: 6.0,
-                              ).copyWith(bottom: 0),
-                              labelStyle: theme.textTheme.ppMori400White14,
-                              unselectedLabelStyle:
-                                  theme.textTheme.ppMori400Grey14,
-                              isScrollable: true,
-                              indicator: const BoxDecoration(
-                                border: Border(
-                                  top: BorderSide(color: AppColor.auSuperTeal),
-                                ),
+                              _tabWidget(
+                                  title: 'editorial'.tr(),
+                                  unread: _editorialService.unviewedCount),
+                            ],
+                          ),
+                          TabBar(
+                            controller: _tabController,
+                            indicatorSize: TabBarIndicatorSize.label,
+                            labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 5.0,
+                              vertical: 6.0,
+                            ).copyWith(bottom: 0),
+                            labelStyle: theme.textTheme.ppMori400White14,
+                            unselectedLabelStyle:
+                                theme.textTheme.ppMori400Grey14,
+                            isScrollable: true,
+                            indicator: const BoxDecoration(
+                              border: Border(
+                                top: BorderSide(color: AppColor.auSuperTeal),
                               ),
-                              tabs: [
-                                if (widget.isShowDiscover) ...[
-                                  Text(
-                                    'discover'.tr(),
-                                    style: const TextStyle(height: 0.8),
-                                  ),
-                                ],
+                            ),
+                            tabs: [
+                              if (widget.isShowDiscover) ...[
                                 Text(
-                                  'editorial'.tr(),
+                                  'discover'.tr(),
                                   style: const TextStyle(height: 0.8),
                                 ),
                               ],
-                            ),
-                          ],
-                        ),
+                              Text(
+                                'editorial'.tr(),
+                                style: const TextStyle(height: 0.8),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  if (widget.isShowDiscover) ...[
-                    FeedPreviewPage(
-                      controller: _feedController,
-                    ),
-                  ],
-                  BlocBuilder<EditorialBloc, EditorialState>(
-                      builder: (context, state) {
-                    return ListView.builder(
-                      controller: _editorialController,
-                      itemCount: state.editorial.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 32, bottom: 32),
-                          child: _postSection(state.editorial[index]),
-                        );
-                      },
-                    );
-                  })
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                if (widget.isShowDiscover) ...[
+                  FeedPreviewPage(
+                    controller: _feedController,
+                  ),
                 ],
-              ),
+                BlocBuilder<EditorialBloc, EditorialState>(
+                    builder: (context, state) {
+                  return ListView.builder(
+                    controller: _editorialController,
+                    itemCount: state.editorial.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 32, bottom: 32),
+                        child: _postSection(state.editorial[index]),
+                      );
+                    },
+                  );
+                })
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -229,7 +229,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
-      await injector<AccountService>().restoreIfNeeded(isCreateNew: false);
+      await injector<AccountService>().restoreIfNeeded();
     }
     // Check Universal Link
     final callingWCPrefix =

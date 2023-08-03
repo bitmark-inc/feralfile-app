@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -60,6 +60,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   bool _processing = false;
 
   final metricClient = injector.get<MetricClientService>();
+  final configurationService = injector.get<ConfigurationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -254,8 +255,14 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
 
                         String? address;
                         if (addresses.isEmpty) {
-                          final defaultAccount =
-                              await accountService.getDefaultAccount();
+                          final defaultPersona =
+                              await accountService.getOrCreateDefaultPersona();
+                          final walletAddress =
+                              await defaultPersona.insertNextAddress(
+                                  blockchain.toLowerCase() == "tezos"
+                                      ? WalletType.Tezos
+                                      : WalletType.Ethereum);
+
                           final configService =
                               injector<ConfigurationService>();
                           await configService.setDoneOnboarding(true);
@@ -263,9 +270,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                               .mixPanelClient
                               .initIfDefaultAccount();
                           await configService.setPendingSettings(true);
-                          address = blockchain == "Tezos"
-                              ? await defaultAccount.getTezosAddress()
-                              : await defaultAccount.getETHEip55Address();
+                          address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {
@@ -363,7 +368,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
           "id": widget.series.id,
         },
       );
-
+      configurationService.setAlreadyClaimedAirdrop(widget.series.id, true);
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");

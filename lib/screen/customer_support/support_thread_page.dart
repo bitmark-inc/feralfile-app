@@ -414,6 +414,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                                       loading = false;
                                     });
                                   }
+                                  setState(() {
+                                    loading = false;
+                                  });
                                 },
                               ),
                             );

@@ -273,7 +273,8 @@ class _FeedArtworkState extends State<FeedArtwork>
     with RouteAware, WidgetsBindingObserver {
   INFTRenderingWidget? _renderingWidget;
 
-  final _bloc = ArtworkPreviewDetailBloc(injector(), injector(), injector());
+  final _bloc =
+      ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
 
   @override
   void initState() {
@@ -585,7 +586,7 @@ class _FeedViewState extends State<FeedView> {
                                             child: Text(
                                               followingNames[i],
                                               style: theme
-                                                  .textTheme.ppMori400White14
+                                                  .textTheme.ppMori700White14
                                                   .copyWith(
                                                       color:
                                                           AppColor.auSuperTeal),
@@ -607,25 +608,33 @@ class _FeedViewState extends State<FeedView> {
                                         ])
                                     .flattened,
                                 const SizedBox(width: 4),
-                                RichText(
-                                  text: TextSpan(
-                                    style: theme.textTheme.ppMori400White14,
-                                    children: [
-                                      TextSpan(
-                                        text: events.first.actionRepresentation,
-                                      ),
-                                    ],
+                                if (followingNames
+                                    .join()
+                                    .trim()
+                                    .isNotEmpty) ...[
+                                  RichText(
+                                    text: TextSpan(
+                                      style: theme.textTheme.ppMori400White14,
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              events.first.actionRepresentation,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                ]
                               ],
                             ),
-                            const Spacer(),
-                            Text(
-                                events.length > 1
-                                    ? "last_time_format"
-                                        .tr(args: [followingTime])
-                                    : followingTime,
-                                style: theme.textTheme.ppMori400Grey14),
+                            if (followingNames.join().trim().isNotEmpty) ...[
+                              const Spacer(),
+                              Text(
+                                  events.length > 1
+                                      ? "last_time_format"
+                                          .tr(args: [followingTime])
+                                      : followingTime,
+                                  style: theme.textTheme.ppMori400Grey12),
+                            ]
                           ],
                         ),
                         const SizedBox(height: 10),

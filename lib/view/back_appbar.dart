@@ -204,5 +204,37 @@ AppBar getCloseAppBar(BuildContext context,
   );
 }
 
+AppBar getDarkEmptyAppBar() {
+  return AppBar(
+    systemOverlayStyle: systemUiOverlayDarkStyle,
+    toolbarHeight: 0,
+    shadowColor: Colors.transparent,
+    elevation: 0,
+  );
+}
+
+AppBar getLightEmptyAppBar() {
+  return AppBar(
+    systemOverlayStyle: systemUiOverlayLightStyle,
+    backgroundColor: Colors.transparent,
+    toolbarHeight: 0,
+    shadowColor: Colors.transparent,
+    elevation: 0,
+  );
+}
+
+SystemUiOverlayStyle get systemUiOverlayDarkStyle => const SystemUiOverlayStyle(
+      statusBarColor: AppColor.primaryBlack,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    );
+
+SystemUiOverlayStyle get systemUiOverlayLightStyle =>
+    const SystemUiOverlayStyle(
+      statusBarColor: AppColor.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    );
+
 // class MomaPallet to save colors
 // Path: lib/util/style.dart

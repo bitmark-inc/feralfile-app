@@ -1713,8 +1713,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a814a5e4854be32747d4d63028143ab1a65e881a
-      resolved-ref: a814a5e4854be32747d4d63028143ab1a65e881a
+      ref: c8cec315932ad48207c4e262588096307901c882
+      resolved-ref: c8cec315932ad48207c4e262588096307901c882
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1722,8 +1722,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4d04a415014abb1c9890ae0275be113653ace208"
-      resolved-ref: "4d04a415014abb1c9890ae0275be113653ace208"
+      ref: "4af920d485073af6b0b52634ad1726c96ac9a2ee"
+      resolved-ref: "4af920d485073af6b0b52634ad1726c96ac9a2ee"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2336,6 +2336,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  shimmer:
+    dependency: "direct main"
+    description:
+      name: shimmer
+      sha256: "1f1009b5845a1f88f1c5630212279540486f97409e9fc3f63883e71070d107bf"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   sky_engine:
     dependency: transitive
     description: flutter

@@ -213,7 +213,7 @@ class HmacAuthInterceptor extends Interceptor {
             sha256.convert(utf8.encode(json.encode(options.data))).bytes);
       }
       final canonicalString = List<String>.of([
-        options.path,
+        options.path.split("?").first,
         body,
         timestamp,
       ]).join("|");

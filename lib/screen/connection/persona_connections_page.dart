@@ -200,47 +200,42 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
+    return Scaffold(
+      appBar: getBackAppBar(context, title: 'connections'.tr(), onBack: () {
+        if (widget.payload.isBackHome) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pop();
+        }
       },
-      child: Scaffold(
-        appBar: getBackAppBar(context, title: 'connections'.tr(), onBack: () {
-          if (widget.payload.isBackHome) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.homePage,
-              (route) => false,
-            );
-          } else {
-            Navigator.of(context).pop();
-          }
-        },
-            icon: SvgPicture.asset(
-              'assets/images/more_circle.svg',
-              width: 22,
-              color: AppColor.primaryBlack,
-            ),
-            action: _showConnectionOption),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              addTitleSpace(),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.payload.type == CryptoType.ETH ||
-                          widget.payload.type == CryptoType.XTZ) ...[
-                        _connectionsSection(),
-                      ],
+          icon: SvgPicture.asset(
+            'assets/images/more_circle.svg',
+            width: 22,
+            color: AppColor.primaryBlack,
+          ),
+          action: _showConnectionOption),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.payload.type == CryptoType.ETH ||
+                        widget.payload.type == CryptoType.XTZ) ...[
+                      _connectionsSection(),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

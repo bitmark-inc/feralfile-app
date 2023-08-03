@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/network.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -103,6 +104,24 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           break;
         default:
           addresses = [];
+      }
+      if (event.autoAddAddress) {
+        final persona =
+            await injector<AccountService>().getOrCreateDefaultPersona();
+        if (event.getEth &&
+            addresses.none(
+                (element) => element.cryptoType == CryptoType.ETH.source)) {
+          final ethAddress =
+              await persona.insertNextAddress(WalletType.Ethereum);
+          addresses.add(ethAddress.first);
+        }
+        if (event.getTezos &&
+            addresses.none(
+                (element) => element.cryptoType == CryptoType.XTZ.source)) {
+          final tezosAddress =
+              await persona.insertNextAddress(WalletType.Tezos);
+          addresses.add(tezosAddress.first);
+        }
       }
 
       List<Account> accounts = await getAccountPersona(addresses);

@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -266,17 +268,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           backgroundColor: theme.colorScheme.primary,
           resizeToAvoidBottomInset: !hasKeyboard,
           appBar: AppBar(
+            systemOverlayStyle: systemUiOverlayDarkStyle,
             leadingWidth: 0,
             centerTitle: false,
             title: ArtworkDetailsHeader(
               title: asset.title ?? "",
               subTitle: subTitle,
-              onTitleTap: widget.payload.useIndexer &&
-                      asset.secondaryMarketURL.isValidUrl() == true
+              onTitleTap: asset.secondaryMarketURL.isValidUrl() == true
                   ? () {
                       Navigator.of(context).pushNamed(AppRouter.irlWebView,
                           arguments: asset.secondaryMarketURL);
                     }
+                  : null,
+              onSubTitleTap: asset.artistID != null
+                  ? () => Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                      arguments: GalleryPagePayload(
+                        address: asset.artistID!,
+                        artistName: artistName!,
+                        artistURL: asset.artistURL,
+                      ))
                   : null,
             ),
             actions: [

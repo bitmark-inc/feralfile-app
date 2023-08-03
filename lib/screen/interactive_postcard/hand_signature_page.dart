@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
@@ -43,8 +44,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   Future<void> resizeStamp() async {
-    final image = await resizeImage(
-        ResizeImageParams(img.decodePng(widget.payload.image)!, 400, 400));
+    final image = await resizeImage(ResizeImageParams(
+        img.decodePng(widget.payload.image)!, STAMP_SIZE, STAMP_SIZE));
     log.info('[POSTCARD] resized image: ${image.toString()}');
     setState(() {
       resizedStamp = img.encodePng(image);
@@ -167,9 +168,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       ]);
       final bytes = await data.toByteData(format: ImageByteFormat.png);
       final signature = img.decodePng(bytes!.buffer.asUint8List());
-      final newHeight = signature!.height * 400 ~/ signature.width;
-      final resizedSignature =
-          await resizeImage(ResizeImageParams(signature, 400, newHeight));
+      final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
+      final resizedSignature = await resizeImage(
+          ResizeImageParams(signature, STAMP_SIZE, newHeight));
       if (resizedStamp == null) {
         await resizeStamp();
       }

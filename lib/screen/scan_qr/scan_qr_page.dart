@@ -213,7 +213,6 @@ class _ScanQRPageState extends State<ScanQRPage>
                                 create: (_) => PersonaBloc(
                                   injector<CloudDatabase>(),
                                   injector(),
-                                  injector(),
                                   injector<AuditService>(),
                                 ),
                               ),

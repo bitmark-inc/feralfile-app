@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/select_address.dart';
 import 'package:collection/collection.dart';
@@ -91,10 +92,13 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           .addressDao
           .getAddressesByType(cryptoType.source);
       if (addresses.isEmpty) {
-        return _logAndReturnJSResult(
-          '_getAddress',
-          JSResult.error('$chain addresses not found'),
-        );
+        final persona =
+            await injector<AccountService>().getOrCreateDefaultPersona();
+        final addedAddress = await persona.insertNextAddress(
+            cryptoType == CryptoType.XTZ
+                ? WalletType.Tezos
+                : WalletType.Ethereum);
+        addresses.add(addedAddress.first);
       }
       String? address;
       if (addresses.length == 1) {
