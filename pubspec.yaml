@@ -180,13 +180,7 @@ dependencies:
   shimmer: ^3.0.0
   bonsoir: ^2.2.0+1
 dependency_overrides:
-  # Error using when import photo_view from dependencies:
-  # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
-  photo_view:
-    git:
-      url: https://github.com/bluefireteam/photo_view
-      ref: c5fcfd
-  intl: 0.18.0
+  intl: 0.18.1
   flutter_svg: ^1.1.5
 
 dev_dependencies:

@@ -71,7 +71,6 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
-import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
@@ -84,7 +83,6 @@ import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -158,25 +156,25 @@ Future<void> setup() async {
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  dio.addSentry();
+  // dio.addSentry();
   dio.options = dioOptions;
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
-  authenticatedDio.interceptors.add(LoggingInterceptor());
-  dio.interceptors.add(RetryInterceptor(
-    dio: dio,
-    logPrint: (message) {
-      log.warning("[request retry] $message");
-    },
-    retryDelays: const [
-      // set delays between retries
-      Duration(seconds: 1),
-      Duration(seconds: 2),
-      Duration(seconds: 3),
-    ],
-  ));
-  authenticatedDio.addSentry();
+  // authenticatedDio.interceptors.add(LoggingInterceptor());
+  // dio.interceptors.add(RetryInterceptor(
+  //   dio: dio,
+  //   logPrint: (message) {
+  //     log.warning("[request retry] $message");
+  //   },
+  //   retryDelays: const [
+  //     // set delays between retries
+  //     Duration(seconds: 1),
+  //     Duration(seconds: 2),
+  //     Duration(seconds: 3),
+  //   ],
+  // ));
+  // authenticatedDio.addSentry();
   authenticatedDio.options = dioOptions;
 
   // Services
@@ -223,7 +221,7 @@ Future<void> setup() async {
       : Environment.tzktMainnetURL;
   injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
-  injector.registerLazySingleton(() => BranchApi(dio));
+  injector.registerLazySingleton(() => BranchApi(Dio()));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
@@ -424,7 +422,7 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
-  dio.addSentry();
+  // dio.addSentry();
   dio.options = options;
   return dio;
 }
@@ -433,7 +431,7 @@ Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.addSentry();
+  // dio.addSentry();
   dio.options = options;
   return dio;
 }
@@ -443,7 +441,7 @@ Dio _airdropDio(BaseOptions options) {
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AirdropInterceptor());
-  dio.addSentry();
+  // dio.addSentry();
   dio.options = options;
   return dio;
 }
