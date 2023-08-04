@@ -122,7 +122,7 @@ final moMAGeoLocation =
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
-const int STAMP_SIZE = 1080;
+const int STAMP_SIZE = 2160;
 
 const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
 const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
