@@ -29,6 +29,8 @@ import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
@@ -59,6 +61,8 @@ abstract class AccountService {
   });
 
   Future androidBackupKeys();
+
+  Future<void> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
@@ -364,6 +368,10 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Connection> linkManuallyAddress(
       String address, CryptoType cryptoType) async {
+    final personaAddress = await _cloudDB.addressDao.getAllAddresses();
+    if (personaAddress.any((element) => element.address == address)) {
+      throw LinkAddress(message: "Address is already imported in this account");
+    }
     final connection = Connection(
       key: address,
       name: cryptoType.source,
@@ -636,6 +644,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
+    await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
     final timestamp = DateTime.now();
     final walletAddresses = addresses
         .map((e) => WalletAddress(
@@ -757,6 +766,24 @@ class AccountServiceImpl extends AccountService {
   Future<WalletAddress?> getAddressPersona(String address) async {
     return await _cloudDB.addressDao.findByAddress(address);
   }
+
+  @override
+  Future<void> removeDoubleViewOnly(List<String> addresses) async {
+    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
+    final viewOnlyAddresses = linkedAccounts
+        .where((con) => addresses.contains(con.accountNumber))
+        .toList();
+    if (viewOnlyAddresses.isNotEmpty) {
+      final context = injector<NavigationService>().navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        await UIHelper.showInfoDialog(context, "Address already exists",
+            "You already have addresses ${viewOnlyAddresses.map((e) => e.accountNumber.mask(5))}  as view-only addresses. We will replace them with this newly generated addresses",
+            isDismissible: true, autoDismissAfter: 10);
+      }
+      Future.forEach<Connection>(viewOnlyAddresses,
+          (element) => _cloudDB.connectionDao.deleteConnection(element));
+    }
+  }
 }
 
 class AccountImportedException implements Exception {
@@ -769,4 +796,10 @@ class AccountException implements Exception {
   final String? message;
 
   AccountException({this.message});
+}
+
+class LinkAddress implements Exception {
+  final String message;
+
+  LinkAddress({required this.message});
 }

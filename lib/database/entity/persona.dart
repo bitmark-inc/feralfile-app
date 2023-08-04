@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -174,6 +175,8 @@ class Persona {
       default:
         addresses.addAll([ethAddress, tezAddress]);
     }
+    await injector<AccountService>()
+        .removeDoubleViewOnly(addresses.map((e) => e.address).toList());
     await injector<CloudDatabase>().addressDao.insertAddresses(addresses);
     await injector<AddressService>()
         .addAddresses(addresses.map((e) => e.address).toList());

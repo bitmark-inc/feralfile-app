@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -99,13 +100,22 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                 switch (cryptoType) {
                   case CryptoType.ETH:
                   case CryptoType.XTZ:
-                    final connection = await injector<AccountService>()
-                        .linkManuallyAddress(
-                            _controller.text.trim(), cryptoType);
-                    if (!mounted) return;
-                    Navigator.of(context).pushNamed(
-                        AppRouter.nameLinkedAccountPage,
-                        arguments: connection);
+                    try {
+                      final connection = await injector<AccountService>()
+                          .linkManuallyAddress(
+                              _controller.text.trim(), cryptoType);
+                      if (!mounted) return;
+                      Navigator.of(context).pushNamed(
+                          AppRouter.nameLinkedAccountPage,
+                          arguments: connection);
+                    } on LinkAddress catch (e) {
+                      setState(() {
+                        _isError = true;
+                      });
+                      UIHelper.showInfoDialog(
+                          context, "Address already exists", e.message,
+                          isDismissible: true, autoDismissAfter: 5);
+                    } catch (_) {}
                     break;
                   default:
                     setState(() {
