@@ -9,24 +9,15 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/account/import_account_page.dart';
-import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
-import 'package:autonomy_flutter/screen/account/link_ledger_page.dart';
-import 'package:autonomy_flutter/screen/account/link_metamask_page.dart';
-import 'package:autonomy_flutter/screen/account/link_tezos_kukai_page.dart';
-import 'package:autonomy_flutter/screen/account/link_tezos_temple_page.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
-import 'package:autonomy_flutter/screen/account/linked_account_details_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
-import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
@@ -147,8 +138,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
-import 'account/link_beacon_connect_page.dart';
-import 'account/link_manually_page.dart';
 import 'detail/preview/canvas_device_bloc.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 import 'onboarding/import_address/import_seeds.dart';
@@ -173,7 +162,6 @@ class AppRouter {
   static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
   static const settingsPage = "settings";
-  static const personaDetailsPage = "persona_details";
   static const personaConnectionsPage = "persona_connections";
   static const connectionDetailsPage = 'connection_details';
   static const linkedAccountDetailsPage = 'linked_account_details';
@@ -431,67 +419,6 @@ class AppRouter {
           fullscreenDialog: true,
           builder: (context) => const NotificationOnboardingPage(),
         );
-      case newAccountPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => personaBloc, child: NewAccountPage()));
-
-      case addAccountPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => personaBloc, child: const AddAccountPage()));
-
-      case accountsPreviewPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                ], child: const AccountsPreviewPage()));
-
-      case accessMethodPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider(
-                    create: (_) => FeralfileBloc.create(),
-                  ),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                ], child: const AccessMethodPage()));
-
-
-      case linkMetamaskPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: const LinkMetamaskPage()));
-
-      case linkTezosKukaiPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const LinkTezosKukaiPage());
-
-      case linkTezosTemplePage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const LinkTezosTemplePage());
-
-      case linkBeaconConnectPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) =>
-                LinkBeaconConnectPage(uri: settings.arguments as String));
-
-      case selectLedgerWalletPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const SelectLedgerPage());
 
       case AppRouter.namePersonaPage:
         return CupertinoPageRoute(
@@ -577,25 +504,6 @@ class AppRouter {
                       create: (_) => IdentityBloc(injector(), injector())),
                 ], child: const SettingsPage()));
 
-      case personaDetailsPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: ethereumBloc),
-                      BlocProvider.value(value: tezosBloc),
-                      BlocProvider.value(value: usdcBloc),
-                      BlocProvider(
-                        create: (_) => ScanWalletBloc(
-                          injector(),
-                          injector(),
-                        ),
-                      ),
-                    ],
-                    child: PersonaDetailsPage(
-                      persona: settings.arguments as Persona,
-                    )));
-
       case personaConnectionsPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -657,9 +565,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(
                   providers: [
-                    BlocProvider.value(value: accountsBloc),
-                    BlocProvider.value(value: ethereumBloc),
-                    BlocProvider.value(value: tezosBloc),
                     BlocProvider.value(value: usdcBloc),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
