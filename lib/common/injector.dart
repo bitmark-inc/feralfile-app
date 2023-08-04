@@ -158,15 +158,12 @@ Future<void> setup() async {
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  (dio.transformer as BackgroundTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry();
   dio.options = dioOptions;
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
-  (authenticatedDio.transformer as BackgroundTransformer).jsonDecodeCallback =
-      parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
@@ -427,7 +424,6 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
-  (dio.transformer as BackgroundTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry();
   dio.options = options;
   return dio;
@@ -437,7 +433,6 @@ Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  (dio.transformer as BackgroundTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry();
   dio.options = options;
   return dio;
@@ -448,12 +443,7 @@ Dio _airdropDio(BaseOptions options) {
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AirdropInterceptor());
-  (dio.transformer as BackgroundTransformer).jsonDecodeCallback = parseJson;
   dio.addSentry();
   dio.options = options;
   return dio;
-}
-
-parseJson(String text) {
-  return IsolatedUtil().parseAndDecode(text);
 }

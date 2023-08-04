@@ -349,8 +349,6 @@ class FeedServiceImpl extends FeedService {
     final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
     authenticatedDio.interceptors.add(_quickAuthInterceptor);
     authenticatedDio.interceptors.add(LoggingInterceptor());
-    (authenticatedDio.transformer as BackgroundTransformer).jsonDecodeCallback =
-        parseJson;
     authenticatedDio.options = BaseOptions(followRedirects: true);
     injector.registerLazySingleton(
         () => FeedApi(authenticatedDio, baseUrl: feedURL));
