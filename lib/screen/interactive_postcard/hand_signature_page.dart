@@ -116,7 +116,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                       alignment: Alignment.center,
                       icon: SvgPicture.asset(
                         'assets/images/icon_back.svg',
-                        color: AppColor.white,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.white, BlendMode.srcIn),
                       ),
                     ),
                     Expanded(

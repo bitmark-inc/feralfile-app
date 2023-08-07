@@ -663,7 +663,8 @@ class UIHelper {
             children: [
               SvgPicture.asset(
                 'assets/images/cast_icon.svg',
-                color: theme.disableColor,
+                colorFilter:
+                    ColorFilter.mode(theme.disableColor, BlendMode.srcIn),
               ),
               const SizedBox(
                 width: 17,
@@ -1138,7 +1139,8 @@ class UIHelper {
                   onPressed: () => Share.share(address),
                   icon: SvgPicture.asset(
                     'assets/images/Share.svg',
-                    color: AppColor.white,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
                   )),
             ]),
             const SizedBox(height: 40),

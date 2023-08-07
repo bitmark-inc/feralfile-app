@@ -90,7 +90,8 @@ Widget accountItem(BuildContext context, Account account,
               if (account.isHidden) ...[
                 SvgPicture.asset(
                   'assets/images/hide.svg',
-                  color: theme.colorScheme.surface,
+                  colorFilter: ColorFilter.mode(
+                      theme.colorScheme.surface, BlendMode.srcIn),
                 ),
               ],
               if (isViewAccount) ...[

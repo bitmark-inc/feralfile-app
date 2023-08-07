@@ -94,7 +94,9 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
                             children: [
                               SvgPicture.asset(
                                 "assets/images/iconInfo.svg",
-                                color: theme.colorScheme.secondary,
+                                colorFilter: ColorFilter.mode(
+                                    theme.colorScheme.secondary,
+                                    BlendMode.srcIn),
                               ),
                               const SizedBox(
                                 width: 15,

@@ -427,9 +427,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     label: "fullscreen_icon",
                                     child: SvgPicture.asset(
                                       'assets/images/fullscreen_icon.svg',
-                                      color: isCasting
-                                          ? AppColor.disabledColor
-                                          : AppColor.white,
+                                      colorFilter: ColorFilter.mode(
+                                          isCasting
+                                              ? AppColor.disabledColor
+                                              : AppColor.white,
+                                          BlendMode.srcIn),
                                     ),
                                   ),
                                 ),
@@ -477,7 +479,9 @@ class CastButton extends StatelessWidget {
         label: 'cast_icon',
         child: SvgPicture.asset(
           'assets/images/cast_icon.svg',
-          color: isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
+          colorFilter: ColorFilter.mode(
+              isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
+              BlendMode.srcIn),
         ),
       ),
     );

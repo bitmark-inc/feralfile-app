@@ -214,7 +214,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
           icon: SvgPicture.asset(
             'assets/images/more_circle.svg',
             width: 22,
-            color: AppColor.primaryBlack,
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           ),
           action: _showConnectionOption),
       body: SafeArea(

@@ -386,7 +386,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       icon: SvgPicture.asset(
                         'assets/images/icon_chat.svg',
                         width: 22,
-                        color: AppColor.white,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.white, BlendMode.srcIn),
                       ),
                     ),
                   ),
@@ -915,7 +916,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         children: [
                           SvgPicture.asset(
                             "assets/images/arrow_3.svg",
-                            color: AppColor.primaryBlack,
+                            colorFilter: const ColorFilter.mode(
+                                AppColor.primaryBlack, BlendMode.srcIn),
                           ),
                           const SizedBox(width: 6),
                           Expanded(
@@ -1007,7 +1009,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           children: [
             SvgPicture.asset(
               "assets/images/arrow_3.svg",
-              color: AppColor.primaryBlack,
+              colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack, BlendMode.srcIn),
             ),
             const SizedBox(width: 6),
             Text(

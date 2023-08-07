@@ -414,7 +414,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
                 },
                 icon: SvgPicture.asset(
                   "assets/images/text_size.svg",
-                  color: AppColor.white,
+                  colorFilter:
+                      const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
                   width: 32,
                   height: 32,
                 ),
@@ -502,7 +503,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage>
             SvgPicture.asset(
               "assets/images/text_size.svg",
               width: 18,
-              color: AppColor.primaryBlack,
+              colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack, BlendMode.srcIn),
             ),
             const SizedBox(
               width: 40,

@@ -1838,7 +1838,10 @@ Widget _rowItem(
               const SizedBox(width: 8.0),
               SvgPicture.asset(
                 'assets/images/iconForward.svg',
-                color: theme.textTheme.ppMori400White12.color,
+                colorFilter: ColorFilter.mode(
+                    theme.textTheme.ppMori400White12.color ??
+                        AppColor.primaryBlack,
+                    BlendMode.srcIn),
               ),
             ]
           ],
