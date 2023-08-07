@@ -5,10 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -21,17 +17,12 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
 abstract class FeralFileService {
-  Future<FFAccount> getAccount(String token);
-
-  Future<FFAccount> getWeb3Account(WalletStorage wallet);
-
   Future<FFSeries> getAirdropSeriesFromExhibitionId(String id);
 
   Future<FFSeries> getSeries(String id);
@@ -60,42 +51,6 @@ class FeralFileServiceImpl extends FeralFileService {
     this._feralFileApi,
     this._accountService,
   );
-
-  @override
-  Future<FFAccount> getAccount(String token) async {
-    final response = await _feralFileApi.getAccount("Bearer $token");
-
-    final ffAccount = response["result"];
-    if (ffAccount == null) {
-      throw Exception('Invalid response');
-    }
-
-    return ffAccount;
-  }
-
-  @override
-  Future<FFAccount> getWeb3Account(WalletStorage wallet) async {
-    final token = await _getToken(wallet);
-    final response = await _feralFileApi.getAccount("Bearer $token");
-
-    final ffAccount = response["result"];
-    if (ffAccount == null) {
-      throw Exception('Invalid response');
-    }
-    return ffAccount;
-  }
-
-  Future<String> _getToken(WalletStorage wallet) async {
-    final address = await wallet.getETHEip55Address();
-    final timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final message = Secret.ffAuthorizationPrefix + timestamp;
-    final signature = await wallet
-        .ethSignPersonalMessage(Uint8List.fromList(utf8.encode(message)));
-    final rawToken = "$address|$message|$signature";
-    final bytes = utf8.encode(rawToken);
-    return base64.encode(bytes);
-  }
 
   @override
   Future<FFSeries> getAirdropSeriesFromExhibitionId(String id) async {

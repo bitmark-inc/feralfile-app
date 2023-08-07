@@ -15,11 +15,6 @@ part 'feralfile_api.g.dart';
 abstract class FeralFileApi {
   factory FeralFileApi(Dio dio, {String baseUrl}) = _FeralFileApi;
 
-  @GET("/api/accounts/me?includeWyre=true")
-  @CacheControl(noCache: true)
-  Future<Map<String, FFAccount>> getAccount(
-      @Header("Authorization") String bearerToken);
-
   @GET("/api/exhibitions/{exhibitionId}")
   Future<ExhibitionResponse> getExhibition(
       @Path("exhibitionId") String exhibitionId);
