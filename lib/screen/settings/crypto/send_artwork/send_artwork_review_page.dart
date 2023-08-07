@@ -10,7 +10,6 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
@@ -136,8 +135,6 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
             wallet, index, [operation],
             baseOperationCustomFee:
                 widget.payload.feeOption.tezosBaseOperationCustomFee);
-        final exchangeRateXTZ =
-            1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
 
         //post pending token to indexer
         if (opHash != null) {
@@ -157,53 +154,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
           );
           injector<TokensService>().postPendingToken(pendingTxParams);
         }
-
-        final tx = TZKTOperation(
-          bakerFee: 0,
-          block: '',
-          counter: 0,
-          gasLimit: 0,
-          hash: opHash ?? '',
-          gasUsed: 0,
-          id: 0,
-          level: 0,
-          quote: TZKTQuote(
-            usd: exchangeRateXTZ,
-          ),
-          timestamp: DateTime.now(),
-          type: 'transaction',
-          sender: TZKTActor(
-            address: address,
-          ),
-          target: TZKTActor(
-            address: widget.payload.address,
-          ),
-          amount: widget.payload.feeOptionValue
-              .getFee(widget.payload.feeOption)
-              .toInt(),
-        )..tokenTransfer = TZKTTokenTransfer(
-            id: 0,
-            level: 0,
-            from: TZKTActor(
-              address: address,
-            ),
-            to: TZKTActor(
-              address: widget.payload.address,
-            ),
-            timestamp: DateTime.now(),
-            amount: widget.payload.quantity.toString(),
-            token: TZKTToken(
-              tokenId: tokenId,
-              id: 0,
-              contract: TZKTActor(
-                  address: widget.payload.assetToken.contractAddress ?? ''),
-            ),
-            status: 'pending');
         if (!mounted) return;
         final payload = {
           "isTezos": true,
           "hash": opHash,
-          "tx": tx,
           "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
           "sentQuantity": widget.payload.quantity,
         };

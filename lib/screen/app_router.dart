@@ -30,7 +30,6 @@ import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
@@ -551,7 +550,6 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
-                    BlocProvider(create: (_) => TZKTTransactionBloc()),
                   ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
@@ -565,7 +563,6 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
-                    BlocProvider(create: (_) => TZKTTransactionBloc()),
                   ],
                   child: LinkedWalletDetailPage(
                       payload:
