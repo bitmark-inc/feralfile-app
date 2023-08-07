@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
-import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/crowd_sourcing_api.dart';
@@ -300,8 +299,6 @@ Future<void> setup() async {
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
       _feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
-  injector.registerLazySingleton<BitmarkApi>(
-      () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
