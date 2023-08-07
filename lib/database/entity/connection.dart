@@ -22,10 +22,7 @@ enum ConnectionType {
 }
 
 extension RawValue on ConnectionType {
-  String get rawValue =>
-      toString()
-          .split('.')
-          .last;
+  String get rawValue => toString().split('.').last;
 }
 
 @entity
@@ -124,7 +121,7 @@ class Connection {
         other.createdAt == createdAt;
   }
 
-  static Connection? getManuallyAddress (String? address) {
+  static Connection? getManuallyAddress(String? address) {
     if (address == null) return null;
     final cryptoType = CryptoType.fromAddress(address);
     if (cryptoType == CryptoType.UNKNOWN) return null;
@@ -140,10 +137,10 @@ class Connection {
   @override
   int get hashCode {
     return key.hashCode ^
-    name.hashCode ^
-    data.hashCode ^
-    connectionType.hashCode ^
-    accountNumber.hashCode ^
-    createdAt.hashCode;
+        name.hashCode ^
+        data.hashCode ^
+        connectionType.hashCode ^
+        accountNumber.hashCode ^
+        createdAt.hashCode;
   }
 }

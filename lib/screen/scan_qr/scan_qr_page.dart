@@ -126,15 +126,15 @@ class _ScanQRPageState extends State<ScanQRPage>
       appBar: _tabController.index == 0
           ? _qrCodeAppBar()
           : AppBar(
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
-        toolbarHeight: 0,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-      ),
+              systemOverlayStyle: const SystemUiOverlayStyle(
+                statusBarColor: Colors.white,
+                statusBarIconBrightness: Brightness.dark,
+                statusBarBrightness: Brightness.light,
+              ),
+              toolbarHeight: 0,
+              shadowColor: Colors.transparent,
+              elevation: 0,
+            ),
       body: Stack(
         children: <Widget>[
           if (!cameraPermission)
@@ -163,7 +163,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       _instructionView(),
                                     ],
@@ -187,8 +187,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                 create: (_) =>
                                     EthereumBloc(injector(), injector())),
                             BlocProvider(
-                              create: (_) =>
-                                  TezosBloc(injector(), injector()),
+                              create: (_) => TezosBloc(injector(), injector()),
                             ),
                           ], child: const GlobalReceivePage()),
                         ],
@@ -214,7 +213,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                               onTap: () {
                                 _tabController.animateTo(0,
                                     duration:
-                                    const Duration(milliseconds: 300));
+                                        const Duration(milliseconds: 300));
                                 setState(() {});
                               },
                               text: 'scan_code'.tr(),
@@ -233,7 +232,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                               onTap: () {
                                 _tabController.animateTo(1,
                                     duration:
-                                    const Duration(milliseconds: 300));
+                                        const Duration(milliseconds: 300));
                                 setState(() {});
                               },
                               text: 'show_my_code'.tr(),
