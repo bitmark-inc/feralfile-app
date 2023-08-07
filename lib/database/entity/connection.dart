@@ -7,23 +7,14 @@
 
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:floor/floor.dart';
 
 import 'package:autonomy_flutter/model/connection_supports.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:nft_collection/models/address_index.dart';
 
 enum ConnectionType {
-  walletConnect, // Autonomy connect to ETH Wallet
-  walletBrowserConnect, // Autonomy connect to ETH Browser wallet
-  dappConnect, // Autonomy connect to ETH Dapp
   beaconP2PPeer, // Autonomy connect to TZ Dapp
-  walletBeacon, // Autonomy connect to TZ Wallet
-  feralFileToken, // Autonomy connect to FF by read-only token
-  feralFileWeb3, // Autonomy connect to FF by Web3
-  ledger, // Autonomy connect to Ledger: ETH, TZ
   manuallyAddress,
   manuallyIndexerTokenID,
   walletConnect2, // Autonomy connect
@@ -31,7 +22,10 @@ enum ConnectionType {
 }
 
 extension RawValue on ConnectionType {
-  String get rawValue => toString().split('.').last;
+  String get rawValue =>
+      toString()
+          .split('.')
+          .last;
 }
 
 @entity
@@ -65,62 +59,6 @@ class Connection {
     required this.createdAt,
   });
 
-  factory Connection.fromFFToken(
-      String token, String source, FFAccount ffAccount) {
-    final ffConnection =
-        FeralFileConnection(source: source, ffAccount: ffAccount);
-
-    return Connection(
-      key: token,
-      name: ffAccount.alias,
-      data: json.encode(ffConnection),
-      connectionType: ConnectionType.feralFileToken.rawValue,
-      accountNumber: ffAccount.id,
-      createdAt: DateTime.now(),
-    );
-  }
-
-  factory Connection.fromFFWeb3(
-      String topic, String source, String personaAddress, FFAccount ffAccount) {
-    final ffWeb3Connection = FeralFileWeb3Connection(
-        personaAddress: personaAddress, source: source, ffAccount: ffAccount);
-
-    return Connection(
-      key: topic,
-      name: ffAccount.alias,
-      data: json.encode(ffWeb3Connection),
-      connectionType: ConnectionType.feralFileWeb3.rawValue,
-      accountNumber: ffAccount.id,
-      createdAt: DateTime.now(),
-    );
-  }
-
-  Connection copyFFWith(FFAccount ffAccount) {
-    final ffConnection = this.ffConnection;
-    final ffWeb3Connection = this.ffWeb3Connection;
-
-    var mergedName = ffAccount.alias;
-    if (name.isNotEmpty) {
-      mergedName = name;
-    }
-
-    if (ffConnection != null) {
-      final newFFConnection = FeralFileConnection(
-          source: ffConnection.source, ffAccount: ffAccount);
-
-      return copyWith(name: mergedName, data: json.encode(newFFConnection));
-    } else if (ffWeb3Connection != null) {
-      final newFFWeb3Connection = FeralFileWeb3Connection(
-          personaAddress: ffWeb3Connection.personaAddress,
-          source: ffWeb3Connection.source,
-          ffAccount: ffAccount);
-
-      return copyWith(name: mergedName, data: json.encode(newFFWeb3Connection));
-    } else {
-      throw Exception("incorrectDataFlow");
-    }
-  }
-
   Connection copyWith({
     String? key,
     String? name,
@@ -139,27 +77,6 @@ class Connection {
     );
   }
 
-  FeralFileConnection? get ffConnection {
-    if (connectionType != ConnectionType.feralFileToken.rawValue) return null;
-
-    final jsonData = json.decode(data);
-    return FeralFileConnection.fromJson(jsonData);
-  }
-
-  FeralFileWeb3Connection? get ffWeb3Connection {
-    if (connectionType != ConnectionType.feralFileWeb3.rawValue) return null;
-
-    final jsonData = json.decode(data);
-    return FeralFileWeb3Connection.fromJson(jsonData);
-  }
-
-  TezosConnection? get walletBeaconConnection {
-    if (connectionType != ConnectionType.walletBeacon.rawValue) return null;
-
-    final jsonData = json.decode(data);
-    return TezosConnection.fromJson(jsonData);
-  }
-
   BeaconConnectConnection? get beaconConnectConnection {
     if (connectionType != ConnectionType.beaconP2PPeer.rawValue) return null;
 
@@ -171,13 +88,6 @@ class Connection {
     if (connectionType != ConnectionType.walletConnect2.rawValue &&
         connectionType != ConnectionType.dappConnect2.rawValue) return null;
     return data;
-  }
-
-  LedgerConnection? get ledgerConnection {
-    if (connectionType != ConnectionType.ledger.rawValue) return null;
-
-    final jsonData = json.decode(data);
-    return LedgerConnection.fromJson(jsonData);
   }
 
   String get appName {
@@ -193,67 +103,13 @@ class Connection {
   }
 
   List<String> get accountNumbers {
-    switch (connectionType) {
-      case 'feralFileWeb3':
-      case 'feralFileToken':
-        var addresses = [accountNumber];
-        final ffAccount =
-            ffConnection?.ffAccount ?? ffWeb3Connection?.ffAccount;
-        final ethereumAddress = ffAccount?.ethereumAddress;
-        final tezosAddress = ffAccount?.tezosAddress;
-
-        if (ethereumAddress != null) addresses.add(ethereumAddress);
-        if (tezosAddress != null) addresses.add(tezosAddress);
-
-        return addresses;
-
-      default:
-        return accountNumber.split("||");
-    }
+    return accountNumber.split("||");
   }
 
   List<AddressIndex> get addressIndexes {
-    switch (connectionType) {
-      case 'feralFileWeb3':
-      case 'feralFileToken':
-        var addresses = [
-          AddressIndex(address: accountNumber, createdAt: createdAt)
-        ];
-        final ffAccount =
-            ffConnection?.ffAccount ?? ffWeb3Connection?.ffAccount;
-        final ethereumAddress = ffAccount?.ethereumAddress;
-        final tezosAddress = ffAccount?.tezosAddress;
-
-        if (ethereumAddress != null) {
-          addresses.add(
-              AddressIndex(address: ethereumAddress, createdAt: createdAt));
-        }
-        if (tezosAddress != null) {
-          addresses
-              .add(AddressIndex(address: tezosAddress, createdAt: createdAt));
-        }
-
-        return addresses;
-      case 'ledger':
-        final data = ledgerConnection;
-        final ethereumAddress = data?.etheremAddress.firstOrNull;
-        final tezosAddress = data?.tezosAddress.firstOrNull;
-        List<AddressIndex> addresses = [];
-        if (ethereumAddress != null) {
-          addresses.add(
-              AddressIndex(address: ethereumAddress, createdAt: createdAt));
-        }
-        if (tezosAddress != null) {
-          addresses
-              .add(AddressIndex(address: tezosAddress, createdAt: createdAt));
-        }
-        return addresses;
-      default:
-        return accountNumber
-            .split("||")
-            .map((e) => AddressIndex(address: e, createdAt: createdAt))
-            .toList();
-    }
+    return accountNumbers
+        .map((e) => AddressIndex(address: e, createdAt: createdAt))
+        .toList();
   }
 
   @override
@@ -268,13 +124,26 @@ class Connection {
         other.createdAt == createdAt;
   }
 
+  static Connection? getManuallyAddress (String? address) {
+    if (address == null) return null;
+    final cryptoType = CryptoType.fromAddress(address);
+    if (cryptoType == CryptoType.UNKNOWN) return null;
+    return Connection(
+        key: address,
+        name: cryptoType.source,
+        data: "",
+        connectionType: ConnectionType.manuallyAddress.rawValue,
+        accountNumber: address,
+        createdAt: DateTime.now());
+  }
+
   @override
   int get hashCode {
     return key.hashCode ^
-        name.hashCode ^
-        data.hashCode ^
-        connectionType.hashCode ^
-        accountNumber.hashCode ^
-        createdAt.hashCode;
+    name.hashCode ^
+    data.hashCode ^
+    connectionType.hashCode ^
+    accountNumber.hashCode ^
+    createdAt.hashCode;
   }
 }

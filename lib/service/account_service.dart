@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -75,8 +74,6 @@ abstract class AccountService {
   Future<Persona> namePersona(Persona persona, String name);
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
-
-  Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
 
   Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType);
 
@@ -406,37 +403,6 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Connection> linkETHBrowserWallet(
-      String address, WalletApp walletApp) async {
-    final alreadyLinkedAccount = await getExistingAccount(address);
-    if (alreadyLinkedAccount != null) {
-      throw AlreadyLinkedException(alreadyLinkedAccount);
-    }
-
-    final connection = Connection(
-      key: address,
-      name: '',
-      data: walletApp.rawValue,
-      connectionType: ConnectionType.walletBrowserConnect.rawValue,
-      accountNumber: address,
-      createdAt: DateTime.now(),
-    );
-
-    await _cloudDB.connectionDao.insertConnection(connection);
-    final metricClient = injector.get<MetricClientService>();
-
-    metricClient.addEvent(MixpanelEvent.linkWallet, data: {
-      "wallet": walletApp.name,
-      "type": "browser",
-      "connectionType": connection.connectionType
-    }, hashedData: {
-      "address": address
-    });
-    _autonomyService.postLinkedAddresses();
-    return connection;
-  }
-
-  @override
   bool isLinkedAccountHiddenInGallery(String address) {
     return _configurationService.isLinkedAccountHiddenInGallery(address);
   }
@@ -620,17 +586,6 @@ class AccountServiceImpl extends AccountService {
           break;
       }
     }
-
-    // Linked accounts.
-    // Currently, only support tezos blockchain.
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    final linkedAddresses = linkedAccounts
-        .where((e) =>
-            e.connectionType == ConnectionType.walletBeacon.rawValue ||
-            e.connectionType == ConnectionType.beaconP2PPeer.rawValue)
-        .map((e) => e.accountNumber);
-    addresses.addAll(linkedAddresses);
 
     return addresses;
   }

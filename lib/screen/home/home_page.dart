@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -140,7 +139,6 @@ class HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    injector<FeralFileService>().completeDelayedFFConnections();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
     _checkForKeySync(context);

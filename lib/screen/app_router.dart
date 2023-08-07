@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
@@ -462,11 +461,10 @@ class AppRouter {
       case WCSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BlocProvider(
-              create: (_) => FeralfileBloc.create(),
-              child: WCSignMessagePage(
-                  args: settings.arguments as WCSignMessagePageArgs)),
+          builder: (context) => WCSignMessagePage(
+              args: settings.arguments as WCSignMessagePageArgs),
         );
+
       case WCSendTransactionPage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -487,10 +485,8 @@ class AppRouter {
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
-            child: BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: ScanQRPage(
-                    scannerItem: settings.arguments as ScannerItem)));
+            child: ScanQRPage(scannerItem: settings.arguments as ScannerItem));
+
       case settingsPage:
         return CupertinoPageRoute(
             settings: settings,

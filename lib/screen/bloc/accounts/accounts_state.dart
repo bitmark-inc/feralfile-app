@@ -34,17 +34,6 @@ class GetAccountsIRLEvent extends AccountsEvent {
   GetAccountsIRLEvent({this.param, this.blockchain});
 }
 
-class LinkLedgerWalletEvent extends AccountsEvent {
-  final String address;
-  final String blockchain;
-  final String ledgerName;
-  final String ledgerBLEUUID;
-  final Map<String, dynamic> data;
-
-  LinkLedgerWalletEvent(this.address, this.blockchain, this.ledgerName,
-      this.ledgerBLEUUID, this.data);
-}
-
 class NameLinkedAccountEvent extends AccountsEvent {
   final Connection connection;
   final String name;

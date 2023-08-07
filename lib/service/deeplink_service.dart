@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -127,7 +126,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
-          await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link) ||
           await _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
@@ -279,22 +277,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleFeralFileDeeplink(String link) async {
-    log.info("[DeeplinkService] _handleFeralFileDeeplink");
-
-    if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      _addScanQREvent(
-          link: link,
-          linkType: LinkType.feralFile,
-          prefix: FF_TOKEN_DEEPLINK_PREFIX);
-      await _linkFeralFileToken(
-          link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
-      return true;
-    }
-
-    return false;
-  }
-
   Future<bool> _handleIRL(String link) async {
     log.info("[DeeplinkService] _handleIRL");
     memoryValues.irlLink.value = link;
@@ -350,14 +332,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
     final source = data["source"];
     switch (source) {
-      case "FeralFile":
-        final String? tokenId = data["token_id"];
-        if (tokenId != null) {
-          log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
-          await _linkFeralFileToken(tokenId);
-        }
-        memoryValues.branchDeeplinkData.value = null;
-        break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
         final String? seriesId = data["series_id"];
@@ -449,26 +423,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         memoryValues.branchDeeplinkData.value = null;
     }
     _deepLinkHandlingMap.remove(data["~referring_link"]);
-  }
-
-  Future<void> _linkFeralFileToken(String tokenId) async {
-    final doneOnboarding = _configurationService.isDoneOnboarding();
-
-    final connection = await _feralFileService.linkFF(
-      tokenId,
-      delayLink: !doneOnboarding,
-    );
-
-    if (doneOnboarding) {
-      _navigationService.showFFAccountLinked(connection.name);
-
-      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-        _navigationService.popUntilHomeOrSettings();
-      });
-    } else {
-      _navigationService.showFFAccountLinked(connection.name,
-          inOnboarding: true);
-    }
   }
 
   Future _claimFFAirdropToken({

@@ -367,8 +367,6 @@ Future<void> setup() async {
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
         injector(),
-        injector(),
-        injector(),
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(

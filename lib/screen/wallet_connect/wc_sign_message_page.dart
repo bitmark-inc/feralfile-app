@@ -11,7 +11,6 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
@@ -28,7 +27,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
@@ -178,137 +176,70 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
   Widget _signButton(
       BuildContext pageContext, Uint8List message, String messageInUtf8) {
-    return BlocConsumer<FeralfileBloc, FeralFileState>(
-        listener: (context, state) {
-      if (state.event != null) {
-        Navigator.of(context).pop(true);
-      }
-
-      /***
-           * Temporary ignore checking state with FF, will remove in the future
-              if (event is LinkAccountSuccess) {
-              Navigator.of(context).pop();
-              return;
-              } else if (event is AlreadyLinkedError) {
-              // because user may be wanting to login FeralFile; so skip to show this error
-              // Thread: https://bitmark.slack.com/archives/C034EPS6CLS/p1648218027439049
-              Navigator.of(context).pop();
-              return;
-              } else if (event is FFUnlinked) {
-              Navigator.of(context).pop();
-              return;
-              } else if (event is FFNotConnected) {
-              showErrorDiablog(
-              context,
-              ErrorEvent(
-              null,
-              "uh_oh".tr(),
-              "must_create_ff".tr(),
-              //"To sign in with a Web3 wallet, you must first create a Feral File account then connect your wallet.",
-              ErrorItemState.close), defaultAction: () {
-              Navigator.of(context).popUntil((route) =>
-              route.settings.name == AppRouter.settingsPage ||
-              route.settings.name == AppRouter.homePage ||
-              route.settings.name == AppRouter.homePageNoTransition);
-              });
+    return Row(
+      children: [
+        Expanded(
+          child: PrimaryButton(
+            text: "sign".tr(),
+            onTap: () => withDebounce(() async {
+              final didAuthenticate =
+                  await LocalAuthenticationService.checkLocalAuth();
+              if (!didAuthenticate) {
+                return;
               }
-           */
-    }, builder: (context, state) {
-      return Row(
-        children: [
-          Expanded(
-            child: PrimaryButton(
-              text: "sign".tr(),
-              onTap: () => withDebounce(() async {
-                final didAuthenticate =
-                    await LocalAuthenticationService.checkLocalAuth();
-                if (!didAuthenticate) {
-                  return;
-                }
-                final args = widget.args;
-                final wc2Params = args.wc2Params;
-                final WalletIndex wallet;
-                String signature;
-                if (wc2Params != null) {
-                  final accountService = injector<AccountService>();
-                  wallet = await accountService.getAccountByAddress(
-                    chain: wc2Params.chain,
-                    address: wc2Params.address,
-                  );
-                  signature = await wallet.signMessage(
-                    chain: wc2Params.chain,
-                    message: wc2Params.message,
-                  );
-                } else {
-                  wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),
-                      widget.args.index);
-
-                  switch (widget.args.type) {
-                    case WCSignType.PERSONAL_MESSAGE:
-                    case WCSignType.MESSAGE:
-                      signature = await injector<EthereumService>()
-                          .signPersonalMessage(
-                              wallet.wallet, wallet.index, message);
-                      break;
-                    case WCSignType.TYPED_MESSAGE:
-                      signature = await injector<EthereumService>()
-                          .signMessage(wallet.wallet, wallet.index, message);
-                      break;
-                  }
-                }
-                await injector<Wc2Service>().respondOnApprove(
-                  args.topic,
-                  signature,
+              final args = widget.args;
+              final wc2Params = args.wc2Params;
+              final WalletIndex wallet;
+              String signature;
+              if (wc2Params != null) {
+                final accountService = injector<AccountService>();
+                wallet = await accountService.getAccountByAddress(
+                  chain: wc2Params.chain,
+                  address: wc2Params.address,
                 );
-
-                if (!mounted) return;
-
-                if (widget.args.peerMeta.url.contains("feralfile")) {
-                  if (messageInUtf8.contains("ff_request_connect".tr())) {
-                    context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                        widget.args.topic,
-                        widget.args.peerMeta.url,
-                        wallet.wallet,
-                        true));
-                  } else if (messageInUtf8.contains("ff_request_auth".tr())) {
-                    context.read<FeralfileBloc>().add(LinkFFWeb3AccountEvent(
-                        widget.args.topic,
-                        widget.args.peerMeta.url,
-                        wallet.wallet,
-                        false));
-                  } else if (messageInUtf8
-                      .contains("ff_request_auth_dis".tr())) {
-                    final matched =
-                        RegExp("Wallet address:\\n(0[xX][0-9a-fA-F]+)\\n")
-                            .firstMatch(messageInUtf8);
-                    final address = matched?.group(0)?.split("\n")[1].trim();
-                    if (address == null) {
-                      Navigator.of(context).pop(false);
-                      return;
-                    }
-                    context.read<FeralfileBloc>().add(UnlinkFFWeb3AccountEvent(
-                        source: widget.args.peerMeta.url, address: address));
-                  } else {
-                    Navigator.of(context).pop(true);
-                  }
-                  // result in listener - linkState.done
-                } else {
-                  Navigator.of(context).pop(true);
-                }
-                showInfoNotification(
-                  const Key("signed"),
-                  "signed".tr(),
-                  frontWidget: SvgPicture.asset(
-                    "assets/images/checkbox_icon.svg",
-                    width: 24,
-                  ),
+                signature = await wallet.signMessage(
+                  chain: wc2Params.chain,
+                  message: wc2Params.message,
                 );
-              }),
-            ),
-          )
-        ],
-      );
-    });
+              } else {
+                wallet = WalletIndex(
+                    LibAukDart.getWallet(widget.args.uuid), widget.args.index);
+
+                switch (widget.args.type) {
+                  case WCSignType.PERSONAL_MESSAGE:
+                  case WCSignType.MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signPersonalMessage(
+                            wallet.wallet, wallet.index, message);
+                    break;
+                  case WCSignType.TYPED_MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signMessage(wallet.wallet, wallet.index, message);
+                    break;
+                }
+              }
+              await injector<Wc2Service>().respondOnApprove(
+                args.topic,
+                signature,
+              );
+
+              if (!mounted) return;
+
+              Navigator.of(context).pop(true);
+
+              showInfoNotification(
+                const Key("signed"),
+                "signed".tr(),
+                frontWidget: SvgPicture.asset(
+                  "assets/images/checkbox_icon.svg",
+                  width: 24,
+                ),
+              );
+            }),
+          ),
+        )
+      ],
+    );
   }
 }
 
