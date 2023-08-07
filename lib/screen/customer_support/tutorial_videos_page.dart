@@ -37,11 +37,10 @@ class _TutorialVideoState extends State<TutorialVideo> {
   void _setVideoController(VideoData data) {
     _controller = YoutubePlayerController(
         params:
-            const YoutubePlayerParams(showFullscreenButton: true, mute: true))
-      ..onInit = () {
-        _controller!.loadVideoById(videoId: data.id);
-        _controller!.stopVideo();
-      };
+            const YoutubePlayerParams(showFullscreenButton: true, mute: true));
+
+    _controller!.loadVideoById(videoId: data.id);
+    _controller!.stopVideo();
   }
 
   void fetchVideosIds() {

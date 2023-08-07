@@ -7,7 +7,7 @@
 
 import Logging
 import Foundation
-import Sentry
+//import Sentry
 
 extension Logger {
     static let appLogURL = try! FileManager.default
@@ -59,6 +59,6 @@ extension Logger {
     func error(_ message: String) {
         let logger = Logger.Message(stringLiteral: "(\(Thread.current.hash)) \(message)")
         self.error(logger)
-        SentrySDK.capture(message: message)
+//        SentrySDK.capture(message: message)
     }
 }

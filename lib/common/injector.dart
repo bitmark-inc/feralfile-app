@@ -73,6 +73,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -156,25 +157,25 @@ Future<void> setup() async {
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  // dio.addSentry();
   dio.options = dioOptions;
+  dio.addSentry();
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
-  // authenticatedDio.interceptors.add(LoggingInterceptor());
-  // dio.interceptors.add(RetryInterceptor(
-  //   dio: dio,
-  //   logPrint: (message) {
-  //     log.warning("[request retry] $message");
-  //   },
-  //   retryDelays: const [
-  //     // set delays between retries
-  //     Duration(seconds: 1),
-  //     Duration(seconds: 2),
-  //     Duration(seconds: 3),
-  //   ],
-  // ));
-  // authenticatedDio.addSentry();
+  authenticatedDio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(RetryInterceptor(
+    dio: dio,
+    logPrint: (message) {
+      log.warning("[request retry] $message");
+    },
+    retryDelays: const [
+      // set delays between retries
+      Duration(seconds: 1),
+      Duration(seconds: 2),
+      Duration(seconds: 3),
+    ],
+  ));
+  authenticatedDio.addSentry();
   authenticatedDio.options = dioOptions;
 
   // Services
@@ -422,8 +423,8 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
-  // dio.addSentry();
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
 
@@ -431,8 +432,8 @@ Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  // dio.addSentry();
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
 
@@ -441,7 +442,7 @@ Dio _airdropDio(BaseOptions options) {
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AirdropInterceptor());
-  // dio.addSentry();
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
