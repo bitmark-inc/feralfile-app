@@ -290,11 +290,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       final assetToken = state.assetToken;
       if (assetToken != null) {
         final viewOnly = await assetToken.isViewOnly();
+        if (!mounted) return;
         setState(() {
           currentAsset = state.assetToken;
           isViewOnly = viewOnly;
         });
-        if (!mounted) return;
         if (withSharing) {
           _socialShare(context, assetToken);
           setState(() {
