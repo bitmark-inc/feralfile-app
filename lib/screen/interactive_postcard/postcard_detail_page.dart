@@ -85,6 +85,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
+  bool? isViewOnly;
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
@@ -284,14 +285,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (state.assetToken?.artists != null) {
         identitiesList.addAll(state.assetToken!.getArtists.map((e) => e.name));
       }
-      setState(() {
-        currentAsset = state.assetToken;
-      });
+
       if (!mounted) return;
       final assetToken = state.assetToken;
       if (assetToken != null) {
+        final viewOnly = await assetToken.isViewOnly();
+        if (!mounted) return;
+        setState(() {
+          currentAsset = state.assetToken;
+          isViewOnly = viewOnly;
+        });
         if (withSharing) {
-          _socialShare(context, state.assetToken!);
+          _socialShare(context, assetToken);
           setState(() {
             withSharing = false;
           });
@@ -331,7 +336,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               element.owner == assetToken.owner);
         }
       }
-
+      if (!mounted) return;
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
@@ -360,33 +365,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   hideArtist: true,
                 ),
                 actions: [
-                  Semantics(
-                    label: 'chat',
-                    child: IconButton(
-                      onPressed: () async {
-                        final wallet = await asset.getOwnerWallet();
-                        if (wallet == null || !mounted) return;
-                        Navigator.of(context).pushNamed(
-                          ChatThreadPage.tag,
-                          arguments: ChatThreadPagePayload(
-                              tokenId: asset.id,
-                              wallet: wallet.first,
-                              address: asset.owner,
-                              index: wallet.second,
-                              cryptoType: asset.blockchain == "ethereum"
-                                  ? CryptoType.ETH
-                                  : CryptoType.XTZ,
-                              name: asset.title ?? ''),
-                        );
-                      },
-                      constraints: const BoxConstraints(
-                        maxWidth: 44,
-                        maxHeight: 44,
-                      ),
-                      icon: SvgPicture.asset(
-                        'assets/images/icon_chat.svg',
-                        width: 22,
-                        color: AppColor.white,
+                  Visibility(
+                    visible: isViewOnly == false,
+                    child: Semantics(
+                      label: 'chat',
+                      child: IconButton(
+                        onPressed: () async {
+                          gotoChatThread(context);
+                        },
+                        constraints: const BoxConstraints(
+                          maxWidth: 44,
+                          maxHeight: 44,
+                        ),
+                        icon: SvgPicture.asset(
+                          'assets/images/icon_chat.svg',
+                          width: 22,
+                          color: AppColor.white,
+                        ),
                       ),
                     ),
                   ),
@@ -512,7 +507,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final theme = Theme.of(context);
     if (asset.postcardMetadata.isCompleted ||
         !state.isLastOwner ||
-        !state.postcardValueLoaded) {
+        !state.postcardValueLoaded ||
+        isViewOnly != false) {
       return const SizedBox();
     }
     if (state.isPostcardUpdatingOnBlockchain) {
