@@ -139,8 +139,10 @@ class _$AppDatabase extends AppDatabase {
 }
 
 class _$IdentityDao extends IdentityDao {
-  _$IdentityDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$IdentityDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _identityInsertionAdapter = InsertionAdapter(
             database,
             'Identity',
@@ -226,8 +228,10 @@ class _$IdentityDao extends IdentityDao {
 }
 
 class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
-  _$DraftCustomerSupportDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
+  _$DraftCustomerSupportDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _draftCustomerSupportInsertionAdapter = InsertionAdapter(
             database,
             'DraftCustomerSupport',
@@ -319,7 +323,10 @@ class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
   }
 
   @override
-  Future<void> updateIssueID(String oldIssueID, String newIssueID) async {
+  Future<void> updateIssueID(
+    String oldIssueID,
+    String newIssueID,
+  ) async {
     await _queryAdapter.queryNoReturn(
         'UPDATE DraftCustomerSupport SET issueID = ?2 WHERE issueID = ?1',
         arguments: [oldIssueID, newIssueID]);

@@ -13,7 +13,7 @@ import Web3
 import KukaiCoreSwift
 import Combine
 import flutter_downloader
-import Sentry
+//import Sentry
 import WalletConnectPairing
 import WalletConnectSign
 import WalletConnectRelay

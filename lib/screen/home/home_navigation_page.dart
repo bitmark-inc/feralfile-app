@@ -354,7 +354,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     if (!(await device.isSupportOS())) {
       final dio = Dio(BaseOptions(
         baseUrl: "https://raw.githubusercontent.com",
-        connectTimeout: 2000,
+        connectTimeout: const Duration(seconds: 5),
       ));
       final data = await dio.get<String>(REMOVE_CUSTOMER_SUPPORT);
       if (data.statusCode == 200) {

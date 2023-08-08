@@ -38,7 +38,7 @@ AppBar getBackAppBar(BuildContext context,
               constraints: const BoxConstraints(maxWidth: 36.0),
               icon: SvgPicture.asset(
                 'assets/images/icon_back.svg',
-                color: primaryColor,
+                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
               ),
             ),
           )
@@ -112,7 +112,7 @@ AppBar getTitleEditAppBar(BuildContext context,
               constraints: const BoxConstraints(maxWidth: 36.0),
               icon: SvgPicture.asset(
                 'assets/images/icon_back.svg',
-                color: primaryColor,
+                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
               ),
             ),
           )

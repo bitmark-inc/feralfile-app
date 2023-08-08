@@ -51,7 +51,7 @@ Future<File> _createLogFile(canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
 
 int? decodeErrorResponse(dynamic e) {
-  if (e is DioError && e.type == DioErrorType.response) {
+  if (e is DioException && e.type == DioExceptionType.badResponse) {
     return e.response?.data['error']['code'] as int;
   }
   return null;

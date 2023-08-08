@@ -128,7 +128,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
               width: 180,
               height: 180,
               child: wcURI != null
-                  ? QrImage(
+                  ? QrImageView(
                       data: wcURI,
                       size: 180.0,
                     )
@@ -137,7 +137,7 @@ class _LinkWalletConnectPageState extends State<LinkWalletConnectPage> {
                       ),
             ),
             onTap: () {
-              Clipboard.setData(ClipboardData(text: wcURI));
+              Clipboard.setData(ClipboardData(text: wcURI ?? ""));
               showInfoNotification(
                   const Key("beacon_deeplink"), "copied_to_clipboard".tr());
             },

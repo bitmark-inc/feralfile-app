@@ -71,9 +71,9 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
-import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -84,7 +84,6 @@ import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -153,20 +152,17 @@ Future<void> setup() async {
 
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
-    connectTimeout: 10000,
-    receiveTimeout: 10000,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = dioOptions;
+  dio.addSentry();
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
-  (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
-      parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
@@ -179,7 +175,7 @@ Future<void> setup() async {
       Duration(seconds: 3),
     ],
   ));
-  authenticatedDio.addSentry(captureFailedRequests: true);
+  authenticatedDio.addSentry();
   authenticatedDio.options = dioOptions;
 
   // Services
@@ -226,7 +222,7 @@ Future<void> setup() async {
       : Environment.tzktMainnetURL;
   injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
-  injector.registerLazySingleton(() => BranchApi(dio));
+  injector.registerLazySingleton(() => BranchApi(Dio()));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
@@ -314,8 +310,9 @@ Future<void> setup() async {
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      _postcardDio(
-          dioOptions.copyWith(connectTimeout: 30000, receiveTimeout: 30000)),
+      _postcardDio(dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30))),
       baseUrl: Environment.auClaimAPIURL));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
@@ -426,9 +423,8 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
 
@@ -436,9 +432,8 @@ Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
 
@@ -447,12 +442,7 @@ Dio _airdropDio(BaseOptions options) {
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AirdropInterceptor());
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = options;
+  dio.addSentry();
   return dio;
-}
-
-parseJson(String text) {
-  return IsolatedUtil().parseAndDecode(text);
 }

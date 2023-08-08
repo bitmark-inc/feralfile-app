@@ -40,7 +40,7 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class ArtworkPreviewPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
@@ -131,7 +131,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _uncasting();
     _focusNode.dispose();
     disableLandscapeMode();
-    Wakelock.disable();
+    WakelockPlus.disable();
     _timer?.cancel();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
@@ -151,14 +151,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
     enableLandscapeMode();
-    Wakelock.enable();
+    WakelockPlus.enable();
     super.didChangeDependencies();
   }
 
   @override
   void didPopNext() {
     enableLandscapeMode();
-    Wakelock.enable();
+    WakelockPlus.enable();
     setTimer();
     _renderingWidget?.didPopNext();
     super.didPopNext();
@@ -201,7 +201,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     disableLandscapeMode();
 
-    Wakelock.disable();
+    WakelockPlus.disable();
     _timer?.cancel();
 
     Navigator.of(context).pushNamed(
@@ -427,9 +427,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     label: "fullscreen_icon",
                                     child: SvgPicture.asset(
                                       'assets/images/fullscreen_icon.svg',
-                                      color: isCasting
-                                          ? AppColor.disabledColor
-                                          : AppColor.white,
+                                      colorFilter: ColorFilter.mode(
+                                          isCasting
+                                              ? AppColor.disabledColor
+                                              : AppColor.white,
+                                          BlendMode.srcIn),
                                     ),
                                   ),
                                 ),
@@ -477,7 +479,9 @@ class CastButton extends StatelessWidget {
         label: 'cast_icon',
         child: SvgPicture.asset(
           'assets/images/cast_icon.svg',
-          color: isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
+          colorFilter: ColorFilter.mode(
+              isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
+              BlendMode.srcIn),
         ),
       ),
     );

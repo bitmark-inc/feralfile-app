@@ -20,13 +20,13 @@ class _TZKTApi implements TZKTApi {
 
   @override
   Future<List<TZKTOperation>> getOperations(
-    address, {
-    type = "transaction",
-    quote = "usd",
-    sort = 1,
-    limit = 100,
-    lastId,
-    initiator,
+    String address, {
+    String type = "transaction",
+    String quote = "usd",
+    int sort = 1,
+    int limit = 100,
+    int? lastId,
+    String? initiator,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -39,7 +39,7 @@ class _TZKTApi implements TZKTApi {
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<List<dynamic>>(_setStreamType<List<TZKTOperation>>(Options(
       method: 'GET',
@@ -52,7 +52,11 @@ class _TZKTApi implements TZKTApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     var value = _result.data!
         .map((dynamic i) => TZKTOperation.fromJson(i as Map<String, dynamic>))
         .toList();
@@ -61,12 +65,12 @@ class _TZKTApi implements TZKTApi {
 
   @override
   Future<List<TZKTTokenTransfer>> getTokenTransfer({
-    anyOf,
-    to,
-    sort = "id",
-    limit,
-    lastId,
-    lastTime,
+    String? anyOf,
+    String? to,
+    String sort = "id",
+    int? limit,
+    int? lastId,
+    String? lastTime,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -79,7 +83,7 @@ class _TZKTApi implements TZKTApi {
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<List<dynamic>>(_setStreamType<List<TZKTTokenTransfer>>(Options(
       method: 'GET',
@@ -92,7 +96,11 @@ class _TZKTApi implements TZKTApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     var value = _result.data!
         .map((dynamic i) =>
             TZKTTokenTransfer.fromJson(i as Map<String, dynamic>))
@@ -102,9 +110,9 @@ class _TZKTApi implements TZKTApi {
 
   @override
   Future<List<int>> getBigMapsId({
-    required contract,
-    path = "postcards.postcards",
-    select = "ptr",
+    required String contract,
+    String path = "postcards.postcards",
+    String select = "ptr",
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -113,7 +121,7 @@ class _TZKTApi implements TZKTApi {
       r'select': select,
     };
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result =
         await _dio.fetch<List<dynamic>>(_setStreamType<List<int>>(Options(
       method: 'GET',
@@ -126,16 +134,20 @@ class _TZKTApi implements TZKTApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = _result.data!.cast<int>();
     return value;
   }
 
   @override
   Future<List<PostcardValue>> getBigMaps(
-    ptr, {
-    select = "value",
-    required key,
+    int ptr, {
+    String select = "value",
+    required String key,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -143,7 +155,7 @@ class _TZKTApi implements TZKTApi {
       r'key': key,
     };
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<List<dynamic>>(_setStreamType<List<PostcardValue>>(Options(
       method: 'GET',
@@ -156,7 +168,11 @@ class _TZKTApi implements TZKTApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     var value = _result.data!
         .map((dynamic i) => PostcardValue.fromJson(i as Map<String, dynamic>))
         .toList();
@@ -174,5 +190,22 @@ class _TZKTApi implements TZKTApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

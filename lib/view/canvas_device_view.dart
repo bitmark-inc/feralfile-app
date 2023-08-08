@@ -151,8 +151,11 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                     style: theme.textTheme.ppMori400Green14,
                   ),
                   const Spacer(),
-                  SvgPicture.asset("assets/images/joinFile.svg",
-                      color: AppColor.auSuperTeal),
+                  SvgPicture.asset(
+                    "assets/images/joinFile.svg",
+                    colorFilter: const ColorFilter.mode(
+                        AppColor.auSuperTeal, BlendMode.srcIn),
+                  ),
                 ],
               ),
             ),
@@ -262,7 +265,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         return GestureDetector(
           child: SvgPicture.asset(
             "assets/images/play_canvas_icon.svg",
-            color: AppColor.white,
+            colorFilter:
+                const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
           ),
           onTap: () {
             _bloc.add(CanvasDeviceCastSingleEvent(
@@ -276,7 +280,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
           },
           child: SvgPicture.asset(
             "assets/images/help_icon.svg",
-            color: AppColor.auSuperTeal,
+            colorFilter:
+                const ColorFilter.mode(AppColor.auSuperTeal, BlendMode.srcIn),
           ),
         );
     }

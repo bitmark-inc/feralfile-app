@@ -19,11 +19,11 @@ class _ActivationApi implements ActivationApi {
   String? baseUrl;
 
   @override
-  Future<ActivationInfo> getActivation(activationId) async {
+  Future<ActivationInfo> getActivation(String activationId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<ActivationInfo>(Options(
       method: 'GET',
@@ -36,13 +36,17 @@ class _ActivationApi implements ActivationApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ActivationInfo.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<ActivationClaimResponse> claim(body) async {
+  Future<ActivationClaimResponse> claim(ActivationClaimRequest body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -60,7 +64,11 @@ class _ActivationApi implements ActivationApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ActivationClaimResponse.fromJson(_result.data!);
     return value;
   }
@@ -76,5 +84,22 @@ class _ActivationApi implements ActivationApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

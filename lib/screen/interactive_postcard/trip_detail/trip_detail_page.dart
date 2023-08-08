@@ -110,7 +110,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   ),
                   SvgPicture.asset(
                     "assets/images/arrow_3.svg",
-                    color: AppColor.white,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
                   ),
                   Expanded(
                     child: Align(

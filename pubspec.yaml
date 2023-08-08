@@ -18,7 +18,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 0.36.0+121
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
 
 dependencies:
   after_layout: ^1.2.0
@@ -26,14 +26,13 @@ dependencies:
   bubble: ^1.2.1
   cached_network_image: ^3.2.1
   carousel_slider: ^4.2.1
-  cast: ^1.1.0
   collection: ^1.15.0
   confetti: ^0.7.0
-  connectivity_plus: ^3.0.0
+  connectivity_plus: ^4.0.1
   crypto: ^3.0.1
-  device_info_plus: ^3.2.1
-  dio: ^4.0.6
-  dio_smart_retry: ^1.2.0
+  device_info_plus: ^9.0.2
+  dio: ^5.3.2
+  dio_smart_retry: ^5.0.0
   easy_debounce: ^2.0.2+1
   fast_base58: ^0.2.1
   floor: ^1.2.0
@@ -51,13 +50,13 @@ dependencies:
   flutter_downloader:
     git:
       url: https://github.com/autonomy-system/flutter_downloader
-      ref: 77fe59498333190976959001fe9960a1fb4d27e2
-  flutter_fgbg: ^0.2.0
-  flutter_image_compress: ^1.1.0
+      ref: 965d4acdfd73deeee64ed69ac2cf36b6017f749b
+  flutter_fgbg: ^0.3.0
+  flutter_image_compress: ^2.0.4
   flutter_markdown: ^0.6.9
   flutter_native_splash: ^2.0.5
-  flutter_slidable: ^1.2.0
-  flutter_svg: ^1.1.5
+  flutter_slidable: ^3.0.0
+  flutter_svg: ^2.0.7
   flutter_switch: ^0.3.2
   flutter_to_airplay:
     git:
@@ -70,16 +69,16 @@ dependencies:
   hive: ^2.2.1
   hive_flutter: ^1.1.0
   http: ^0.13.2
-  image_picker: ^0.8.4+9
+  image_picker: ^1.0.1
   in_app_purchase: ^3.0.6
   infinite_scroll_pagination: ^3.2.0
-  intl: ^0.17.0
-  jiffy: ^5.0.0
+  intl: ^0.18.0
+  jiffy: ^6.2.1
   flutter_keyboard_visibility: ^5.4.1
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 6ab6dd6e42d577115783bc60279de559ed5cefc1
+      ref: 668ee3522ef6610d1323c0bb15cfd69b3602ea8c
   local_auth: ^2.1.0
   logging: ^1.0.2
   measured_size: ^1.0.0
@@ -88,11 +87,11 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 4af920d485073af6b0b52634ad1726c96ac9a2ee
+      ref: 01047611a1546a9ad791f587ebad76698feaac93
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
-  package_info_plus: ^1.4.0
+  package_info_plus: ^4.0.2
   page_transition: ^2.0.5
   path_provider: ^2.0.9
   permission_handler: ^10.0.0
@@ -100,8 +99,8 @@ dependencies:
   qr_flutter: ^4.0.0
   retrofit: null
   roundcheckbox: ^2.0.4+1
-  sentry_dio: ^6.4.0
-  sentry_flutter: ^6.4.0
+  sentry_dio: ^7.9.0
+  sentry_flutter: ^7.9.0
   shake: ^2.0.0
   share: ^2.0.4
   shared_preferences: ^2.0.0
@@ -110,12 +109,13 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 0cd68a902c8d2554227738594c62046571e57b4c
+      ref: 6780ff6374a254a2787a5bcfd850fc46f40351b6
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
-  version_check: ^0.3.0
-  wakelock: ^0.6.1+2
+  version_check: ^0.4.0
+  wakelock_plus: ^1.1.1
+  chewie: ^1.7.0
   wallet_connect:
     git:
       url: https://github.com/autonomy-system/wallet-connect-dart.git
@@ -129,14 +129,14 @@ dependencies:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
       ref: 9010ebc5d282391d174b90f3f1e3aa4f7f00388c
   marqueer: ^1.2.0
-  markdown: ^6.0.1
+  markdown: ^7.1.1
   easy_localization: ^3.0.1
   rxdart: ^0.27.1
   in_app_review: ^2.0.4
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: c8cec315932ad48207c4e262588096307901c882
+      ref: cc0b9eb2ba13f58906ee60ba2e3c8b54d709bb42
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -156,16 +156,16 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/eth-sig-util.git
       ref: 15334dee6a5bbd3047ce3af2bdd061906a2094e2
-  flutter_widget_from_html: ^0.9.0+1
+  flutter_widget_from_html: ^0.10.3
   readmore: ^2.2.0
   elliptic: ^0.3.8
-  sentry: 6.9.1
+  sentry: ^7.9.0
   path: ^1.8.2
   in_app_purchase_storekit: ^0.3.4
   in_app_purchase_android: ^0.2.3+7
   convert: ^3.1.1
   sqflite: ^2.2.2
-  slidable_button: ^2.0.0+1
+  slidable_button: ^3.0.0+1
   background_fetch: ^1.1.3
   syncfusion_flutter_signaturepad: ^20.4.53
   image: ^4.0.15
@@ -175,16 +175,12 @@ dependencies:
   html: ^0.15.1
   flutter_swiper_view: ^1.1.8
   video_player: ^2.4.8
-  youtube_player_iframe: ^3.1.0
-  awesome_notifications: ^0.7.4+1
-  shimmer: ^2.0.0
+  youtube_player_iframe: ^4.0.4
+  awesome_notifications: ^0.7.5-dev.3
+  shimmer: ^3.0.0
+  bonsoir: ^2.2.0+1
 dependency_overrides:
-  # Error using when import photo_view from dependencies:
-  # https://stackoverflow.com/questions/70404718/error-with-photoview-looking-up-a-deactivated-widgets-ancestor-is-unsafe/71010204#71010204
-  photo_view:
-    git:
-      url: https://github.com/bluefireteam/photo_view
-      ref: c5fcfd
+  intl: 0.18.0
 
 dev_dependencies:
   flutter_lints: null
@@ -195,7 +191,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  appium_driver: ^0.5.2
+  appium_driver: ^0.6.0
   json_serializable: null
   mockito: null
   retrofit_generator: null

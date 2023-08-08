@@ -109,7 +109,7 @@ class AddTokenWidget extends StatelessWidget {
         child: Center(
           child: SvgPicture.asset(
             "assets/images/joinFile.svg",
-            color: theme.primaryColor,
+            colorFilter: ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
           ),
         ),
       ),

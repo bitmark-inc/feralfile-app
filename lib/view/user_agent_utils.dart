@@ -74,12 +74,13 @@ class _MobileInfo extends IDeviceInfo {
   Future<bool> _checkIsTablet() async {
     if (isIOS) {
       final info = await _deviceInfo.iosInfo;
-      final machine = info.utsname.machine!.toLowerCase();
-      final model = info.model!.toLowerCase();
+      final machine = info.utsname.machine.toLowerCase();
+      final model = info.model.toLowerCase();
       return machine.contains('ipad') || model.contains('ipad');
     }
     if (isAndroid) {
-      final data = MediaQueryData.fromWindow(WidgetsBinding.instance.window);
+      final data = MediaQueryData.fromView(
+          WidgetsBinding.instance.platformDispatcher.views.single);
       return data.size.shortestSide > 600;
     }
 
@@ -89,8 +90,7 @@ class _MobileInfo extends IDeviceInfo {
   Future<int> getAndroidSdkInt() async {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
-      final sdkInt = androidInfo.version.sdkInt ?? -1;
-      return sdkInt;
+      return androidInfo.version.sdkInt;
     } else {
       return -1;
     }
@@ -101,11 +101,11 @@ class _MobileInfo extends IDeviceInfo {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
       final version = androidInfo.version.release;
-      return version == null || int.parse(version.split(".")[0]) > 8;
+      return version.isEmpty || int.parse(version.split(".")[0]) > 8;
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
       final version = iOSInfo.systemVersion;
-      return version == null || int.parse(version.split(".")[0]) > 14;
+      return version.isEmpty || int.parse(version.split(".")[0]) > 14;
     }
   }
 }

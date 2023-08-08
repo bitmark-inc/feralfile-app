@@ -100,7 +100,7 @@ class AuFileService extends FileService {
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) async {
       String id = data[0];
-      DownloadTaskStatus status = DownloadTaskStatus(data[1]);
+      DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1] as int);
       int progress = data[2];
       await _downloadCallback(id, status, progress);
     });

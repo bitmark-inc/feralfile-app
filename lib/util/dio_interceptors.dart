@@ -25,7 +25,7 @@ class LoggingInterceptor extends Interceptor {
   static final List<String> _skipLogPaths = [Environment.pubdocURL];
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
     final message = err.message;
     apiLog.info("API Request: $curl");
@@ -113,7 +113,7 @@ class SentryInterceptor extends InterceptorsWrapper {
   }
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
     Sentry.addBreadcrumb(
       Breadcrumb(
         type: 'http',
@@ -182,15 +182,16 @@ class FeralfileAuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    DioException exp = err;
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      err.error = FeralfileError.fromJson(errorBody["error"]);
+      exp = err.copyWith(error: FeralfileError.fromJson(errorBody["error"]));
     } catch (e) {
       log.info(
           "[FeralfileAuthInterceptor] Can't parse error. ${err.response?.data}");
     } finally {
-      handler.next(err);
+      handler.next(exp);
     }
   }
 }
@@ -229,17 +230,18 @@ class HmacAuthInterceptor extends Interceptor {
 
 class AirdropInterceptor extends Interceptor {
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    DioException exp = err;
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
       final json = errorBody["message"] != null
           ? jsonDecode(errorBody["message"])
           : errorBody;
-      err.error = FeralfileError.fromJson(json["error"]);
+      exp = err.copyWith(error: FeralfileError.fromJson(json["error"]));
     } catch (e) {
       log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
     } finally {
-      handler.next(err);
+      handler.next(exp);
     }
   }
 }
