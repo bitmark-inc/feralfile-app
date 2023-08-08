@@ -370,12 +370,12 @@ class AccountServiceImpl extends AccountService {
       String address, CryptoType cryptoType) async {
     final personaAddress = await _cloudDB.addressDao.getAllAddresses();
     if (personaAddress.any((element) => element.address == address)) {
-      throw LinkAddress(message: "already_imported_address".tr());
+      throw LinkAddressException(message: "already_imported_address".tr());
     }
     final doubleConnections =
         await _cloudDB.connectionDao.getConnectionsByAccountNumber(address);
     if (doubleConnections.isNotEmpty) {
-      throw LinkAddress(message: "already_viewing_address".tr());
+      throw LinkAddressException(message: "already_viewing_address".tr());
     }
     final connection = Connection(
       key: address,
@@ -792,7 +792,7 @@ class AccountServiceImpl extends AccountService {
         .toList();
     if (viewOnlyAddresses.isNotEmpty) {
       result.addAll(viewOnlyAddresses);
-      Future.forEach<Connection>(viewOnlyAddresses,
+      await Future.forEach<Connection>(viewOnlyAddresses,
           (element) => _cloudDB.connectionDao.deleteConnection(element));
     }
     return result;
@@ -811,8 +811,8 @@ class AccountException implements Exception {
   AccountException({this.message});
 }
 
-class LinkAddress implements Exception {
+class LinkAddressException implements Exception {
   final String message;
 
-  LinkAddress({required this.message});
+  LinkAddressException({required this.message});
 }

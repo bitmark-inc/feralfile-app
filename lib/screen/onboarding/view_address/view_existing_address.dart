@@ -109,7 +109,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                       Navigator.of(context).pushNamed(
                           AppRouter.nameLinkedAccountPage,
                           arguments: connection);
-                    } on LinkAddress catch (e) {
+                    } on LinkAddressException catch (e) {
                       setState(() {
                         _isError = true;
                       });
