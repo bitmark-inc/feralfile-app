@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -113,7 +114,10 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                         _isError = true;
                       });
                       UIHelper.showInfoDialog(context, e.message, "",
-                          isDismissible: true, closeButton: "close".tr());
+                          isDismissible: true,
+                          closeButton: "close".tr(), onClose: () {
+                        injector<NavigationService>().popUntilHome();
+                      });
                     } catch (_) {}
                     break;
                   default:
