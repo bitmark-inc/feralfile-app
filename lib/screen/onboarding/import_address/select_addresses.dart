@@ -177,12 +177,14 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                         setState(() {
                           _addingAddresses = true;
                         });
-                        await injector<AccountService>().addAddressPersona(
-                            widget.payload.persona, _selectedAddresses);
+                        final didReplaceConnection =
+                            await injector<AccountService>().addAddressPersona(
+                                widget.payload.persona, _selectedAddresses);
                         setState(() {
                           _addingAddresses = false;
                         });
-                        if (_selectedAddresses.length > 1) {
+                        if (_selectedAddresses.length > 1 ||
+                            didReplaceConnection) {
                           if (!mounted) return;
                           doneNaming(context);
                         } else {

@@ -112,9 +112,8 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                       setState(() {
                         _isError = true;
                       });
-                      UIHelper.showInfoDialog(
-                          context, "Address already exists", e.message,
-                          isDismissible: true, autoDismissAfter: 5);
+                      UIHelper.showInfoDialog(context, e.message, "",
+                          isDismissible: true, closeButton: "close".tr());
                     } catch (_) {}
                     break;
                   default:

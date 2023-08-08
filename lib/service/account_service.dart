@@ -29,11 +29,11 @@ import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -62,7 +62,7 @@ abstract class AccountService {
 
   Future androidBackupKeys();
 
-  Future<void> removeDoubleViewOnly(List<String> addresses);
+  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
@@ -107,7 +107,7 @@ abstract class AccountService {
 
   Future<String> authorizeToViewer();
 
-  Future<Persona> addAddressPersona(
+  Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses);
 
   Future<void> deleteAddressPersona(
@@ -370,7 +370,12 @@ class AccountServiceImpl extends AccountService {
       String address, CryptoType cryptoType) async {
     final personaAddress = await _cloudDB.addressDao.getAllAddresses();
     if (personaAddress.any((element) => element.address == address)) {
-      throw LinkAddress(message: "Address is already imported in this account");
+      throw LinkAddress(message: "already_imported_address".tr());
+    }
+    final doubleConnections =
+        await _cloudDB.connectionDao.getConnectionsByAccountNumber(address);
+    if (doubleConnections.isNotEmpty) {
+      throw LinkAddress(message: "already_viewing_address".tr());
     }
     final connection = Connection(
       key: address,
@@ -642,9 +647,15 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> addAddressPersona(
+  Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
-    await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
+    bool result = false;
+    final replacedConnections =
+        await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
+    if (replacedConnections.isNotEmpty) {
+      result = true;
+    }
+
     final timestamp = DateTime.now();
     final walletAddresses = addresses
         .map((e) => WalletAddress(
@@ -653,12 +664,17 @@ class AccountServiceImpl extends AccountService {
             index: e.index,
             cryptoType: e.getCryptoType().source,
             createdAt: timestamp,
-            name: e.getCryptoType().source))
+            name: replacedConnections
+                    .firstWhereOrNull((element) =>
+                        element.accountNumber == e.address &&
+                        element.name.isNotEmpty)
+                    ?.name ??
+                e.getCryptoType().source))
         .toList();
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
     await _addressService
         .addAddresses(addresses.map((e) => e.address).toList());
-    return newPersona;
+    return result;
   }
 
   @override
@@ -768,21 +784,18 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> removeDoubleViewOnly(List<String> addresses) async {
+  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses) async {
+    final List<Connection> result = [];
     final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
     final viewOnlyAddresses = linkedAccounts
         .where((con) => addresses.contains(con.accountNumber))
         .toList();
     if (viewOnlyAddresses.isNotEmpty) {
-      final context = injector<NavigationService>().navigatorKey.currentContext;
-      if (context != null && context.mounted) {
-        await UIHelper.showInfoDialog(context, "Address already exists",
-            "You already have addresses ${viewOnlyAddresses.map((e) => e.accountNumber.mask(5))}  as view-only addresses. We will replace them with this newly generated addresses",
-            isDismissible: true, autoDismissAfter: 10);
-      }
+      result.addAll(viewOnlyAddresses);
       Future.forEach<Connection>(viewOnlyAddresses,
           (element) => _cloudDB.connectionDao.deleteConnection(element));
     }
+    return result;
   }
 }
 
