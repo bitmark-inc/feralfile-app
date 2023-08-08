@@ -402,7 +402,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
     final theme = Theme.of(context);
     Function()? onValueTap;
 
-    if (onValueTap == null && tapLink != null) {
+    if (tapLink != null) {
       final uri = Uri.parse(tapLink);
       onValueTap = () => launchUrl(uri,
           mode: forceSafariVC == true

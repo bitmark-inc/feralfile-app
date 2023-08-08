@@ -69,7 +69,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
               Center(
                 child: GestureDetector(
                     onTap: copy,
-                    child: QrImage(
+                    child: QrImageView(
                       data: widget.payload.address,
                       size: 180.0,
                     )),

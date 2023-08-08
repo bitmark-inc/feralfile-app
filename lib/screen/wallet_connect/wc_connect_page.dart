@@ -210,6 +210,14 @@ class _WCConnectPageState extends State<WCConnectPage>
             connectionKey: address,
             accountNumber: address,
           );
+          metricClient.addEvent(
+            MixpanelEvent.connectExternal,
+            data: {
+              "method": "wallet_connect",
+              "name": connectionRequest.name,
+              "url": connectionRequest.url,
+            },
+          );
           payloadType = CryptoType.ETH;
           payloadAddress = address;
         }

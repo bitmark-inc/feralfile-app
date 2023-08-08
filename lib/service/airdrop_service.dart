@@ -134,7 +134,7 @@ class AirdropService {
           token: assetTokens.first, airdropInfo: series.airdropInfo!);
     } catch (e) {
       log.info("[Airdrop service] claimGift: $e");
-      if (e is DioError) {
+      if (e is DioException) {
         switch (e.response?.data['message']) {
           case "cannot self claim":
             _navigationService.showAirdropJustOnce();

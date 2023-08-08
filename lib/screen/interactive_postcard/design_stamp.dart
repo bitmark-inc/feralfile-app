@@ -186,7 +186,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                     child: SvgPicture.asset(
                                       "assets/images/Undo.svg",
                                       width: 16,
-                                      color: AppColor.greyMedium,
+                                      colorFilter: const ColorFilter.mode(
+                                          AppColor.greyMedium, BlendMode.srcIn),
                                     ),
                                   ),
                                   const SizedBox(width: 10),

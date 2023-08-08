@@ -494,7 +494,8 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               "assets/images/iconClose.svg",
               width: 20,
               height: 20,
-              color: AppColor.white,
+              colorFilter:
+                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
             ),
           ),
         ],
@@ -1130,9 +1131,11 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       inputTextColor: theme.colorScheme.secondary,
       attachmentButtonIcon: SvgPicture.asset(
         "assets/images/joinFile.svg",
-        color: _isFileAttached
-            ? AppColor.disabledColor
-            : theme.colorScheme.secondary,
+        colorFilter: ColorFilter.mode(
+            _isFileAttached
+                ? AppColor.disabledColor
+                : theme.colorScheme.secondary,
+            BlendMode.srcIn),
       ),
       inputBorderRadius: BorderRadius.zero,
       sendButtonIcon: SvgPicture.asset(

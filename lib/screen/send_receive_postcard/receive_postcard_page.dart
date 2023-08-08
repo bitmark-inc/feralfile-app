@@ -157,7 +157,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         Navigator.of(context)
             .pushNamed(AppRouter.postcardStartedPage, arguments: pendingToken);
       } catch (e) {
-        if (e is DioError) {
+        if (e is DioException) {
           if (!mounted) return;
           await UIHelper.showReceivePostcardFailed(
             context,

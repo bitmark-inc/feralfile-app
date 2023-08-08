@@ -94,7 +94,7 @@ class FeralFileServiceImpl extends FeralFileService {
       }
 
       connection = Connection.fromFFToken(token, ffSource, ffAccount);
-    } on DioError catch (error) {
+    } on DioException catch (error) {
       final code = decodeErrorResponse(error);
       if (code == null) rethrow;
 

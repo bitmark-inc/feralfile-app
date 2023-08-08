@@ -114,7 +114,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
         icon: SvgPicture.asset(
           'assets/images/more_circle.svg',
           width: 22,
-          color: AppColor.primaryBlack,
+          colorFilter:
+              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onBack: () => Navigator.of(context).pop(),
       ),
@@ -159,7 +160,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
               title: 'unhide_all_from_collection_view'.tr(),
               icon: SvgPicture.asset(
                 'assets/images/unhide.svg',
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               onTap: () {
                 Navigator.of(context).pop();
@@ -179,8 +181,11 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
             ),
       OptionItem(
         title: "add_address_to_wallet".tr(),
-        icon: SvgPicture.asset("assets/images/joinFile.svg",
-            color: AppColor.primaryBlack),
+        icon: SvgPicture.asset(
+          "assets/images/joinFile.svg",
+          colorFilter:
+              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+        ),
         onTap: () {
           Navigator.of(context).pop();
           UIHelper.showDialog(context, "add_address_to_wallet".tr(),
@@ -384,7 +389,8 @@ class _PersonaDetailsPageState extends State<PersonaDetailsPage>
                         if (isHideGalleryEnabled) ...[
                           SvgPicture.asset(
                             'assets/images/hide.svg',
-                            color: theme.colorScheme.surface,
+                            colorFilter: ColorFilter.mode(
+                                theme.colorScheme.surface, BlendMode.srcIn),
                           ),
                           const SizedBox(width: 10),
                         ],

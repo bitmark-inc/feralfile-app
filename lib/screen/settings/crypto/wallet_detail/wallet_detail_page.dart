@@ -178,7 +178,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.disabledColor,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn),
               ),
               controller: _renameController,
               focusNode: _renameFocusNode,
@@ -203,7 +204,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               action: _showOptionDialog,
               //showConnection ? _connectionIconTap : null,
@@ -725,7 +727,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               title: 'unhide_from_collection_view'.tr(),
               icon: SvgPicture.asset(
                 'assets/images/unhide.svg',
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               onTap: () {
                 injector<AccountService>()
@@ -763,7 +766,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
           'assets/images/rename_icon.svg',
-          color: AppColor.primaryBlack,
+          colorFilter:
+              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onTap: _onRenameTap,
       ),

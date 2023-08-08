@@ -573,7 +573,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
     final claimRequest =
         await _postcardService.requestPostcard(RequestPostcardRequest(id: id));
-    _navigationService.navigatorKey.currentState?.pushNamed(
+    _navigationService.navigateTo(
       AppRouter.claimEmptyPostCard,
       arguments: claimRequest,
     );

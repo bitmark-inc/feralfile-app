@@ -18,7 +18,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:shake/shake.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PreviewPrimerPage extends StatefulWidget {
   final AssetToken token;
@@ -54,8 +54,8 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
 
   @override
   void initState() {
-    Wakelock.enable();
     super.initState();
+    WakelockPlus.enable();
   }
 
   @override
@@ -79,7 +79,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
 
   Future _moveToInfo(AssetToken? assetToken) async {
     if (assetToken == null) return;
-    Wakelock.disable();
+    WakelockPlus.disable();
     Navigator.of(context).pop();
   }
 

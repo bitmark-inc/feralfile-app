@@ -343,7 +343,7 @@ class _$ConnectionDao extends ConnectionDao {
   @override
   Future<List<Connection>> getRelatedPersonaConnections() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect\",\ "dappConnect2\", \"beaconP2PPeer\")',
+        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect\", \"dappConnect2\", \"beaconP2PPeer\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,

@@ -134,7 +134,8 @@ class _ActivationTokenDetailPageState extends State<ActivationTokenDetailPage> {
                 children: [
                   SvgPicture.asset(
                     'assets/images/nav-arrow-left.svg',
-                    color: Colors.white,
+                    colorFilter:
+                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                   ),
                   const SizedBox(width: 7),
                   Text(
