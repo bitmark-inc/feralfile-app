@@ -53,7 +53,6 @@ import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
-import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
@@ -257,7 +256,6 @@ class AppRouter {
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
-  static const collectionProPage = 'collection_pro_page';
   static const albumPage = 'album_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -1421,13 +1419,6 @@ class AppRouter {
             );
           },
         );
-
-      case collectionProPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return const CollectionPro();
-            });
 
       case albumPage:
         return CupertinoPageRoute(

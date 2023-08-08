@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -21,7 +20,6 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
-import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
@@ -57,7 +55,6 @@ import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -94,9 +91,6 @@ class HomePageState extends State<HomePage>
   int _cachedImageSize = 0;
 
   final _collectionProKey = GlobalKey<CollectionProState>();
-
-  late Timer _timer;
-
   Future<List<AddressIndex>> getAddressIndexes() async {
     final accountService = injector<AccountService>();
     return await accountService.getAllAddressIndexes();
@@ -293,6 +287,7 @@ class HomePageState extends State<HomePage>
             if (snapshot.hasData && snapshot.data == true) {
               return CollectionPro(
                 key: _collectionProKey,
+                tokens: _updateTokens(state.tokens.items),
               );
             }
             return NftCollectionGrid(
@@ -389,13 +384,6 @@ class HomePageState extends State<HomePage>
     const double cellSpacing = 3.0;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-    final playlistIDsString = injector<ConfigurationService>()
-        .getPlayList()
-        .map((e) => e.id)
-        .toList()
-        .join();
-    final playlistKeyBytes = utf8.encode(playlistIDsString);
-    final playlistKey = sha256.convert(playlistKeyBytes).toString();
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
           MediaQuery.of(context).size.width / cellPerRow -
@@ -410,14 +398,6 @@ class HomePageState extends State<HomePage>
       ),
       SliverToBoxAdapter(
         child: _carouselTipcard(context),
-      ),
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 15),
-          child: ListPlaylistsScreen(
-            key: Key(playlistKey),
-          ),
-        ),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

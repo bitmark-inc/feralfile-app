@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -619,3 +621,33 @@ extension AssetExt on Asset {
     );
   }
 }
+
+extension CompactedAssetTokenExt on List<CompactedAssetToken> {
+  List<PlayListModel> getPlaylistByFilter(
+      String Function(CompactedAssetToken) filter) {
+    final groups = groupBy<CompactedAssetToken, String>(
+      this,
+      filter,
+    );
+    List<PlayListModel> playlists = [];
+    groups.forEach((key, value) {
+      PlayListModel playListModel = PlayListModel(
+        name: key,
+        tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
+        thumbnailURL: value.first.thumbnailURL,
+      );
+      playlists.add(playListModel);
+    });
+    return playlists;
+  }
+
+  List<PlayListModel> getPlaylistByArtists() {
+    return getPlaylistByFilter((e) => e.artistID ?? "Unknown");
+  }
+
+  List<PlayListModel> getPlaylistByMedium() {
+    return getPlaylistByFilter((e) => e.mimeType ?? "Unknown");
+  }
+}
+
+typedef PlaylistModelType = PlayListModel;
