@@ -35,14 +35,16 @@ class PlaylistControl extends StatelessWidget {
               icon: SvgPicture.asset(
                 'assets/images/time_off_icon.svg',
                 width: 24,
-                color: theme.disableColor,
+                colorFilter:
+                    ColorFilter.mode(theme.disableColor, BlendMode.srcIn),
               ),
               iconFocus: Stack(
                 children: [
                   SvgPicture.asset(
                     'assets/images/time_off_icon.svg',
                     width: 24,
-                    color: theme.colorScheme.secondary,
+                    colorFilter: ColorFilter.mode(
+                        theme.colorScheme.secondary, BlendMode.srcIn),
                   ),
                   Positioned(
                     bottom: -2,
@@ -84,12 +86,14 @@ class PlaylistControl extends StatelessWidget {
               icon: SvgPicture.asset(
                 'assets/images/shuffle_icon.svg',
                 width: 24,
-                color: theme.disableColor,
+                colorFilter:
+                    ColorFilter.mode(theme.disableColor, BlendMode.srcIn),
               ),
               iconFocus: SvgPicture.asset(
                 'assets/images/shuffle_icon.svg',
                 width: 24,
-                color: theme.colorScheme.secondary,
+                colorFilter: ColorFilter.mode(
+                    theme.colorScheme.secondary, BlendMode.srcIn),
               ),
               isActive: playControl.isShuffle,
               onTap: () {
@@ -104,12 +108,14 @@ class PlaylistControl extends StatelessWidget {
                 icon: SvgPicture.asset(
                   'assets/images/play_icon.svg',
                   width: 24,
-                  color: theme.colorScheme.secondary,
+                  colorFilter: ColorFilter.mode(
+                      theme.colorScheme.secondary, BlendMode.srcIn),
                 ),
                 iconFocus: SvgPicture.asset(
                   'assets/images/play_icon.svg',
                   width: 24,
-                  color: theme.colorScheme.secondary,
+                  colorFilter: ColorFilter.mode(
+                      theme.colorScheme.secondary, BlendMode.srcIn),
                 ),
                 onTap: () {
                   onPlayTap?.call();

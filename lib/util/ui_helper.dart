@@ -651,7 +651,8 @@ class UIHelper {
             children: [
               SvgPicture.asset(
                 'assets/images/cast_icon.svg',
-                color: theme.disableColor,
+                colorFilter:
+                    ColorFilter.mode(theme.disableColor, BlendMode.srcIn),
               ),
               const SizedBox(
                 width: 17,
@@ -839,7 +840,7 @@ class UIHelper {
   }) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context, series.id);
-    } else if (e is DioError) {
+    } else if (e is DioException) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
           ? ffError.getDialogMessage(series: series)
@@ -865,7 +866,7 @@ class UIHelper {
       BuildContext context, Object e, String id) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context, id);
-    } else if (e is DioError) {
+    } else if (e is DioException) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
           ? ffError.dialogMessage
@@ -1104,7 +1105,8 @@ class UIHelper {
                   onPressed: () => Share.share(address),
                   icon: SvgPicture.asset(
                     'assets/images/Share.svg',
-                    color: AppColor.white,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
                   )),
             ]),
             const SizedBox(height: 40),
@@ -1409,12 +1411,14 @@ class UIHelper {
         closeButton: "close".tr());
   }
 
-  static showReceivePostcardFailed(BuildContext context, DioError error) async {
+  static showReceivePostcardFailed(
+      BuildContext context, DioException error) async {
     return showErrorDialog(context, "accept_postcard_failed".tr(),
         error.response?.data['message'], "close".tr());
   }
 
-  static showSharePostcardFailed(BuildContext context, DioError error) async {
+  static showSharePostcardFailed(
+      BuildContext context, DioException error) async {
     return showErrorDialog(context, "Share Failed",
         "${error.response?.data['message']}", "close".tr());
   }
@@ -1630,7 +1634,7 @@ Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
 }
 
 String getDateTimeRepresentation(DateTime dateTime) {
-  return Jiffy(dateTime).fromNow();
+  return Jiffy.parseFromDateTime(dateTime).fromNow();
 }
 
 class OptionItem {

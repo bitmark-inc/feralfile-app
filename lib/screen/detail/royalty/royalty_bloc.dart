@@ -29,7 +29,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
   final FeralFileService _feralFileService;
   final dio = Dio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
-    connectTimeout: 2000,
+    connectTimeout: const Duration(seconds: 5),
   ));
 
   RoyaltyBloc(this._feralFileService) : super(RoyaltyState()) {

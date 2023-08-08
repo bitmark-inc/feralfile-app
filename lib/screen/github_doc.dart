@@ -34,7 +34,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
 
   final dio = Dio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
-    connectTimeout: 2000,
+    connectTimeout: const Duration(seconds: 5),
   ));
 
   @override

@@ -42,21 +42,20 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  await dotenv.load();
-
-  // feature/text_localization
-  WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
-
-  SentryFlutter.init((options) {
-    options.dsn = Environment.sentryDSN;
-    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-    // We recommend adjusting this value in production.
-    options.tracesSampleRate = 1.0;
-    options.attachStacktrace = true;
-  });
-
   runZonedGuarded(() async {
+    await dotenv.load();
+    await SentryFlutter.init((options) {
+      options.dsn = Environment.sentryDSN;
+      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+      // We recommend adjusting this value in production.
+      options.tracesSampleRate = 1.0;
+      options.attachStacktrace = true;
+    });
+
+    WidgetsFlutterBinding.ensureInitialized();
+    // feature/text_localization
+    await EasyLocalization.ensureInitialized();
+
     FlutterNativeSplash.preserve(
         widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -237,10 +236,10 @@ enum HomeNavigatorTab {
 }
 
 @pragma('vm:entry-point')
-void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+void downloadCallback(String id, int status, int progress) {
   final SendPort? send =
       IsolateNameServer.lookupPortByName('downloader_send_port');
-  send?.send([id, status.value, progress]);
+  send?.send([id, status, progress]);
 }
 
 void imageError(Object exception, StackTrace? stackTrace) {}

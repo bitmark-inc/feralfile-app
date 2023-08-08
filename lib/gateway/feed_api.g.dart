@@ -19,7 +19,7 @@ class _FeedApi implements FeedApi {
   String? baseUrl;
 
   @override
-  Future<dynamic> postFollows(body) async {
+  Future<dynamic> postFollows(Map<String, Object> body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -36,13 +36,17 @@ class _FeedApi implements FeedApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
     final value = _result.data;
     return value;
   }
 
   @override
-  Future<dynamic> deleteFollows(body) async {
+  Future<dynamic> deleteFollows(Map<String, Object> body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -59,16 +63,20 @@ class _FeedApi implements FeedApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
     final value = _result.data;
     return value;
   }
 
   @override
   Future<FollowingData> getFollows(
-    count,
-    serial,
-    timestamp,
+    int? count,
+    String? serial,
+    String? timestamp,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -78,7 +86,7 @@ class _FeedApi implements FeedApi {
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<FollowingData>(Options(
       method: 'GET',
@@ -91,17 +99,21 @@ class _FeedApi implements FeedApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = FollowingData.fromJson(_result.data!);
     return value;
   }
 
   @override
   Future<FeedData> getFeeds(
-    isTestnet,
-    count,
-    serial,
-    timestamp,
+    bool isTestnet,
+    int? count,
+    String? serial,
+    String? timestamp,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -112,7 +124,7 @@ class _FeedApi implements FeedApi {
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result =
         await _dio.fetch<Map<String, dynamic>>(_setStreamType<FeedData>(Options(
       method: 'GET',
@@ -125,7 +137,11 @@ class _FeedApi implements FeedApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = FeedData.fromJson(_result.data!);
     return value;
   }
@@ -141,5 +157,22 @@ class _FeedApi implements FeedApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

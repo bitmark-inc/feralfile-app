@@ -12,8 +12,6 @@ buildscript {
     }
 }
 
-apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
-
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -67,6 +65,7 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.google.gms.google-services'
 
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
 
 android {
     compileSdkVersion 33
@@ -74,6 +73,9 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+    }
+    defaultConfig {
+        resConfigs 'en', 'US'
     }
 
     defaultConfig {
@@ -96,7 +98,6 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
-            useProguard true
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
@@ -123,18 +124,18 @@ android {
             ]
         }
     }
-
     packagingOptions {
-        exclude 'META-INF/*'
-        exclude '**/lib/libsodiumjni.dylib'
-        pickFirst '**/*.so'
+        jniLibs {
+            excludes += ['META-INF/*']
+            pickFirsts += ['**/*.so']
+        }
+        resources {
+            excludes += ['META-INF/*', '**/lib/libsodiumjni.dylib']
+        }
     }
 
-    defaultConfig {
-        resConfigs "en", "US"
-    }
-
-    lintOptions {
+    namespace 'com.bitmark.autonomy_flutter'
+    lint {
         checkReleaseBuilds false
     }
 }
@@ -152,7 +153,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth-blockstore:16.1.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation('com.github.bitmark-inc:libauk-kotlin:0.4.1') {
+    implementation('com.github.bitmark-inc:libauk-kotlin:0.5.1') {
         exclude group: 'com.google.protobuf'
         exclude module: 'jetified-protobuf-java'
     }

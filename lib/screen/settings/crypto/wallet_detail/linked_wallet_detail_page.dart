@@ -127,7 +127,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.disabledColor,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn),
               ),
               controller: _renameController,
               focusNode: _renameFocusNode,
@@ -153,7 +154,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               action: _showOptionDialog,
               onBack: () {
@@ -507,7 +509,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               title: 'unhide_from_collection_view'.tr(),
               icon: SvgPicture.asset(
                 'assets/images/unhide.svg',
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               onTap: () {
                 injector<AccountService>().setHideLinkedAccountInGallery(
@@ -545,7 +548,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
           'assets/images/rename_icon.svg',
-          color: AppColor.primaryBlack,
+          colorFilter:
+              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onTap: _onRenameTap,
       ),

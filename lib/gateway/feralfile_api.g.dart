@@ -19,11 +19,11 @@ class _FeralFileApi implements FeralFileApi {
   String? baseUrl;
 
   @override
-  Future<ExhibitionResponse> getExhibition(exhibitionId) async {
+  Future<ExhibitionResponse> getExhibition(String exhibitionId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<ExhibitionResponse>(Options(
       method: 'GET',
@@ -36,17 +36,21 @@ class _FeralFileApi implements FeralFileApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ExhibitionResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<FFSeriesResponse> getSeries(seriesId) async {
+  Future<FFSeriesResponse> getSeries(String seriesId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<FFSeriesResponse>(Options(
       method: 'GET',
@@ -59,15 +63,19 @@ class _FeralFileApi implements FeralFileApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = FFSeriesResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
   Future<TokenClaimResponse> claimSeries(
-    seriesId,
-    body,
+    String seriesId,
+    Map<String, dynamic> body,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -86,17 +94,21 @@ class _FeralFileApi implements FeralFileApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = TokenClaimResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<ResaleResponse> getResaleInfo(exhibitionID) async {
+  Future<ResaleResponse> getResaleInfo(String exhibitionID) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<ResaleResponse>(Options(
       method: 'GET',
@@ -109,17 +121,21 @@ class _FeralFileApi implements FeralFileApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ResaleResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
   Future<ArtworkResponse> getArtworks(
-    tokenID, {
-    includeSeries = true,
-    includeExhibition = true,
-    includeArtist = true,
+    String tokenID, {
+    bool includeSeries = true,
+    bool includeExhibition = true,
+    bool includeArtist = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -128,7 +144,7 @@ class _FeralFileApi implements FeralFileApi {
       r'includeArtist': includeArtist,
     };
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<ArtworkResponse>(Options(
       method: 'GET',
@@ -141,7 +157,11 @@ class _FeralFileApi implements FeralFileApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = ArtworkResponse.fromJson(_result.data!);
     return value;
   }
@@ -157,5 +177,22 @@ class _FeralFileApi implements FeralFileApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

@@ -611,7 +611,7 @@ Widget loadingIndicator({
 Widget closeIcon({Color color = Colors.black}) {
   return SvgPicture.asset(
     'assets/images/iconClose.svg',
-    color: color,
+    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     width: 32,
     height: 32,
   );

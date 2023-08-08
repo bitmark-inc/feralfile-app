@@ -134,7 +134,8 @@ class _AccountsViewState extends State<AccountsView> {
             label: "${account.name}_edit",
             child: SvgPicture.asset(
               'assets/images/rename_icon.svg',
-              color: theme.colorScheme.secondary,
+              colorFilter: ColorFilter.mode(
+                  theme.colorScheme.secondary, BlendMode.srcIn),
             )),
         onPressed: (_) {
           setState(() {
