@@ -152,12 +152,6 @@ class TezosBeaconChannel {
               Peer peer = Peer.fromJson(json.decode(utf8.decode(data)));
               handler!.onRequestedPermission(peer);
               break;
-            case "beaconLinked":
-              final Uint8List data = params["connection"];
-              TezosConnection tezosConnection =
-                  TezosConnection.fromJson(json.decode(utf8.decode(data)));
-              await handler!.onLinked(tezosConnection);
-              break;
             case "error":
               break;
             case "userAborted":
@@ -173,8 +167,6 @@ abstract class BeaconHandler {
   void onRequest(BeaconRequest request);
 
   void onRequestedPermission(Peer peer);
-
-  Future<void> onLinked(TezosConnection tezosConnection);
 
   void onAbort();
 }

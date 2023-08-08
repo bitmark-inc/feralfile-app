@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
@@ -83,32 +82,10 @@ class _SendReviewPageState extends State<SendReviewPage> {
               widget.payload.amount.toInt(),
               baseOperationCustomFee:
                   widget.payload.feeOption.tezosBaseOperationCustomFee);
-          final exchangeRateXTZ =
-              1 / (double.tryParse(widget.payload.exchangeRate.xtz) ?? 1);
-          final tx = TZKTOperation(
-            bakerFee: widget.payload.fee.toInt(),
-            block: '',
-            counter: 0,
-            gasLimit: 0,
-            hash: opHash ?? '',
-            gasUsed: 0,
-            id: 0,
-            level: 0,
-            quote: TZKTQuote(
-              usd: exchangeRateXTZ,
-            ),
-            timestamp: DateTime.now(),
-            type: 'transaction',
-            target: TZKTActor(
-              address: widget.payload.address,
-            ),
-            amount: widget.payload.amount.toInt(),
-          );
           if (!mounted) return;
           final payload = {
             "isTezos": true,
             "hash": opHash,
-            "tx": tx,
           };
           Navigator.of(context).pop(payload);
           break;

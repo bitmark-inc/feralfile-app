@@ -11,7 +11,6 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -197,7 +196,6 @@ class MemoryValues {
   DateTime? inForegroundAt;
   bool inGalleryView;
   ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
-  List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
   HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
@@ -209,7 +207,6 @@ class MemoryValues {
     this.inForegroundAt,
     this.inGalleryView = true,
     required this.branchDeeplinkData,
-    this.linkedFFConnections,
     required this.deepLink,
     required this.irlLink,
   });

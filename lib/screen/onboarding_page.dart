@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -215,7 +214,6 @@ class _OnboardingPageState extends State<OnboardingPage>
         if (state.onboardingStep != OnboardingStep.dashboard) {
           await injector<VersionService>().checkForUpdate();
         }
-        injector<WalletConnectService>().initSessions(forced: true);
       },
       builder: (context, state) {
         if (creatingAccount) {

@@ -2909,15 +2909,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.12+1"
-  wallet_connect:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
-      resolved-ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
-      url: "https://github.com/autonomy-system/wallet-connect-dart.git"
-    source: git
-    version: "1.0.4"
   watcher:
     dependency: transitive
     description:

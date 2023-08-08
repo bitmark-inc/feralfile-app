@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -660,8 +659,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 }
 
                 if (!mounted) return;
-                final tx = payload['tx'] as TZKTOperation;
-                tx.sender = TZKTActor(address: address);
                 UIHelper.showMessageAction(
                   context,
                   'success'.tr(),

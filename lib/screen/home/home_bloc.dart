@@ -10,24 +10,16 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 class HomeBloc extends AuBloc<HomeEvent, HomeState> {
-  final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
 
   HomeBloc(
-    this._walletConnectService,
     this._tezosBeaconService,
   ) : super(HomeState()) {
-    on<HomeConnectWCEvent>((event, emit) {
-      log.info('[HomeConnectWCEvent] connect ${event.uri}');
-      _walletConnectService.connect(event.uri);
-    });
-
     on<HomeConnectTZEvent>((event, emit) {
       log.info('[HomeConnectTZEvent] addPeer ${event.uri}');
       _tezosBeaconService.addPeer(event.uri);

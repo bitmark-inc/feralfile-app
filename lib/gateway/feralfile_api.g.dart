@@ -19,38 +19,6 @@ class _FeralFileApi implements FeralFileApi {
   String? baseUrl;
 
   @override
-  Future<Map<String, FFAccount>> getAccount(String bearerToken) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{
-      r'Authorization': bearerToken,
-      r'cache-control': 'no-cache',
-    };
-    _headers.removeWhere((k, v) => v == null);
-    final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, FFAccount>>(Options(
-      method: 'GET',
-      headers: _headers,
-      extra: _extra,
-    )
-            .compose(
-              _dio.options,
-              '/api/accounts/me?includeWyre=true',
-              queryParameters: queryParameters,
-              data: _data,
-            )
-            .copyWith(
-                baseUrl: _combineBaseUrls(
-              _dio.options.baseUrl,
-              baseUrl,
-            ))));
-    var value = _result.data!.map((k, dynamic v) =>
-        MapEntry(k, FFAccount.fromJson(v as Map<String, dynamic>)));
-    return value;
-  }
-
-  @override
   Future<ExhibitionResponse> getExhibition(String exhibitionId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

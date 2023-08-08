@@ -16,26 +16,20 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
     as accounts;
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -126,176 +120,147 @@ class _ScanQRPageState extends State<ScanQRPage>
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
     if (cutPaddingTop < 0) cutPaddingTop = 0;
     final theme = Theme.of(context);
-    return BlocListener<FeralfileBloc, FeralFileState>(
-      listener: (context, state) {
-        final event = state.event;
-        if (event == null) return;
-
-        if (event is LinkAccountSuccess) {
-          Navigator.of(context).pop();
-        } else if (event is AlreadyLinkedError) {
-          showErrorDiablog(
-              context,
-              ErrorEvent(
-                  null,
-                  "already_linked".tr(),
-                  "al_you’ve_already".tr(),
-                  //"You’ve already linked this account to Autonomy.",
-                  ErrorItemState.seeAccount), defaultAction: () {
-            Navigator.of(context).pushReplacementNamed(
-                AppRouter.linkedAccountDetailsPage,
-                arguments: event.connection);
-          }, cancelAction: () {
-            controller.resumeCamera();
-          });
-        } else if (event is NotFFLoggedIn) {
-          _handleError("feralfile-api:qrcode-with-feralfile-format");
-          controller.resumeCamera();
-        }
-      },
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
-        appBar: _tabController.index == 0
-            ? _qrCodeAppBar()
-            : AppBar(
-                systemOverlayStyle: const SystemUiOverlayStyle(
-                  statusBarColor: Colors.white,
-                  statusBarIconBrightness: Brightness.dark,
-                  statusBarBrightness: Brightness.light,
-                ),
-                toolbarHeight: 0,
-                shadowColor: Colors.transparent,
-                elevation: 0,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
+      appBar: _tabController.index == 0
+          ? _qrCodeAppBar()
+          : AppBar(
+              systemOverlayStyle: const SystemUiOverlayStyle(
+                statusBarColor: Colors.white,
+                statusBarIconBrightness: Brightness.dark,
+                statusBarBrightness: Brightness.light,
               ),
-        body: Stack(
-          children: <Widget>[
-            if (!cameraPermission)
-              _noPermissionView()
-            else
-              Stack(
-                children: [
-                  Column(
-                    children: [
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            Stack(
-                              children: [
-                                _qrView(),
-                                Padding(
-                                  padding: EdgeInsets.fromLTRB(
-                                    0,
-                                    MediaQuery.of(context).size.height / 2 +
-                                        qrSize / 2 -
-                                        cutPaddingTop,
-                                    0,
-                                    15,
-                                  ),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        _instructionView(),
-                                      ],
-                                    ),
-                                  ),
+              toolbarHeight: 0,
+              shadowColor: Colors.transparent,
+              elevation: 0,
+            ),
+      body: Stack(
+        children: <Widget>[
+          if (!cameraPermission)
+            _noPermissionView()
+          else
+            Stack(
+              children: [
+                Column(
+                  children: [
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          Stack(
+                            children: [
+                              _qrView(),
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  0,
+                                  MediaQuery.of(context).size.height / 2 +
+                                      qrSize / 2 -
+                                      cutPaddingTop,
+                                  0,
+                                  15,
                                 ),
-                              ],
-                            ),
-                            MultiBlocProvider(providers: [
-                              BlocProvider(
-                                  create: (_) => accounts.AccountsBloc(
-                                      injector(), injector<CloudDatabase>())),
-                              BlocProvider(
-                                create: (_) => PersonaBloc(
-                                  injector<CloudDatabase>(),
-                                  injector(),
-                                  injector<AuditService>(),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _instructionView(),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              BlocProvider(
-                                  create: (_) =>
-                                      EthereumBloc(injector(), injector())),
-                              BlocProvider(
+                            ],
+                          ),
+                          MultiBlocProvider(providers: [
+                            BlocProvider(
+                                create: (_) => accounts.AccountsBloc(
+                                    injector(), injector<CloudDatabase>())),
+                            BlocProvider(
+                              create: (_) => PersonaBloc(
+                                injector<CloudDatabase>(),
+                                injector(),
+                                injector<AuditService>(),
+                              ),
+                            ),
+                            BlocProvider(
                                 create: (_) =>
-                                    TezosBloc(injector(), injector()),
-                              ),
-                            ], child: const GlobalReceivePage()),
-                          ],
-                        ),
+                                    EthereumBloc(injector(), injector())),
+                            BlocProvider(
+                              create: (_) => TezosBloc(injector(), injector()),
+                            ),
+                          ], child: const GlobalReceivePage()),
+                        ],
                       ),
-                    ],
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 10, 16.0, 40),
-                      child: Container(
-                        height: 55,
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50),
-                          color: theme.auLightGrey,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: OutlineButton(
-                                onTap: () {
-                                  _tabController.animateTo(0,
-                                      duration:
-                                          const Duration(milliseconds: 300));
-                                  setState(() {});
-                                },
-                                text: 'scan_code'.tr(),
-                                color: _tabController.index == 0
-                                    ? theme.colorScheme.primary
-                                    : theme.auLightGrey,
-                                borderColor: Colors.transparent,
-                                textColor: _tabController.index == 1
-                                    ? AppColor.disabledColor
-                                    : AppColor.white,
-                              ),
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 10, 16.0, 40),
+                    child: Container(
+                      height: 55,
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        color: theme.auLightGrey,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlineButton(
+                              onTap: () {
+                                _tabController.animateTo(0,
+                                    duration:
+                                        const Duration(milliseconds: 300));
+                                setState(() {});
+                              },
+                              text: 'scan_code'.tr(),
+                              color: _tabController.index == 0
+                                  ? theme.colorScheme.primary
+                                  : theme.auLightGrey,
+                              borderColor: Colors.transparent,
+                              textColor: _tabController.index == 1
+                                  ? AppColor.disabledColor
+                                  : AppColor.white,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: OutlineButton(
-                                onTap: () {
-                                  _tabController.animateTo(1,
-                                      duration:
-                                          const Duration(milliseconds: 300));
-                                  setState(() {});
-                                },
-                                text: 'show_my_code'.tr(),
-                                color: _tabController.index == 1
-                                    ? theme.colorScheme.primary
-                                    : theme.auLightGrey,
-                                borderColor: Colors.transparent,
-                                textColor: _tabController.index == 0
-                                    ? AppColor.disabledColor
-                                    : AppColor.white,
-                              ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlineButton(
+                              onTap: () {
+                                _tabController.animateTo(1,
+                                    duration:
+                                        const Duration(milliseconds: 300));
+                                setState(() {});
+                              },
+                              text: 'show_my_code'.tr(),
+                              color: _tabController.index == 1
+                                  ? theme.colorScheme.primary
+                                  : theme.auLightGrey,
+                              borderColor: Colors.transparent,
+                              textColor: _tabController.index == 0
+                                  ? AppColor.disabledColor
+                                  : AppColor.white,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            if (_isLoading) ...[
-              Center(
-                child: CupertinoActivityIndicator(
-                  color: theme.colorScheme.primary,
-                  radius: 16,
                 ),
+              ],
+            ),
+          if (_isLoading) ...[
+            Center(
+              child: CupertinoActivityIndicator(
+                color: theme.colorScheme.primary,
+                radius: 16,
               ),
-            ]
-          ],
-        ),
+            ),
+          ]
+        ],
       ),
     );
   }
@@ -428,7 +393,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     switch (widget.scannerItem) {
       case ScannerItem.WALLET_CONNECT:
       case ScannerItem.BEACON_CONNECT:
-      case ScannerItem.FERALFILE_TOKEN:
       case ScannerItem.GLOBAL:
         return Padding(
           padding: const EdgeInsets.all(15),
@@ -521,11 +485,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       switch (widget.scannerItem) {
         case ScannerItem.WALLET_CONNECT:
           if (code.startsWith("wc:") == true) {
-            if (code.isAutonomyConnectUri) {
-              _handleAutonomyConnect(code);
-            } else {
-              _handleWalletConnect(code);
-            }
+            _handleAutonomyConnect(code);
           } else {
             _handleError(code);
           }
@@ -539,15 +499,6 @@ class _ScanQRPageState extends State<ScanQRPage>
           }
           break;
 
-        case ScannerItem.FERALFILE_TOKEN:
-          if (code.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-            controller.dispose();
-            Navigator.pop(context, code);
-          } else {
-            _handleError(code);
-          }
-          break;
-
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
           controller.dispose();
@@ -555,15 +506,9 @@ class _ScanQRPageState extends State<ScanQRPage>
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
-            if (code.isAutonomyConnectUri) {
-              _handleAutonomyConnect(code);
-            } else {
-              _handleWalletConnect(code);
-            }
+            _handleAutonomyConnect(code);
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
-          } else if (code.startsWith(FF_TOKEN_DEEPLINK_PREFIX) == true) {
-            _handleFeralFileToken(code);
             /* TODO: Remove or support for multiple wallets
           } else if (code.startsWith("tz1")) {
             Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
@@ -697,14 +642,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     Navigator.of(context).pop();
   }
 
-  void _handleWalletConnect(String code) {
-    controller.dispose();
-    injector<WalletConnectService>().connect(code);
-    _addScanQREvent(
-        link: code, linkType: LinkType.walletConnect, prefix: "wc:");
-    Navigator.of(context).pop();
-  }
-
   void _handleBeaconConnect(String code) {
     controller.dispose();
     _addScanQREvent(
@@ -712,28 +649,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     injector<TezosBeaconService>().addPeer(code);
     Navigator.of(context).pop();
     injector<NavigationService>().showContactingDialog();
-  }
-
-  void _handleFeralFileToken(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    controller.pauseCamera();
-    try {
-      _addScanQREvent(
-          link: code,
-          linkType: LinkType.feralFileToken,
-          prefix: FF_TOKEN_DEEPLINK_PREFIX);
-      final connection = await injector<FeralFileService>().linkFF(
-          code.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""),
-          delayLink: false);
-      injector<NavigationService>().popUntilHomeOrSettings();
-      if (!mounted) return;
-      UIHelper.showFFAccountLinked(context, connection.name);
-    } catch (_) {
-      Navigator.of(context).pop();
-      rethrow;
-    }
   }
 
   @override
@@ -765,7 +680,6 @@ enum ScannerItem {
   BEACON_CONNECT,
   ETH_ADDRESS,
   XTZ_ADDRESS,
-  FERALFILE_TOKEN,
   CANVAS_DEVICE,
   GLOBAL
 }
