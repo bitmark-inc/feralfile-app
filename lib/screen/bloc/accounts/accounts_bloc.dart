@@ -40,6 +40,12 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       final connections = await connectionsFuture;
       for (var connection in connections) {
+        if (accounts
+            .map((e) => e.accountNumber)
+            .toList()
+            .contains(connection.accountNumber)) {
+          continue;
+        }
         accounts.add(_getAccountFromConnectionAddress(
             connection, connection.accountNumber));
       }

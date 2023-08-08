@@ -32,6 +32,8 @@ import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -59,6 +61,8 @@ abstract class AccountService {
   });
 
   Future androidBackupKeys();
+
+  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
@@ -103,7 +107,7 @@ abstract class AccountService {
 
   Future<String> authorizeToViewer();
 
-  Future<Persona> addAddressPersona(
+  Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses);
 
   Future<void> deleteAddressPersona(
@@ -364,6 +368,15 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Connection> linkManuallyAddress(
       String address, CryptoType cryptoType) async {
+    final personaAddress = await _cloudDB.addressDao.getAllAddresses();
+    if (personaAddress.any((element) => element.address == address)) {
+      throw LinkAddressException(message: "already_imported_address".tr());
+    }
+    final doubleConnections =
+        await _cloudDB.connectionDao.getConnectionsByAccountNumber(address);
+    if (doubleConnections.isNotEmpty) {
+      throw LinkAddressException(message: "already_viewing_address".tr());
+    }
     final connection = Connection(
       key: address,
       name: cryptoType.source,
@@ -634,8 +647,15 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> addAddressPersona(
+  Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
+    bool result = false;
+    final replacedConnections =
+        await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
+    if (replacedConnections.isNotEmpty) {
+      result = true;
+    }
+
     final timestamp = DateTime.now();
     final walletAddresses = addresses
         .map((e) => WalletAddress(
@@ -644,12 +664,17 @@ class AccountServiceImpl extends AccountService {
             index: e.index,
             cryptoType: e.getCryptoType().source,
             createdAt: timestamp,
-            name: e.getCryptoType().source))
+            name: replacedConnections
+                    .firstWhereOrNull((element) =>
+                        element.accountNumber == e.address &&
+                        element.name.isNotEmpty)
+                    ?.name ??
+                e.getCryptoType().source))
         .toList();
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
     await _addressService
         .addAddresses(addresses.map((e) => e.address).toList());
-    return newPersona;
+    return result;
   }
 
   @override
@@ -757,6 +782,21 @@ class AccountServiceImpl extends AccountService {
   Future<WalletAddress?> getAddressPersona(String address) async {
     return await _cloudDB.addressDao.findByAddress(address);
   }
+
+  @override
+  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses) async {
+    final List<Connection> result = [];
+    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
+    final viewOnlyAddresses = linkedAccounts
+        .where((con) => addresses.contains(con.accountNumber))
+        .toList();
+    if (viewOnlyAddresses.isNotEmpty) {
+      result.addAll(viewOnlyAddresses);
+      await Future.forEach<Connection>(viewOnlyAddresses,
+          (element) => _cloudDB.connectionDao.deleteConnection(element));
+    }
+    return result;
+  }
 }
 
 class AccountImportedException implements Exception {
@@ -769,4 +809,10 @@ class AccountException implements Exception {
   final String? message;
 
   AccountException({this.message});
+}
+
+class LinkAddressException implements Exception {
+  final String message;
+
+  LinkAddressException({required this.message});
 }
