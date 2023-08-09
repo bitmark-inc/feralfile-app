@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -226,8 +227,8 @@ class _AlbumByArtistSectionState extends State<AlbumByArtistSection> {
         color: Colors.transparent,
         child: Row(
           children: [
-            SvgPicture.asset(
-              "assets/images/medium_image.svg",
+            CachedNetworkImage(
+              imageUrl: album.thumbnailURL ?? "",
               width: 42,
               height: 42,
             ),
