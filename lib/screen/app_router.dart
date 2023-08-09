@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
+import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
 import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -980,6 +981,13 @@ class AppRouter {
             ),
           ),
         );
+
+      case linkManually:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return LinkManuallyPage(type: settings.arguments as String);
+            });
 
       case wc2PermissionPage:
         return CupertinoPageRoute(
