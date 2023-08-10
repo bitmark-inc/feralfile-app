@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/album/album_state.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -43,35 +44,21 @@ class _AlbumScreenState extends State<AlbumScreen> {
           if (state is AlbumInitState) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (state is AlbumLoadedState) {
-            return NftCollectionGrid(
-              state: state.nftLoadingState,
-              tokens: state.assetTokens ?? [],
-              itemViewBuilder: (context, asset) => GestureDetector(
-                onTap: () {
-                  final accountIdentities = [asset.identity];
-                  final payload = ArtworkDetailPayload(
-                    accountIdentities,
-                    0,
-                  );
-                  Navigator.of(context).pushNamed(
-                    AppRouter.artworkDetailsPage,
-                    arguments: payload,
-                  );
-                },
-                child: tokenGalleryThumbnailWidget(
-                  context,
-                  asset,
-                  1000,
-                  useHero: false,
-                ),
-              ),
-            );
-          }
           return const Center(child: CircularProgressIndicator());
         },
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state is AlbumLoadedState && state.nftLoadingState == NftLoadingState.done) {
+            final id = widget.payload.id;
+            final name = widget.payload.id;
+            final tokenIDs = state.assetTokens?.map((e) => e.id).toList();
+            final playlist = PlayListModel(
+              id: id,
+              name: name,
+              tokenIDs: tokenIDs,
+            );
+            Navigator.of(context).pushReplacementNamed(AppRouter.viewPlayListPage, arguments: playlist);
+          }
+        },
       ),
     );
   }

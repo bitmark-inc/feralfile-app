@@ -82,16 +82,18 @@ class CollectionProState extends State<CollectionPro>
                   child: CollectionSection(),
                 ),
                 SliverToBoxAdapter(
-                  child: MediumSection(
-                    listAlbumByMedium: listAlbumByMedium,
+                  child: AlbumSection(
+                    listAlbum: listAlbumByMedium,
+                    albumType: AlbumType.medium,
                   ),
                 ),
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 60),
                 ),
                 SliverToBoxAdapter(
-                  child: AlbumByArtistSection(
-                    listAlbumByArtist: listAlbumByArtist,
+                  child: AlbumSection(
+                    listAlbum: listAlbumByArtist,
+                    albumType: AlbumType.artist,
                   ),
                 ),
               ],
@@ -104,121 +106,83 @@ class CollectionProState extends State<CollectionPro>
   }
 }
 
-class MediumSection extends StatefulWidget {
-  final List<AlbumModel>? listAlbumByMedium;
-  const MediumSection({super.key, required this.listAlbumByMedium});
-  @override
-  State<MediumSection> createState() => MediumSectionState();
-}
-
-class MediumSectionState extends State<MediumSection> {
-  Widget _item(AlbumModel album) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          AppRouter.albumPage,
-          arguments: AlbumScreenPayload(
-            type: AlbumType.medium,
-            id: album.id,
-          ),
-        );
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              "assets/images/medium_image.svg",
-              width: 42,
-              height: 42,
-            ),
-            const SizedBox(width: 33),
-            Text(album.name ?? ''),
-            const Spacer(),
-            Text('${album.total}'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _header(BuildContext context, int total) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Text(
-          'Medium',
-          style: theme.textTheme.ppMori400Black14,
-        ),
-        const Spacer(),
-        Text(
-          '$total',
-          style: theme.textTheme.ppMori400Black14,
-        ),
-      ],
-    );
-  }
-
+class Header extends StatelessWidget {
+  final String title;
+  final String? subTitle;
+  final Widget? icon;
+  final Function()? onTap;
+  const Header({
+    super.key,
+    required this.title,
+    this.subTitle,
+    this.icon,
+    this.onTap,
+  });
   @override
   Widget build(BuildContext context) {
-    final listAlbumByMedium = widget.listAlbumByMedium;
-    if (listAlbumByMedium == null) return const SizedBox();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _header(context, listAlbumByMedium.length),
-        addDivider(color: AppColor.primaryBlack),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: listAlbumByMedium.length,
-          itemBuilder: (context, index) {
-            final album = listAlbumByMedium[index];
-            return _item(album);
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return addDivider();
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class AlbumByArtistSection extends StatefulWidget {
-  final List<AlbumModel>? listAlbumByArtist;
-  const AlbumByArtistSection({super.key, required this.listAlbumByArtist});
-  @override
-  State<AlbumByArtistSection> createState() => _AlbumByArtistSectionState();
-}
-
-class _AlbumByArtistSectionState extends State<AlbumByArtistSection> {
-  Widget _header(BuildContext context, int total) {
     final theme = Theme.of(context);
     return Row(
       children: [
         Text(
-          'Medium',
+          title,
           style: theme.textTheme.ppMori400Black14,
         ),
         const Spacer(),
-        Text(
-          '$total',
-          style: theme.textTheme.ppMori400Black14,
-        ),
+        if (subTitle != null)
+          Text(
+            subTitle!,
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        if (icon != null) ...[
+          const SizedBox(width: 15),
+          GestureDetector(onTap: onTap, child: icon!)],
       ],
     );
   }
+}
 
-  Widget _item(AlbumModel album) {
+class AlbumSection extends StatefulWidget {
+  final List<AlbumModel>? listAlbum;
+  final AlbumType albumType;
+  const AlbumSection({super.key, required this.listAlbum, required this.albumType});
+  @override
+  State<AlbumSection> createState() => _AlbumSectionState();
+}
+
+class _AlbumSectionState extends State<AlbumSection> {
+
+
+  Widget _header(BuildContext context, int total) {
+    final title = widget.albumType == AlbumType.medium ? 'Medium' : 'Artist';
+    return Header(title: title, subTitle: "$total");
+  }
+
+  Widget _icon(AlbumModel album) {
+    switch (widget.albumType) {
+      case AlbumType.medium:
+        return SvgPicture.asset(
+          "assets/images/medium_image.svg",
+          width: 42,
+          height: 42,
+        );
+      case AlbumType.artist:
+        return CachedNetworkImage(
+          imageUrl: album.thumbnailURL ?? "",
+          width: 42,
+          height: 42,
+        );
+    }
+  }
+
+  Widget _item(BuildContext context, AlbumModel album) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
           AppRouter.albumPage,
           arguments: AlbumScreenPayload(
-            type: AlbumType.artist,
+            type: widget.albumType,
             id: album.id,
           ),
         );
@@ -227,22 +191,14 @@ class _AlbumByArtistSectionState extends State<AlbumByArtistSection> {
         color: Colors.transparent,
         child: Row(
           children: [
-            CachedNetworkImage(
-              imageUrl: album.thumbnailURL ?? "",
-              width: 42,
-              height: 42,
-            ),
+            _icon(album),
             const SizedBox(width: 33),
             Expanded(
-              child: Text(
-                album.name ?? album.id,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Text(album.name ?? album.id,
+                style: theme.textTheme.ppMori400Black14,
+              overflow: TextOverflow.ellipsis,),
             ),
-            const SizedBox(
-              width: 24,
-            ),
-            Text('${album.total}'),
+            Text('${album.total}', style: theme.textTheme.ppMori400Grey12),
           ],
         ),
       ),
@@ -251,26 +207,30 @@ class _AlbumByArtistSectionState extends State<AlbumByArtistSection> {
 
   @override
   Widget build(BuildContext context) {
-    final listAlbumByArtist = widget.listAlbumByArtist;
-    if (listAlbumByArtist == null) return const SizedBox();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _header(context, listAlbumByArtist.length),
-        addDivider(color: AppColor.primaryBlack),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: listAlbumByArtist.length,
-          itemBuilder: (context, index) {
-            final album = listAlbumByArtist[index];
-            return _item(album);
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return addDivider();
-          },
-        ),
-      ],
+    final listAlbum = widget.listAlbum;
+    final padding = 15.0;
+    if (listAlbum == null) return const SizedBox();
+    return Padding(
+      padding: EdgeInsets.only(left: padding, right: padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _header(context, listAlbum.length),
+          addDivider(color: AppColor.primaryBlack),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: listAlbum.length,
+            itemBuilder: (context, index) {
+              final album = listAlbum[index];
+              return _item(context, album);
+            },
+            separatorBuilder: (BuildContext context, int index) {
+              return addDivider();
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -282,32 +242,14 @@ class CollectionSection extends StatefulWidget {
 }
 
 class _CollectionSectionState extends State<CollectionSection> {
+
   Widget _header(BuildContext context, int total) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Text(
-          'Collections',
-          style: theme.textTheme.ppMori400Black14,
-        ),
-        const Spacer(),
-        Text(
-          '$total',
-          style: theme.textTheme.ppMori400Black14,
-        ),
-        const SizedBox(width: 16),
-        GestureDetector(
-          onTap: () {
-            _gotoCreatePlaylist(context);
-          },
-          child: const Icon(
-            AuIcon.add,
-            size: 22,
-            color: AppColor.primaryBlack,
-          ),
-        ),
-      ],
-    );
+    return Header(title: "Collections", subTitle: "$total", icon: const Icon(
+      AuIcon.add,
+      size: 22,
+      color: AppColor.primaryBlack,
+    ), onTap:    (){         _gotoCreatePlaylist(context);}
+      ,);
   }
 
   void _gotoCreatePlaylist(BuildContext context) {
@@ -332,12 +274,23 @@ class _CollectionSectionState extends State<CollectionSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _header(context, playlists.length),
-        addDivider(color: AppColor.primaryBlack),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            children: [
+              _header(context, playlists.length),
+              addDivider(color: AppColor.primaryBlack),
+            ],
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.only(bottom: 15),
-          child: ListPlaylistsScreen(
-            key: Key(playlistKey),
+          child: Container(
+            height: 200,
+            width: 400,
+            child: ListPlaylistsScreen(
+              key: Key(playlistKey),
+            ),
           ),
         )
       ],

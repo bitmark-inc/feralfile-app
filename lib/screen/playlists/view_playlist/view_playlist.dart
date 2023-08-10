@@ -30,8 +30,9 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
+  final bool editable;
 
-  const ViewPlaylistScreen({Key? key, this.playListModel}) : super(key: key);
+  const ViewPlaylistScreen({Key? key, this.playListModel, this.editable = true}) : super(key: key);
 
   @override
   State<ViewPlaylistScreen> createState() => _ViewPlaylistScreenState();
@@ -180,6 +181,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final editable = widget.editable;
     return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
       bloc: bloc,
       listener: (context, state) {},
@@ -214,7 +216,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         : tr('untitled'),
                     style: theme.textTheme.ppMori400Black14,
                   ),
-            actions: [
+            actions: editable ? [
               GestureDetector(
                 onTap: () => _onMoreTap(context, playList),
                 child: SvgPicture.asset(
@@ -225,7 +227,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 ),
               ),
               const SizedBox(width: 15),
-            ],
+            ] : null,
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
             bloc: nftBloc,
@@ -334,7 +336,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       },
                     );
                   },
-                  itemCount: tokens.length + 1),
+                  itemCount: widget.editable ? tokens.length + 1: tokens.length),
             ),
             const SizedBox(
               height: 50,
