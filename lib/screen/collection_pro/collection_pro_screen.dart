@@ -3,17 +3,21 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,6 +27,7 @@ import 'package:nft_collection/models/asset_token.dart';
 
 class CollectionPro extends StatefulWidget {
   final List<CompactedAssetToken> tokens;
+
   const CollectionPro({super.key, required this.tokens});
 
   @override
@@ -32,7 +37,9 @@ class CollectionPro extends StatefulWidget {
 class CollectionProState extends State<CollectionPro>
     with RouteAware, WidgetsBindingObserver {
   final _bloc = injector.get<CollectionProBloc>();
+  final _identityBloc = injector.get<IdentityBloc>();
   final controller = ScrollController();
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -62,42 +69,65 @@ class CollectionProState extends State<CollectionPro>
     _bloc.add(LoadCollectionEvent());
   }
 
+  fetchIdentities(CollectionLoadedState state) {
+    final listAlbumByArtist = state.listAlbumByArtist;
+    final neededIdentities = [
+      ...?listAlbumByArtist?.map((e) => e.id).toList(),
+    ].whereNotNull().toList().unique();
+    neededIdentities.removeWhere((element) => element == '');
+
+    if (neededIdentities.isNotEmpty) {
+      _identityBloc.add(GetIdentityEvent(neededIdentities));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: BlocBuilder(
+      child: BlocConsumer(
         bloc: _bloc,
+        listener: (context, state) {
+          if (state is CollectionLoadedState) {
+            fetchIdentities(state);
+          }
+        },
         builder: (context, state) {
           if (state is CollectionLoadedState) {
             final listAlbumByMedium = state.listAlbumByMedium;
             final listAlbumByArtist = state.listAlbumByArtist;
             final paddingTop = MediaQuery.of(context).viewPadding.top;
-            return CustomScrollView(
-              controller: controller,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: HeaderView(paddingTop: paddingTop),
-                ),
-                const SliverToBoxAdapter(
-                  child: CollectionSection(),
-                ),
-                SliverToBoxAdapter(
-                  child: AlbumSection(
-                    listAlbum: listAlbumByMedium,
-                    albumType: AlbumType.medium,
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 60),
-                ),
-                SliverToBoxAdapter(
-                  child: AlbumSection(
-                    listAlbum: listAlbumByArtist,
-                    albumType: AlbumType.artist,
-                  ),
-                ),
-              ],
-            );
+            return BlocBuilder<IdentityBloc, IdentityState>(
+                builder: (context, state) {
+                  final identityMap = state.identityMap
+                    ..removeWhere((key, value) => value.isEmpty);
+                  return CustomScrollView(
+                    controller: controller,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: HeaderView(paddingTop: paddingTop),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: CollectionSection(),
+                      ),
+                      SliverToBoxAdapter(
+                        child: AlbumSection(
+                            listAlbum: listAlbumByMedium,
+                            albumType: AlbumType.medium,
+                            identityMap: identityMap),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 60),
+                      ),
+                      SliverToBoxAdapter(
+                        child: AlbumSection(
+                            listAlbum: listAlbumByArtist,
+                            albumType: AlbumType.artist,
+                            identityMap: identityMap),
+                      ),
+                    ],
+                  );
+                },
+                bloc: _identityBloc);
           }
           return const Center(child: CircularProgressIndicator());
         },
@@ -111,6 +141,7 @@ class Header extends StatelessWidget {
   final String? subTitle;
   final Widget? icon;
   final Function()? onTap;
+
   const Header({
     super.key,
     required this.title,
@@ -118,6 +149,7 @@ class Header extends StatelessWidget {
     this.icon,
     this.onTap,
   });
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -145,8 +177,14 @@ class Header extends StatelessWidget {
 class AlbumSection extends StatefulWidget {
   final List<AlbumModel>? listAlbum;
   final AlbumType albumType;
+  final Map<String, String>? identityMap;
+
   const AlbumSection(
-      {super.key, required this.listAlbum, required this.albumType});
+      {super.key,
+      required this.listAlbum,
+      required this.albumType,
+      this.identityMap});
+
   @override
   State<AlbumSection> createState() => _AlbumSectionState();
 }
@@ -174,8 +212,12 @@ class _AlbumSectionState extends State<AlbumSection> {
     }
   }
 
-  Widget _item(BuildContext context, AlbumModel album) {
+  Widget _item(
+      BuildContext context, AlbumModel album, Map<String, String> identityMap) {
     final theme = Theme.of(context);
+    final title =
+        ((album.name != album.id) ? album.name : identityMap[album.id]) ??
+            album.id;
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
@@ -183,7 +225,7 @@ class _AlbumSectionState extends State<AlbumSection> {
           AppRouter.albumPage,
           arguments: AlbumScreenPayload(
             type: widget.albumType,
-            id: album.id,
+            album: album,
           ),
         );
       },
@@ -195,7 +237,7 @@ class _AlbumSectionState extends State<AlbumSection> {
             const SizedBox(width: 33),
             Expanded(
               child: Text(
-                album.name ?? album.id,
+                title,
                 style: theme.textTheme.ppMori400Black14,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -210,10 +252,10 @@ class _AlbumSectionState extends State<AlbumSection> {
   @override
   Widget build(BuildContext context) {
     final listAlbum = widget.listAlbum;
-    final padding = 15.0;
+    const padding = 15.0;
     if (listAlbum == null) return const SizedBox();
     return Padding(
-      padding: EdgeInsets.only(left: padding, right: padding),
+      padding: const EdgeInsets.only(left: padding, right: padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -225,7 +267,7 @@ class _AlbumSectionState extends State<AlbumSection> {
             itemCount: listAlbum.length,
             itemBuilder: (context, index) {
               final album = listAlbum[index];
-              return _item(context, album);
+              return _item(context, album, widget.identityMap ?? {});
             },
             separatorBuilder: (BuildContext context, int index) {
               return addDivider();
@@ -239,6 +281,7 @@ class _AlbumSectionState extends State<AlbumSection> {
 
 class CollectionSection extends StatefulWidget {
   const CollectionSection({super.key});
+
   @override
   State<CollectionSection> createState() => _CollectionSectionState();
 }
@@ -265,7 +308,7 @@ class _CollectionSectionState extends State<CollectionSection> {
         Navigator.pushNamed(
           context,
           AppRouter.viewPlayListPage,
-          arguments: value,
+          arguments: ViewPlaylistScreenPayload(playListModel: value),
         );
       }
     });
@@ -292,7 +335,7 @@ class _CollectionSectionState extends State<CollectionSection> {
         ),
         Padding(
           padding: const EdgeInsets.only(bottom: 15),
-          child: Container(
+          child: SizedBox(
             height: 200,
             width: 400,
             child: ListPlaylistsScreen(

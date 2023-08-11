@@ -274,7 +274,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => ViewPlaylistScreen(
-            playListModel: settings.arguments as PlayListModel?,
+            payload: settings.arguments as ViewPlaylistScreenPayload,
           ),
         );
       case createPlayListPage:

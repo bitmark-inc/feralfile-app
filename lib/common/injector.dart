@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/album/album_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
@@ -75,7 +76,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -86,6 +86,7 @@ import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -410,6 +411,8 @@ Future<void> setup() async {
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
   injector.registerFactory<CollectionProBloc>(() => CollectionProBloc());
   injector.registerFactory<AlbumBloc>(() => AlbumBloc());
+  injector.registerFactory<IdentityBloc>(
+      () => IdentityBloc(injector(), injector()));
 }
 
 Dio _feralFileDio(BaseOptions options) {

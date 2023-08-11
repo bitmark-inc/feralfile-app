@@ -30,12 +30,17 @@ import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
-class ViewPlaylistScreen extends StatefulWidget {
+class ViewPlaylistScreenPayload {
   final PlayListModel? playListModel;
   final bool editable;
 
-  const ViewPlaylistScreen({Key? key, this.playListModel, this.editable = true})
-      : super(key: key);
+  const ViewPlaylistScreenPayload({this.playListModel, this.editable = true});
+}
+
+class ViewPlaylistScreen extends StatefulWidget {
+  final ViewPlaylistScreenPayload payload;
+
+  const ViewPlaylistScreen({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<ViewPlaylistScreen> createState() => _ViewPlaylistScreenState();
@@ -57,17 +62,17 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.initState();
 
     nftBloc.add(RefreshNftCollectionByIDs(
-      ids: isDemo ? [] : widget.playListModel?.tokenIDs,
-      debugTokenIds: isDemo ? widget.playListModel?.tokenIDs : [],
+      ids: isDemo ? [] : widget.payload.playListModel?.tokenIDs,
+      debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
     ));
 
-    bloc.add(GetPlayList(playListModel: widget.playListModel));
+    bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
   }
 
   Future<void> deletePlayList() async {
     final listPlaylist = await _playlistService.getPlayList();
-    listPlaylist
-        .removeWhere((element) => element.id == widget.playListModel?.id);
+    listPlaylist.removeWhere(
+        (element) => element.id == widget.payload.playListModel?.id);
     _playlistService.setPlayList(listPlaylist, override: true);
     injector.get<SettingsDataService>().backup();
     injector<NavigationService>().popUntilHomeOrSettings();
@@ -300,7 +305,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final editable = widget.editable;
+    final editable = widget.payload.editable;
     return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
       bloc: bloc,
       listener: (context, state) {},
@@ -425,7 +430,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         onTap: () => Navigator.pushNamed(
                           context,
                           AppRouter.createPlayListPage,
-                          arguments: widget.playListModel,
+                          arguments: widget.payload.playListModel,
                         ).then((value) {
                           if (value != null && value is PlayListModel) {
                             bloc.add(SavePlaylist());
@@ -473,8 +478,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       },
                     );
                   },
-                  itemCount:
-                      widget.editable ? tokens.length + 1 : tokens.length),
+                  itemCount: widget.payload.editable
+                      ? tokens.length + 1
+                      : tokens.length),
             ),
             const SizedBox(
               height: 50,

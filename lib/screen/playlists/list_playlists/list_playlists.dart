@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -109,7 +110,8 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                   onSelected: () => Navigator.pushNamed(
                     context,
                     AppRouter.viewPlayListPage,
-                    arguments: value[index],
+                    arguments:
+                        ViewPlaylistScreenPayload(playListModel: value[index]),
                   ).then((value) {
                     _initPlayList();
                   }),
