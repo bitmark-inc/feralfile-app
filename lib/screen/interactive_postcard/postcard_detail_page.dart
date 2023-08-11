@@ -89,10 +89,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   late Timer _leaderboardTimer;
+  late bool sharingPostcard;
 
   @override
   void initState() {
     _scrollController = ScrollController();
+    sharingPostcard = false;
     super.initState();
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
@@ -562,10 +564,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       timer?.cancel();
       return PostcardButton(
         text: "invite_to_collaborate".tr(),
+        enabled: !sharingPostcard,
+        isProcessing: sharingPostcard,
         onTap: () async {
           await _sharePostcard(asset);
           setState(() {});
         },
+      );
+    } else {
+      return PostcardButton(
+        text: "postcard_sent".tr(),
+        disabledColor: Color.fromRGBO(79, 174, 79, 1),
+        enabled: false,
       );
     }
 
@@ -574,6 +584,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Future<void> _sharePostcard(AssetToken asset) async {
     try {
+      setState(() {
+        sharingPostcard = true;
+      });
       final sharePostcardResponse = await _postcardService.sharePostcard(asset);
       if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
@@ -590,6 +603,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
       }
     }
+    setState(() {
+      sharingPostcard = false;
+    });
   }
 
   Future<void> cancelShare(AssetToken asset) async {
