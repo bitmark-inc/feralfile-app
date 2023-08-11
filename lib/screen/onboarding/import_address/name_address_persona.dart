@@ -61,7 +61,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
             AuTextField(
                 labelSemantics: "enter_alias_full",
                 title: "",
-                placeholder: "enter_address_alias".tr(),
+                placeholder: "enter_address".tr(),
                 controller: _nameController,
                 onChanged: (valueChanged) {
                   if (_nameController.text.trim().isEmpty !=
