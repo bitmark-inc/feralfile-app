@@ -7,32 +7,35 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_pla
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import '../../../util/iterable_ext.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
   final bool editable;
 
-  const ViewPlaylistScreen({Key? key, this.playListModel, this.editable = true}) : super(key: key);
+  const ViewPlaylistScreen({Key? key, this.playListModel, this.editable = true})
+      : super(key: key);
 
   @override
   State<ViewPlaylistScreen> createState() => _ViewPlaylistScreenState();
@@ -46,9 +49,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
+  late SortOrder _sortOrder;
 
   @override
   void initState() {
+    _sortOrder = SortOrder.title;
     super.initState();
 
     nftBloc.add(RefreshNftCollectionByIDs(
@@ -82,7 +87,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
     temp.removeWhere((element) => element == null);
 
-    tokensPlaylist = List.from(temp);
+    tokensPlaylist = List.from(temp)
+      ..sort((a, b) {
+        final x = _sortOrder.compare(a, b);
+        return x;
+      });
 
     accountIdentities = tokensPlaylist
         .where((e) => e.pending != true || e.hasMetadata)
@@ -95,6 +104,116 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   void dispose() {
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onSelectOrder(SortOrder order) {
+    setState(() {
+      _sortOrder = order;
+    });
+  }
+
+  Future<void> _onOrderTap(BuildContext context, List<SortOrder> orders) async {
+    final theme = Theme.of(context);
+    await showModalBottomSheet<dynamic>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      barrierColor: Colors.black.withOpacity(0.5),
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            color: theme.auSuperTeal,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(15, 17, 15, 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Text(
+                            "Sort by:",
+                            style: theme.textTheme.ppMori400Black14,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints:
+                              const BoxConstraints(maxHeight: 18, maxWidth: 18),
+                          icon: const Icon(
+                            AuIcon.close,
+                            size: 17,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                addOnlyDivider(color: AppColor.white),
+                const SizedBox(height: 20),
+                ListView.separated(
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                          _onSelectOrder(order);
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Row(
+                            children: [
+                              AuRadio<SortOrder>(
+                                onTap: (order) {
+                                  Navigator.pop(context);
+                                  _onSelectOrder(order);
+                                },
+                                value: order,
+                                groupValue: _sortOrder,
+                              ),
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: Text(
+                                  order.text,
+                                  style: theme.textTheme.ppMori400Black14,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  itemCount: orders.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  separatorBuilder: (BuildContext context, int index) {
+                    return const SizedBox(height: 15);
+                  },
+                ),
+                const SizedBox(height: 65),
+              ],
+            ),
+          );
+        });
+      },
+    );
   }
 
   void _onMoreTap(BuildContext context, PlayListModel? playList) {
@@ -216,18 +335,36 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         : tr('untitled'),
                     style: theme.textTheme.ppMori400Black14,
                   ),
-            actions: editable ? [
+            actions: [
               GestureDetector(
-                onTap: () => _onMoreTap(context, playList),
+                onTap: () {
+                  _onOrderTap(context, [
+                    SortOrder.title,
+                    SortOrder.artist,
+                    SortOrder.newest,
+                    SortOrder.oldest
+                  ]);
+                },
                 child: SvgPicture.asset(
-                  'assets/images/more_circle.svg',
+                  "assets/images/sort.svg",
                   colorFilter:
                       ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
                   width: 24,
                 ),
               ),
+              if (editable) ...[
+                const SizedBox(width: 15),
+                GestureDetector(
+                    onTap: () => _onMoreTap(context, playList),
+                    child: SvgPicture.asset(
+                      'assets/images/more_circle.svg',
+                      colorFilter:
+                          ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
+                      width: 24,
+                    )),
+              ],
               const SizedBox(width: 15),
-            ] : null,
+            ],
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
             bloc: nftBloc,
@@ -336,7 +473,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       },
                     );
                   },
-                  itemCount: widget.editable ? tokens.length + 1: tokens.length),
+                  itemCount:
+                      widget.editable ? tokens.length + 1 : tokens.length),
             ),
             const SizedBox(
               height: 50,
@@ -367,5 +505,38 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         )
       ],
     );
+  }
+}
+
+enum SortOrder {
+  title,
+  artist,
+  newest,
+  oldest;
+
+  String get text {
+    switch (this) {
+      case SortOrder.title:
+        return tr('sort_by_title');
+      case SortOrder.artist:
+        return tr('sort_by_artist');
+      case SortOrder.newest:
+        return tr('sort_by_newest');
+      case SortOrder.oldest:
+        return tr('sort_by_oldest');
+    }
+  }
+
+  int compare(CompactedAssetToken a, CompactedAssetToken b) {
+    switch (this) {
+      case SortOrder.title:
+        return a.title?.compareTo(b.title ?? "") ?? 1;
+      case SortOrder.artist:
+        return a.artistID?.compareTo(b.artistID ?? "") ?? 1;
+      case SortOrder.newest:
+        return b.lastActivityTime.compareTo(a.lastActivityTime);
+      case SortOrder.oldest:
+        return a.lastActivityTime.compareTo(b.lastActivityTime);
+    }
   }
 }

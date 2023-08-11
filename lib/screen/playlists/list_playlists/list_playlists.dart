@@ -79,42 +79,43 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
       builder: (context, value, child) => value == null
           ? const SizedBox.shrink()
           : ReorderableListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            onReorderStart: (index) {
-              Vibrate.feedback(FeedbackType.light);
-            },
-            proxyDecorator: (child, index, animation) {
-              return PlaylistItem(
-                key: ValueKey(value[index]),
-                playlist: value[index],
-                onHold: true,
-              );
-            },
-            itemCount: value.length,
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
-                final item = value.removeAt(oldIndex);
-                value.insert(newIndex, item);
-                _onUpdatePlaylists();
-              });
-            },
-            itemBuilder: (context, index) {
-              return PlaylistItem(
-              key: ValueKey(value[index]),
-              playlist: value[index],
-              onSelected: () => Navigator.pushNamed(
-                context,
-                AppRouter.viewPlayListPage,
-                arguments: value[index],
-              ).then((value) {
-                _initPlayList();
-              }),
-            );},
-          ),
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              onReorderStart: (index) {
+                Vibrate.feedback(FeedbackType.light);
+              },
+              proxyDecorator: (child, index, animation) {
+                return PlaylistItem(
+                  key: ValueKey(value[index]),
+                  playlist: value[index],
+                  onHold: true,
+                );
+              },
+              itemCount: value.length,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (oldIndex < newIndex) {
+                    newIndex -= 1;
+                  }
+                  final item = value.removeAt(oldIndex);
+                  value.insert(newIndex, item);
+                  _onUpdatePlaylists();
+                });
+              },
+              itemBuilder: (context, index) {
+                return PlaylistItem(
+                  key: ValueKey(value[index]),
+                  playlist: value[index],
+                  onSelected: () => Navigator.pushNamed(
+                    context,
+                    AppRouter.viewPlayListPage,
+                    arguments: value[index],
+                  ).then((value) {
+                    _initPlayList();
+                  }),
+                );
+              },
+            ),
     );
   }
 }
@@ -136,7 +137,6 @@ class PlaylistItem extends StatefulWidget {
 }
 
 class _PlaylistItemState extends State<PlaylistItem> {
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -155,9 +155,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
           decoration: BoxDecoration(
             color: Colors.amber,
             border: Border.all(
-              color: widget.onHold
-                  ? theme.auSuperTeal
-                  : Colors.transparent,
+              color: widget.onHold ? theme.auSuperTeal : Colors.transparent,
               width: widget.onHold ? 2 : 0,
             ),
             borderRadius: BorderRadius.circular(5),
@@ -175,33 +173,35 @@ class _PlaylistItemState extends State<PlaylistItem> {
                   ),
                   const Spacer(),
                   Text(
-                    numberFormater.format(widget.playlist.tokenIDs?.length ?? 0),
-                    style: theme.textTheme.ppMori400Grey14,),
+                    numberFormater
+                        .format(widget.playlist.tokenIDs?.length ?? 0),
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
                 ],
               ),
               const SizedBox(height: 5),
-              Expanded(child:
-                  Center(child:
-              thumbnailURL == null ||
-                      thumbnailURL.isEmpty
-                  ? Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: theme.disableColor,
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: thumbnailURL,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) {
-                        return Container(
+              Expanded(
+                child: Center(
+                  child: thumbnailURL == null || thumbnailURL.isEmpty
+                      ? Container(
                           width: double.infinity,
                           height: double.infinity,
                           color: theme.disableColor,
-                        );
-                      },
-                      fadeInDuration: Duration.zero,
-                    ),),),
-
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: thumbnailURL,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) {
+                            return Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              color: theme.disableColor,
+                            );
+                          },
+                          fadeInDuration: Duration.zero,
+                        ),
+                ),
+              ),
             ],
           ),
         ),

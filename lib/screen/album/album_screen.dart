@@ -2,9 +2,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/album/album_state.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -47,7 +44,8 @@ class _AlbumScreenState extends State<AlbumScreen> {
           return const Center(child: CircularProgressIndicator());
         },
         listener: (context, state) {
-          if (state is AlbumLoadedState && state.nftLoadingState == NftLoadingState.done) {
+          if (state is AlbumLoadedState &&
+              state.nftLoadingState == NftLoadingState.done) {
             final id = widget.payload.id;
             final name = widget.payload.id;
             final tokenIDs = state.assetTokens?.map((e) => e.id).toList();
@@ -56,7 +54,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
               name: name,
               tokenIDs: tokenIDs,
             );
-            Navigator.of(context).pushReplacementNamed(AppRouter.viewPlayListPage, arguments: playlist);
+            Navigator.of(context).pushReplacementNamed(
+                AppRouter.viewPlayListPage,
+                arguments: playlist);
           }
         },
       ),

@@ -135,7 +135,8 @@ class Header extends StatelessWidget {
           ),
         if (icon != null) ...[
           const SizedBox(width: 15),
-          GestureDetector(onTap: onTap, child: icon!)],
+          GestureDetector(onTap: onTap, child: icon!)
+        ],
       ],
     );
   }
@@ -144,14 +145,13 @@ class Header extends StatelessWidget {
 class AlbumSection extends StatefulWidget {
   final List<AlbumModel>? listAlbum;
   final AlbumType albumType;
-  const AlbumSection({super.key, required this.listAlbum, required this.albumType});
+  const AlbumSection(
+      {super.key, required this.listAlbum, required this.albumType});
   @override
   State<AlbumSection> createState() => _AlbumSectionState();
 }
 
 class _AlbumSectionState extends State<AlbumSection> {
-
-
   Widget _header(BuildContext context, int total) {
     final title = widget.albumType == AlbumType.medium ? 'Medium' : 'Artist';
     return Header(title: title, subTitle: "$total");
@@ -194,9 +194,11 @@ class _AlbumSectionState extends State<AlbumSection> {
             _icon(album),
             const SizedBox(width: 33),
             Expanded(
-              child: Text(album.name ?? album.id,
+              child: Text(
+                album.name ?? album.id,
                 style: theme.textTheme.ppMori400Black14,
-              overflow: TextOverflow.ellipsis,),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             Text('${album.total}', style: theme.textTheme.ppMori400Grey12),
           ],
@@ -242,14 +244,19 @@ class CollectionSection extends StatefulWidget {
 }
 
 class _CollectionSectionState extends State<CollectionSection> {
-
   Widget _header(BuildContext context, int total) {
-    return Header(title: "Collections", subTitle: "$total", icon: const Icon(
-      AuIcon.add,
-      size: 22,
-      color: AppColor.primaryBlack,
-    ), onTap:    (){         _gotoCreatePlaylist(context);}
-      ,);
+    return Header(
+      title: "Collections",
+      subTitle: "$total",
+      icon: const Icon(
+        AuIcon.add,
+        size: 22,
+        color: AppColor.primaryBlack,
+      ),
+      onTap: () {
+        _gotoCreatePlaylist(context);
+      },
+    );
   }
 
   void _gotoCreatePlaylist(BuildContext context) {

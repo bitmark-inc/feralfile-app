@@ -100,6 +100,7 @@ class HomePageState extends State<HomePage>
     final accountService = injector<AccountService>();
     return await accountService.getAllAddresses();
   }
+
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
