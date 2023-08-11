@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -43,9 +44,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   final _formKey = GlobalKey<FormState>();
   List<AssetToken> tokensPlaylist = [];
   final _controller = ScrollController();
+  late String _searchText;
 
   @override
   void initState() {
+    _searchText = '';
     super.initState();
 
     _playlistNameC.text = widget.playListModel?.name ?? '';
@@ -65,10 +68,14 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   _scrollListenerToLoadMore() {
     if (_controller.position.pixels + 100 >=
         _controller.position.maxScrollExtent) {
-      final nextKey = nftBloc.state.nextKey;
-      if (nextKey == null || nextKey.isLoaded) return;
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
+      _loadMore();
     }
+  }
+
+  _loadMore() {
+    final nextKey = nftBloc.state.nextKey;
+    if (nextKey == null || nextKey.isLoaded) return;
+    nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
   Future<List<AddressIndex>> getAddressIndexes() async {
@@ -108,8 +115,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     required List<CompactedAssetToken> tokens,
     List<String>? selectedTokens,
   }) {
-    tokens = tokens.filterAssetToken();
+    tokens = tokens.filterAssetToken().filterByTitleContain(_searchText);
     bloc.state.tokens = tokens;
+    if (tokens.length <= INDEXER_TOKENS_MAXIMUM) {
+      _loadMore();
+    }
     return tokens;
   }
 
@@ -147,6 +157,13 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                           child: Column(
                             children: [
                               HeaderView(paddingTop: paddingTop, isWhite: true),
+                              AuSearchBar(
+                                onChanged: (text) {
+                                  setState(() {
+                                    _searchText = text;
+                                  });
+                                },
+                              ),
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 8),

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
@@ -39,11 +40,13 @@ class CollectionProState extends State<CollectionPro>
   final _bloc = injector.get<CollectionProBloc>();
   final _identityBloc = injector.get<IdentityBloc>();
   final controller = ScrollController();
+  late String searchStr;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     loadCollection();
+    searchStr = '';
     super.initState();
   }
 
@@ -103,6 +106,28 @@ class CollectionProState extends State<CollectionPro>
                   return CustomScrollView(
                     controller: controller,
                     slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            headDivider(),
+                            const SizedBox(height: 7),
+                          ],
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                          child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        child: AuSearchBar(
+                          onChanged: (text) {
+                            setState(() {
+                              searchStr = text;
+                            });
+                          },
+                        ),
+                      )),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 15),
+                      ),
                       SliverToBoxAdapter(
                         child: HeaderView(paddingTop: paddingTop),
                       ),
