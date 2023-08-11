@@ -53,7 +53,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                     const SizedBox(height: 10),
                     AuTextField(
                       title: "",
-                      placeholder: "enter_address_alias".tr(),
+                      placeholder: "enter_address".tr(),
                       controller: _controller,
                       isError: _isError,
                       suffix: IconButton(
