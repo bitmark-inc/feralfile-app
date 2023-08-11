@@ -358,7 +358,6 @@ enum StatusCode {
   const StatusCode(this.value);
 
   final int value;
-
 }
 
 extension CryptoTypeHelpers on CryptoType {

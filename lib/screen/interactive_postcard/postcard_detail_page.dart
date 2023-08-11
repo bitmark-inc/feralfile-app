@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
@@ -562,20 +563,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         text: "invite_to_collaborate".tr(),
         enabled: !sharingPostcard,
         isProcessing: sharingPostcard,
-        onTap: () async {
-          await _sharePostcard(asset);
-          setState(() {});
+        onTap: () {
+          withDebounce(() async {
+            await _sharePostcard(asset);
+            setState(() {});
+          });
         },
       );
     } else {
       return PostcardButton(
         text: "postcard_sent".tr(),
-        disabledColor: Color.fromRGBO(79, 174, 79, 1),
+        disabledColor: const Color.fromRGBO(79, 174, 79, 1),
         enabled: false,
       );
     }
-
-    return const SizedBox();
   }
 
   Future<void> _sharePostcard(AssetToken asset) async {
