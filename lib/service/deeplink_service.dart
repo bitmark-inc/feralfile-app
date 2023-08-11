@@ -557,7 +557,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   _handlePostcardDeeplink(String shareCode) async {
     try {
       final sharedInfor =
-      await _postcardService.getSharedPostcardInfor(shareCode);
+          await _postcardService.getSharedPostcardInfor(shareCode);
       if (sharedInfor.status == SharedPostcardStatus.claimed) {
         await _navigationService.showAlreadyDeliveredPostcard();
         return;
@@ -567,10 +567,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final postcard = await _postcardService.getPostcard(tokenId);
       _navigationService.openPostcardReceivedPage(
           asset: postcard, shareCode: sharedInfor.shareCode);
-    } catch (e){
+    } catch (e) {
       log.info("[DeeplinkService] _handlePostcardDeeplink error $e");
-      if (e is DioError && (e.response?.statusCode == StatusCode.notFound.value)) {
-        _navigationService.showPostcardShareLinkExpired();
+      if (e is DioError &&
+          (e.response?.statusCode == StatusCode.notFound.value)) {
+        _navigationService.showPostcardShareLinkInvalid();
       }
     }
   }
