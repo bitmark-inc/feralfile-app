@@ -351,6 +351,15 @@ enum AnnouncementID {
   final String value;
 }
 
+enum StatusCode {
+  notFound(404),
+  success(200);
+
+  const StatusCode(this.value);
+
+  final int value;
+}
+
 extension CryptoTypeHelpers on CryptoType {
   String get code {
     switch (this) {

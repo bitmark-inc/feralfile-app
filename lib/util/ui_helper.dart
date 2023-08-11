@@ -1570,6 +1570,26 @@ class UIHelper {
       ),
     );
   }
+
+  static Future<void> showPostcardShareLinkInvalid(BuildContext context) async {
+    await UIHelper.showDialog(
+      context,
+      "link_expired_or_claimed".tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("link_expired_or_claimed_desc".tr(),
+              style: Theme.of(context).textTheme.ppMori400White14),
+          const SizedBox(height: 40),
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: "close".tr(),
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
 }
 
 class ConnectedTV extends StatefulWidget {
