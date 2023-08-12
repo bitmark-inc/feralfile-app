@@ -322,7 +322,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         final payload = ArtworkDetailPayload(
                           accountIdentities,
                           index,
-                          playControl: playControlModel,
                         );
                         final pageName = asset.isPostcard
                             ? AppRouter.claimedPostcardDetailsPage
