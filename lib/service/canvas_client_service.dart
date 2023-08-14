@@ -76,8 +76,11 @@ class CanvasClientService {
     final stub = _getStub(device);
     try {
       final index = _devices.indexWhere((element) => element.id == device.id);
-      final request = ConnectRequest(
-          device: DeviceInfo(deviceId: _deviceId, deviceName: _deviceName));
+      final request = ConnectRequest()
+        ..device = (DeviceInfo()
+          ..deviceId = _deviceId
+          ..deviceName = _deviceName);
+
       final response = await stub.connect(
         request,
         options: _callOptions,
@@ -108,7 +111,7 @@ class CanvasClientService {
 
   Future<void> disconnectToDevice(CanvasDevice device) async {
     _devices.remove(device);
-    final request = DisconnectRequest(deviceId: _deviceId);
+    final request = DisconnectRequest()..deviceId = _deviceId;
     final stub = _getStub(device);
     await stub.disconnect(request);
     await _disconnectLocalDevice(device);
@@ -123,7 +126,7 @@ class CanvasClientService {
     String? sceneId;
     late CanvasServerStatus status;
     try {
-      final request = CheckingStatus(deviceId: _deviceId);
+      final request = CheckingStatus()..deviceId = _deviceId;
       final response = await stub.status(
         request,
         options: _callOptions,
@@ -224,15 +227,13 @@ class CanvasClientService {
     if (playingDevice != null) {
       currentCursorOffset = await getCursorOffset(playingDevice);
     }
-    final castRequest = CastSingleRequest(
-      id: tokenId,
-      cursorDrag: DragGestureRequest(
-        dx: currentCursorOffset.dx,
-        dy: currentCursorOffset.dy,
-        coefficientX: 1 / size.width,
-        coefficientY: 1 / size.height,
-      ),
-    );
+    final castRequest = CastSingleRequest()
+      ..id = tokenId
+      ..cursorDrag = (DragGestureRequest()
+        ..dx = currentCursorOffset.dx
+        ..dy = currentCursorOffset.dy
+        ..coefficientX = 1 / size.width
+        ..coefficientY = 1 / size.height);
     final response = await stub.castSingleArtwork(castRequest);
     if (response.ok) {
       final lst = _devices.firstWhereOrNull(
@@ -250,8 +251,8 @@ class CanvasClientService {
 
   Future<void> uncastSingleArtwork(CanvasDevice device) async {
     final stub = _getStub(device);
-    final uncastRequest = UncastSingleRequest(id: "");
-    final response = await stub.uncastSingleArtwork(uncastRequest);
+    final uncastRequest = UncastSingleRequest()..id = "";
+    final response = await stub.unCastSingleArtwork(uncastRequest);
     if (response.ok) {
       _devices
           .firstWhereOrNull((element) => element == device)
@@ -262,7 +263,7 @@ class CanvasClientService {
   Future<void> sendKeyBoard(List<CanvasDevice> devices, int code) async {
     for (var device in devices) {
       final stub = _getStub(device);
-      final sendKeyboardRequest = KeyboardEventRequest(code: code);
+      final sendKeyboardRequest = KeyboardEventRequest()..code = code;
       final response = await stub.keyboardEvent(sendKeyboardRequest);
       if (response.ok) {
         log.info("Canvas Client Service: Keyboard Event Success $code");
@@ -276,7 +277,7 @@ class CanvasClientService {
   Future<void> rotateCanvas(CanvasDevice device,
       {bool clockwise = true}) async {
     final stub = _getStub(device);
-    final rotateCanvasRequest = RotateRequest(clockwise: clockwise);
+    final rotateCanvasRequest = RotateRequest()..clockwise = clockwise;
     try {
       final response = await stub.rotate(rotateCanvasRequest);
       log.info(
@@ -296,11 +297,11 @@ class CanvasClientService {
 
   Future<void> drag(
       List<CanvasDevice> devices, Offset offset, Size touchpadSize) async {
-    final dragRequest = DragGestureRequest(
-        dx: offset.dx,
-        dy: offset.dy,
-        coefficientX: 1 / touchpadSize.width,
-        coefficientY: 1 / touchpadSize.height);
+    final dragRequest = DragGestureRequest()
+      ..dx = offset.dx
+      ..dy = offset.dy
+      ..coefficientX = 1 / touchpadSize.width
+      ..coefficientY = 1 / touchpadSize.height;
     currentCursorOffset += offset;
     for (var device in devices) {
       final stub = _getStub(device);
@@ -324,12 +325,12 @@ class CanvasClientService {
         MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
     final dx = currentCursorOffset.dx / size.width;
     final dy = currentCursorOffset.dy / size.height;
-    final request = CursorOffset(
-      dx: dx,
-      dy: dy,
-      coefficientX: 1 / size.width,
-      coefficientY: 1 / size.height,
-    );
+    final request = CursorOffset()
+      ..dx = dx
+      ..dy = dy
+      ..coefficientX = 1 / size.width
+      ..coefficientY = 1 / size.height;
+
     await stub.setCursorOffset(request);
   }
 }

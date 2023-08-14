@@ -572,13 +572,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     });
     controller.pauseCamera();
     try {
-      final premium = await isPremium();
-      if (!premium) {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-        return false;
-      }
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
       final result = await canvasClient.connectToDevice(device);
