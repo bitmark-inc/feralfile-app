@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
@@ -111,7 +112,7 @@ class MixPanelClientService {
     mixpanel.getPeople().set(prop, value);
   }
 
-  MixpanelConfig? getConfig() {
+  MixpanelConfig getConfig() {
     return _configurationService.getMixpanelConfig();
   }
 
@@ -123,31 +124,29 @@ class MixPanelClientService {
 @JsonSerializable()
 class MixpanelConfig {
   final int countUseAutonomyInWeek;
-  final Duration currentDurationUseAutonomy;
+  final DateTime weekStartAt;
 
-  MixpanelConfig(
-      {required this.countUseAutonomyInWeek,
-      required this.currentDurationUseAutonomy});
+  MixpanelConfig({this.countUseAutonomyInWeek = 0, DateTime? weekStartAt})
+      : weekStartAt = weekStartAt ?? DateTime.now().startDayOfWeek;
 
   Map<String, dynamic> toJson() => {
         'countUseAutonomyInWeek': countUseAutonomyInWeek,
-        'currentDurationUseAutonomy': currentDurationUseAutonomy.inMilliseconds,
+        'weekStartAt': weekStartAt.millisecondsSinceEpoch,
       };
 
   factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
     return MixpanelConfig(
         countUseAutonomyInWeek: json['countUseAutonomyInWeek'] ?? 0,
-        currentDurationUseAutonomy:
-            Duration(milliseconds: json['currentDurationUseAutonomy'] ?? 0));
+        weekStartAt: DateTime.fromMillisecondsSinceEpoch(
+            json['weekStartAt'] ?? DateTime.now().millisecondsSinceEpoch));
   }
 
   MixpanelConfig copyWith(
-      {int? countUseAutonomyInWeek, Duration? currentDurationUseAutonomy}) {
+      {int? countUseAutonomyInWeek, DateTime? weekStartAt}) {
     return MixpanelConfig(
       countUseAutonomyInWeek:
           countUseAutonomyInWeek ?? this.countUseAutonomyInWeek,
-      currentDurationUseAutonomy:
-          currentDurationUseAutonomy ?? this.currentDurationUseAutonomy,
+      weekStartAt: weekStartAt ?? this.weekStartAt,
     );
   }
 }

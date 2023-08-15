@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -8,6 +9,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
@@ -18,6 +20,7 @@ import 'package:path_provider/path_provider.dart';
 
 class MetricClientService {
   final AccountService _accountService;
+  late Timer? useAppTimer;
 
   MetricClientService(this._accountService);
 
@@ -27,6 +30,10 @@ class MetricClientService {
 
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
+    useAppTimer = Timer.periodic(USE_APP_MIN_DURATION, (timer) async {
+      timer.cancel();
+      await onUseAppInForeground();
+    });
     await MetricClient.init(
       storageOption: StorageOption(
         name: 'metric',
@@ -128,11 +135,33 @@ class MetricClientService {
     }
   }
 
-  MixpanelConfig? getConfig() {
+  MixpanelConfig getConfig() {
     return mixPanelClient.getConfig();
   }
 
   Future<void> setConfig(MixpanelConfig config) async {
     await mixPanelClient.setConfig(config);
+  }
+
+  Future<void> onUseAppInForeground() async {
+    final config = getConfig();
+    final now = DateTime.now();
+    final startDayOfWeek = now.startDayOfWeek;
+    if (startDayOfWeek.compareTo(config.weekStartAt) != 0) {
+      final newConfig = config.copyWith(
+        weekStartAt: startDayOfWeek,
+        countUseAutonomyInWeek: 1,
+      );
+      await setConfig(newConfig);
+      return;
+    }
+    final countUseApp = config.countUseAutonomyInWeek + 1;
+    if (countUseApp == 3) {
+      addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
+        "number": countUseApp,
+      });
+    }
+    final newConfig = config.copyWith(countUseAutonomyInWeek: countUseApp);
+    await setConfig(newConfig);
   }
 }

@@ -273,7 +273,7 @@ abstract class ConfigurationService {
 
   Future<void> setMixpanelConfig(MixpanelConfig config);
 
-  MixpanelConfig? getMixpanelConfig();
+  MixpanelConfig getMixpanelConfig();
 
   Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
       {bool override = false});
@@ -1228,10 +1228,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  MixpanelConfig? getMixpanelConfig() {
+  MixpanelConfig getMixpanelConfig() {
     final data = _preferences.getString(KEY_MIXPANEL_PROPS);
     if (data == null) {
-      return null;
+      return MixpanelConfig();
     }
     final config = MixpanelConfig.fromJson(jsonDecode(data));
     return config;

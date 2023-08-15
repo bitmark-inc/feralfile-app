@@ -498,6 +498,7 @@ class MixpanelEvent {
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";
   static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
+  static const numberUseAppInAWeek = "number_use_app_in_a_week";
 }
 
 class MixpanelProp {
@@ -545,3 +546,5 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = "_closeWebview";
 }
+
+const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);
