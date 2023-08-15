@@ -122,29 +122,32 @@ class MixPanelClientService {
 
 @JsonSerializable()
 class MixpanelConfig {
-  final DateTime? editorialPeriodStart;
-  final double? totalEditorialReading;
+  final int countUseAutonomyInWeek;
+  final Duration currentDurationUseAutonomy;
 
-  MixpanelConfig({this.editorialPeriodStart, this.totalEditorialReading});
+  MixpanelConfig(
+      {required this.countUseAutonomyInWeek,
+      required this.currentDurationUseAutonomy});
 
   Map<String, dynamic> toJson() => {
-        "editorialPeriodStart": editorialPeriodStart?.toIso8601String(),
-        "totalEditorialReading": totalEditorialReading,
+        'countUseAutonomyInWeek': countUseAutonomyInWeek,
+        'currentDurationUseAutonomy': currentDurationUseAutonomy.inMilliseconds,
       };
 
   factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
     return MixpanelConfig(
-      editorialPeriodStart: DateTime.tryParse(json['editorialPeriodStart']),
-      totalEditorialReading: json['totalEditorialReading'],
-    );
+        countUseAutonomyInWeek: json['countUseAutonomyInWeek'] ?? 0,
+        currentDurationUseAutonomy:
+            Duration(milliseconds: json['currentDurationUseAutonomy'] ?? 0));
   }
 
   MixpanelConfig copyWith(
-      {DateTime? editorialPeriodStart, double? totalEditorialReading}) {
+      {int? countUseAutonomyInWeek, Duration? currentDurationUseAutonomy}) {
     return MixpanelConfig(
-      editorialPeriodStart: editorialPeriodStart ?? this.editorialPeriodStart,
-      totalEditorialReading:
-          totalEditorialReading ?? this.totalEditorialReading,
+      countUseAutonomyInWeek:
+          countUseAutonomyInWeek ?? this.countUseAutonomyInWeek,
+      currentDurationUseAutonomy:
+          currentDurationUseAutonomy ?? this.currentDurationUseAutonomy,
     );
   }
 }
