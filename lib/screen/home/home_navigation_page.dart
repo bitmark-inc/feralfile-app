@@ -16,9 +16,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
+import 'package:autonomy_flutter/screen/discover/discover_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -33,7 +31,6 @@ import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -80,10 +77,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
-  final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
+  final GlobalKey<DiscoverPageState> _discoverPageStateKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   final _feedService = injector<FeedService>();
-  final _editorialService = injector<EditorialService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _metricClientService = injector<MetricClientService>();
@@ -105,7 +101,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           _homePageKey.currentState?.scrollToTop();
         }
         if (index == 0) {
-          _editorialPageStateKey.currentState?.scrollToTop();
+          _discoverPageStateKey.currentState?.scrollToTop();
         }
       }
       setState(() {
@@ -115,13 +111,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       if (index == 1) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
-          _editorialService.checkNewEditorial();
         });
         _playListService.refreshPlayLists();
       } else if (index == 0) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
-          _editorialService.checkNewEditorial();
         });
         final metricClient = injector<MetricClientService>();
         if (_configurationService.hasFeed()) {
@@ -130,13 +124,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           feedBloc.add(GetFeedsEvent());
           metricClient.addEvent(MixpanelEvent.viewDiscovery);
           metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
-        } else {
-          final editorialBloc = context.read<EditorialBloc>();
-          editorialBloc.add(OpenEditorialEvent());
-          metricClient.addEvent(MixpanelEvent.viewEditorial);
-          metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
         }
-        context.read<EditorialBloc>().add(GetEditorialEvent());
       }
     } else {
       UIHelper.showDrawerAction(
@@ -203,7 +191,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
     _clientTokenService.refreshTokens().then((value) {
       _feedService.checkNewFeeds();
-      _editorialService.checkNewEditorial();
     });
 
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
@@ -214,8 +201,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ValueListenableBuilder<bool>(
           valueListenable: _feedService.hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
-            return EditorialPage(
-                key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
+            return DiscoverPage(key: _discoverPageStateKey);
           }),
       HomePage(key: _homePageKey),
       MultiBlocProvider(
@@ -231,14 +217,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         icon: MultiValueListenableBuilder(
             valueListenables: [
               _feedService.unviewedCount,
-              _editorialService.unviewedCount
             ],
             builder:
                 (BuildContext context, List<dynamic> values, Widget? child) {
-              final feedUnviewCount = values[0] as int;
-              final editorialUnviewCount = values[1] as int;
-              final unviewCount = feedUnviewCount + editorialUnviewCount;
-              if (feedUnviewCount > 0) {
+              final unviewCount = values[0] as int;
+              if (unviewCount > 0) {
                 context.read<FeedBloc>().add(GetFeedsEvent());
               }
               return Stack(
@@ -527,7 +510,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
-        _editorialPageStateKey.currentState?.selectTab(HomePageTab.DISCOVER);
         _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
         break;
       case "new_message":
@@ -639,8 +621,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     announcementNotificationIfNeed();
     Timer? useAppTimer = _metricClientService.useAppTimer;
     useAppTimer?.cancel();
-    useAppTimer = Timer.periodic(USE_APP_MIN_DURATION, (timer) async {
-      timer.cancel();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
       await _metricClientService.onUseAppInForeground();
     });
   }

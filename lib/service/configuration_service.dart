@@ -157,10 +157,6 @@ abstract class ConfigurationService {
 
   bool hasFeed();
 
-  Future setLastTimeOpenEditorial(DateTime time);
-
-  DateTime? getLastTimeOpenEditorial();
-
   // ----- App Setting -----
   bool isDemoArtworksMode();
 
@@ -341,7 +337,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
-  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
@@ -1210,21 +1205,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       currentValue.addAll(updateValues);
       await _preferences.setStringList(key, currentValue.toSet().toList());
     }
-  }
-
-  @override
-  DateTime? getLastTimeOpenEditorial() {
-    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
-  Future setLastTimeOpenEditorial(DateTime time) {
-    return _preferences.setString(
-        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
   }
 
   @override

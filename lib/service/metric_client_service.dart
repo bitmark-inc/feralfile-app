@@ -30,10 +30,6 @@ class MetricClientService {
 
   Future<void> initService() async {
     final root = await getTemporaryDirectory();
-    useAppTimer = Timer.periodic(USE_APP_MIN_DURATION, (timer) async {
-      timer.cancel();
-      await onUseAppInForeground();
-    });
     await MetricClient.init(
       storageOption: StorageOption(
         name: 'metric',
@@ -58,6 +54,10 @@ class MetricClientService {
 
     await mixPanelClient.initService();
     isFinishInit = true;
+    await onOpenApp();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
+      await onUseAppInForeground();
+    });
   }
 
   Future<void> addEvent(
@@ -143,24 +143,26 @@ class MetricClientService {
     await mixPanelClient.setConfig(config);
   }
 
-  Future<void> onUseAppInForeground() async {
+  Future<void> onOpenApp() async {
     final config = getConfig();
     final now = DateTime.now();
     final startDayOfWeek = now.startDayOfWeek;
-    if (startDayOfWeek.compareTo(config.weekStartAt) != 0) {
+    if (startDayOfWeek
+        .isAfter(config.weekStartAt.add(const Duration(days: 7)))) {
+      addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
+        "number": config.countUseAutonomyInWeek,
+      });
       final newConfig = config.copyWith(
         weekStartAt: startDayOfWeek,
-        countUseAutonomyInWeek: 1,
+        countUseAutonomyInWeek: 0,
       );
       await setConfig(newConfig);
-      return;
     }
+  }
+
+  Future<void> onUseAppInForeground() async {
+    final config = getConfig();
     final countUseApp = config.countUseAutonomyInWeek + 1;
-    if (countUseApp == 3) {
-      addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
-        "number": countUseApp,
-      });
-    }
     final newConfig = config.copyWith(countUseAutonomyInWeek: countUseApp);
     await setConfig(newConfig);
   }

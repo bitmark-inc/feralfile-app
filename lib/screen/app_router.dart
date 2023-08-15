@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
@@ -58,9 +57,6 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
-import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
-import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
@@ -193,7 +189,6 @@ class AppRouter {
   static const airdropTokenDetailPage = 'airdrop_token_detail_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
-  static const articleDetailPage = 'article_detail_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
@@ -309,7 +304,6 @@ class AppRouter {
                               injector(),
                               injector(),
                             )),
-                    BlocProvider(create: (_) => EditorialBloc(injector())),
                     BlocProvider(
                       create: (_) => FeedBloc(
                         injector(),
@@ -317,7 +311,6 @@ class AppRouter {
                         injector(),
                       ),
                     ),
-                    BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -342,7 +335,6 @@ class AppRouter {
                               injector(),
                               injector(),
                             )),
-                    BlocProvider(create: (_) => EditorialBloc(injector())),
                     BlocProvider(
                       create: (_) => FeedBloc(
                         injector(),
@@ -350,7 +342,6 @@ class AppRouter {
                         injector(),
                       ),
                     ),
-                    BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -1001,13 +992,7 @@ class AppRouter {
                     ],
                     child: Wc2RequestPage(
                         request: settings.arguments as Wc2Request)));
-      case articleDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return ArticleDetailPage(
-                  post: settings.arguments as EditorialPost);
-            });
+
       case walletPage:
         return CupertinoPageRoute(
             settings: settings,
