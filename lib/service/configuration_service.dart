@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -157,10 +156,6 @@ abstract class ConfigurationService {
 
   bool hasFeed();
 
-  Future setLastTimeOpenEditorial(DateTime time);
-
-  DateTime? getLastTimeOpenEditorial();
-
   // ----- App Setting -----
   bool isDemoArtworksMode();
 
@@ -271,10 +266,6 @@ abstract class ConfigurationService {
   Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
       {bool override = false});
 
-  Future<void> setMixpanelConfig(MixpanelConfig config);
-
-  MixpanelConfig? getMixpanelConfig();
-
   Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
       {bool override = false});
 
@@ -341,7 +332,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
-  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
@@ -384,8 +374,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
       "already_show_postcard_updates";
-
-  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
   static const String KEY_PACKAGE_INFO = "package_info";
 
@@ -1210,37 +1198,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       currentValue.addAll(updateValues);
       await _preferences.setStringList(key, currentValue.toSet().toList());
     }
-  }
-
-  @override
-  DateTime? getLastTimeOpenEditorial() {
-    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
-  Future setLastTimeOpenEditorial(DateTime time) {
-    return _preferences.setString(
-        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
-  }
-
-  @override
-  MixpanelConfig? getMixpanelConfig() {
-    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
-    if (data == null) {
-      return null;
-    }
-    final config = MixpanelConfig.fromJson(jsonDecode(data));
-    return config;
-  }
-
-  @override
-  Future<void> setMixpanelConfig(MixpanelConfig config) async {
-    await _preferences.setString(
-        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
   }
 
   @override

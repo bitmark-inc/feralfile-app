@@ -175,10 +175,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         case "home":
           _navigationService.restorablePushHomePage();
           break;
-        case "editorial":
-          memoryValues.homePageInitialTab = HomePageTab.EDITORIAL;
-          _navigationService.restorablePushHomePage();
-          break;
         case "discover":
           memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
           _navigationService.restorablePushHomePage();

@@ -226,7 +226,6 @@ class MemoryValues {
 enum HomePageTab {
   HOME,
   DISCOVER,
-  EDITORIAL,
 }
 
 enum HomeNavigatorTab {

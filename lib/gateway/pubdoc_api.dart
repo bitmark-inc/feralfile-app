@@ -7,7 +7,6 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
@@ -29,9 +28,6 @@ abstract class PubdocAPI {
   @GET("/demo/demo_account.json")
   Future<String> getDemoAccount();
 
-  @GET("/editorial/editorial.json")
-  Future<String> getEditorial();
-
   @GET("/tutorial_videos/tutorial_videos.json")
   Future<String> getTutorialVideos();
 }
@@ -48,11 +44,6 @@ extension PubdocAPIHelpers on PubdocAPI {
       return PlayListModel.fromJson(element);
     }).toList();
     return list ?? [];
-  }
-
-  Future<Editorial> getEditorialInfo() async {
-    final value = await getEditorial();
-    return Editorial.fromJson(jsonDecode(value));
   }
 
   Future<List<VideoData>> getTutorialVideosFromGithub() async {
