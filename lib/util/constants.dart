@@ -507,6 +507,8 @@ class MixpanelProp {
   static const address = 'Address';
   static const subscription = 'Subscription';
   static const numberNft = 'Number NFT';
+
+  static String connectedToMarket(String name) => "Connected to $name";
 }
 
 // class MixpanelConfig {
