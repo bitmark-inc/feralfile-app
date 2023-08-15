@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -17,9 +18,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class CanvasDeviceView extends StatefulWidget {
   final String sceneId;
+  final bool isCollection;
   final Function? onClose;
+  final PlayListModel? playlist;
 
-  const CanvasDeviceView({Key? key, required this.sceneId, this.onClose})
+  const CanvasDeviceView(
+      {Key? key,
+      required this.sceneId,
+      this.onClose,
+      this.isCollection = false,
+      this.playlist})
       : super(key: key);
 
   @override
@@ -216,7 +224,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       case DeviceStatus.loading:
         return GestureDetector(
           onTap: () {
-            _bloc.add(CanvasDeviceUncastingSingleEvent(deviceState.device));
+            _bloc.add(CanvasDeviceUnCastingEvent(deviceState.device));
           },
           child: loadingIndicator(
               size: 22,
@@ -256,7 +264,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 height: 30,
               ),
               onTap: () {
-                _bloc.add(CanvasDeviceUncastingSingleEvent(deviceState.device));
+                _bloc.add(CanvasDeviceUnCastingEvent(deviceState.device));
               },
             ),
           ],
@@ -269,8 +277,14 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
           ),
           onTap: () {
-            _bloc.add(CanvasDeviceCastSingleEvent(
-                deviceState.device, widget.sceneId));
+            if (widget.isCollection) {
+              if (widget.playlist == null) return;
+              _bloc.add(CanvasDeviceCastCollectionEvent(
+                  deviceState.device, widget.playlist!));
+            } else {
+              _bloc.add(CanvasDeviceCastSingleEvent(
+                  deviceState.device, widget.sceneId));
+            }
           },
         );
       case DeviceStatus.error:

@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:uuid/uuid.dart';
 
 class CanvasClientService {
   final AppDatabase _db;
@@ -38,7 +40,6 @@ class CanvasClientService {
     _deviceName = await device.getMachineName() ?? "Autonomy App";
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
-    await syncDevices();
     _didInitialized = true;
   }
 
@@ -201,10 +202,14 @@ class CanvasClientService {
     return devices;
   }
 
-  Future<List<CanvasDevice>> getConnectingDevices() async {
-    for (var device in _devices) {
-      final status = await checkDeviceStatus(device);
-      device.playingSceneId = status.second;
+  Future<List<CanvasDevice>> getConnectingDevices({bool doSync = false}) async {
+    if (doSync) {
+      await syncDevices();
+    } else {
+      for (var device in _devices) {
+        final status = await checkDeviceStatus(device);
+        device.playingSceneId = status.second;
+      }
     }
     return _devices;
   }
@@ -253,6 +258,47 @@ class CanvasClientService {
     final stub = _getStub(device);
     final uncastRequest = UncastSingleRequest()..id = "";
     final response = await stub.unCastSingleArtwork(uncastRequest);
+    if (response.ok) {
+      _devices
+          .firstWhereOrNull((element) => element == device)
+          ?.playingSceneId = null;
+    }
+  }
+
+  Future<bool> castCollection(
+      CanvasDevice device, PlayListModel playlist) async {
+    if (playlist.tokenIDs == null || playlist.tokenIDs!.isEmpty) return false;
+    final stub = _getStub(device);
+    _devices.firstWhereOrNull(
+      (element) {
+        return element.playingSceneId != null;
+      },
+    );
+
+    final castRequest = CastCollectionRequest()
+      ..id = playlist.id ?? const Uuid().v4()
+      ..artworks.addAll(playlist.tokenIDs!.map((e) => PlayArtwork()
+        ..id = e
+        ..duration = playlist.playControlModel?.timer ?? 10));
+    final response = await stub.castCollection(castRequest);
+    if (response.ok) {
+      final lst = _devices.firstWhereOrNull(
+        (element) {
+          final isEqual = element == device;
+          return isEqual;
+        },
+      );
+      lst?.playingSceneId = playlist.id;
+    } else {
+      log.info('CanvasClientService: Failed to cast collection');
+    }
+    return response.ok;
+  }
+
+  Future<void> unCast(CanvasDevice device) async {
+    final stub = _getStub(device);
+    final unCastRequest = UnCastRequest()..id = "";
+    final response = await stub.unCastArtwork(unCastRequest);
     if (response.ok) {
       _devices
           .firstWhereOrNull((element) => element == device)

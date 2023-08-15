@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
@@ -11,10 +12,12 @@ import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +48,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
+  late CanvasDeviceBloc _canvasDeviceBloc;
 
   @override
   void initState() {
@@ -54,6 +58,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       ids: isDemo ? [] : widget.playListModel?.tokenIDs,
       debugTokenIds: isDemo ? widget.playListModel?.tokenIDs : [],
     ));
+
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
 
     bloc.add(GetPlayList(playListModel: widget.playListModel));
   }
@@ -358,6 +364,29 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               Navigator.of(context).pushNamed(
                 AppRouter.artworkPreviewPage,
                 arguments: payload,
+              );
+            },
+            onCastTap: () {
+              final playlist = widget.playListModel;
+              if (playlist?.tokenIDs == null || playlist!.tokenIDs!.isEmpty) {
+                log.info("Cast collection failed: playlist empty");
+                return;
+              }
+              playlist.playControlModel = playControlModel;
+              UIHelper.showFlexibleDialog(
+                context,
+                BlocProvider.value(
+                  value: _canvasDeviceBloc,
+                  child: CanvasDeviceView(
+                    sceneId: "",
+                    isCollection: true,
+                    playlist: playlist,
+                    onClose: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+                isDismissible: true,
               );
             },
           ),

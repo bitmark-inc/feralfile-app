@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -110,18 +111,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     }
   }
 
-  void _uncasting() {
-    final canvasDeviceState = _canvasDeviceBloc.state;
-    for (var e in canvasDeviceState.devices) {
-      if (e.status == DeviceStatus.playing) {
-        _canvasDeviceBloc.add(CanvasDeviceUncastingSingleEvent(e.device));
-      }
-    }
-  }
-
   @override
   void dispose() {
-    _uncasting();
     _focusNode.dispose();
     disableLandscapeMode();
     WakelockPlus.disable();
@@ -405,7 +396,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 CastButton(
-                                  assetToken: assetToken,
                                   onCastTap: () => _onCastTap(assetToken),
                                   isCasting: isCasting,
                                 ),
@@ -449,34 +439,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         ];
         context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
       },
-    );
-  }
-}
-
-class CastButton extends StatelessWidget {
-  final AssetToken? assetToken;
-  final VoidCallback? onCastTap;
-  final bool isCasting;
-
-  const CastButton(
-      {Key? key, this.assetToken, this.onCastTap, this.isCasting = false})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: onCastTap,
-      child: Semantics(
-        label: 'cast_icon',
-        child: SvgPicture.asset(
-          'assets/images/cast_icon.svg',
-          colorFilter: ColorFilter.mode(
-              isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
-              BlendMode.srcIn),
-        ),
-      ),
     );
   }
 }

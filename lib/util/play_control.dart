@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/play_control_model.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -8,6 +9,7 @@ class PlaylistControl extends StatelessWidget {
   final Function()? onPlayTap;
   final Function()? onTimerTap;
   final Function()? onShuffleTap;
+  final Function()? onCastTap;
   final bool showPlay;
 
   const PlaylistControl({
@@ -17,6 +19,7 @@ class PlaylistControl extends StatelessWidget {
     this.onShuffleTap,
     this.showPlay = true,
     required this.playControl,
+    this.onCastTap,
   }) : super(key: key);
 
   @override
@@ -121,6 +124,15 @@ class PlaylistControl extends StatelessWidget {
                   onPlayTap?.call();
                 },
               ),
+              const SizedBox(
+                width: 15,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CastButton(onCastTap: () => {
+                  onCastTap?.call()
+                },),
+              )
             ]
           ],
         ),

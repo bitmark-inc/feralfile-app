@@ -233,8 +233,13 @@ class AppRouter {
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => ViewPlaylistScreen(
-            playListModel: settings.arguments as PlayListModel?,
+          builder: (context) => BlocProvider(
+            create: (_) => CanvasDeviceBloc(
+              injector(),
+            ),
+            child: ViewPlaylistScreen(
+              playListModel: settings.arguments as PlayListModel?,
+            ),
           ),
         );
       case createPlayListPage:
