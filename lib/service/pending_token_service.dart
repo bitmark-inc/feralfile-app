@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/models.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/models/pending_tx_params.dart';
 import 'package:web3dart/web3dart.dart';
@@ -272,6 +273,10 @@ class PendingTokenService {
           "${removedPending.map((e) => e.id).toList()}");
       for (AssetToken token in removedPending) {
         if (token.asset?.indexID != null) {
+          final artists = await _assetTokenDao
+              .findRemoveArtistIDsByID([token.asset!.indexID!]);
+          NftCollectionBloc.eventController
+              .add(AddArtistsEvent(artists: artists));
           await _assetDao.deleteAssetByIndexID(token.asset!.indexID!);
         }
         await _tokenDao.deleteTokenByID(token.id);

@@ -107,6 +107,10 @@ class HomePageState extends State<HomePage>
         case UpdateTokensEvent:
           nftBloc.add(event);
           break;
+        case AddArtistsEvent:
+          /// add following
+        case RemoveArtistsEvent:
+          /// remove following
         default:
       }
     });
