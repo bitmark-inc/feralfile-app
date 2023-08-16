@@ -156,7 +156,8 @@ class PostcardDetailBloc
       final stampingPostcard =
           postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
       if (stampingPostcard != null) {
-        if (stampingPostcard.counter == asset.postcardMetadata.counter) {
+        if (state.isLastOwner &&
+            stampingPostcard.counter == asset.postcardMetadata.counter) {
           final isStamped = asset.postcardMetadata.isStamped;
           if (!isStamped) {
             log.info("[PostcardDetail] Stamping... ");

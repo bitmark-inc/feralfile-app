@@ -23,7 +23,7 @@ class _CustomerSupportApi implements CustomerSupportApi {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result =
         await _dio.fetch<List<dynamic>>(_setStreamType<List<Issue>>(Options(
       method: 'GET',
@@ -36,7 +36,11 @@ class _CustomerSupportApi implements CustomerSupportApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     var value = _result.data!
         .map((dynamic i) => Issue.fromJson(i as Map<String, dynamic>))
         .toList();
@@ -45,13 +49,13 @@ class _CustomerSupportApi implements CustomerSupportApi {
 
   @override
   Future<IssueDetails> getDetails(
-    issueID, {
-    reverse = true,
+    String issueID, {
+    bool reverse = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'reverse': reverse};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<IssueDetails>(Options(
       method: 'GET',
@@ -64,13 +68,17 @@ class _CustomerSupportApi implements CustomerSupportApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = IssueDetails.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<PostedMessageResponse> createIssue(body) async {
+  Future<PostedMessageResponse> createIssue(Map<String, Object> body) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -88,15 +96,19 @@ class _CustomerSupportApi implements CustomerSupportApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = PostedMessageResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
   Future<PostedMessageResponse> commentIssue(
-    issueID,
-    body,
+    String issueID,
+    Map<String, Object> body,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -115,17 +127,21 @@ class _CustomerSupportApi implements CustomerSupportApi {
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
     final value = PostedMessageResponse.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<dynamic> reOpenIssue(issueID) async {
+  Future<dynamic> reOpenIssue(String issueID) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'PATCH',
       headers: _headers,
@@ -137,20 +153,24 @@ class _CustomerSupportApi implements CustomerSupportApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
     final value = _result.data;
     return value;
   }
 
   @override
   Future<void> rateIssue(
-    issueID,
-    rating,
+    String issueID,
+    int rating,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
     await _dio.fetch<void>(_setStreamType<void>(Options(
       method: 'POST',
       headers: _headers,
@@ -162,8 +182,11 @@ class _CustomerSupportApi implements CustomerSupportApi {
           queryParameters: queryParameters,
           data: _data,
         )
-        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    return null;
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
@@ -177,5 +200,22 @@ class _CustomerSupportApi implements CustomerSupportApi {
       }
     }
     return requestOptions;
+  }
+
+  String _combineBaseUrls(
+    String dioBaseUrl,
+    String? baseUrl,
+  ) {
+    if (baseUrl == null || baseUrl.trim().isEmpty) {
+      return dioBaseUrl;
+    }
+
+    final url = Uri.parse(baseUrl);
+
+    if (url.isAbsolute) {
+      return url.toString();
+    }
+
+    return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }

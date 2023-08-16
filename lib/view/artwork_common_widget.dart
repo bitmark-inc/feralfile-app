@@ -1646,7 +1646,7 @@ class PostcardRightsView extends StatefulWidget {
 
 class _PostcardRightsViewState extends State<PostcardRightsView> {
   final dio = Dio(BaseOptions(
-    connectTimeout: 2000,
+    connectTimeout: const Duration(seconds: 5),
   ));
 
   @override
@@ -1838,7 +1838,10 @@ Widget _rowItem(
               const SizedBox(width: 8.0),
               SvgPicture.asset(
                 'assets/images/iconForward.svg',
-                color: theme.textTheme.ppMori400White12.color,
+                colorFilter: ColorFilter.mode(
+                    theme.textTheme.ppMori400White12.color ??
+                        AppColor.primaryBlack,
+                    BlendMode.srcIn),
               ),
             ]
           ],

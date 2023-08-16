@@ -34,7 +34,6 @@ const STAR_RATING = "###STAR#RATING#";
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/bencebitmark/autonomy-user-test';
-const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     "https://github.com/bitmark-inc/autonomy-client";
@@ -125,6 +124,8 @@ final internetUserGeoLocation =
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
+const int STAMP_SIZE = 2160;
+
 const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
 const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
@@ -200,6 +201,17 @@ String feralFileExhibitionUrl(String slug) =>
 
 String feralFileArtworkUrl(String slug) =>
     "${Environment.feralFileAPIURL}/artworks/$slug";
+
+String get etherScanUrl {
+  switch (Environment.web3ChainId) {
+    case 11155111:
+      return "https://sepolia.etherscan.io";
+    case 5:
+      return "https://goerli.etherscan.io";
+    default:
+      return "https://etherscan.io";
+  }
+}
 
 enum WalletApp {
   MetaMask,
@@ -458,17 +470,12 @@ class MixpanelEvent {
   static const connectExternal = 'connect_external';
   static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
-  static const editorialViewArticle = 'editorial_view_article';
-  static const editorialReadingArticle = 'editorial_reading_article';
   static const addNFT = 'add_NFT';
   static const enableNotification = 'enable_notification';
   static const tabNotification = 'tab_notification';
-  static const viewEditorial = 'view_editorial';
-  static const timeViewEditorial = 'time_view_editorial';
   static const finishArticles = 'finish_articles';
   static const visitExhibition = 'visit_exhibition';
   static const visitExhibitionArtwork = 'visit_exhibition_artwork';
-  static const tabOnLinkInEditorial = 'tab_on_link_in_editorial';
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
   static const scanQR = 'scan_qr';
@@ -488,7 +495,6 @@ class MixpanelEvent {
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";
-  static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
 }
 
 class MixpanelProp {

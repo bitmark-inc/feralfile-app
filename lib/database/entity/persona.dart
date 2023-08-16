@@ -8,11 +8,14 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
+import 'package:collection/collection.dart';
 import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/services/address_service.dart';
 
 class DateTimeConverter extends TypeConverter<DateTime, int> {
   @override
@@ -134,20 +137,31 @@ class Persona {
     return null;
   }
 
-  Future<List<WalletAddress>> insertAddress(WalletType walletType,
-      {int index = 0, String? name}) async {
+  Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
+      {String? name}) async {
     final List<WalletAddress> addresses = [];
+    final walletAddresses = await getWalletAddresses();
+    final ethIndexes = walletAddresses
+        .where((element) => element.cryptoType == CryptoType.ETH.source)
+        .map((e) => e.index)
+        .toList();
+    final ethIndex = _getNextIndex(ethIndexes);
+    final tezIndexes = walletAddresses
+        .where((element) => element.cryptoType == CryptoType.XTZ.source)
+        .map((e) => e.index)
+        .toList();
+    final tezIndex = _getNextIndex(tezIndexes);
     final ethAddress = WalletAddress(
-        address: await wallet().getETHEip55Address(index: index),
+        address: await wallet().getETHEip55Address(index: ethIndex),
         uuid: uuid,
-        index: index,
+        index: ethIndex,
         cryptoType: CryptoType.ETH.source,
         createdAt: DateTime.now(),
         name: name ?? CryptoType.ETH.source);
     final tezAddress = WalletAddress(
-        address: await wallet().getTezosAddress(index: index),
+        address: await wallet().getTezosAddress(index: tezIndex),
         uuid: uuid,
-        index: index,
+        index: tezIndex,
         cryptoType: CryptoType.XTZ.source,
         createdAt: DateTime.now(),
         name: name ?? CryptoType.XTZ.source);
@@ -161,9 +175,15 @@ class Persona {
       default:
         addresses.addAll([ethAddress, tezAddress]);
     }
+    await injector<AccountService>()
+        .removeDoubleViewOnly(addresses.map((e) => e.address).toList());
     await injector<CloudDatabase>().addressDao.insertAddresses(addresses);
+    await injector<AddressService>()
+        .addAddresses(addresses.map((e) => e.address).toList());
     return addresses;
   }
+
+  int _getNextIndex(List<int> indexes) => (indexes.maxOrNull ?? -1) + 1;
 
   @override
   bool operator ==(covariant Persona other) {

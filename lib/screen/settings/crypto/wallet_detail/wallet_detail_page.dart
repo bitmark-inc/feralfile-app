@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -178,7 +177,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.disabledColor,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn),
               ),
               controller: _renameController,
               focusNode: _renameFocusNode,
@@ -203,7 +203,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               icon: SvgPicture.asset(
                 'assets/images/more_circle.svg',
                 width: 22,
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               action: _showOptionDialog,
               //showConnection ? _connectionIconTap : null,
@@ -535,7 +536,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         return TappableForwardRow(
           padding: EdgeInsets.zero,
           leftWidget: Text(
-            "connection_with_dApps".tr(),
+            "connections".tr(),
             style: theme.textTheme.ppMori400Black14,
           ),
           rightWidget: Container(
@@ -610,11 +611,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   String _txURL(String address, CryptoType cryptoType) {
     switch (cryptoType) {
       case CryptoType.ETH:
-        return "https://etherscan.io/address/$address";
+        return "$etherScanUrl/address/$address";
       case CryptoType.XTZ:
         return "https://tzkt.io/$address/operations";
       case CryptoType.USDC:
-        return "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=$address";
+        return "$etherScanUrl/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=$address";
       default:
         return "";
     }
@@ -658,8 +659,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 }
 
                 if (!mounted) return;
-                final tx = payload['tx'] as TZKTOperation;
-                tx.sender = TZKTActor(address: address);
                 UIHelper.showMessageAction(
                   context,
                   'success'.tr(),
@@ -725,7 +724,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               title: 'unhide_from_collection_view'.tr(),
               icon: SvgPicture.asset(
                 'assets/images/unhide.svg',
-                color: AppColor.primaryBlack,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.primaryBlack, BlendMode.srcIn),
               ),
               onTap: () {
                 injector<AccountService>()
@@ -763,7 +763,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
           'assets/images/rename_icon.svg',
-          color: AppColor.primaryBlack,
+          colorFilter:
+              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onTap: _onRenameTap,
       ),

@@ -43,7 +43,7 @@ class ActivationService {
       return response;
     } catch (e) {
       log.info("[Activation service] claimActivation: $e");
-      if (e is DioError) {
+      if (e is DioException) {
         switch (e.response?.data['message']) {
           case "cannot self claim":
             _navigationService.showAirdropJustOnce();

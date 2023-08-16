@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/connection_supports.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -150,65 +150,31 @@ class MigrationUtil {
         await _cloudDB.personaDao.deletePersona(persona);
       }
     }
-
-    for (var con in migrationData.ffTokenConnections) {
-      final ffConnection =
-          FeralFileConnection(source: con.source, ffAccount: con.ffAccount);
-      final connection = Connection(
-        key: con.token,
-        name: con.ffAccount.alias,
-        data: json.encode(ffConnection),
-        connectionType: ConnectionType.feralFileToken.rawValue,
-        accountNumber: con.ffAccount.id,
-        createdAt: con.createdAt,
-      );
-
-      await _cloudDB.connectionDao.insertConnection(connection);
-    }
-
-    for (var con in migrationData.ffWeb3Connections) {
-      final ffWeb3Connection = FeralFileWeb3Connection(
-          personaAddress: con.address,
-          source: con.source,
-          ffAccount: con.ffAccount);
-      final connection = Connection(
-        key: con.topic,
-        name: con.ffAccount.alias,
-        data: json.encode(ffWeb3Connection),
-        connectionType: ConnectionType.feralFileWeb3.rawValue,
-        accountNumber: con.ffAccount.id,
-        createdAt: con.createdAt,
-      );
-
-      await _cloudDB.connectionDao.insertConnection(connection);
+    final List<FFAccount> ffAccounts = [];
+    ffAccounts.addAll(migrationData.ffTokenConnections.map((e) => e.ffAccount));
+    ffAccounts.addAll(migrationData.ffWeb3Connections.map((e) => e.ffAccount));
+    final List<Connection> connections = [];
+    for (var account in ffAccounts) {
+      final ethConnection =
+          Connection.getManuallyAddress(account.ethereumAddress);
+      final tezosConnection =
+          Connection.getManuallyAddress(account.tezosAddress);
+      ethConnection != null ? connections.add(ethConnection) : null;
+      tezosConnection != null ? connections.add(tezosConnection) : null;
     }
 
     for (var con in migrationData.walletBeaconConnections) {
-      final connection = Connection(
-        key: con.tezosWalletConnection.address,
-        name: con.name,
-        data: json.encode(con.tezosWalletConnection),
-        connectionType: ConnectionType.walletBeacon.rawValue,
-        accountNumber: con.tezosWalletConnection.address,
-        createdAt: con.createdAt,
-      );
-
-      await _cloudDB.connectionDao.insertConnection(connection);
+      final address = con.tezosWalletConnection.address;
+      connections.add(Connection(
+          key: address,
+          name: con.name,
+          data: "",
+          connectionType: ConnectionType.manuallyAddress.rawValue,
+          accountNumber: address,
+          createdAt: DateTime.now()));
     }
 
-    for (var con in migrationData.walletConnectConnections) {
-      if (con.wcConnectedSession.accounts.isEmpty) continue;
-      final connection = Connection(
-        key: con.wcConnectedSession.accounts.first,
-        name: con.name,
-        data: json.encode(con.wcConnectedSession),
-        connectionType: ConnectionType.walletConnect.rawValue,
-        accountNumber: con.wcConnectedSession.accounts.first,
-        createdAt: con.createdAt,
-      );
-
-      await _cloudDB.connectionDao.insertConnection(connection);
-    }
+    await _cloudDB.connectionDao.insertConnections(connections);
 
     await _channel.invokeMethod("cleariOSMigrationData", {});
     log.info('[_migrationIOS] Done');

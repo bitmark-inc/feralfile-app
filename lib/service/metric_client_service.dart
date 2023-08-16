@@ -127,12 +127,4 @@ class MetricClientService {
       mixPanelClient.setLabel(prop, value);
     }
   }
-
-  MixpanelConfig? getConfig() {
-    return mixPanelClient.getConfig();
-  }
-
-  Future<void> setConfig(MixpanelConfig config) async {
-    await mixPanelClient.setConfig(config);
-  }
 }

@@ -18,15 +18,17 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:http/http.dart' as http;
 
 class ArtworkPreviewDetailBloc
     extends AuBloc<ArtworkPreviewDetailEvent, ArtworkPreviewDetailState> {
   final AssetTokenDao _assetTokenDao;
   final EthereumService _ethereumService;
   final IndexerService _indexerService;
+  final AssetDao _assetDao;
 
-  ArtworkPreviewDetailBloc(
-      this._assetTokenDao, this._ethereumService, this._indexerService)
+  ArtworkPreviewDetailBloc(this._assetTokenDao, this._ethereumService,
+      this._indexerService, this._assetDao)
       : super(ArtworkPreviewDetailLoadingState()) {
     on<ArtworkPreviewDetailGetAssetTokenEvent>((event, emit) async {
       AssetToken? assetToken;
@@ -46,6 +48,25 @@ class ArtworkPreviewDetailBloc
       String? overriddenHtml;
       if (assetToken != null && assetToken.isFeralfileFrame == true) {
         overriddenHtml = await _fetchFeralFileFramePreview(assetToken);
+      }
+
+      if (assetToken != null &&
+          assetToken.asset != null &&
+          (assetToken.mimeType?.isEmpty ?? true)) {
+        final uri = Uri.tryParse(assetToken.previewURL ?? '');
+        if (uri != null) {
+          try {
+            final res = await http
+                .head(uri)
+                .timeout(const Duration(milliseconds: 10000));
+            assetToken.asset!.mimeType = res.headers["content-type"];
+            _assetDao.updateAsset(assetToken.asset!);
+          } catch (error) {
+            log.info(
+                "ArtworkPreviewDetailGetAssetTokenEvent: preview url error",
+                error);
+          }
+        }
       }
       emit(ArtworkPreviewDetailLoadedState(
           assetToken: assetToken, overriddenHtml: overriddenHtml));

@@ -8,11 +8,8 @@
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:collection/collection.dart';
 import 'package:tezart/tezart.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConnectionRequest {
-  bool get isWalletConnect => false;
-
   bool get isWalletConnect2 => false;
 
   bool get isAutonomyConnect => false;
@@ -24,25 +21,6 @@ abstract class ConnectionRequest {
   String? get name;
 
   String? get url;
-}
-
-class WCConnectPageArgs extends ConnectionRequest {
-  final int _id;
-  final WCPeerMeta peerMeta;
-
-  @override
-  bool get isWalletConnect => true;
-
-  WCConnectPageArgs(this._id, this.peerMeta);
-
-  @override
-  get id => _id;
-
-  @override
-  String? get name => peerMeta.name;
-
-  @override
-  String? get url => peerMeta.url;
 }
 
 class BeaconRequest extends ConnectionRequest {
@@ -148,15 +126,6 @@ class AppMetadata {
         "url": url,
         "description": description,
       };
-
-  WCPeerMeta toWCPeerMeta() {
-    return WCPeerMeta(
-      name: name,
-      url: url,
-      description: description,
-      icons: icons,
-    );
-  }
 }
 
 class Wc2Namespace {

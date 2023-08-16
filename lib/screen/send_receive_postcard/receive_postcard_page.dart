@@ -11,11 +11,10 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -85,14 +84,14 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             setState(() {
               _isProcessing = true;
             });
-            await _receivePostcard(asset);
+            await _receivePostcard(context, asset);
           },
         ),
       ),
     );
   }
 
-  Future<void> _receivePostcard(AssetToken asset) async {
+  Future<void> _receivePostcard(BuildContext context, AssetToken asset) async {
     GeoLocation? location;
     try {
       location = await getGeoLocationWithPermission(
@@ -113,10 +112,10 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     final addresses = await accountService.getAddress(asset.blockchain);
     String? address;
     if (addresses.isEmpty) {
-      final defaultAccount = await accountService.getDefaultAccount();
-      address = blockchain == CryptoType.XTZ.source
-          ? await defaultAccount.getTezosAddress()
-          : await defaultAccount.getETHEip55Address();
+      final defaultPersona = await accountService.getOrCreateDefaultPersona();
+      final walletAddress =
+          await defaultPersona.insertNextAddress(WalletType.Tezos);
+      address = walletAddress.first.address;
     } else if (addresses.length == 1) {
       address = addresses.first;
     } else {
@@ -158,7 +157,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         Navigator.of(context)
             .pushNamed(AppRouter.postcardStartedPage, arguments: pendingToken);
       } catch (e) {
-        if (e is DioError) {
+        if (e is DioException) {
           if (!mounted) return;
           await UIHelper.showReceivePostcardFailed(
             context,

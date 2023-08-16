@@ -36,7 +36,8 @@ class RadioSelectAddress extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: SvgPicture.asset(
           'assets/images/check-icon.svg',
-          color: borderColor ?? theme.colorScheme.primary,
+          colorFilter: ColorFilter.mode(
+              borderColor ?? theme.colorScheme.primary, BlendMode.srcIn),
         ),
       ),
       animationDuration: const Duration(milliseconds: 100),
@@ -63,10 +64,12 @@ class AuCheckBox extends StatelessWidget {
     return SizedBox(
       width: 24,
       child: SvgPicture.asset(
-          isChecked ?? false
-              ? "assets/images/check_box_true.svg"
-              : "assets/images/check_box_false.svg",
-          color: color ?? AppColor.primaryBlack),
+        isChecked ?? false
+            ? "assets/images/check_box_true.svg"
+            : "assets/images/check_box_false.svg",
+        colorFilter:
+            ColorFilter.mode(color ?? AppColor.primaryBlack, BlendMode.srcIn),
+      ),
     );
   }
 }

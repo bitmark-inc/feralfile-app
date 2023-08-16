@@ -33,8 +33,6 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
   String get title {
     switch (widget.type) {
-      case 'address':
-        return 'link_address'.tr();
       case 'indexerTokenID':
         return 'indexer_tokenId'.tr();
       default:
@@ -44,9 +42,6 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
   String get description {
     switch (widget.type) {
-      case 'address':
-        return 'to_manually_input_a'
-            .tr(); //"To manually input an address (Debug only)."
       case 'indexerTokenID':
         return 'to_manually_input_ti'
             .tr(); //"To manually input an indexer TokenID (Debug only)."
@@ -120,9 +115,6 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
   void _link() async {
     switch (widget.type) {
-      case 'address':
-        break;
-
       case 'indexerTokenID':
         await injector<AccountService>()
             .linkIndexerTokenID(_addressController.text.trim());

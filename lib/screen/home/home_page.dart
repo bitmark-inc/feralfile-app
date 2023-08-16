@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -33,15 +32,12 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -70,7 +66,6 @@ import 'package:open_settings/open_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/token_ext.dart';
 
@@ -144,7 +139,6 @@ class HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    injector<FeralFileService>().completeDelayedFFConnections();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
     _checkForKeySync(context);
@@ -251,8 +245,13 @@ class HomePageState extends State<HomePage>
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
       listenWhen: (previousState, currentState) {
-        final diffLength =
-            currentState.tokens.length - previousState.tokens.length;
+        final currentNumber = currentState.tokens.items
+            .filterAssetToken(isShowHidden: true)
+            .length;
+        final previousNumber = previousState.tokens.items
+            .filterAssetToken(isShowHidden: true)
+            .length;
+        final diffLength = currentNumber - previousNumber;
         if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.addNFT, data: {
             'number': diffLength,
@@ -260,10 +259,9 @@ class HomePageState extends State<HomePage>
         }
         if (diffLength != 0) {
           _metricClient.addEvent(MixpanelEvent.numberNft, data: {
-            'number': currentState.tokens.length,
+            'number': currentNumber,
           });
-          _metricClient.setLabel(
-              MixpanelProp.numberNft, currentState.tokens.length);
+          _metricClient.setLabel(MixpanelProp.numberNft, currentNumber);
         }
         return true;
       },
@@ -285,31 +283,12 @@ class HomePageState extends State<HomePage>
       },
     );
 
-    return BlocListener<UpgradesBloc, UpgradeState>(
-      listener: (context, state) {
-        ConfigurationService config = injector<ConfigurationService>();
-        WCPeerMeta? peerMeta = config.getTVConnectPeerMeta();
-        int? id = config.getTVConnectID();
-        if (peerMeta != null || id != null) {
-          if (state.status == IAPProductStatus.trial ||
-              state.status == IAPProductStatus.completed) {
-            injector<NavigationService>().navigateTo(AppRouter.tvConnectPage,
-                arguments: WCConnectPageArgs(id!, peerMeta!));
-            config.deleteTVConnectData();
-          } else if (state.status != IAPProductStatus.loading &&
-              state.status != IAPProductStatus.pending) {
-            injector<WalletConnectService>().rejectRequest(peerMeta!, id!);
-            config.deleteTVConnectData();
-          }
-        }
-      },
-      child: PrimaryScrollController(
-        controller: _controller,
-        child: Scaffold(
-          appBar: Platform.isAndroid ? getLightEmptyAppBar() : null,
-          backgroundColor: theme.colorScheme.background,
-          body: contentWidget,
-        ),
+    return PrimaryScrollController(
+      controller: _controller,
+      child: Scaffold(
+        appBar: getLightEmptyAppBar(),
+        backgroundColor: theme.colorScheme.background,
+        body: contentWidget,
       ),
     );
   }
@@ -481,9 +460,7 @@ class HomePageState extends State<HomePage>
       if (isShowLinkOrImportTip)
         Tipcard(
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.accessMethodPage);
-            },
+            onPressed: () {},
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
@@ -698,15 +675,13 @@ class HomePageState extends State<HomePage>
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {
-      if (exception is DioError && exception.response?.statusCode == 404) {
+      if (exception is DioException && exception.response?.statusCode == 404) {
         // if there is no backup, upload one.
         await injector<SettingsDataService>().backup();
       } else {
         Sentry.captureException(exception);
       }
     }
-
-    injector<WalletConnectService>().initSessions(forced: true);
 
     refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);

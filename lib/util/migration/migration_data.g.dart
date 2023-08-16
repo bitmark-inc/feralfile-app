@@ -24,11 +24,6 @@ MigrationData _$MigrationDataFromJson(Map<String, dynamic> json) =>
               .map((e) => MigrationWalletBeaconConnection.fromJson(
                   e as Map<String, dynamic>))
               .toList(),
-      walletConnectConnections:
-          (json['walletConnectConnections'] as List<dynamic>)
-              .map((e) => MigrationWalletConnectConnection.fromJson(
-                  e as Map<String, dynamic>))
-              .toList(),
     );
 
 Map<String, dynamic> _$MigrationDataToJson(MigrationData instance) =>
@@ -37,7 +32,6 @@ Map<String, dynamic> _$MigrationDataToJson(MigrationData instance) =>
       'ffTokenConnections': instance.ffTokenConnections,
       'ffWeb3Connections': instance.ffWeb3Connections,
       'walletBeaconConnections': instance.walletBeaconConnections,
-      'walletConnectConnections': instance.walletConnectConnections,
     };
 
 MigrationPersona _$MigrationPersonaFromJson(Map<String, dynamic> json) =>
@@ -103,23 +97,6 @@ Map<String, dynamic> _$MigrationWalletBeaconConnectionToJson(
         MigrationWalletBeaconConnection instance) =>
     <String, dynamic>{
       'tezosWalletConnection': instance.tezosWalletConnection,
-      'name': instance.name,
-      'createdAt': instance.createdAt.toIso8601String(),
-    };
-
-MigrationWalletConnectConnection _$MigrationWalletConnectConnectionFromJson(
-        Map<String, dynamic> json) =>
-    MigrationWalletConnectConnection(
-      wcConnectedSession: WCConnectedSession.fromJson(
-          json['wcConnectedSession'] as Map<String, dynamic>),
-      name: json['name'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
-
-Map<String, dynamic> _$MigrationWalletConnectConnectionToJson(
-        MigrationWalletConnectConnection instance) =>
-    <String, dynamic>{
-      'wcConnectedSession': instance.wcConnectedSession,
       'name': instance.name,
       'createdAt': instance.createdAt.toIso8601String(),
     };

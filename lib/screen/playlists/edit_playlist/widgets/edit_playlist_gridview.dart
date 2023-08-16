@@ -57,6 +57,11 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
             child: const AddTokenWidget(),
           ),
         ),
+
+        /// add 3 blank cells to make space for done button
+        const SizedBox(),
+        const SizedBox(),
+        const SizedBox(),
       ],
       onDragStart: (dragIndex) {
         Vibrate.feedback(FeedbackType.light);
@@ -75,7 +80,7 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
       children: widget.tokens
           .map(
             (e) => e != null
-                ? ThubnailPlaylistItem(
+                ? ThumbnailPlaylistItem(
                     key: ValueKey(e),
                     token: e,
                     cachedImageSize: cachedImageSize,
@@ -109,7 +114,7 @@ class AddTokenWidget extends StatelessWidget {
         child: Center(
           child: SvgPicture.asset(
             "assets/images/joinFile.svg",
-            color: theme.primaryColor,
+            colorFilter: ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
           ),
         ),
       ),

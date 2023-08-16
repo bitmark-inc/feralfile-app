@@ -11,17 +11,14 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_box_view.dart';
 import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
@@ -52,7 +49,6 @@ import 'package:jiffy/jiffy.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -103,14 +99,6 @@ void showSurveysNotification(BuildContext context) {
       context, "take_survey".tr(), const Key(Survey.onboarding),
       notificationOpenedHandler: () =>
           injector<NavigationService>().navigateTo(SurveyPage.tag));
-}
-
-Future newAccountPageOrSkipInCondition(BuildContext context) async {
-  if (memoryValues.linkedFFConnections?.isNotEmpty ?? false) {
-    doneOnboarding(context);
-  } else {
-    Navigator.of(context).pushNamed(AppRouter.newAccountPage);
-  }
 }
 
 class UIHelper {
@@ -663,7 +651,8 @@ class UIHelper {
             children: [
               SvgPicture.asset(
                 'assets/images/cast_icon.svg',
-                color: theme.disableColor,
+                colorFilter:
+                    ColorFilter.mode(theme.disableColor, BlendMode.srcIn),
               ),
               const SizedBox(
                 width: 17,
@@ -851,7 +840,7 @@ class UIHelper {
   }) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context, series.id);
-    } else if (e is DioError) {
+    } else if (e is DioException) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
           ? ffError.getDialogMessage(series: series)
@@ -877,7 +866,7 @@ class UIHelper {
       BuildContext context, Object e, String id) async {
     if (e is AirdropExpired) {
       await showAirdropExpired(context, id);
-    } else if (e is DioError) {
+    } else if (e is DioException) {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
           ? ffError.dialogMessage
@@ -899,28 +888,6 @@ class UIHelper {
   // MARK: - Connection
   static Widget buildConnectionAppWidget(Connection connection, double size) {
     switch (connection.connectionType) {
-      case 'dappConnect':
-        final remotePeerMeta =
-            connection.wcConnection?.sessionStore.remotePeerMeta;
-        final appIcons = remotePeerMeta?.icons ?? [];
-        if (appIcons.isEmpty) {
-          return SizedBox(
-              width: size,
-              height: size,
-              child:
-                  Image.asset("assets/images/walletconnect-alternative.png"));
-        } else {
-          return CachedNetworkImage(
-            imageUrl: appIcons.firstOrNull ?? "",
-            width: size,
-            height: size,
-            errorWidget: (context, url, error) => SizedBox(
-              width: size,
-              height: size,
-              child: Image.asset("assets/images/walletconnect-alternative.png"),
-            ),
-          );
-        }
       case 'dappConnect2':
         final appMetaData = AppMetadata.fromJson(jsonDecode(connection.data));
         final appIcons = appMetaData.icons;
@@ -1138,7 +1105,8 @@ class UIHelper {
                   onPressed: () => Share.share(address),
                   icon: SvgPicture.asset(
                     'assets/images/Share.svg',
-                    color: AppColor.white,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
                   )),
             ]),
             const SizedBox(height: 40),
@@ -1340,45 +1308,6 @@ class UIHelper {
         isDismissible: true, autoDismissAfter: 3);
   }
 
-  static Future showFeatureRequiresSubscriptionDialog(BuildContext context,
-      PremiumFeature feature, WCPeerMeta peerMeta, int id) {
-    final theme = Theme.of(context);
-
-    return showDialog(
-      context,
-      "h_subscribe".tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("require_subs".tr(), style: theme.primaryTextTheme.bodyLarge),
-          const SizedBox(height: 40),
-          UpgradeBoxView.getMoreAutonomyWidget(theme, feature,
-              peerMeta: peerMeta, id: id),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () {
-                    injector<WalletConnectService>()
-                        .rejectRequest(peerMeta, id);
-                    injector<ConfigurationService>().deleteTVConnectData();
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    "cancel".tr(),
-                    style: theme.primaryTextTheme.labelLarge,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
   static Future<void> showDrawerAction(BuildContext context,
       {List<OptionItem>? options}) async {
     final theme = Theme.of(context);
@@ -1482,12 +1411,14 @@ class UIHelper {
         closeButton: "close".tr());
   }
 
-  static showReceivePostcardFailed(BuildContext context, DioError error) async {
+  static showReceivePostcardFailed(
+      BuildContext context, DioException error) async {
     return showErrorDialog(context, "accept_postcard_failed".tr(),
         error.response?.data['message'], "close".tr());
   }
 
-  static showSharePostcardFailed(BuildContext context, DioError error) async {
+  static showSharePostcardFailed(
+      BuildContext context, DioException error) async {
     return showErrorDialog(context, "Share Failed",
         "${error.response?.data['message']}", "close".tr());
   }
@@ -1660,48 +1591,6 @@ learnMoreAboutAutonomySecurityWidget(BuildContext context,
   );
 }
 
-wantMoreSecurityWidget(BuildContext context, WalletApp walletApp) {
-  var introText = 'you_can_get_all'.tr();
-  if (walletApp == WalletApp.Kukai || walletApp == WalletApp.Temple) {
-    introText += "_tezos".tr();
-  }
-  introText += "functionality".tr(args: [walletApp.rawValue]);
-  final theme = Theme.of(context);
-  return GestureDetector(
-    onTap: () => Navigator.of(context).pushNamed(AppRouter.importAccountPage),
-    child: Container(
-      padding: const EdgeInsets.all(10),
-      color: AppColor.secondaryDimGreyBackground,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          "want_more_sec".tr(),
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasDimgreyBold14
-              : theme.textTheme.atlasDimgreyBold16,
-        ),
-        const SizedBox(height: 5),
-        Text(
-          introText,
-          style: ResponsiveLayout.isMobile
-              ? theme.textTheme.atlasBlackNormal14
-              : theme.textTheme.atlasBlackNormal16,
-        ),
-        const SizedBox(height: 10),
-        TextButton(
-          onPressed: () =>
-              Navigator.of(context).pushNamed(AppRouter.unsafeWebWalletPage),
-          style: TextButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: EdgeInsets.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text("learn_ex_unsafe".tr(), style: theme.textTheme.linkStyle),
-        ),
-      ]),
-    ),
-  );
-}
-
 Widget loadingScreen(ThemeData theme, String text) {
   return Scaffold(
     backgroundColor: AppColor.white,
@@ -1745,7 +1634,7 @@ Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
 }
 
 String getDateTimeRepresentation(DateTime dateTime) {
-  return Jiffy(dateTime).fromNow();
+  return Jiffy.parseFromDateTime(dateTime).fromNow();
 }
 
 class OptionItem {

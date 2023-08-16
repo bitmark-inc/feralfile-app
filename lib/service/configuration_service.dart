@@ -17,14 +17,12 @@ import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
@@ -46,18 +44,6 @@ abstract class ConfigurationService {
   Future<void> setPremium(bool value);
 
   bool isPremium();
-
-  Future<void> setTVConnectData(WCPeerMeta peerMeta, int id);
-
-  Future<void> deleteTVConnectData();
-
-  WCPeerMeta? getTVConnectPeerMeta();
-
-  int? getTVConnectID();
-
-  Future<void> setWCSessions(List<WCSessionStore> value);
-
-  List<WCSessionStore> getWCSessions();
 
   Future<void> setDevicePasscodeEnabled(bool value);
 
@@ -170,10 +156,6 @@ abstract class ConfigurationService {
 
   bool hasFeed();
 
-  Future setLastTimeOpenEditorial(DateTime time);
-
-  DateTime? getLastTimeOpenEditorial();
-
   // ----- App Setting -----
   bool isDemoArtworksMode();
 
@@ -284,10 +266,6 @@ abstract class ConfigurationService {
   Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
       {bool override = false});
 
-  Future<void> setMixpanelConfig(MixpanelConfig config);
-
-  MixpanelConfig? getMixpanelConfig();
-
   Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
       {bool override = false});
 
@@ -311,7 +289,6 @@ abstract class ConfigurationService {
 class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
-  static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String IS_PREMIUM = "is_premium";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
@@ -355,10 +332,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
-  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
-
-  static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
-  static const String TV_CONNECT_ID = "tv_connect_id";
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
@@ -401,8 +374,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
       "already_show_postcard_updates";
-
-  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
 
   static const String KEY_PACKAGE_INFO = "package_info";
 
@@ -507,51 +478,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final json = jsonDecode(data);
       return JWT.fromJson(json);
     }
-  }
-
-  @override
-  Future<void> setTVConnectData(WCPeerMeta peerMeta, int id) async {
-    final json = jsonEncode(peerMeta);
-    await _preferences.setString(TV_CONNECT_PEER_META, json);
-    await _preferences.setInt(TV_CONNECT_ID, id);
-  }
-
-  @override
-  Future<void> deleteTVConnectData() async {
-    await _preferences.remove(TV_CONNECT_PEER_META);
-    await _preferences.remove(TV_CONNECT_ID);
-  }
-
-  @override
-  WCPeerMeta? getTVConnectPeerMeta() {
-    final data = _preferences.getString(TV_CONNECT_PEER_META);
-    if (data == null) {
-      return null;
-    } else {
-      final json = jsonDecode(data);
-      return WCPeerMeta.fromJson(json);
-    }
-  }
-
-  @override
-  int? getTVConnectID() {
-    return _preferences.getInt(TV_CONNECT_ID);
-  }
-
-  @override
-  Future<void> setWCSessions(List<WCSessionStore> value) async {
-    log.info("setWCSessions: $value");
-    final json = jsonEncode(value);
-    await _preferences.setString(KEY_WC_SESSIONS, json);
-  }
-
-  @override
-  List<WCSessionStore> getWCSessions() {
-    final json = _preferences.getString(KEY_WC_SESSIONS);
-    final sessions = json != null ? jsonDecode(json) : List.empty();
-    return List.from(sessions)
-        .map((e) => WCSessionStore.fromJson(e))
-        .toList(growable: false);
   }
 
   @override
@@ -1272,37 +1198,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       currentValue.addAll(updateValues);
       await _preferences.setStringList(key, currentValue.toSet().toList());
     }
-  }
-
-  @override
-  DateTime? getLastTimeOpenEditorial() {
-    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
-  Future setLastTimeOpenEditorial(DateTime time) {
-    return _preferences.setString(
-        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
-  }
-
-  @override
-  MixpanelConfig? getMixpanelConfig() {
-    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
-    if (data == null) {
-      return null;
-    }
-    final config = MixpanelConfig.fromJson(jsonDecode(data));
-    return config;
-  }
-
-  @override
-  Future<void> setMixpanelConfig(MixpanelConfig config) async {
-    await _preferences.setString(
-        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
   }
 
   @override

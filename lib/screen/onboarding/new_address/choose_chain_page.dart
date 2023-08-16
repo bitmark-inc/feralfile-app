@@ -40,9 +40,9 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 40),
-                    _addressOption(
+                    _addressOption(context,
                         cryptoType: CryptoType.ETH, isSelected: _ethSelected),
-                    _addressOption(
+                    _addressOption(context,
                         cryptoType: CryptoType.XTZ, isSelected: _tezosSelected),
                   ],
                 ),
@@ -69,7 +69,7 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
     );
   }
 
-  Widget _addressOption(
+  Widget _addressOption(BuildContext context,
       {required CryptoType cryptoType, required bool isSelected}) {
     final theme = Theme.of(context);
 

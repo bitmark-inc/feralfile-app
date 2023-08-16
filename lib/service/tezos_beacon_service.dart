@@ -15,15 +15,12 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
-import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -77,23 +74,6 @@ class TezosBeaconService implements BeaconHandler {
         showInfoNotification(const Key("switchBack"), "you_all_set".tr());
       });
     }
-  }
-
-  Future<String> getConnectionURI() {
-    return _beaconChannel.getConnectionURI();
-  }
-
-  Future<String> getPostMessageConnectionURI() {
-    return _beaconChannel.getPostMessageConnectionURI();
-  }
-
-  Future<List> handlePostMessageOpenChannel(String payload) {
-    return _beaconChannel.handlePostMessageOpenChannel(payload);
-  }
-
-  Future<List> handlePostMessageMessage(
-      String extensionPublicKey, String payload) {
-    return _beaconChannel.handlePostMessageMessage(extensionPublicKey, payload);
   }
 
   Future addPeer(String link, {Function()? onTimeout}) async {
@@ -202,47 +182,6 @@ class TezosBeaconService implements BeaconHandler {
   }
 
   @override
-  Future<void> onLinked(TezosConnection tezosConnection) async {
-    log.info("TezosBeaconService: ${tezosConnection.toJson()}");
-    final alreadyLinkedAccount =
-        await getExistingAccount(tezosConnection.address);
-    if (alreadyLinkedAccount != null) {
-      _navigationService.hideInfoDialog();
-      _navigationService.showErrorDialog(
-          ErrorEvent(null, "already_linked".tr(), "al_you’ve_already".tr(),
-              ErrorItemState.seeAccount), defaultAction: () {
-        _navigationService.navigateTo(AppRouter.linkedAccountDetailsPage,
-            arguments: alreadyLinkedAccount);
-      });
-      return;
-    }
-
-    final connection = Connection(
-      key: tezosConnection.address,
-      name: "",
-      data: json.encode(tezosConnection),
-      connectionType: ConnectionType.walletBeacon.rawValue,
-      accountNumber: tezosConnection.address,
-      createdAt: DateTime.now(),
-    );
-
-    await injector<CloudDatabase>().connectionDao.insertConnection(connection);
-    final metricClient = injector.get<MetricClientService>();
-
-    metricClient.addEvent(
-      MixpanelEvent.linkWallet,
-      data: {
-        "connectionType": "tezos_beacon",
-      },
-      hashedData: {"address": tezosConnection.address},
-    );
-
-    _navigationService.hideInfoDialog();
-    _navigationService.navigateTo(AppRouter.nameLinkedAccountPage,
-        arguments: connection);
-  }
-
-  @override
   void onRequestedPermission(Peer peer) {
     log.info("TezosBeaconService: ${peer.toJson()}");
     UIHelper.showInfoDialog(
@@ -253,29 +192,6 @@ class TezosBeaconService implements BeaconHandler {
     );
     //"Autonomy has sent a request to ${peer.name} to link to your account."
     //   " Please open the wallet and authorize the request. ");
-  }
-
-  Future<Connection> onPostMessageLinked(
-      String tzAddress, Peer peer, PermissionResponse response) async {
-    final alreadyLinkedAccount = await getExistingAccount(tzAddress);
-    if (alreadyLinkedAccount != null) {
-      throw AlreadyLinkedException(alreadyLinkedAccount);
-    }
-
-    final tezosConnection = TezosConnection(
-        address: tzAddress, peer: peer, permissionResponse: response);
-
-    final connection = Connection(
-      key: tzAddress,
-      name: "",
-      data: json.encode(tezosConnection),
-      connectionType: ConnectionType.walletBeacon.rawValue,
-      accountNumber: tzAddress,
-      createdAt: DateTime.now(),
-    );
-
-    await _cloudDB.connectionDao.insertConnection(connection);
-    return connection;
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {

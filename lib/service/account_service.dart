@@ -25,15 +25,15 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -42,14 +42,14 @@ import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/crypto.dart';
 
 import 'iap_service.dart';
-import 'wallet_connect_dapp_service/wc_connected_session.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+
+  Future<Persona> getOrCreateDefaultPersona();
 
   Future<WalletStorage?> getCurrentDefaultAccount();
 
@@ -61,6 +61,8 @@ abstract class AccountService {
   });
 
   Future androidBackupKeys();
+
+  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
@@ -76,10 +78,6 @@ abstract class AccountService {
   Future<Persona> namePersona(Persona persona, String name);
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
-
-  Future<Connection> linkETHWallet(WCConnectedSession session);
-
-  Future<Connection> linkETHBrowserWallet(String address, WalletApp walletApp);
 
   Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType);
 
@@ -109,7 +107,7 @@ abstract class AccountService {
 
   Future<String> authorizeToViewer();
 
-  Future<Persona> addAddressPersona(
+  Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses);
 
   Future<void> deleteAddressPersona(
@@ -124,7 +122,6 @@ abstract class AccountService {
 
 class AccountServiceImpl extends AccountService {
   final CloudDatabase _cloudDB;
-  final WalletConnectService _walletConnectService;
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
@@ -138,7 +135,6 @@ class AccountServiceImpl extends AccountService {
 
   AccountServiceImpl(
     this._cloudDB,
-    this._walletConnectService,
     this._tezosBeaconService,
     this._configurationService,
     this._auditService,
@@ -271,6 +267,13 @@ class AccountServiceImpl extends AccountService {
   }
 
   Future<WalletStorage> _getDefaultAccount() async {
+    final Persona defaultPersona = await getOrCreateDefaultPersona();
+
+    return LibAukDart.getWallet(defaultPersona.uuid);
+  }
+
+  @override
+  Future<Persona> getOrCreateDefaultPersona() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
@@ -297,8 +300,7 @@ class AccountServiceImpl extends AccountService {
     } else {
       defaultPersona = personas.first;
     }
-
-    return LibAukDart.getWallet(defaultPersona.uuid);
+    return defaultPersona;
   }
 
   @override
@@ -311,22 +313,12 @@ class AccountServiceImpl extends AccountService {
     await LibAukDart.getWallet(persona.uuid).removeKeys();
 
     final connections = await _cloudDB.connectionDao.getConnections();
-    Set<WCPeerMeta> wcPeers = {};
     Set<P2PPeer> bcPeers = {};
 
     log.info(
         "[AccountService] deletePersona - deleteConnections ${connections.length}");
     for (var connection in connections) {
       switch (connection.connectionType) {
-        case 'dappConnect':
-          if (persona.uuid == connection.wcConnection?.personaUuid) {
-            await _cloudDB.connectionDao.deleteConnection(connection);
-
-            final wcPeer = connection.wcConnection?.sessionStore.peerMeta;
-            if (wcPeer != null) wcPeers.add(wcPeer);
-          }
-          break;
-
         case 'beaconP2PPeer':
           if (persona.uuid == connection.beaconConnectConnection?.personaUuid) {
             await _cloudDB.connectionDao.deleteConnection(connection);
@@ -341,10 +333,6 @@ class AccountServiceImpl extends AccountService {
     }
 
     try {
-      for (var peer in wcPeers) {
-        await _walletConnectService.disconnect(peer);
-      }
-
       for (var peer in bcPeers) {
         await _tezosBeaconService.removePeer(peer);
       }
@@ -380,6 +368,15 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Connection> linkManuallyAddress(
       String address, CryptoType cryptoType) async {
+    final personaAddress = await _cloudDB.addressDao.getAllAddresses();
+    if (personaAddress.any((element) => element.address == address)) {
+      throw LinkAddressException(message: "already_imported_address".tr());
+    }
+    final doubleConnections =
+        await _cloudDB.connectionDao.getConnectionsByAccountNumber(address);
+    if (doubleConnections.isNotEmpty) {
+      throw LinkAddressException(message: "already_viewing_address".tr());
+    }
     final connection = Connection(
       key: address,
       name: cryptoType.source,
@@ -416,60 +413,6 @@ class AccountServiceImpl extends AccountService {
 
     return connection.connectionType ==
         ConnectionType.manuallyIndexerTokenID.rawValue;
-  }
-
-  @override
-  Future<Connection> linkETHWallet(WCConnectedSession session) async {
-    final connection = Connection.fromETHWallet(session);
-    final alreadyLinkedAccount =
-        await getExistingAccount(connection.accountNumber);
-    if (alreadyLinkedAccount != null) {
-      throw AlreadyLinkedException(alreadyLinkedAccount);
-    }
-
-    await _cloudDB.connectionDao.insertConnection(connection);
-    final metricClient = injector.get<MetricClientService>();
-
-    metricClient.addEvent(MixpanelEvent.linkWallet, data: {
-      "wallet": connection.appName,
-      "type": "app",
-      "connectionType": connection.connectionType
-    }, hashedData: {
-      "address": connection.accountNumber
-    });
-    _autonomyService.postLinkedAddresses();
-    return connection;
-  }
-
-  @override
-  Future<Connection> linkETHBrowserWallet(
-      String address, WalletApp walletApp) async {
-    final alreadyLinkedAccount = await getExistingAccount(address);
-    if (alreadyLinkedAccount != null) {
-      throw AlreadyLinkedException(alreadyLinkedAccount);
-    }
-
-    final connection = Connection(
-      key: address,
-      name: '',
-      data: walletApp.rawValue,
-      connectionType: ConnectionType.walletBrowserConnect.rawValue,
-      accountNumber: address,
-      createdAt: DateTime.now(),
-    );
-
-    await _cloudDB.connectionDao.insertConnection(connection);
-    final metricClient = injector.get<MetricClientService>();
-
-    metricClient.addEvent(MixpanelEvent.linkWallet, data: {
-      "wallet": walletApp.name,
-      "type": "browser",
-      "connectionType": connection.connectionType
-    }, hashedData: {
-      "address": address
-    });
-    _autonomyService.postLinkedAddresses();
-    return connection;
   }
 
   @override
@@ -657,17 +600,6 @@ class AccountServiceImpl extends AccountService {
       }
     }
 
-    // Linked accounts.
-    // Currently, only support tezos blockchain.
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    final linkedAddresses = linkedAccounts
-        .where((e) =>
-            e.connectionType == ConnectionType.walletBeacon.rawValue ||
-            e.connectionType == ConnectionType.beaconP2PPeer.rawValue)
-        .map((e) => e.accountNumber);
-    addresses.addAll(linkedAddresses);
-
     return addresses;
   }
 
@@ -715,8 +647,15 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> addAddressPersona(
+  Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses) async {
+    bool result = false;
+    final replacedConnections =
+        await removeDoubleViewOnly(addresses.map((e) => e.address).toList());
+    if (replacedConnections.isNotEmpty) {
+      result = true;
+    }
+
     final timestamp = DateTime.now();
     final walletAddresses = addresses
         .map((e) => WalletAddress(
@@ -725,12 +664,17 @@ class AccountServiceImpl extends AccountService {
             index: e.index,
             cryptoType: e.getCryptoType().source,
             createdAt: timestamp,
-            name: e.getCryptoType().source))
+            name: replacedConnections
+                    .firstWhereOrNull((element) =>
+                        element.accountNumber == e.address &&
+                        element.name.isNotEmpty)
+                    ?.name ??
+                e.getCryptoType().source))
         .toList();
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
     await _addressService
         .addAddresses(addresses.map((e) => e.address).toList());
-    return newPersona;
+    return result;
   }
 
   @override
@@ -765,12 +709,9 @@ class AccountServiceImpl extends AccountService {
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
         final connections = await _cloudDB.connectionDao
-            .getConnectionsByType(ConnectionType.dappConnect.rawValue);
+            .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
-          final wcConnection = connection.wcConnection;
-          if (wcConnection == null) continue;
-          if (wcConnection.personaUuid == persona.uuid &&
-              wcConnection.index == walletAddress.index) {
+          if (connection.accountNumber.contains(walletAddress.address)) {
             _cloudDB.connectionDao.deleteConnection(connection);
           }
         }
@@ -830,8 +771,8 @@ class AccountServiceImpl extends AccountService {
     } else if (isCreateNew) {
       _configurationService.setDoneOnboarding(true);
       final persona = await createPersona();
-      await persona.insertAddress(WalletType.Tezos);
-      await persona.insertAddress(WalletType.Ethereum);
+      await persona.insertNextAddress(WalletType.Tezos);
+      await persona.insertNextAddress(WalletType.Ethereum);
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
       injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
     }
@@ -840,6 +781,21 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<WalletAddress?> getAddressPersona(String address) async {
     return await _cloudDB.addressDao.findByAddress(address);
+  }
+
+  @override
+  Future<List<Connection>> removeDoubleViewOnly(List<String> addresses) async {
+    final List<Connection> result = [];
+    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
+    final viewOnlyAddresses = linkedAccounts
+        .where((con) => addresses.contains(con.accountNumber))
+        .toList();
+    if (viewOnlyAddresses.isNotEmpty) {
+      result.addAll(viewOnlyAddresses);
+      await Future.forEach<Connection>(viewOnlyAddresses,
+          (element) => _cloudDB.connectionDao.deleteConnection(element));
+    }
+    return result;
   }
 }
 
@@ -853,4 +809,10 @@ class AccountException implements Exception {
   final String? message;
 
   AccountException({this.message});
+}
+
+class LinkAddressException implements Exception {
+  final String message;
+
+  LinkAddressException({required this.message});
 }

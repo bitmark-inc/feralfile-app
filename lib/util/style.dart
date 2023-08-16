@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -307,82 +306,6 @@ MarkdownStyleSheet markDownDetailPageStyle(
   );
 }
 
-MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
-    {TextStyle? preferredStyle, EdgeInsets? pPadding, double? adjustSize}) {
-  const textColor = AppColor.white;
-  final theme = Theme.of(context);
-  final size = adjustSize ?? 0;
-  final textStyleWhite =
-      theme.textTheme.ppMori400White12.copyWith(fontSize: 17).adjustSize(size);
-  preferredStyle = preferredStyle ?? textStyleWhite;
-  return MarkdownStyleSheet(
-    a: preferredStyle.merge(
-      const TextStyle(
-        color: AppColor.auSuperTeal,
-      ),
-    ),
-    p: preferredStyle,
-    pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
-    code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
-    h1: preferredStyle
-        .copyWith(fontSize: 24, fontWeight: FontWeight.w700)
-        .adjustSize(size),
-    h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: preferredStyle
-        .copyWith(fontSize: 20, fontWeight: FontWeight.w700)
-        .adjustSize(size),
-    h2Padding: EdgeInsets.zero,
-    h3: preferredStyle,
-    h3Padding: EdgeInsets.zero,
-    h4: preferredStyle,
-    h4Padding: EdgeInsets.zero,
-    h5: preferredStyle,
-    h5Padding: EdgeInsets.zero,
-    h6: preferredStyle,
-    h6Padding: EdgeInsets.zero,
-    em: preferredStyle.copyWith(fontStyle: FontStyle.italic),
-    strong: preferredStyle.copyWith(fontWeight: FontWeight.bold),
-    del: preferredStyle.copyWith(
-        decoration: TextDecoration.lineThrough, color: textColor),
-    blockquote: preferredStyle.copyWith(color: AppColor.white),
-    img: preferredStyle
-        .copyWith(fontSize: 12, color: AppColor.disabledColor)
-        .adjustSize(size),
-    checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 15.0,
-    listIndent: 24.0,
-    listBullet: textStyleWhite.copyWith(color: textColor),
-    listBulletPadding: const EdgeInsets.only(right: 4),
-    tableHead: const TextStyle(fontWeight: FontWeight.w600),
-    tableBody: textStyleWhite,
-    tableHeadAlign: TextAlign.center,
-    tableBorder: TableBorder.all(
-      color: theme.dividerColor,
-    ),
-    tableColumnWidth: const FlexColumnWidth(),
-    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-    tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.only(left: 20),
-    blockquoteDecoration: const BoxDecoration(
-      border: Border(
-        left: BorderSide(width: 2, color: AppColor.auSuperTeal),
-      ),
-    ),
-    codeblockPadding: const EdgeInsets.all(8.0),
-    codeblockDecoration: BoxDecoration(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
-    ),
-    horizontalRuleDecoration: const BoxDecoration(
-      border: Border(
-        top: BorderSide(
-          color: AppColor.auSuperTeal,
-        ),
-      ),
-    ),
-  );
-}
-
 MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
   const textColor = AppColor.primaryBlack;
   final theme = Theme.of(context);
@@ -611,7 +534,7 @@ Widget loadingIndicator({
 Widget closeIcon({Color color = Colors.black}) {
   return SvgPicture.asset(
     'assets/images/iconClose.svg',
-    color: color,
+    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     width: 32,
     height: 32,
   );

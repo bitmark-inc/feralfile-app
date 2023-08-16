@@ -19,13 +19,11 @@ import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -52,7 +50,6 @@ class PersonaConnectionsPage extends StatefulWidget {
 class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
     with RouteAware, WidgetsBindingObserver {
   final _tezosBeaconService = injector<TezosBeaconService>();
-  final _walletConnecService = injector<WalletConnectService>();
   final _wallet2ConnectService = injector<Wc2Service>();
 
   @override
@@ -186,11 +183,7 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       throw ConnectionViaClipboardError("Invalid URI");
     }
     if (code.startsWith("wc:")) {
-      if (code.isAutonomyConnectUri) {
-        _wallet2ConnectService.connect(code, onTimeout: _onConnectTimeout);
-      } else {
-        _walletConnecService.connect(code, onTimeout: _onConnectTimeout);
-      }
+      _wallet2ConnectService.connect(code, onTimeout: _onConnectTimeout);
     } else {
       final tezosUri = "tezos://?type=tzip10&data=$code";
       await _tezosBeaconService.addPeer(tezosUri, onTimeout: _onConnectTimeout);
@@ -200,47 +193,43 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
+    return Scaffold(
+      appBar: getBackAppBar(context, title: 'connections'.tr(), onBack: () {
+        if (widget.payload.isBackHome) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pop();
+        }
       },
-      child: Scaffold(
-        appBar: getBackAppBar(context, title: 'connections'.tr(), onBack: () {
-          if (widget.payload.isBackHome) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.homePage,
-              (route) => false,
-            );
-          } else {
-            Navigator.of(context).pop();
-          }
-        },
-            icon: SvgPicture.asset(
-              'assets/images/more_circle.svg',
-              width: 22,
-              color: AppColor.primaryBlack,
-            ),
-            action: _showConnectionOption),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              addTitleSpace(),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.payload.type == CryptoType.ETH ||
-                          widget.payload.type == CryptoType.XTZ) ...[
-                        _connectionsSection(),
-                      ],
+          icon: SvgPicture.asset(
+            'assets/images/more_circle.svg',
+            width: 22,
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+          ),
+          action: _showConnectionOption),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            addTitleSpace(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.payload.type == CryptoType.ETH ||
+                        widget.payload.type == CryptoType.XTZ) ...[
+                      _connectionsSection(),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

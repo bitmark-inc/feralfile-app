@@ -51,16 +51,16 @@ class ErrorEvent {
 
 PlatformException? lastException;
 
-extension DioErrorEvent on DioError {
+extension DioErrorEvent on DioException {
   ErrorEvent? get errorEvent {
     log.info("Dio Error: $this");
     switch (type) {
-      case DioErrorType.connectTimeout:
-      case DioErrorType.sendTimeout:
-      case DioErrorType.receiveTimeout:
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
         return ErrorEvent(null, "Connect timeout",
             "Check your connection and try again.", ErrorItemState.tryAgain);
-      case DioErrorType.response:
+      case DioExceptionType.badResponse:
         if ((response?.statusCode ?? 0) / 100 == 5) {
           return ErrorEvent(
               null,
@@ -77,7 +77,7 @@ extension DioErrorEvent on DioError {
 }
 
 ErrorEvent? translateError(Object exception) {
-  if (exception is DioError) {
+  if (exception is DioException) {
     final dioErrorEvent = exception.errorEvent;
     if (dioErrorEvent != null) {
       return dioErrorEvent;
@@ -272,10 +272,6 @@ Future<bool> showErrorDialogFromException(Object exception,
     if (exception is AbortedException) {
       UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
           isDismissible: true, autoDismissAfter: 3);
-      return true;
-    } else if (exception is RequiredPremiumFeature) {
-      UIHelper.showFeatureRequiresSubscriptionDialog(
-          context, exception.feature, exception.peerMeta, exception.id);
       return true;
     } else if (exception is AlreadyLinkedException) {
       UIHelper.showAlreadyLinked(context, exception.connection);

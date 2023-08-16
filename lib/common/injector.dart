@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
-import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/crowd_sourcing_api.dart';
@@ -48,12 +47,10 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -65,15 +62,13 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
-import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -84,7 +79,6 @@ import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
@@ -153,20 +147,17 @@ Future<void> setup() async {
 
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
-    connectTimeout: 10000,
-    receiveTimeout: 10000,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = dioOptions;
+  dio.addSentry();
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
-  (authenticatedDio.transformer as DefaultTransformer).jsonDecodeCallback =
-      parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
@@ -179,7 +170,7 @@ Future<void> setup() async {
       Duration(seconds: 3),
     ],
   ));
-  authenticatedDio.addSentry(captureFailedRequests: true);
+  authenticatedDio.addSentry();
   authenticatedDio.options = dioOptions;
 
   // Services
@@ -190,20 +181,15 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton(() => NavigationService());
-  injector.registerLazySingleton(() => LedgerHardwareService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
   injector.registerLazySingleton<MetricClientService>(
       () => MetricClientService(injector()));
   injector.registerLazySingleton<MixPanelClientService>(
       () => MixPanelClientService(injector(), injector()));
-  injector.registerLazySingleton(
-      () => WalletConnectService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
-  injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
-        injector(),
         injector(),
         injector(),
         auditService,
@@ -226,7 +212,7 @@ Future<void> setup() async {
       : Environment.tzktMainnetURL;
   injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
-  injector.registerLazySingleton(() => BranchApi(dio));
+  injector.registerLazySingleton(() => BranchApi(Dio()));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
@@ -308,14 +294,13 @@ Future<void> setup() async {
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
       _feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
-  injector.registerLazySingleton<BitmarkApi>(
-      () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      _postcardDio(
-          dioOptions.copyWith(connectTimeout: 30000, receiveTimeout: 30000)),
+      _postcardDio(dioOptions.copyWith(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30))),
       baseUrl: Environment.auClaimAPIURL));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
@@ -338,9 +323,6 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<PostcardService>(() => PostcardServiceImpl(
       injector(), injector(), injector(), injector(), injector(), injector()));
-
-  injector.registerLazySingleton<EditorialService>(
-      () => EditorialServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton<AirdropService>(
     () => AirdropService(
@@ -375,12 +357,9 @@ Future<void> setup() async {
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
         injector(),
-        injector(),
-        injector(),
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
-        injector(),
         injector(),
         injector(),
         injector(),
@@ -426,9 +405,8 @@ Dio _feralFileDio(BaseOptions options) {
       Duration(seconds: 3),
     ],
   ));
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
 
@@ -436,9 +414,8 @@ Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = options;
+  dio.addSentry();
   return dio;
 }
 
@@ -447,12 +424,7 @@ Dio _airdropDio(BaseOptions options) {
   dio.interceptors.add(AutonomyAuthInterceptor());
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AirdropInterceptor());
-  (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-  dio.addSentry(captureFailedRequests: true);
   dio.options = options;
+  dio.addSentry();
   return dio;
-}
-
-parseJson(String text) {
-  return IsolatedUtil().parseAndDecode(text);
 }

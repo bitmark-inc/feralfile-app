@@ -5,10 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:web3dart/web3dart.dart';
 
 abstract class WCSendTransactionEvent {}
@@ -25,7 +25,7 @@ class WCSendTransactionEstimateEvent extends WCSendTransactionEvent {
 }
 
 class WCSendTransactionSendEvent extends WCSendTransactionEvent {
-  final WCPeerMeta peerMeta;
+  final AppMetadata peerMeta;
   final int requestId;
   final EthereumAddress to;
   final BigInt value;
@@ -59,7 +59,7 @@ class FeeOptionChangedEvent extends WCSendTransactionEvent {
 }
 
 class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
-  final WCPeerMeta peerMeta;
+  final AppMetadata peerMeta;
   final int requestId;
   final String? topic;
   final bool isWalletConnect2;

@@ -17,11 +17,13 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool includeLinkedAccount;
   final bool getTezos;
   final bool getEth;
+  final bool autoAddAddress;
 
   GetCategorizedAccountsEvent({
     this.includeLinkedAccount = true,
     this.getTezos = true,
     this.getEth = true,
+    this.autoAddAddress = false,
   });
 }
 
@@ -30,17 +32,6 @@ class GetAccountsIRLEvent extends AccountsEvent {
   final String? blockchain;
 
   GetAccountsIRLEvent({this.param, this.blockchain});
-}
-
-class LinkLedgerWalletEvent extends AccountsEvent {
-  final String address;
-  final String blockchain;
-  final String ledgerName;
-  final String ledgerBLEUUID;
-  final Map<String, dynamic> data;
-
-  LinkLedgerWalletEvent(this.address, this.blockchain, this.ledgerName,
-      this.ledgerBLEUUID, this.data);
 }
 
 class NameLinkedAccountEvent extends AccountsEvent {

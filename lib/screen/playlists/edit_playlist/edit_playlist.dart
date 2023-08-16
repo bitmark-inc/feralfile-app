@@ -211,13 +211,13 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               children: [
                                 PrimaryButton(
                                   onTap: () {
-                                    final thubnailUrl = tokensPlaylist
+                                    final thumbnailUrl = tokensPlaylist
                                         .where((element) =>
                                             element.id ==
                                             playList?.tokenIDs.firstOrDefault())
                                         .firstOrDefault()
                                         ?.getGalleryThumbnailUrl();
-                                    playList?.thumbnailURL = thubnailUrl;
+                                    playList?.thumbnailURL = thumbnailUrl;
                                     bloc.add(SavePlaylist());
                                   },
                                   width: 170,
