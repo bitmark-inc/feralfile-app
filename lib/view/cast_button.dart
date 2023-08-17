@@ -1,7 +1,6 @@
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/models/asset_token.dart';
 
 class CastButton extends StatelessWidget {
   final VoidCallback? onCastTap;
