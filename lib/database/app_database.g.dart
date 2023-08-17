@@ -465,6 +465,18 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
                   'name': item.name,
                   'isConnecting': item.isConnecting ? 1 : 0,
                   'playingSceneId': item.playingSceneId
+                }),
+        _canvasDeviceDeletionAdapter = DeletionAdapter(
+            database,
+            'CanvasDevice',
+            ['id'],
+            (CanvasDevice item) => <String, Object?>{
+                  'id': item.id,
+                  'ip': item.ip,
+                  'port': item.port,
+                  'name': item.name,
+                  'isConnecting': item.isConnecting ? 1 : 0,
+                  'playingSceneId': item.playingSceneId
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -476,6 +488,8 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
   final InsertionAdapter<CanvasDevice> _canvasDeviceInsertionAdapter;
 
   final UpdateAdapter<CanvasDevice> _canvasDeviceUpdateAdapter;
+
+  final DeletionAdapter<CanvasDevice> _canvasDeviceDeletionAdapter;
 
   @override
   Future<List<CanvasDevice>> getCanvasDevices() async {
@@ -510,6 +524,11 @@ class _$CanvasDeviceDao extends CanvasDeviceDao {
   Future<void> updateCanvasDevice(CanvasDevice canvasDevice) async {
     await _canvasDeviceUpdateAdapter.update(
         canvasDevice, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> deleteCanvasDevice(CanvasDevice canvasDevice) async {
+    await _canvasDeviceDeletionAdapter.delete(canvasDevice);
   }
 }
 
