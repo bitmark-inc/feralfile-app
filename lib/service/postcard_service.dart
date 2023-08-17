@@ -131,7 +131,9 @@ class PostcardServiceImpl extends PostcardService {
           walletIndex.index, Uint8List.fromList(utf8.encode(timestamp)));
       final body = {
         "shareCode": shareCode,
-        "location": [location?.lat, location?.lon],
+        "location": (location?.lat == null || location?.lon == null)
+            ? []
+            : [location?.lat, location?.lon],
         "address": address,
         "publicKey": publicKey,
         "signature": signature,
