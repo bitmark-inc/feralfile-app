@@ -276,7 +276,7 @@ class PendingTokenService {
           final artists = await _assetTokenDao
               .findRemoveArtistIDsByID([token.asset!.indexID!]);
           NftCollectionBloc.eventController
-              .add(AddArtistsEvent(artists: artists));
+              .add(RemoveArtistsEvent(artists: artists));
           await _assetDao.deleteAssetByIndexID(token.asset!.indexID!);
         }
         await _tokenDao.deleteTokenByID(token.id);
