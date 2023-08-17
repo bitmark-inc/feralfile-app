@@ -173,7 +173,8 @@ class CanvasClientService {
     for (final device in devices) {
       if (device.isConnecting) {
         final status = await checkDeviceStatus(device);
-        if (status.first != CanvasServerStatus.error && _devices.any((element) => element.ip == device.ip)) {
+        if (status.first != CanvasServerStatus.error &&
+            _devices.any((element) => element.ip == device.ip)) {
           await _db.canvasDeviceDao.deleteCanvasDevice(device);
           continue;
         }
