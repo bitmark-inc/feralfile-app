@@ -224,7 +224,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       case DeviceStatus.loading:
         return GestureDetector(
           onTap: () {
-            _bloc.add(CanvasDeviceUnCastingEvent(deviceState.device));
+            _bloc.add(CanvasDeviceUnCastingEvent(
+                deviceState.device, widget.isCollection));
           },
           child: loadingIndicator(
               size: 22,
@@ -264,7 +265,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 height: 30,
               ),
               onTap: () {
-                _bloc.add(CanvasDeviceUnCastingEvent(deviceState.device));
+                _bloc.add(CanvasDeviceUnCastingEvent(
+                    deviceState.device, widget.isCollection));
               },
             ),
           ],

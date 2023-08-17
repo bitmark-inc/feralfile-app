@@ -257,7 +257,7 @@ class CanvasClientService {
   Future<void> uncastSingleArtwork(CanvasDevice device) async {
     final stub = _getStub(device);
     final uncastRequest = UncastSingleRequest()..id = "";
-    final response = await stub.unCastSingleArtwork(uncastRequest);
+    final response = await stub.uncastSingleArtwork(uncastRequest);
     if (response.ok) {
       _devices
           .firstWhereOrNull((element) => element == device)

@@ -47,8 +47,9 @@ class CanvasDeviceCastCollectionEvent extends CanvasDeviceEvent {
 
 class CanvasDeviceUnCastingEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
+  final bool isCollection;
 
-  CanvasDeviceUnCastingEvent(this.device);
+  CanvasDeviceUnCastingEvent(this.device, this.isCollection);
 }
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
@@ -253,7 +254,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceUnCastingEvent>((event, emit) async {
       final device = event.device;
       try {
-        await _canvasClientService.unCast(device);
+        event.isCollection
+            ? await _canvasClientService.unCast(device)
+            : await _canvasClientService.uncastSingleArtwork(device);
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
       } catch (_) {}
