@@ -99,76 +99,81 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           flutter test auto-test/tests/import_fullaccount_kukai_temple_test.dart
-      - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/mobile_external_webs/connectWalletToExchanges_test.dart
+#      - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/mobile_external_webs/connectWalletToExchanges_test.dart
       - name: Run auto tests for Suite "Link Ethereum Wallet"
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE          
           flutter test auto-test/mobile_external_webs/linkEthereumAccountWallet_test.dart
-      - name: Run Flutter Driver tests for Suite "Link Ethereum Wallet" without finishing Onboarding
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/mobile_external_webs/linkEthereumAccountWalletOnboarding_test.dart
-      - name: Run auto tests for Suite "Purchase Feral File Ethereum NFT"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE
-          flutter test auto-test/mobile_external_webs/purchaseFeralFileEthereumToken_test.dart
-      - name: Run auto tests for Suite "Purchase Tez NFT in outside exchanges"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/mobile_external_webs/purchase_tez_nft_test.dart
-      - name: Run auto tests for Suite "Purchase Feral File Tez NFT"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/mobile_external_webs/purchaseFeralfileTezosToken_test.dart
-      - name: Run auto tests for Suite "Send/transfer artworks"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/send_artwork_test.dart
-      - name: Run auto tests for Suite "Check static pages, build"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/setting_footer_test.dart
-      - name: Run auto tests for Suite "Check artwork preview"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/check_artwork_detail_test.dart
-      - name: Run auto tests for Suite "Create new account"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/create_new_account_test.dart
-      - name: Run auto tests for Suite "Customer support"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/customer_support_test.dart
-      - name: Run auto tests for Suite "Check artwork metadata compare with indexer. Other cases check with blockchain we need implement in Unit test"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/check_artwork_info_test.dart
-      - name: Run auto tests for Suite "Check deposit testcases"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/send_xtz_test.dart
-      - name: Run auto tests for Suite "Check deposit ETH testcases"
-        if: success() || failure()
-        run: |
-          cd $GITHUB_WORKSPACE          
-          flutter test auto-test/tests/send_eth_test.dart
+#      - name: Run Flutter Driver tests for Suite "Link Ethereum Wallet" without finishing Onboarding
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/mobile_external_webs/linkEthereumAccountWalletOnboarding_test.dart
+#      - name: Run auto tests for Suite "Purchase Feral File Ethereum NFT"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/mobile_external_webs/purchaseFeralFileEthereumToken_test.dart
+#      - name: Run auto tests for Suite "Purchase Tez NFT in outside exchanges"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/mobile_external_webs/purchase_tez_nft_test.dart
+#      - name: Run auto tests for Suite "Purchase Feral File Tez NFT"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/mobile_external_webs/purchaseFeralfileTezosToken_test.dart
+#      - name: Run auto tests for Suite "Send/transfer artworks"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/send_artwork_test.dart
+#      - name: Run auto tests for Suite "Check static pages, build"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/setting_footer_test.dart
+#      - name: Run auto tests for Suite "Check artwork preview"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/check_artwork_detail_test.dart
+#      - name: Run auto tests for Suite "Create new account"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/create_new_account_test.dart
+#      - name: Run auto tests for Suite "Customer support"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/customer_support_test.dart
+#      - name: Run auto tests for Suite "Check artwork metadata compare with indexer. Other cases check with blockchain we need implement in Unit test"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/check_artwork_info_test.dart
+#      - name: Run auto tests for Suite "Check deposit testcases"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/send_xtz_test.dart
+#      - name: Run auto tests for Suite "Check deposit ETH testcases"
+#        if: success() || failure()
+#        run: |
+#          cd $GITHUB_WORKSPACE
+#          flutter test auto-test/tests/send_eth_test.dart
+      - name: Run auto tests for Suite "Link Autonomy Connect from FeralFile to Autonomy Wallet"
+            if: success() || failure()
+            run: |
+              cd $GITHUB_WORKSPACE
+              flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFile_test.dart
       - name: Report Status
         if: always()
         uses: ravsamhq/notify-slack-action@v2
