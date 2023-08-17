@@ -51,7 +51,7 @@ Future<String> getLocationNameFromCoordinates(
     double latitude, double longitude) async {
   final defaultGeoLocations = GeoLocation.defaultGeolocations;
   final geoLocation = defaultGeoLocations.firstWhereOrNull((element) =>
-      element.position.lat == latitude && element.position.lon == longitude);
+      element.position?.lat == latitude && element.position?.lon == longitude);
   if (geoLocation != null) {
     return geoLocation.address;
   }
@@ -71,6 +71,6 @@ Future<String> getLocationNameFromCoordinates(
     return location;
   } catch (e) {
     log.info("Error getting location name from coordinates: $e");
-    return "";
+    return "[$latitude, $longitude]";
   }
 }

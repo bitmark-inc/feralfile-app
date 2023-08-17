@@ -8,6 +8,7 @@
 import 'dart:math';
 
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
 
 class TravelInfo {
@@ -41,15 +42,15 @@ class TravelInfo {
       return null;
     }
 
-    if (from.stampedLocation!.isDefault || to!.claimedLocation!.isDefault) {
-      return 0.0;
+    if (from.stampedLocation!.isInternet || to!.claimedLocation!.isInternet) {
+      return null;
     }
 
     return _getDistanceFromLatLonInKm(
-        from.stampedLocation!.lat,
-        from.stampedLocation!.lon,
-        to!.claimedLocation!.lat,
-        to!.claimedLocation!.lon);
+        from.stampedLocation!.lat!,
+        from.stampedLocation!.lon!,
+        to!.claimedLocation!.lat!,
+        to!.claimedLocation!.lon!);
   }
 
   // get distance from longitude and latitude
@@ -71,18 +72,26 @@ class TravelInfo {
   }
 
   Future<void> _getSentLocation() async {
-    if (from.stampedLocation != null) {
-      sentLocation = await getLocationNameFromCoordinates(
-          from.stampedLocation!.lat, from.stampedLocation!.lon);
+    final stampedLocation = from.stampedLocation;
+    if (stampedLocation == null || stampedLocation.isInternet) {
+      sentLocation = internetUserGeoLocation.address;
+      return;
     }
+    sentLocation = await getLocationNameFromCoordinates(
+        stampedLocation.lat!, stampedLocation.lon!);
   }
 
   Future<void> _getReceivedLocation() async {
     if (to == null) {
       receivedLocation = null;
     } else {
+      final claimedLocation = to!.claimedLocation;
+      if (claimedLocation == null || claimedLocation.isInternet) {
+        receivedLocation = internetUserGeoLocation.address;
+        return;
+      }
       receivedLocation = await getLocationNameFromCoordinates(
-          to!.claimedLocation!.lat, to!.claimedLocation!.lon);
+          claimedLocation.lat!, claimedLocation.lon!);
     }
   }
 
@@ -106,7 +115,8 @@ extension ListTravelInfo on List<TravelInfo> {
 
   TravelInfo get notSentTravelInfo {
     if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 1, sentLocation: "MoMA");
+      return TravelInfo(UserLocations(), null, 1,
+          sentLocation: moMAGeoLocation.address);
     }
     final lastTravelInfo = last;
     return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,

@@ -64,7 +64,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
           ? await getFuzzyGeolocation(address, location)
           : GeoLocation(position: location.toLocation(), address: address);
       log.info(
-          "Fuzzy Location: ${geolocation.position.lat}, ${geolocation.position.lon}");
+          "Fuzzy Location: ${geolocation.position?.lat}, ${geolocation.position?.lon}");
       return geolocation;
     } catch (e) {
       await UIHelper.showWeakGPSSignal(
@@ -102,7 +102,7 @@ bool isValidLocation(Location position, double latitude, double longitude) {
 }
 
 class GeoLocation {
-  final postcard.Location position;
+  final postcard.Location? position;
   final String address;
 
   //constructor

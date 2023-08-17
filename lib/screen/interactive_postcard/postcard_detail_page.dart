@@ -908,23 +908,28 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       Text(formatter.format(travelInfo.index),
                           style: theme.textTheme.moMASans400Black12
                               .copyWith(color: AppColor.auQuickSilver)),
-                      Text(
-                        travelInfo.sentLocation ?? "",
-                        style: theme.textTheme.moMASans400Black12,
-                      ),
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SvgPicture.asset(
-                            "assets/images/arrow_3.svg",
-                            colorFilter: const ColorFilter.mode(
-                                AppColor.primaryBlack, BlendMode.srcIn),
+                          Text(
+                            travelInfo.sentLocation ?? "",
+                            style: theme.textTheme.moMASans400Black12,
                           ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              travelInfo.receivedLocation ?? "-",
-                              style: theme.textTheme.moMASans400Black12,
-                            ),
+                          Row(
+                            children: [
+                              SvgPicture.asset(
+                                "assets/images/arrow_3.svg",
+                                colorFilter: const ColorFilter.mode(
+                                    AppColor.primaryBlack, BlendMode.srcIn),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  travelInfo.receivedLocation ?? "-",
+                                  style: theme.textTheme.moMASans400Black12,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
