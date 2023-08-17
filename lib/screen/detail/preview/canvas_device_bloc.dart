@@ -254,9 +254,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceUnCastingEvent>((event, emit) async {
       final device = event.device;
       try {
-        event.isCollection
-            ? await _canvasClientService.unCast(device)
-            : await _canvasClientService.uncastSingleArtwork(device);
+        await _canvasClientService.uncastSingleArtwork(device);
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
       } catch (_) {}
