@@ -567,10 +567,10 @@ Divider headDivider() {
   );
 }
 
-Divider addOnlyDivider({Color? color}) {
+Divider addOnlyDivider({Color? color, double border = 1.0}) {
   return Divider(
     height: 1.0,
-    thickness: 1.0,
+    thickness: border,
     color: color,
   );
 }

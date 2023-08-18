@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -115,6 +116,8 @@ _setupApp() async {
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
+  final isPremium = await injector.get<IAPService>().isSubscribed();
+  await injector<ConfigurationService>().setPremium(isPremium);
 
   runApp(EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],

@@ -41,12 +41,19 @@ class CollectionProState extends State<CollectionPro>
   final _identityBloc = injector.get<IdentityBloc>();
   final controller = ScrollController();
   late String searchStr;
+  late List<CollectionProSection> shouldShowSections;
+  final SectionInfo sectionInfo = SectionInfo(state: {
+    CollectionProSection.collection: true,
+    CollectionProSection.medium: true,
+    CollectionProSection.artist: true,
+  });
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     loadCollection();
     searchStr = '';
+    shouldShowSections = [];
     super.initState();
   }
 
@@ -84,6 +91,29 @@ class CollectionProState extends State<CollectionPro>
     }
   }
 
+  void _onSectionSelect(CollectionProSection section) {
+    final newShouldShowSections =
+        (shouldShowSections..add(section)).toSet().toList();
+    setState(() {
+      shouldShowSections = newShouldShowSections;
+    });
+  }
+
+  void _onSectionUnselect(CollectionProSection section) {
+    final newShouldShowSections =
+        (shouldShowSections..remove(section)).toSet().toList();
+    setState(() {
+      shouldShowSections = newShouldShowSections;
+    });
+  }
+
+  bool? isSelected(CollectionProSection section) {
+    if (shouldShowSections.isEmpty) {
+      return null;
+    }
+    return shouldShowSections.shouldShowSection(section);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -114,41 +144,87 @@ class CollectionProState extends State<CollectionPro>
                           ],
                         ),
                       ),
-                      SliverToBoxAdapter(
-                          child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: AuSearchBar(
-                          onChanged: (text) {
-                            setState(() {
-                              searchStr = text;
-                            });
-                          },
-                        ),
-                      )),
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 15),
                       ),
                       SliverToBoxAdapter(
                         child: HeaderView(paddingTop: paddingTop),
                       ),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            child: SizedBox(
+                              height: 27,
+                              child: ActionBar(
+                                actions: [
+                                  Action(
+                                    section: CollectionProSection.collection,
+                                    onSelect: _onSectionSelect,
+                                    onUnselect: _onSectionUnselect,
+                                    isSelected: isSelected,
+                                  ),
+                                  Action(
+                                    section: CollectionProSection.medium,
+                                    onSelect: _onSectionSelect,
+                                    onUnselect: _onSectionUnselect,
+                                    isSelected: isSelected,
+                                  ),
+                                  Action(
+                                    section: CollectionProSection.artist,
+                                    onSelect: _onSectionSelect,
+                                    onUnselect: _onSectionUnselect,
+                                    isSelected: isSelected,
+                                  ),
+                                ],
+                                searchBar: AuSearchBar(
+                                  onChanged: (text) {
+                                    setState(() {
+                                      searchStr = text;
+                                    });
+                                  },
+                                ),
+                              ),
+                            )),
+                      ),
                       const SliverToBoxAdapter(
-                        child: CollectionSection(),
+                        child: SizedBox(height: 23),
                       ),
                       SliverToBoxAdapter(
-                        child: AlbumSection(
-                            listAlbum: listAlbumByMedium,
-                            albumType: AlbumType.medium,
-                            identityMap: identityMap),
+                        child: addOnlyDivider(
+                            color: AppColor.auQuickSilver, border: 0.25),
                       ),
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 60),
                       ),
-                      SliverToBoxAdapter(
-                        child: AlbumSection(
-                            listAlbum: listAlbumByArtist,
-                            albumType: AlbumType.artist,
-                            identityMap: identityMap),
-                      ),
+                      if (shouldShowSections.shouldShowSection(
+                          CollectionProSection.collection)) ...[
+                        const SliverToBoxAdapter(
+                          child: CollectionSection(),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                      ],
+                      if (shouldShowSections
+                          .shouldShowSection(CollectionProSection.medium)) ...[
+                        SliverToBoxAdapter(
+                          child: AlbumSection(
+                              listAlbum: listAlbumByMedium,
+                              albumType: AlbumType.medium,
+                              identityMap: identityMap),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                      ],
+                      if (shouldShowSections
+                          .shouldShowSection(CollectionProSection.artist))
+                        SliverToBoxAdapter(
+                          child: AlbumSection(
+                              listAlbum: listAlbumByArtist,
+                              albumType: AlbumType.artist,
+                              identityMap: identityMap),
+                        ),
                     ],
                   );
                 },
@@ -370,5 +446,185 @@ class _CollectionSectionState extends State<CollectionSection> {
         )
       ],
     );
+  }
+}
+
+class ActionBar extends StatefulWidget {
+  final List<Action> actions;
+  final Widget? searchIcon;
+  final AuSearchBar searchBar;
+
+  const ActionBar(
+      {super.key,
+      required this.actions,
+      this.searchIcon,
+      required this.searchBar});
+
+  @override
+  State<ActionBar> createState() => _ActionBarState();
+}
+
+class _ActionBarState extends State<ActionBar> {
+  late bool _isSearch;
+
+  @override
+  void initState() {
+    _isSearch = false;
+    super.initState();
+  }
+
+  Widget _actionItem(BuildContext context, Action action) {
+    final theme = Theme.of(context);
+    const selectedBackgroundColor = AppColor.primaryBlack;
+    const unselectedBackgroundColor = Colors.transparent;
+    const selectedTextColor = AppColor.white;
+    const unselectedTextColor = AppColor.primaryBlack;
+    final isSelected = action.isSelected(action.section);
+    final backgroundColor = isSelected == true
+        ? selectedBackgroundColor
+        : unselectedBackgroundColor;
+    final textColor =
+        isSelected == true ? selectedTextColor : unselectedTextColor;
+    return GestureDetector(
+      onTap: () {
+        if (isSelected == true) {
+          action.onUnselect(action.section);
+        } else {
+          action.onSelect(action.section);
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50),
+          border: Border.all(),
+          color: backgroundColor,
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 4, 10, 3),
+        child: Text(
+          action.section.title,
+          style: theme.textTheme.ppMori400Black14.copyWith(color: textColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _searchIcon(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isSearch = !_isSearch;
+        });
+      },
+      child: widget.searchIcon ??
+          SvgPicture.asset(
+            "assets/images/search.svg",
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+                AppColor.secondarySpanishGrey, BlendMode.srcIn),
+          ),
+    );
+  }
+
+  Widget _searchingBar(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Expanded(
+          child: widget.searchBar,
+        ),
+        const SizedBox(width: 14),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isSearch = !_isSearch;
+            });
+          },
+          child: Text(
+            "Cancel",
+            style: theme.textTheme.ppMori400Grey14,
+          ),
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isSearch) {
+      return _searchingBar(context);
+    }
+    return Row(
+      children: [
+        ListView.separated(
+          itemBuilder: (context, index) {
+            return _actionItem(context, widget.actions[index]);
+          },
+          separatorBuilder: (context, index) {
+            return const SizedBox(width: 10);
+          },
+          itemCount: widget.actions.length,
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+        ),
+        const Spacer(),
+        _searchIcon(context)
+      ],
+    );
+  }
+}
+
+class SectionInfo {
+  Map<CollectionProSection, bool> state;
+
+  SectionInfo({required this.state});
+}
+
+class Action {
+  final CollectionProSection section;
+  final void Function(CollectionProSection) onSelect;
+  final void Function(CollectionProSection) onUnselect;
+  final bool? Function(CollectionProSection) isSelected;
+
+  Action({
+    required this.section,
+    required this.onSelect,
+    required this.onUnselect,
+    required this.isSelected,
+  });
+}
+
+enum CollectionProSection {
+  collection,
+  medium,
+  artist;
+
+  static List<CollectionProSection> get allSections {
+    return [
+      CollectionProSection.collection,
+      CollectionProSection.medium,
+      CollectionProSection.artist,
+    ];
+  }
+}
+
+extension CollectionProSectionExtension on CollectionProSection {
+  String get title {
+    switch (this) {
+      case CollectionProSection.collection:
+        return "Collections";
+      case CollectionProSection.medium:
+        return "Medium";
+      case CollectionProSection.artist:
+        return "Artist";
+    }
+  }
+}
+
+extension CollectionProSectionListExtension on List<CollectionProSection> {
+  bool shouldShowSection(CollectionProSection section) {
+    return isEmpty || contains(section);
   }
 }

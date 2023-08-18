@@ -91,6 +91,7 @@ class HomePageState extends State<HomePage>
   int _cachedImageSize = 0;
 
   final _collectionProKey = GlobalKey<CollectionProState>();
+
   Future<List<AddressIndex>> getAddressIndexes() async {
     final accountService = injector<AccountService>();
     return await accountService.getAllAddressIndexes();
@@ -282,24 +283,20 @@ class HomePageState extends State<HomePage>
         return true;
       },
       builder: (context, state) {
-        return FutureBuilder(
-          future: injector.get<IAPService>().isSubscribed(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data == true) {
-              return CollectionPro(
-                key: _collectionProKey,
-                tokens: _updateTokens(state.tokens.items),
-              );
-            }
-            return NftCollectionGrid(
-              state: state.state,
-              tokens: _updateTokens(state.tokens.items),
-              loadingIndicatorBuilder: _loadingView,
-              emptyGalleryViewBuilder: _emptyGallery,
-              customGalleryViewBuilder: (context, tokens) =>
-                  _assetsWidget(context, tokens),
-            );
-          },
+        final isPremium = _configurationService.isPremium();
+        if (isPremium) {
+          return CollectionPro(
+            key: _collectionProKey,
+            tokens: _updateTokens(state.tokens.items),
+          );
+        }
+        return NftCollectionGrid(
+          state: state.state,
+          tokens: _updateTokens(state.tokens.items),
+          loadingIndicatorBuilder: _loadingView,
+          emptyGalleryViewBuilder: _emptyGallery,
+          customGalleryViewBuilder: (context, tokens) =>
+              _assetsWidget(context, tokens),
         );
       },
       listener: (context, state) async {

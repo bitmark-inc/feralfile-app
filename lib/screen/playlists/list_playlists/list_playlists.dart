@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -13,6 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   const ListPlaylistsScreen({Key? key}) : super(key: key);
@@ -25,10 +25,12 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
   final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier(null);
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+  final ConfigurationService _configurationService =
+      injector.get<ConfigurationService>();
 
   Future<List<PlayListModel>?> getPlaylist() async {
     final playlistService = injector.get<PlaylistService>();
-    final isSubscribed = await injector.get<IAPService>().isSubscribed();
+    final isSubscribed = _configurationService.isPremium();
     if (!isSubscribed && !isDemo) return null;
     if (isDemo) {
       return injector<VersionService>().getDemoAccountFromGithub();
@@ -75,49 +77,52 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
 
   @override
   Widget build(BuildContext context) {
+    const cellPerRow = 2;
+    const cellSpacing = 16.0;
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: _playlists,
-      builder: (context, value, child) => value == null
-          ? const SizedBox.shrink()
-          : ReorderableListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              onReorderStart: (index) {
-                Vibrate.feedback(FeedbackType.light);
-              },
-              proxyDecorator: (child, index, animation) {
-                return PlaylistItem(
-                  key: ValueKey(value[index]),
-                  playlist: value[index],
-                  onHold: true,
-                );
-              },
-              itemCount: value.length,
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = value.removeAt(oldIndex);
-                  value.insert(newIndex, item);
-                  _onUpdatePlaylists();
-                });
-              },
-              itemBuilder: (context, index) {
-                return PlaylistItem(
-                  key: ValueKey(value[index]),
-                  playlist: value[index],
-                  onSelected: () => Navigator.pushNamed(
-                    context,
-                    AppRouter.viewPlayListPage,
-                    arguments:
-                        ViewPlaylistScreenPayload(playListModel: value[index]),
-                  ).then((value) {
-                    _initPlayList();
-                  }),
-                );
-              },
-            ),
+      builder: (context, value, child) {
+        return value == null
+            ? const SizedBox.shrink()
+            : ReorderableGridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
+                    }
+                    final item = value.removeAt(oldIndex);
+                    value.insert(newIndex, item);
+                    _onUpdatePlaylists();
+                  });
+                },
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cellPerRow,
+                  crossAxisSpacing: cellSpacing,
+                  mainAxisSpacing: cellSpacing,
+                ),
+                itemBuilder: (context, index) {
+                  return PlaylistItem(
+                    key: ValueKey(value[index]),
+                    playlist: value[index],
+                    onSelected: () => Navigator.pushNamed(
+                      context,
+                      AppRouter.viewPlayListPage,
+                      arguments: ViewPlaylistScreenPayload(
+                          playListModel: value[index]),
+                    ).then(
+                      (value) {
+                        _initPlayList();
+                      },
+                    ),
+                  );
+                },
+                onDragStart: (index) {
+                  Vibrate.feedback(FeedbackType.light);
+                },
+                itemCount: value.length,
+              );
+      },
     );
   }
 }
