@@ -3,9 +3,9 @@ on:
   schedule:
     - cron: "0 17 * * *"
   workflow_dispatch:
-    push:
-      branches:
-        - update_autotest
+#    push:
+#      branches:
+#        - update_autotest
 jobs:
   build:
     runs-on: [self-hosted, Linux, ci-local-bmvn, X64]
@@ -170,10 +170,10 @@ jobs:
 #          cd $GITHUB_WORKSPACE
 #          flutter test auto-test/tests/send_eth_test.dart
       - name: Run auto tests for Suite "Link Autonomy Connect from FeralFile to Autonomy Wallet"
-            if: success() || failure()
-            run: |
-              cd $GITHUB_WORKSPACE
-              flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFile_test.dart
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFile_test.dart
       - name: Report Status
         if: always()
         uses: ravsamhq/notify-slack-action@v2
