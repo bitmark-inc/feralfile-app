@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
@@ -28,13 +27,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
+import 'package:nft_collection/widgets/nft_collection_grid_widget.dart';
+
+enum CollectionType {
+  manual,
+  auto,
+}
 
 class ViewPlaylistScreenPayload {
   final PlayListModel? playListModel;
   final bool editable;
+  final CollectionType collectionType;
 
-  const ViewPlaylistScreenPayload({this.playListModel, this.editable = true});
+  const ViewPlaylistScreenPayload(
+      {this.playListModel,
+      this.editable = true,
+      this.collectionType = CollectionType.manual});
 }
 
 class ViewPlaylistScreen extends StatefulWidget {
@@ -280,6 +290,15 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         UpdatePlayControl(playControlModel: playControlModel.onChangeTime()));
   }
 
+  List<SortOrder> _getAvailableOrders() {
+    return [
+      SortOrder.title,
+      SortOrder.artist,
+      SortOrder.newest,
+      SortOrder.oldest
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -321,12 +340,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             actions: [
               GestureDetector(
                 onTap: () {
-                  _onOrderTap(context, [
-                    SortOrder.title,
-                    SortOrder.artist,
-                    SortOrder.newest,
-                    SortOrder.oldest
-                  ]);
+                  _onOrderTap(context, _getAvailableOrders());
                 },
                 child: SvgPicture.asset(
                   "assets/images/sort.svg",
@@ -375,6 +389,22 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
+  void moveToAddNftToCollection(BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      AppRouter.createPlayListPage,
+      arguments: widget.payload.playListModel,
+    ).then((value) {
+      if (value != null && value is PlayListModel) {
+        bloc.add(SavePlaylist());
+        nftBloc.add(RefreshNftCollectionByIDs(
+          ids: isDemo ? [] : value.tokenIDs,
+          debugTokenIds: isDemo ? value.tokenIDs : [],
+        ));
+      }
+    });
+  }
+
   Widget _assetsWidget(
     BuildContext context,
     List<CompactedAssetToken> tokens, {
@@ -403,24 +433,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     mainAxisSpacing: cellSpacing,
                   ),
                   itemBuilder: (context, index) {
-                    if (index == tokens.length) {
-                      return GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRouter.createPlayListPage,
-                          arguments: widget.payload.playListModel,
-                        ).then((value) {
-                          if (value != null && value is PlayListModel) {
-                            bloc.add(SavePlaylist());
-                            nftBloc.add(RefreshNftCollectionByIDs(
-                              ids: isDemo ? [] : value.tokenIDs,
-                              debugTokenIds: isDemo ? value.tokenIDs : [],
-                            ));
-                          }
-                        }),
-                        child: const AddTokenWidget(),
-                      );
-                    }
                     final asset = tokens[index];
                     return GestureDetector(
                       child: asset.pending == true && !asset.hasMetadata
@@ -456,35 +468,53 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       },
                     );
                   },
-                  itemCount: widget.payload.editable
-                      ? tokens.length + 1
-                      : tokens.length),
+                  itemCount: tokens.length),
             ),
             const SizedBox(
               height: 50,
-            )
+            ),
           ],
         ),
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: PlaylistControl(
-            playControl: playControlModel,
-            showPlay: accountIdentities.isNotEmpty,
-            onShuffleTap: onShuffleTap,
-            onTimerTap: onTimerTap,
-            onPlayTap: () {
-              final payload = ArtworkDetailPayload(
-                accountIdentities,
-                0,
+          child: Column(
+            children: [
+              if (widget.payload.editable)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Center(
+                    child: AddButton(
+                      icon: SvgPicture.asset(
+                        "assets/images/Add.svg",
+                        width: 21,
+                        height: 21,
+                      ),
+                      onTap: () {
+                        moveToAddNftToCollection(context);
+                      },
+                    ),
+                  ),
+                ),
+              PlaylistControl(
                 playControl: playControlModel,
-              );
-              Navigator.of(context).pushNamed(
-                AppRouter.artworkPreviewPage,
-                arguments: payload,
-              );
-            },
+                showPlay: accountIdentities.isNotEmpty,
+                onShuffleTap: onShuffleTap,
+                onTimerTap: onTimerTap,
+                onPlayTap: () {
+                  final payload = ArtworkDetailPayload(
+                    accountIdentities,
+                    0,
+                    playControl: playControlModel,
+                  );
+                  Navigator.of(context).pushNamed(
+                    AppRouter.artworkPreviewPage,
+                    arguments: payload,
+                  );
+                },
+              ),
+            ],
           ),
         )
       ],
@@ -522,5 +552,24 @@ enum SortOrder {
       case SortOrder.oldest:
         return a.lastActivityTime.compareTo(b.lastActivityTime);
     }
+  }
+}
+
+class AddButton extends StatelessWidget {
+  final Widget icon;
+  final void Function() onTap;
+
+  const AddButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: icon,
+    );
   }
 }
