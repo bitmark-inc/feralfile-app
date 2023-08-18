@@ -2,7 +2,7 @@ name: Auto test iOS
 on:
   # schedule:
   #   - cron: '0 18 * * *'
-#  workflow_dispatch:
+  workflow_dispatch:
   # push:
   #   branches:
   # - develop
