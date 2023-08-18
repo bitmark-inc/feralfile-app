@@ -227,20 +227,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       context,
       options: [
         OptionItem(
-          title: 'Rename',
+          title: 'edit'.tr(),
           icon: SvgPicture.asset(
             'assets/images/rename_icon.svg',
-            width: 24,
-          ),
-          onTap: () {
-            Navigator.pop(context);
-            bloc.add(ChangeRename(value: true));
-          },
-        ),
-        OptionItem(
-          title: 'Edit',
-          icon: SvgPicture.asset(
-            'assets/images/edit_icon.svg',
             width: 24,
           ),
           onTap: () {
@@ -254,7 +243,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           },
         ),
         OptionItem(
-          title: 'Delete',
+          title: 'delete_collection'.tr(),
           icon: SvgPicture.asset(
             'assets/images/delete_icon.svg',
             width: 24,
@@ -265,27 +254,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               context,
               tr('delete_playlist'),
               '',
-              descriptionWidget: RichText(
-                text: TextSpan(children: [
-                  TextSpan(
-                    style: theme.textTheme.ppMori400White16,
-                    text: "you_are_about".tr(),
-                  ),
-                  TextSpan(
-                    style: theme.textTheme.ppMori700White16,
-                    text: playList?.name ?? tr('untitled'),
-                  ),
-                  TextSpan(
-                    style: theme.textTheme.ppMori400White16,
-                    text: "dont_worry".tr(),
-                  ),
-                ]),
+              descriptionWidget: Text(
+                "delete_playlist_desc".tr(),
+                style: theme.textTheme.ppMori400White14,
               ),
-              actionButton: "delete_dialog".tr(),
+              actionButton: "delete_collection".tr(),
               onAction: deletePlayList,
             );
           },
         ),
+        OptionItem(),
       ],
     );
   }
