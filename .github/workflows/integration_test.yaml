@@ -8,7 +8,7 @@ on:
   # - develop
 jobs:
   build:
-    runs-on: [self-hosted, linux, ci-local-bmvn]
+    runs-on: [self-hosted, Linux, ci-local-bmvn, X64]
     steps:
       # Checkout code and get packages.
       - name: Checkout code
