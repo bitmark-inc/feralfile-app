@@ -1,4 +1,4 @@
-name: Automation iOS
+name: Auto test iOS
 #on:
   # schedule:
   #   - cron: '0 18 * * *'
