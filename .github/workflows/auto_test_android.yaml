@@ -3,9 +3,9 @@ on:
   schedule:
     - cron: "0 17 * * *"
   workflow_dispatch:
-  # push:
-  #   branches:
-  # - develop
+    push:
+      branches:
+        - update_autotest
 jobs:
   build:
     runs-on: [self-hosted, Linux, ci-local-bmvn, X64]
