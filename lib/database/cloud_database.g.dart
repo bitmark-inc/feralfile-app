@@ -472,7 +472,7 @@ class _$AuditDao extends AuditDao {
     String action,
   ) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Audit WHERE category = (?1) AND action = (?2)',
+        'SELECT * FROM Audit WHERE category = (?1) AND "action" = (?2)',
         mapper: (Map<String, Object?> row) => Audit(
             uuid: row['uuid'] as String,
             category: row['category'] as String,
