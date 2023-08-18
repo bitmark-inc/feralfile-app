@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
@@ -146,42 +145,5 @@ class MixPanelClientService {
     for (var connection in connections) {
       onAddConnection(connection);
     }
-  }
-
-  MixpanelConfig? getConfig() {
-    return _configurationService.getMixpanelConfig();
-  }
-
-  Future<void> setConfig(MixpanelConfig config) async {
-    await _configurationService.setMixpanelConfig(config);
-  }
-}
-
-@JsonSerializable()
-class MixpanelConfig {
-  final DateTime? editorialPeriodStart;
-  final double? totalEditorialReading;
-
-  MixpanelConfig({this.editorialPeriodStart, this.totalEditorialReading});
-
-  Map<String, dynamic> toJson() => {
-        "editorialPeriodStart": editorialPeriodStart?.toIso8601String(),
-        "totalEditorialReading": totalEditorialReading,
-      };
-
-  factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
-    return MixpanelConfig(
-      editorialPeriodStart: DateTime.tryParse(json['editorialPeriodStart']),
-      totalEditorialReading: json['totalEditorialReading'],
-    );
-  }
-
-  MixpanelConfig copyWith(
-      {DateTime? editorialPeriodStart, double? totalEditorialReading}) {
-    return MixpanelConfig(
-      editorialPeriodStart: editorialPeriodStart ?? this.editorialPeriodStart,
-      totalEditorialReading:
-          totalEditorialReading ?? this.totalEditorialReading,
-    );
   }
 }
