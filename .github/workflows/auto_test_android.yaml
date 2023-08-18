@@ -173,7 +173,22 @@ jobs:
         if: success() || failure()
         run: |
           cd $GITHUB_WORKSPACE
-          flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFile_test.dart
+          flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFileWith1Eth1Tez_test.dart
+      - name: Run auto tests for Suite "Link Autonomy Connect from FeralFile to Autonomy Wallet"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFileWith1Eth0Tez_test.dart
+      - name: Run auto tests for Suite "Link Autonomy Connect from FeralFile to Autonomy Wallet"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFileWith0Eth1Tez_test.dart
+      - name: Run auto tests for Suite "Link Autonomy Connect from FeralFile to Autonomy Wallet"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter test auto-test/mobile_external_webs/linkAutonomyConnect2FeralFileWith0Eth0Tez_test.dart
       - name: Report Status
         if: always()
         uses: ravsamhq/notify-slack-action@v2
