@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -125,6 +126,30 @@ class MetricClientService {
   void setLabel(String prop, dynamic value) {
     if (isFinishInit) {
       mixPanelClient.setLabel(prop, value);
+    }
+  }
+
+  void incrementPropertyLabel(String prop, double value) {
+    if (isFinishInit) {
+      mixPanelClient.incrementPropertyLabel(prop, value);
+    }
+  }
+
+  void onAddConnection(Connection connection) {
+    if (isFinishInit) {
+      mixPanelClient.onAddConnection(connection);
+    }
+  }
+
+  void onRemoveConnection(Connection connection) {
+    if (isFinishInit) {
+      mixPanelClient.onRemoveConnection(connection);
+    }
+  }
+
+  void onRestore() {
+    if (isFinishInit) {
+      mixPanelClient.onRestore();
     }
   }
 }
