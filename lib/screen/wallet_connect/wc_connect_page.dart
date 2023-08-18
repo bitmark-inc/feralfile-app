@@ -241,7 +241,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       default:
     }
 
-    metricClient.mixPanelClient.incrementLabel(
+    metricClient.incrementPropertyLabel(
         MixpanelProp.connectedToMarket(connectionRequest.name ?? 'unknown'), 1);
 
     if (!mounted) return;

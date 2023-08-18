@@ -129,9 +129,9 @@ class MetricClientService {
     }
   }
 
-  void incrementLabel(String prop, double value) {
+  void incrementPropertyLabel(String prop, double value) {
     if (isFinishInit) {
-      mixPanelClient.incrementLabel(prop, value);
+      mixPanelClient.incrementPropertyLabel(prop, value);
     }
   }
 

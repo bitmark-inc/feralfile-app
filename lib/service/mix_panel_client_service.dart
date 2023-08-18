@@ -115,7 +115,7 @@ class MixPanelClientService {
     mixpanel.getPeople().set(prop, value);
   }
 
-  void incrementLabel(String prop, double value) {
+  void incrementPropertyLabel(String prop, double value) {
     mixpanel.getPeople().increment(prop, value);
   }
 
@@ -125,7 +125,8 @@ class MixPanelClientService {
       ConnectionType.dappConnect2.rawValue,
       ConnectionType.walletConnect2.rawValue
     ].contains(connection.connectionType)) {
-      incrementLabel(MixpanelProp.connectedToMarket(connection.name), 1);
+      incrementPropertyLabel(
+          MixpanelProp.connectedToMarket(connection.name), 1);
     }
   }
 
@@ -135,7 +136,8 @@ class MixPanelClientService {
       ConnectionType.dappConnect2.rawValue,
       ConnectionType.walletConnect2.rawValue
     ].contains(connection.connectionType)) {
-      incrementLabel(MixpanelProp.connectedToMarket(connection.name), -1);
+      incrementPropertyLabel(
+          MixpanelProp.connectedToMarket(connection.name), -1);
     }
   }
 
