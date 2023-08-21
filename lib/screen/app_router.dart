@@ -72,6 +72,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
@@ -217,6 +218,7 @@ class AppRouter {
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
+  static const postcardLeaderboardPage = 'postcard_leaderboard_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1242,6 +1244,19 @@ class AppRouter {
               value: accountsBloc,
               child: PreviewActivationTokenPage(
                 assetToken: settings.arguments as AssetToken,
+              ),
+            );
+          },
+        );
+
+      case postcardLeaderboardPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: PostcardLeaderboardPage(
+                payload: settings.arguments as PostcardLeaderboardPagePayload,
               ),
             );
           },

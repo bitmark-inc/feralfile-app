@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';

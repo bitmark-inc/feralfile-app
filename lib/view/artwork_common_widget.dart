@@ -15,11 +15,13 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/moMA_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -773,10 +775,16 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
 
 class ListItemExpandedWidget extends StatefulWidget {
   final List<TextSpan> children;
+  final TextSpan? divider;
   final int unexpandedCount;
+  final TextStyle? unreadStyle;
 
   const ListItemExpandedWidget(
-      {Key? key, required this.children, required this.unexpandedCount})
+      {Key? key,
+      required this.children,
+      this.divider,
+      required this.unexpandedCount,
+      this.unreadStyle})
       : super(key: key);
 
   @override
@@ -791,7 +799,8 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
     final expandText = (widget.children.length - widget.unexpandedCount > 0)
         ? TextSpan(
             text: " +${widget.children.length - widget.unexpandedCount}",
-            style: theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
+            style: widget.unreadStyle ??
+                theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 setState(() {
@@ -808,10 +817,11 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
             .mapIndexed((index, child) => [
                   child,
                   if (index != widget.children.length - 1)
-                    TextSpan(
-                      text: ", ",
-                      style: theme.textTheme.ppMori400White14,
-                    ),
+                    widget.divider ??
+                        TextSpan(
+                          text: ", ",
+                          style: theme.textTheme.ppMori400White14,
+                        ),
                 ])
             .flattened
             .toList()
@@ -821,16 +831,6 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
   }
 
   Widget expanedWidget(BuildContext context) {
-    // final hideText = TextSpan(
-    //   text: " -",
-    //   style: Theme.of(context).textTheme.ppMori400White14,
-    //   recognizer: TapGestureRecognizer()
-    //     ..onTap = () {
-    //       setState(() {
-    //         _isExpanded = false;
-    //       });
-    //     },
-    // );
     return RichText(
       text: TextSpan(
           children: widget.children
@@ -857,9 +857,18 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
 
 class SectionExpandedWidget extends StatefulWidget {
   final String? header;
+  final TextStyle? headerStyle;
   final Widget? child;
+  final Widget? icon;
+  final bool withDivicer;
 
-  const SectionExpandedWidget({Key? key, this.header, this.child})
+  const SectionExpandedWidget(
+      {Key? key,
+      this.header,
+      this.headerStyle,
+      this.child,
+      this.icon,
+      this.withDivicer = true})
       : super(key: key);
 
   @override
@@ -878,10 +887,11 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Divider(
-              color: theme.colorScheme.secondary,
-              thickness: 1,
-            ),
+            if (widget.withDivicer)
+              Divider(
+                color: theme.colorScheme.secondary,
+                thickness: 1,
+              ),
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -894,16 +904,18 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                   children: [
                     Text(
                       widget.header ?? '',
-                      style: theme.textTheme.ppMori400White16,
+                      style: widget.headerStyle ??
+                          theme.textTheme.ppMori400White16,
                     ),
                     const Spacer(),
                     RotatedBox(
                       quarterTurns: _isExpanded ? -1 : 1,
-                      child: Icon(
-                        AuIcon.chevron_Sm,
-                        size: 12,
-                        color: theme.colorScheme.secondary,
-                      ),
+                      child: widget.icon ??
+                          Icon(
+                            AuIcon.chevron_Sm,
+                            size: 12,
+                            color: theme.colorScheme.secondary,
+                          ),
                     )
                   ],
                 ),
@@ -911,10 +923,14 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
             ),
           ],
         ),
-        const SizedBox(height: 23.0),
         Visibility(
           visible: _isExpanded,
-          child: widget.child ?? const SizedBox(),
+          child: Column(
+            children: [
+              const SizedBox(height: 23.0),
+              widget.child ?? const SizedBox(),
+            ],
+          ),
         )
       ],
     );
@@ -925,14 +941,26 @@ Widget postcardDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, List<String?> owners) {
   final theme = Theme.of(context);
   final ownersList = owners.whereNotNull().toList();
+  final textStyle = theme.textTheme.moMASans400Black12;
+  final titleStyle =
+      theme.textTheme.moMASans400Grey12.copyWith(color: AppColor.auQuickSilver);
   return SectionExpandedWidget(
     header: "metadata".tr(),
+    headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+    withDivicer: false,
+    icon: Icon(
+      AuIcon.chevron_Sm,
+      size: 12,
+      color: theme.colorScheme.primary,
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         MetaDataItem(
           title: "title".tr(),
+          titleStyle: titleStyle,
           value: assetToken.title ?? '',
+          valueStyle: theme.textTheme.moMASans400Black12,
         ),
         if (ownersList.isNotEmpty) ...[
           Divider(
@@ -941,16 +969,22 @@ Widget postcardDetailsMetadataSection(
           ),
           CustomMetaDataItem(
             title: "creators".tr(),
+            titleStyle: titleStyle,
             content: ListItemExpandedWidget(
               children: [
                 ...ownersList
                     .mapIndexed((index, artistName) => TextSpan(
                           text: artistName,
-                          style: theme.textTheme.ppMori400White14,
+                          style: textStyle,
                         ))
                     .toList(),
               ],
               unexpandedCount: 2,
+              divider: TextSpan(
+                text: ", ",
+                style: textStyle,
+              ),
+              unreadStyle: textStyle.copyWith(color: MoMAColors.moMA5),
             ),
           ),
         ],
@@ -971,9 +1005,13 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "token".tr(),
+          titleStyle: titleStyle,
           value: polishSource(assetToken.source ?? ""),
           tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
           forceSafariVC: true,
+          valueStyle: theme.textTheme.moMASans400Black12,
+          linkStyle: theme.textTheme.moMASans400Black12
+              .copyWith(color: MoMAColors.moMA5),
         ),
         Divider(
           height: 32.0,
@@ -981,11 +1019,15 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "contract".tr(),
+          titleStyle: titleStyle,
           value: (assetToken.blockchain.toLowerCase() == "tezos")
               ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
               : assetToken.blockchain.capitalize(),
           tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
+          valueStyle: theme.textTheme.moMASans400Black12,
+          linkStyle: theme.textTheme.moMASans400Black12
+              .copyWith(color: MoMAColors.moMA5),
         ),
         Divider(
           height: 32.0,
@@ -993,7 +1035,9 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "medium".tr(),
+          titleStyle: titleStyle,
           value: assetToken.medium?.capitalize() ?? '',
+          valueStyle: theme.textTheme.moMASans400Black12,
         ),
         Divider(
           height: 32.0,
@@ -1001,9 +1045,11 @@ Widget postcardDetailsMetadataSection(
         ),
         MetaDataItem(
           title: "date_minted".tr(),
+          titleStyle: titleStyle,
           value: assetToken.mintedAt != null
               ? localTimeString(assetToken.mintedAt!)
               : '',
+          valueStyle: theme.textTheme.moMASans400Black12,
         ),
         assetToken.assetData != null && assetToken.assetData!.isNotEmpty
             ? Column(
@@ -1011,7 +1057,9 @@ Widget postcardDetailsMetadataSection(
                   const Divider(height: 32.0),
                   MetaDataItem(
                     title: "artwork_data".tr(),
+                    titleStyle: titleStyle,
                     value: assetToken.assetData!,
+                    valueStyle: theme.textTheme.moMASans400Black12,
                   )
                 ],
               )
@@ -1191,22 +1239,36 @@ Widget postcardOwnership(
   if (ownedTokens > 0) {
     ownedTokens -= totalSentQuantity;
   }
+  final linkStyle =
+      theme.textTheme.moMASans400Black12.copyWith(color: MoMAColors.moMA5);
+  final titleStyle = theme.textTheme.moMASans400Black12
+      .copyWith(color: AppColor.auQuickSilver);
 
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
+    headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+    withDivicer: false,
+    icon: Icon(
+      AuIcon.chevron_Sm,
+      size: 12,
+      color: theme.colorScheme.primary,
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "how_many_shares_you_own".tr(),
-          style: theme.textTheme.ppMori400White14,
+          style: titleStyle,
         ),
         const SizedBox(height: 32.0),
         MetaDataItem(
           title: "shares".tr(),
+          titleStyle: titleStyle,
           value: "${assetToken.maxEdition}",
           tapLink: assetToken.tokenURL,
           forceSafariVC: true,
+          valueStyle: theme.textTheme.moMASans400Black12,
+          linkStyle: linkStyle,
         ),
         Divider(
           height: 32.0,
@@ -1214,9 +1276,12 @@ Widget postcardOwnership(
         ),
         MetaDataItem(
           title: "owned".tr(),
+          titleStyle: titleStyle,
           value: "$ownedTokens",
           tapLink: assetToken.tokenURL,
           forceSafariVC: true,
+          valueStyle: theme.textTheme.moMASans400Black12,
+          linkStyle: linkStyle,
         ),
         const SizedBox(height: 16.0),
       ],
@@ -1288,12 +1353,14 @@ Widget tokenOwnership(
 
 class CustomMetaDataItem extends StatelessWidget {
   final String title;
+  final TextStyle? titleStyle;
   final Widget content;
   final bool? forceSafariVC;
 
   const CustomMetaDataItem({
     Key? key,
     required this.title,
+    this.titleStyle,
     required this.content,
     this.forceSafariVC,
   }) : super(key: key);
@@ -1308,7 +1375,7 @@ class CustomMetaDataItem extends StatelessWidget {
           flex: 2,
           child: Text(
             title,
-            style: theme.textTheme.ppMori400Grey14,
+            style: titleStyle ?? theme.textTheme.ppMori400Grey14,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -1321,18 +1388,24 @@ class CustomMetaDataItem extends StatelessWidget {
 
 class MetaDataItem extends StatelessWidget {
   final String title;
+  final TextStyle? titleStyle;
   final String value;
+  final TextStyle? valueStyle;
   final Function()? onTap;
   final String? tapLink;
   final bool? forceSafariVC;
+  final TextStyle? linkStyle;
 
   const MetaDataItem({
     Key? key,
     required this.title,
+    this.titleStyle,
     required this.value,
     this.onTap,
     this.tapLink,
     this.forceSafariVC,
+    this.linkStyle,
+    this.valueStyle,
   }) : super(key: key);
 
   @override
@@ -1355,7 +1428,7 @@ class MetaDataItem extends StatelessWidget {
           flex: 2,
           child: Text(
             title,
-            style: theme.textTheme.ppMori400Grey14,
+            style: titleStyle ?? theme.textTheme.ppMori400Grey14,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -1369,8 +1442,8 @@ class MetaDataItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 3,
               style: onValueTap != null
-                  ? theme.textTheme.ppMori400Green14
-                  : theme.textTheme.ppMori400White14,
+                  ? linkStyle ?? theme.textTheme.ppMori400Green14
+                  : valueStyle ?? theme.textTheme.ppMori400White14,
             ),
           ),
         ),
@@ -1656,11 +1729,20 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return FutureBuilder<Response<String>>(
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data?.statusCode == 200) {
             return SectionExpandedWidget(
               header: "rights".tr(),
+              headerStyle:
+                  theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+              withDivicer: false,
+              icon: Icon(
+                AuIcon.chevron_Sm,
+                size: 12,
+                color: theme.colorScheme.primary,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1671,7 +1753,7 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(0),
-                    styleSheet: markDownRightStyle(context),
+                    styleSheet: markDownPostcardRightStyle(context),
                     onTapLink: (text, href, title) async {
                       if (href == null) return;
                       launchUrl(Uri.parse(href),

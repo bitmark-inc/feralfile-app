@@ -389,12 +389,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       ),
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(context, asset, artistName),
+                      const SizedBox(height: 23.0),
                       if (asset.fungible == true) ...[
                         tokenOwnership(context, asset, owners),
+                        const SizedBox(height: 23.0),
                       ] else ...[
                         state.provenances.isNotEmpty
                             ? _provenanceView(context, state.provenances)
-                            : const SizedBox()
+                            : const SizedBox(),
+                        const SizedBox(height: 23.0),
                       ],
                       artworkDetailsRightSection(context, asset),
                       const SizedBox(height: 80.0),

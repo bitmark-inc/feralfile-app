@@ -116,6 +116,8 @@ const double cellSpacing = 3.0;
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
+const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
+
 final moMAGeoLocation =
     GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
 

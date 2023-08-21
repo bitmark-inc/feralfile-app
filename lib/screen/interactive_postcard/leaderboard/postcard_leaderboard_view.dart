@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -13,6 +13,7 @@ import 'package:nft_collection/models/asset_token.dart';
 class PostcardLeaderboardView extends StatefulWidget {
   final PostcardLeaderboard? leaderboard;
   final AssetToken? assetToken;
+
   const PostcardLeaderboardView({Key? key, this.leaderboard, this.assetToken})
       : super(key: key);
 
