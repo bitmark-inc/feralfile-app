@@ -50,6 +50,7 @@ import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -353,12 +354,33 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               resizeToAvoidBottomInset: !hasKeyboard,
               appBar: AppBar(
                 leadingWidth: 0,
-                centerTitle: false,
-                title: ArtworkDetailsHeader(
-                  title: asset.title ?? '',
-                  subTitle: '',
-                  hideArtist: true,
+                systemOverlayStyle: const SystemUiOverlayStyle(
+                  statusBarColor: POSTCARD_BACKGROUND_COLOR,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
                 ),
+                toolbarHeight: 70,
+                centerTitle: false,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      "MoMA",
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.moMASans700Black24,
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "postcard_project".tr(),
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.moMASans400Black24
+                          .copyWith(height: 1),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+                automaticallyImplyLeading: false,
                 actions: [
                   Semantics(
                     label: 'chat',
@@ -387,7 +409,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         'assets/images/icon_chat.svg',
                         width: 22,
                         colorFilter: const ColorFilter.mode(
-                            AppColor.white, BlendMode.srcIn),
+                            AppColor.primaryBlack, BlendMode.srcIn),
                       ),
                     ),
                   ),
@@ -399,10 +421,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         maxWidth: 44,
                         maxHeight: 44,
                       ),
-                      icon: SvgPicture.asset(
-                        'assets/images/more_circle.svg',
-                        width: 22,
-                      ),
+                      icon: SvgPicture.asset('assets/images/more_circle.svg',
+                          width: 22,
+                          colorFilter: const ColorFilter.mode(
+                              AppColor.primaryBlack, BlendMode.srcIn)),
                     ),
                   ),
                   Semantics(
@@ -415,13 +437,15 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       ),
                       icon: Icon(
                         AuIcon.close,
-                        color: theme.colorScheme.secondary,
+                        color: theme.colorScheme.primary,
                         size: 20,
                       ),
                     ),
                   )
                 ],
                 backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                elevation: 0,
               ),
               body: Column(
                 children: [
