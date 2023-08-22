@@ -5,7 +5,7 @@ class AddButton extends StatelessWidget {
   final Function() onTap;
   final double size;
 
-  const AddButton({Key? key, required this.onTap, this.size = 20})
+  const AddButton({Key? key, required this.onTap, this.size = 22})
       : super(key: key);
 
   @override
