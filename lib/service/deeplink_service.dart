@@ -507,7 +507,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           asset: postcard, shareCode: sharedInfor.shareCode);
     } catch (e) {
       log.info("[DeeplinkService] _handlePostcardDeeplink error $e");
-      if (e is DioError &&
+      if (e is DioException &&
           (e.response?.statusCode == StatusCode.notFound.value)) {
         _navigationService.showPostcardShareLinkInvalid();
       }
