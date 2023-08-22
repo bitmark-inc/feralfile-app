@@ -93,7 +93,7 @@ abstract class PostcardService {
 
   Future<PostcardLeaderboard> fetchPostcardLeaderboard();
 
-  String tokenId(String id);
+  String getTokenId(String id);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -398,7 +398,7 @@ class PostcardServiceImpl extends PostcardService {
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
   }
 
-  String tokenId(String id) {
+  String getTokenId(String id) {
     return "tez-${Environment.postcardContractAddress}-$id";
   }
 }

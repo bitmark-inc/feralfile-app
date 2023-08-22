@@ -157,7 +157,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     if (leaderBoardItem.creators.isEmpty) {
       return;
     }
-    final tokenId = postcardService.tokenId(leaderBoardItem.id);
+    final tokenId = postcardService.getTokenId(leaderBoardItem.id);
     final owner = leaderBoardItem.creators[0];
     final payload = PostcardDetailPagePayload([
       ArtworkIdentity(
