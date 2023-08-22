@@ -92,6 +92,8 @@ abstract class PostcardService {
   Future<void> checkNotification();
 
   Future<PostcardLeaderboard> fetchPostcardLeaderboard();
+
+  String tokenId(String id);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -380,15 +382,24 @@ class PostcardServiceImpl extends PostcardService {
     );
     final tokens = await _indexerService.getNftTokens(request);
     leaderboardResponse.items.map((e) {
-      e.title = tokens
-              .firstWhereOrNull((element) => element.tokenId == e.id)
-              ?.title ??
-          "Unknown";
+      final token =
+          tokens.firstWhereOrNull((element) => element.tokenId == e.id);
+      if (token == null) {
+        return e;
+      }
+      e.title = token.title ?? "Unknow";
+      e.creators =
+          token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
+      e.previewUrl = token.getPreviewUrl() ?? "";
       return e;
     }).toList();
 
     return PostcardLeaderboard(
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
+  }
+
+  String tokenId(String id) {
+    return "tez-${Environment.postcardContractAddress}-$id";
   }
 }
 

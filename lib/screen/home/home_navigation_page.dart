@@ -521,7 +521,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             .findAllAssetTokensByTokenIDs([tokenId]);
         final owner = tokens.first.owner;
         final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
-        final postcardDetailPayload = ArtworkDetailPayload(
+        final postcardDetailPayload = PostcardDetailPagePayload(
             [ArtworkIdentity(tokenId, owner)], 0,
             key: key);
         if (!mounted) return;

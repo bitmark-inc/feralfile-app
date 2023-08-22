@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -27,6 +28,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widge
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -36,9 +38,9 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moMA_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
@@ -61,8 +63,27 @@ import 'package:share/share.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+class PostcardDetailPagePayload extends ArtworkDetailPayload {
+  final bool isFromLeaderboard;
+
+  PostcardDetailPagePayload(
+    List<ArtworkIdentity> identities,
+    int currentIndex, {
+    Key? key,
+    PlayControlModel? playControl,
+    String? twitterCaption,
+    this.isFromLeaderboard = false,
+  }) : super(
+          key: key,
+          identities,
+          currentIndex,
+          playControl: playControl,
+          twitterCaption: twitterCaption,
+        );
+}
+
 class ClaimedPostcardDetailPage extends StatefulWidget {
-  final ArtworkDetailPayload payload;
+  final PostcardDetailPagePayload payload;
 
   const ClaimedPostcardDetailPage({Key? key, required this.payload})
       : super(key: key);
@@ -82,7 +103,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Timer? timer;
   bool isUpdating = false;
   bool canceling = false;
-  NumberFormat numberFormatter = NumberFormat("00");
+  final numberFormatter = NumberFormat("00");
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -95,8 +116,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void initState() {
     _scrollController = ScrollController();
     super.initState();
-    context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
-        widget.payload.identities[widget.payload.currentIndex]));
+    context.read<PostcardDetailBloc>().add(
+          PostcardDetailGetInfoEvent(
+              widget.payload.identities[widget.payload.currentIndex],
+              useIndexer: widget.payload.isFromLeaderboard),
+        );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
@@ -633,37 +657,33 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
-    return Column(
-      children: [
-        PostcardContainer(
-          child: _travelInfoWidget(state),
-        ),
-      ],
+    return PostcardContainer(
+      child: _travelInfoWidget(state),
     );
   }
 
   Widget _postcardLeaderboard(BuildContext context, PostcardDetailState state) {
-    return Column(
-      children: [
-        PostcardContainer(
-          child: GestureDetector(
-            child: Text(
-              "leaderboard".tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .moMASans700Black16
-                  .copyWith(fontSize: 18),
-            ),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.postcardLeaderboardPage,
-                  arguments: PostcardLeaderboardPagePayload(
-                    assetToken: state.assetToken,
-                    leaderboard: state.leaderboard,
-                  ));
-            },
-          ),
+    return PostcardContainer(
+      child: GestureDetector(
+        child: Text(
+          "leaderboard".tr(),
+          style: Theme.of(context)
+              .textTheme
+              .moMASans700Black16
+              .copyWith(fontSize: 18),
         ),
-      ],
+        onTap: () {
+          if (widget.payload.isFromLeaderboard) {
+            Navigator.of(context).pop();
+            return;
+          }
+          Navigator.of(context).pushNamed(AppRouter.postcardLeaderboardPage,
+              arguments: PostcardLeaderboardPagePayload(
+                assetToken: state.assetToken,
+                leaderboard: state.leaderboard,
+              ));
+        },
+      ),
     );
   }
 
@@ -679,7 +699,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   .moMASans700Black16
                   .copyWith(fontSize: 18),
             ),
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                AppRouter.inappWebviewPage,
+                arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
+              );
+            },
           ),
         ),
       ],
@@ -806,6 +832,30 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Widget _progressItem(
+      BuildContext context, int index, int currentStampNumber) {
+    final color =
+        index < currentStampNumber ? MoMAColors.moMA12 : AppColor.auLightGrey;
+    final borderRadius = index == 0
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(50),
+            bottomLeft: Radius.circular(50),
+          )
+        : index == MAX_STAMP_IN_POSTCARD - 1
+            ? const BorderRadius.only(
+                topRight: Radius.circular(50),
+                bottomRight: Radius.circular(50),
+              )
+            : BorderRadius.zero;
+    return Container(
+      height: 13,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: borderRadius,
+      ),
+    );
+  }
+
   Widget _postcardProgress(AssetToken asset) {
     final theme = Theme.of(context);
     final travelInfo = asset.postcardMetadata.listTravelInfoWithoutLocationName;
@@ -814,52 +864,46 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "postcard_progress".tr(),
-          style: theme.textTheme.moMASans700Black12,
+          "total_distance_traveled".tr(),
+          style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
         ),
+        Text(distanceFormatter.format(distance: travelInfo.totalDistance),
+            style: theme.textTheme.moMASans400Black12
+                .copyWith(color: MoMAColors.moMA12)),
         const SizedBox(height: 15),
+        Row(
+          children: [
+            Text(
+              "postcard_progress".tr(),
+              style: theme.textTheme.moMASans400Grey12,
+            ),
+            const Spacer(),
+            Text(
+                "stamps_".tr(namedArgs: {
+                  "current": numberFormatter.format(currentStampNumber),
+                  "total": MAX_STAMP_IN_POSTCARD.toString(),
+                }),
+                style: theme.textTheme.moMASans400Grey12)
+          ],
+        ),
         Row(
           children: [
             ...List.generate(MAX_STAMP_IN_POSTCARD, (index) {
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(1.0),
-                  child: Container(
-                    height: 25,
-                    color: index < currentStampNumber
-                        ? Colors.amber
-                        : AppColor.auLightGrey,
-                  ),
+                  child: _progressItem(context, index, currentStampNumber),
                 ),
               );
             }),
           ],
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Text(
-                "stamps_".tr(namedArgs: {
-                  "current": numberFormatter.format(currentStampNumber),
-                  "total": MAX_STAMP_IN_POSTCARD.toString(),
-                }),
-                style: theme.textTheme.moMASans400Black12),
-            const Spacer(),
-            Text(
-                "total_distance".tr(namedArgs: {
-                  "distance": distanceFormatter.format(
-                      distance: travelInfo.totalDistance)
-                }),
-                style: theme.textTheme.moMASans400Black12)
-          ],
-        )
       ],
     );
   }
 
   Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
     final asset = postcardDetailState.assetToken;
-    final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
       listener: (context, state) {},
       builder: (context, state) {
@@ -871,35 +915,32 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: padding,
-              child: _postcardProgress(asset!),
+            _postcardProgress(asset!),
+            const SizedBox(
+              height: 32,
             ),
-            addDivider(color: AppColor.primaryBlack),
-            Padding(
-              padding: padding,
-              child: Column(
-                children: [
-                  if (postcardDetailState.canDoAction) ...[
-                    if (postcardDetailState.isSending())
-                      _sendingTripItem(context, asset, lastTravelInfo)
-                    else
-                      _notSentItem(lastTravelInfo)
-                  ],
-                  ...travelInfo.reversed.map((TravelInfo e) {
-                    if (e.to == null) {
-                      if (postcardDetailState.isSending() &&
-                          postcardDetailState.isLastOwner) {
-                        return _sendingTripItem(context, asset, lastTravelInfo);
-                      }
-                      return _completeTravelWidget(e);
-                    }
-                    return _travelWidget(e, onTap: () {
-                      _gotoTripDetail(context, e);
-                    });
-                  }).toList(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (postcardDetailState.canDoAction) ...[
+                  if (postcardDetailState.isSending())
+                    _sendingTripItem(context, asset, lastTravelInfo)
+                  else
+                    _notSentItem(lastTravelInfo)
                 ],
-              ),
+                ...travelInfo.reversed.map((TravelInfo e) {
+                  if (e.to == null) {
+                    if (postcardDetailState.isSending() &&
+                        postcardDetailState.isLastOwner) {
+                      return _sendingTripItem(context, asset, lastTravelInfo);
+                    }
+                    return _completeTravelWidget(e);
+                  }
+                  return _travelWidget(e, onTap: () {
+                    _gotoTripDetail(context, e);
+                  });
+                }).toList(),
+              ],
             ),
           ],
         );
@@ -919,7 +960,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _travelWidget(TravelInfo travelInfo, {Function()? onTap}) {
     final theme = Theme.of(context);
-    NumberFormat formatter = NumberFormat("00");
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -932,7 +972,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(formatter.format(travelInfo.index),
+                      Text(numberFormatter.format(travelInfo.index),
                           style: theme.textTheme.moMASans400Black12
                               .copyWith(color: AppColor.auQuickSilver)),
                       Text(
@@ -961,11 +1001,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 const SizedBox(width: 10),
                 Text(
                   distanceFormatter.format(distance: travelInfo.getDistance()),
-                  style: theme.textTheme.moMASans400Black12
-                      .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
+                  style: theme.textTheme.moMASans700Black12
+                      .copyWith(color: MoMAColors.moMA12),
                 ),
               ]),
-              addDivider(height: 30, color: AppColor.auLightGrey),
+              if (travelInfo.index != 1) const SizedBox(height: 30),
             ],
           ),
           Positioned.fill(
@@ -979,7 +1019,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _completeTravelWidget(TravelInfo travelInfo) {
     final theme = Theme.of(context);
-    NumberFormat formatter = NumberFormat("00");
     return GestureDetector(
       onTap: () {
         _gotoTripDetail(context, travelInfo);
@@ -989,19 +1028,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(formatter.format(travelInfo.index),
-                      style: theme.textTheme.moMASans400Black12
-                          .copyWith(color: AppColor.auQuickSilver)),
-                  Text(
-                    travelInfo.sentLocation ?? "",
-                    style: theme.textTheme.moMASans400Black12,
-                  ),
-                  addDivider(height: 30, color: AppColor.auGreyBackground),
-                ],
+              Text(numberFormatter.format(travelInfo.index),
+                  style: theme.textTheme.moMASans400Black12
+                      .copyWith(color: AppColor.auQuickSilver)),
+              Text(
+                travelInfo.sentLocation ?? "",
+                style: theme.textTheme.moMASans400Black12,
               ),
+              const SizedBox(height: 30),
             ],
           ),
           Positioned.fill(
@@ -1016,12 +1050,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _sendingTripItem(
       BuildContext context, AssetToken asset, TravelInfo sendingTrip) {
     final theme = Theme.of(context);
-    NumberFormat formatter = NumberFormat("00");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          formatter.format(sendingTrip.index),
+          numberFormatter.format(sendingTrip.index),
           style: theme.textTheme.moMASans400Grey12,
         ),
         Row(
@@ -1093,7 +1126,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ),
           ],
         ),
-        addDivider(height: 30, color: AppColor.auGreyBackground),
+        const SizedBox(height: 30),
       ],
     );
   }

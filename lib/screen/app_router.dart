@@ -722,7 +722,7 @@ class AppRouter {
                     payload: settings.arguments as ArtworkDetailPayload)));
 
       case claimedPostcardDetailsPage:
-        final payload = settings.arguments as ArtworkDetailPayload;
+        final payload = settings.arguments as PostcardDetailPagePayload;
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,

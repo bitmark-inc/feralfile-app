@@ -171,8 +171,8 @@ class Location {
   // from json method
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
-      lat: json['lat'] as double,
-      lon: json['lon'] as double,
+      lat: double.tryParse("${json['lat']}") ?? 0.0,
+      lon: double.tryParse("${json['lon']}") ?? 0.0,
     );
   }
 

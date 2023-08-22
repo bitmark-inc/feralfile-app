@@ -50,12 +50,16 @@ class PostcardLeaderboardItem {
   int rank;
   String title;
   double totalDistance;
+  List<String> creators;
+  String previewUrl;
 
   PostcardLeaderboardItem({
     required this.id,
     required this.rank,
     required this.title,
     required this.totalDistance,
+    required this.creators,
+    required this.previewUrl,
   });
 
   static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) {
@@ -64,6 +68,9 @@ class PostcardLeaderboardItem {
       rank: json['rank'],
       title: json['title'] ?? "",
       totalDistance: json['mileage'].toDouble(),
+      creators:
+          json['creators'] == null ? [] : json['creators'] as List<String>,
+      previewUrl: json['preview_url'] ?? "",
     );
   }
 
@@ -73,6 +80,7 @@ class PostcardLeaderboardItem {
       "rank": rank,
       "title": title,
       "totalDistance": totalDistance,
+      "creators": creators,
     };
   }
 }
