@@ -115,6 +115,7 @@ Future<void> setup() async {
     migrateV13ToV14,
     migrateV14ToV15,
     migrateV15ToV16,
+    migrateV16ToV17
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase

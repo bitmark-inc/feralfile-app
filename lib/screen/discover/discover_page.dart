@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DiscoverPage extends StatefulWidget {
   const DiscoverPage({Key? key}) : super(key: key);
@@ -64,36 +65,51 @@ class DiscoverPageState extends State<DiscoverPage>
     return Scaffold(
       appBar: getDarkEmptyAppBar(),
       backgroundColor: theme.primaryColor,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Stack(
         children: [
-          headDivider(),
-          Container(
-            padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  mainAxisAlignment: _showFullHeader
-                      ? MainAxisAlignment.spaceBetween
-                      : MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (_showFullHeader)
-                      const AutonomyLogo(
-                        isWhite: true,
-                      ),
-                  ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              headDivider(),
+              Container(
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      mainAxisAlignment: _showFullHeader
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (_showFullHeader)
+                          const AutonomyLogo(
+                            isWhite: true,
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Expanded(
+                child: FeedPreviewPage(
+                  controller: _feedController,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: FeedPreviewPage(
-              controller: _feedController,
-            ),
-          ),
+          Positioned(
+              right: 26,
+              bottom: 30,
+              child: GestureDetector(
+                onTap: () {},
+                child: SvgPicture.asset(
+                  "assets/images/add_icon.svg",
+                  width: 34,
+                  height: 34,
+                ),
+              ))
         ],
       ),
     );

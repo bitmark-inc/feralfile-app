@@ -133,7 +133,8 @@ class FolloweeService {
     await _followeeDao.updateFollowees(listUpdateFollowees);
   }
 
-  Future<List<Followee>> _insertFollowees(List<String> artists, int type) async {
+  Future<List<Followee>> _insertFollowees(
+      List<String> artists, int type) async {
     final now = DateTime.now();
     List<Followee> followees = artists
         .map((artist) => Followee(
