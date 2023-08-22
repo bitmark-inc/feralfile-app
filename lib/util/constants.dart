@@ -56,7 +56,7 @@ const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 
 const POSTCARD_RIGHTS_DOCS =
-    "https://raw.githubusercontent.com/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+    "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md";
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
@@ -359,6 +359,15 @@ enum AnnouncementID {
   const AnnouncementID(this.value);
 
   final String value;
+}
+
+enum StatusCode {
+  notFound(404),
+  success(200);
+
+  const StatusCode(this.value);
+
+  final int value;
 }
 
 extension CryptoTypeHelpers on CryptoType {

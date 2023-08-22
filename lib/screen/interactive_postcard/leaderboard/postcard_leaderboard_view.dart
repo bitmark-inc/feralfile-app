@@ -229,7 +229,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                     return _leaderboardHeader(context, leaderBoard.lastUpdated);
                   }
                   final item = leaderBoard.items[index - 1];
-                  final isYours = item.id == widget.assetToken?.id;
+                  final isYours = item.id == widget.assetToken?.tokenId;
                   return _leaderboardItem(item, isYour: isYours);
                 },
               ),
