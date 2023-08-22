@@ -1,16 +1,19 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard_view.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/models.dart';
 
 class PostcardLeaderboardPagePayload {
-  final PostcardLeaderboard? leaderboard;
   final AssetToken? assetToken;
 
   PostcardLeaderboardPagePayload({
-    this.leaderboard,
     this.assetToken,
   });
 }
@@ -26,22 +29,52 @@ class PostcardLeaderboardPage extends StatefulWidget {
 }
 
 class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
+  late PostcardLeaderboard? leaderboard;
+  late Timer _leaderboardTimer;
+
+  @override
+  void initState() {
+    leaderboard = null;
+    super.initState();
+    context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
+    _setTimer();
+  }
+
+  @override
+  void dispose() {
+    _leaderboardTimer.cancel();
+    super.dispose();
+  }
+
+  void _setTimer() {
+    _leaderboardTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        onBack: () {
-          Navigator.pop(context);
-        },
-        title: "leaderboard".tr(),
-      ),
-      backgroundColor: POSTCARD_BACKGROUND_COLOR,
-      body: PostcardLeaderboardView(
-        leaderboard: widget.payload?.leaderboard,
-        assetToken: widget.payload?.assetToken,
-      ),
-    );
+    return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
+        builder: (context, state) {
+      return Scaffold(
+        appBar: getBackAppBar(
+          context,
+          onBack: () {
+            Navigator.pop(context);
+          },
+          title: "leaderboard".tr(),
+        ),
+        backgroundColor: POSTCARD_BACKGROUND_COLOR,
+        body: PostcardLeaderboardView(
+          leaderboard: state.leaderboard,
+          assetToken: widget.payload?.assetToken,
+        ),
+      );
+    }, listener: (context, state) {
+      setState(() {
+        leaderboard = state.leaderboard;
+      });
+    });
   }
 }
 

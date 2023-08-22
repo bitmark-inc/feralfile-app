@@ -21,9 +21,9 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
@@ -110,7 +110,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  late Timer _leaderboardTimer;
 
   @override
   void initState() {
@@ -121,17 +120,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               widget.payload.identities[widget.payload.currentIndex],
               useIndexer: widget.payload.isFromLeaderboard),
         );
-    context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
-    _setTimer();
-  }
-
-  void _setTimer() {
-    _leaderboardTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
-    });
   }
 
   @override
@@ -261,7 +252,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     timer?.cancel();
-    _leaderboardTimer.cancel();
     super.dispose();
   }
 
@@ -680,7 +670,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           Navigator.of(context).pushNamed(AppRouter.postcardLeaderboardPage,
               arguments: PostcardLeaderboardPagePayload(
                 assetToken: state.assetToken,
-                leaderboard: state.leaderboard,
               ));
         },
       ),

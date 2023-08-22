@@ -70,9 +70,9 @@ import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
@@ -1253,8 +1253,19 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+                BlocProvider(
+                  create: (_) => PostcardDetailBloc(
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector(),
+                  ),
+                ),
+              ],
               child: PostcardLeaderboardPage(
                 payload: settings.arguments as PostcardLeaderboardPagePayload,
               ),
