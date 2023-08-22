@@ -32,6 +32,7 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -113,12 +114,15 @@ class HomePageState extends State<HomePage>
           /// add following
           final addEvent = event as AddArtistsEvent;
           log.info("AddArtistsEvent ${addEvent.artists}");
+          injector<FolloweeService>().addArtistsCollection(addEvent.artists);
           break;
         case RemoveArtistsEvent:
 
           /// remove following
           final removeEvent = event as RemoveArtistsEvent;
           log.info("RemoveArtistsEvent ${removeEvent.artists}");
+          injector<FolloweeService>()
+              .deleteArtistsCollection(removeEvent.artists);
           break;
         default:
       }
@@ -190,12 +194,6 @@ class HomePageState extends State<HomePage>
   }
 
   void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
-    final artistIds = tokens
-        .map((e) => e.artistID)
-        .where((value) => value?.isNotEmpty == true)
-        .map((e) => e as String)
-        .toList();
-    injector<FeedService>().refreshFollowings(artistIds);
 
     //check minted postcard and naviagtor to artwork detail
     final config = injector.get<ConfigurationService>();

@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -287,6 +288,7 @@ Future<void> setup() async {
   injector.registerLazySingleton<ClientTokenService>(
       () => ClientTokenService(injector(), injector(), injector(), injector()));
 
+  injector.registerLazySingleton(() => FolloweeService(injector(), injector()));
   final tezosNodeClientURL = Environment.appTestnetConfig
       ? Environment.tezosNodeClientTestnetURL
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];

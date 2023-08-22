@@ -71,13 +71,15 @@ class _$AppDatabase extends AppDatabase {
 
   SceneDao? _sceneDaoInstance;
 
+  FolloweeDao? _followeeDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 16,
+      version: 17,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -102,6 +104,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `isConnecting` INTEGER NOT NULL, `playingSceneId` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `isPlaying` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `Followee` (`address` TEXT NOT NULL, `type` INTEGER NOT NULL, `isFollowed` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`address`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -135,6 +139,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   SceneDao get sceneDao {
     return _sceneDaoInstance ??= _$SceneDao(database, changeListener);
+  }
+
+  @override
+  FolloweeDao get followeeDao {
+    return _followeeDaoInstance ??= _$FolloweeDao(database, changeListener);
   }
 }
 
@@ -627,6 +636,109 @@ class _$SceneDao extends SceneDao {
   @override
   Future<void> updateScene(Scene scene) async {
     await _sceneUpdateAdapter.update(scene, OnConflictStrategy.abort);
+  }
+}
+
+class _$FolloweeDao extends FolloweeDao {
+  _$FolloweeDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _followeeInsertionAdapter = InsertionAdapter(
+            database,
+            'Followee',
+            (Followee item) => <String, Object?>{
+                  'address': item.address,
+                  'type': item.type,
+                  'isFollowed': item.isFollowed ? 1 : 0,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'name': item.name
+                }),
+        _followeeUpdateAdapter = UpdateAdapter(
+            database,
+            'Followee',
+            ['address'],
+            (Followee item) => <String, Object?>{
+                  'address': item.address,
+                  'type': item.type,
+                  'isFollowed': item.isFollowed ? 1 : 0,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'name': item.name
+                }),
+        _followeeDeletionAdapter = DeletionAdapter(
+            database,
+            'Followee',
+            ['address'],
+            (Followee item) => <String, Object?>{
+                  'address': item.address,
+                  'type': item.type,
+                  'isFollowed': item.isFollowed ? 1 : 0,
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'name': item.name
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Followee> _followeeInsertionAdapter;
+
+  final UpdateAdapter<Followee> _followeeUpdateAdapter;
+
+  final DeletionAdapter<Followee> _followeeDeletionAdapter;
+
+  @override
+  Future<List<Followee>> findAllFollowees() async {
+    return _queryAdapter.queryList('SELECT * FROM Followee',
+        mapper: (Map<String, Object?> row) => Followee(
+            address: row['address'] as String,
+            type: row['type'] as int,
+            isFollowed: (row['isFollowed'] as int) != 0,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            name: row['name'] as String));
+  }
+
+  @override
+  Future<List<Followee>> findFolloweeByAddress(List<String> addresses) async {
+    const offset = 1;
+    final _sqliteVariablesForAddresses =
+        Iterable<String>.generate(addresses.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.queryList(
+        'SELECT * FROM Followee WHERE IN (' +
+            _sqliteVariablesForAddresses +
+            ')',
+        mapper: (Map<String, Object?> row) => Followee(
+            address: row['address'] as String,
+            type: row['type'] as int,
+            isFollowed: (row['isFollowed'] as int) != 0,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            name: row['name'] as String),
+        arguments: [...addresses]);
+  }
+
+  @override
+  Future<void> removeAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Followee');
+  }
+
+  @override
+  Future<void> insertFollowees(List<Followee> followees) async {
+    await _followeeInsertionAdapter.insertList(
+        followees, OnConflictStrategy.ignore);
+  }
+
+  @override
+  Future<void> updateFollowees(List<Followee> followees) async {
+    await _followeeUpdateAdapter.updateList(
+        followees, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> deleteFollowees(List<Followee> followees) async {
+    await _followeeDeletionAdapter.deleteList(followees);
   }
 }
 
