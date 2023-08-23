@@ -15,7 +15,10 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import it.airgap.beaconsdk.core.message.BeaconRequest
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -31,7 +34,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         private const val EVENT_PARAMS = "params"
     }
 
-    private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var mainScope: CoroutineScope? = null
 
     private var methodChannel: MethodChannel? = null
     private var eventChannel: EventChannel? = null
@@ -39,12 +42,188 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
     private val pendingRequests = mutableListOf<Sign.Model.SessionRequest>()
     private val pendingProposals = mutableListOf<Sign.Model.SessionProposal>()
 
+    private var eventPublisher = MutableSharedFlow<Any>()
+
     private fun MethodChannel.Result.success() {
         success(mapOf("result" to 0))
     }
 
     private fun MethodChannel.Result.error(e: Throwable) {
         error("-1", e.message, null)
+    }
+
+    init {
+        initClient()
+    }
+
+    private fun initClient() {
+        // Initialize Wallet Connect
+        val appMetadata = Core.Model.AppMetaData(
+            name = "Autonomy",
+            description = "Autonomy Wallet",
+            icons = listOf(),
+            url = "autonomy.io",
+            redirect = null
+        )
+        CoreClient.initialize(
+            metaData = appMetadata,
+            relayServerUrl = "wss://relay.walletconnect.com?projectId=33abc0fd433c7a6e1cc198273e4a7d6e",
+            connectionType = ConnectionType.AUTOMATIC,
+            application = application,
+            relay = null,
+            onError = {
+                Timber.e("[WalletDelegate] onSessionUpdateResponse $it")
+            }
+        )
+        val signInitParams = Sign.Params.Init(
+            core = CoreClient
+        )
+        SignClient.initialize(signInitParams) { error ->
+            Timber.d(error.throwable, "Init SignClient failed")
+        }
+        val parings = CoreClient.Pairing.getPairings()
+        for (p in parings) {
+            Timber.d("Paring: $p")
+        }
+
+        SignClient.setWalletDelegate(object : SignClient.WalletDelegate {
+            override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
+                Timber.d("[WalletDelegate] onConnectionStateChange $state")
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            EVENT_NAME to "onConnectionStateChange",
+                            EVENT_PARAMS to mapOf("available" to state.isAvailable)
+                        )
+                    )
+                }
+            }
+
+            override fun onError(error: Sign.Model.Error) {
+                Timber.d("[WalletDelegate] onError $error")
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            EVENT_NAME to "onError",
+                            EVENT_PARAMS to error.throwable.message
+                        )
+                    )
+                }
+            }
+
+            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
+                Timber.d("[WalletDelegate] onSessionDelete $deletedSession")
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            EVENT_NAME to "onSessionDelete",
+                            EVENT_PARAMS to ""
+                        )
+                    )
+                }
+            }
+
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+                Timber.d("[WalletDelegate] onSessionProposal $sessionProposal")
+                pendingProposals.add(sessionProposal)
+                val namespaces = sessionProposal.requiredNamespaces.mapValues { e ->
+                    e.value.toProposalNamespace()
+                }
+                val proposer = mapOf(
+                    "name" to sessionProposal.name,
+                    "url" to sessionProposal.url,
+                    "description" to sessionProposal.description,
+                    "icons" to sessionProposal.icons.map { it.toString() }
+                )
+                val params = mapOf(
+                    "id" to sessionProposal.proposerPublicKey,
+                    "proposer" to Gson().toJson(proposer),
+                    "requiredNamespaces" to Json.encodeToString(namespaces)
+                )
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            "eventName" to "onSessionProposal",
+                            EVENT_PARAMS to params
+                        )
+                    )
+                }
+            }
+
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+                Timber.d("[WalletDelegate] onSessionRequest $sessionRequest")
+                pendingRequests.add(sessionRequest)
+                val request = mutableMapOf<String, Any?>(
+                    "id" to sessionRequest.request.id,
+                    "method" to sessionRequest.request.method,
+                    "params" to sessionRequest.request.params,
+                    "topic" to sessionRequest.topic,
+                    "chainId" to sessionRequest.chainId,
+                )
+                sessionRequest.peerMetaData?.let { proposer ->
+                    request["proposer"] = mapOf(
+                        "name" to proposer.name,
+                        "url" to proposer.url,
+                        "description" to proposer.description,
+                        "icons" to proposer.icons
+                    )
+                }
+                val params = Json.encodeToString(request.toJsonElement())
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            "eventName" to "onSessionRequest",
+                            EVENT_PARAMS to params
+                        )
+                    )
+                }
+            }
+
+            override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
+                Timber.d("[WalletDelegate] onSessionSettleResponse $settleSessionResponse")
+                val params = when (settleSessionResponse) {
+                    is Sign.Model.SettledSessionResponse.Result -> {
+                        mapOf("topic" to settleSessionResponse.session.topic)
+                    }
+
+                    is Sign.Model.SettledSessionResponse.Error -> {
+                        mapOf("error" to settleSessionResponse.errorMessage)
+                    }
+                }
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            EVENT_NAME to "onSessionSettle",
+                            EVENT_PARAMS to params
+                        )
+                    )
+                }
+            }
+
+            override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {
+                Timber.d("[WalletDelegate] onSessionUpdateResponse $sessionUpdateResponse")
+                val params = when (sessionUpdateResponse) {
+                    is Sign.Model.SessionUpdateResponse.Result -> {
+                        mapOf(
+                            "topic" to sessionUpdateResponse.topic,
+                            "namespaces" to sessionUpdateResponse.namespaces
+                        )
+                    }
+
+                    is Sign.Model.SessionUpdateResponse.Error -> {
+                        mapOf("error" to sessionUpdateResponse.errorMessage)
+                    }
+                }
+                mainScope?.launch {
+                    eventPublisher.emit(
+                        mapOf(
+                            EVENT_NAME to "onSessionUpdate",
+                            EVENT_PARAMS to params
+                        )
+                    )
+                }
+            }
+        })
     }
 
     private fun pairClient(uri: String, result: MethodChannel.Result) {
@@ -209,37 +388,45 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                 val uri = call.argument<String?>("uri").orEmpty()
                 pairClient(uri, result)
             }
+
             "approve" -> {
                 val proposalId = call.argument<String?>("proposal_id").orEmpty()
                 val account = call.argument<String?>("account").orEmpty()
                 approve(proposalId, account, result)
             }
+
             "reject" -> {
                 val proposalId = call.argument<String?>("proposal_id").orEmpty()
                 val reason = call.argument<String?>("reason").orEmpty()
                 reject(proposalId, reason, result)
             }
+
             "respondOnApprove" -> {
                 val topic = call.argument<String?>("topic").orEmpty()
                 val response = call.argument<String?>("response").orEmpty()
                 respondOnApprove(topic, response, result)
             }
+
             "respondOnReject" -> {
                 val topic = call.argument<String?>("topic").orEmpty()
                 val reason = call.argument<String?>("reason").orEmpty()
                 respondOnReject(topic, reason, result)
             }
+
             "getPairings" -> {
                 getPairings(result)
             }
+
             "deletePairing" -> {
                 val topic = call.argument<String?>("topic").orEmpty()
                 deletePairing(topic = topic, result = result)
             }
+
             "cleanup" -> {
                 val retainIds: List<String> = call.argument("retain_ids") ?: emptyList()
                 cleanupSessions(retainIds, result)
             }
+
             else -> {
                 result.notImplemented()
             }
@@ -247,132 +434,13 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-        SignClient.setWalletDelegate(object : SignClient.WalletDelegate {
-            override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-                Timber.d("[WalletDelegate] onConnectionStateChange $state")
-                mainScope.launch {
-                    events?.success(
-                        mapOf(
-                            EVENT_NAME to "onConnectionStateChange",
-                            EVENT_PARAMS to mapOf("available" to state.isAvailable)
-                        )
-                    )
+        mainScope?.launch {
+            eventPublisher
+                .onEach { }
+                .collect { event ->
+                    events?.success(event)
                 }
-            }
-
-            override fun onError(error: Sign.Model.Error) {
-                Timber.d("[WalletDelegate] onError $error")
-                mainScope.launch {
-                    events?.success(
-                        mapOf(
-                            EVENT_NAME to "onError",
-                            EVENT_PARAMS to error.throwable.message
-                        )
-                    )
-                }
-            }
-
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                Timber.d("[WalletDelegate] onSessionDelete $deletedSession")
-                mainScope.launch {
-                    events?.success(
-                        mapOf(
-                            EVENT_NAME to "onSessionDelete",
-                            EVENT_PARAMS to ""
-                        )
-                    )
-                }
-            }
-
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-                Timber.d("[WalletDelegate] onSessionProposal $sessionProposal")
-                pendingProposals.add(sessionProposal)
-                val namespaces = sessionProposal.requiredNamespaces.mapValues { e ->
-                    e.value.toProposalNamespace()
-                }
-                val proposer = mapOf(
-                    "name" to sessionProposal.name,
-                    "url" to sessionProposal.url,
-                    "description" to sessionProposal.description,
-                    "icons" to sessionProposal.icons.map { it.toString() }
-                )
-                val params = mapOf(
-                    "id" to sessionProposal.proposerPublicKey,
-                    "proposer" to Gson().toJson(proposer),
-                    "requiredNamespaces" to Json.encodeToString(namespaces)
-                )
-                mainScope.launch {
-                    events?.success(
-                        mapOf(
-                            "eventName" to "onSessionProposal",
-                            EVENT_PARAMS to params
-                        )
-                    )
-                }
-            }
-
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
-                Timber.d("[WalletDelegate] onSessionRequest $sessionRequest")
-                pendingRequests.add(sessionRequest)
-                val request = mutableMapOf<String, Any?>(
-                    "id" to sessionRequest.request.id,
-                    "method" to sessionRequest.request.method,
-                    "params" to sessionRequest.request.params,
-                    "topic" to sessionRequest.topic,
-                    "chainId" to sessionRequest.chainId,
-                )
-                sessionRequest.peerMetaData?.let { proposer ->
-                    request["proposer"] = mapOf(
-                        "name" to proposer.name,
-                        "url" to proposer.url,
-                        "description" to proposer.description,
-                        "icons" to proposer.icons
-                    )
-                }
-                val params = Json.encodeToString(request.toJsonElement())
-                mainScope.launch {
-                    events?.success(
-                        mapOf(
-                            "eventName" to "onSessionRequest",
-                            EVENT_PARAMS to params
-                        )
-                    )
-                }
-            }
-
-            override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
-                Timber.d("[WalletDelegate] onSessionSettleResponse $settleSessionResponse")
-                val params = when (settleSessionResponse) {
-                    is Sign.Model.SettledSessionResponse.Result -> {
-                        mapOf("topic" to settleSessionResponse.session.topic)
-                    }
-                    is Sign.Model.SettledSessionResponse.Error -> {
-                        mapOf("error" to settleSessionResponse.errorMessage)
-                    }
-                }
-                mainScope.launch {
-                    events?.success(mapOf(EVENT_NAME to "onSessionSettle", EVENT_PARAMS to params))
-                }
-            }
-
-            override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {
-                Timber.d("[WalletDelegate] onSessionUpdateResponse $sessionUpdateResponse")
-                val params = when (sessionUpdateResponse) {
-                    is Sign.Model.SessionUpdateResponse.Result -> {
-                        mapOf(
-                            "topic" to sessionUpdateResponse.topic,
-                            "namespaces" to sessionUpdateResponse.namespaces
-                        )
-                    }
-                    is Sign.Model.SessionUpdateResponse.Error -> {
-                        mapOf("error" to sessionUpdateResponse.errorMessage)
-                    }
-                }
-                mainScope.launch {
-                    events?.success(mapOf(EVENT_NAME to "onSessionUpdate", EVENT_PARAMS to params))
-                }
-            }
-        })
+        }
     }
 
     override fun onCancel(arguments: Any?) {
@@ -381,12 +449,13 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Timber.d("onAttachedToEngine")
+        mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
         initialize(binding.binaryMessenger)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Timber.d("onDetachedFromEngine")
-        mainScope.cancel()
+        mainScope?.cancel()
         eventChannel?.setStreamHandler(null)
         methodChannel?.setMethodCallHandler(null)
     }
@@ -396,34 +465,5 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
         methodChannel?.setMethodCallHandler(this)
         eventChannel = EventChannel(binaryMessenger, WC2_CONNECT_EVENT_CHANNEL)
         eventChannel?.setStreamHandler(this)
-
-        // Initialize Wallet Connect
-        val appMetadata = Core.Model.AppMetaData(
-            name = "Autonomy",
-            description = "Autonomy Wallet",
-            icons = listOf(),
-            url = "autonomy.io",
-            redirect = null
-        )
-        CoreClient.initialize(
-            metaData = appMetadata,
-            relayServerUrl = "wss://relay.walletconnect.com?projectId=33abc0fd433c7a6e1cc198273e4a7d6e",
-            connectionType = ConnectionType.AUTOMATIC,
-            application = application,
-            relay = null,
-            onError = {
-                Timber.e("[WalletDelegate] onSessionUpdateResponse $it")
-            }
-        )
-        val signInitParams = Sign.Params.Init(
-            core = CoreClient
-        )
-        SignClient.initialize(signInitParams) { error ->
-            Timber.d(error.throwable, "Init SignClient failed")
-        }
-        val parings = CoreClient.Pairing.getPairings()
-        for (p in parings) {
-            Timber.d("Paring: $p")
-        }
     }
 }
