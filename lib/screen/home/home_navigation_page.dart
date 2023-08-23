@@ -566,6 +566,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     _cloudBackup();
+    _metricClientService.useAppTimer?.cancel();
   }
 
   void _handleForeBackground(FGBGType event) async {
@@ -618,6 +619,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _handleForeground() async {
     await injector<CustomerSupportService>().fetchAnnouncement();
     announcementNotificationIfNeed();
+    Timer? useAppTimer = _metricClientService.useAppTimer;
+    useAppTimer?.cancel();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
+      await _metricClientService.onUseAppInForeground();
+    });
   }
 
   @override

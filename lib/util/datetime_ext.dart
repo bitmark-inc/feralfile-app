@@ -45,3 +45,9 @@ String getChatDateTimeRepresentation(DateTime dateTime) {
   }
   return dateFormatterYMDHM.format(dateTime.toLocal()).toUpperCase();
 }
+
+extension DateTimeExt on DateTime {
+  DateTime get startDayOfWeek {
+    return DateTime.utc(year, month, day - weekday + 1);
+  }
+}

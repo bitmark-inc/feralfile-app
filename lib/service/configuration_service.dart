@@ -375,6 +375,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
       "already_show_postcard_updates";
 
+  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
+
   static const String KEY_PACKAGE_INFO = "package_info";
 
   static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
