@@ -241,6 +241,9 @@ class _WCConnectPageState extends State<WCConnectPage>
       default:
     }
 
+    metricClient.incrementPropertyLabel(
+        MixpanelProp.connectedToMarket(connectionRequest.name ?? 'unknown'), 1);
+
     if (!mounted) return;
     UIHelper.hideInfoDialog(context);
 

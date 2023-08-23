@@ -81,6 +81,7 @@ class TezosBeaconService implements BeaconHandler {
     _timer?.cancel();
     _timer = Timer(CONNECT_FAILED_DURATION, () {
       onTimeout?.call();
+      _beaconChannel.connect();
     });
     var retryCount = 0;
     do {

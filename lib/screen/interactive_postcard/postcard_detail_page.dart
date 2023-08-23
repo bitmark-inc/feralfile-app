@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
@@ -85,14 +86,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
+  bool? isViewOnly;
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   late Timer _leaderboardTimer;
+  late bool sharingPostcard;
 
   @override
   void initState() {
     _scrollController = ScrollController();
+    sharingPostcard = false;
     super.initState();
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex]));
@@ -284,14 +288,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (state.assetToken?.artists != null) {
         identitiesList.addAll(state.assetToken!.getArtists.map((e) => e.name));
       }
-      setState(() {
-        currentAsset = state.assetToken;
-      });
+
       if (!mounted) return;
       final assetToken = state.assetToken;
       if (assetToken != null) {
+        final viewOnly = await assetToken.isViewOnly();
+        if (!mounted) return;
+        setState(() {
+          currentAsset = state.assetToken;
+          isViewOnly = viewOnly;
+        });
         if (withSharing) {
-          _socialShare(context, state.assetToken!);
+          _socialShare(context, assetToken);
           setState(() {
             withSharing = false;
           });
@@ -331,7 +339,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               element.owner == assetToken.owner);
         }
       }
-
+      if (!mounted) return;
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
@@ -360,34 +368,24 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   hideArtist: true,
                 ),
                 actions: [
-                  Semantics(
-                    label: 'chat',
-                    child: IconButton(
-                      onPressed: () async {
-                        final wallet = await asset.getOwnerWallet();
-                        if (wallet == null || !mounted) return;
-                        Navigator.of(context).pushNamed(
-                          ChatThreadPage.tag,
-                          arguments: ChatThreadPagePayload(
-                              tokenId: asset.id,
-                              wallet: wallet.first,
-                              address: asset.owner,
-                              index: wallet.second,
-                              cryptoType: asset.blockchain == "ethereum"
-                                  ? CryptoType.ETH
-                                  : CryptoType.XTZ,
-                              name: asset.title ?? ''),
-                        );
-                      },
-                      constraints: const BoxConstraints(
-                        maxWidth: 44,
-                        maxHeight: 44,
-                      ),
-                      icon: SvgPicture.asset(
-                        'assets/images/icon_chat.svg',
-                        width: 22,
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.white, BlendMode.srcIn),
+                  Visibility(
+                    visible: isViewOnly == false,
+                    child: Semantics(
+                      label: 'chat',
+                      child: IconButton(
+                        onPressed: () async {
+                          gotoChatThread(context);
+                        },
+                        constraints: const BoxConstraints(
+                          maxWidth: 44,
+                          maxHeight: 44,
+                        ),
+                        icon: SvgPicture.asset(
+                          'assets/images/icon_chat.svg',
+                          width: 22,
+                          colorFilter: const ColorFilter.mode(
+                              AppColor.white, BlendMode.srcIn),
+                        ),
                       ),
                     ),
                   ),
@@ -513,7 +511,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final theme = Theme.of(context);
     if (asset.postcardMetadata.isCompleted ||
         !state.isLastOwner ||
-        !state.postcardValueLoaded) {
+        !state.postcardValueLoaded ||
+        isViewOnly != false) {
       return const SizedBox();
     }
     if (state.isPostcardUpdatingOnBlockchain) {
@@ -563,18 +562,29 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       timer?.cancel();
       return PostcardButton(
         text: "invite_to_collaborate".tr(),
-        onTap: () async {
-          await _sharePostcard(asset);
-          setState(() {});
+        enabled: !sharingPostcard,
+        isProcessing: sharingPostcard,
+        onTap: () {
+          withDebounce(() async {
+            await _sharePostcard(asset);
+            setState(() {});
+          });
         },
       );
+    } else {
+      return PostcardButton(
+        text: "postcard_sent".tr(),
+        disabledColor: const Color.fromRGBO(79, 174, 79, 1),
+        enabled: false,
+      );
     }
-
-    return const SizedBox();
   }
 
   Future<void> _sharePostcard(AssetToken asset) async {
     try {
+      setState(() {
+        sharingPostcard = true;
+      });
       final sharePostcardResponse = await _postcardService.sharePostcard(asset);
       if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
@@ -591,6 +601,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
       }
     }
+    setState(() {
+      sharingPostcard = false;
+    });
   }
 
   Future<void> cancelShare(AssetToken asset) async {

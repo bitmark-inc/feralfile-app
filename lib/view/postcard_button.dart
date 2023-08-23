@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class PostcardButton extends StatelessWidget {
   final Function()? onTap;
   final Color? color;
+  final Color? disabledColor;
   final String? text;
   final double? width;
   final bool isProcessing;
@@ -15,6 +16,7 @@ class PostcardButton extends StatelessWidget {
     Key? key,
     this.onTap,
     this.color,
+    this.disabledColor,
     this.text,
     this.width,
     this.enabled = true,
@@ -26,15 +28,18 @@ class PostcardButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const defaultActiveColor = Colors.amber;
+    final defaultDisabledColor = theme.auLightGrey;
+    final backgroundColor = enabled
+        ? color ?? defaultActiveColor
+        : disabledColor ?? defaultDisabledColor; //theme.auLightGrey;
     return SizedBox(
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              enabled ? color ?? defaultActiveColor : theme.auLightGrey,
+          backgroundColor: backgroundColor,
           shadowColor: Colors.transparent,
-          disabledForegroundColor: theme.auLightGrey,
-          disabledBackgroundColor: theme.auLightGrey,
+          disabledForegroundColor: disabledColor ?? defaultDisabledColor,
+          disabledBackgroundColor: disabledColor ?? defaultDisabledColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
