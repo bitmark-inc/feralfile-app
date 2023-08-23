@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -170,36 +173,32 @@ class CanvasClientService {
   Future<void> syncDevices() async {
     final devices = await _db.canvasDeviceDao.getCanvasDevices();
     _devices.clear();
-    for (final device in devices) {
-      if (device.isConnecting) {
-        final status = await checkDeviceStatus(device);
-        if (status.first != CanvasServerStatus.error &&
-            _devices.any((element) => element.ip == device.ip)) {
-          await _db.canvasDeviceDao.deleteCanvasDevice(device);
-          continue;
-        }
-        switch (status.first) {
-          case CanvasServerStatus.playing:
-          case CanvasServerStatus.connected:
-            device.playingSceneId = status.second;
-            device.isConnecting = true;
-            await _db.canvasDeviceDao.updateCanvasDevice(device);
-            _devices.add(device);
-            break;
-          case CanvasServerStatus.open:
-            device.playingSceneId = status.second;
-            device.isConnecting = false;
-            await _db.canvasDeviceDao.updateCanvasDevice(device);
-            _devices.add(device);
-            break;
-          case CanvasServerStatus.notServing:
-            await _disconnectLocalDevice(device);
-            break;
-          case CanvasServerStatus.error:
-            break;
-        }
+    final List<CanvasDevice> devicesToAdd = [];
+    await Future.forEach<CanvasDevice>(devices, (device) async {
+      final status = await checkDeviceStatus(device);
+      switch (status.first) {
+        case CanvasServerStatus.playing:
+        case CanvasServerStatus.connected:
+          device.playingSceneId = status.second;
+          device.isConnecting = true;
+          _db.canvasDeviceDao.updateCanvasDevice(device);
+          devicesToAdd.add(device);
+          break;
+        case CanvasServerStatus.open:
+          device.playingSceneId = status.second;
+          device.isConnecting = false;
+          _db.canvasDeviceDao.updateCanvasDevice(device);
+          devicesToAdd.add(device);
+          break;
+        case CanvasServerStatus.notServing:
+          _disconnectLocalDevice(device);
+          break;
+        case CanvasServerStatus.error:
+          break;
       }
-    }
+    });
+    devicesToAdd.unique((element) => element.ip);
+    _devices.addAll(devicesToAdd);
   }
 
   Future<List<CanvasDevice>> getAllDevices() async {
