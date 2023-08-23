@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -31,6 +33,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
       VideoPlayerController.asset("assets/videos/postcard_explain.mp4");
   final VideoPlayerController _colouringController =
       VideoPlayerController.asset("assets/videos/colouring_video.mp4");
+  final NavigationService _navigationService = injector<NavigationService>();
 
   @override
   void initState() {
@@ -63,7 +66,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
       _page2(2, totalDistance: 0),
       _page2(3, totalDistance: 7926),
       _page2(4, totalDistance: 91103),
-      _page4(5)
+      _page4(5),
+      _locationExplain(context),
     ];
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
@@ -343,6 +347,68 @@ class _PostcardExplainState extends State<PostcardExplain> {
               ),
               Text(
                 "moma_explain_$index".tr(),
+                style:
+                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _locationExplain(BuildContext context) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 265,
+            child: Column(
+              children: [
+                _rowItem(context, "1st".tr(), 91103,
+                    "assets/images/postcard_location_explain_1.svg"),
+                const SizedBox(height: 35),
+                _rowItem(context, "2nd".tr(), 88791,
+                    "assets/images/postcard_location_explain_2.svg"),
+                const SizedBox(height: 35),
+                _rowItem(context, "3rd".tr(), 64003,
+                    "assets/images/postcard_location_explain_3.svg"),
+              ],
+            ),
+          ),
+          const SizedBox(height: 60),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "your_location_is_used".tr(),
+                      style: theme.textTheme.moMASans700Black14
+                          .copyWith(fontSize: 18),
+                      maxLines: 2,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      _navigationService.showLocationExplain();
+                    },
+                    icon: const Icon(AuIcon.info),
+                    padding: const EdgeInsets.all(0),
+                    constraints: const BoxConstraints(
+                      maxWidth: 24,
+                      maxHeight: 24,
+                    ),
+                    iconSize: 24,
+                  )
+                ],
+              ),
+              const SizedBox(height: 38),
+              Text(
+                "enable_location_to_contribute".tr(),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
