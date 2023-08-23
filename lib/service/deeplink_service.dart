@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -492,17 +493,25 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   _handlePostcardDeeplink(String shareCode) async {
-    final sharedInfor =
-        await _postcardService.getSharedPostcardInfor(shareCode);
-    if (sharedInfor.status == SharedPostcardStatus.claimed) {
-      await _navigationService.showAlreadyDeliveredPostcard();
-      return;
+    try {
+      final sharedInfor =
+          await _postcardService.getSharedPostcardInfor(shareCode);
+      if (sharedInfor.status == SharedPostcardStatus.claimed) {
+        await _navigationService.showAlreadyDeliveredPostcard();
+        return;
+      }
+      final contractAddress = Environment.postcardContractAddress;
+      final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
+      final postcard = await _postcardService.getPostcard(tokenId);
+      _navigationService.openPostcardReceivedPage(
+          asset: postcard, shareCode: sharedInfor.shareCode);
+    } catch (e) {
+      log.info("[DeeplinkService] _handlePostcardDeeplink error $e");
+      if (e is DioException &&
+          (e.response?.statusCode == StatusCode.notFound.value)) {
+        _navigationService.showPostcardShareLinkInvalid();
+      }
     }
-    final contractAddress = Environment.postcardContractAddress;
-    final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
-    final postcard = await _postcardService.getPostcard(tokenId);
-    _navigationService.openPostcardReceivedPage(
-        asset: postcard, shareCode: sharedInfor.shareCode);
   }
 
   _handleClaimEmptyPostcardDeeplink(String? id) async {

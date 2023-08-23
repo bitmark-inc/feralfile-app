@@ -1,8 +1,8 @@
-name: Automation iOS
-#on:
+name: Auto test iOS
+on:
   # schedule:
   #   - cron: '0 18 * * *'
-#  workflow_dispatch:
+  workflow_dispatch:
   # push:
   #   branches:
   # - develop
@@ -94,11 +94,11 @@ jobs:
       #   run: |
       #     cd $GITHUB_WORKSPACE
       #     flutter test auto-test/mobile_external_app/linkaccountbyMetamaskapp_test.dart
-       - name: Run Flutter Driver tests for Suite "Import accounts from seeds"
-         if: success() || failure()
-         run: |
-           cd $GITHUB_WORKSPACE
-           flutter test auto-test/tests/import_fullaccount_kukai_temple_test.dart
+      - name: Run Flutter Driver tests for Suite "Import accounts from seeds"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter test auto-test/tests/import_fullaccount_kukai_temple_test.dart
       - name: Run Flutter Driver tests for Suite "Connect wallet to NFT exchanges"
         if: success() || failure()
         run: |

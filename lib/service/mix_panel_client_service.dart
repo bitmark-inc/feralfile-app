@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -15,8 +17,10 @@ import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 class MixPanelClientService {
   final AccountService _accountService;
   final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDatabase;
 
-  MixPanelClientService(this._accountService, this._configurationService);
+  MixPanelClientService(
+      this._accountService, this._configurationService, this._cloudDatabase);
 
   late Mixpanel mixpanel;
 
@@ -108,5 +112,38 @@ class MixPanelClientService {
 
   void setLabel(String prop, dynamic value) {
     mixpanel.getPeople().set(prop, value);
+  }
+
+  void incrementPropertyLabel(String prop, double value) {
+    mixpanel.getPeople().increment(prop, value);
+  }
+
+  void onAddConnection(Connection connection) {
+    if ([
+      ConnectionType.beaconP2PPeer.rawValue,
+      ConnectionType.dappConnect2.rawValue,
+      ConnectionType.walletConnect2.rawValue
+    ].contains(connection.connectionType)) {
+      incrementPropertyLabel(
+          MixpanelProp.connectedToMarket(connection.name), 1);
+    }
+  }
+
+  void onRemoveConnection(Connection connection) {
+    if ([
+      ConnectionType.beaconP2PPeer.rawValue,
+      ConnectionType.dappConnect2.rawValue,
+      ConnectionType.walletConnect2.rawValue
+    ].contains(connection.connectionType)) {
+      incrementPropertyLabel(
+          MixpanelProp.connectedToMarket(connection.name), -1);
+    }
+  }
+
+  Future<void> onRestore() async {
+    final connections = await _cloudDatabase.connectionDao.getConnections();
+    for (var connection in connections) {
+      onAddConnection(connection);
+    }
   }
 }

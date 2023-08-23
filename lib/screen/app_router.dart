@@ -505,6 +505,7 @@ class AppRouter {
                         injector<CloudDatabase>(),
                         injector(),
                         injector(),
+                        injector(),
                       ))
                     ],
                     child: PersonaConnectionsPage(
@@ -517,6 +518,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => ConnectionsBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector(),
                     ),
@@ -536,6 +538,7 @@ class AppRouter {
                     BlocProvider.value(
                         value: ConnectionsBloc(
                       injector<CloudDatabase>(),
+                      injector(),
                       injector(),
                       injector(),
                     )),

@@ -322,7 +322,7 @@ class AccountServiceImpl extends AccountService {
         case 'beaconP2PPeer':
           if (persona.uuid == connection.beaconConnectConnection?.personaUuid) {
             await _cloudDB.connectionDao.deleteConnection(connection);
-
+            injector<MetricClientService>().onRemoveConnection(connection);
             final bcPeer = connection.beaconConnectConnection?.peer;
             if (bcPeer != null) bcPeers.add(bcPeer);
           }
@@ -705,6 +705,7 @@ class AccountServiceImpl extends AccountService {
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
     _cloudDB.addressDao.deleteAddress(walletAddress);
+    final metricClientService = injector<MetricClientService>();
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
@@ -713,6 +714,7 @@ class AccountServiceImpl extends AccountService {
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
             _cloudDB.connectionDao.deleteConnection(connection);
+            metricClientService.onRemoveConnection(connection);
           }
         }
         return;
@@ -725,6 +727,7 @@ class AccountServiceImpl extends AccountService {
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
             _cloudDB.connectionDao.deleteConnection(connection);
+            metricClientService.onRemoveConnection(connection);
           }
         }
         return;
