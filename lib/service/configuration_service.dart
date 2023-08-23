@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -266,10 +265,6 @@ abstract class ConfigurationService {
 
   Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
       {bool override = false});
-
-  Future<void> setMixpanelConfig(MixpanelConfig config);
-
-  MixpanelConfig getMixpanelConfig();
 
   Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
       {bool override = false});
@@ -1205,22 +1200,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       currentValue.addAll(updateValues);
       await _preferences.setStringList(key, currentValue.toSet().toList());
     }
-  }
-
-  @override
-  MixpanelConfig getMixpanelConfig() {
-    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
-    if (data == null) {
-      return MixpanelConfig();
-    }
-    final config = MixpanelConfig.fromJson(jsonDecode(data));
-    return config;
-  }
-
-  @override
-  Future<void> setMixpanelConfig(MixpanelConfig config) async {
-    await _preferences.setString(
-        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
   }
 
   @override

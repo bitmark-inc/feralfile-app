@@ -6,12 +6,11 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
@@ -21,6 +20,7 @@ class MixPanelClientService {
   MixPanelClientService(this._accountService, this._configurationService);
 
   late Mixpanel mixpanel;
+  late Box configHiveBox;
 
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
@@ -37,6 +37,7 @@ class MixPanelClientService {
     mixpanel.registerSuperPropertiesOnce({
       MixpanelProp.client: "Autonomy Wallet",
     });
+    configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
 
   Future initIfDefaultAccount() async {
@@ -112,41 +113,11 @@ class MixPanelClientService {
     mixpanel.getPeople().set(prop, value);
   }
 
-  MixpanelConfig getConfig() {
-    return _configurationService.getMixpanelConfig();
+  dynamic getConfig(String key, {dynamic defaultValue}) {
+    return configHiveBox.get(key, defaultValue: defaultValue);
   }
 
-  Future<void> setConfig(MixpanelConfig config) async {
-    await _configurationService.setMixpanelConfig(config);
-  }
-}
-
-@JsonSerializable()
-class MixpanelConfig {
-  final int countUseAutonomyInWeek;
-  final DateTime weekStartAt;
-
-  MixpanelConfig({this.countUseAutonomyInWeek = 0, DateTime? weekStartAt})
-      : weekStartAt = weekStartAt ?? DateTime.now().startDayOfWeek;
-
-  Map<String, dynamic> toJson() => {
-        'countUseAutonomyInWeek': countUseAutonomyInWeek,
-        'weekStartAt': weekStartAt.millisecondsSinceEpoch,
-      };
-
-  factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
-    return MixpanelConfig(
-        countUseAutonomyInWeek: json['countUseAutonomyInWeek'] ?? 0,
-        weekStartAt: DateTime.fromMillisecondsSinceEpoch(
-            json['weekStartAt'] ?? DateTime.now().millisecondsSinceEpoch));
-  }
-
-  MixpanelConfig copyWith(
-      {int? countUseAutonomyInWeek, DateTime? weekStartAt}) {
-    return MixpanelConfig(
-      countUseAutonomyInWeek:
-          countUseAutonomyInWeek ?? this.countUseAutonomyInWeek,
-      weekStartAt: weekStartAt ?? this.weekStartAt,
-    );
+  Future<void> setConfig(String key, dynamic value) async {
+    await configHiveBox.put(key, value);
   }
 }

@@ -135,35 +135,37 @@ class MetricClientService {
     }
   }
 
-  MixpanelConfig getConfig() {
-    return mixPanelClient.getConfig();
+  dynamic getConfig(String key, {dynamic defaultValue}) {
+    return mixPanelClient.getConfig(key, defaultValue: defaultValue);
   }
 
-  Future<void> setConfig(MixpanelConfig config) async {
-    await mixPanelClient.setConfig(config);
+  Future<void> setConfig(String key, dynamic value) async {
+    await mixPanelClient.setConfig(key, value);
   }
 
   Future<void> onOpenApp() async {
-    final config = getConfig();
+    final weekStartAt = getConfig(MixpanelConfig.weekStartAt,
+        defaultValue: DateTime.now().startDayOfWeek) as DateTime;
+    final countUseAutonomyInWeek =
+        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
+            as int;
     final now = DateTime.now();
     final startDayOfWeek = now.startDayOfWeek;
-    if (startDayOfWeek
-        .isAfter(config.weekStartAt.add(const Duration(days: 7)))) {
+    if (startDayOfWeek.isAfter(weekStartAt.add(const Duration(days: 7)))) {
       addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
-        "number": config.countUseAutonomyInWeek,
+        "number": countUseAutonomyInWeek,
+        MixpanelEventProp.time: weekStartAt,
       });
-      final newConfig = config.copyWith(
-        weekStartAt: startDayOfWeek,
-        countUseAutonomyInWeek: 0,
-      );
-      await setConfig(newConfig);
+      await setConfig(MixpanelConfig.weekStartAt, startDayOfWeek);
+      await setConfig(MixpanelConfig.countUseAutonomyInWeek, 0);
     }
   }
 
   Future<void> onUseAppInForeground() async {
-    final config = getConfig();
-    final countUseApp = config.countUseAutonomyInWeek + 1;
-    final newConfig = config.copyWith(countUseAutonomyInWeek: countUseApp);
-    await setConfig(newConfig);
+    final countUseAutonomyInWeek =
+        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
+            as int;
+    final countUseApp = countUseAutonomyInWeek + 1;
+    await setConfig(MixpanelConfig.countUseAutonomyInWeek, countUseApp);
   }
 }
