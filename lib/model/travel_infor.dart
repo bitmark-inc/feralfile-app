@@ -43,7 +43,7 @@ class TravelInfo {
     }
 
     if (from.stampedLocation!.isInternet || to!.claimedLocation!.isInternet) {
-      return null;
+      return 0;
     }
 
     return _getDistanceFromLatLonInKm(
@@ -125,7 +125,8 @@ extension ListTravelInfo on List<TravelInfo> {
 
   TravelInfo get sendingTravelInfo {
     if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 1, sentLocation: "MoMA");
+      return TravelInfo(UserLocations(), null, 1,
+          sentLocation: moMAGeoLocation.address);
     }
     final lastTravelInfo = last;
     return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
