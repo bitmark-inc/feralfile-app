@@ -139,6 +139,10 @@ import Starscream
             switch call.method {
             case "connect":
                 BeaconChannelHandler.shared.connect()
+            case "getConnectionURI":
+                BeaconChannelHandler.shared.getConnectionURI(call: call, result: result)
+            case "getPostMessageConnectionURI":
+                BeaconChannelHandler.shared.getPostMessageConnectionURI(call: call, result: result)
             case "addPeer":
                 BeaconChannelHandler.shared.addPeer(call: call, result: result)
             case "removePeer":
@@ -151,6 +155,12 @@ import Starscream
                 BeaconChannelHandler.shared.pause(call: call, result: result)
             case "resume":
                 BeaconChannelHandler.shared.resume(call: call, result: result)
+
+            case "handlePostMessageOpenChannel":
+                BeaconChannelHandler.shared.handlePostMessageOpenChannel(call: call, result: result)
+
+            case "handlePostMessageMessage":
+                BeaconChannelHandler.shared.handlePostMessageMessage(call: call, result: result)
                 
             default:
                 result(FlutterMethodNotImplemented)
