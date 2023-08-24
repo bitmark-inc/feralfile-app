@@ -131,6 +131,8 @@ const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
 
+const String MIXPANEL_HIVE_BOX = "mixpanel_hive_box";
+
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
     "postcard software artwork loaded";
 const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
@@ -504,6 +506,11 @@ class MixpanelEvent {
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";
+  static const numberUseAppInAWeek = "number_use_app_in_a_week";
+}
+
+class MixpanelEventProp {
+  static const time = 'Time';
 }
 
 class MixpanelProp {
@@ -517,10 +524,10 @@ class MixpanelProp {
   static String connectedToMarket(String name) => "Connected to $name";
 }
 
-// class MixpanelConfig {
-//   static const EditorialPeriodStart = "editorialPeriodStart";
-//   static const totalEditorialReading = 'totalEditorialReading';
-// }
+class MixpanelConfig {
+  static const countUseAutonomyInWeek = "countUseAutonomyInWeek";
+  static const weekStartAt = 'weekStartAt';
+}
 
 class SubscriptionStatus {
   static const free = 'Free';
@@ -553,3 +560,5 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = "_closeWebview";
 }
+
+const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);
