@@ -39,15 +39,15 @@ extension PostcardMetadataExtension on PostcardMetadata {
   List<TravelInfo> get listTravelInfoWithoutInternetUser {
     final stamps = locationInformation;
     final travelInfo = <TravelInfo>[];
-    int lastNotnulUser = 0;
-    for (int i = 0; i < stamps.length - 1; i++) {
-      final stamp = stamps[i + 1];
-      if ((stamp.stampedLocation?.isInternet ?? false) ||
-          (stamp.claimedLocation?.isInternet ?? false)) {
-        continue;
+    int lastNotnullStampLocation = 0;
+    for (int i = 1; i < stamps.length; i++) {
+      final stamp = stamps[i];
+      if (!(stamp.claimedLocation?.isInternet ?? true)) {
+        travelInfo.add(TravelInfo(stamps[lastNotnullStampLocation], stamp, i));
       }
-      travelInfo.add(TravelInfo(stamps[lastNotnulUser], stamps[i + 1], i + 1));
-      lastNotnulUser = i + 1;
+      if (!(stamp.stampedLocation?.isInternet ?? true)) {
+        lastNotnullStampLocation = i;
+      }
     }
 
     if (isCompleted) {
