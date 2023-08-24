@@ -33,6 +33,8 @@ class Followee {
       name: name ?? this.name,
     );
   }
+
+  bool get canRemove => type == MANUAL_ADDED_ARTIST;
 }
 
 const int COLLECTION_ARTIST = 1;

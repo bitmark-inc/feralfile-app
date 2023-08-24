@@ -18,6 +18,7 @@ AppBar getBackAppBar(BuildContext context,
     Widget? icon,
     Widget? titleIcon,
     Function()? action,
+    List<Widget>? actions,
     bool isWhite = true}) {
   final theme = Theme.of(context);
 
@@ -57,6 +58,7 @@ AppBar getBackAppBar(BuildContext context,
       ],
     ),
     actions: [
+      ...actions ?? [],
       action != null
           ? Padding(
               padding: const EdgeInsets.only(right: 15),
