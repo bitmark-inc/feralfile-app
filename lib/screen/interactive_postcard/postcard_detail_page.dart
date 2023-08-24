@@ -49,6 +49,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -122,6 +123,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               widget.payload.identities[widget.payload.currentIndex],
               useIndexer: widget.payload.isFromLeaderboard),
         );
+    context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
@@ -663,6 +665,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardLeaderboard(BuildContext context, PostcardDetailState state) {
     final theme = Theme.of(context);
+    final item = state.leaderboard?.items
+        .firstWhereOrNull((element) => element.id == state.assetToken?.tokenId);
     return PostcardContainer(
       child: GestureDetector(
         child: Stack(
@@ -675,11 +679,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
                 ),
                 const Spacer(),
-                Text(
-                  "# 12",
-                  style: theme.textTheme.moMASans400Black12
-                      .copyWith(color: MoMAColors.moMA12, fontSize: 18),
-                )
+                if (item != null)
+                  Text(
+                    "# ${item.rank}",
+                    style: theme.textTheme.moMASans400Black12
+                        .copyWith(color: MoMAColors.moMA12, fontSize: 18),
+                  )
               ],
             ),
             Positioned.fill(
