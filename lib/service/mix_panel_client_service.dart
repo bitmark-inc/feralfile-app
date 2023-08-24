@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
@@ -23,6 +24,7 @@ class MixPanelClientService {
       this._accountService, this._configurationService, this._cloudDatabase);
 
   late Mixpanel mixpanel;
+  late Box configHiveBox;
 
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
@@ -39,6 +41,7 @@ class MixPanelClientService {
     mixpanel.registerSuperPropertiesOnce({
       MixpanelProp.client: "Autonomy Wallet",
     });
+    configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
 
   Future initIfDefaultAccount() async {
@@ -145,5 +148,13 @@ class MixPanelClientService {
     for (var connection in connections) {
       onAddConnection(connection);
     }
+  }
+
+  dynamic getConfig(String key, {dynamic defaultValue}) {
+    return configHiveBox.get(key, defaultValue: defaultValue);
+  }
+
+  Future<void> setConfig(String key, dynamic value) async {
+    await configHiveBox.put(key, value);
   }
 }

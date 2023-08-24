@@ -96,7 +96,7 @@ class _AddressAliasState extends State<AddressAlias> {
                 AuTextField(
                     labelSemantics: "enter_alias_full",
                     title: "",
-                    placeholder: _nameAddress,
+                    placeholder: "enter_address".tr(),
                     controller: _nameController,
                     focusNode: focusNode,
                     onChanged: (valueChanged) {

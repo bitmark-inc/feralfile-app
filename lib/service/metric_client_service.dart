@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -9,6 +10,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
@@ -19,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 
 class MetricClientService {
   final AccountService _accountService;
+  late Timer? useAppTimer;
 
   MetricClientService(this._accountService);
 
@@ -52,6 +55,10 @@ class MetricClientService {
 
     await mixPanelClient.initService();
     isFinishInit = true;
+    await onOpenApp();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
+      await onUseAppInForeground();
+    });
   }
 
   Future<void> addEvent(
@@ -151,5 +158,39 @@ class MetricClientService {
     if (isFinishInit) {
       mixPanelClient.onRestore();
     }
+  }
+
+  dynamic getConfig(String key, {dynamic defaultValue}) {
+    return mixPanelClient.getConfig(key, defaultValue: defaultValue);
+  }
+
+  Future<void> setConfig(String key, dynamic value) async {
+    await mixPanelClient.setConfig(key, value);
+  }
+
+  Future<void> onOpenApp() async {
+    final weekStartAt = getConfig(MixpanelConfig.weekStartAt,
+        defaultValue: DateTime.now().startDayOfWeek) as DateTime;
+    final countUseAutonomyInWeek =
+        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
+            as int;
+    final now = DateTime.now();
+    final startDayOfWeek = now.startDayOfWeek;
+    if (startDayOfWeek.isAfter(weekStartAt.add(const Duration(days: 7)))) {
+      addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
+        "number": countUseAutonomyInWeek,
+        MixpanelEventProp.time: weekStartAt,
+      });
+      await setConfig(MixpanelConfig.weekStartAt, startDayOfWeek);
+      await setConfig(MixpanelConfig.countUseAutonomyInWeek, 0);
+    }
+  }
+
+  Future<void> onUseAppInForeground() async {
+    final countUseAutonomyInWeek =
+        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
+            as int;
+    final countUseApp = countUseAutonomyInWeek + 1;
+    await setConfig(MixpanelConfig.countUseAutonomyInWeek, countUseApp);
   }
 }

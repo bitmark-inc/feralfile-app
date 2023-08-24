@@ -290,7 +290,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           arguments: widget.playListModel,
                         ).then((value) {
                           if (value != null && value is PlayListModel) {
-                            bloc.add(SavePlaylist());
+                            bloc.add(SavePlaylist(name: value.name));
                             nftBloc.add(RefreshNftCollectionByIDs(
                               ids: isDemo ? [] : value.tokenIDs,
                               debugTokenIds: isDemo ? value.tokenIDs : [],
