@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
@@ -7,12 +8,8 @@ class Trip {
   final double? distance;
 
   static Trip sendingTrip(String from) {
-    return Trip(from: from, to: "Unknow", distance: null);
+    return Trip(from: from, to: "unknow".tr(), distance: null);
   }
 
   Trip({required this.from, required this.to, required this.distance});
-
-  // factory Otp.fromJson(Map<String, dynamic> json) => _$OtpFromJson(json);
-
-  // Map<String, dynamic> toJson() => _$OtpToJson(this);
 }
