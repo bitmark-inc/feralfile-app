@@ -38,19 +38,28 @@ class TravelInfo {
   }
 
   double? getDistance() {
-    if (to == null) {
+    if (to == null ||
+        from.stampedLocation == null ||
+        to!.claimedLocation == null) {
       return null;
     }
 
-    if (from.stampedLocation!.isInternet || to!.claimedLocation!.isInternet) {
+    final stampedLocation = from.stampedLocation!;
+    final claimedLocation = to!.claimedLocation!;
+
+    if (stampedLocation.isInternet ||
+        claimedLocation.isInternet ||
+        stampedLocation.isNull ||
+        claimedLocation.isNull) {
       return 0;
     }
 
     return _getDistanceFromLatLonInKm(
-        from.stampedLocation!.lat!,
-        from.stampedLocation!.lon!,
-        to!.claimedLocation!.lat!,
-        to!.claimedLocation!.lon!);
+      stampedLocation.lat!,
+      stampedLocation.lon!,
+      claimedLocation.lat!,
+      claimedLocation.lon!,
+    );
   }
 
   // get distance from longitude and latitude
