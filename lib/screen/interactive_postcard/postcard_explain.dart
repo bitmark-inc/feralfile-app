@@ -357,25 +357,75 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
+  Widget _locationExplainItem(
+      {required BuildContext context,
+      required String imagePath,
+      required String location,
+      required double distance}) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        SvgPicture.asset("assets/images/postcard_location_explain_4.svg"),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SvgPicture.asset(
+                    "assets/images/location_blue.svg",
+                  ),
+                  Text(
+                    location,
+                    style: theme.textTheme.moMASans700Black16
+                        .copyWith(fontSize: 18),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              "plus_distance".tr(namedArgs: {
+                "distance": DistanceFormatter().showDistance(
+                    distance: distance, distanceUnit: DistanceUnit.mile),
+              }),
+              style: theme.textTheme.moMASans400Black16.copyWith(
+                  fontSize: 18, color: const Color.fromRGBO(131, 79, 196, 1)),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _locationExplain(BuildContext context) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       child: Column(
         children: [
-          SizedBox(
-            height: 265,
-            child: Column(
-              children: [
-                _rowItem(context, "1st".tr(), 91103,
-                    "assets/images/postcard_location_explain_1.svg"),
-                const SizedBox(height: 35),
-                _rowItem(context, "2nd".tr(), 88791,
-                    "assets/images/postcard_location_explain_2.svg"),
-                const SizedBox(height: 35),
-                _rowItem(context, "3rd".tr(), 64003,
-                    "assets/images/postcard_location_explain_3.svg"),
-              ],
-            ),
+          Column(
+            children: [
+              _locationExplainItem(
+                  context: context,
+                  location: "Berlin, Germany",
+                  distance: 3964,
+                  imagePath: "assets/images/postcard_location_explain_1.svg"),
+              const SizedBox(height: 16),
+              _locationExplainItem(
+                  context: context,
+                  location: "Paris, France",
+                  distance: 545,
+                  imagePath: "assets/images/postcard_location_explain_2.svg"),
+              const SizedBox(height: 16),
+              _locationExplainItem(
+                  context: context,
+                  location: "Reykjavík, Iceland",
+                  distance: 1340,
+                  imagePath: "assets/images/postcard_location_explain_3.svg"),
+            ],
           ),
           const SizedBox(height: 60),
           Column(
