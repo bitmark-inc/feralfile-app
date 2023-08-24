@@ -11,14 +11,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-AppBar getBackAppBar(BuildContext context,
-    {String backTitle = "BACK",
-    String title = "",
-    required Function()? onBack,
-    Widget? icon,
-    Widget? titleIcon,
-    Function()? action,
-    bool isWhite = true}) {
+AppBar getBackAppBar(
+  BuildContext context, {
+  String backTitle = "BACK",
+  String title = "",
+  TextStyle? titleStyle,
+  required Function()? onBack,
+  Widget? icon,
+  Widget? titleIcon,
+  Function()? action,
+  bool isWhite = true,
+  bool withDivider = true,
+}) {
   final theme = Theme.of(context);
 
   final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
@@ -51,7 +55,8 @@ AppBar getBackAppBar(BuildContext context,
         Text(
           title,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
+          style: titleStyle ??
+              theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
           textAlign: TextAlign.center,
         ),
       ],
@@ -76,10 +81,13 @@ AppBar getBackAppBar(BuildContext context,
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
-    bottom: PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(color: isWhite ? null : AppColor.auGreyBackground),
-    ),
+    bottom: withDivider
+        ? PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: addOnlyDivider(
+                color: isWhite ? null : AppColor.auGreyBackground),
+          )
+        : null,
   );
 }
 

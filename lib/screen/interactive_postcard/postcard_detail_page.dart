@@ -97,6 +97,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
+  late bool isViewOnly;
 
   late DistanceFormatter distanceFormatter;
   bool viewJourney = true;
@@ -114,6 +115,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
+    isViewOnly = widget.payload.isFromLeaderboard;
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -304,6 +306,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       });
       if (!mounted) return;
       final assetToken = state.assetToken;
+      if (isViewOnly) {
+        return;
+      }
       if (assetToken != null) {
         if (withSharing) {
           _socialShare(context, state.assetToken!);
@@ -396,51 +401,53 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
-                  Semantics(
-                    label: 'chat',
-                    child: IconButton(
-                      onPressed: () async {
-                        final wallet = await asset.getOwnerWallet();
-                        if (wallet == null || !mounted) return;
-                        Navigator.of(context).pushNamed(
-                          ChatThreadPage.tag,
-                          arguments: ChatThreadPagePayload(
-                              tokenId: asset.id,
-                              wallet: wallet.first,
-                              address: asset.owner,
-                              index: wallet.second,
-                              cryptoType: asset.blockchain == "ethereum"
-                                  ? CryptoType.ETH
-                                  : CryptoType.XTZ,
-                              name: asset.title ?? ''),
-                        );
-                      },
-                      constraints: const BoxConstraints(
-                        maxWidth: 44,
-                        maxHeight: 44,
-                      ),
-                      icon: SvgPicture.asset(
-                        'assets/images/icon_chat.svg',
-                        width: 22,
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.primaryBlack, BlendMode.srcIn),
-                      ),
-                    ),
-                  ),
-                  Semantics(
-                    label: 'artworkDotIcon',
-                    child: IconButton(
-                      onPressed: () => _showArtworkOptionsDialog(asset),
-                      constraints: const BoxConstraints(
-                        maxWidth: 44,
-                        maxHeight: 44,
-                      ),
-                      icon: SvgPicture.asset('assets/images/more_circle.svg',
+                  if (!isViewOnly)
+                    Semantics(
+                      label: 'chat',
+                      child: IconButton(
+                        onPressed: () async {
+                          final wallet = await asset.getOwnerWallet();
+                          if (wallet == null || !mounted) return;
+                          Navigator.of(context).pushNamed(
+                            ChatThreadPage.tag,
+                            arguments: ChatThreadPagePayload(
+                                tokenId: asset.id,
+                                wallet: wallet.first,
+                                address: asset.owner,
+                                index: wallet.second,
+                                cryptoType: asset.blockchain == "ethereum"
+                                    ? CryptoType.ETH
+                                    : CryptoType.XTZ,
+                                name: asset.title ?? ''),
+                          );
+                        },
+                        constraints: const BoxConstraints(
+                          maxWidth: 44,
+                          maxHeight: 44,
+                        ),
+                        icon: SvgPicture.asset(
+                          'assets/images/icon_chat.svg',
                           width: 22,
                           colorFilter: const ColorFilter.mode(
-                              AppColor.primaryBlack, BlendMode.srcIn)),
+                              AppColor.primaryBlack, BlendMode.srcIn),
+                        ),
+                      ),
                     ),
-                  ),
+                  if (!isViewOnly)
+                    Semantics(
+                      label: 'artworkDotIcon',
+                      child: IconButton(
+                        onPressed: () => _showArtworkOptionsDialog(asset),
+                        constraints: const BoxConstraints(
+                          maxWidth: 44,
+                          maxHeight: 44,
+                        ),
+                        icon: SvgPicture.asset('assets/images/more_circle.svg',
+                            width: 22,
+                            colorFilter: const ColorFilter.mode(
+                                AppColor.primaryBlack, BlendMode.srcIn)),
+                      ),
+                    ),
                   Semantics(
                     label: 'close_icon',
                     child: IconButton(
@@ -503,10 +510,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _postcardAction(state),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            if (!isViewOnly) ...[
+                              _postcardAction(state),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
                             _postcardInfo(context, state),
                             const SizedBox(
                               height: 20,
@@ -760,7 +769,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   final addresses = state.addresses;
                   return PostcardContainer(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    child: postcardOwnership(context, asset, addresses),
+                    child: widget.payload.isFromLeaderboard
+                        ? leaderboardPostcardOwnership(
+                            context, asset, addresses, artistNames)
+                        : postcardOwnership(context, asset, addresses),
                   );
                 },
               ),

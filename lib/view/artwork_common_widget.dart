@@ -1055,9 +1055,7 @@ Widget postcardDetailsMetadataSection(
           child: MetaDataItem(
             title: "contract".tr(),
             titleStyle: titleStyle,
-            value: (assetToken.blockchain.toLowerCase() == "tezos")
-                ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
-                : assetToken.blockchain.capitalize(),
+            value: assetToken.blockchain.capitalize(),
             tapLink: assetToken.getBlockchainUrl(),
             forceSafariVC: true,
             valueStyle: theme.textTheme.moMASans400Black12,
@@ -1338,6 +1336,130 @@ Widget postcardOwnership(
           padding: padding,
           child: MetaDataItem(
             title: "owned".tr(),
+            titleStyle: titleStyle,
+            value: "$ownedTokens",
+            tapLink: assetToken.tokenURL,
+            forceSafariVC: true,
+            valueStyle: theme.textTheme.moMASans400Black12,
+            linkStyle: linkStyle,
+          ),
+        ),
+        const SizedBox(height: 16.0),
+      ],
+    ),
+  );
+}
+
+Widget leaderboardPostcardOwnership(BuildContext context, AssetToken assetToken,
+    List<String> addresses, List<String?> owners) {
+  final theme = Theme.of(context);
+  final ownersList = owners.whereNotNull().toList();
+  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
+  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
+
+  final totalSentQuantity = sentTokens
+      .where((element) =>
+          element.tokenID == assetToken.id &&
+          element.timestamp.isAfter(expiredTime))
+      .fold<int>(
+          0, (previousValue, element) => previousValue + element.sentQuantity);
+
+  int ownedTokens = assetToken.balance ?? 0;
+  if (ownedTokens == 0) {
+    ownedTokens =
+        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
+    if (ownedTokens == 0) {
+      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
+    }
+  }
+
+  if (ownedTokens > 0) {
+    ownedTokens -= totalSentQuantity;
+  }
+  final linkStyle =
+      theme.textTheme.moMASans400Black12.copyWith(color: MoMAColors.moMA5);
+  final titleStyle = theme.textTheme.moMASans400Black12
+      .copyWith(color: AppColor.auQuickSilver);
+  const padding = EdgeInsets.only(left: 15, right: 15);
+  final icon = Icon(
+    AuIcon.chevron_Sm,
+    size: 12,
+    color: theme.colorScheme.primary,
+  );
+  final textStyle = theme.textTheme.moMASans400Black12;
+  return SectionExpandedWidget(
+    header: "token_ownership".tr(),
+    headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+    headerPadding: padding,
+    withDivicer: false,
+    iconOnExpanded: RotatedBox(
+      quarterTurns: 1,
+      child: icon,
+    ),
+    iconOnUnExpaneded: RotatedBox(
+      quarterTurns: 2,
+      child: icon,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: padding,
+          child: Text(
+            "how_many_shares_you_own".tr(),
+            style: titleStyle,
+          ),
+        ),
+        const SizedBox(height: 32.0),
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "shares".tr(),
+            titleStyle: titleStyle,
+            value: "${assetToken.maxEdition}",
+            tapLink: assetToken.tokenURL,
+            forceSafariVC: true,
+            valueStyle: theme.textTheme.moMASans400Black12,
+            linkStyle: linkStyle,
+          ),
+        ),
+        if (ownersList.isNotEmpty) ...[
+          Divider(
+            height: 32.0,
+            color: theme.auLightGrey,
+          ),
+          Padding(
+            padding: padding,
+            child: CustomMetaDataItem(
+              title: "token_holder".tr(),
+              titleStyle: titleStyle,
+              content: ListItemExpandedWidget(
+                children: [
+                  ...ownersList
+                      .mapIndexed((index, artistName) => TextSpan(
+                            text: artistName,
+                            style: textStyle,
+                          ))
+                      .toList(),
+                ],
+                unexpandedCount: 2,
+                divider: TextSpan(
+                  text: ", ",
+                  style: textStyle,
+                ),
+                unreadStyle: textStyle.copyWith(color: MoMAColors.moMA5),
+              ),
+            ),
+          ),
+        ],
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "token_hold".tr(),
             titleStyle: titleStyle,
             value: "$ownedTokens",
             tapLink: assetToken.tokenURL,

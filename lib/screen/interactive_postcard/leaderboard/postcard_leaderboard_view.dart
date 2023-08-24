@@ -15,6 +15,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class PostcardLeaderboardView extends StatefulWidget {
@@ -57,7 +58,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
               initialItemCount: 51,
               itemBuilder: (context, index, animation) {
                 if (index == 0) {
-                  return _loadingLeaderboardHeader(context);
+                  return _leaderboardHeader(context);
                 }
                 return _loadingLeaderboardItem(context, index: index);
               },
@@ -68,83 +69,70 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     );
   }
 
-  Widget _loadingLeaderboardHeader(BuildContext context) {
+  Widget _leaderboardHeader(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "updating_leaderboard".tr(),
-              style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
+              "last_updated".tr(),
+              style: theme.textTheme.moMASans400Grey12,
             )
           ],
         ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _leaderboardHeader(BuildContext context, DateTime lastUpdated) {
-    final theme = Theme.of(context);
-    final dateFormater = DateFormat("yyyy-MM-dd HH:mm");
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "last_updated"
-                  .tr(namedArgs: {"time": dateFormater.format(lastUpdated)}),
-              style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
-            )
-          ],
-        ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 15),
+        addOnlyDivider(color: AppColor.auLightGrey)
       ],
     );
   }
 
   Widget _loadingLeaderboardItem(BuildContext context, {int index = 1}) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TappableForwardRow(
+            onTap: () {},
+            leftWidget: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  numberFormatter.format(index),
-                  style: theme.textTheme.moMASans400Black12,
+                SizedBox(
+                  height: 65,
+                  width: 85,
+                  child: SkeletonContainer(),
                 ),
-                const SizedBox(width: 36),
+                SizedBox(width: 16),
                 Expanded(
-                  flex: 2,
-                  child: SkeletonContainer(
-                    width: 64,
-                    height: 17,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Expanded(child: Container()),
-                Expanded(
-                  child: SkeletonContainer(
-                    width: 64,
-                    height: 17,
-                    borderRadius: BorderRadius.circular(4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonContainer(
+                        width: 70,
+                        height: 17,
+                      ),
+                      SizedBox(height: 5),
+                      SkeletonContainer(
+                        width: 110,
+                        height: 17,
+                      )
+                    ],
                   ),
                 ),
               ],
             ),
+            forwardIcon: SvgPicture.asset(
+              'assets/images/iconForward.svg',
+              colorFilter: const ColorFilter.mode(
+                  AppColor.secondarySpanishGrey, BlendMode.srcIn),
+            ),
           ),
-          addOnlyDivider(color: AppColor.auLightGrey),
-        ],
-      ),
+        ),
+        addOnlyDivider(color: AppColor.auLightGrey),
+      ],
     );
   }
 
@@ -230,6 +218,11 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                 ),
               ],
             ),
+            forwardIcon: SvgPicture.asset(
+              'assets/images/iconForward.svg',
+              colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack, BlendMode.srcIn),
+            ),
           ),
         ),
         addOnlyDivider(color: AppColor.auLightGrey),
@@ -256,7 +249,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                 itemCount: leaderBoard.items.length + 1,
                 itemBuilder: (context, index) {
                   if (index == 0) {
-                    return _leaderboardHeader(context, leaderBoard.lastUpdated);
+                    return _leaderboardHeader(context);
                   }
                   final item = leaderBoard.items[index - 1];
                   final isYours = item.id == widget.assetToken?.tokenId;
