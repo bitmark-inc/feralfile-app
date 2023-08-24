@@ -77,7 +77,9 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                   RichText(
                       text: TextSpan(children: <TextSpan>[
                     TextSpan(
-                      text: "display_your_artwork_on".tr(),
+                      text: widget.isCollection
+                          ? "display_your_collection_on".tr()
+                          : "display_your_artwork_on".tr(),
                       style: theme.textTheme.ppMori400White14,
                     ),
                     TextSpan(
