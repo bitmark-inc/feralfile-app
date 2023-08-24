@@ -97,7 +97,7 @@ class _FollowingPageState extends State<FollowingPage> {
       appBar: getBackAppBar(context,
           onBack: () => Navigator.pop(context),
           isWhite: false,
-          title: "addresses".tr()),
+          title: "discover_feed_addresses".tr()),
       backgroundColor: theme.primaryColor,
       body: SingleChildScrollView(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -301,30 +301,47 @@ class _FolloweesListState extends State<FolloweesList> {
           Text(name,
               style: theme.textTheme.ppMori400White14.copyWith(color: color)),
           const Spacer(),
-          RemoveButton(
-            onTap: () async {
-              if (followee.type == MANUAL_ADDED_ARTIST) {
-                setState(() {
-                  _selectedFollowee = followee;
-                });
-                await UIHelper.showMessageAction(
-                    context, "is_remove_from_feed".tr(args: [name]), "",
-                    closeButton: "cancel".tr(),
-                    actionButton: "remove_from_feed".tr(), onAction: () {
-                  injector<FolloweeService>()
-                      .removeArtistManual(followee)
-                      .then((value) {
-                    Navigator.pop(context);
-                    context.read<FollowingBloc>().add(GetFolloweeEvent());
-                  });
-                });
-                setState(() {
-                  _selectedFollowee = null;
-                });
-              }
-            },
-            color: color,
-          )
+          followee.canRemove
+              ? RemoveButton(
+                  onTap: () async {
+                    setState(() {
+                      _selectedFollowee = followee;
+                    });
+                    await UIHelper.showMessageAction(
+                        context, "is_remove_from_feed".tr(args: [name]), "",
+                        closeButton: "cancel".tr(),
+                        actionButton: "remove_from_feed".tr(), onAction: () {
+                      injector<FolloweeService>()
+                          .removeArtistManual(followee)
+                          .then((value) {
+                        Navigator.pop(context);
+                        context.read<FollowingBloc>().add(GetFolloweeEvent());
+                      });
+                    });
+                    setState(() {
+                      _selectedFollowee = null;
+                    });
+                  },
+                  color: color,
+                )
+              : GestureDetector(
+                  onTap: () async {
+                    setState(() {
+                      _selectedFollowee = followee;
+                    });
+                    await UIHelper.showInfoDialog(context,
+                        "why_can_remove".tr(), "why_can_remove_desc".tr(),
+                        closeButton: "close".tr());
+
+                    setState(() {
+                      _selectedFollowee = null;
+                    });
+                  },
+                  child: SvgPicture.asset(
+                    "assets/images/iconInfo.svg",
+                    colorFilter: ui.ColorFilter.mode(color, BlendMode.srcIn),
+                  ),
+                )
         ],
       ),
     );

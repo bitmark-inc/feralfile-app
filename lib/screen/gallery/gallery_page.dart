@@ -1,16 +1,13 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/followee.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
-import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/add_button.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -106,33 +103,7 @@ class _GalleryPageState extends State<GalleryPage> {
             appBar: getBackAppBar(context,
                 title: widget.payload.artistName,
                 onBack: () => Navigator.pop(context),
-                isWhite: false,
-                actions: [
-                  FutureBuilder<List<Followee>>(
-                      future: injector<FolloweeService>()
-                          .getFromAddresses([widget.payload.address]),
-                      builder: (context, snapshot) {
-                        if (snapshot.data == null) {
-                          return const SizedBox();
-                        } else {
-                          if (snapshot.data!.isEmpty) {
-                            return AddButton(
-                              onTap: () {
-                                injector<FolloweeService>()
-                                    .addArtistManual(widget.payload.address);
-                              },
-                            );
-                          } else {
-                            final followee = snapshot.data!.first;
-                            if (followee.canRemove) {
-                              injector<FolloweeService>()
-                                  .removeArtistManual(followee);
-                            }
-                          }
-                        }
-                        return const SizedBox();
-                      }),
-                ]),
+                isWhite: false),
             backgroundColor: theme.colorScheme.primary,
             body: _assetsWidget(tokens, state.isLoading),
           );
