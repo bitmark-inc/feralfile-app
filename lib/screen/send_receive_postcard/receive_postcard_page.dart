@@ -77,7 +77,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       payload: PostcardExplainPayload(
         asset,
         PostcardButton(
-          text: "get_started".tr(),
+          text: "continue".tr(),
           enabled: !(_isProcessing),
           isProcessing: _isProcessing,
           onTap: () async {
@@ -86,6 +86,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             });
             await _receivePostcard(context, asset);
           },
+          color: const Color.fromRGBO(79, 174, 79, 1),
         ),
       ),
     );
