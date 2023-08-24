@@ -100,27 +100,18 @@ class BeaconConnectService {
             .flatMap { _ -> AnyPublisher<Beacon.P2PPeer, Error> in
                 Future<Beacon.P2PPeer, Error> { [self] (promise) in
                     do {
-                        let (pairingRequest, peer) = try self.extractPeer(from: deeplink)
+                        let peer = try self.extractPeer(from: deeplink)
 
                         guard let beaconClient = self.beaconClient else {
                             throw BeaconConnectError.pendingBeaconClient
                         }
 
-                        beaconClient.add([.p2p(peer)]) { result in
+                        logger.info("[TezosBeaconService] addPeer \(peer) ")
+                        let pairingRequest = try self.extractPairingRequest(from: deeplink)
+
+                        beaconClient.pair(with: pairingRequest) { result in
                             switch result {
                             case .success(_):
-                                logger.info("[TezosBeaconService] addPeer \(peer) ")
-                                beaconClient.pair(with: pairingRequest) { pairResult in
-                                    switch pairResult {
-                                    case .success(_):
-                                        logger.info("[TezosBeaconService] Peer added")
-                                        promise(.success(peer))
-
-                                    case let .failure(error):
-                                        logger.error("[TezosBeaconService] addPeer Error: \(error)")
-                                        promise(.failure(error))
-                                    }
-                                }
                                 logger.info("[TezosBeaconService] Peer added")
                                 promise(.success(peer))
 
@@ -210,7 +201,16 @@ class BeaconConnectService {
 }
 
 fileprivate extension BeaconConnectService {
-    func extractPeer(from deeplink: String) throws -> (String, Beacon.P2PPeer) {
+    func extractPairingRequest(from deeplink: String) throws -> String {
+        guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value else {
+            logger.info("[invalidDeeplink] \(deeplink)")
+            throw AppError.invalidDeeplink
+        }
+
+        return message
+    }
+    
+    func extractPeer(from deeplink: String) throws -> Beacon.P2PPeer {
         guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value,
               let messageData = Base58.base58CheckDecode(message) else {
             logger.info("[invalidDeeplink] \(deeplink)")
@@ -224,7 +224,7 @@ fileprivate extension BeaconConnectService {
             throw AppError.invalidDeeplink
         }
 
-        return (message, peer)
+        return peer
     }
 }
 
