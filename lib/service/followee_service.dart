@@ -20,8 +20,8 @@ class FolloweeService {
     return followees.where((element) => element.isFollowed).toList();
   }
 
-  Future<List<Followee>> getAllFollowees() async {
-    return await _followeeDao.findAllFollowees();
+  Future<List<Followee>> getFromAddresses(List<String> addresses) async {
+    return await _followeeDao.findFolloweeByAddress(addresses);
   }
 
   Future<void> addArtistsCollection(List<String> artists) async {

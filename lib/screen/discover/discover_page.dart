@@ -27,8 +27,10 @@ class DiscoverPage extends StatefulWidget {
 class DiscoverPageState extends State<DiscoverPage>
     with SingleTickerProviderStateMixin {
   bool _showFullHeader = true;
+  bool _showToFollowPage = true;
   late ScrollController _feedController;
   final _metricClient = injector<MetricClientService>();
+  double _offset = 0.0;
 
   @override
   void initState() {
@@ -39,12 +41,30 @@ class DiscoverPageState extends State<DiscoverPage>
   }
 
   void _scrollListener() {
+    bool stateChanged = false;
+    if (_offset < _feedController.offset) {
+      // scroll down
+      if (_showToFollowPage) {
+        _showToFollowPage = false;
+        stateChanged = true;
+      }
+    } else {
+      // scroll up
+      if (!_showToFollowPage) {
+        _showToFollowPage = true;
+        stateChanged = true;
+      }
+    }
     final isShowFullHeader = _feedController.offset < 80;
     if (isShowFullHeader != _showFullHeader) {
-      setState(() {
-        _showFullHeader = isShowFullHeader;
-      });
+      stateChanged = true;
+      _showFullHeader = isShowFullHeader;
+      _showToFollowPage = true;
     }
+    if (stateChanged) {
+      setState(() {});
+    }
+    _offset = _feedController.offset;
   }
 
   @override
@@ -103,11 +123,14 @@ class DiscoverPageState extends State<DiscoverPage>
           Positioned(
               right: 26,
               bottom: 30,
-              child: AddButton(
-                  size: 36,
-                  onTap: () {
-                    Navigator.pushNamed(context, FollowingPage.tag);
-                  }))
+              child: Visibility(
+                visible: _showToFollowPage,
+                child: AddButton(
+                    size: 36,
+                    onTap: () {
+                      Navigator.pushNamed(context, FollowingPage.tag);
+                    }),
+              ))
         ],
       ),
     );

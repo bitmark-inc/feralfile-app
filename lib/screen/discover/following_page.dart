@@ -58,18 +58,16 @@ class _FollowingPageState extends State<FollowingPage> {
   }
 
   Future<void> _fetchSuggestedArtists() async {
-    final data = await Future.wait([
-      injector<PubdocAPI>().getSuggestedArtistsFromGithub(),
-      _followeeService.getFollowees()
-    ]);
-    setState(() {
-      final suggestedList = data.first as List<SuggestedArtist>;
-      final followeeList = data.last as List<Followee>;
-      suggestedList.removeWhere((element) =>
-          followeeList.any((followee) => followee.address == element.address));
-      _suggestedArtistList.addAll(suggestedList);
-      _suggestedArtistList.shuffle();
-    });
+    final suggestedList =
+        await injector<PubdocAPI>().getSuggestedArtistsFromGithub();
+    final followeeList = await _followeeService
+        .getFromAddresses(suggestedList.map((e) => e.address).toList());
+
+    suggestedList.removeWhere((element) =>
+        followeeList.any((followee) => followee.address == element.address));
+    _suggestedArtistList.addAll(suggestedList);
+    _suggestedArtistList.shuffle();
+    setState(() {});
   }
 
   void _updateFolloweeList() {

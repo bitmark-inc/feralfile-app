@@ -645,10 +645,10 @@ class _FeedViewState extends State<FeedView> {
                               : asset.title ?? "",
                           subTitle: artistName ?? '',
                           onTitleTap: () {
+                            final payload = FeedDetailPayload(asset, events);
                             Navigator.of(context).pushNamed(
-                              AppRouter.irlWebView,
-                              arguments: asset.secondaryMarketURL,
-                            );
+                                AppRouter.feedArtworkDetailsPage,
+                                arguments: payload);
                           },
                           onSubTitleTap: asset.artistID != null
                               ? () => Navigator.of(context)
