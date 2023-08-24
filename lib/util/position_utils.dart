@@ -71,6 +71,6 @@ Future<String> getLocationNameFromCoordinates(
     return location;
   } catch (e) {
     log.info("Error getting location name from coordinates: $e");
-    return "[$latitude, $longitude]";
+    return "";
   }
 }
