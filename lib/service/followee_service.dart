@@ -20,6 +20,10 @@ class FolloweeService {
     return followees.where((element) => element.isFollowed).toList();
   }
 
+  Future<List<Followee>> getAllFollowees() async {
+    return await _followeeDao.findAllFollowees();
+  }
+
   Future<void> addArtistsCollection(List<String> artists) async {
     log.info("[FolloweeService] addArtistsCollection $artists");
     final existedFollowees = await _followeeDao.findFolloweeByAddress(artists);

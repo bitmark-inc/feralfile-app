@@ -60,7 +60,9 @@ class AuTextField extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(
                 color: isEmpty
-                    ? AppColor.auLightGrey
+                    ? isDark
+                        ? AppColor.auQuickSilver
+                        : AppColor.auLightGrey
                     : isError
                         ? AppColor.red
                         : isDark

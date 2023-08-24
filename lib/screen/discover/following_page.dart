@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/entity/followee.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
+import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/model/suggested_artist.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/discover/following_bloc.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
@@ -38,17 +40,36 @@ class _FollowingPageState extends State<FollowingPage> {
   bool _validAddress = false;
   String? _address;
   Timer? _timer;
+  final List<SuggestedArtist> _suggestedArtistList = [];
+  final FolloweeService _followeeService = injector<FolloweeService>();
+  static const int _suggestedArtistLimit = 3;
 
   @override
   void initState() {
     super.initState();
     context.read<FollowingBloc>().add(GetFolloweeEvent());
     _syncFolloweeDatabase();
+    _fetchSuggestedArtists();
   }
 
   Future<void> _syncFolloweeDatabase() async {
-    final isUpdate = await injector<FolloweeService>().syncFromServer();
+    final isUpdate = await _followeeService.syncFromServer();
     isUpdate ? _updateFolloweeList() : null;
+  }
+
+  Future<void> _fetchSuggestedArtists() async {
+    final data = await Future.wait([
+      injector<PubdocAPI>().getSuggestedArtistsFromGithub(),
+      _followeeService.getFollowees()
+    ]);
+    setState(() {
+      final suggestedList = data.first as List<SuggestedArtist>;
+      final followeeList = data.last as List<Followee>;
+      suggestedList.removeWhere((element) =>
+          followeeList.any((followee) => followee.address == element.address));
+      _suggestedArtistList.addAll(suggestedList);
+      _suggestedArtistList.shuffle();
+    });
   }
 
   void _updateFolloweeList() {
@@ -84,8 +105,8 @@ class _FollowingPageState extends State<FollowingPage> {
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
             children: [
-              addTitleSpace(),
               _addAddress(context),
+              _suggestedArtists(context),
               addTitleSpace(),
               FolloweesList(key: _followingListKey),
             ],
@@ -97,6 +118,7 @@ class _FollowingPageState extends State<FollowingPage> {
     final theme = Theme.of(context);
     return Column(
       children: [
+        addTitleSpace(),
         AuTextField(
           title: "",
           placeholder: "enter_or_paste_address".tr(),
@@ -139,9 +161,7 @@ class _FollowingPageState extends State<FollowingPage> {
             child: _validAddress && _address != null
                 ? AddButton(
                     onTap: () {
-                      injector<FolloweeService>()
-                          .addArtistManual(_address!)
-                          .then((value) {
+                      _followeeService.addArtistManual(_address!).then((value) {
                         _refreshAddress();
                         _controller.clear();
                         _updateFolloweeList();
@@ -162,6 +182,60 @@ class _FollowingPageState extends State<FollowingPage> {
               .copyWith(color: AppColor.auQuickSilver),
         ),
       ],
+    );
+  }
+
+  Widget _suggestedArtists(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        addTitleSpace(),
+        Text("suggested".tr(), style: theme.textTheme.ppMori400White14),
+        addDivider(color: AppColor.auQuickSilver),
+        _suggestedArtistsList(context),
+      ],
+    );
+  }
+
+  Widget _suggestedArtistsList(BuildContext context) {
+    return ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: _suggestedArtistLimit < _suggestedArtistList.length
+            ? _suggestedArtistLimit
+            : _suggestedArtistList.length,
+        itemBuilder: (context, index) {
+          return _suggestedArtistItem(context, _suggestedArtistList[index]);
+        });
+  }
+
+  Widget _suggestedArtistItem(BuildContext context, SuggestedArtist artist) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              artist.domain.isNotEmpty ? artist.domain : artist.name,
+              style: theme.textTheme.ppMori400White14,
+            ),
+          ),
+          AddButton(
+            onTap: () {
+              _followeeService.addArtistManual(artist.address).then((value) {
+                _suggestedArtistList.remove(artist);
+                if (artist.domain.isNotEmpty) {
+                  injector<AppDatabase>().identityDao.insertIdentity(Identity(
+                      artist.address, artist.blockchain, artist.domain));
+                }
+                _updateFolloweeList();
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -231,7 +305,7 @@ class _FolloweesListState extends State<FolloweesList> {
           const Spacer(),
           RemoveButton(
             onTap: () async {
-              if (followee.type == MANUAL_ADDED_ARTIST || true) {
+              if (followee.type == MANUAL_ADDED_ARTIST) {
                 setState(() {
                   _selectedFollowee = followee;
                 });
