@@ -858,16 +858,20 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
 class SectionExpandedWidget extends StatefulWidget {
   final String? header;
   final TextStyle? headerStyle;
+  final EdgeInsets? headerPadding;
   final Widget? child;
-  final Widget? icon;
+  final Widget? iconOnExpanded;
+  final Widget? iconOnUnExpaneded;
   final bool withDivicer;
 
   const SectionExpandedWidget(
       {Key? key,
       this.header,
       this.headerStyle,
+      this.headerPadding,
       this.child,
-      this.icon,
+      this.iconOnExpanded,
+      this.iconOnUnExpaneded,
       this.withDivicer = true})
       : super(key: key);
 
@@ -881,6 +885,11 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final defaultIcon = Icon(
+      AuIcon.chevron_Sm,
+      size: 12,
+      color: theme.colorScheme.secondary,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -900,24 +909,29 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
               },
               child: Container(
                 color: Colors.transparent,
-                child: Row(
-                  children: [
-                    Text(
-                      widget.header ?? '',
-                      style: widget.headerStyle ??
-                          theme.textTheme.ppMori400White16,
-                    ),
-                    const Spacer(),
-                    RotatedBox(
-                      quarterTurns: _isExpanded ? -1 : 1,
-                      child: widget.icon ??
-                          Icon(
-                            AuIcon.chevron_Sm,
-                            size: 12,
-                            color: theme.colorScheme.secondary,
-                          ),
-                    )
-                  ],
+                child: Padding(
+                  padding: widget.headerPadding ?? EdgeInsets.zero,
+                  child: Row(
+                    children: [
+                      Text(
+                        widget.header ?? '',
+                        style: widget.headerStyle ??
+                            theme.textTheme.ppMori400White16,
+                      ),
+                      const Spacer(),
+                      _isExpanded
+                          ? (widget.iconOnExpanded ??
+                              RotatedBox(
+                                quarterTurns: -1,
+                                child: defaultIcon,
+                              ))
+                          : widget.iconOnUnExpaneded ??
+                              RotatedBox(
+                                quarterTurns: 1,
+                                child: defaultIcon,
+                              )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -944,47 +958,63 @@ Widget postcardDetailsMetadataSection(
   final textStyle = theme.textTheme.moMASans400Black12;
   final titleStyle =
       theme.textTheme.moMASans400Grey12.copyWith(color: AppColor.auQuickSilver);
+  const padding = EdgeInsets.only(left: 15, right: 15);
+  final icon = Icon(
+    AuIcon.chevron_Sm,
+    size: 12,
+    color: theme.colorScheme.primary,
+  );
   return SectionExpandedWidget(
     header: "metadata".tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+    headerPadding: padding,
     withDivicer: false,
-    icon: Icon(
-      AuIcon.chevron_Sm,
-      size: 12,
-      color: theme.colorScheme.primary,
+    iconOnExpanded: RotatedBox(
+      quarterTurns: 1,
+      child: icon,
+    ),
+    iconOnUnExpaneded: RotatedBox(
+      quarterTurns: 2,
+      child: icon,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MetaDataItem(
-          title: "title".tr(),
-          titleStyle: titleStyle,
-          value: assetToken.title ?? '',
-          valueStyle: theme.textTheme.moMASans400Black12,
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "title".tr(),
+            titleStyle: titleStyle,
+            value: assetToken.title ?? '',
+            valueStyle: theme.textTheme.moMASans400Black12,
+          ),
         ),
         if (ownersList.isNotEmpty) ...[
           Divider(
             height: 32.0,
             color: theme.auLightGrey,
           ),
-          CustomMetaDataItem(
-            title: "creators".tr(),
-            titleStyle: titleStyle,
-            content: ListItemExpandedWidget(
-              children: [
-                ...ownersList
-                    .mapIndexed((index, artistName) => TextSpan(
-                          text: artistName,
-                          style: textStyle,
-                        ))
-                    .toList(),
-              ],
-              unexpandedCount: 2,
-              divider: TextSpan(
-                text: ", ",
-                style: textStyle,
+          Padding(
+            padding: padding,
+            child: CustomMetaDataItem(
+              title: "creators".tr(),
+              titleStyle: titleStyle,
+              content: ListItemExpandedWidget(
+                children: [
+                  ...ownersList
+                      .mapIndexed((index, artistName) => TextSpan(
+                            text: artistName,
+                            style: textStyle,
+                          ))
+                      .toList(),
+                ],
+                unexpandedCount: 2,
+                divider: TextSpan(
+                  text: ", ",
+                  style: textStyle,
+                ),
+                unreadStyle: textStyle.copyWith(color: MoMAColors.moMA5),
               ),
-              unreadStyle: textStyle.copyWith(color: MoMAColors.moMA5),
             ),
           ),
         ],
@@ -1003,63 +1033,78 @@ Widget postcardDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
-          title: "token".tr(),
-          titleStyle: titleStyle,
-          value: polishSource(assetToken.source ?? ""),
-          tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
-          forceSafariVC: true,
-          valueStyle: theme.textTheme.moMASans400Black12,
-          linkStyle: theme.textTheme.moMASans400Black12
-              .copyWith(color: MoMAColors.moMA5),
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "token".tr(),
+            titleStyle: titleStyle,
+            value: polishSource(assetToken.source ?? ""),
+            tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
+            forceSafariVC: true,
+            valueStyle: theme.textTheme.moMASans400Black12,
+            linkStyle: theme.textTheme.moMASans400Black12
+                .copyWith(color: MoMAColors.moMA5),
+          ),
         ),
         Divider(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
-          title: "contract".tr(),
-          titleStyle: titleStyle,
-          value: (assetToken.blockchain.toLowerCase() == "tezos")
-              ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
-              : assetToken.blockchain.capitalize(),
-          tapLink: assetToken.getBlockchainUrl(),
-          forceSafariVC: true,
-          valueStyle: theme.textTheme.moMASans400Black12,
-          linkStyle: theme.textTheme.moMASans400Black12
-              .copyWith(color: MoMAColors.moMA5),
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "contract".tr(),
+            titleStyle: titleStyle,
+            value: (assetToken.blockchain.toLowerCase() == "tezos")
+                ? '${assetToken.blockchain.capitalize()} (${assetToken.contractType.toUpperCase()})'
+                : assetToken.blockchain.capitalize(),
+            tapLink: assetToken.getBlockchainUrl(),
+            forceSafariVC: true,
+            valueStyle: theme.textTheme.moMASans400Black12,
+            linkStyle: theme.textTheme.moMASans400Black12
+                .copyWith(color: MoMAColors.moMA5),
+          ),
         ),
         Divider(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
-          title: "medium".tr(),
-          titleStyle: titleStyle,
-          value: assetToken.medium?.capitalize() ?? '',
-          valueStyle: theme.textTheme.moMASans400Black12,
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "medium".tr(),
+            titleStyle: titleStyle,
+            value: assetToken.medium?.capitalize() ?? '',
+            valueStyle: theme.textTheme.moMASans400Black12,
+          ),
         ),
         Divider(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
-          title: "date_minted".tr(),
-          titleStyle: titleStyle,
-          value: assetToken.mintedAt != null
-              ? localTimeString(assetToken.mintedAt!)
-              : '',
-          valueStyle: theme.textTheme.moMASans400Black12,
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "date_minted".tr(),
+            titleStyle: titleStyle,
+            value: assetToken.mintedAt != null
+                ? localTimeString(assetToken.mintedAt!)
+                : '',
+            valueStyle: theme.textTheme.moMASans400Black12,
+          ),
         ),
         assetToken.assetData != null && assetToken.assetData!.isNotEmpty
             ? Column(
                 children: [
                   const Divider(height: 32.0),
-                  MetaDataItem(
-                    title: "artwork_data".tr(),
-                    titleStyle: titleStyle,
-                    value: assetToken.assetData!,
-                    valueStyle: theme.textTheme.moMASans400Black12,
+                  Padding(
+                    padding: padding,
+                    child: MetaDataItem(
+                      title: "artwork_data".tr(),
+                      titleStyle: titleStyle,
+                      value: assetToken.assetData!,
+                      valueStyle: theme.textTheme.moMASans400Black12,
+                    ),
                   )
                 ],
               )
@@ -1243,45 +1288,63 @@ Widget postcardOwnership(
       theme.textTheme.moMASans400Black12.copyWith(color: MoMAColors.moMA5);
   final titleStyle = theme.textTheme.moMASans400Black12
       .copyWith(color: AppColor.auQuickSilver);
-
+  const padding = EdgeInsets.only(left: 15, right: 15);
+  final icon = Icon(
+    AuIcon.chevron_Sm,
+    size: 12,
+    color: theme.colorScheme.primary,
+  );
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+    headerPadding: padding,
     withDivicer: false,
-    icon: Icon(
-      AuIcon.chevron_Sm,
-      size: 12,
-      color: theme.colorScheme.primary,
+    iconOnExpanded: RotatedBox(
+      quarterTurns: 1,
+      child: icon,
+    ),
+    iconOnUnExpaneded: RotatedBox(
+      quarterTurns: 2,
+      child: icon,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "how_many_shares_you_own".tr(),
-          style: titleStyle,
+        Padding(
+          padding: padding,
+          child: Text(
+            "how_many_shares_you_own".tr(),
+            style: titleStyle,
+          ),
         ),
         const SizedBox(height: 32.0),
-        MetaDataItem(
-          title: "shares".tr(),
-          titleStyle: titleStyle,
-          value: "${assetToken.maxEdition}",
-          tapLink: assetToken.tokenURL,
-          forceSafariVC: true,
-          valueStyle: theme.textTheme.moMASans400Black12,
-          linkStyle: linkStyle,
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "shares".tr(),
+            titleStyle: titleStyle,
+            value: "${assetToken.maxEdition}",
+            tapLink: assetToken.tokenURL,
+            forceSafariVC: true,
+            valueStyle: theme.textTheme.moMASans400Black12,
+            linkStyle: linkStyle,
+          ),
         ),
         Divider(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataItem(
-          title: "owned".tr(),
-          titleStyle: titleStyle,
-          value: "$ownedTokens",
-          tapLink: assetToken.tokenURL,
-          forceSafariVC: true,
-          valueStyle: theme.textTheme.moMASans400Black12,
-          linkStyle: linkStyle,
+        Padding(
+          padding: padding,
+          child: MetaDataItem(
+            title: "owned".tr(),
+            titleStyle: titleStyle,
+            value: "$ownedTokens",
+            tapLink: assetToken.tokenURL,
+            forceSafariVC: true,
+            valueStyle: theme.textTheme.moMASans400Black12,
+            linkStyle: linkStyle,
+          ),
         ),
         const SizedBox(height: 16.0),
       ],
@@ -1730,6 +1793,11 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final icon = Icon(
+      AuIcon.chevron_Sm,
+      size: 12,
+      color: theme.colorScheme.primary,
+    );
     return FutureBuilder<Response<String>>(
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data?.statusCode == 200) {
@@ -1738,10 +1806,13 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
               headerStyle:
                   theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
               withDivicer: false,
-              icon: Icon(
-                AuIcon.chevron_Sm,
-                size: 12,
-                color: theme.colorScheme.primary,
+              iconOnExpanded: RotatedBox(
+                quarterTurns: 1,
+                child: icon,
+              ),
+              iconOnUnExpaneded: RotatedBox(
+                quarterTurns: 2,
+                child: icon,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2030,60 +2101,6 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           mintDate != null ? df.format(mintDate).toUpperCase() : null,
           maxLines: 1,
         ),
-      ],
-    );
-  }
-}
-
-class ExpandedWidget extends StatefulWidget {
-  final Widget? header;
-  final Widget? child;
-  final Widget? unexpendedChild;
-
-  const ExpandedWidget(
-      {Key? key, this.header, this.child, this.unexpendedChild})
-      : super(key: key);
-
-  @override
-  State<ExpandedWidget> createState() => _ExpandedWidgetState();
-}
-
-class _ExpandedWidgetState extends State<ExpandedWidget> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _isExpanded = !_isExpanded;
-            });
-          },
-          child: Row(
-            children: [
-              Expanded(child: widget.header ?? const SizedBox()),
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: RotatedBox(
-                  quarterTurns: _isExpanded ? 1 : 0,
-                  child: const Icon(
-                    AuIcon.chevron_Sm,
-                    size: 12,
-                    color: AppColor.primaryBlack,
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-        const SizedBox(height: 23.0),
-        if (_isExpanded)
-          widget.child ?? const SizedBox()
-        else
-          widget.unexpendedChild ?? const SizedBox(),
       ],
     );
   }

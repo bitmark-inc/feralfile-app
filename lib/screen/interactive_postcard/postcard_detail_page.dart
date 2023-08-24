@@ -653,14 +653,31 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _postcardLeaderboard(BuildContext context, PostcardDetailState state) {
+    final theme = Theme.of(context);
     return PostcardContainer(
       child: GestureDetector(
-        child: Text(
-          "leaderboard".tr(),
-          style: Theme.of(context)
-              .textTheme
-              .moMASans700Black16
-              .copyWith(fontSize: 18),
+        child: Stack(
+          children: [
+            Row(
+              children: [
+                Text(
+                  "leaderboard".tr(),
+                  style:
+                      theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+                ),
+                const Spacer(),
+                Text(
+                  "# 12",
+                  style: theme.textTheme.moMASans400Black12
+                      .copyWith(color: MoMAColors.moMA12, fontSize: 18),
+                )
+              ],
+            ),
+            Positioned.fill(
+                child: Container(
+              color: Colors.transparent,
+            ))
+          ],
         ),
         onTap: () {
           if (widget.payload.isFromLeaderboard) {
@@ -732,15 +749,19 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PostcardContainer(
-                child: postcardDetailsMetadataSection(
-                    context, asset, artistNames)),
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              child:
+                  postcardDetailsMetadataSection(context, asset, artistNames),
+            ),
             const SizedBox(height: 20.0),
             if (asset.fungible == true) ...[
               BlocBuilder<AccountsBloc, AccountsState>(
                 builder: (context, state) {
                   final addresses = state.addresses;
                   return PostcardContainer(
-                      child: postcardOwnership(context, asset, addresses));
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: postcardOwnership(context, asset, addresses),
+                  );
                 },
               ),
             ] else ...[
