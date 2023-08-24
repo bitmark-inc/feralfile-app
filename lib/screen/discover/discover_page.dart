@@ -7,14 +7,15 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/discover/following_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/add_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class DiscoverPage extends StatefulWidget {
   const DiscoverPage({Key? key}) : super(key: key);
@@ -102,14 +103,11 @@ class DiscoverPageState extends State<DiscoverPage>
           Positioned(
               right: 26,
               bottom: 30,
-              child: GestureDetector(
-                onTap: () {},
-                child: SvgPicture.asset(
-                  "assets/images/add_icon.svg",
-                  width: 34,
-                  height: 34,
-                ),
-              ))
+              child: AddButton(
+                  size: 36,
+                  onTap: () {
+                    Navigator.pushNamed(context, FollowingPage.tag);
+                  }))
         ],
       ),
     );

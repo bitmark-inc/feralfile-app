@@ -284,9 +284,15 @@ abstract class ConfigurationService {
   bool getAlreadyClaimedAirdrop(String seriesId);
 
   Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
+
+  // set and get for did_sync_artists
+  Future<void> setDidSyncArtists(bool value);
+
+  bool getDidSyncArtists();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String IS_PREMIUM = "is_premium";
@@ -1294,5 +1300,17 @@ class ConfigurationServiceImpl implements ConfigurationService {
       data.remove(seriesId);
     }
     await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
+  }
+
+  @override
+  bool getDidSyncArtists() {
+    // get did sync artists
+    return _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
+  }
+
+  @override
+  Future<void> setDidSyncArtists(bool value) {
+    // set did sync artists
+    return _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
   }
 }

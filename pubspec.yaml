@@ -128,7 +128,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 1a6ff65592c888d619e14c347e75173db9113bc3
+      ref: fb03db6a3db8e1bf7bce8921196ee760d4c5fb7c
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -170,7 +170,7 @@ dependencies:
   youtube_player_iframe: ^4.0.4
   awesome_notifications: ^0.7.5-dev.3
   shimmer: ^3.0.0
-  bonsoir: ^2.2.0+1
+  graphql_flutter: ^5.1.2
 dependency_overrides:
   intl: 0.18.0
 

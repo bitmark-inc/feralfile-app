@@ -707,7 +707,7 @@ class _$FolloweeDao extends FolloweeDao {
         Iterable<String>.generate(addresses.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
-        'SELECT * FROM Followee WHERE IN (' +
+        'SELECT * FROM Followee WHERE address IN (' +
             _sqliteVariablesForAddresses +
             ')',
         mapper: (Map<String, Object?> row) => Followee(

@@ -15,6 +15,11 @@ class FolloweeService {
   // constructor
   FolloweeService(this._appDatabase, this._feedApi);
 
+  Future<List<Followee>> getFollowees() async {
+    final followees = await _followeeDao.findAllFollowees();
+    return followees.where((element) => element.isFollowed).toList();
+  }
+
   Future<void> addArtistsCollection(List<String> artists) async {
     log.info("[FolloweeService] addArtistsCollection $artists");
     final existedFollowees = await _followeeDao.findFolloweeByAddress(artists);
@@ -101,7 +106,7 @@ class FolloweeService {
     });
   }
 
-  Future<void> syncFromServer() async {
+  Future<bool> syncFromServer() async {
     List<String> remoteFollowings = [];
     final localFollowee = await _followeeDao.findAllFollowees();
 
@@ -114,6 +119,8 @@ class FolloweeService {
       loop = followingData.followings.length >= 100;
       next = followingData.next;
     }
+
+    log.info("[FolloweeService] syncFromServer remote $remoteFollowings");
     final addArtists = remoteFollowings
         .where((element) =>
             localFollowee.none((followee) => followee.address == element))
@@ -131,6 +138,7 @@ class FolloweeService {
     final listUpdateFollowees =
         updateFollowees.map((e) => e.copyWith(isFollowed: true)).toList();
     await _followeeDao.updateFollowees(listUpdateFollowees);
+    return addArtists.isNotEmpty || updateFollowees.isNotEmpty;
   }
 
   Future<List<Followee>> _insertFollowees(

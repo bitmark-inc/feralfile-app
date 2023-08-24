@@ -6,7 +6,7 @@ abstract class FolloweeDao {
   @Query('SELECT * FROM Followee')
   Future<List<Followee>> findAllFollowees();
 
-  @Query('SELECT * FROM Followee WHERE IN (:addresses)')
+  @Query('SELECT * FROM Followee WHERE address IN (:addresses)')
   Future<List<Followee>> findFolloweeByAddress(List<String> addresses);
 
   @Insert(onConflict: OnConflictStrategy.ignore)
