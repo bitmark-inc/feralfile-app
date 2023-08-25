@@ -15,6 +15,9 @@ abstract class CanvasDeviceDao {
   @update
   Future<void> updateCanvasDevice(CanvasDevice canvasDevice);
 
+  @delete
+  Future<void> deleteCanvasDevice(CanvasDevice canvasDevice);
+
   @Query('DELETE FROM CanvasDevice')
   Future<void> removeAll();
 }
