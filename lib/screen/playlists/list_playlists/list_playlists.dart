@@ -15,7 +15,10 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
-  const ListPlaylistsScreen({Key? key}) : super(key: key);
+  final ValueNotifier<List<PlayListModel>?> playlists;
+
+  const ListPlaylistsScreen({Key? key, required this.playlists})
+      : super(key: key);
 
   @override
   State<ListPlaylistsScreen> createState() => _ListPlaylistsScreenState();
@@ -23,7 +26,7 @@ class ListPlaylistsScreen extends StatefulWidget {
 
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
-  final ValueNotifier<List<PlayListModel>?> _playlists = ValueNotifier(null);
+  late ValueNotifier<List<PlayListModel>?> _playlists;
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final ConfigurationService _configurationService =
       injector.get<ConfigurationService>();
@@ -44,8 +47,8 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
 
   @override
   void initState() {
+    _playlists = widget.playlists;
     super.initState();
-    _initPlayList();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -160,7 +163,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
           width: height,
           height: width,
           decoration: BoxDecoration(
-            color: Colors.amber,
+            color: Colors.black,
             border: Border.all(
               color: widget.onHold ? theme.auSuperTeal : Colors.transparent,
               width: widget.onHold ? 2 : 0,

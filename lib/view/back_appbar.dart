@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -235,6 +236,51 @@ SystemUiOverlayStyle get systemUiOverlayLightStyle =>
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     );
+
+AppBar getDoneAppBar(BuildContext context,
+    {required String title, Function()? onDone, Function()? onCancel}) {
+  final theme = Theme.of(context);
+  return AppBar(
+    elevation: 1,
+    leadingWidth: 80,
+    leading: GestureDetector(
+      onTap: onCancel,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 14),
+        child: Center(
+          child: Text(
+            tr('cancel'),
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ),
+      ),
+    ),
+    actions: [
+      Padding(
+        padding: const EdgeInsets.only(right: 14),
+        child: GestureDetector(
+          onTap: onDone,
+          child: Center(
+            child: Text(
+              tr('done'),
+              style: (onDone != null)
+                  ? theme.textTheme.ppMori700Black14
+                  : theme.textTheme.ppMori700Black14
+                      .copyWith(color: AppColor.disabledColor),
+            ),
+          ),
+        ),
+      ),
+    ],
+    backgroundColor: theme.colorScheme.background,
+    automaticallyImplyLeading: false,
+    centerTitle: true,
+    title: Text(
+      title,
+      style: theme.textTheme.ppMori400Black14,
+    ),
+  );
+}
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart

@@ -19,9 +19,14 @@ class HeaderView extends StatelessWidget {
   final double paddingTop;
   final bool isWhite;
   final Widget? action;
+  final isShowLogo;
 
   const HeaderView(
-      {Key? key, required this.paddingTop, this.isWhite = false, this.action})
+      {Key? key,
+      required this.paddingTop,
+      this.isWhite = false,
+      this.action,
+      this.isShowLogo = true})
       : super(key: key);
 
   @override
@@ -32,17 +37,17 @@ class HeaderView extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
         child: Column(
           children: [
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 15),
-                  child: AutonomyLogo(
-                    isWhite: isWhite,
-                  ),
-                ),
-                const Spacer(),
-                action ?? const SizedBox()
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                children: [
+                  if (isShowLogo)
+                    AutonomyLogo(
+                      isWhite: isWhite,
+                    ),
+                  Expanded(child: action ?? const SizedBox())
+                ],
+              ),
             ),
           ],
         ),

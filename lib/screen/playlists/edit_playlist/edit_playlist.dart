@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -79,6 +78,62 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     return tokensPlaylist;
   }
 
+  void onSave(PlayListModel? playList) {
+    final thubnailUrl = tokensPlaylist
+        .where((element) => element.id == playList?.tokenIDs.firstOrDefault())
+        .firstOrDefault()
+        ?.getGalleryThumbnailUrl();
+    playList?.thumbnailURL = thubnailUrl;
+    bloc.add(SavePlaylist());
+  }
+
+  void onRemove(BuildContext context, EditPlaylistState state) {
+    final theme = Theme.of(context);
+    final selectedItem = state.selectedItem ?? [];
+    final playList = state.playListModel;
+    selectedItem.isEmpty
+        ? null
+        : () => UIHelper.showMessageActionNew(
+              context,
+              tr('remove_from_list'),
+              '',
+              descriptionWidget: RichText(
+                text: TextSpan(children: [
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White16,
+                    text: "you_are_about_to_remove".tr(),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori700White16,
+                    text: tr(selectedItem.length != 1 ? 'artworks' : 'artwork',
+                        args: [selectedItem.length.toString()]),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White16,
+                    text: "from_the_playlist".tr(),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori700White16,
+                    text: playList?.name ?? tr('untitled'),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White16,
+                    text: "they_will_remain".tr(),
+                  ),
+                ]),
+              ),
+              actionButton: "remove".tr(),
+              onAction: () {
+                Navigator.pop(context);
+                bloc.add(
+                  RemoveTokens(
+                    tokenIDs: selectedItem,
+                  ),
+                );
+              },
+            );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -102,14 +157,34 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
         return Scaffold(
           appBar: AppBar(
             elevation: 1,
+            leadingWidth: 80,
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
-              child: const Icon(AuIcon.chevron),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 14),
+                child: Center(
+                  child: Text(
+                    tr('cancel'),
+                    style: theme.textTheme.ppMori400Black14,
+                  ),
+                ),
+              ),
             ),
-            actions: const [
-              SizedBox(
-                width: 50,
-              )
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: GestureDetector(
+                  onTap: () {
+                    onSave(playList);
+                  },
+                  child: Center(
+                    child: Text(
+                      tr('done'),
+                      style: theme.textTheme.ppMori700Black14,
+                    ),
+                  ),
+                ),
+              ),
             ],
             backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
@@ -139,24 +214,11 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                         );
                         return Column(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 14,
-                                right: 14,
-                                top: 24,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 15),
-                                child: listToken.isEmpty
-                                    ? tokenEmptyAction(theme, playList)
-                                    : tokenAction(
-                                        selectedItem,
-                                        theme,
-                                        context,
-                                        playList,
-                                      ),
-                              ),
-                            ),
+                            if (listToken.isEmpty)
+                              Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 14, right: 14, top: 24, bottom: 15),
+                                  child: tokenEmptyAction(theme, playList)),
                             Expanded(
                               child: EditPlaylistGridView(
                                 onAddTap: () => Navigator.pushNamed(
@@ -202,7 +264,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 ),
                 BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                     bloc: nftBloc,
-                    builder: (context, state) {
+                    builder: (context, nftState) {
                       return Positioned(
                         bottom: 30,
                         child: SizedBox(
@@ -213,17 +275,67 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               children: [
                                 PrimaryButton(
                                   onTap: () {
-                                    final thubnailUrl = tokensPlaylist
-                                        .where((element) =>
-                                            element.id ==
-                                            playList?.tokenIDs.firstOrDefault())
-                                        .firstOrDefault()
-                                        ?.getGalleryThumbnailUrl();
-                                    playList?.thumbnailURL = thubnailUrl;
-                                    bloc.add(SavePlaylist());
+                                    // onRemove(context, state);
+                                    selectedItem.isEmpty
+                                        ? null
+                                        : () => UIHelper.showMessageActionNew(
+                                              context,
+                                              tr('remove_from_list'),
+                                              '',
+                                              descriptionWidget: RichText(
+                                                text: TextSpan(children: [
+                                                  TextSpan(
+                                                    style: theme.textTheme
+                                                        .ppMori400White16,
+                                                    text:
+                                                        "you_are_about_to_remove"
+                                                            .tr(),
+                                                  ),
+                                                  TextSpan(
+                                                    style: theme.textTheme
+                                                        .ppMori700White16,
+                                                    text: tr(
+                                                        selectedItem.length != 1
+                                                            ? 'artworks'
+                                                            : 'artwork',
+                                                        args: [
+                                                          selectedItem.length
+                                                              .toString()
+                                                        ]),
+                                                  ),
+                                                  TextSpan(
+                                                    style: theme.textTheme
+                                                        .ppMori400White16,
+                                                    text: "from_the_playlist"
+                                                        .tr(),
+                                                  ),
+                                                  TextSpan(
+                                                    style: theme.textTheme
+                                                        .ppMori700White16,
+                                                    text: playList?.name ??
+                                                        tr('untitled'),
+                                                  ),
+                                                  TextSpan(
+                                                    style: theme.textTheme
+                                                        .ppMori400White16,
+                                                    text:
+                                                        "they_will_remain".tr(),
+                                                  ),
+                                                ]),
+                                              ),
+                                              actionButton: "remove".tr(),
+                                              onAction: () {
+                                                Navigator.pop(context);
+                                                bloc.add(
+                                                  RemoveTokens(
+                                                    tokenIDs: selectedItem,
+                                                  ),
+                                                );
+                                              },
+                                            );
                                   },
                                   width: 170,
-                                  text: tr('done').capitalize(),
+                                  text: tr('remove').capitalize(),
                                   color: theme.auSuperTeal,
                                 ),
                               ],
@@ -237,78 +349,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget tokenAction(List<String> selectedItem, ThemeData theme,
-      BuildContext context, PlayListModel? playList) {
-    return Row(
-      children: [
-        Text(
-          tr(
-              selectedItem.length != 1
-                  ? 'artworks_selected'
-                  : 'artwork_selected',
-              args: [selectedItem.length.toString()]),
-          style: theme.textTheme.ppMori400Black12,
-        ),
-        const Spacer(),
-        GestureDetector(
-          onTap: selectedItem.isEmpty
-              ? null
-              : () => UIHelper.showMessageActionNew(
-                    context,
-                    tr('remove_from_list'),
-                    '',
-                    descriptionWidget: RichText(
-                      text: TextSpan(children: [
-                        TextSpan(
-                          style: theme.textTheme.ppMori400White16,
-                          text: "you_are_about_to_remove".tr(),
-                        ),
-                        TextSpan(
-                          style: theme.textTheme.ppMori700White16,
-                          text: tr(
-                              selectedItem.length != 1 ? 'artworks' : 'artwork',
-                              args: [selectedItem.length.toString()]),
-                        ),
-                        TextSpan(
-                          style: theme.textTheme.ppMori400White16,
-                          text: "from_the_playlist".tr(),
-                        ),
-                        TextSpan(
-                          style: theme.textTheme.ppMori700White16,
-                          text: playList?.name ?? tr('untitled'),
-                        ),
-                        TextSpan(
-                          style: theme.textTheme.ppMori400White16,
-                          text: "they_will_remain".tr(),
-                        ),
-                      ]),
-                    ),
-                    actionButton: "remove".tr(),
-                    onAction: () {
-                      Navigator.pop(context);
-                      bloc.add(
-                        RemoveTokens(
-                          tokenIDs: selectedItem,
-                        ),
-                      );
-                    },
-                  ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(64),
-            ),
-            child: Text(
-              '${tr('remove')} ${selectedItem.isEmpty ? '' : '(${selectedItem.length})'}',
-              style: theme.textTheme.ppMori400White12,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

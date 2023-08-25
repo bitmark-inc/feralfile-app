@@ -237,7 +237,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       context,
       options: [
         OptionItem(
-          title: 'edit'.tr(),
+          title: 'edit_collection'.tr(),
           icon: SvgPicture.asset(
             'assets/images/rename_icon.svg',
             width: 24,
@@ -268,7 +268,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 "delete_playlist_desc".tr(),
                 style: theme.textTheme.ppMori400White14,
               ),
-              actionButton: "delete_collection".tr(),
+              actionButton: "remove_collection".tr(),
               onAction: deletePlayList,
             );
           },
