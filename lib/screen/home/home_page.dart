@@ -127,8 +127,6 @@ class HomePageState extends State<HomePage>
         default:
       }
     });
-
-    refreshFeeds();
     _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
@@ -174,7 +172,7 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    _clientTokenService.refreshTokens().then((value) => refreshFeeds());
+    _clientTokenService.refreshTokens();
     refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
@@ -580,10 +578,6 @@ class HomePageState extends State<HomePage>
       if (!mounted) return;
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
     }
-  }
-
-  void refreshFeeds() async {
-    await injector<FeedService>().checkNewFeeds();
   }
 
   void scrollToTop() {
