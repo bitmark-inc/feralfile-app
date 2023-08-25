@@ -155,11 +155,102 @@ class BeaconChannelHandler: NSObject {
     func resume(call: FlutterMethodCall, result: @escaping FlutterResult) {
         BeaconConnectService.shared.resume()
     }
+    
+    func getConnectionURI(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        BeaconConnectService.shared.getConnectionURI()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { uri in
+                result([
+                    "error": 0,
+                    "uri": uri,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func getPostMessageConnectionURI(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        BeaconConnectService.shared.getPostMessageConnectionURI()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (uri) in
+                result([
+                    "error": 0,
+                    "uri": uri,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func handlePostMessageOpenChannel(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let payload: String = args["payload"] as! String
+
+        BeaconConnectService.shared.handlePostMessageOpenChannel(payload: payload)
+            .tryMap { (peer, permissionRequestMessage) -> (String, String) in
+                guard let serializedPeer = String(data: try JSONEncoder().encode(peer), encoding: .utf8) else {
+                    throw AppError.incorrectData
+                }
+
+                return (serializedPeer, permissionRequestMessage)
+            }
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (response) in
+                result([
+                    "error": 0,
+                    "peer": response.0,
+                    "permissionRequestMessage": response.1,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
+    func handlePostMessageMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let extensionPublicKey: String = args["extensionPublicKey"] as! String
+        let payload: String = args["payload"] as! String
+
+        BeaconConnectService.shared.handlePostMessageMessage(
+            extensionPublicKey: extensionPublicKey,
+            payload: payload)
+            .tryMap { (tzAddress, tezosResponse) -> (String, String) in
+                guard let serializedTezosResponse = String(data: try JSONEncoder().encode(tezosResponse), encoding: .utf8) else {
+                    throw AppError.incorrectData
+                }
+
+                return (tzAddress, serializedTezosResponse)
+            }
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+
+            }, receiveValue: { (response) in
+                result([
+                    "error": 0,
+                    "tzAddress": response.0,
+                    "response": response.1,
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+
 }
 
 extension BeaconChannelHandler: FlutterStreamHandler {
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.observerRequests(events: events)
+        self.observeEvents(events: events)
         return nil
     }
     
@@ -300,6 +391,35 @@ extension BeaconChannelHandler: FlutterStreamHandler {
                 }
                 events([
                     "eventName": "observeRequest",
+                    "params": params,
+                ])
+            }
+            .store(in: &cancelBag)
+    }
+    
+    func observeEvents(events: @escaping FlutterEventSink) {
+        BeaconConnectService.shared.observeEvents()
+            .sink { (event) in
+                var params: [String: Any] = [:]
+                
+                switch event {
+                case let .beaconRequestedPermission(peer):
+                    params["type"] = "beaconRequestedPermission"
+                    let data = try? JSONEncoder().encode(peer)
+                    params["peer"] = data
+                case let .beaconLinked(p2pPeer, address, permissionResponse):
+                    let dappConnection = TezosWalletConnection(address: address, peer: p2pPeer, permissionResponse: permissionResponse)
+                    let data = try? JSONEncoder().encode(dappConnection)
+                    params["type"] = "beaconLinked"
+                    params["connection"] = data
+                case .error(_):
+                    params["type"] = "error"
+                case .userAborted:
+                    params["type"] = "userAborted"
+                }
+                
+                events([
+                    "eventName": "observeEvent",
                     "params": params,
                 ])
             }

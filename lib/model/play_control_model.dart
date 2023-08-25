@@ -1,6 +1,7 @@
 class PlayControlModel {
   int timer;
   bool isShuffle;
+
   PlayControlModel({
     this.timer = 0,
     this.isShuffle = false,

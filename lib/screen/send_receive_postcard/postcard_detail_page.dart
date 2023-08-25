@@ -9,8 +9,10 @@ import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -119,7 +121,8 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
       listener: (context, state) {},
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
-
+        final travelInfoWithoutInternet =
+            asset.postcardMetadata.listTravelInfoWithoutInternetUser;
         if (travelInfo == null) {
           return const SizedBox();
         }
@@ -138,7 +141,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
                   const Spacer(),
                   Text(
                     distanceFormatter.format(
-                        distance: travelInfo.totalDistance),
+                        distance: travelInfoWithoutInternet.totalDistance),
                     style: theme.textTheme.ppMori700White14,
                   ),
                 ],

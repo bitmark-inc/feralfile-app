@@ -12,6 +12,7 @@ import BeaconClientWallet
 import BeaconTransportP2PMatrix
 import BeaconCore
 import Base58Swift
+import BeaconBlockchainSubstrate
 
 typealias TezosBeaconRequest = BeaconRequest<Tezos>
 typealias TezosBeaconResponse = BeaconResponse<Tezos>
@@ -24,6 +25,8 @@ class BeaconConnectService {
     fileprivate let requestSubject = PassthroughSubject<TezosBeaconRequest, Never>()
     private var backgroundTaskID: UIBackgroundTaskIdentifier?
     
+    let eventsSubject = PassthroughSubject<WalletConnectionEvent, Never>()
+    
     func startBeacon(retryOnFailure: Bool = true) {
         guard beaconClient == nil else {
             listenForRequests()
@@ -34,8 +37,9 @@ class BeaconConnectService {
             Beacon.WalletClient.create(
                 with: .init(
                     name: Constant.appname,
-                    blockchains: [Tezos.factory],
-                    connections: [try Transport.P2P.Matrix.connection()]
+                    blockchains: [Tezos.factory, Substrate.factory],
+                    connections: [try Transport.P2P.Matrix.connection()],
+                    secureStorage: UserDefaultsSecureStorage(userDefaults: .standard, accessGroup: Constant.keychainGroup)
                 )
             ) { result in
                 switch result {
@@ -56,6 +60,7 @@ class BeaconConnectService {
                         self.startBeacon(retryOnFailure: false)
                     } else {
                         logger.info("[TezosBeaconService] Could not create Beacon client")
+//                        logger.error("Error: \(error)")
                     }
                 }
             }
@@ -66,6 +71,16 @@ class BeaconConnectService {
     }
     
     func listenForRequests() {
+        startOpenChannelListener(completion: { result in
+            switch result {
+            case let .failure(error):
+                logger.info("[TezosBeaconService] Error while startOpenChannelListener")
+                logger.error("Error: \(error)")
+            default:
+                break
+            }
+        })
+        
         beaconClient?.connect { [weak self] result in
             guard let self = self else { return }
             switch result {
@@ -80,10 +95,52 @@ class BeaconConnectService {
         }
     }
     
-    func onBeaconRequest(_ requestResult: Result<BeaconRequest<Tezos>, Beacon.Error>) {
-        switch requestResult {
+    func onBeaconRequest(result: Result<BeaconMessage<Tezos>, Beacon.Error>) {
+        switch result {
         case let .success(message):
-            requestSubject.send(message)
+            switch message {
+            case let .request(request):
+                requestSubject.send(request)
+            case let .response(response):
+                switch response {
+                case let .permission(permissionResponse):
+                    guard let beaconDappClient = beaconClient else { return }
+                    let peerPublicKey = permissionResponse.requestOrigin.id
+
+                    beaconDappClient.storageManager.findPeers(where: { $0.publicKey == peerPublicKey }) { [weak self] result in
+                        guard let self = self else { return }
+                        switch result {
+                        case let .success(peer):
+                            guard let p2pPeer = peer?.toP2P() else { return }
+                            self.eventsSubject
+                                .send(.beaconLinked(p2pPeer, permissionResponse.account.address, permissionResponse))
+
+                        case let .failure(error):
+                            self.eventsSubject
+                                .send(.error(error))
+                        }
+
+                    }
+
+                case let .error(errorResponse):
+                    switch errorResponse.errorType {
+                    case .aborted:
+                        self.eventsSubject
+                            .send(.userAborted)
+
+                    default:
+                        // Ignore for now
+                        break
+                    }
+
+
+                default:
+                    // Ignore for now
+                    break
+                }
+            default:
+                break
+            }
 
         case let .failure(error):
             logger.info("Error while processing incoming messages")
@@ -93,6 +150,10 @@ class BeaconConnectService {
     
     func observeRequest() -> AnyPublisher<TezosBeaconRequest, Never> {
         requestSubject.eraseToAnyPublisher()
+    }
+    
+    func observeEvents() -> AnyPublisher<WalletConnectionEvent, Never> {
+        eventsSubject.eraseToAnyPublisher()
     }
     
     func addPeer(deeplink: String) -> AnyPublisher<Beacon.P2PPeer, Error> {
@@ -106,10 +167,9 @@ class BeaconConnectService {
                             throw BeaconConnectError.pendingBeaconClient
                         }
 
-                        logger.info("[TezosBeaconService] addPeer \(peer) ")
-                        let pairingRequest = try self.extractPairingRequest(from: deeplink)
+                        logger.info("[TezosBeaconService] addPear \(peer) ")
 
-                        beaconClient.pair(with: pairingRequest) { result in
+                        beaconClient.add([.p2p(peer)]) { result in
                             switch result {
                             case .success(_):
                                 logger.info("[TezosBeaconService] Peer added")
@@ -133,7 +193,7 @@ class BeaconConnectService {
 
     func removePeer(_ peer: Beacon.P2PPeer) -> AnyPublisher<Void, Error> {
         return Future<Void, Error> { [self] (promise) in
-            self.beaconClient?.removePeers([.p2p(peer)]) { result in
+            self.beaconClient?.remove([.p2p(peer)]) { result in
                 switch result {
                 case .success(_):
                     logger.info("[TezosBeaconService] Peer removed")
@@ -153,7 +213,7 @@ class BeaconConnectService {
                 switch result {
                 case .success(let peers):
                     let retainPeers = peers.filter { peer in !retainIds.contains(peer.id ?? "") }
-                    self.beaconClient?.removePeers(retainPeers) { removeResult in
+                    self.beaconClient?.remove(retainPeers) { removeResult in
                         switch removeResult {
                         case .success(_):
                             logger.info("[TezosBeaconService] cleanupSession retainIds: \(retainIds)")
@@ -198,18 +258,89 @@ class BeaconConnectService {
             logger.info("[TezosBeaconService]] Resumed \($0)")
         }
     }
+    
+}
+
+//DApp Beacon
+extension BeaconConnectService {
+    
+    func getConnectionURI() -> AnyPublisher<String, Error> {
+        Future<String, Error> { [weak self] (promise) in
+            guard let self = self,
+                  let beaconDappClient = self.beaconClient else {
+                promise(.failure(AppError.pendingBeaconClient))
+                return
+            }
+
+            beaconDappClient.newOwnSerializedPeer { result in
+                switch result {
+                case let .success(data):
+                    promise(.success("?type=tzip10&data=\(data)"))
+                    self.backgroundTaskID = UIApplication.shared.beginBackgroundTask (withName: data) {
+                        // End the task if time expires.
+                        UIApplication.shared.endBackgroundTask(self.backgroundTaskID!)
+                        self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
+                    }
+
+                case let .failure(error):
+                    logger.error("Error: \(error)")
+                    promise(.failure(error))
+                }
+            }
+
+        }
+        .eraseToAnyPublisher()
+    }
+
+    private func startOpenChannelListener(completion: @escaping (Result<(), Beacon.Error>) -> Void) {
+        guard let beaconClient = beaconClient else {
+            completion(.failure(.uninitialized))
+            return
+        }
+
+        beaconClient.connectionController.startOpenChannelListener { [weak self] (result: Result<Beacon.Peer, Swift.Error>) in
+            logger.info("[startOpenChannelListener][event]")
+            guard let newPeer = result.get(ifFailure: completion) else { return }
+
+            beaconClient.getOwnAppMetadata { appMetadataResult in
+
+                let result = appMetadataResult.map { appMetadata in
+
+                    let permissionRequest = PermissionV2TezosRequest(
+                        version: "2",
+                        id: UUID().uuidString.lowercased(),
+                        senderID: appMetadata.senderID,
+                        appMetadata:  PermissionV2TezosRequest.AppMetadata(from: appMetadata),
+                        network: Tezos.Network(type: .mainnet, name: nil, rpcURL: nil),
+                        scopes: [Tezos.Permission.Scope.operationRequest, Tezos.Permission.Scope.sign]
+                    )
+
+                    permissionRequest.toBeaconMessage(
+                        with: Beacon.Origin.p2p(id: newPeer.publicKey)) { (result) in
+                            guard let permissionRequestMessage = result.get(ifFailure: completion) else { return }
+
+                            beaconClient.request(with: permissionRequestMessage) { [weak self] result in
+                                guard let self = self else { return }
+
+                                switch result {
+                                case .success:
+                                    self.eventsSubject.send(.beaconRequestedPermission(newPeer.toP2P()))
+
+                                case let .failure(error):
+                                    logger.error("Error: \(error)")
+                                    completion(.failure(error))
+                                }
+                            }
+                        }
+                }
+
+                completion(result)
+            }
+        }
+    }
 }
 
 fileprivate extension BeaconConnectService {
-    func extractPairingRequest(from deeplink: String) throws -> String {
-        guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value else {
-            logger.info("[invalidDeeplink] \(deeplink)")
-            throw AppError.invalidDeeplink
-        }
-
-        return message
-    }
-    
     func extractPeer(from deeplink: String) throws -> Beacon.P2PPeer {
         guard let message = URLComponents(string: deeplink)?.queryItems?.first(where: { $0.name == "data" })?.value,
               let messageData = Base58.base58CheckDecode(message) else {

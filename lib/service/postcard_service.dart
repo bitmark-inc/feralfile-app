@@ -43,9 +43,7 @@ import 'account_service.dart';
 
 abstract class PostcardService {
   Future<ReceivePostcardResponse> receivePostcard(
-      {required String shareCode,
-      required Location location,
-      required String address});
+      {required String shareCode, Location? location, required String address});
 
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request);
@@ -122,7 +120,7 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<ReceivePostcardResponse> receivePostcard({
     required String shareCode,
-    required Location location,
+    Location? location,
     required String address,
   }) async {
     try {
@@ -137,7 +135,9 @@ class PostcardServiceImpl extends PostcardService {
           walletIndex.index, Uint8List.fromList(utf8.encode(timestamp)));
       final body = {
         "shareCode": shareCode,
-        "location": [location.lat, location.lon],
+        "location": (location?.lat == null || location?.lon == null)
+            ? []
+            : [location?.lat, location?.lon],
         "address": address,
         "publicKey": publicKey,
         "signature": signature,

@@ -169,7 +169,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
     final listTravelInfo =
-        asset.postcardMetadata.listTravelInfoWithoutLocationName;
+        asset.postcardMetadata.listTravelInfoWithoutInternetUser;
     final totalDistance = listTravelInfo.totalDistance;
     final theme = Theme.of(context);
     Widget content = Column(
@@ -898,7 +898,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardProgress(AssetToken asset) {
     final theme = Theme.of(context);
-    final travelInfo = asset.postcardMetadata.listTravelInfoWithoutLocationName;
+    final travelInfoWithoutInternetUser =
+        asset.postcardMetadata.listTravelInfoWithoutInternetUser;
     final currentStampNumber = asset.postcardMetadata.numberOfStamp;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -907,7 +908,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           "total_distance_traveled".tr(),
           style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
         ),
-        Text(distanceFormatter.format(distance: travelInfo.totalDistance),
+        Text(distanceFormatter.format(distance: travelInfoWithoutInternetUser.totalDistance),
             style: theme.textTheme.moMASans400Black12
                 .copyWith(color: MoMAColors.moMA12)),
         const SizedBox(height: 15),
@@ -1015,23 +1016,28 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       Text(numberFormatter.format(travelInfo.index),
                           style: theme.textTheme.moMASans400Black12
                               .copyWith(color: AppColor.auQuickSilver)),
-                      Text(
-                        travelInfo.sentLocation ?? "",
-                        style: theme.textTheme.moMASans400Black12,
-                      ),
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SvgPicture.asset(
-                            "assets/images/arrow_3.svg",
-                            colorFilter: const ColorFilter.mode(
-                                AppColor.primaryBlack, BlendMode.srcIn),
+                          Text(
+                            travelInfo.sentLocation ?? "",
+                            style: theme.textTheme.moMASans400Black12,
                           ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              travelInfo.receivedLocation ?? "-",
-                              style: theme.textTheme.moMASans400Black12,
-                            ),
+                          Row(
+                            children: [
+                              SvgPicture.asset(
+                                "assets/images/arrow_3.svg",
+                                colorFilter: const ColorFilter.mode(
+                                    AppColor.primaryBlack, BlendMode.srcIn),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  travelInfo.receivedLocation ?? "-",
+                                  style: theme.textTheme.moMASans400Black12,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(width: 10),
                           Text(

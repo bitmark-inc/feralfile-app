@@ -34,7 +34,7 @@ class DistanceFormatter {
     }
     if (withFullName) {
       if (isMiles()) {
-        return '${_numberFormat.format(distance)} miles';
+        return '${_numberFormat.format(convertKmToMiles(distance))} miles';
       }
       return '${_numberFormat.format(distance)} kilometers';
     }

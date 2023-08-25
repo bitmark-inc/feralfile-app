@@ -102,8 +102,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
-      resolved-ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      ref: "73ef1c0d6d4e1008ae7589dab2c3bf01e466f610"
+      resolved-ref: "73ef1c0d6d4e1008ae7589dab2c3bf01e466f610"
       url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
     source: git
     version: "0.0.1"
@@ -681,15 +681,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.1.3"
-  flutter_blue:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "9ae9c8e8a366d0d820208148603412700ed150f0"
-      resolved-ref: "9ae9c8e8a366d0d820208148603412700ed150f0"
-      url: "https://github.com/autonomy-system/flutter_blue.git"
-    source: git
-    version: "0.8.0"
   flutter_blurhash:
     dependency: transitive
     description:
@@ -2051,18 +2042,18 @@ packages:
     dependency: transitive
     description:
       name: protobuf
-      sha256: "01dd9bd0fa02548bf2ceee13545d4a0ec6046459d847b6b061d8a27237108a08"
+      sha256: "4034a02b7e231e7e60bff30a8ac13a7347abfdac0798595fae0b90a3f0afe759"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "3.0.0"
   protoc_plugin:
     dependency: transitive
     description:
       name: protoc_plugin
-      sha256: e2be5014ba145dc0f8de20ac425afa2a513aff64fe350d338e481d40de0573df
+      sha256: "41f06692f6d46018a6547f088d5598282f6d00cf6c33c535647c075b9ee62dd7"
       url: "https://pub.dev"
     source: hosted
-    version: "20.0.1"
+    version: "21.0.2"
   provider:
     dependency: transitive
     description:

@@ -6,7 +6,7 @@ class ClaimPostCardRequest {
   String? publicKey;
   String? address;
   String? signature;
-  List<double> location;
+  List<double?> location;
 
   ClaimPostCardRequest({
     this.claimID,

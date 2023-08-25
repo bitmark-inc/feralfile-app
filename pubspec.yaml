@@ -39,10 +39,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.0
-  flutter_blue:
-    git:
-      url: https://github.com/autonomy-system/flutter_blue.git
-      ref: 9ae9c8e8a366d0d820208148603412700ed150f0
   flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
@@ -136,7 +132,7 @@ dependencies:
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
-      ref: 48c86e89b451494cd7affdcb0141a7e4db9c1307
+      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   metric_client:

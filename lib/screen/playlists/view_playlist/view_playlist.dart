@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
@@ -16,10 +17,13 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/add_button.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -46,6 +50,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
+  late CanvasDeviceBloc _canvasDeviceBloc;
 
   @override
   void initState() {
@@ -55,6 +60,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       ids: isDemo ? [] : widget.playListModel?.tokenIDs,
       debugTokenIds: isDemo ? widget.playListModel?.tokenIDs : [],
     ));
+
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
 
     bloc.add(GetPlayList(playListModel: widget.playListModel));
   }
@@ -282,24 +289,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     mainAxisSpacing: cellSpacing,
                   ),
                   itemBuilder: (context, index) {
-                    if (index == tokens.length) {
-                      return GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRouter.createPlayListPage,
-                          arguments: widget.playListModel,
-                        ).then((value) {
-                          if (value != null && value is PlayListModel) {
-                            bloc.add(SavePlaylist(name: value.name));
-                            nftBloc.add(RefreshNftCollectionByIDs(
-                              ids: isDemo ? [] : value.tokenIDs,
-                              debugTokenIds: isDemo ? value.tokenIDs : [],
-                            ));
-                          }
-                        }),
-                        child: const AddTokenWidget(),
-                      );
-                    }
                     final asset = tokens[index];
                     return GestureDetector(
                       child: asset.pending == true && !asset.hasMetadata
@@ -341,7 +330,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       },
                     );
                   },
-                  itemCount: tokens.length + 1),
+                  itemCount: tokens.length),
             ),
             const SizedBox(
               height: 50,
@@ -352,22 +341,65 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: PlaylistControl(
-            playControl: playControlModel,
-            showPlay: accountIdentities.isNotEmpty,
-            onShuffleTap: onShuffleTap,
-            onTimerTap: onTimerTap,
-            onPlayTap: () {
-              final payload = ArtworkDetailPayload(
-                accountIdentities,
-                0,
+          child: Column(
+            children: [
+              AddButton(
+                  onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRouter.createPlayListPage,
+                        arguments: widget.playListModel,
+                      ).then((value) {
+                        if (value != null && value is PlayListModel) {
+                          bloc.add(SavePlaylist(name: value.name));
+                          nftBloc.add(RefreshNftCollectionByIDs(
+                            ids: isDemo ? [] : value.tokenIDs,
+                            debugTokenIds: isDemo ? value.tokenIDs : [],
+                          ));
+                        }
+                      })),
+              const SizedBox(height: 22),
+              PlaylistControl(
                 playControl: playControlModel,
-              );
-              Navigator.of(context).pushNamed(
-                AppRouter.artworkPreviewPage,
-                arguments: payload,
-              );
-            },
+                showPlay: accountIdentities.isNotEmpty,
+                onShuffleTap: onShuffleTap,
+                onTimerTap: onTimerTap,
+                onPlayTap: () {
+                  final payload = ArtworkDetailPayload(
+                    accountIdentities,
+                    0,
+                    playControl: playControlModel,
+                  );
+                  Navigator.of(context).pushNamed(
+                    AppRouter.artworkPreviewPage,
+                    arguments: payload,
+                  );
+                },
+                onCastTap: () {
+                  final playlist = widget.playListModel;
+                  if (playlist?.tokenIDs == null ||
+                      playlist!.tokenIDs!.isEmpty) {
+                    log.info("Cast collection failed: playlist empty");
+                    return;
+                  }
+                  playlist.playControlModel = playControlModel;
+                  UIHelper.showFlexibleDialog(
+                    context,
+                    BlocProvider.value(
+                      value: _canvasDeviceBloc,
+                      child: CanvasDeviceView(
+                        sceneId: "",
+                        isCollection: true,
+                        playlist: playlist,
+                        onClose: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ),
+                    isDismissible: true,
+                  );
+                },
+              ),
+            ],
           ),
         )
       ],
