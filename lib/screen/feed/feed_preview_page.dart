@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -556,8 +557,6 @@ class _FeedViewState extends State<FeedView> {
                           .toIdentityOrMask(identityState.identityMap) ??
                       event.recipient)
                   .toList();
-              final followingTime =
-                  getDateTimeRepresentation(events.first.timestamp.toLocal());
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -617,15 +616,21 @@ class _FeedViewState extends State<FeedView> {
                                 ]
                               ],
                             ),
-                            if (followingNames.join().trim().isNotEmpty) ...[
-                              const Spacer(),
-                              Text(
-                                  events.length > 1
-                                      ? "last_time_format"
-                                          .tr(args: [followingTime])
-                                      : followingTime,
-                                  style: theme.textTheme.ppMori400Grey12),
-                            ]
+                            const Spacer(),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 15),
+                              child: IconButton(
+                                tooltip: "AppbarAction",
+                                constraints:
+                                    const BoxConstraints(maxWidth: 36.0),
+                                onPressed: () async {
+                                },
+                                icon: const Icon(
+                                  Icons.more_horiz,
+                                  color: AppColor.disabledColor,
+                                ),
+                              ),
+                            )
                           ],
                         ),
                         const SizedBox(height: 10),
