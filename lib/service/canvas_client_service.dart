@@ -273,11 +273,6 @@ class CanvasClientService {
       CanvasDevice device, PlayListModel playlist) async {
     if (playlist.tokenIDs == null || playlist.tokenIDs!.isEmpty) return false;
     final stub = _getStub(device);
-    _devices.firstWhereOrNull(
-      (element) {
-        return element.playingSceneId != null;
-      },
-    );
 
     final castRequest = CastCollectionRequest()
       ..id = playlist.id ?? const Uuid().v4()
@@ -286,13 +281,9 @@ class CanvasClientService {
         ..duration = playlist.playControlModel?.timer ?? 10));
     final response = await stub.castCollection(castRequest);
     if (response.ok) {
-      final lst = _devices.firstWhereOrNull(
-        (element) {
-          final isEqual = element == device;
-          return isEqual;
-        },
-      );
-      lst?.playingSceneId = playlist.id;
+      _devices
+          .firstWhereOrNull((element) => element == device)
+          ?.playingSceneId = playlist.id;
     } else {
       log.info('CanvasClientService: Failed to cast collection');
     }
