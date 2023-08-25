@@ -1033,16 +1033,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               style: theme.textTheme.moMASans400Black12,
                             ),
                           ),
+                          const SizedBox(width: 10),
+                          Text(
+                            distanceFormatter.format(
+                                distance: travelInfo.getDistance()),
+                            style: theme.textTheme.moMASans700Black12
+                                .copyWith(color: MoMAColors.moMA12),
+                          ),
                         ],
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  distanceFormatter.format(distance: travelInfo.getDistance()),
-                  style: theme.textTheme.moMASans700Black12
-                      .copyWith(color: MoMAColors.moMA12),
                 ),
               ]),
               if (travelInfo.index != 1) const SizedBox(height: 30),

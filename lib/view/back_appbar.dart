@@ -22,6 +22,7 @@ AppBar getBackAppBar(
   Function()? action,
   bool isWhite = true,
   bool withDivider = true,
+  Color? backgroundColor,
 }) {
   final theme = Theme.of(context);
 
@@ -78,7 +79,7 @@ AppBar getBackAppBar(
             )
           : const SizedBox(width: 36),
     ],
-    backgroundColor: Colors.transparent,
+    backgroundColor: backgroundColor ?? Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
     bottom: withDivider

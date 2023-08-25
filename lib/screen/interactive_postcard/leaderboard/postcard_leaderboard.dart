@@ -69,6 +69,7 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
               .moMASans700Black16
               .copyWith(fontSize: 18),
           withDivider: false,
+          backgroundColor: POSTCARD_BACKGROUND_COLOR,
         ),
         backgroundColor: POSTCARD_BACKGROUND_COLOR,
         body: PostcardLeaderboardView(
