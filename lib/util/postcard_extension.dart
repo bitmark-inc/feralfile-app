@@ -36,6 +36,26 @@ extension PostcardMetadataExtension on PostcardMetadata {
     return travelInfo;
   }
 
+  List<TravelInfo> get listTravelInfoWithoutInternetUser {
+    final stamps = locationInformation;
+    final travelInfo = <TravelInfo>[];
+    int lastNotnullStampLocation = 0;
+    for (int i = 1; i < stamps.length; i++) {
+      final stamp = stamps[i];
+      if (!(stamp.claimedLocation?.isInternet ?? true)) {
+        travelInfo.add(TravelInfo(stamps[lastNotnullStampLocation], stamp, i));
+      }
+      if (!(stamp.stampedLocation?.isInternet ?? true)) {
+        lastNotnullStampLocation = i;
+      }
+    }
+
+    if (isCompleted) {
+      travelInfo.add(TravelInfo(stamps.last, null, stamps.length));
+    }
+    return travelInfo;
+  }
+
   int get numberOfStamp {
     return locationInformation
         .where((element) => element.stampedLocation != null)

@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -35,6 +36,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
@@ -1519,6 +1521,99 @@ class UIHelper {
         ],
       ),
       isDismissible: true,
+    );
+  }
+
+  static showCustomDialog(
+      {required BuildContext context,
+      required Widget child,
+      bool isDismissible = false,
+      Color? backgroundColor,
+      EdgeInsets? padding,
+      BorderRadius? borderRadius}) async {
+    final theme = Theme.of(context);
+    return await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: borderRadius ??
+                    const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )),
+            padding: padding ??
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+            child: SingleChildScrollView(
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static showLocationExplain(BuildContext context) async {
+    final theme = Theme.of(context);
+    return showCustomDialog(
+      context: context,
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              SvgPicture.asset("assets/images/postcard_location_explain_4.svg"),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SvgPicture.asset("assets/images/location.svg"),
+                        Text(
+                          "web".tr(),
+                          style: theme.textTheme.moMASans700Black16
+                              .copyWith(fontSize: 18),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    "plus_distance".tr(namedArgs: {
+                      "distance": DistanceFormatter().format(distance: 0),
+                    }),
+                    style: theme.textTheme.moMASans400Black16.copyWith(
+                        fontSize: 18,
+                        color: const Color.fromRGBO(131, 79, 196, 1)),
+                  )
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+          Text("if_your_location_is_not_enabled".tr(),
+              style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18)),
+          const SizedBox(height: 40),
+        ],
+      ),
+      isDismissible: true,
+      backgroundColor: AppColor.chatPrimaryColor,
+      borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(10), topRight: Radius.circular(10)),
     );
   }
 }

@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart' as postcard;
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/number_utils.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -42,9 +43,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
   final hasPermission = await checkLocationPermissions();
   final navigationService = injector<NavigationService>();
   if (!hasPermission) {
-    UIHelper.showDeclinedGeolocalization(
-        navigationService.navigatorKey.currentContext!);
-    return null;
+    return internetUserGeoLocation;
   } else {
     try {
       final location =
@@ -65,7 +64,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
           ? await getFuzzyGeolocation(address, location)
           : GeoLocation(position: location.toLocation(), address: address);
       log.info(
-          "Fuzzy Location: ${geolocation.position.lat}, ${geolocation.position.lon}");
+          "Fuzzy Location: ${geolocation.position?.lat}, ${geolocation.position?.lon}");
       return geolocation;
     } catch (e) {
       await UIHelper.showWeakGPSSignal(
@@ -103,11 +102,15 @@ bool isValidLocation(Location position, double latitude, double longitude) {
 }
 
 class GeoLocation {
-  final postcard.Location position;
+  final postcard.Location? position;
   final String address;
 
   //constructor
   GeoLocation({required this.position, required this.address});
+
+  static List<GeoLocation> get defaultGeolocations {
+    return [moMAGeoLocation, internetUserGeoLocation];
+  }
 }
 
 extension PositionExtension on Position {

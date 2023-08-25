@@ -53,12 +53,13 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
             payload: PostcardExplainPayload(
                 artwork,
                 PostcardButton(
-                  text: "get_started".tr(),
+                  text: "continue".tr(),
                   enabled: state.isClaiming != true,
                   isProcessing: state.isClaiming == true,
                   onTap: () {
                     bloc.add(AcceptGiftEvent(widget.claimRequest));
                   },
+                  color: const Color.fromRGBO(79, 174, 79, 1),
                 )),
           );
         });

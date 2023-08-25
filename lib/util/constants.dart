@@ -119,6 +119,9 @@ const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 final moMAGeoLocation =
     GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
 
+final internetUserGeoLocation =
+    GeoLocation(position: Location(lat: null, lon: null), address: "Web");
+
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const int STAMP_SIZE = 2160;

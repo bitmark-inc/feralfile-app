@@ -107,8 +107,8 @@ class ClaimEmptyPostCardBloc
             publicKey: publicKey,
             signature: signature,
             location: [
-              moMAGeoLocation.position.lat,
-              moMAGeoLocation.position.lon
+              moMAGeoLocation.position?.lat,
+              moMAGeoLocation.position?.lon
             ],
           );
           final result =
@@ -117,10 +117,7 @@ class ClaimEmptyPostCardBloc
           final postcardMetadata = PostcardMetadata(
             locationInformation: [
               UserLocations(
-                claimedLocation: Location(
-                  lat: -73.978271,
-                  lon: 40.761509,
-                ),
+                claimedLocation: moMAGeoLocation.position,
               )
             ],
           );
