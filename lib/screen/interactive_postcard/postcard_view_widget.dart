@@ -149,33 +149,3 @@ class PostcardRatio extends StatelessWidget {
     );
   }
 }
-
-class PostcardWebview extends StatelessWidget {
-  final String previewUrl;
-  final bool isViewOnly;
-
-  const PostcardWebview(
-      {super.key, required this.previewUrl, this.isViewOnly = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final version = injector<ConfigurationService>().getVersionInfo();
-    return Stack(
-      children: [
-        InAppWebView(
-          initialOptions: InAppWebViewGroupOptions(
-              crossPlatform: InAppWebViewOptions(
-                  userAgent: "user_agent".tr(namedArgs: {"version": version}))),
-          initialUrlRequest: URLRequest(
-            url: Uri.parse(previewUrl),
-          ),
-        ),
-        if (isViewOnly)
-          Positioned.fill(
-              child: Container(
-            color: Colors.transparent,
-          )),
-      ],
-    );
-  }
-}

@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -13,6 +12,7 @@ import 'package:autonomy_flutter/view/skeleton.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -180,10 +180,8 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                 SizedBox(
                   height: 65,
                   width: 85,
-                  child: PostcardWebview(
-                    previewUrl: leaderBoardItem.previewUrl,
-                    isViewOnly: true,
-                  ),
+                  child:
+                      CachedNetworkImage(imageUrl: leaderBoardItem.previewUrl),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
