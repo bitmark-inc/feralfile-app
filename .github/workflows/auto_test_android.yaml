@@ -99,11 +99,11 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           flutter test auto-test/tests/import_fullaccount_kukai_temple_test.dart
-#      - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
-#        if: success() || failure()
-#        run: |
-#          cd $GITHUB_WORKSPACE
-#          flutter test auto-test/mobile_external_webs/connectWalletToExchanges_test.dart
+      - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
+        if: success() || failure()
+        run: |
+          cd $GITHUB_WORKSPACE
+          flutter test auto-test/mobile_external_webs/connectWalletToExchanges_test.dart
       - name: Run auto tests for Suite "Link Ethereum Wallet"
         if: success() || failure()
         run: |
