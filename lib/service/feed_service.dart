@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -36,8 +35,6 @@ abstract class FeedService {
   ValueNotifier<bool> get hasFeed;
 
   Future checkNewFeeds();
-
-  Future refreshFollowings(List<String> artistIds);
 
   Future<AppFeedData> fetchFeeds(
     FeedNext? next, {
@@ -111,12 +108,10 @@ class AppFeedData {
 }
 
 class FeedServiceImpl extends FeedService {
-  static const REFRESH_FOLLOWINGS = 'REFRESH_FOLLOWINGS';
   static const FETCH_FEEDS = 'FETCH_FEEDS';
   static const FETCH_TOKENS_BY_INDEXIDS = 'FETCH_TOKENS_BY_INDEXIDS';
   static const REFRESH_JWT_TOKEN = 'REFRESH_JWT_TOKEN';
 
-  final Map<String, Completer<void>> _refreshFollowingsCompleters = {};
   final Map<String, Completer<AppFeedData>> _fetchFeedsCompleters = {};
   final Map<String, Completer<List<AssetToken>>>
       _fetchTokensByIndexerIDCompleters = {};
@@ -165,25 +160,6 @@ class FeedServiceImpl extends FeedService {
     } else if (!_isolateReady.isCompleted) {
       await isolateReady;
     }
-  }
-
-  @override
-  Future refreshFollowings(List<String> artistIds) async {
-    await startIsolateOrWait();
-
-    final uuid = const Uuid().v4();
-    final completer = Completer();
-    _refreshFollowingsCompleters[uuid] = completer;
-
-    final followings = artistIds;
-    followings.removeWhere((element) => element == "");
-    followings.remove("0x0000000000000000000000000000000000000000");
-
-    // sendPort
-    log.info("[FeedFollowService] start REFRESH_FOLLOWINGS");
-    _sendPort!.send([REFRESH_FOLLOWINGS, uuid, followings]);
-
-    return completer.future;
   }
 
   @override
@@ -276,17 +252,7 @@ class FeedServiceImpl extends FeedService {
 
     final result = message;
     log.info('[FeedFollowService] $result');
-    if (result is RefreshFollowingsSuccess) {
-      _refreshFollowingsCompleters[result.uuid]?.complete();
-      _refreshFollowingsCompleters.remove(result.uuid);
-      //
-    } else if (result is RefreshFollowingFailure) {
-      Sentry.captureException(result.exception);
-      _refreshFollowingsCompleters[result.uuid]
-          ?.completeError(result.exception);
-      _refreshFollowingsCompleters.remove(result.uuid);
-      //
-    } else if (result is FetchFeedsSuccess) {
+    if (result is FetchFeedsSuccess) {
       _fetchFeedsCompleters[result.uuid]?.complete(result.appFeedData);
       _fetchFeedsCompleters.remove(result.uuid);
       //
@@ -319,10 +285,6 @@ class FeedServiceImpl extends FeedService {
   static void _handleMessageInIsolate(dynamic message) {
     if (message is List<dynamic>) {
       switch (message[0]) {
-        case REFRESH_FOLLOWINGS:
-          _refreshFollowings(message[1], message[2]);
-          break;
-
         case FETCH_FEEDS:
           _fetchFeeds(
               message[1], message[2], message[3], message[4], message[5]);
@@ -363,50 +325,6 @@ class FeedServiceImpl extends FeedService {
 
     injector.registerLazySingleton<IndexerService>(
         () => IndexerService(indexerClient));
-  }
-
-  static void _refreshFollowings(String uuid, List<String> followings) async {
-    try {
-      // add followings
-      if (followings.isNotEmpty) {
-        await injector<FeedApi>().postFollows({
-          "addresses": followings,
-        });
-      }
-
-      // remove unfollowings
-      List<String> remoteFollowings = [];
-      var loop = true;
-      FeedNext? next;
-
-      while (loop) {
-        final followingData = await injector<FeedApi>()
-            .getFollows(100, next?.serial, next?.timestamp);
-        remoteFollowings.addAll(followingData.followings.map((e) => e.address));
-        loop = followingData.followings.length >= 100;
-        next = followingData.next;
-      }
-
-      final deletingFollowings =
-          remoteFollowings.toSet().difference(followings.toSet()).toList();
-      if (deletingFollowings.isNotEmpty) {
-        await injector<FeedApi>().deleteFollows({
-          "addresses": deletingFollowings,
-        });
-      }
-
-      // side-effect: request reindex for followings so that user can view their gallery
-      for (var following in followings) {
-        final blockchain = following.blockchainForAddress;
-        if (blockchain == null) continue;
-        injector<IndexerApi>()
-            .requestIndex({"owner": following, "blockchain": blockchain});
-      }
-
-      _isolateSendPort?.send(RefreshFollowingsSuccess(uuid));
-    } catch (exception) {
-      _isolateSendPort?.send(RefreshFollowingFailure(uuid, exception));
-    }
   }
 
   static void _fetchFeeds(
@@ -495,21 +413,6 @@ class FeedServiceImpl extends FeedService {
 }
 
 abstract class FeedServiceResult {}
-
-class RefreshFollowingsSuccess extends FeedServiceResult {
-  final String uuid;
-
-  RefreshFollowingsSuccess(
-    this.uuid,
-  );
-}
-
-class RefreshFollowingFailure extends FeedServiceResult {
-  final String uuid;
-  final Object exception;
-
-  RefreshFollowingFailure(this.uuid, this.exception);
-}
 
 class FetchFeedsSuccess extends FeedServiceResult {
   final String uuid;
