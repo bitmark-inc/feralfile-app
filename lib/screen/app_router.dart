@@ -102,6 +102,7 @@ import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dar
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
@@ -257,6 +258,7 @@ class AppRouter {
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const albumPage = 'album_page';
+  static const addToCollectionPage = 'add_to_collection_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1429,6 +1431,13 @@ class AppRouter {
                 payload: payload,
               );
             });
+      case addToCollectionPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => AddToCollectionScreen(
+            playList: settings.arguments as PlayListModel,
+          ),
+        );
 
       default:
         throw Exception('Invalid route: ${settings.name}');

@@ -392,7 +392,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   void moveToAddNftToCollection(BuildContext context) {
     Navigator.pushNamed(
       context,
-      AppRouter.createPlayListPage,
+      AppRouter.addToCollectionPage,
       arguments: widget.payload.playListModel,
     ).then((value) {
       if (value != null && value is PlayListModel) {
