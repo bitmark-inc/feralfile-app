@@ -60,15 +60,13 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: widget.playlists,
       builder: (context, value, child) {
+        // return ReorderableGridView(onReorder: onReorder, gridDelegate: gridDelegate, childrenDelegate: SliverChildListDelegate())
         return value == null
             ? const SizedBox.shrink()
             : ReorderableGridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
-                    if (oldIndex < newIndex) {
-                      newIndex -= 1;
-                    }
                     final item = value.removeAt(oldIndex);
                     value.insert(newIndex, item);
                     _onUpdatePlaylists();
@@ -128,7 +126,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
     return GestureDetector(
       onTap: widget.onSelected,
       child: Padding(
-        padding: const EdgeInsets.only(right: 15),
+        padding: EdgeInsets.zero,
         child: Container(
           width: height,
           height: width,

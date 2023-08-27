@@ -278,61 +278,60 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                     // onRemove(context, state);
                                     selectedItem.isEmpty
                                         ? null
-                                        : () => UIHelper.showMessageActionNew(
-                                              context,
-                                              tr('remove_from_list'),
-                                              '',
-                                              descriptionWidget: RichText(
-                                                text: TextSpan(children: [
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori400White16,
-                                                    text:
-                                                        "you_are_about_to_remove"
-                                                            .tr(),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori700White16,
-                                                    text: tr(
-                                                        selectedItem.length != 1
-                                                            ? 'artworks'
-                                                            : 'artwork',
-                                                        args: [
-                                                          selectedItem.length
-                                                              .toString()
-                                                        ]),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori400White16,
-                                                    text: "from_the_playlist"
-                                                        .tr(),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori700White16,
-                                                    text: playList?.name ??
-                                                        tr('untitled'),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori400White16,
-                                                    text:
-                                                        "they_will_remain".tr(),
-                                                  ),
-                                                ]),
-                                              ),
-                                              actionButton: "remove".tr(),
-                                              onAction: () {
-                                                Navigator.pop(context);
-                                                bloc.add(
-                                                  RemoveTokens(
-                                                    tokenIDs: selectedItem,
-                                                  ),
-                                                );
-                                              },
-                                            );
+                                        : UIHelper.showMessageActionNew(
+                                            context,
+                                            tr('remove_from_list'),
+                                            '',
+                                            descriptionWidget: RichText(
+                                              text: TextSpan(children: [
+                                                TextSpan(
+                                                  style: theme.textTheme
+                                                      .ppMori400White16,
+                                                  text:
+                                                      "you_are_about_to_remove"
+                                                          .tr(),
+                                                ),
+                                                TextSpan(
+                                                  style: theme.textTheme
+                                                      .ppMori700White16,
+                                                  text: tr(
+                                                      selectedItem.length != 1
+                                                          ? 'artworks'
+                                                          : 'artwork',
+                                                      args: [
+                                                        selectedItem.length
+                                                            .toString()
+                                                      ]),
+                                                ),
+                                                TextSpan(
+                                                  style: theme.textTheme
+                                                      .ppMori400White16,
+                                                  text:
+                                                      "from_the_playlist".tr(),
+                                                ),
+                                                TextSpan(
+                                                  style: theme.textTheme
+                                                      .ppMori700White16,
+                                                  text: playList?.name ??
+                                                      tr('untitled'),
+                                                ),
+                                                TextSpan(
+                                                  style: theme.textTheme
+                                                      .ppMori400White16,
+                                                  text: "they_will_remain".tr(),
+                                                ),
+                                              ]),
+                                            ),
+                                            actionButton: "remove".tr(),
+                                            onAction: () {
+                                              Navigator.pop(context);
+                                              bloc.add(
+                                                RemoveTokens(
+                                                  tokenIDs: selectedItem,
+                                                ),
+                                              );
+                                            },
+                                          );
                                   },
                                   width: 170,
                                   text: tr('remove').capitalize(),
