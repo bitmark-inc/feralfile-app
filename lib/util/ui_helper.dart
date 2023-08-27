@@ -1573,7 +1573,7 @@ class UIHelper {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              SvgPicture.asset("assets/images/postcard_location_explain_4.svg"),
+              Image.asset("assets/images/postcard_location_explain_3.png"),
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
