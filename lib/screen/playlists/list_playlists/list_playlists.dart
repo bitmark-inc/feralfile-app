@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -26,28 +25,10 @@ class ListPlaylistsScreen extends StatefulWidget {
 
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
-  late ValueNotifier<List<PlayListModel>?> _playlists;
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-  final ConfigurationService _configurationService =
-      injector.get<ConfigurationService>();
-
-  Future<List<PlayListModel>?> getPlaylist() async {
-    final playlistService = injector.get<PlaylistService>();
-    final isSubscribed = _configurationService.isPremium();
-    if (!isSubscribed && !isDemo) return null;
-    if (isDemo) {
-      return injector<VersionService>().getDemoAccountFromGithub();
-    }
-    return playlistService.getPlayList();
-  }
-
-  _initPlayList() async {
-    _playlists.value = await getPlaylist();
-  }
 
   @override
   void initState() {
-    _playlists = widget.playlists;
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
@@ -65,17 +46,11 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   }
 
   _onUpdatePlaylists() async {
-    if (isDemo || _playlists.value == null) return;
+    if (isDemo || widget.playlists.value == null) return;
     await injector
         .get<PlaylistService>()
-        .setPlayList(_playlists.value!, override: true);
+        .setPlayList(widget.playlists.value!, override: true);
     injector.get<SettingsDataService>().backup();
-  }
-
-  @override
-  void didPopNext() {
-    _initPlayList();
-    super.didPopNext();
   }
 
   @override
@@ -83,7 +58,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     const cellPerRow = 2;
     const cellSpacing = 16.0;
     return ValueListenableBuilder<List<PlayListModel>?>(
-      valueListenable: _playlists,
+      valueListenable: widget.playlists,
       builder: (context, value, child) {
         return value == null
             ? const SizedBox.shrink()
@@ -106,19 +81,14 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 ),
                 itemBuilder: (context, index) {
                   return PlaylistItem(
-                    key: ValueKey(value[index]),
-                    playlist: value[index],
-                    onSelected: () => Navigator.pushNamed(
-                      context,
-                      AppRouter.viewPlayListPage,
-                      arguments: ViewPlaylistScreenPayload(
-                          playListModel: value[index]),
-                    ).then(
-                      (value) {
-                        _initPlayList();
-                      },
-                    ),
-                  );
+                      key: ValueKey(value[index]),
+                      playlist: value[index],
+                      onSelected: () => Navigator.pushNamed(
+                            context,
+                            AppRouter.viewPlayListPage,
+                            arguments: ViewPlaylistScreenPayload(
+                                playListModel: value[index]),
+                          ));
                 },
                 onDragStart: (index) {
                   Vibrate.feedback(FeedbackType.light);

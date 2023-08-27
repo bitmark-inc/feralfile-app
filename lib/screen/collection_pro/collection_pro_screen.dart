@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
@@ -44,7 +45,6 @@ class CollectionProState extends State<CollectionPro>
   final controller = ScrollController();
   late String searchStr;
   late bool isSearching;
-  late List<CollectionProSection> shouldShowSections;
   final SectionInfo sectionInfo = SectionInfo(state: {
     CollectionProSection.collection: true,
     CollectionProSection.medium: true,
@@ -57,7 +57,6 @@ class CollectionProState extends State<CollectionPro>
     loadCollection();
     searchStr = '';
     isSearching = false;
-    shouldShowSections = [];
     super.initState();
   }
 
@@ -93,13 +92,6 @@ class CollectionProState extends State<CollectionPro>
     if (neededIdentities.isNotEmpty) {
       _identityBloc.add(GetIdentityEvent(neededIdentities));
     }
-  }
-
-  bool? isSelected(CollectionProSection section) {
-    if (shouldShowSections.isEmpty) {
-      return null;
-    }
-    return shouldShowSections.shouldShowSection(section);
   }
 
   @override
@@ -170,35 +162,27 @@ class CollectionProState extends State<CollectionPro>
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 60),
                       ),
-                      if (shouldShowSections.shouldShowSection(
-                          CollectionProSection.collection)) ...[
-                        const SliverToBoxAdapter(
-                          child: CollectionSection(),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 60),
-                        ),
-                      ],
-                      if (shouldShowSections
-                          .shouldShowSection(CollectionProSection.medium)) ...[
-                        SliverToBoxAdapter(
-                          child: AlbumSection(
-                              listAlbum: listAlbumByMedium,
-                              albumType: AlbumType.medium,
-                              identityMap: identityMap),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 60),
-                        ),
-                      ],
-                      if (shouldShowSections
-                          .shouldShowSection(CollectionProSection.artist))
-                        SliverToBoxAdapter(
-                          child: AlbumSection(
-                              listAlbum: listAlbumByArtist,
-                              albumType: AlbumType.artist,
-                              identityMap: identityMap),
-                        ),
+                      const SliverToBoxAdapter(
+                        child: CollectionSection(),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 60),
+                      ),
+                      SliverToBoxAdapter(
+                        child: AlbumSection(
+                            listAlbum: listAlbumByMedium,
+                            albumType: AlbumType.medium,
+                            identityMap: identityMap),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 60),
+                      ),
+                      SliverToBoxAdapter(
+                        child: AlbumSection(
+                            listAlbum: listAlbumByArtist,
+                            albumType: AlbumType.artist,
+                            identityMap: identityMap),
+                      ),
                     ],
                   );
                 },
@@ -360,7 +344,9 @@ class _AlbumSectionState extends State<AlbumSection> {
 }
 
 class CollectionSection extends StatefulWidget {
-  const CollectionSection({super.key});
+  final String? filterString;
+
+  const CollectionSection({super.key, this.filterString});
 
   @override
   State<CollectionSection> createState() => _CollectionSectionState();
@@ -386,6 +372,7 @@ class _CollectionSectionState extends State<CollectionSection>
 
   _initPlayList() async {
     _playlists.value = await getPlaylist() ?? [];
+    _playlists.value!.filter(widget.filterString);
   }
 
   @override

@@ -238,7 +238,10 @@ SystemUiOverlayStyle get systemUiOverlayLightStyle =>
     );
 
 AppBar getDoneAppBar(BuildContext context,
-    {required String title, Function()? onDone, Function()? onCancel}) {
+    {required String title,
+    Function()? onDone,
+    Function()? onCancel,
+    PreferredSize? bottom}) {
   final theme = Theme.of(context);
   return AppBar(
     elevation: 1,
@@ -279,6 +282,7 @@ AppBar getDoneAppBar(BuildContext context,
       title,
       style: theme.textTheme.ppMori400Black14,
     ),
+    bottom: bottom,
   );
 }
 

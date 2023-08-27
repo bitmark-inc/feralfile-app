@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -13,6 +14,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -130,32 +132,40 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
       builder: (context, state) {
         return Scaffold(
           backgroundColor: theme.colorScheme.background, //theme.primaryColor,
-          appBar: getDoneAppBar(
-            context,
-            title: "adding_to".tr(namedArgs: {
-              "title": widget.playList.name ?? '',
-            }),
-            onDone: () {
-              final nftState = nftBloc.state;
-              final selectedCount = nftState.tokens.items
-                  .where((element) =>
-                      state.selectedIDs?.contains(element.id) ?? false)
-                  .length;
-              if (selectedCount <= 0) {
-                return;
-              }
-              bloc.add(
-                CreatePlaylist(
-                  name: widget.playList.name ?? '',
+          appBar: getDoneAppBar(context,
+              title: "adding_to".tr(namedArgs: {
+                "title": widget.playList.name ?? '',
+              }), onDone: () {
+            final nftState = nftBloc.state;
+            final selectedCount = nftState.tokens.items
+                .where((element) =>
+                    state.selectedIDs?.contains(element.id) ?? false)
+                .length;
+            if (selectedCount <= 0) {
+              return;
+            }
+            bloc.add(
+              CreatePlaylist(
+                name: widget.playList.name ?? '',
+              ),
+            );
+          }, onCancel: () {
+            Navigator.pop(context);
+            final metricClient = injector<MetricClientService>();
+            metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
+          },
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(75),
+                child: ActionBar(
+                  searchBar: AuSearchBar(
+                    onChanged: (text) {
+                      setState(() {
+                        _searchText = text;
+                      });
+                    },
+                  ),
                 ),
-              );
-            },
-            onCancel: () {
-              Navigator.pop(context);
-              final metricClient = injector<MetricClientService>();
-              metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
-            },
-          ),
+              )),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
