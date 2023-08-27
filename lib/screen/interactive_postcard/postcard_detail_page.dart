@@ -908,7 +908,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           "total_distance_traveled".tr(),
           style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
         ),
-        Text(distanceFormatter.format(distance: travelInfoWithoutInternetUser.totalDistance),
+        Text(
+            distanceFormatter.format(
+                distance: travelInfoWithoutInternetUser.totalDistance),
             style: theme.textTheme.moMASans400Black12
                 .copyWith(color: MoMAColors.moMA12)),
         const SizedBox(height: 15),
@@ -1037,14 +1039,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                   style: theme.textTheme.moMASans400Black12,
                                 ),
                               ),
+                              const SizedBox(width: 10),
+                              Text(
+                                distanceFormatter.format(
+                                    distance: travelInfo.getDistance()),
+                                style: theme.textTheme.moMASans700Black12
+                                    .copyWith(color: MoMAColors.moMA12),
+                              ),
                             ],
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            distanceFormatter.format(
-                                distance: travelInfo.getDistance()),
-                            style: theme.textTheme.moMASans700Black12
-                                .copyWith(color: MoMAColors.moMA12),
                           ),
                         ],
                       ),

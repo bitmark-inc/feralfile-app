@@ -87,32 +87,45 @@ class _StampPreviewState extends State<StampPreview> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const backgroundColor = AppColor.chatPrimaryColor;
     return WillPopScope(
       onWillPop: () async {
         return !confirming;
       },
       child: Scaffold(
-        backgroundColor: AppColor.primaryBlack,
+        backgroundColor: backgroundColor,
         appBar: !confirming
             ? getBackAppBar(context,
                 title: "preview_postcard".tr(),
+                titleStyle:
+                    theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
                 onBack: confirming
                     ? null
                     : () {
                         Navigator.of(context).pop();
                       },
-                isWhite: false)
-            : getCloseAppBar(context, title: "preview_postcard".tr(),
+                withDivider: false,
+                statusBarColor: backgroundColor)
+            : getCloseAppBar(
+                context,
+                title: "preview_postcard".tr(),
+                titleStyle: theme.textTheme.moMASans700Black16.copyWith(
+                  fontSize: 18,
+                ),
                 onClose: () {
-                _navigationService.popUntilHomeOrSettings();
-                if (!mounted) return;
-                Navigator.of(context).pushNamed(
-                  AppRouter.claimedPostcardDetailsPage,
-                  arguments: PostcardDetailPagePayload(
-                      [widget.payload.asset.identity], 0),
-                );
-                _configurationService.setAutoShowPostcard(true);
-              }, isWhite: false),
+                  _navigationService.popUntilHomeOrSettings();
+                  if (!mounted) return;
+                  Navigator.of(context).pushNamed(
+                    AppRouter.claimedPostcardDetailsPage,
+                    arguments: PostcardDetailPagePayload(
+                        [widget.payload.asset.identity], 0),
+                  );
+                  _configurationService.setAutoShowPostcard(true);
+                },
+                withBottomDivider: false,
+                statusBarColor: backgroundColor,
+              ),
         body: BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
           listener: (context, state) {
             if (!(state.isPostcardUpdatingOnBlockchain ||
@@ -140,17 +153,17 @@ class _StampPreviewState extends State<StampPreview> {
               child: Column(
                 children: [
                   const SizedBox(
-                    height: 150,
+                    height: 170,
                   ),
                   PostcardRatio(
                     assetToken: assetToken,
                     imagePath: imagePath,
                     jsonPath: metadataPath,
                   ),
-                  _postcardAction(state),
                   const SizedBox(
-                    height: 40,
+                    height: 20,
                   ),
+                  _postcardAction(state),
                 ],
               ),
             );

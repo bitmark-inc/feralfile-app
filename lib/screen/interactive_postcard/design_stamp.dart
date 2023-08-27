@@ -79,15 +79,18 @@ class _DesignStampPageState extends State<DesignStampPage> {
     final size = MediaQuery.of(context).size.width;
     final cellSize = ((size - 60.0) / 10.0).floor();
     final theme = Theme.of(context);
+    const backgroundColor = AppColor.chatPrimaryColor;
     return Scaffold(
-      backgroundColor: AppColor.primaryBlack,
+      backgroundColor: backgroundColor,
       appBar: getBackAppBar(
         context,
         title: "design_your_stamp".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
         onBack: () {
           Navigator.of(context).pop();
         },
-        isWhite: false,
+        withDivider: false,
+        statusBarColor: backgroundColor,
       ),
       body: Padding(
         padding: EdgeInsets.only(bottom: ResponsiveLayout.padding),
@@ -95,24 +98,28 @@ class _DesignStampPageState extends State<DesignStampPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "all_cells_must_be_filled".tr(),
-                          style: theme.textTheme.moMASans400Grey12,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 80),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "all_cells_must_be_filled".tr(),
+                            style: theme.textTheme.moMASans400Grey12
+                                .copyWith(color: AppColor.auQuickSilver),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: AppColor.white,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Container(
-                        color: AppColor.white,
                         child: Column(
                           children: [
                             Container(
@@ -181,8 +188,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                           },
                                     width: 52,
                                     color: AppColor.white,
-                                    borderColor: AppColor.greyMedium,
-                                    textColor: AppColor.greyMedium,
+                                    borderColor: AppColor.disabledColor,
+                                    textColor: AppColor.disabledColor,
                                     child: SvgPicture.asset(
                                       "assets/images/Undo.svg",
                                       width: 16,
@@ -199,9 +206,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                         });
                                       },
                                       text: "randomize".tr(),
-                                      textColor: AppColor.greyMedium,
+                                      textColor: AppColor.disabledColor,
                                       color: AppColor.white,
-                                      borderColor: AppColor.greyMedium,
+                                      borderColor: AppColor.disabledColor,
                                     ),
                                   ),
                                   const SizedBox(width: 10),
@@ -216,8 +223,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                         _modifyStackUndo();
                                       },
                                       text: "clear_all".tr(),
-                                      textColor: AppColor.greyMedium,
-                                      borderColor: AppColor.greyMedium,
+                                      textColor: AppColor.disabledColor,
+                                      borderColor: AppColor.disabledColor,
                                       color: AppColor.white,
                                     ),
                                   ),
@@ -225,39 +232,37 @@ class _DesignStampPageState extends State<DesignStampPage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            PostcardButton(
-                              text: "stamp_postcard".tr(),
-                              onTap: _rectColors
-                                      .any((element) => element == null)
-                                  ? null
-                                  : () async {
-                                      setState(() {
-                                        _line = false;
-                                      });
-                                      Future.delayed(
-                                        const Duration(milliseconds: 200),
-                                        () async {
-                                          final bytes =
-                                              await _controller.capture();
-                                          if (!mounted) return;
-                                          Navigator.of(context).pushNamed(
-                                              HandSignaturePage
-                                                  .handSignaturePage,
-                                              arguments: HandSignaturePayload(
-                                                  bytes!,
-                                                  widget.payload.asset,
-                                                  widget.payload.location
-                                                      .position,
-                                                  _location));
-                                        },
-                                      );
-                                    },
-                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 20),
+                      PostcardButton(
+                        text: "stamp_postcard".tr(),
+                        fontSize: 18,
+                        onTap: _rectColors.any((element) => element == null)
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _line = false;
+                                });
+                                Future.delayed(
+                                  const Duration(milliseconds: 200),
+                                  () async {
+                                    final bytes = await _controller.capture();
+                                    if (!mounted) return;
+                                    Navigator.of(context).pushNamed(
+                                        HandSignaturePage.handSignaturePage,
+                                        arguments: HandSignaturePayload(
+                                            bytes!,
+                                            widget.payload.asset,
+                                            widget.payload.location.position,
+                                            _location));
+                                  },
+                                );
+                              },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
