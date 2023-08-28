@@ -239,7 +239,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
-      
+
       identitiesList.add(state.assetToken?.owner ?? "");
 
       setState(() {
