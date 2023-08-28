@@ -55,7 +55,7 @@ class MetricClientService {
 
     await mixPanelClient.initService();
     isFinishInit = true;
-    await onOpenApp();
+    await injector<MetricClientService>().onOpenApp();
     useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
       await onUseAppInForeground();
     });
@@ -169,6 +169,7 @@ class MetricClientService {
   }
 
   Future<void> onOpenApp() async {
+    const weekDuration = Duration(minutes: 3);
     final weekStartAt = getConfig(MixpanelConfig.weekStartAt,
         defaultValue: DateTime.now().startDayOfWeek) as DateTime;
     final countUseAutonomyInWeek =
@@ -176,12 +177,17 @@ class MetricClientService {
             as int;
     final now = DateTime.now();
     final startDayOfWeek = now.startDayOfWeek;
-    if (startDayOfWeek.isAfter(weekStartAt.add(const Duration(days: 7)))) {
+    if (now.toUtc().isAfter(weekStartAt.add(weekDuration))) {
       addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
         "number": countUseAutonomyInWeek,
         MixpanelEventProp.time: weekStartAt,
       });
-      await setConfig(MixpanelConfig.weekStartAt, startDayOfWeek);
+      DateTime newStart = weekStartAt.add(weekDuration);
+      while (newStart.isBefore(now)) {
+        newStart = newStart.add(weekDuration);
+      }
+      newStart.subtract(weekDuration);
+      await setConfig(MixpanelConfig.weekStartAt, newStart);
       await setConfig(MixpanelConfig.countUseAutonomyInWeek, 0);
     }
   }
@@ -192,5 +198,6 @@ class MetricClientService {
             as int;
     final countUseApp = countUseAutonomyInWeek + 1;
     await setConfig(MixpanelConfig.countUseAutonomyInWeek, countUseApp);
+    await onOpenApp();
   }
 }
