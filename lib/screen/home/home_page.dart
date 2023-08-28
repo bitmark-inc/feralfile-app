@@ -683,7 +683,6 @@ class HomePageState extends State<HomePage>
       }
     }
 
-    refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
     _metricClient.addEvent("device_foreground");
@@ -695,9 +694,7 @@ class HomePageState extends State<HomePage>
             .jwtToken;
 
     final feedService = injector<FeedService>();
-    feedService
-        .refreshJWTToken(jwtToken)
-        .then((value) => feedService.checkNewFeeds());
+    feedService.refreshJWTToken(jwtToken);
 
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();

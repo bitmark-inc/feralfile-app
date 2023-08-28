@@ -188,6 +188,7 @@ class FeedServiceImpl extends FeedService {
 
   @override
   Future checkNewFeeds() async {
+    log.info("[FeedService] checkNewFeeds");
     final lastTimeOpenFeed = _configurationService.getLastTimeOpenFeed();
     final appFeedData = await fetchFeeds(null);
     final tokenEventMap = appFeedData.tokenEventMap;
