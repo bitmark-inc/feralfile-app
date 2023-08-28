@@ -24,7 +24,7 @@ class DomainService {
     if (result == null || result.isEmpty) {
       return null;
     }
-    return result.first['owner']['id'];
+    return result.first['resolvedAddress']['id'];
   }
 
   static Future<String?> getTezosAddress(String domain) async {
