@@ -169,7 +169,7 @@ class MetricClientService {
   }
 
   Future<void> onOpenApp() async {
-    const weekDuration = Duration(minutes: 3);
+    const weekDuration = Duration(minutes: 10);
     final weekStartAt = getConfig(MixpanelConfig.weekStartAt,
         defaultValue: DateTime.now().startDayOfWeek) as DateTime;
     final countUseAutonomyInWeek =
