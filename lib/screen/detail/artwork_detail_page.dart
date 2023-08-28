@@ -239,6 +239,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           state.assetToken!.artistName!.length > 20) {
         identitiesList.add(state.assetToken!.artistName!);
       }
+      state.assetToken?.owner != null
+          ? identitiesList.add(state.assetToken?.owner ?? "")
+          : null;
       setState(() {
         currentAsset = state.assetToken;
       });
@@ -390,7 +393,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(context, asset, artistName),
                       if (asset.fungible == true) ...[
-                        tokenOwnership(context, asset, owners),
+                        tokenOwnership(context, asset, owners,
+                            identityState.identityMap[asset.owner] ?? ""),
                       ] else ...[
                         state.provenances.isNotEmpty
                             ? _provenanceView(context, state.provenances)
