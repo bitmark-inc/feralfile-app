@@ -17,6 +17,14 @@ class FolloweeService {
 
   Future<List<Followee>> getFollowees() async {
     final followees = await _followeeDao.findAllFollowees();
+    final invalidAddresses = followees
+        .where((element) =>
+            element.address.length < 36 ||
+            invalidAddress.contains(element.address))
+        .toList();
+    _followeeDao.deleteFollowees(invalidAddresses);
+    _feedApi.deleteFollows(
+        {"addresses": invalidAddresses.map((e) => e.address).toList()});
     return followees.where((element) => element.isFollowed).toList();
   }
 
@@ -161,3 +169,7 @@ class FolloweeService {
     return followees;
   }
 }
+
+const List<String> invalidAddress = [
+  "0x0000000000000000000000000000000000000000",
+];

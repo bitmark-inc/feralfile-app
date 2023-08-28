@@ -114,7 +114,10 @@ class HomePageState extends State<HomePage>
           /// add following
           final addEvent = event as AddArtistsEvent;
           log.info("AddArtistsEvent ${addEvent.artists}");
-          injector<FolloweeService>().addArtistsCollection(addEvent.artists);
+          final artists = event.artists;
+          artists.removeWhere((element) =>
+              invalidAddress.contains(element) || element.length < 36);
+          injector<FolloweeService>().addArtistsCollection(artists);
           break;
         case RemoveArtistsEvent:
 
