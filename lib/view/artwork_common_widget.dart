@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -1225,7 +1226,7 @@ Widget postcardOwnership(
 }
 
 Widget tokenOwnership(
-    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
+    BuildContext context, AssetToken assetToken, String alias) {
   final theme = Theme.of(context);
 
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
@@ -1233,14 +1234,6 @@ Widget tokenOwnership(
 
   int ownedTokens = assetToken.balance ?? 0;
   final ownerAddress = assetToken.owner;
-  final List<MapEntry<String, int>> values = owners.entries.toList()
-    ..sort((a, b) {
-      return a.key == ownerAddress
-          ? -1
-          : b.key == ownerAddress
-              ? 1
-              : a.key.compareTo(b.key);
-    });
   final tapLink = assetToken.tokenURL;
 
   final totalSentQuantity = sentTokens
@@ -1260,10 +1253,6 @@ Widget tokenOwnership(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "how_many_editions_you_own".tr(),
-          style: theme.textTheme.ppMori400White14,
-        ),
         const SizedBox(height: 32.0),
         MetaDataItem(
           title: "editions".tr(),
@@ -1275,9 +1264,20 @@ Widget tokenOwnership(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        MetaDataMultiItem(
-          title: "owned".tr(),
-          values: values,
+        MetaDataItem(
+          title: "token_holder".tr(),
+          value: alias.isNotEmpty ? alias : ownerAddress.maskOnly(5),
+          tapLink:
+              addressURL(ownerAddress, CryptoType.fromAddress(ownerAddress)),
+          forceSafariVC: true,
+        ),
+        Divider(
+          height: 32.0,
+          color: theme.auLightGrey,
+        ),
+        MetaDataItem(
+          title: "token_held".tr(),
+          value: ownedTokens.toString(),
           tapLink: tapLink,
           forceSafariVC: true,
         ),
@@ -1374,94 +1374,6 @@ class MetaDataItem extends StatelessWidget {
             ),
           ),
         ),
-      ],
-    );
-  }
-}
-
-class MetaDataMultiItem extends StatelessWidget {
-  final String title;
-  final List<MapEntry<String, int>> values;
-  final String? tapLink;
-  final bool? forceSafariVC;
-
-  const MetaDataMultiItem({
-    Key? key,
-    required this.title,
-    required this.values,
-    this.tapLink,
-    this.forceSafariVC,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            title,
-            style: theme.textTheme.ppMori400Grey14,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: values
-                .map(
-                  (e) => Column(
-                    children: [
-                      Row(
-                        children: [
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (tapLink != null &&
-                                      tapLink!.isValidUrl()) {
-                                    final uri = Uri.parse(tapLink!);
-                                    launchUrl(uri,
-                                        mode: forceSafariVC == true
-                                            ? LaunchMode.externalApplication
-                                            : LaunchMode.platformDefault);
-                                  }
-                                },
-                                child: Text(
-                                  e.value.toString(),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style:
-                                      tapLink != null && tapLink!.isValidUrl()
-                                          ? theme.textTheme.ppMori400Green14
-                                          : theme.textTheme.ppMori400White14,
-                                ),
-                              ),
-                              Text(
-                                " (${e.key.maskOnly(5)})",
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: theme.textTheme.ppMori400White14,
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                      if (e != values.last)
-                        const Divider(
-                          color: AppColor.auLightGrey,
-                        ),
-                    ],
-                  ),
-                )
-                .toList(),
-          ),
-        )
       ],
     );
   }
