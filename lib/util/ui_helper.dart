@@ -1586,7 +1586,7 @@ class UIHelper {
                         SvgPicture.asset("assets/images/location.svg"),
                         Text(
                           "web".tr(),
-                          style: theme.textTheme.moMASans700Black16
+                          style: theme.textTheme.moMASans400Black16
                               .copyWith(fontSize: 18),
                         ),
                       ],

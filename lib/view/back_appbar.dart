@@ -23,7 +23,6 @@ AppBar getBackAppBar(
   bool isWhite = true,
   bool withDivider = true,
   Color? backgroundColor,
-  Color? statusBarColor,
 }) {
   final theme = Theme.of(context);
 
@@ -31,7 +30,7 @@ AppBar getBackAppBar(
   final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: statusBarColor ?? secondaryColor,
+        statusBarColor: secondaryColor,
         statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
@@ -171,22 +170,17 @@ AppBar getTitleEditAppBar(BuildContext context,
   );
 }
 
-AppBar getCloseAppBar(
-  BuildContext context, {
-  String title = "",
-  TextStyle? titleStyle,
-  required Function()? onClose,
-  Widget? icon,
-  bool withBottomDivider = true,
-  bool isWhite = true,
-  Color? statusBarColor,
-}) {
+AppBar getCloseAppBar(BuildContext context,
+    {String title = "",
+    required Function()? onClose,
+    Widget? icon,
+    bool withBottomDivider = true,
+    bool isWhite = true}) {
   final theme = Theme.of(context);
   final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
-  final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: statusBarColor ?? secondaryColor,
+      statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
@@ -195,8 +189,7 @@ AppBar getCloseAppBar(
     title: Text(
       title,
       overflow: TextOverflow.ellipsis,
-      style: titleStyle ??
-          theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
+      style: theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
       textAlign: TextAlign.center,
     ),
     actions: [
@@ -229,9 +222,9 @@ AppBar getDarkEmptyAppBar() {
   );
 }
 
-AppBar getLightEmptyAppBar([Color? statusBarColor]) {
+AppBar getLightEmptyAppBar() {
   return AppBar(
-    systemOverlayStyle: systemUiOverlayLightStyle(statusBarColor),
+    systemOverlayStyle: systemUiOverlayLightStyle,
     backgroundColor: Colors.transparent,
     toolbarHeight: 0,
     shadowColor: Colors.transparent,
@@ -245,9 +238,9 @@ SystemUiOverlayStyle get systemUiOverlayDarkStyle => const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.dark,
     );
 
-SystemUiOverlayStyle systemUiOverlayLightStyle(Color? statusBarColor) =>
-    SystemUiOverlayStyle(
-      statusBarColor: statusBarColor ?? AppColor.white,
+SystemUiOverlayStyle get systemUiOverlayLightStyle =>
+    const SystemUiOverlayStyle(
+      statusBarColor: AppColor.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     );

@@ -5,17 +5,14 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -81,18 +78,13 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         asset,
         PostcardButton(
           text: "continue".tr(),
-          fontSize: 18,
           enabled: !(_isProcessing),
           isProcessing: _isProcessing,
           onTap: () async {
             setState(() {
               _isProcessing = true;
             });
-            final pendingToken = await _receivePostcard(context, asset);
-            if (pendingToken != null) {
-              if (!mounted) return;
-              await _onStarted(context, pendingToken);
-            }
+            await _receivePostcard(context, asset);
           },
           color: const Color.fromRGBO(79, 174, 79, 1),
         ),
@@ -100,21 +92,20 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     );
   }
 
-  Future<AssetToken?> _receivePostcard(
-      BuildContext context, AssetToken asset) async {
+  Future<void> _receivePostcard(BuildContext context, AssetToken asset) async {
     GeoLocation? location;
     try {
       location = await getGeoLocationWithPermission(
           timeout: const Duration(seconds: 5));
-      if (location == null) return null;
+      if (location == null) return;
     } catch (e) {
       log.info("[Postcard] Error getting location: $e");
-      if (!mounted) return null;
+      if (!mounted) return;
       await UIHelper.showWeakGPSSignal(context);
       setState(() {
         _isProcessing = false;
       });
-      return null;
+      return;
     }
 
     final blockchain = asset.blockchain;
@@ -129,7 +120,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     } else if (addresses.length == 1) {
       address = addresses.first;
     } else {
-      if (!mounted) return null;
+      if (!mounted) return;
       final response = await Navigator.of(context).pushNamed(
         AppRouter.receivePostcardSelectAccountPage,
         arguments: ReceivePostcardSelectAccountPageArgs(
@@ -139,7 +130,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       );
       address = response as String?;
     }
-    AssetToken? pendingToken;
     if (address != null) {
       try {
         final response = await injector<PostcardService>().receivePostcard(
@@ -151,7 +141,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             .add(UserLocations(claimedLocation: location.position));
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-        pendingToken =
+        final pendingToken =
             asset.copyWith(owner: response.owner, asset: newAsset, balance: 1);
 
         final tokenService = injector<TokensService>();
@@ -160,19 +150,21 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         NftCollectionBloc.eventController.add(
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
-        if (!mounted) return null;
+        if (!mounted) return;
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.homePage,
           (route) => false,
         );
+        Navigator.of(context)
+            .pushNamed(AppRouter.postcardStartedPage, arguments: pendingToken);
       } catch (e) {
         if (e is DioException) {
-          if (!mounted) return null;
+          if (!mounted) return;
           await UIHelper.showReceivePostcardFailed(
             context,
             e,
           );
-          if (!mounted) return null;
+          if (!mounted) return;
           Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.homePage,
             (route) => false,
@@ -185,20 +177,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     setState(() {
       _isProcessing = false;
     });
-    return pendingToken;
-  }
-
-  Future<void> _onStarted(BuildContext context, AssetToken assetToken) async {
-    final counter = assetToken.postcardMetadata.counter;
-    GeoLocation? geoLocation;
-    if (counter <= 1) {
-      geoLocation = moMAGeoLocation;
-    } else {
-      geoLocation = await getGeoLocationWithPermission();
-    }
-    if (!mounted || geoLocation == null) return;
-    Navigator.of(context).pushNamed(AppRouter.designStamp,
-        arguments: DesignStampPayload(assetToken, geoLocation));
   }
 }
 

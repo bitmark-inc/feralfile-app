@@ -381,7 +381,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   ),
                   Text(
                     location,
-                    style: theme.textTheme.moMASans700Black16
+                    style: theme.textTheme.moMASans400Black16
                         .copyWith(fontSize: 18),
                   ),
                 ],
