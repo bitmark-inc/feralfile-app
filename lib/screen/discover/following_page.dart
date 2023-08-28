@@ -34,7 +34,7 @@ class FollowingPage extends StatefulWidget {
   State<FollowingPage> createState() => _FollowingPageState();
 }
 
-class _FollowingPageState extends State<FollowingPage> {
+class _FollowingPageState extends State<FollowingPage> with RouteAware {
   final TextEditingController _controller = TextEditingController();
   GlobalKey _followingListKey = GlobalKey();
   bool _validAddress = false;
@@ -50,6 +50,12 @@ class _FollowingPageState extends State<FollowingPage> {
     context.read<FollowingBloc>().add(GetFolloweeEvent());
     _syncFolloweeDatabase();
     _fetchSuggestedArtists();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   Future<void> _syncFolloweeDatabase() async {
@@ -87,6 +93,7 @@ class _FollowingPageState extends State<FollowingPage> {
     setState(() {
       _validAddress = true;
       _address = value;
+      FocusManager.instance.primaryFocus?.unfocus();
     });
   }
 
