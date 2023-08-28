@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -314,6 +315,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         }
         return Scaffold(
           appBar: AppBar(
+            systemOverlayStyle: systemUiOverlayLightStyle,
             elevation: 1,
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),

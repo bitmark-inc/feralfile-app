@@ -146,6 +146,7 @@ class CollectionProState extends State<CollectionPro>
                             },
                             onCancel: () {
                               setState(() {
+                                searchStr = '';
                                 isSearching = false;
                               });
                             },
@@ -473,24 +474,26 @@ class ActionBar extends StatefulWidget {
   final AuSearchBar searchBar;
   final Function()? onSearch;
   final Function()? onCancel;
+  final bool isShowFull;
 
   const ActionBar(
       {super.key,
       this.searchIcon,
       required this.searchBar,
       this.onSearch,
-      this.onCancel});
+      this.onCancel,
+      this.isShowFull = false});
 
   @override
   State<ActionBar> createState() => _ActionBarState();
 }
 
 class _ActionBarState extends State<ActionBar> {
-  late bool _isSearch;
+  late bool _isShowFull;
 
   @override
   void initState() {
-    _isSearch = false;
+    _isShowFull = widget.isShowFull;
     super.initState();
   }
 
@@ -498,7 +501,7 @@ class _ActionBarState extends State<ActionBar> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _isSearch = !_isSearch;
+          _isShowFull = !_isShowFull;
         });
         widget.onSearch?.call();
       },
@@ -524,10 +527,10 @@ class _ActionBarState extends State<ActionBar> {
         const SizedBox(width: 14),
         GestureDetector(
           onTap: () {
-            setState(() {
-              _isSearch = !_isSearch;
-            });
             widget.onCancel?.call();
+            setState(() {
+              _isShowFull = !_isShowFull;
+            });
           },
           child: Text(
             "Cancel",
@@ -540,7 +543,7 @@ class _ActionBarState extends State<ActionBar> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isSearch) {
+    if (_isShowFull) {
       return _searchingBar(context);
     }
     return Row(

@@ -146,7 +146,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
                 children: [
                   Text(
                     (name?.isNotEmpty ?? false) ? name! : 'Untitled',
-                    style: theme.textTheme.ppMori400Black14,
+                    style: theme.textTheme.ppMori400White14,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const Spacer(),

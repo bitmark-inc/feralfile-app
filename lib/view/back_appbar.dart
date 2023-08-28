@@ -237,13 +237,21 @@ SystemUiOverlayStyle get systemUiOverlayLightStyle =>
       statusBarBrightness: Brightness.light,
     );
 
-AppBar getDoneAppBar(BuildContext context,
-    {required String title,
-    Function()? onDone,
-    Function()? onCancel,
-    PreferredSize? bottom}) {
+AppBar getDoneAppBar(
+  BuildContext context, {
+  required String title,
+  Function()? onDone,
+  Function()? onCancel,
+  PreferredSize? bottom,
+  bool isWhite = true,
+}) {
   final theme = Theme.of(context);
   return AppBar(
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
+      statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
+      statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
+    ),
     elevation: 1,
     leadingWidth: 80,
     leading: GestureDetector(

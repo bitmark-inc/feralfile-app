@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/play_control_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 
 class PlayListModel {
@@ -81,5 +82,9 @@ class PlayListModel {
               map['playControlModel'] as Map<String, dynamic>)
           : null,
     );
+  }
+
+  String getName() {
+    return name ?? tr('untitled');
   }
 }

@@ -43,10 +43,12 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
   List<AssetToken> tokensPlaylist = [];
   final _controller = ScrollController();
   late String _searchText;
+  late bool _showSearchBar;
 
   @override
   void initState() {
     _searchText = '';
+    _showSearchBar = false;
     super.initState();
 
     _controller.addListener(_scrollListenerToLoadMore);
@@ -132,68 +134,88 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
       builder: (context, state) {
         return Scaffold(
           backgroundColor: theme.colorScheme.background, //theme.primaryColor,
-          appBar: getDoneAppBar(context,
-              title: "adding_to".tr(namedArgs: {
-                "title": widget.playList.name ?? '',
-              }), onDone: () {
-            final nftState = nftBloc.state;
-            final selectedCount = nftState.tokens.items
-                .where((element) =>
-                    state.selectedIDs?.contains(element.id) ?? false)
-                .length;
-            if (selectedCount <= 0) {
-              return;
-            }
-            bloc.add(
-              CreatePlaylist(
-                name: widget.playList.name ?? '',
-              ),
-            );
-          }, onCancel: () {
-            Navigator.pop(context);
-            final metricClient = injector<MetricClientService>();
-            metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
-          },
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(75),
-                child: ActionBar(
-                  searchBar: AuSearchBar(
-                    onChanged: (text) {
-                      setState(() {
-                        _searchText = text;
-                      });
-                    },
-                  ),
+          appBar: getDoneAppBar(
+            context,
+            title: "adding_to".tr(namedArgs: {
+              "title": widget.playList.getName(),
+            }),
+            onDone: () {
+              final nftState = nftBloc.state;
+              final selectedCount = nftState.tokens.items
+                  .where((element) =>
+                      state.selectedIDs?.contains(element.id) ?? false)
+                  .length;
+              if (selectedCount <= 0) {
+                return;
+              }
+              bloc.add(
+                CreatePlaylist(
+                  name: widget.playList.name ?? '',
                 ),
-              )),
+              );
+            },
+            onCancel: () {
+              Navigator.pop(context);
+              final metricClient = injector<MetricClientService>();
+              metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
+            },
+            bottom: _showSearchBar
+                ? PreferredSize(
+                    preferredSize: const Size.fromHeight(75),
+                    child: ActionBar(
+                      searchBar: AuSearchBar(
+                        onChanged: (text) {
+                          setState(() {
+                            _searchText = text;
+                          });
+                        },
+                      ),
+                      isShowFull: true,
+                      onCancel: () {
+                        setState(() {
+                          _searchText = '';
+                          _showSearchBar = false;
+                        });
+                      },
+                    ),
+                  )
+                : null,
+          ),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                 bloc: nftBloc,
                 builder: (context, nftState) {
-                  return SafeArea(
-                    top: false,
-                    bottom: false,
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: NftCollectionGrid(
-                            state: nftState.state,
-                            tokens: nftState.tokens.items,
-                            loadingIndicatorBuilder: loadingView,
-                            customGalleryViewBuilder: (context, tokens) =>
-                                _assetsWidget(
-                              context,
-                              setupPlayList(tokens: tokens),
-                              onChanged: (tokenID, value) => bloc.add(
-                                UpdateItemPlaylist(
-                                    tokenID: tokenID, value: value),
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      setState(() {
+                        _showSearchBar = true;
+                      });
+                    },
+                    child: SafeArea(
+                      top: false,
+                      bottom: false,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: NftCollectionGrid(
+                              state: nftState.state,
+                              tokens: nftState.tokens.items,
+                              loadingIndicatorBuilder: loadingView,
+                              customGalleryViewBuilder: (context, tokens) =>
+                                  _assetsWidget(
+                                context,
+                                setupPlayList(tokens: tokens),
+                                onChanged: (tokenID, value) => bloc.add(
+                                  UpdateItemPlaylist(
+                                      tokenID: tokenID, value: value),
+                                ),
+                                selectedTokens: state.selectedIDs,
                               ),
-                              selectedTokens: state.selectedIDs,
                             ),
-                          ),
-                        )
-                      ],
+                          )
+                        ],
+                      ),
                     ),
                   );
                 }),
