@@ -3,7 +3,7 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class FolloweeDao {
-  @Query('SELECT * FROM Followee')
+  @Query('SELECT * FROM Followee order by createdAt DESC')
   Future<List<Followee>> findAllFollowees();
 
   @Query('SELECT * FROM Followee WHERE address IN (:addresses)')

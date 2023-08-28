@@ -691,7 +691,8 @@ class _$FolloweeDao extends FolloweeDao {
 
   @override
   Future<List<Followee>> findAllFollowees() async {
-    return _queryAdapter.queryList('SELECT * FROM Followee',
+    return _queryAdapter.queryList(
+        'SELECT * FROM Followee order by createdAt DESC',
         mapper: (Map<String, Object?> row) => Followee(
             address: row['address'] as String,
             type: row['type'] as int,

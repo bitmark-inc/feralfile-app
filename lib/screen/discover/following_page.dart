@@ -99,13 +99,12 @@ class _FollowingPageState extends State<FollowingPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(context,
           onBack: () => Navigator.pop(context),
           isWhite: false,
           title: "discover_feed_addresses".tr()),
-      backgroundColor: theme.primaryColor,
+      backgroundColor: AppColor.primaryBlack,
       body: SingleChildScrollView(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
