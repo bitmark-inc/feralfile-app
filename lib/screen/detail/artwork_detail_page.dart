@@ -256,7 +256,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       if (state.assetToken != null) {
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
-        final owners = state.owners;
         final artistName =
             asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
@@ -393,7 +392,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       const SizedBox(height: 40.0),
                       artworkDetailsMetadataSection(context, asset, artistName),
                       if (asset.fungible == true) ...[
-                        tokenOwnership(context, asset, owners,
+                        tokenOwnership(context, asset,
                             identityState.identityMap[asset.owner] ?? ""),
                       ] else ...[
                         state.provenances.isNotEmpty

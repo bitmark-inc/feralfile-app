@@ -1225,8 +1225,8 @@ Widget postcardOwnership(
   );
 }
 
-Widget tokenOwnership(BuildContext context, AssetToken assetToken,
-    Map<String, int> owners, String alias) {
+Widget tokenOwnership(
+    BuildContext context, AssetToken assetToken, String alias) {
   final theme = Theme.of(context);
 
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
