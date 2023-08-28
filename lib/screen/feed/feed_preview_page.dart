@@ -465,7 +465,7 @@ class _FeedViewState extends State<FeedView> {
     }
   }
 
-  Widget _controlViewWhenNoAsset(FeedEvent event) {
+  Widget _controlViewWhenNoAsset(BuildContext context, FeedEvent event) {
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -536,17 +536,8 @@ class _FeedViewState extends State<FeedView> {
     final asset = widget.feedToken;
     final events = widget.feedEvents;
     if (asset == null) {
-      return _controlViewWhenNoAsset(events.first);
+      return _controlViewWhenNoAsset(context, events.first);
     }
-    final neededIdentities = [
-      asset.artistName ?? '',
-      ...events.map((e) => e.recipient)
-    ];
-    neededIdentities.removeWhere((element) => element == '');
-    if (neededIdentities.isNotEmpty) {
-      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
-    }
-
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
