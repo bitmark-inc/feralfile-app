@@ -293,7 +293,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         listenWhen: (previous, current) {
       if (previous.assetToken?.postcardMetadata.isCompleted != true &&
           current.assetToken?.postcardMetadata.isCompleted == true &&
-          current.assetToken?.isAlreadyShowYouDidIt == false) {
+          current.assetToken?.isAlreadyShowYouDidIt == false &&
+          isViewOnly == false) {
         _youDidIt(context, current.assetToken!);
       }
       return true;
