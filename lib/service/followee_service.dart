@@ -25,6 +25,7 @@ class FolloweeService {
     _followeeDao.deleteFollowees(invalidAddresses);
     _feedApi.deleteFollows(
         {"addresses": invalidAddresses.map((e) => e.address).toList()});
+    followees.removeWhere((element) => invalidAddresses.contains(element));
     return followees.where((element) => element.isFollowed).toList();
   }
 
