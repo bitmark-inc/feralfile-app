@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/position_utils.dart';
 
 class PostcardMetadata {
   List<UserLocations> locationInformation;
@@ -216,4 +217,11 @@ class Location {
 
   @override
   int get hashCode => lat.hashCode ^ lon.hashCode;
+
+  Future<String> getAddress() async {
+    if (isNull) {
+      return internetUserGeoLocation.address;
+    }
+    return getLocationNameFromCoordinates(lat!, lon!);
+  }
 }
