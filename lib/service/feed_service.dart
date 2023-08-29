@@ -442,6 +442,8 @@ class FeedServiceImpl extends FeedService {
         indexerIDs.add(feed.indexerID);
       }
 
+      log.info("[FeedService] indexerIDs ${indexerIDs.length}: $indexerIDs");
+
       final indexerService = injector<IndexerService>();
 
       final List<AssetToken> tokens = indexerIDs.isNotEmpty
@@ -458,7 +460,8 @@ class FeedServiceImpl extends FeedService {
 
       final missingTokenIDs =
           eventsWithMissingToken.map((e) => e.indexerID).toList();
-
+      log.info(
+          "[FeedService] missingTokens ${missingTokenIDs.length}: $missingTokenIDs");
       _isolateSendPort?.send(FetchFeedsSuccess(
         uuid,
         AppFeedData(
