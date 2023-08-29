@@ -11,6 +11,7 @@ class PlaylistControl extends StatelessWidget {
   final Function()? onShuffleTap;
   final Function()? onCastTap;
   final bool showPlay;
+  final bool isCasting;
 
   const PlaylistControl({
     Key? key,
@@ -20,6 +21,7 @@ class PlaylistControl extends StatelessWidget {
     this.showPlay = true,
     required this.playControl,
     this.onCastTap,
+    required this.isCasting,
   }) : super(key: key);
 
   @override
@@ -123,6 +125,7 @@ class PlaylistControl extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: CastButton(
                   onCastTap: () => {onCastTap?.call()},
+                  isCasting: isCasting,
                 ),
               )
             ]

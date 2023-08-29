@@ -8,9 +8,10 @@ abstract class CanvasDeviceEvent {}
 
 class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   final String sceneId;
+  final bool syncAll;
 
   // constructor
-  CanvasDeviceGetDevicesEvent(this.sceneId);
+  CanvasDeviceGetDevicesEvent(this.sceneId, {this.syncAll = true});
 }
 
 class CanvasDevicePlayEvent extends CanvasDeviceEvent {
@@ -110,7 +111,8 @@ class CanvasDeviceState {
 
   bool get isCasting {
     return devices.firstWhereOrNull((deviceState) {
-          return deviceState.status == DeviceStatus.playing;
+          return deviceState.status == DeviceStatus.playing &&
+              deviceState.device.playingSceneId == sceneId;
         }) !=
         null;
   }
@@ -157,8 +159,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           sceneId: event.sceneId,
           isLoaded: state.devices.isNotEmpty));
       final devices =
-          await _canvasClientService.getConnectingDevices(doSync: true);
-      emit(CanvasDeviceState(
+          await _canvasClientService.getConnectingDevices(doSync: event.syncAll);
+      emit(state.copyWith(
           devices: devices
               .map((e) => DeviceState(
                   device: e,
