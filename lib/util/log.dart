@@ -85,6 +85,12 @@ class FileLogger {
     return _logFile;
   }
 
+  static setLogFile(File file) {
+    _logFile = file;
+  }
+
+  static get logFile => _logFile;
+
   static Future log(LogRecord record) async {
     final text = '${record.toString()}\n';
     debugPrint(text);

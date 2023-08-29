@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -21,6 +22,7 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/graphql/clients/indexer_client.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -148,6 +150,7 @@ class FeedServiceImpl extends FeedService {
       Environment.feedURL,
       Environment.indexerURL,
       dotenv,
+      FileLogger.logFile,
     ]);
   }
 
@@ -231,11 +234,11 @@ class FeedServiceImpl extends FeedService {
 
     final receivePort = ReceivePort();
     receivePort.listen(_handleMessageInIsolate);
-
     _setupInjector(
       arguments[1],
       arguments[2],
       arguments[3],
+      arguments[5],
     );
     sendPort.send(receivePort.sendPort);
     _isolateSendPort = sendPort;
@@ -306,9 +309,14 @@ class FeedServiceImpl extends FeedService {
   }
 
   static void _setupInjector(
-      String jwtToken, String feedURL, String indexerURL) {
+      String jwtToken, String feedURL, String indexerURL, File logFile) {
     _quickAuthInterceptor = QuickAuthInterceptor(jwtToken);
-
+    FileLogger.setLogFile(logFile);
+    Logger.root.level = Level.ALL; // defaults to Level.INFO
+    Logger.root.onRecord.listen((record) {
+      FileLogger.log(record);
+      SentryBreadcrumbLogger.log(record);
+    });
     final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
     authenticatedDio.interceptors.add(_quickAuthInterceptor);
     authenticatedDio.interceptors.add(LoggingInterceptor());
@@ -351,6 +359,8 @@ class FeedServiceImpl extends FeedService {
         indexerIDs.add(feed.indexerID);
       }
 
+      log.info("[FeedService] indexerIDs ${indexerIDs.length}: $indexerIDs");
+
       final indexerService = injector<IndexerService>();
 
       final List<AssetToken> tokens = indexerIDs.isNotEmpty
@@ -367,7 +377,8 @@ class FeedServiceImpl extends FeedService {
 
       final missingTokenIDs =
           eventsWithMissingToken.map((e) => e.indexerID).toList();
-
+      log.info(
+          "[FeedService] missingTokens ${missingTokenIDs.length}: $missingTokenIDs");
       _isolateSendPort?.send(FetchFeedsSuccess(
         uuid,
         AppFeedData(
