@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
@@ -113,12 +114,6 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
         title: ArtworkDetailsHeader(
           title: assetToken?.title ?? '',
           subTitle: subTitle,
-          onTitleTap: assetToken?.secondaryMarketURL.isValidUrl() == true
-              ? () {
-                  Navigator.of(context).pushNamed(AppRouter.irlWebView,
-                      arguments: assetToken!.secondaryMarketURL);
-                }
-              : null,
           onSubTitleTap: assetToken!.artistID != null
               ? () => Navigator.of(context).pushNamed(AppRouter.galleryPage,
                   arguments: GalleryPagePayload(
@@ -129,6 +124,13 @@ class _FeedArtworkDetailsPageState extends State<FeedArtworkDetailsPage>
               : null,
         ),
         actions: [
+          Semantics(
+            label: 'externalLink',
+            child: ExternalLink(
+              link: assetToken?.secondaryMarketURL ?? "",
+              color: AppColor.white,
+            ),
+          ),
           IconButton(
             onPressed: () => Navigator.pop(context),
             constraints: const BoxConstraints(

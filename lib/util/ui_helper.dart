@@ -325,6 +325,68 @@ class UIHelper {
     );
   }
 
+  static Future<void> showRawDialog(
+    BuildContext context,
+    Widget content, {
+    bool isDismissible = true,
+    isRoundCorner = true,
+    Color? backgroundColor,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+  }) async {
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    return await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor ?? theme.auGreyBackground,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              padding: const EdgeInsets.fromLTRB(15, 15, 15, 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    content,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   static Future<void> showFlexibleDialog(
     BuildContext context,
     Widget content, {
