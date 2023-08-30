@@ -78,7 +78,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       payload: PostcardExplainPayload(
         asset,
         PostcardButton(
-          text: "xcontinue".tr(),
+          text: "continue".tr(),
           fontSize: 18,
           enabled: !(_isProcessing),
           isProcessing: _isProcessing,
