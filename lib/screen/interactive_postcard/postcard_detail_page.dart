@@ -1057,10 +1057,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               ),
             ],
           ),
-          Positioned.fill(
+          const Positioned.fill(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: const VerticalDivider(
+              child: VerticalDivider(
                 color: Colors.black,
                 thickness: 1,
               ),
