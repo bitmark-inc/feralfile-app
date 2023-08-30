@@ -22,7 +22,13 @@ class TravelInfoBloc extends Bloc<TravelInfoEvent, TravelInfoState> {
         await e.getLocationName();
       }));
       final location = event.asset.postcardMetadata.locationInformation;
-      final lastTravelInfo = TravelInfo(location.last, null, location.length);
+      final lastTravelInfo = TravelInfo(location.lastWhere(
+        (element) {
+          final stampLocation = element.stampedLocation;
+          if (stampLocation == null) return false;
+          return !stampLocation.isNull && !stampLocation.isInternet;
+        },
+      ), null, location.length);
       await lastTravelInfo.getLocationName();
       emit(TravelInfoState(
           listTravelInfo: travelInfo, lastTravelInfo: lastTravelInfo));

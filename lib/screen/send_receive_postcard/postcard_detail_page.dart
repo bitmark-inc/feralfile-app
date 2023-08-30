@@ -122,7 +122,7 @@ class _PostcardDetailPageState extends State<PostcardDetailPage> {
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
         final travelInfoWithoutInternet =
-            asset.postcardMetadata.listTravelInfoWithoutInternetUser;
+            asset.postcardMetadata.listTravelInfoWithoutLocationName;
         if (travelInfo == null) {
           return const SizedBox();
         }
