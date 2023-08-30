@@ -44,10 +44,7 @@ import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
-import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:autonomy_flutter/view/artwork_common_widgetostcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -385,7 +382,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               backgroundColor: POSTCARD_BACKGROUND_COLOR,
               resizeToAvoidBottomInset: !hasKeyboard,
               appBar: AppBar(
-                systemOverlayStyle: systemUiOverlayDarkStyle,
                 leadingWidth: 0,
                 systemOverlayStyle: const SystemUiOverlayStyle(
                   statusBarColor: POSTCARD_BACKGROUND_COLOR,
