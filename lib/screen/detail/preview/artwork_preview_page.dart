@@ -230,7 +230,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<void> _onCastTap(AssetToken? assetToken) async {
     keyboardManagerKey.currentState?.hideKeyboard();
-    UIHelper.showFlexibleDialog(
+    await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
         value: _canvasDeviceBloc,
@@ -243,6 +243,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       ),
       isDismissible: true,
     );
+    _fetchDevice(assetToken?.id ?? "");
   }
 
   @override
@@ -263,7 +264,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final identityState = context.watch<IdentityBloc>().state;
         final artistName =
             assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
-
+        _fetchDevice(assetToken?.id ?? "");
         var subTitle = "";
         if (artistName != null && artistName.isNotEmpty) {
           subTitle = artistName;
@@ -440,6 +441,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
       },
     );
+  }
+
+  Future<void> _fetchDevice(String tokenID) async {
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(tokenID, syncAll: false));
   }
 }
 

@@ -60,8 +60,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     ));
 
     _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    _fetchDevice();
 
     bloc.add(GetPlayList(playListModel: widget.playListModel));
+    _fetchDevice();
   }
 
   Future<void> deletePlayList() async {
@@ -349,51 +351,68 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         }
                       })),
               const SizedBox(height: 22),
-              PlaylistControl(
-                playControl: playControlModel,
-                showPlay: accountIdentities.isNotEmpty,
-                onShuffleTap: onShuffleTap,
-                onTimerTap: onTimerTap,
-                onPlayTap: () {
-                  final payload = ArtworkDetailPayload(
-                    accountIdentities,
-                    0,
-                    playControl: playControlModel,
-                  );
-                  Navigator.of(context).pushNamed(
-                    AppRouter.artworkPreviewPage,
-                    arguments: payload,
-                  );
-                },
-                onCastTap: () {
-                  final playlist = widget.playListModel;
-                  if (playlist?.tokenIDs == null ||
-                      playlist!.tokenIDs!.isEmpty) {
-                    log.info("Cast collection failed: playlist empty");
-                    return;
-                  }
-                  playlist.playControlModel = playControlModel;
-                  UIHelper.showFlexibleDialog(
-                    context,
-                    BlocProvider.value(
-                      value: _canvasDeviceBloc,
-                      child: CanvasDeviceView(
-                        sceneId: "",
-                        isCollection: true,
-                        playlist: playlist,
-                        onClose: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
-                    isDismissible: true,
-                  );
-                },
-              ),
+              BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: _canvasDeviceBloc,
+                  builder: (context, state) {
+                    return PlaylistControl(
+                      playControl: playControlModel,
+                      showPlay: accountIdentities.isNotEmpty,
+                      onShuffleTap: onShuffleTap,
+                      onTimerTap: onTimerTap,
+                      isCasting: state.isCasting,
+                      onPlayTap: () {
+                        final payload = ArtworkDetailPayload(
+                          accountIdentities,
+                          0,
+                          playControl: playControlModel,
+                        );
+                        Navigator.of(context).pushNamed(
+                          AppRouter.artworkPreviewPage,
+                          arguments: payload,
+                        );
+                      },
+                      onCastTap: () async {
+                        final playlist = widget.playListModel;
+                        if (playlist?.tokenIDs == null ||
+                            playlist!.tokenIDs!.isEmpty) {
+                          log.info("Cast collection failed: playlist empty");
+                          return;
+                        }
+                        playlist.playControlModel = playControlModel;
+                        await _openCanvasDeviceDialog(context, playlist);
+                        _fetchDevice();
+                      },
+                    );
+                  })
             ],
           ),
         )
       ],
+    );
+  }
+
+  Future<void> _fetchDevice() async {
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(
+        widget.playListModel?.id ?? "",
+        syncAll: false));
+  }
+
+  Future<void> _openCanvasDeviceDialog(
+      BuildContext context, PlayListModel playlist) async {
+    await UIHelper.showFlexibleDialog(
+      context,
+      BlocProvider.value(
+        value: _canvasDeviceBloc,
+        child: CanvasDeviceView(
+          sceneId: widget.playListModel?.id ?? "",
+          isCollection: true,
+          playlist: playlist,
+          onClose: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      isDismissible: true,
     );
   }
 }
