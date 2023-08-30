@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -89,6 +91,8 @@ abstract class PostcardService {
   Future<void> checkNotification();
 
   Future<PostcardLeaderboard> fetchPostcardLeaderboard();
+
+  String getTokenId(String id);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -379,15 +383,25 @@ class PostcardServiceImpl extends PostcardService {
     );
     final tokens = await _indexerService.getNftTokens(request);
     leaderboardResponse.items.map((e) {
-      e.title = tokens
-              .firstWhereOrNull((element) => element.tokenId == e.id)
-              ?.title ??
-          "Unknown";
+      final token =
+          tokens.firstWhereOrNull((element) => element.tokenId == e.id);
+      if (token == null) {
+        return e;
+      }
+      e.title = token.title ?? "unknown".tr();
+      e.creators =
+          token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
+      e.previewUrl = token.galleryThumbnailURL ?? "";
       return e;
     }).toList();
 
     return PostcardLeaderboard(
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
+  }
+
+  @override
+  String getTokenId(String id) {
+    return "tez-${Environment.postcardContractAddress}-$id";
   }
 }
 
