@@ -217,13 +217,13 @@ class _FollowingPageState extends State<FollowingPage> with RouteAware {
   Widget _suggestedArtistItem(BuildContext context, SuggestedArtist artist) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
       child: Row(
         children: [
           Expanded(
             child: Text(
               artist.domain.isNotEmpty ? artist.domain : artist.name,
-              style: theme.textTheme.ppMori400White14,
+              style: theme.textTheme.ppMori700White14,
             ),
           ),
           AddButton(
@@ -300,11 +300,11 @@ class _FolloweesListState extends State<FolloweesList> {
         followee == _selectedFollowee ? AppColor.auQuickSilver : AppColor.white;
     final name = hasName ? identity : followee.address.maskOnly(5);
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
       child: Row(
         children: [
           Text(name,
-              style: theme.textTheme.ppMori400White14.copyWith(color: color)),
+              style: theme.textTheme.ppMori700White14.copyWith(color: color)),
           const Spacer(),
           followee.canRemove
               ? RemoveButton(
