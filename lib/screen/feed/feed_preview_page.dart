@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/entity/followee.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -20,12 +21,14 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -92,6 +95,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
 
   late FeedBloc _bloc;
   final _metricClient = injector<MetricClientService>();
+  late FeedState _state;
 
   @override
   void initState() {
@@ -129,6 +133,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       body: BlocConsumer<FeedBloc, FeedState>(
           listener: (context, state) {},
           builder: (context, state) {
+            _state = state;
             if (state.error != null) {
               return Padding(
                 padding:
@@ -139,8 +144,8 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                 ),
               );
             }
-            if (state.feedTokenEventsMap?.isEmpty ?? true) {
-              return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
+            if (_state.feedTokenEventsMap?.isEmpty ?? true) {
+              return _emptyOrLoadingDiscoveryWidget(_state.appFeedData);
             }
             _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
             return Column(children: [
@@ -173,9 +178,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => _listItem(
-                            state.feedTokenEventsMap!.entries.elementAt(index)),
-                        childCount: state.feedTokenEventsMap?.length ?? 0,
+                        (context, index) => _listItem(_state
+                            .feedTokenEventsMap!.entries
+                            .elementAt(index)),
+                        childCount: _state.feedTokenEventsMap?.length ?? 0,
                       ),
                     )
                   ],
@@ -196,7 +202,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
         create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
         child: Align(
             alignment: Alignment.topCenter,
-            child: FeedView(feedEvents: entry.value, feedToken: entry.key)),
+            child: FeedView(
+              feedEvents: entry.value,
+              feedToken: entry.key,
+            )),
       ),
     );
   }
@@ -434,6 +443,8 @@ class FeedView extends StatefulWidget {
   const FeedView({Key? key, required this.feedEvents, this.feedToken})
       : super(key: key);
 
+  static final List<String> hiddenFeeds = [];
+
   @override
   State<FeedView> createState() => _FeedViewState();
 }
@@ -533,6 +544,9 @@ class _FeedViewState extends State<FeedView> {
 
   @override
   Widget build(BuildContext context) {
+    if (FeedView.hiddenFeeds.contains(widget.feedToken?.id)) {
+      return const SizedBox();
+    }
     final asset = widget.feedToken;
     final events = widget.feedEvents;
     if (asset == null) {
@@ -556,8 +570,6 @@ class _FeedViewState extends State<FeedView> {
                           .toIdentityOrMask(identityState.identityMap) ??
                       event.recipient)
                   .toList();
-              final followingTime =
-                  getDateTimeRepresentation(events.first.timestamp.toLocal());
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -617,15 +629,33 @@ class _FeedViewState extends State<FeedView> {
                                 ]
                               ],
                             ),
-                            if (followingNames.join().trim().isNotEmpty) ...[
-                              const Spacer(),
-                              Text(
-                                  events.length > 1
-                                      ? "last_time_format"
-                                          .tr(args: [followingTime])
-                                      : followingTime,
-                                  style: theme.textTheme.ppMori400Grey12),
-                            ]
+                            const Spacer(),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 15),
+                              child: IconButton(
+                                tooltip: "AppbarAction",
+                                constraints:
+                                    const BoxConstraints(maxWidth: 36.0),
+                                onPressed: () async {
+                                  Followee? followee;
+                                  if (followingNames.length == 1) {
+                                    final followees =
+                                        await injector<FolloweeService>()
+                                            .getFromAddresses(
+                                                [followingNames.first]);
+                                    if (followees.isNotEmpty &&
+                                        followees.first.canRemove) {
+                                      followee = followees.first;
+                                    }
+                                  }
+                                  await _showMoreDialog(followee);
+                                },
+                                icon: const Icon(
+                                  Icons.more_horiz,
+                                  color: AppColor.disabledColor,
+                                ),
+                              ),
+                            )
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -645,10 +675,10 @@ class _FeedViewState extends State<FeedView> {
                               : asset.title ?? "",
                           subTitle: artistName ?? '',
                           onTitleTap: () {
+                            final payload = FeedDetailPayload(asset, events);
                             Navigator.of(context).pushNamed(
-                              AppRouter.irlWebView,
-                              arguments: asset.secondaryMarketURL,
-                            );
+                                AppRouter.feedArtworkDetailsPage,
+                                arguments: payload);
                           },
                           onSubTitleTap: asset.artistID != null
                               ? () => Navigator.of(context)
@@ -671,5 +701,37 @@ class _FeedViewState extends State<FeedView> {
         ],
       ),
     );
+  }
+
+  Future<void> _showMoreDialog(Followee? followee) async {
+    if (!mounted) return;
+    UIHelper.showRawDialog(
+        context,
+        Column(
+          children: [
+            if (followee != null) ...[
+              OutlineButton(
+                onTap: () async {
+                  await injector<FolloweeService>()
+                      .removeArtistManual(followee);
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                },
+                text: "remove_address_from_feed".tr(),
+              ),
+              const SizedBox(height: 10),
+            ],
+            OutlineButton(
+              onTap: () {
+                injector<ConfigurationService>()
+                    .setHiddenFeed([widget.feedToken?.id ?? ""]);
+                FeedView.hiddenFeeds.add(widget.feedToken?.id ?? "");
+                setState(() {});
+                Navigator.pop(context);
+              },
+              text: "hide".tr().capitalize(),
+            ),
+          ],
+        ));
   }
 }

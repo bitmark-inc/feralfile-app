@@ -424,7 +424,7 @@ class AccountServiceImpl extends AccountService {
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     await _configurationService
         .setHideLinkedAccountInGallery([address], isEnabled);
-    _addressService.setIsHiddenAddresses([address], isEnabled);
+    await _addressService.setIsHiddenAddresses([address], isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
@@ -433,13 +433,13 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled) async {
-    Future.wait(addresses
+    await Future.wait(addresses
         .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
-    _addressService.setIsHiddenAddresses(addresses, isEnabled);
+    await _addressService.setIsHiddenAddresses(addresses, isEnabled);
     injector<SettingsDataService>().backup();
     final metricClient = injector.get<MetricClientService>();
     metricClient.addEvent(MixpanelEvent.hideAddresses,
-        hashedData: {"address": addresses});
+        hashedData: {"addresses": addresses.join("||")});
   }
 
   @override

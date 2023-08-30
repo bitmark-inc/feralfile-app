@@ -40,11 +40,11 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
 
         final appFeedData =
             state.appFeedData?.insert(newAppFeedData) ?? newAppFeedData;
-
+        final hiddenFeeds = _configurationService.getHiddenFeeds();
         final Map<AssetToken, List<FeedEvent>> tokenEventMap = {};
         for (FeedEvent event in appFeedData.events) {
           final token = appFeedData.findTokenRelatedTo(event);
-          if (token == null) continue;
+          if (token == null || hiddenFeeds.contains(token.id)) continue;
 
           if (tokenEventMap[token] != null) {
             tokenEventMap[token]!.add(event);

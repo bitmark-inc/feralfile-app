@@ -20,6 +20,7 @@ AppBar getBackAppBar(
   Widget? icon,
   Widget? titleIcon,
   Function()? action,
+      List<Widget>? actions,
   bool isWhite = true,
   bool withDivider = true,
   Color? backgroundColor,
@@ -64,6 +65,7 @@ AppBar getBackAppBar(
       ],
     ),
     actions: [
+      ...actions ?? [],
       action != null
           ? Padding(
               padding: const EdgeInsets.only(right: 15),

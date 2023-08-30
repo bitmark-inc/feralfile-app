@@ -25,6 +25,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
+  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false});
+
+  List<String> getHiddenFeeds();
+
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
 
   int? getAnnouncementLastPullTime();
@@ -284,9 +288,16 @@ abstract class ConfigurationService {
   bool getAlreadyClaimedAirdrop(String seriesId);
 
   Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
+
+  // set and get for did_sync_artists
+  Future<void> setDidSyncArtists(bool value);
+
+  bool getDidSyncArtists();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
+  static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
   static const String IS_PREMIUM = "is_premium";
@@ -1294,5 +1305,35 @@ class ConfigurationServiceImpl implements ConfigurationService {
       data.remove(seriesId);
     }
     await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
+  }
+
+  @override
+  bool getDidSyncArtists() {
+    // get did sync artists
+    return _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
+  }
+
+  @override
+  Future<void> setDidSyncArtists(bool value) {
+    // set did sync artists
+    return _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
+  }
+
+  @override
+  List<String> getHiddenFeeds() {
+    return _preferences.getStringList(KEY_HIDDEN_FEEDS) ?? [];
+  }
+
+  @override
+  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false}) {
+    if (isOverride) {
+      return _preferences.setStringList(KEY_HIDDEN_FEEDS, tokenIds);
+    } else {
+      final currentHiddenFeeds = getHiddenFeeds();
+      currentHiddenFeeds.addAll(tokenIds);
+      currentHiddenFeeds.toSet().toList();
+      return _preferences.setStringList(
+          KEY_HIDDEN_FEEDS, currentHiddenFeeds.toSet().toList());
+    }
   }
 }

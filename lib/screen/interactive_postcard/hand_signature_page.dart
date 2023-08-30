@@ -189,9 +189,12 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
           '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';
       File imageFile = File(imagePath);
       File metadataFile = File(metadataPath);
-
+      final claimLocation =
+          asset.postcardMetadata.locationInformation.last.claimedLocation!;
+      final claimAddress = await claimLocation.getAddress();
       final Map<String, dynamic> metadata = {
-        "address": widget.payload.address,
+        "address": widget.payload.address, // stamp address
+        "claimAddress": claimAddress,
         "stampedAt": DateTime.now().toIso8601String()
       };
       await imageFile.writeAsBytes(img.encodePng(image));
