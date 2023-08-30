@@ -3,20 +3,17 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 class PostcardExplain extends StatefulWidget {
@@ -191,13 +188,17 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       text: "by_continuing".tr(),
                     ),
                     TextSpan(
-                        text: "terms_and_conditions".tr(),
-                        style: termsConditionsStyle.copyWith(
-                            decoration: TextDecoration.underline),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => launchUrl(
-                              Uri.parse(MOMA_TERMS_CONDITIONS_URL),
-                              mode: LaunchMode.externalApplication)),
+                      text: "terms_and_conditions".tr(),
+                      /*
+                      style: termsConditionsStyle.copyWith(
+                          decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                            Uri.parse(MOMA_TERMS_CONDITIONS_URL),
+                            mode: LaunchMode.externalApplication),
+
+                       */
+                    ),
                     const TextSpan(
                       text: ".",
                     ),
