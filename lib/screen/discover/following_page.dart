@@ -296,9 +296,8 @@ class _FolloweesListState extends State<FolloweesList> {
       BuildContext context, Followee followee, String? identity) {
     final theme = Theme.of(context);
     final hasName = identity != null && identity.isNotEmpty;
-    final color = hasName && followee != _selectedFollowee
-        ? AppColor.white
-        : AppColor.auQuickSilver;
+    final color =
+        followee == _selectedFollowee ? AppColor.auQuickSilver : AppColor.white;
     final name = hasName ? identity : followee.address.maskOnly(5);
     return Padding(
       padding: const EdgeInsets.all(10),

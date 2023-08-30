@@ -1925,6 +1925,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
   final bool hideArtist;
   final Function? onTitleTap;
   final Function? onSubTitleTap;
+  final bool isReverse;
 
   const ArtworkDetailsHeader({
     Key? key,
@@ -1933,6 +1934,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
     this.hideArtist = false,
     this.onTitleTap,
     this.onSubTitleTap,
+    this.isReverse = false,
   }) : super(key: key);
 
   @override
@@ -1948,8 +1950,9 @@ class ArtworkDetailsHeader extends StatelessWidget {
             },
             child: Text(
               subTitle,
-              style: theme.textTheme.ppMori700White14
-                  .copyWith(color: AppColor.auSuperTeal),
+              style: theme.textTheme.ppMori700White14.copyWith(
+                  color: AppColor.auSuperTeal,
+                  fontWeight: isReverse ? FontWeight.w400 : null),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1960,8 +1963,9 @@ class ArtworkDetailsHeader extends StatelessWidget {
           },
           child: Text(
             title,
-            style: theme.textTheme.ppMori400White14
-                .copyWith(color: AppColor.auSuperTeal),
+            style: theme.textTheme.ppMori400White14.copyWith(
+                color: AppColor.auSuperTeal,
+                fontWeight: isReverse ? FontWeight.w700 : null),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

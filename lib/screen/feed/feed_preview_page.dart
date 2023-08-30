@@ -570,6 +570,8 @@ class _FeedViewState extends State<FeedView> {
                           .toIdentityOrMask(identityState.identityMap) ??
                       event.recipient)
                   .toList();
+              final followingTime =
+                  getDateTimeRepresentation(events.first.timestamp.toLocal());
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,17 +672,18 @@ class _FeedViewState extends State<FeedView> {
                           height: 15,
                         ),
                         ArtworkDetailsHeader(
-                          title: asset.title != null && asset.title!.isEmpty
+                          isReverse: true,
+                          subTitle: asset.title != null && asset.title!.isEmpty
                               ? 'nft'.tr()
                               : asset.title ?? "",
-                          subTitle: artistName ?? '',
-                          onTitleTap: () {
+                          title: artistName ?? '',
+                          onSubTitleTap: () {
                             final payload = FeedDetailPayload(asset, events);
                             Navigator.of(context).pushNamed(
                                 AppRouter.feedArtworkDetailsPage,
                                 arguments: payload);
                           },
-                          onSubTitleTap: asset.artistID != null
+                          onTitleTap: asset.artistID != null
                               ? () => Navigator.of(context)
                                   .pushNamed(AppRouter.galleryPage,
                                       arguments: GalleryPagePayload(
@@ -690,6 +693,12 @@ class _FeedViewState extends State<FeedView> {
                                       ))
                               : null,
                         ),
+                        const SizedBox(height: 10),
+                        Text(
+                            events.length > 1
+                                ? "last_time_format".tr(args: [followingTime])
+                                : followingTime,
+                            style: theme.textTheme.ppMori400Grey12),
                         const SizedBox(height: 60)
                       ],
                     ),
