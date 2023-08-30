@@ -179,6 +179,7 @@ class _StampPreviewState extends State<StampPreview> {
         text: widget.payload.asset.postcardMetadata.isCompleted
             ? "complete_postcard_journey_".tr()
             : "confirm_your_design".tr(),
+        fontSize: 18,
         onTap: () async {
           await _onConfirm();
         },
@@ -186,20 +187,21 @@ class _StampPreviewState extends State<StampPreview> {
     }
     if (state.isPostcardUpdatingOnBlockchain) {
       return PostcardCustomButton(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              "confirming_on_blockchain".tr(),
-              style: theme.textTheme.moMASans700Black14,
-            ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: DotsLoading(),
-            ),
-          ],
-        ),
-      );
+          disableColor: AppColor.disabledColor,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "confirming_on_blockchain".tr(),
+                style:
+                    theme.textTheme.moMASans700Black14.copyWith(fontSize: 18),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 5),
+                child: DotsLoading(),
+              ),
+            ],
+          ));
     }
     if (state.isPostcardUpdating) {
       return PostcardCustomButton(
@@ -208,7 +210,7 @@ class _StampPreviewState extends State<StampPreview> {
           children: [
             Text(
               "updating_token".tr(),
-              style: theme.textTheme.moMASans700Black14,
+              style: theme.textTheme.moMASans700Black14.copyWith(fontSize: 18),
             ),
             const Padding(
               padding: EdgeInsets.only(bottom: 5),

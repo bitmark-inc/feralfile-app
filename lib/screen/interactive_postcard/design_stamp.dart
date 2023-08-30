@@ -239,6 +239,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                       PostcardButton(
                         text: "stamp_postcard".tr(),
                         fontSize: 18,
+                        disabledTextColor: Colors.white,
+                        enabled: !_rectColors.any((element) => element == null),
                         onTap: _rectColors.any((element) => element == null)
                             ? null
                             : () async {

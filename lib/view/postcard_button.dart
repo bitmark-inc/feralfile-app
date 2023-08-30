@@ -11,6 +11,7 @@ class PostcardButton extends StatelessWidget {
   final bool isProcessing;
   final bool enabled;
   final Color? textColor;
+  final Color? disabledTextColor;
   final double? fontSize;
 
   const PostcardButton({
@@ -23,6 +24,7 @@ class PostcardButton extends StatelessWidget {
     this.enabled = true,
     this.isProcessing = false,
     this.textColor,
+    this.disabledTextColor,
     this.fontSize,
   }) : super(key: key);
 
@@ -30,7 +32,7 @@ class PostcardButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const defaultActiveColor = Colors.amber;
-    final defaultDisabledColor = theme.auLightGrey;
+    const defaultDisabledColor = AppColor.disabledColor;
     final backgroundColor = enabled
         ? color ?? defaultActiveColor
         : disabledColor ?? defaultDisabledColor; //theme.auLightGrey;
@@ -67,8 +69,9 @@ class PostcardButton extends StatelessWidget {
                     : const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.moMASans700Black14
-                      .copyWith(color: textColor, fontSize: fontSize),
+                  style: theme.textTheme.moMASans700Black14.copyWith(
+                      color: enabled ? textColor : disabledTextColor,
+                      fontSize: fontSize),
                 ),
               ],
             ),
@@ -86,6 +89,7 @@ class PostcardCustomButton extends StatelessWidget {
   final bool isProcessing;
   final bool enabled;
   final Widget child;
+  final Color? disableColor;
 
   const PostcardCustomButton({
     Key? key,
@@ -95,21 +99,24 @@ class PostcardCustomButton extends StatelessWidget {
     required this.child,
     this.enabled = true,
     this.isProcessing = false,
+    this.disableColor,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const defaultActiveColor = Colors.amber;
+    const defaultDisabledColor = AppColor.disabledColor;
     return SizedBox(
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              enabled ? color ?? defaultActiveColor : theme.auLightGrey,
+          backgroundColor: enabled
+              ? color ?? defaultActiveColor
+              : disableColor ?? defaultDisabledColor,
           shadowColor: Colors.transparent,
-          disabledForegroundColor: theme.auLightGrey,
-          disabledBackgroundColor: theme.auLightGrey,
+          disabledForegroundColor: disableColor ?? defaultDisabledColor,
+          disabledBackgroundColor: disableColor ?? defaultDisabledColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
