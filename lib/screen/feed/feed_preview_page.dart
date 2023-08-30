@@ -653,7 +653,7 @@ class _FeedViewState extends State<FeedView> {
                                 ? "last_time_format".tr(args: [followingTime])
                                 : followingTime,
                             style: theme.textTheme.ppMori400Grey12),
-                        const SizedBox(height: 60)
+                        const SizedBox(height: 50)
                       ],
                     ),
                   ),
@@ -701,24 +701,27 @@ class _FeedViewState extends State<FeedView> {
   Widget _eventInfoWidget(BuildContext context, List<FeedEvent> events,
       List<String> followingNames) {
     final theme = Theme.of(context);
-    return Wrap(
-      runSpacing: 4.0,
-      spacing: 4.0,
-      children: [
-        ..._recipientInfoWidgets(context, events, followingNames),
-        if (followingNames.join().trim().isNotEmpty) ...[
-          RichText(
-            text: TextSpan(
-              style: theme.textTheme.ppMori400White14,
-              children: [
-                TextSpan(
-                  text: events.first.actionRepresentation,
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Wrap(
+        runSpacing: 4.0,
+        spacing: 4.0,
+        children: [
+          ..._recipientInfoWidgets(context, events, followingNames),
+          if (followingNames.join().trim().isNotEmpty) ...[
+            RichText(
+              text: TextSpan(
+                style: theme.textTheme.ppMori400White14,
+                children: [
+                  TextSpan(
+                    text: events.first.actionRepresentation,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ]
-      ],
+          ]
+        ],
+      ),
     );
   }
 
