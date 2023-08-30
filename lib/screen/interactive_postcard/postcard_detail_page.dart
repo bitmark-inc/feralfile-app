@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard_view.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_start_stamping.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
@@ -42,6 +43,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -249,7 +251,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final asset = state.assetToken;
     if (asset == null) return;
     final wallet = await asset.getOwnerWallet();
-    if (wallet == null || !mounted) return;
+    if (wallet == null) return;
+    if (!mounted) return;
     Navigator.of(context).pushNamed(
       ChatThreadPage.tag,
       arguments: ChatThreadPagePayload(
@@ -360,6 +363,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               backgroundColor: theme.colorScheme.primary,
               resizeToAvoidBottomInset: !hasKeyboard,
               appBar: AppBar(
+                systemOverlayStyle: systemUiOverlayDarkStyle,
                 leadingWidth: 0,
                 centerTitle: false,
                 title: ArtworkDetailsHeader(
@@ -553,8 +557,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context)
-              .pushNamed(AppRouter.postcardStartedPage, arguments: asset);
+          Navigator.of(context).pushNamed(AppRouter.startStampingPostcardPage,
+              arguments: StartStampingPostCardPagePayload(asset: asset));
         },
       );
     }

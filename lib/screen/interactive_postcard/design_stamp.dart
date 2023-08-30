@@ -82,14 +82,14 @@ class _DesignStampPageState extends State<DesignStampPage> {
     const backgroundColor = AppColor.chatPrimaryColor;
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: getBackAppBar(
+      appBar: getCloseAppBar(
         context,
         title: "design_your_stamp".tr(),
         titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
-        onBack: () {
+        onClose: () {
           Navigator.of(context).pop();
         },
-        withDivider: false,
+        withBottomDivider: false,
         statusBarColor: backgroundColor,
       ),
       body: Padding(

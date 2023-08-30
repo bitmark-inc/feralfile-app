@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -158,8 +159,8 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
           AppRouter.homePage,
           (route) => false,
         );
-        Navigator.of(context)
-            .pushNamed(AppRouter.postcardStartedPage, arguments: pendingToken);
+        Navigator.of(context).pushNamed(AppRouter.designStamp,
+            arguments: DesignStampPayload(pendingToken, location));
       } catch (e) {
         if (e is DioException) {
           if (!mounted) return null;
