@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -54,12 +55,14 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
   @override
   Widget build(BuildContext context) {
+    const backgroundColor = AppColor.chatPrimaryColor;
     return Scaffold(
-      backgroundColor: AppColor.primaryBlack,
+      backgroundColor: backgroundColor,
+      appBar: getLightEmptyAppBar(backgroundColor),
       body: RotatedBox(
         quarterTurns: -1,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 15, 50, 15),
+          padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -126,7 +129,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         enabled: !loading,
                         text: "clear".tr(),
                         color: AppColor.white,
-                        textColor: AppColor.auGrey,
+                        textColor: AppColor.auQuickSilver,
                       ),
                     ),
                     Expanded(

@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -160,6 +159,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   Widget _page1() {
     final theme = Theme.of(context);
+    final termsConditionsStyle = theme.textTheme.moMASans400Grey12
+        .copyWith(color: AppColor.auQuickSilver);
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -179,19 +180,31 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 style: theme.textTheme.moMASans400Black14,
               ),
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  Text(
-                      "game_runs_from_".tr(
-                        namedArgs: {
-                          "from": POSRCARD_GAME_START,
-                          "to": POSRCARD_GAME_END,
-                        },
-                      ),
-                      style: theme.textTheme.moMASans400Grey12
-                          .copyWith(color: AppColor.auQuickSilver)),
-                ],
-              ),
+              RichText(
+                text: TextSpan(
+                  style: termsConditionsStyle,
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: "by_continuing".tr(),
+                    ),
+                    TextSpan(
+                      text: "terms_and_conditions".tr(),
+                      /*
+                      style: termsConditionsStyle.copyWith(
+                          decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                            Uri.parse(MOMA_TERMS_CONDITIONS_URL),
+                            mode: LaunchMode.externalApplication),
+
+                       */
+                    ),
+                    const TextSpan(
+                      text: ".",
+                    ),
+                  ],
+                ),
+              )
             ],
           )
         ],

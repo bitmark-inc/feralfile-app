@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +36,9 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
     return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
         listener: (context, state) {
           if (state.isClaimed == true) {
-            Navigator.of(context).popAndPushNamed(AppRouter.postcardStartedPage,
-                arguments: state.assetToken!);
+            Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
+                arguments:
+                    DesignStampPayload(state.assetToken!, moMAGeoLocation));
           }
           if (state.error != null && state.error!.isNotEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -54,6 +57,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                 artwork,
                 PostcardButton(
                   text: "continue".tr(),
+                  fontSize: 18,
                   enabled: state.isClaiming != true,
                   isProcessing: state.isClaiming == true,
                   onTap: () {

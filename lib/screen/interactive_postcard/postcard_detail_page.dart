@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_start_stamping.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
@@ -267,7 +268,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final asset = state.assetToken;
     if (asset == null) return;
     final wallet = await asset.getOwnerWallet();
-    if (wallet == null || !mounted) return;
+    if (wallet == null) return;
+    if (!mounted) return;
     Navigator.of(context).pushNamed(
       ChatThreadPage.tag,
       arguments: ChatThreadPagePayload(
@@ -606,8 +608,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context)
-              .pushNamed(AppRouter.postcardStartedPage, arguments: asset);
+          Navigator.of(context).pushNamed(AppRouter.startStampingPostcardPage,
+              arguments: StartStampingPostCardPagePayload(asset: asset));
         },
       );
     }
