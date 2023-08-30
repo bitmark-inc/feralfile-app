@@ -60,7 +60,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     final json = await File(widget.jsonPath!).readAsBytes();
     base64Json = base64Encode(json);
     base64Image = base64Encode(image);
-    final index = widget.assetToken.postcardMetadata.counter;
+    final index = widget.assetToken.postcardMetadata.counter - 1;
     if (base64Image != null && base64Json != null) {
       log.info("[Postcard] getNewStamp");
       log.info("[Postcard] $index");
