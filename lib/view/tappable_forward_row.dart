@@ -14,12 +14,14 @@ class TappableForwardRow extends StatelessWidget {
   final Widget? rightWidget;
   final Function()? onTap;
   final EdgeInsets padding;
+  final Widget? forwardIcon;
 
   const TappableForwardRow(
       {Key? key,
       this.leftWidget,
       this.rightWidget,
       required this.onTap,
+      this.forwardIcon,
       this.padding = const EdgeInsets.symmetric(vertical: 16)})
       : super(key: key);
 
@@ -44,7 +46,8 @@ class TappableForwardRow extends StatelessWidget {
               rightWidget ?? const SizedBox(),
               if (onTap != null) ...[
                 const SizedBox(width: 8.0),
-                SvgPicture.asset('assets/images/iconForward.svg'),
+                forwardIcon ??
+                    SvgPicture.asset('assets/images/iconForward.svg'),
               ],
             ],
           )
@@ -59,6 +62,7 @@ class TappableForwardRowWithContent extends StatelessWidget {
   final Widget? rightWidget;
   final Widget bottomWidget;
   final Function()? onTap;
+
   const TappableForwardRowWithContent(
       {Key? key,
       required this.leftWidget,

@@ -112,7 +112,7 @@ class NotificationService {
                 jsonDecode(notificationPayload.metadata));
             navigationService.popUntilHome();
             navigationService.navigateTo(AppRouter.claimedPostcardDetailsPage,
-                arguments: ArtworkDetailPayload([
+                arguments: PostcardDetailPagePayload([
                   ArtworkIdentity(postcardIdentity.id, postcardIdentity.owner)
                 ], 0));
         }

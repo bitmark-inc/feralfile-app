@@ -366,7 +366,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        SvgPicture.asset("assets/images/postcard_location_explain_4.svg"),
+        Image.asset(imagePath),
         const SizedBox(width: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +381,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   ),
                   Text(
                     location,
-                    style: theme.textTheme.moMASans700Black16
+                    style: theme.textTheme.moMASans400Black16
                         .copyWith(fontSize: 18),
                   ),
                 ],
@@ -412,19 +412,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   context: context,
                   location: "Berlin, Germany",
                   distance: 3964,
-                  imagePath: "assets/images/postcard_location_explain_1.svg"),
+                  imagePath: "assets/images/postcard_location_explain_1.png"),
               const SizedBox(height: 16),
               _locationExplainItem(
                   context: context,
                   location: "Paris, France",
                   distance: 545,
-                  imagePath: "assets/images/postcard_location_explain_2.svg"),
+                  imagePath: "assets/images/postcard_location_explain_2.png"),
               const SizedBox(height: 16),
               _locationExplainItem(
                   context: context,
                   location: "Reykjavík, Iceland",
                   distance: 1340,
-                  imagePath: "assets/images/postcard_location_explain_3.svg"),
+                  imagePath: "assets/images/postcard_location_explain_3.png"),
             ],
           ),
           const SizedBox(height: 60),
