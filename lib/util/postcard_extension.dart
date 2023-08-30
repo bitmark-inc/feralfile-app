@@ -35,7 +35,8 @@ extension PostcardMetadataExtension on PostcardMetadata {
       } else {
         travelInfo.add(TravelInfo(stamps[i - 1], stamp, i));
       }
-      if (!(stamp.stampedLocation?.isInternet ?? true)) {
+      if (!(stamp.stampedLocation?.isInternet ?? true) &&
+          !(stamp.claimedLocation?.isInternet ?? true)) {
         lastStampLocation = i;
       }
     }

@@ -1115,7 +1115,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             Text(
                               distanceFormatter.format(
                                   distance: travelInfo.getDistance()),
-                              style: theme.textTheme.moMASans400Black12
+                              style: theme.textTheme.moMASans700Black12
                                   .copyWith(
                                       color: overrideColor ??
                                           const Color.fromRGBO(
