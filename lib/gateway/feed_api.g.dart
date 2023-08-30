@@ -32,7 +32,7 @@ class _FeedApi implements FeedApi {
     )
         .compose(
           _dio.options,
-          '/v1/follows/',
+          '/v2/follows/',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -59,7 +59,7 @@ class _FeedApi implements FeedApi {
     )
         .compose(
           _dio.options,
-          '/v1/follows/',
+          '/v2/follows/',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -95,7 +95,7 @@ class _FeedApi implements FeedApi {
     )
             .compose(
               _dio.options,
-              '/v1/follows',
+              '/v2/follows',
               queryParameters: queryParameters,
               data: _data,
             )
