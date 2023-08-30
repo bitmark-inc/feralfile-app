@@ -20,7 +20,7 @@ AppBar getBackAppBar(
   Widget? icon,
   Widget? titleIcon,
   Function()? action,
-      List<Widget>? actions,
+  List<Widget>? actions,
   bool isWhite = true,
   bool withDivider = true,
   Color? backgroundColor,
