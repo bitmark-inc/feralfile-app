@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -117,7 +118,7 @@ class _StampPreviewState extends State<StampPreview> {
                   if (!mounted) return;
                   Navigator.of(context).pushNamed(
                     AppRouter.claimedPostcardDetailsPage,
-                    arguments: ArtworkDetailPayload(
+                    arguments: PostcardDetailPagePayload(
                         [widget.payload.asset.identity], 0),
                   );
                   _configurationService.setAutoShowPostcard(true);
@@ -137,7 +138,7 @@ class _StampPreviewState extends State<StampPreview> {
               Navigator.of(context).pushNamed(
                 AppRouter.claimedPostcardDetailsPage,
                 arguments:
-                    ArtworkDetailPayload([state.assetToken!.identity], 0),
+                    PostcardDetailPagePayload([state.assetToken!.identity], 0),
               );
               _configurationService.setAutoShowPostcard(true);
             }
