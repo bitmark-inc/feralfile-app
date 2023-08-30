@@ -23,6 +23,8 @@ class AuTextField extends StatelessWidget {
   final int? maxLines;
   final int? hintMaxLines;
   final FocusNode? focusNode;
+  final bool isDark;
+  final bool widePadding;
 
   const AuTextField({
     Key? key,
@@ -39,6 +41,8 @@ class AuTextField extends StatelessWidget {
     this.onSubmit,
     this.labelSemantics,
     this.focusNode,
+    this.isDark = false,
+    this.widePadding = false,
   }) : super(key: key);
 
   @override
@@ -50,16 +54,20 @@ class AuTextField extends StatelessWidget {
     return Semantics(
       label: labelSemantics,
       child: Container(
-          padding: title.isNotEmpty || suffix != null
+          padding: (title.isNotEmpty || suffix != null) && !widePadding
               ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
               : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
           decoration: BoxDecoration(
             border: Border.all(
                 color: isEmpty
-                    ? AppColor.auLightGrey
+                    ? isDark
+                        ? AppColor.auQuickSilver
+                        : AppColor.auLightGrey
                     : isError
                         ? AppColor.red
-                        : theme.colorScheme.primary),
+                        : isDark
+                            ? AppColor.white
+                            : theme.colorScheme.primary),
             borderRadius: BorderRadius.circular(5),
           ),
           child: Row(
@@ -126,8 +134,12 @@ class AuTextField extends StatelessWidget {
                   .copyWith(color: AppColor.auQuickSilver, fontSize: 20),
         ),
         keyboardType: keyboardType,
-        style: theme.textTheme.ppMori400Black14
-            .copyWith(color: isError ? AppColor.red : null),
+        style: theme.textTheme.ppMori400Black14.copyWith(
+            color: isError
+                ? AppColor.red
+                : isDark
+                    ? AppColor.white
+                    : null),
         controller: controller,
         onChanged: onChanged,
         onSubmitted: onSubmit ?? onChanged,

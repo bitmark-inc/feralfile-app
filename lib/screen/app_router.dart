@@ -57,6 +57,8 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/discover/following_bloc.dart';
+import 'package:autonomy_flutter/screen/discover/following_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
@@ -230,6 +232,7 @@ class AppRouter {
       injector(),
       injector<AuditService>(),
     );
+    final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -286,14 +289,24 @@ class AppRouter {
             settings: settings,
             child: MultiBlocProvider(
               providers: [
-                BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                BlocProvider(create: (_) => identityBloc),
               ],
               child: PreviewPrimerPage(
                 token: settings.arguments as AssetToken,
               ),
             ));
+
+      case FollowingPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => identityBloc,
+                  ),
+                  BlocProvider(
+                    create: (_) => FollowingBloc(injector()),
+                  ),
+                ], child: const FollowingPage()));
 
       case homePageNoTransition:
         return PageRouteBuilder(
@@ -304,8 +317,7 @@ class AppRouter {
                         create: (_) => HomeBloc(
                               injector(),
                             )),
-                    BlocProvider(
-                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
                               injector(),
@@ -335,8 +347,7 @@ class AppRouter {
                         create: (_) => HomeBloc(
                               injector(),
                             )),
-                    BlocProvider(
-                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
                               injector(),
@@ -395,8 +406,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(
                   providers: [
-                    BlocProvider(
-                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                     BlocProvider(
                         create: (_) => PostcardDetailBloc(
                               injector(),
@@ -494,8 +504,7 @@ class AppRouter {
                   BlocProvider(create: (_) => personaBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                 ], child: const SettingsPage()));
 
       case personaConnectionsPage:
@@ -604,10 +613,7 @@ class AppRouter {
                   ),
                 ),
                 BlocProvider(
-                  create: (_) => IdentityBloc(
-                    injector<AppDatabase>(),
-                    injector(),
-                  ),
+                  create: (_) => identityBloc,
                 ),
                 BlocProvider(
                   create: (_) => CanvasDeviceBloc(
@@ -679,9 +685,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
-                  BlocProvider(
-                      create: (_) =>
-                          IdentityBloc(injector<AppDatabase>(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                 ],
                 child: FeedArtworkDetailsPage(
                   payload: settings.arguments as FeedDetailPayload,
@@ -694,8 +698,7 @@ class AppRouter {
                     providers: [
                       BlocProvider(
                           create: (_) => GalleryBloc(injector(), injector())),
-                      BlocProvider(
-                          create: (_) => IdentityBloc(injector(), injector())),
+                      BlocProvider(create: (_) => identityBloc),
                     ],
                     child: GalleryPage(
                       payload: settings.arguments as GalleryPagePayload,
@@ -710,8 +713,7 @@ class AppRouter {
             child: MultiBlocProvider(
                 providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
@@ -736,8 +738,7 @@ class AppRouter {
             child: MultiBlocProvider(
                 providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(
@@ -912,9 +913,7 @@ class AppRouter {
                         injector(),
                         injector(),
                         (settings.arguments as SendArtworkPayload).asset)),
-                BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                BlocProvider(create: (_) => identityBloc),
               ],
               child: SendArtworkPage(
                   payload: settings.arguments as SendArtworkPayload)),
@@ -924,8 +923,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) =>
-                      IdentityBloc(injector<AppDatabase>(), injector()),
+                  create: (_) => identityBloc,
                   child: SendArtworkReviewPage(
                       payload: settings.arguments as SendArtworkReviewPayload),
                 ));
@@ -1043,9 +1041,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return MultiBlocProvider(providers: [
-                BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(injector<AppDatabase>(), injector())),
+                BlocProvider(create: (_) => identityBloc),
               ], child: const DataManagementPage());
             });
       case helpUsPage:
@@ -1097,9 +1093,7 @@ class AppRouter {
               final args = settings.arguments as ReceivePostcardPageArgs;
               return MultiBlocProvider(
                 providers: [
-                  BlocProvider(
-                      create: (_) =>
-                          IdentityBloc(injector<AppDatabase>(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                 ],
                 child: ReceivePostCardPage(
                   asset: args.asset,
@@ -1123,9 +1117,7 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider.value(value: accountsBloc),
-                    BlocProvider(
-                        create: (_) =>
-                            IdentityBloc(injector<AppDatabase>(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                   ],
                   child: PostcardDetailPage(
                     asset: settings.arguments as AssetToken,

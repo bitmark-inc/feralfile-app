@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -106,13 +107,30 @@ class HomePageState extends State<HomePage>
         case ReloadEvent:
         case GetTokensByOwnerEvent:
         case UpdateTokensEvent:
+        case GetTokensBeforeByOwnerEvent:
           nftBloc.add(event);
+          break;
+        case AddArtistsEvent:
+
+          /// add following
+          final addEvent = event as AddArtistsEvent;
+          log.info("AddArtistsEvent ${addEvent.artists}");
+          final artists = event.artists;
+          artists.removeWhere((element) =>
+              invalidAddress.contains(element) || element.length < 36);
+          injector<FolloweeService>().addArtistsCollection(artists);
+          break;
+        case RemoveArtistsEvent:
+
+          /// remove following
+          final removeEvent = event as RemoveArtistsEvent;
+          log.info("RemoveArtistsEvent ${removeEvent.artists}");
+          injector<FolloweeService>()
+              .deleteArtistsCollection(removeEvent.artists);
           break;
         default:
       }
     });
-
-    refreshFeeds();
     _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
@@ -158,7 +176,7 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    _clientTokenService.refreshTokens().then((value) => refreshFeeds());
+    _clientTokenService.refreshTokens();
     refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
@@ -178,13 +196,6 @@ class HomePageState extends State<HomePage>
   }
 
   void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
-    final artistIds = tokens
-        .map((e) => e.artistID)
-        .where((value) => value?.isNotEmpty == true)
-        .map((e) => e as String)
-        .toList();
-    injector<FeedService>().refreshFollowings(artistIds);
-
     //check minted postcard and naviagtor to artwork detail
     final config = injector.get<ConfigurationService>();
     final listTokenMints = config.getListPostcardMint();
@@ -575,10 +586,6 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  void refreshFeeds() async {
-    await injector<FeedService>().checkNewFeeds();
-  }
-
   void scrollToTop() {
     _controller.animateTo(0,
         duration: const Duration(milliseconds: 500),
@@ -686,7 +693,6 @@ class HomePageState extends State<HomePage>
       }
     }
 
-    refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
     _metricClient.addEvent("device_foreground");
@@ -698,9 +704,7 @@ class HomePageState extends State<HomePage>
             .jwtToken;
 
     final feedService = injector<FeedService>();
-    feedService
-        .refreshJWTToken(jwtToken)
-        .then((value) => feedService.checkNewFeeds());
+    feedService.refreshJWTToken(jwtToken);
 
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();

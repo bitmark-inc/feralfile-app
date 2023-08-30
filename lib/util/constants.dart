@@ -471,7 +471,6 @@ class MixpanelEvent {
   static const timeViewDiscovery = 'time_view_discovery';
   static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
-  static const unhandledError = 'unhandled_error';
   static const signIn = 'Sign In';
   static const sign = 'Sign';
   static const linkWallet = 'link_wallet';

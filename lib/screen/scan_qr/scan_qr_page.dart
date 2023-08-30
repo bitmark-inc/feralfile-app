@@ -524,22 +524,7 @@ class _ScanQRPageState extends State<ScanQRPage>
             */
           } else if (_isCanvasQrCode(code)) {
             _lock.synchronized(() async {
-              final result = await _handleCanvasQrCode(code);
-              if (result) {
-                if (!mounted) return;
-                await UIHelper.showInfoDialog(
-                  context,
-                  "connected".tr(),
-                  "canvas_connected".tr(),
-                  closeButton: "close".tr(),
-                  onClose: () => UIHelper.hideInfoDialog(
-                      injector<NavigationService>()
-                          .navigatorKey
-                          .currentContext!),
-                  autoDismissAfter: 3,
-                  isDismissible: true,
-                );
-              }
+              await _handleCanvasQrCode(code);
             });
           } else {
             _handleError(code);
