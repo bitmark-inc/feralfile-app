@@ -864,6 +864,7 @@ class SectionExpandedWidget extends StatefulWidget {
   final Widget? iconOnExpanded;
   final Widget? iconOnUnExpaneded;
   final bool withDivicer;
+  final EdgeInsets padding;
 
   const SectionExpandedWidget(
       {Key? key,
@@ -873,7 +874,8 @@ class SectionExpandedWidget extends StatefulWidget {
       this.child,
       this.iconOnExpanded,
       this.iconOnUnExpaneded,
-      this.withDivicer = true})
+      this.withDivicer = true,
+      this.padding = const EdgeInsets.all(0)})
       : super(key: key);
 
   @override
@@ -891,63 +893,66 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
       size: 12,
       color: theme.colorScheme.secondary,
     );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.withDivicer)
-              Divider(
-                color: theme.colorScheme.secondary,
-                thickness: 1,
-              ),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: widget.headerPadding ?? EdgeInsets.zero,
-                  child: Row(
-                    children: [
-                      Text(
-                        widget.header ?? '',
-                        style: widget.headerStyle ??
-                            theme.textTheme.ppMori400White16,
-                      ),
-                      const Spacer(),
-                      _isExpanded
-                          ? (widget.iconOnExpanded ??
-                              RotatedBox(
-                                quarterTurns: -1,
-                                child: defaultIcon,
-                              ))
-                          : widget.iconOnUnExpaneded ??
-                              RotatedBox(
-                                quarterTurns: 1,
-                                child: defaultIcon,
-                              )
-                    ],
+    return Padding(
+      padding: widget.padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (widget.withDivicer)
+                Divider(
+                  color: theme.colorScheme.secondary,
+                  thickness: 1,
+                ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: Padding(
+                    padding: widget.headerPadding ?? EdgeInsets.zero,
+                    child: Row(
+                      children: [
+                        Text(
+                          widget.header ?? '',
+                          style: widget.headerStyle ??
+                              theme.textTheme.ppMori400White16,
+                        ),
+                        const Spacer(),
+                        _isExpanded
+                            ? (widget.iconOnExpanded ??
+                                RotatedBox(
+                                  quarterTurns: -1,
+                                  child: defaultIcon,
+                                ))
+                            : widget.iconOnUnExpaneded ??
+                                RotatedBox(
+                                  quarterTurns: 1,
+                                  child: defaultIcon,
+                                )
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-        Visibility(
-          visible: _isExpanded,
-          child: Column(
-            children: [
-              const SizedBox(height: 23.0),
-              widget.child ?? const SizedBox(),
             ],
           ),
-        )
-      ],
+          Visibility(
+            visible: _isExpanded,
+            child: Column(
+              children: [
+                const SizedBox(height: 23.0),
+                widget.child ?? const SizedBox(),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }
@@ -1123,6 +1128,7 @@ Widget artworkDetailsMetadataSection(
           : assetToken.id.split("-").last;
   return SectionExpandedWidget(
     header: "metadata".tr(),
+    padding: const EdgeInsets.only(bottom: 23),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1500,6 +1506,7 @@ Widget tokenOwnership(
 
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
+    padding: const EdgeInsets.only(bottom: 23),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1768,6 +1775,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
     children: [
       SectionExpandedWidget(
         header: "provenance".tr(),
+        padding: const EdgeInsets.only(bottom: 23),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1921,6 +1929,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
       if (state.markdownData != null) {
         return SectionExpandedWidget(
           header: "rights".tr(),
+          padding: const EdgeInsets.only(bottom: 23),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

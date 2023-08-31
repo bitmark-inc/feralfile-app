@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -123,6 +124,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
         appBar: isFullScreen
             ? null
             : AppBar(
+                systemOverlayStyle: systemUiOverlayDarkStyle,
                 backgroundColor: theme.colorScheme.primary,
                 leadingWidth: 0,
                 centerTitle: false,
