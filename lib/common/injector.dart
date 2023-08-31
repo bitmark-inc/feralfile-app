@@ -162,7 +162,8 @@ Future<void> setup() async {
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
-  (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
+  (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
+      parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
