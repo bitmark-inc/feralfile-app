@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
@@ -209,7 +210,7 @@ class HomePageState extends State<HomePage>
           .toList();
       if (config.isAutoShowPostcard()) {
         log.info("Auto show minted postcard");
-        final payload = ArtworkDetailPayload(tokenMints, 0);
+        final payload = PostcardDetailPagePayload(tokenMints, 0);
         Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,
@@ -415,7 +416,9 @@ class HomePageState extends State<HomePage>
                     .where((e) => e.pending != true || e.hasMetadata)
                     .toList()
                     .indexOf(asset);
-                final payload = ArtworkDetailPayload(accountIdentities, index);
+                final payload = asset.isPostcard
+                    ? PostcardDetailPagePayload(accountIdentities, index)
+                    : ArtworkDetailPayload(accountIdentities, index);
 
                 final pageName = asset.isPostcard
                     ? AppRouter.claimedPostcardDetailsPage
@@ -553,7 +556,7 @@ class HomePageState extends State<HomePage>
           return Tipcard(
             titleText: "moma_postcard".tr(),
             onPressed: () async {
-              final payload = ArtworkDetailPayload(
+              final payload = PostcardDetailPagePayload(
                   [ArtworkIdentity(e.tokenID, e.owner)], 0);
               Navigator.of(context).pushNamed(
                   AppRouter.claimedPostcardDetailsPage,

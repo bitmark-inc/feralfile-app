@@ -116,6 +116,11 @@ const double cellSpacing = 3.0;
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
+const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
+
+const POSTCARD_ABOUT_THE_PROJECT =
+    "https://www.moma.org/calendar/exhibitions/5618?preview=true";
+
 final moMAGeoLocation =
     GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
 
@@ -166,8 +171,7 @@ const publicTezosNodes = [
 const TV_APP_STORE_URL =
     "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
 
-const POSRCARD_GAME_START = "4.09.23";
-const POSRCARD_GAME_END = "5.09.23";
+const MOMA_TERMS_CONDITIONS_URL = "";
 
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 

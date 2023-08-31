@@ -72,9 +72,10 @@ import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_start_stamping.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
@@ -209,7 +210,6 @@ class AppRouter {
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
   static const tripDetailPage = 'trip_detail_page';
   static const canvasHelpPage = 'canvas_help_page';
@@ -219,6 +219,8 @@ class AppRouter {
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
+  static const postcardLeaderboardPage = 'postcard_leaderboard_page';
+  static const startStampingPostcardPage = 'start_stamping_postcard_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -727,7 +729,7 @@ class AppRouter {
                     payload: settings.arguments as ArtworkDetailPayload)));
 
       case claimedPostcardDetailsPage:
-        final payload = settings.arguments as ArtworkDetailPayload;
+        final payload = settings.arguments as PostcardDetailPagePayload;
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
@@ -1150,15 +1152,6 @@ class AppRouter {
               return IRLSignMessageScreen(payload: payload);
             });
 
-      case postcardStartedPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) {
-            return PostcardStartedPage(
-              assetToken: settings.arguments as AssetToken,
-            );
-          },
-        );
       case tripDetailPage:
         final payload = settings.arguments as TripDetailPayload;
         return CupertinoPageRoute(
@@ -1239,6 +1232,43 @@ class AppRouter {
               value: accountsBloc,
               child: PreviewActivationTokenPage(
                 assetToken: settings.arguments as AssetToken,
+              ),
+            );
+          },
+        );
+
+      case postcardLeaderboardPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+                BlocProvider(
+                  create: (_) => PostcardDetailBloc(
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector(),
+                  ),
+                ),
+              ],
+              child: PostcardLeaderboardPage(
+                payload: settings.arguments as PostcardLeaderboardPagePayload,
+              ),
+            );
+          },
+        );
+
+      case startStampingPostcardPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return BlocProvider.value(
+              value: accountsBloc,
+              child: StartStampingPostCardPage(
+                payload: settings.arguments as StartStampingPostCardPagePayload,
               ),
             );
           },

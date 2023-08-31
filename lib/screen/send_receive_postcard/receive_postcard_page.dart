@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -78,6 +79,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         asset,
         PostcardButton(
           text: "continue".tr(),
+          fontSize: 18,
           enabled: !(_isProcessing),
           isProcessing: _isProcessing,
           onTap: () async {
@@ -92,20 +94,21 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     );
   }
 
-  Future<void> _receivePostcard(BuildContext context, AssetToken asset) async {
+  Future<AssetToken?> _receivePostcard(
+      BuildContext context, AssetToken asset) async {
     GeoLocation? location;
     try {
       location = await getGeoLocationWithPermission(
           timeout: const Duration(seconds: 5));
-      if (location == null) return;
+      if (location == null) return null;
     } catch (e) {
       log.info("[Postcard] Error getting location: $e");
-      if (!mounted) return;
+      if (!mounted) return null;
       await UIHelper.showWeakGPSSignal(context);
       setState(() {
         _isProcessing = false;
       });
-      return;
+      return null;
     }
 
     final blockchain = asset.blockchain;
@@ -120,7 +123,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     } else if (addresses.length == 1) {
       address = addresses.first;
     } else {
-      if (!mounted) return;
+      if (!mounted) return null;
       final response = await Navigator.of(context).pushNamed(
         AppRouter.receivePostcardSelectAccountPage,
         arguments: ReceivePostcardSelectAccountPageArgs(
@@ -130,6 +133,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       );
       address = response as String?;
     }
+    AssetToken? pendingToken;
     if (address != null) {
       try {
         final response = await injector<PostcardService>().receivePostcard(
@@ -141,7 +145,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             .add(UserLocations(claimedLocation: location.position));
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-        final pendingToken =
+        pendingToken =
             asset.copyWith(owner: response.owner, asset: newAsset, balance: 1);
 
         final tokenService = injector<TokensService>();
@@ -150,21 +154,21 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         NftCollectionBloc.eventController.add(
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
-        if (!mounted) return;
+        if (!mounted) return null;
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.homePage,
           (route) => false,
         );
-        Navigator.of(context)
-            .pushNamed(AppRouter.postcardStartedPage, arguments: pendingToken);
+        Navigator.of(context).pushNamed(AppRouter.designStamp,
+            arguments: DesignStampPayload(pendingToken, location));
       } catch (e) {
         if (e is DioException) {
-          if (!mounted) return;
+          if (!mounted) return null;
           await UIHelper.showReceivePostcardFailed(
             context,
             e,
           );
-          if (!mounted) return;
+          if (!mounted) return null;
           Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.homePage,
             (route) => false,
@@ -177,6 +181,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     setState(() {
       _isProcessing = false;
     });
+    return pendingToken;
   }
 }
 

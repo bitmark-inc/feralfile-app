@@ -11,22 +11,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-AppBar getBackAppBar(BuildContext context,
-    {String backTitle = "BACK",
-    String title = "",
-    required Function()? onBack,
-    Widget? icon,
-    Widget? titleIcon,
-    Function()? action,
-    List<Widget>? actions,
-    bool isWhite = true}) {
+AppBar getBackAppBar(
+  BuildContext context, {
+  String backTitle = "BACK",
+  String title = "",
+  TextStyle? titleStyle,
+  required Function()? onBack,
+  Widget? icon,
+  Widget? titleIcon,
+  Function()? action,
+  List<Widget>? actions,
+  bool isWhite = true,
+  bool withDivider = true,
+  Color? backgroundColor,
+  Color? statusBarColor,
+}) {
   final theme = Theme.of(context);
 
   final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
   final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: secondaryColor,
+        statusBarColor: statusBarColor ?? secondaryColor,
         statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
@@ -52,7 +58,8 @@ AppBar getBackAppBar(BuildContext context,
         Text(
           title,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
+          style: titleStyle ??
+              theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
           textAlign: TextAlign.center,
         ),
       ],
@@ -75,13 +82,16 @@ AppBar getBackAppBar(BuildContext context,
             )
           : const SizedBox(width: 36),
     ],
-    backgroundColor: Colors.transparent,
+    backgroundColor: backgroundColor ?? Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
-    bottom: PreferredSize(
-      preferredSize: const Size.fromHeight(1),
-      child: addOnlyDivider(color: isWhite ? null : AppColor.auGreyBackground),
-    ),
+    bottom: withDivider
+        ? PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: addOnlyDivider(
+                color: isWhite ? null : AppColor.auGreyBackground),
+          )
+        : null,
   );
 }
 
@@ -163,17 +173,22 @@ AppBar getTitleEditAppBar(BuildContext context,
   );
 }
 
-AppBar getCloseAppBar(BuildContext context,
-    {String title = "",
-    required Function()? onClose,
-    Widget? icon,
-    bool withBottomDivider = true,
-    bool isWhite = true}) {
+AppBar getCloseAppBar(
+  BuildContext context, {
+  String title = "",
+  TextStyle? titleStyle,
+  required Function()? onClose,
+  Widget? icon,
+  bool withBottomDivider = true,
+  bool isWhite = true,
+  Color? statusBarColor,
+}) {
   final theme = Theme.of(context);
   final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
+  final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-      statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
+      statusBarColor: statusBarColor ?? secondaryColor,
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
@@ -182,7 +197,8 @@ AppBar getCloseAppBar(BuildContext context,
     title: Text(
       title,
       overflow: TextOverflow.ellipsis,
-      style: theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
+      style: titleStyle ??
+          theme.textTheme.ppMori400Black16.copyWith(color: primaryColor),
       textAlign: TextAlign.center,
     ),
     actions: [
@@ -215,9 +231,9 @@ AppBar getDarkEmptyAppBar() {
   );
 }
 
-AppBar getLightEmptyAppBar() {
+AppBar getLightEmptyAppBar([Color? statusBarColor]) {
   return AppBar(
-    systemOverlayStyle: systemUiOverlayLightStyle,
+    systemOverlayStyle: systemUiOverlayLightStyle(statusBarColor),
     backgroundColor: Colors.transparent,
     toolbarHeight: 0,
     shadowColor: Colors.transparent,
@@ -231,9 +247,9 @@ SystemUiOverlayStyle get systemUiOverlayDarkStyle => const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.dark,
     );
 
-SystemUiOverlayStyle get systemUiOverlayLightStyle =>
-    const SystemUiOverlayStyle(
-      statusBarColor: AppColor.white,
+SystemUiOverlayStyle systemUiOverlayLightStyle(Color? statusBarColor) =>
+    SystemUiOverlayStyle(
+      statusBarColor: statusBarColor ?? AppColor.white,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     );

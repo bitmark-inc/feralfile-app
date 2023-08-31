@@ -108,6 +108,11 @@ class TravelInfo {
     await _getSentLocation();
     await _getReceivedLocation();
   }
+
+  bool get isInternet {
+    return from.stampedLocation?.isInternet == true ||
+        to?.claimedLocation?.isInternet == true;
+  }
 }
 
 extension ListTravelInfo on List<TravelInfo> {

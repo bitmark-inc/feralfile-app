@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -160,6 +159,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   Widget _page1() {
     final theme = Theme.of(context);
+    final termsConditionsStyle = theme.textTheme.moMASans400Grey12
+        .copyWith(color: AppColor.auQuickSilver);
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -179,19 +180,31 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 style: theme.textTheme.moMASans400Black14,
               ),
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  Text(
-                      "game_runs_from_".tr(
-                        namedArgs: {
-                          "from": POSRCARD_GAME_START,
-                          "to": POSRCARD_GAME_END,
-                        },
-                      ),
-                      style: theme.textTheme.moMASans400Grey12
-                          .copyWith(color: AppColor.auQuickSilver)),
-                ],
-              ),
+              RichText(
+                text: TextSpan(
+                  style: termsConditionsStyle,
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: "by_continuing".tr(),
+                    ),
+                    TextSpan(
+                      text: "terms_and_conditions".tr(),
+                      /*
+                      style: termsConditionsStyle.copyWith(
+                          decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                            Uri.parse(MOMA_TERMS_CONDITIONS_URL),
+                            mode: LaunchMode.externalApplication),
+
+                       */
+                    ),
+                    const TextSpan(
+                      text: ".",
+                    ),
+                  ],
+                ),
+              )
             ],
           )
         ],
@@ -366,7 +379,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        SvgPicture.asset("assets/images/postcard_location_explain_4.svg"),
+        Image.asset(imagePath),
         const SizedBox(width: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +394,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   ),
                   Text(
                     location,
-                    style: theme.textTheme.moMASans700Black16
+                    style: theme.textTheme.moMASans400Black16
                         .copyWith(fontSize: 18),
                   ),
                 ],
@@ -412,19 +425,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   context: context,
                   location: "Berlin, Germany",
                   distance: 3964,
-                  imagePath: "assets/images/postcard_location_explain_1.svg"),
+                  imagePath: "assets/images/postcard_location_explain_1.png"),
               const SizedBox(height: 16),
               _locationExplainItem(
                   context: context,
                   location: "Paris, France",
                   distance: 545,
-                  imagePath: "assets/images/postcard_location_explain_2.svg"),
+                  imagePath: "assets/images/postcard_location_explain_2.png"),
               const SizedBox(height: 16),
               _locationExplainItem(
                   context: context,
                   location: "Reykjavík, Iceland",
                   distance: 1340,
-                  imagePath: "assets/images/postcard_location_explain_3.svg"),
+                  imagePath: "assets/images/postcard_location_explain_3.png"),
             ],
           ),
           const SizedBox(height: 60),

@@ -4,13 +4,18 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -19,17 +24,13 @@ import 'package:autonomy_flutter/view/add_button.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import '../../../util/iterable_ext.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -310,10 +311,17 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             .where((e) => e.pending != true || e.hasMetadata)
                             .toList()
                             .indexOf(asset);
-                        final payload = ArtworkDetailPayload(
-                          accountIdentities,
-                          index,
-                        );
+                        final payload = asset.isPostcard
+                            ? PostcardDetailPagePayload(
+                                accountIdentities,
+                                index,
+                                playControl: playControlModel,
+                              )
+                            : ArtworkDetailPayload(
+                                accountIdentities,
+                                index,
+                                playControl: playControlModel,
+                              );
                         final pageName = asset.isPostcard
                             ? AppRouter.claimedPostcardDetailsPage
                             : AppRouter.artworkDetailsPage;
