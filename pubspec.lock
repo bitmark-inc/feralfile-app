@@ -102,8 +102,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "73ef1c0d6d4e1008ae7589dab2c3bf01e466f610"
-      resolved-ref: "73ef1c0d6d4e1008ae7589dab2c3bf01e466f610"
+      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
+      resolved-ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
       url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
     source: git
     version: "0.0.1"
@@ -139,38 +139,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.1.2"
-  bonsoir:
-    dependency: "direct main"
-    description:
-      name: bonsoir
-      sha256: d5b0cb2d38ac8b0057990e3046ef0e4552b63f6d636284c7e57ac2b257e2000a
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0+1"
-  bonsoir_android:
-    dependency: transitive
-    description:
-      name: bonsoir_android
-      sha256: "21c38f707df0755b5bedd05c5fd52cb5e9fa9f4a4efbcef94cb9669029c73d75"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
-  bonsoir_darwin:
-    dependency: transitive
-    description:
-      name: bonsoir_darwin
-      sha256: fe36cb2acec37c175213364a91ae1b2866a47e061f18b11322ac8e0ca39d5e61
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0+1"
-  bonsoir_platform_interface:
-    dependency: transitive
-    description:
-      name: bonsoir_platform_interface
-      sha256: "97081d861ff2e7b45edd9e17ae1b35530d5a7ec561e3377e00da2e0cfae500dc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -1246,7 +1214,7 @@ packages:
     source: hosted
     version: "5.2.0-beta.4"
   graphql_flutter:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: graphql_flutter
       sha256: cfbeaa0542bc70d2f207352517fa1049e463560331389bda5bc563fa447b9bb6
@@ -1760,8 +1728,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ac7f16236284f33f625b8a4efd1fc4e09f83563f
-      resolved-ref: ac7f16236284f33f625b8a4efd1fc4e09f83563f
+      ref: a7115a815205c33c62ac1ed89aa970ea5b806b76
+      resolved-ref: a7115a815205c33c62ac1ed89aa970ea5b806b76
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
