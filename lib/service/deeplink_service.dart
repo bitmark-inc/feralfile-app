@@ -314,7 +314,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           linkType: LinkType.branch,
           prefix: callingBranchDeepLinkPrefix,
           addData: response["data"]);
-      handleBranchDeeplinkData(response["data"]);
+      await handleBranchDeeplinkData(response["data"]);
       return true;
     }
     return false;

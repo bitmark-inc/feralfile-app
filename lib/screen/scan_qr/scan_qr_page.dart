@@ -124,7 +124,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       extendBodyBehindAppBar: true,
       backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
       appBar: _tabController.index == 0
-          ? _qrCodeAppBar()
+          ? _qrCodeAppBar(context)
           : AppBar(
               systemOverlayStyle: const SystemUiOverlayStyle(
                 statusBarColor: Colors.white,
@@ -138,7 +138,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       body: Stack(
         children: <Widget>[
           if (!cameraPermission)
-            _noPermissionView()
+            _noPermissionView(context)
           else
             Stack(
               children: [
@@ -150,7 +150,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                         children: [
                           Stack(
                             children: [
-                              _qrView(),
+                              _qrView(context),
                               Padding(
                                 padding: EdgeInsets.fromLTRB(
                                   0,
@@ -165,7 +165,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      _instructionView(),
+                                      _instructionView(context),
                                     ],
                                   ),
                                 ),
@@ -265,7 +265,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
-  AppBar _qrCodeAppBar() {
+  AppBar _qrCodeAppBar(BuildContext context) {
     return getCloseAppBar(
       context,
       onClose: () => Navigator.of(context).pop(),
@@ -275,7 +275,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
-  Widget _qrView() {
+  Widget _qrView(BuildContext context) {
     final theme = Theme.of(context);
     final size1 = MediaQuery.of(context).size.height / 2;
     final qrSize = size1 < 240.0 ? size1 : 240.0;
@@ -326,7 +326,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
-  Widget _noPermissionView() {
+  Widget _noPermissionView(BuildContext context) {
     final size1 = MediaQuery.of(context).size.height / 2;
     final qrSize = size1 < 240.0 ? size1 : 240.0;
 
@@ -335,7 +335,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     final cutOutBottomOffset = 80 + cutPaddingTop;
     return Stack(
       children: [
-        _qrView(),
+        _qrView(context),
         Padding(
           padding: EdgeInsets.fromLTRB(
             0,
@@ -350,7 +350,7 @@ class _ScanQRPageState extends State<ScanQRPage>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _instructionViewNoPermission(),
+                _instructionViewNoPermission(context),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: PrimaryButton(
@@ -372,7 +372,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
-  Widget _instructionViewNoPermission() {
+  Widget _instructionViewNoPermission(BuildContext context) {
     final theme = Theme.of(context);
     final size1 = MediaQuery.of(context).size.height / 2;
     final qrSize = size1 < 240.0 ? size1 : 240.0;
@@ -387,7 +387,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
-  Widget _instructionView() {
+  Widget _instructionView(BuildContext context) {
     final theme = Theme.of(context);
 
     switch (widget.scannerItem) {
@@ -473,11 +473,12 @@ class _ScanQRPageState extends State<ScanQRPage>
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
-        controller.dispose();
+        controller.pauseCamera();
         Navigator.pop(context);
+
         injector<DeeplinkService>().handleDeeplink(
           code,
-          delay: const Duration(milliseconds: 100),
+          delay: const Duration(seconds: 1),
         );
         return;
       }
@@ -501,8 +502,10 @@ class _ScanQRPageState extends State<ScanQRPage>
 
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
-          controller.dispose();
-          Navigator.pop(context, code);
+          controller.pauseCamera();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pop(context, code);
+          });
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
@@ -613,19 +616,19 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   void _handleAutonomyConnect(String code) {
-    controller.dispose();
+    controller.pauseCamera();
     _addScanQREvent(
         link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
     injector<Wc2Service>().connect(code);
-    Navigator.of(context).pop();
+    Navigator.pop(context);
   }
 
   void _handleBeaconConnect(String code) {
-    controller.dispose();
+    controller.pauseCamera();
     _addScanQREvent(
         link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
     injector<TezosBeaconService>().addPeer(code);
-    Navigator.of(context).pop();
+    Navigator.pop(context);
     injector<NavigationService>().showContactingDialog();
   }
 

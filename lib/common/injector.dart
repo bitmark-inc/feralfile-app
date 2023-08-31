@@ -67,6 +67,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
+import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
@@ -154,12 +155,15 @@ Future<void> setup() async {
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
+  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio.options = dioOptions;
   dio.addSentry();
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
+  (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
+      parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
@@ -214,7 +218,7 @@ Future<void> setup() async {
       : Environment.tzktMainnetURL;
   injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
-  injector.registerLazySingleton(() => BranchApi(Dio()));
+  injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
@@ -396,6 +400,7 @@ Dio _feralFileDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(FeralfileAuthInterceptor());
+  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
@@ -416,6 +421,7 @@ Dio _feralFileDio(BaseOptions options) {
 Dio _postcardDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(LoggingInterceptor());
+  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.options = options;
   dio.addSentry();
@@ -425,9 +431,14 @@ Dio _postcardDio(BaseOptions options) {
 Dio _airdropDio(BaseOptions options) {
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(AutonomyAuthInterceptor());
+  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AirdropInterceptor());
   dio.options = options;
   dio.addSentry();
   return dio;
+}
+
+parseJson(String text) {
+  return IsolatedUtil().parseAndDecode(text);
 }
