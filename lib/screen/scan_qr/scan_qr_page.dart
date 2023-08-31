@@ -503,9 +503,7 @@ class _ScanQRPageState extends State<ScanQRPage>
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
           controller.pauseCamera();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pop(context, code);
-          });
+          Navigator.pop(context, code);
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
