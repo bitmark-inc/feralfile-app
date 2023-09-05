@@ -83,7 +83,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 01047611a1546a9ad791f587ebad76698feaac93
+      ref: 7391ef57d17caa21beaba96aedcfa5a7e82139cc
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
