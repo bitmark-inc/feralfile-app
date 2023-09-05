@@ -65,7 +65,6 @@ class FollowArtistBloc extends AuBloc<FollowArtistEvent, FollowArtistState> {
   FollowArtistBloc(
     this._followeeService,
   ) : super(FollowArtistState(followStatus: [])) {
-
     on<FollowArtistFetchEvent>((event, emit) async {
       final followees = await _followeeService.getFromAddresses(event.artists);
       final followStatus = event.artists.map((e) {
