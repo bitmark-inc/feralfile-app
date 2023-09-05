@@ -36,17 +36,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   @override
   void initState() {
+    _initPlayer();
     super.initState();
     injector<ConfigurationService>().setAutoShowPostcard(false);
-    _colouringController.initialize().then((_) {
-      _colouringController.setLooping(true);
-      setState(() {});
-      _colouringController.play();
-    });
-    _controller.initialize().then((_) {
+  }
+
+  Future<void> _initPlayer() async {
+    await _controller.initialize().then((_) {
       _controller.setLooping(true);
       setState(() {});
       _controller.play();
+    });
+    await _colouringController.initialize().then((_) {
+      _colouringController.setLooping(true);
     });
   }
 
@@ -60,7 +62,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _page1(),
+      _page1(_controller),
       _page3(1, _colouringController),
       _page2(2, totalDistance: 0),
       _page2(3, totalDistance: 7926),
@@ -120,6 +122,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
               onIndexChanged: (index) {
                 setState(() {
                   _isLastPage = index == pages.length - 1;
+                  if (index == 0) {
+                    _controller.play();
+                  }
+                  if (index == 1) {
+                    _colouringController.play();
+                  }
                 });
               },
               itemBuilder: (context, index) {
@@ -157,7 +165,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
-  Widget _page1() {
+  Widget _page1(VideoPlayerController controller) {
     final theme = Theme.of(context);
     final termsConditionsStyle = theme.textTheme.moMASans400Grey12
         .copyWith(color: AppColor.auQuickSilver);
@@ -166,10 +174,10 @@ class _PostcardExplainState extends State<PostcardExplain> {
         children: [
           SizedBox(
               height: 265,
-              child: _controller.value.isInitialized
+              child: controller.value.isInitialized
                   ? AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller))
+                      aspectRatio: controller.value.aspectRatio,
+                      child: VideoPlayer(controller))
                   : Container()),
           const SizedBox(height: 60),
           Column(
