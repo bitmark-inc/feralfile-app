@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -32,9 +33,11 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gif_view/gif_view.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -124,6 +127,52 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
 
   final nftCollectionBloc = injector<NftCollectionBloc>();
 
+  Widget _errorWidget(BuildContext context, Object error) {
+    DiscoveryLoadFailureReason reason;
+    switch (error.runtimeType) {
+      case DioException:
+        final dioError = error as DioException;
+        switch (dioError.type) {
+          case DioExceptionType.connectionTimeout:
+          case DioExceptionType.sendTimeout:
+          case DioExceptionType.receiveTimeout:
+          case DioExceptionType.connectionError:
+            reason = DiscoveryLoadFailureReason.noInternet;
+            break;
+          default:
+            if (dioError.error is SocketException) {
+              reason = DiscoveryLoadFailureReason.noInternet;
+            } else {
+              reason = DiscoveryLoadFailureReason.serverError;
+            }
+            break;
+        }
+        break;
+      default:
+        reason = DiscoveryLoadFailureReason.serverError;
+        break;
+    }
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        SvgPicture.asset(
+          "assets/images/autonomy_icon_white.svg",
+          colorFilter:
+              const ColorFilter.mode(AppColor.disabledColor, BlendMode.srcIn),
+        ),
+        const SizedBox(
+          height: 40,
+        ),
+        Text(
+          reason.message,
+          style: theme.textTheme.ppMori400Black14
+              .copyWith(color: AppColor.disabledColor),
+          textAlign: TextAlign.center,
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -134,13 +183,13 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
           builder: (context, state) {
             _state = state;
             if (state.error != null) {
-              return Padding(
-                padding:
-                    ResponsiveLayout.pageEdgeInsets.copyWith(top: 24, right: 5),
-                child: Text(
-                  "discover_unable_to_load".tr(),
-                  style: theme.textTheme.ppMori400White14,
-                ),
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                    child: _errorWidget(context, state.error!),
+                  ),
+                ],
               );
             }
             if (_state.feedTokenEventsMap?.isEmpty ?? true) {
@@ -777,6 +826,20 @@ class _FeedViewState extends State<FeedView> {
             style: theme.textTheme.ppMori400White14,
           ),
         ];
+    }
+  }
+}
+
+enum DiscoveryLoadFailureReason {
+  noInternet,
+  serverError;
+
+  String get message {
+    switch (this) {
+      case DiscoveryLoadFailureReason.noInternet:
+        return "no_internet_connection".tr();
+      case DiscoveryLoadFailureReason.serverError:
+        return "discover_unable_to_load".tr();
     }
   }
 }
