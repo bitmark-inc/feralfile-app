@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
@@ -629,7 +630,11 @@ class AppRouter {
 
       case DiscoverArtPage.tag:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const DiscoverArtPage());
+            settings: settings,
+            builder: (context) => BlocProvider(
+                  create: (_) => DiscoverArtBloc(injector(), injector()),
+                  child: const DiscoverArtPage(),
+                ));
 
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(

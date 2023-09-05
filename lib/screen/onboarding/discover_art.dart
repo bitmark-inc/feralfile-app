@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/screen/bloc/follow/follow_artist_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
-import 'package:autonomy_flutter/service/followee_service.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/add_button.dart';
@@ -10,10 +10,12 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gif_view/gif_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/services/tokens_service.dart';
 
 class DiscoverArtPage extends StatefulWidget {
   static const String tag = 'discover_art';
@@ -25,8 +27,6 @@ class DiscoverArtPage extends StatefulWidget {
 }
 
 class _DiscoverArtPageState extends State<DiscoverArtPage> {
-  final List<AssetToken> _tokenList = [];
-
   @override
   void initState() {
     super.initState();
@@ -34,12 +34,7 @@ class _DiscoverArtPageState extends State<DiscoverArtPage> {
   }
 
   Future<void> _fetchSuggestedArtists() async {
-    final suggestedArtistList =
-        await injector<PubdocAPI>().getSuggestedArtistsFromGithub();
-    final tokens = await injector<TokensService>().fetchManualTokens(
-        suggestedArtistList.map((e) => e.tokenIDs.first).toList());
-    _tokenList.addAll(tokens);
-    setState(() {});
+    context.read<DiscoverArtBloc>().add(DiscoverArtFetchEvent());
   }
 
   @override
@@ -59,9 +54,27 @@ class _DiscoverArtPageState extends State<DiscoverArtPage> {
                 child: Column(
                   children: [
                     _header(context),
-                    ListDiscoverArts(
-                      tokenList: _tokenList,
-                    ),
+                    BlocBuilder<DiscoverArtBloc, DiscoverArtState>(
+                        builder: (context, state) {
+                      if (state.isLoading && state.tokenList.isEmpty) {
+                        return Center(
+                          child: GifView.asset(
+                            "assets/images/loading_white.gif",
+                            width: 52,
+                            height: 52,
+                            frameRate: 12,
+                          ),
+                        );
+                      }
+                      return BlocProvider.value(
+                        value: FollowArtistBloc(injector()),
+                        child: ListDiscoverArts(
+                          tokenList: state.tokenList,
+                          artistNames:
+                              state.artistNames as Map<String, List<String>>,
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -106,43 +119,68 @@ class _DiscoverArtPageState extends State<DiscoverArtPage> {
 
 class ListDiscoverArts extends StatefulWidget {
   final List<AssetToken> tokenList;
+  final Map<String, List<String>> artistNames;
 
-  const ListDiscoverArts({Key? key, required this.tokenList}) : super(key: key);
+  const ListDiscoverArts(
+      {Key? key, required this.tokenList, required this.artistNames})
+      : super(key: key);
 
   @override
   State<ListDiscoverArts> createState() => _ListDiscoverArtsState();
 }
 
 class _ListDiscoverArtsState extends State<ListDiscoverArts> {
-  final FolloweeService _followeeService = injector<FolloweeService>();
-  final List<String> _followedList = [];
+  late final FollowArtistBloc _bloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFollowedArtists();
+  }
+
+  Future<void> _fetchFollowedArtists() async {
+    final artistIDs = widget.tokenList.map((e) => e.artistID ?? "").toList();
+    artistIDs.removeWhere((element) => element == "");
+    _bloc = context.read<FollowArtistBloc>();
+    _bloc.add(FollowArtistFetchEvent(artistIDs));
+  }
 
   @override
   Widget build(BuildContext context) {
     return widget.tokenList.isNotEmpty
         ? ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 520),
-            child: Swiper(
-              itemCount: widget.tokenList.length,
-              itemBuilder: (context, index) {
-                return _artView(
-                  context,
-                  widget.tokenList[index],
-                  "${index + 1} / ${widget.tokenList.length}",
-                );
-              },
-              control: const SwiperControl(
-                  color: Colors.transparent,
-                  disableColor: Colors.transparent,
-                  size: 0),
-            ),
+            constraints: const BoxConstraints(maxHeight: 570),
+            child: BlocBuilder<FollowArtistBloc, FollowArtistState>(
+                builder: (context, state) {
+              return Swiper(
+                itemCount: widget.tokenList.length,
+                itemBuilder: (context, index) {
+                  return _artView(
+                      context,
+                      widget.tokenList[index],
+                      "${index + 1} / ${widget.tokenList.length}",
+                      // need to handle multiple artists case
+                      (widget.artistNames[widget.tokenList[index].id] ?? [""])
+                          .first,
+                      state.followStatus.firstWhereOrNull(
+                        (element) =>
+                            element.artistID ==
+                            widget.tokenList[index].artistID,
+                      ));
+                },
+                control: const SwiperControl(
+                    color: Colors.transparent,
+                    disableColor: Colors.transparent,
+                    size: 0),
+              );
+            }),
           )
         : const SizedBox();
   }
 
-  Widget _artView(BuildContext context, AssetToken assetToken, String page) {
+  Widget _artView(BuildContext context, AssetToken assetToken, String page,
+      String artistName, ArtistFollowStatus? status) {
     final theme = Theme.of(context);
-    final artistID = assetToken.artistID ?? "";
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -151,30 +189,12 @@ class _ListDiscoverArtsState extends State<ListDiscoverArts> {
           child: Row(
             children: [
               Text(
-                assetToken.artistName ?? assetToken.artistID ?? "",
+                artistName,
                 style: theme.textTheme.ppMori700White14,
               ),
               const Spacer(),
-              if (artistID.isNotEmpty) ...[
-                _followedList.contains(artistID)
-                    ? RemoveButton(
-                        color: AppColor.white,
-                        onTap: () async {
-                          final followees = await _followeeService
-                              .getFromAddresses([artistID]);
-                          if (followees.isNotEmpty) {
-                            await _followeeService
-                                .removeArtistManual(followees.first);
-                            _followedList.remove(artistID);
-                            setState(() {});
-                          }
-                        })
-                    : AddButton(onTap: () async {
-                        await _followeeService
-                            .addArtistManual(assetToken.artistID ?? "");
-                        _followedList.add(artistID);
-                        setState(() {});
-                      })
+              if (status != null) ...[
+                _followButton(context, status),
               ]
             ],
           ),
@@ -217,5 +237,23 @@ class _ListDiscoverArtsState extends State<ListDiscoverArts> {
         ),
       ],
     );
+  }
+
+  Widget _followButton(BuildContext context, ArtistFollowStatus status) {
+    switch (status.status) {
+      case FollowStatus.unfollowed:
+        return AddButton(onTap: () {
+          _bloc.add(FollowEvent(status.artistID));
+        });
+      case FollowStatus.followed:
+        return RemoveButton(
+            color: AppColor.white,
+            onTap: () {
+              _bloc.add(UnfollowEvent(status.artistID));
+            });
+
+      default:
+        return const SizedBox();
+    }
   }
 }
