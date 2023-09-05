@@ -159,6 +159,8 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
           "assets/images/autonomy_icon_white.svg",
           colorFilter:
               const ColorFilter.mode(AppColor.disabledColor, BlendMode.srcIn),
+          width: 60,
+          height: 60,
         ),
         const SizedBox(
           height: 40,
