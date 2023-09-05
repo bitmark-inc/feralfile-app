@@ -116,8 +116,6 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/survey/survey.dart';
-import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
@@ -876,16 +874,6 @@ class AppRouter {
                   ],
                   child: const HiddenArtworksPage(),
                 ));
-
-      case SurveyPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            fullscreenDialog: true,
-            builder: (context) => const SurveyPage());
-      case SurveyThankyouPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const SurveyThankyouPage());
 
       case githubDocPage:
         return CupertinoPageRoute(
