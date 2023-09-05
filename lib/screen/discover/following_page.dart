@@ -52,7 +52,6 @@ class _FollowingPageState extends State<FollowingPage> with RouteAware {
     WidgetsBinding.instance.addPostFrameCallback((context) {
       _fetchSuggestedArtists();
     });
-
   }
 
   @override
