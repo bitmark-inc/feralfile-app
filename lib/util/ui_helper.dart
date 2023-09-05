@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
@@ -977,28 +976,6 @@ class UIHelper {
         ),
       ),
     );
-  }
-
-  static showAccountLinked(
-      BuildContext context, Connection connection, String walletName) {
-    UIHelper.showInfoDialog(
-        context,
-        "account_linked".tr(),
-        "autonomy_has_received"
-            .tr(args: [walletName, connection.accountNumber.mask(4)]));
-
-    Future.delayed(const Duration(seconds: 3), () {
-      UIHelper.hideInfoDialog(context);
-
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context)
-            .pushNamed(AppRouter.nameLinkedAccountPage, arguments: connection);
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.nameLinkedAccountPage, (route) => false,
-            arguments: connection);
-      }
-    });
   }
 
   static showCenterSheet(BuildContext context,

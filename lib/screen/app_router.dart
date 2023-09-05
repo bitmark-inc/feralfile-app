@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
-import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
@@ -432,7 +432,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider.value(
                 value: accountsBloc,
-                child: NameLinkedAccountPage(
+                child: NameViewOnlyAddressPage(
                     connection: settings.arguments as Connection)));
 
       case wcConnectPage:
