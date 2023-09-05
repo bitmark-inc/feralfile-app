@@ -52,6 +52,7 @@ class FeedBloc extends AuBloc<FeedBlocEvent, FeedState> {
             tokenEventMap[token] = [event];
           }
         }
+        tokenEventMap.keys.forEach((element) {log.info('[FeedBloc] tokenEventMap: ${element.id} tokens');});
 
         emit(
           state.copyWith(

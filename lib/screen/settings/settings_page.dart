@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -167,10 +169,12 @@ class _SettingsPageState extends State<SettingsPage>
                         if (!mounted) return;
                         Navigator.of(context).pushNamed(
                             AppRouter.cloudAndroidPage,
-                            arguments: isAndroidEndToEndEncryptionAvailable);
+                            arguments: CloudAndroidPagePayload(
+                                isEncryptionAvailable:
+                                    isAndroidEndToEndEncryptionAvailable));
                       } else {
                         Navigator.of(context).pushNamed(AppRouter.cloudPage,
-                            arguments: "settings");
+                            arguments: CloudPagePayload(section: "nameAlias"));
                       }
                     },
                     stateWidget: const CloudState(),

@@ -8,11 +8,11 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:video_player/video_player.dart';
 
