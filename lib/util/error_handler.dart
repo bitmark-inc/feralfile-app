@@ -272,9 +272,6 @@ Future<bool> showErrorDialogFromException(Object exception,
       UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
           isDismissible: true, autoDismissAfter: 3);
       return true;
-    } else if (exception is AlreadyLinkedException) {
-      UIHelper.showAlreadyLinked(context, exception.connection);
-      return true;
     } else if (exception is InvalidDeeplink) {
       UIHelper.showInfoDialog(context, "😵", "link_not_valid".tr(),
           isDismissible: true, autoDismissAfter: 3);

@@ -133,10 +133,6 @@ abstract class ConfigurationService {
 
   Future<void> removePlayList(String id);
 
-  List<String> getFinishedSurveys();
-
-  Future<void> setFinishedSurvey(List<String> surveyNames);
-
   Future<String> getAccountHMACSecret();
 
   bool isFinishedFeedOnBoarding();
@@ -320,7 +316,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
-  static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
   static const String KEY_SHARED_POSTCARD = "shared_postcard";
@@ -789,19 +784,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   String? getPreviousBuildNumber() {
     return _preferences.getString(KEY_PREVIOUS_BUILD_NUMBER);
-  }
-
-  @override
-  List<String> getFinishedSurveys() {
-    return _preferences.getStringList(KEY_FINISHED_SURVEYS) ?? [];
-  }
-
-  @override
-  Future<void> setFinishedSurvey(List<String> surveyNames) {
-    var finishedSurveys = getFinishedSurveys();
-    finishedSurveys.addAll(surveyNames);
-    return _preferences.setStringList(
-        KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
   }
 
   @override

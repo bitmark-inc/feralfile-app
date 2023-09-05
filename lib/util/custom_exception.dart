@@ -13,12 +13,6 @@ class SystemException implements Exception {
   SystemException(this.reason);
 }
 
-class AlreadyLinkedException implements Exception {
-  final Connection connection;
-
-  AlreadyLinkedException(this.connection);
-}
-
 class AbortedException implements Exception {}
 
 class LinkingFailedException implements Exception {}
