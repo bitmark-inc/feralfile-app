@@ -128,14 +128,9 @@ class _ListDiscoverArtsState extends State<ListDiscoverArts> {
                 return _artView(
                   context,
                   widget.tokenList[index],
+                  "${index + 1} / ${widget.tokenList.length}",
                 );
               },
-              pagination: const SwiperPagination(
-                builder: DotSwiperPaginationBuilder(
-                    color: AppColor.auLightGrey,
-                    activeColor: AppColor.auSuperTeal,
-                    size: 8),
-              ),
               control: const SwiperControl(
                   color: Colors.transparent,
                   disableColor: Colors.transparent,
@@ -145,7 +140,7 @@ class _ListDiscoverArtsState extends State<ListDiscoverArts> {
         : const SizedBox();
   }
 
-  Widget _artView(BuildContext context, AssetToken assetToken) {
+  Widget _artView(BuildContext context, AssetToken assetToken, String page) {
     final theme = Theme.of(context);
     final artistID = assetToken.artistID ?? "";
     return Column(
@@ -189,9 +184,35 @@ class _ListDiscoverArtsState extends State<ListDiscoverArts> {
         const SizedBox(height: 5),
         Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-          child: Text(
-            assetToken.title ?? "",
-            style: theme.textTheme.ppMori400White14,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  assetToken.title ?? "",
+                  style: theme.textTheme.ppMori400White14,
+                ),
+              ),
+              Container(
+                  alignment: Alignment.topRight,
+                  child: SizedBox(
+                    //width: double.infinity,
+                    height: 28.0,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryBlack,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28.0)),
+                        side: const BorderSide(color: AppColor.white),
+                        alignment: Alignment.center,
+                      ),
+                      onPressed: null,
+                      child:
+                          Text(page, style: theme.textTheme.ppMori400White14),
+                    ),
+                  ))
+            ],
           ),
         ),
       ],
