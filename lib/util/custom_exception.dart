@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/connection.dart';
-
 class SystemException implements Exception {
   final String reason;
 
