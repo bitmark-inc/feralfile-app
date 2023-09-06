@@ -12,10 +12,9 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:flutter/foundation.dart';
 
 class MetricClientService {
-  final AccountService _accountService;
   late Timer? useAppTimer;
 
-  MetricClientService(this._accountService);
+  MetricClientService();
 
   final mixPanelClient = injector<MixPanelClientService>();
   bool isFinishInit = false;
