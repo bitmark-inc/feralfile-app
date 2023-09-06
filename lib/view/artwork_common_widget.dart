@@ -1183,7 +1183,7 @@ Widget artworkDetailsMetadataSection(
           height: 32.0,
           color: theme.auLightGrey,
         ),
-        artworkID.isNotEmpty
+        assetToken.source == "feralfile" && artworkID.isNotEmpty
             ? FutureBuilder<Exhibition?>(
                 future: injector<FeralFileService>()
                     .getExhibitionFromTokenID(artworkID),
