@@ -68,11 +68,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   final _navigationService = injector<NavigationService>();
   late Lock _lock;
   Timer? _timer;
-  late bool isProcessing;
 
   @override
   void initState() {
-    isProcessing = false;
     super.initState();
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
@@ -469,24 +467,24 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
+      if (_isLoading) return;
       if (scanData.code == null) return;
       if (scanData.code == currentCode && isScanDataError) return;
       currentCode = scanData.code;
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
-        if (!isProcessing) {
-          isProcessing = true;
-          await controller.pauseCamera();
-          if (!mounted) return;
-          Navigator.pop(context);
+        setState(() {
+          _isLoading = true;
+        });
+        controller.pauseCamera();
+        if (!mounted) return;
+        Navigator.pop(context);
 
-          injector<DeeplinkService>().handleDeeplink(
-            code,
-            delay: const Duration(seconds: 1),
-          );
-          isProcessing = false;
-        }
+        injector<DeeplinkService>().handleDeeplink(
+          code,
+          delay: const Duration(seconds: 1),
+        );
         return;
       }
 
@@ -509,11 +507,17 @@ class _ScanQRPageState extends State<ScanQRPage>
 
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
+          setState(() {
+            _isLoading = true;
+          });
           controller.pauseCamera();
           Navigator.pop(context, code);
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
+            setState(() {
+              _isLoading = true;
+            });
             _handleAutonomyConnect(code);
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
@@ -621,6 +625,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   void _handleAutonomyConnect(String code) {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
     _addScanQREvent(
         link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
@@ -629,6 +636,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   void _handleBeaconConnect(String code) {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
     _addScanQREvent(
         link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
