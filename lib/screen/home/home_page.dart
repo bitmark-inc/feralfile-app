@@ -745,7 +745,6 @@ class HomePageState extends State<HomePage>
   void _handleBackground() {
     _metricClient.addEvent(MixpanelEvent.deviceBackground);
     _metricClient.sendAndClearMetrics();
-    FileLogger.shrinkLogFileIfNeeded();
   }
 
   @override

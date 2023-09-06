@@ -89,11 +89,11 @@ final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
 Future<void> setup() async {
-  FileLogger.initializeLogging();
+  BackgroundFileLogger.initialize();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
-    FileLogger.log(record);
+    BackgroundFileLogger.log(record);
     SentryBreadcrumbLogger.log(record);
   });
 

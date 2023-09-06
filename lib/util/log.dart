@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
@@ -40,11 +41,16 @@ APIErrorCode? getAPIErrorCode(int code) {
   }
 }
 
-Future<File> getLogFile() async {
+Future<String> _getLogFilePath() async {
   final directory = (await getTemporaryDirectory()).path;
   const fileName = "app.log";
+  debugPrint("Log file: $directory/$fileName");
 
-  return _createLogFile("$directory/$fileName");
+  return "$directory/$fileName";
+}
+
+Future<File> getLogFile() async {
+  return _createLogFile(await _getLogFilePath());
 }
 
 Future<File> _createLogFile(canonicalLogFileName) async =>
@@ -117,5 +123,56 @@ class SentryBreadcrumbLogger {
         message: '[${record.level}] ${record.message}',
         level: level,
         type: type));
+  }
+}
+
+class BackgroundFileLogger {
+  static const _maxLines = 1000; // Maximum number of log lines
+
+  static final _logStreamController = StreamController<LogRecord>();
+  static late IOSink _fileSink;
+  static int _currentLineCount = 0;
+
+  static void initialize() async {
+    final logFile = await getLogFile();
+    _fileSink = logFile.openWrite(mode: FileMode.append);
+
+    _logStreamController.stream.listen(_writeLog);
+
+    // Start processing logs in the background
+    await for (var logRecord in _logStreamController.stream) {
+      _logStreamController.add(logRecord);
+    }
+  }
+
+  static void _writeLog(LogRecord record) {
+    final logLine =
+        '${record.time}: [${record.level.name}] ${record.message}\n';
+
+    if (_currentLineCount >= _maxLines) {
+      _removeOldestLogs(1);
+    }
+
+    _fileSink.write(logLine);
+    _currentLineCount++;
+  }
+
+  static void _removeOldestLogs(int linesToRemove) async {
+    final logFile = await getLogFile();
+
+    final lines = logFile.readAsLinesSync();
+    final newLines = lines.skip(linesToRemove).toList();
+
+    _currentLineCount = newLines.length;
+    logFile.writeAsStringSync(newLines.join('\n'));
+  }
+
+  static Future<void> log(LogRecord record) async {
+    _logStreamController.add(record);
+  }
+
+  static Future<void> dispose() async {
+    await _fileSink.close();
+    await _logStreamController.close();
   }
 }
