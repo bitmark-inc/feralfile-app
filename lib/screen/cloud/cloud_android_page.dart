@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -21,10 +22,9 @@ import 'package:flutter/material.dart';
 import 'package:open_settings/open_settings.dart';
 
 class CloudAndroidPage extends StatefulWidget {
-  final bool? isEncryptionAvailable;
+  final CloudAndroidPagePayload payload;
 
-  const CloudAndroidPage({Key? key, required this.isEncryptionAvailable})
-      : super(key: key);
+  const CloudAndroidPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<CloudAndroidPage> createState() => _CloudAndroidPageState();
@@ -40,7 +40,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
     WidgetsBinding.instance.addObserver(this);
 
     setState(() {
-      isEncryptionAvailable = widget.isEncryptionAvailable;
+      isEncryptionAvailable = widget.payload.isEncryptionAvailable;
     });
   }
 
@@ -189,8 +189,19 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           route.settings.name == AppRouter.wcConnectPage ||
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition);
+    } else if (widget.payload.goToDiscoverPage) {
+      Navigator.of(context).pushNamed(DiscoverArtPage.tag);
     } else {
       doneOnboarding(context);
     }
   }
+}
+
+// payload class
+class CloudAndroidPagePayload {
+  final bool? isEncryptionAvailable;
+  final bool goToDiscoverPage;
+
+  CloudAndroidPagePayload(
+      {this.isEncryptionAvailable, this.goToDiscoverPage = false});
 }

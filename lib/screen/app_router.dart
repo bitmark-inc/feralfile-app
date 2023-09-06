@@ -16,8 +16,8 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
-import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
-import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
@@ -84,6 +84,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
@@ -147,7 +148,6 @@ class AppRouter {
   static const previewPrimerPage = "preview_primer";
   static const onboardingPage = "onboarding";
   static const notificationOnboardingPage = 'notification_onboarding';
-  static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
   static const homePage = "home_page";
   static const homePageNoTransition = 'home_page_NoTransition';
@@ -272,9 +272,6 @@ class AppRouter {
                 injector(),
                 injector<AuditService>(),
               ),
-            ),
-            BlocProvider(
-              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );
@@ -425,14 +422,6 @@ class AppRouter {
           builder: (context) => const NotificationOnboardingPage(),
         );
 
-      case AppRouter.namePersonaPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => personaBloc,
-                  child: NamePersonaPage(
-                      payload: settings.arguments as NamePersonaPayload),
-                ));
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
           settings: settings,
@@ -444,7 +433,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider.value(
                 value: accountsBloc,
-                child: NameLinkedAccountPage(
+                child: NameViewOnlyAddressPage(
                     connection: settings.arguments as Connection)));
 
       case wcConnectPage:
@@ -639,6 +628,14 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ChooseChainPage());
 
+      case DiscoverArtPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                  create: (_) => DiscoverArtBloc(injector(), injector()),
+                  child: const DiscoverArtPage(),
+                ));
+
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -780,14 +777,14 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudPage(
-                  section: settings.arguments as String,
+                  payload: settings.arguments as CloudPagePayload,
                 ));
 
       case cloudAndroidPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudAndroidPage(
-                  isEncryptionAvailable: settings.arguments as bool?,
+                  payload: settings.arguments as CloudAndroidPagePayload,
                 ));
 
       case globalReceivePage:

@@ -7,8 +7,8 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -21,17 +21,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class NameLinkedAccountPage extends StatefulWidget {
+class NameViewOnlyAddressPage extends StatefulWidget {
   final Connection connection;
 
-  const NameLinkedAccountPage({Key? key, required this.connection})
+  const NameViewOnlyAddressPage({Key? key, required this.connection})
       : super(key: key);
 
   @override
-  State<NameLinkedAccountPage> createState() => _NameLinkedAccountPageState();
+  State<NameViewOnlyAddressPage> createState() =>
+      _NameViewOnlyAddressPageState();
 }
 
-class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
+class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   final TextEditingController _nameController = TextEditingController();
 
   bool isSavingAliasDisabled = true;
@@ -120,8 +121,7 @@ class _NameLinkedAccountPageState extends State<NameLinkedAccountPage> {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       injector<NavigationService>().popUntilHomeOrSettings();
     } else {
-      injector<ConfigurationService>().setDoneOnboarding(true);
-      Navigator.of(context).pushNamed(AppRouter.homePage);
+      Navigator.of(context).pushNamed(DiscoverArtPage.tag);
     }
   }
 }

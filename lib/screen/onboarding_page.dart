@@ -10,7 +10,6 @@ import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
@@ -31,8 +30,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 
-import 'bloc/persona/persona_bloc.dart';
-
 final logger = Logger('App');
 
 class OnboardingPage extends StatefulWidget {
@@ -47,7 +44,6 @@ class _OnboardingPageState extends State<OnboardingPage>
   bool fromBranchLink = false;
   bool fromDeeplink = false;
   bool fromIrlLink = false;
-  bool creatingAccount = false;
 
   final metricClient = injector.get<MetricClientService>();
 
@@ -216,37 +212,6 @@ class _OnboardingPageState extends State<OnboardingPage>
         }
       },
       builder: (context, state) {
-        if (creatingAccount) {
-          return BlocListener<PersonaBloc, PersonaState>(
-            listener: (context, personaState) async {
-              switch (personaState.createAccountState) {
-                case ActionState.done:
-                  final createdPersona = personaState.persona;
-                  if (createdPersona != null) {
-                    Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                        arguments:
-                            NamePersonaPayload(uuid: createdPersona.uuid));
-                  }
-                  Future.delayed(const Duration(seconds: 1), () {
-                    setState(() {
-                      creatingAccount = false;
-                    });
-                  });
-
-                  break;
-                case ActionState.error:
-                  setState(() {
-                    creatingAccount = false;
-                  });
-                  break;
-                default:
-                  break;
-              }
-            },
-            child: loadingScreen(theme, "generating_wallet".tr()),
-          );
-        }
-
         if (state.isLoading) {
           return loadingScreen(theme, "restoring_autonomy".tr());
         }
