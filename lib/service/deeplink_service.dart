@@ -117,12 +117,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (link == "autonomy://") return;
 
     if (link == null) return;
-    if (_deepLinkHandlingMap[link] != null) return;
 
     log.info("[DeeplinkService] receive deeplink $link");
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
+      if (_deepLinkHandlingMap[link] != null) return;
       _deepLinkHandleClock("Handle Deep Link Time Out", link);
       _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
