@@ -165,12 +165,12 @@ dependencies:
   geocoding: ^2.1.0
   flutter_inappwebview: ^5.7.2+3
   html: ^0.15.1
-  flutter_swiper_view: ^1.1.8
   video_player: ^2.4.8
   youtube_player_iframe: ^4.0.4
   awesome_notifications: ^0.7.5-dev.3
   shimmer: ^3.0.0
   graphql_flutter: ^5.1.2
+  card_swiper: ^3.0.1
 dependency_overrides:
   intl: 0.18.0
 

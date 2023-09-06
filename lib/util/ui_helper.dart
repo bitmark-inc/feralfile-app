@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/survey/survey.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -25,10 +24,7 @@ import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
@@ -43,14 +39,11 @@ import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:share/share.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -84,23 +77,6 @@ Future askForNotification() async {
         AppRouter.notificationOnboardingPage,
         arguments: {"isOnboarding": false});
   });
-}
-
-void showSurveysNotification(BuildContext context) {
-  if (!injector<ConfigurationService>().isDoneOnboarding()) {
-    // If the onboarding is not finished, skip this time.
-    return;
-  }
-
-  final finishedSurveys = injector<ConfigurationService>().getFinishedSurveys();
-  if (finishedSurveys.contains(Survey.onboarding)) {
-    return;
-  }
-
-  showCustomNotifications(
-      context, "take_survey".tr(), const Key(Survey.onboarding),
-      notificationOpenedHandler: () =>
-          injector<NavigationService>().navigateTo(SurveyPage.tag));
 }
 
 class UIHelper {
@@ -667,132 +643,6 @@ class UIHelper {
     } catch (_) {}
   }
 
-  static Future<void> showLinkRequestedDialog(BuildContext context) {
-    final theme = Theme.of(context);
-    return showDialog(
-      context,
-      'link_requested'.tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          RichText(
-            text: TextSpan(children: [
-              TextSpan(
-                style: theme.primaryTextTheme.bodyLarge,
-                text: "au_sent_survey".tr(),
-              ),
-              TextSpan(
-                style: theme.primaryTextTheme.headlineMedium,
-                text: "feral_file".tr(),
-              ),
-              TextSpan(
-                style: theme.primaryTextTheme.bodyLarge,
-                text: "in_your_mobile".tr(),
-              ),
-            ]),
-          ),
-          const SizedBox(height: 67),
-        ],
-      ),
-      isDismissible: true,
-    );
-  }
-
-  static Future<void> showUnavailableCastDialog({
-    required BuildContext context,
-    Function()? dontShowAgain,
-    AssetToken? assetToken,
-  }) {
-    final theme = Theme.of(context);
-    return showDialog(
-      context,
-      'unavailable_cast'.tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SvgPicture.asset(
-                'assets/images/cast_icon.svg',
-                colorFilter:
-                    ColorFilter.mode(theme.disableColor, BlendMode.srcIn),
-              ),
-              const SizedBox(
-                width: 17,
-              ),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: theme.textTheme.ppMori400Grey14,
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'software_artwork_connect_cast'.tr(),
-                      ),
-                      TextSpan(
-                        text: 'tv_app'.tr(),
-                        style: theme.textTheme.ppMori400Green14,
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            launchUrlString(TV_APP_STORE_URL,
-                                mode: LaunchMode.externalApplication);
-                          },
-                      ),
-                      TextSpan(
-                        text: 'on_google_app_store'.tr(),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 40),
-          OutlineButton(
-            text: 'close'.tr(),
-            onTap: () => Navigator.pop(context),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-      isDismissible: true,
-    );
-  }
-
-  static Future showFFAccountLinked(BuildContext context, String alias,
-      {bool inOnboarding = false}) {
-    final theme = Theme.of(context);
-    return showDialog(
-      context,
-      'account_linked'.tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          RichText(
-            text: TextSpan(children: [
-              TextSpan(
-                style: theme.primaryTextTheme.ppMori400White14,
-                text: "au_receive_auth".tr(),
-              ),
-              TextSpan(
-                style: theme.primaryTextTheme.ppMori700White16,
-                text: alias,
-              ),
-              TextSpan(
-                style: theme.primaryTextTheme.ppMori400White14,
-                text:
-                    "dot".tr(args: [inOnboarding ? 'please_finish'.tr() : '']),
-              ),
-            ]),
-          ),
-          const SizedBox(height: 67),
-        ],
-      ),
-      isDismissible: true,
-      autoDismissAfter: 5,
-    );
-  }
-
   static Future showAirdropNotStarted(
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
@@ -1021,76 +871,6 @@ class UIHelper {
     }
   }
 
-  // MARK: - Persona
-  static showGeneratedPersonaDialog(BuildContext context,
-      {required Function() onContinue}) {
-    final theme = Theme.of(context);
-
-    showDialog(
-      context,
-      "generated".tr(),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'multichain_generate'.tr(),
-            style: theme.primaryTextTheme.ppMori400White14,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "ethereum_address".tr(),
-            style: theme.primaryTextTheme.ppMori700White14,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "tezos_address".tr(),
-            style: theme.primaryTextTheme.ppMori700White14,
-          ),
-          const SizedBox(height: 40),
-          Row(
-            children: [
-              Expanded(
-                child: PrimaryButton(
-                  text: "continue".tr(),
-                  onTap: () => onContinue(),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-        ],
-      ),
-    );
-  }
-
-  static showImportedPersonaDialog(BuildContext context,
-      {required Function() onContinue}) {
-    final theme = Theme.of(context);
-
-    showDialog(
-        context,
-        "imported".tr(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("imported_success".tr(),
-                style: theme.textTheme.ppMori400White14),
-            const SizedBox(height: 40),
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    text: "continue".tr(),
-                    onTap: () => onContinue(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-          ],
-        ));
-  }
-
   static showHideArtworkResultDialog(BuildContext context, bool isHidden,
       {required Function() onOK}) {
     final theme = Theme.of(context);
@@ -1185,19 +965,6 @@ class UIHelper {
         )));
   }
 
-  static showConnectionSuccess(
-    BuildContext context, {
-    required Function() onClose,
-  }) {
-    showDialog(
-      context,
-      'connected'.tr(),
-      ConnectedTV(
-        onTap: onClose,
-      ),
-    );
-  }
-
   static showLoadingScreen(BuildContext context, {String text = ''}) {
     final theme = Theme.of(context);
     Navigator.push(
@@ -1209,59 +976,6 @@ class UIHelper {
         ),
       ),
     );
-  }
-
-  static showConnectionFailed(
-    BuildContext context, {
-    required Function() onClose,
-  }) {
-    final theme = Theme.of(context);
-
-    showDialog(
-      context,
-      'expired'.tr(),
-      Flexible(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'expired_des'.tr(),
-              style: theme.primaryTextTheme.bodyLarge,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            AuSecondaryButton(
-              onPressed: onClose,
-              text: 'close'.tr(),
-            ),
-            const SizedBox(height: 15),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static showAccountLinked(
-      BuildContext context, Connection connection, String walletName) {
-    UIHelper.showInfoDialog(
-        context,
-        "account_linked".tr(),
-        "autonomy_has_received"
-            .tr(args: [walletName, connection.accountNumber.mask(4)]));
-
-    Future.delayed(const Duration(seconds: 3), () {
-      UIHelper.hideInfoDialog(context);
-
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context)
-            .pushNamed(AppRouter.nameLinkedAccountPage, arguments: connection);
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.nameLinkedAccountPage, (route) => false,
-            arguments: connection);
-      }
-    });
   }
 
   static showCenterSheet(BuildContext context,
@@ -1341,35 +1055,6 @@ class UIHelper {
             ),
           );
         });
-  }
-
-  static showLoadingIndicator(
-    BuildContext context,
-  ) {
-    UIHelper.hideInfoDialog(context);
-    showCupertinoModalPopup(
-        context: context,
-        builder: (context) {
-          return Center(
-            child: loadingIndicator(),
-          );
-        });
-  }
-
-  static showAlreadyLinked(BuildContext context, Connection connection) {
-    UIHelper.hideInfoDialog(context);
-    showErrorDiablog(
-        context,
-        ErrorEvent(null, "already_linked".tr(), "al_you’ve_already".tr(),
-            ErrorItemState.seeAccount), defaultAction: () {
-      Navigator.of(context)
-          .pushNamed(AppRouter.linkedAccountDetailsPage, arguments: connection);
-    });
-  }
-
-  static showAbortedByUser(BuildContext context) {
-    UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
-        isDismissible: true, autoDismissAfter: 3);
   }
 
   static Future<void> showDrawerAction(BuildContext context,
@@ -1680,94 +1365,6 @@ class UIHelper {
   }
 }
 
-class ConnectedTV extends StatefulWidget {
-  final Function() onTap;
-
-  const ConnectedTV({
-    super.key,
-    required this.onTap,
-  });
-
-  @override
-  State<ConnectedTV> createState() => _ConnectedTVState();
-}
-
-class _ConnectedTVState extends State<ConnectedTV> {
-  late Timer _timer;
-  int _countdown = 5;
-
-  @override
-  void initState() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_countdown != 0) {
-        setState(() {
-          _countdown--;
-        });
-      } else {
-        widget.onTap.call();
-        _timer.cancel();
-      }
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    if (_timer.isActive) {
-      _timer.cancel();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Flexible(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'connect_TV_success_des'.tr(),
-            style: theme.primaryTextTheme.bodyLarge,
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-          PrimaryButton(
-            onTap: widget.onTap,
-            text: _countdown != 0
-                ? 'close_seconds'.tr(args: [_countdown.toString()])
-                : 'close'.tr(),
-          ),
-          const SizedBox(height: 15),
-        ],
-      ),
-    );
-  }
-}
-
-learnMoreAboutAutonomySecurityWidget(BuildContext context,
-    {String title = 'Learn more about Autonomy security ...'}) {
-  final theme = Theme.of(context);
-  return TextButton(
-    onPressed: () =>
-        Navigator.of(context).pushNamed(AppRouter.autonomySecurityPage),
-    style: TextButton.styleFrom(
-      minimumSize: Size.zero,
-      padding: EdgeInsets.zero,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    ),
-    child: Text(
-      title,
-      style: ResponsiveLayout.isMobile
-          ? theme.textTheme.ppMori400Black14
-              .copyWith(decoration: TextDecoration.underline)
-          : theme.textTheme.ppMori400Black16
-              .copyWith(decoration: TextDecoration.underline),
-    ),
-  );
-}
-
 Widget loadingScreen(ThemeData theme, String text) {
   return Scaffold(
     backgroundColor: AppColor.white,
@@ -1788,25 +1385,6 @@ Widget loadingScreen(ThemeData theme, String text) {
         ],
       ),
     ),
-  );
-}
-
-Widget stepWidget(BuildContext context, String stepNumber, String stepGuide) {
-  final theme = Theme.of(context);
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "$stepNumber.",
-        style: theme.textTheme.ppMori400Black14,
-      ),
-      const SizedBox(
-        width: 10,
-      ),
-      Expanded(
-        child: Text(stepGuide, style: theme.textTheme.ppMori400Black14),
-      )
-    ],
   );
 }
 

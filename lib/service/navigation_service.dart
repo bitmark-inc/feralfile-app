@@ -75,16 +75,6 @@ class NavigationService {
         ?.pushNamedAndRemoveUntil(routeName, predicate);
   }
 
-  void showFFAccountLinked(String alias, {bool inOnboarding = false}) {
-    log.info("NavigationService.showFFAccountLinked: $alias");
-
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
-          inOnboarding: inOnboarding);
-    }
-  }
-
   NavigatorState navigatorState() {
     return Navigator.of(navigatorKey.currentContext!);
   }

@@ -66,7 +66,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
     final data = SettingsDataBackup(
       addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
-      finishedSurveys: _configurationService.getFinishedSurveys(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
       hiddenTestnetTokenIDs: [],
       hiddenAddressesFromGallery: hiddenAddressesFromGallery,
@@ -117,8 +116,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
 
-    await _configurationService.setFinishedSurvey(data.finishedSurveys);
-
     await _configurationService.updateTempStorageHiddenTokenIDs(
         data.hiddenMainnetTokenIDs, true,
         override: true);
@@ -140,7 +137,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 class SettingsDataBackup {
   List<String> addresses;
   bool isAnalyticsEnabled;
-  List<String> finishedSurveys;
   List<String> hiddenMainnetTokenIDs;
   List<String> hiddenTestnetTokenIDs;
   List<String> hiddenLinkedAccountsFromGallery;
@@ -150,7 +146,6 @@ class SettingsDataBackup {
   SettingsDataBackup({
     required this.addresses,
     required this.isAnalyticsEnabled,
-    required this.finishedSurveys,
     required this.hiddenMainnetTokenIDs,
     required this.hiddenTestnetTokenIDs,
     required this.hiddenLinkedAccountsFromGallery,

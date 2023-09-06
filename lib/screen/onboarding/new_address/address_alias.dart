@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -61,7 +63,7 @@ class _AddressAliasState extends State<AddressAlias> {
     bool isProcessing = false;
     return Scaffold(
       appBar: getBackAppBar(context,
-          title: "address_alias".tr(),
+          title: "create_a_new_wallet".tr(),
           onBack: () => Navigator.of(context).pop()),
       body: BlocConsumer<PersonaBloc, PersonaState>(
         listener: (context, state) async {
@@ -133,29 +135,35 @@ class _AddressAliasState extends State<AddressAlias> {
   }
 
   Future _doneNaming() async {
+    final isDoneOnboarding =
+        injector<ConfigurationService>().isDoneOnboarding();
     if (Platform.isAndroid) {
       final isAndroidEndToEndEncryptionAvailable =
           await injector<AccountService>()
               .isAndroidEndToEndEncryptionAvailable();
 
       if (!mounted) return;
-
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
+      final payload = CloudAndroidPagePayload(
+          isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable,
+          goToDiscoverPage: !isDoneOnboarding);
+      if (isDoneOnboarding) {
         Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
-            arguments: isAndroidEndToEndEncryptionAvailable);
+            arguments: payload);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.cloudAndroidPage, (route) => false,
-            arguments: isAndroidEndToEndEncryptionAvailable);
+            arguments: payload);
       }
     } else {
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
+      final payload = CloudPagePayload(
+          section: "nameAlias", goToDiscoverPage: !isDoneOnboarding);
+      if (isDoneOnboarding) {
         Navigator.of(context)
-            .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");
+            .pushReplacementNamed(AppRouter.cloudPage, arguments: payload);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.cloudPage, (route) => false,
-            arguments: "nameAlias");
+            arguments: payload);
       }
     }
   }

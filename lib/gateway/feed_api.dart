@@ -15,17 +15,17 @@ part 'feed_api.g.dart';
 abstract class FeedApi {
   factory FeedApi(Dio dio, {String baseUrl}) = _FeedApi;
 
-  @POST("/v1/follows/")
+  @POST("/v2/follows/")
   Future postFollows(
     @Body() Map<String, Object> body,
   );
 
-  @DELETE("/v1/follows/")
+  @DELETE("/v2/follows/")
   Future deleteFollows(
     @Body() Map<String, Object> body,
   );
 
-  @GET("/v1/follows")
+  @GET("/v2/follows")
   Future<FollowingData> getFollows(
     @Query("count") int? count,
     @Query("serial") String? serial,
