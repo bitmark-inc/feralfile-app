@@ -368,26 +368,30 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Connection> linkManuallyAddress(
       String address, CryptoType cryptoType) async {
+    String checkSumAddress = address;
+    if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.USDC) {
+      checkSumAddress = address.getETHEip55Address();
+    }
     final personaAddress = await _cloudDB.addressDao.getAllAddresses();
-    if (personaAddress.any((element) => element.address == address)) {
+    if (personaAddress.any((element) => element.address == checkSumAddress)) {
       throw LinkAddressException(message: "already_imported_address".tr());
     }
-    final doubleConnections =
-        await _cloudDB.connectionDao.getConnectionsByAccountNumber(address);
+    final doubleConnections = await _cloudDB.connectionDao
+        .getConnectionsByAccountNumber(checkSumAddress);
     if (doubleConnections.isNotEmpty) {
       throw LinkAddressException(message: "already_viewing_address".tr());
     }
     final connection = Connection(
-      key: address,
+      key: checkSumAddress,
       name: cryptoType.source,
       data: '{"blockchain":"${cryptoType.source}"}',
       connectionType: ConnectionType.manuallyAddress.rawValue,
-      accountNumber: address,
+      accountNumber: checkSumAddress,
       createdAt: DateTime.now(),
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
-    await _addressService.addAddresses([address]);
+    await _addressService.addAddresses([checkSumAddress]);
     _autonomyService.postLinkedAddresses();
     return connection;
   }
