@@ -437,6 +437,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
 
       case 'gallery_new_nft':
+      case 'new_postcard_trip':
         _clientTokenService.refreshTokens();
         break;
       case "artwork_created":
@@ -550,6 +551,27 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         });
 
         break;
+      case 'new_postcard_trip':
+        final data = notification.additionalData;
+        if (data == null) return;
+        final indexID = data["indexID"];
+        final tokens = await injector<NftCollectionDatabase>()
+            .assetTokenDao
+            .findAllAssetTokensByTokenIDs([indexID]);
+        if (tokens.isEmpty) return;
+        final owner = tokens.first.owner;
+        final postcardDetailPayload = PostcardDetailPagePayload(
+          [ArtworkIdentity(indexID, owner)],
+          0,
+        );
+        if (!mounted) return;
+        Navigator.of(context).popUntil((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+        Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+            arguments: postcardDetailPayload);
+        break;
+
       default:
         log.warning("unhandled notification type: $notificationType");
         break;
