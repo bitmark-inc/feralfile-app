@@ -49,7 +49,9 @@ class _FollowingPageState extends State<FollowingPage> with RouteAware {
     super.initState();
     context.read<FollowingBloc>().add(GetFolloweeEvent());
     _syncFolloweeDatabase();
-    _fetchSuggestedArtists();
+    WidgetsBinding.instance.addPostFrameCallback((context) {
+      _fetchSuggestedArtists();
+    });
   }
 
   @override
@@ -93,7 +95,6 @@ class _FollowingPageState extends State<FollowingPage> with RouteAware {
     setState(() {
       _validAddress = true;
       _address = value;
-      FocusManager.instance.primaryFocus?.unfocus();
     });
   }
 
@@ -180,10 +181,13 @@ class _FollowingPageState extends State<FollowingPage> with RouteAware {
           ),
         ),
         const SizedBox(height: 10),
-        Text(
-          "add_following_desc".tr(),
-          style: theme.textTheme.ppMori400Grey12
-              .copyWith(color: AppColor.auQuickSilver),
+        Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: Text(
+            "add_following_desc".tr(),
+            style: theme.textTheme.ppMori400Grey12
+                .copyWith(color: AppColor.auQuickSilver),
+          ),
         ),
       ],
     );
