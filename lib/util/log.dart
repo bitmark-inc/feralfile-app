@@ -64,7 +64,7 @@ class FileLogger {
   static const shrinkSize = 1024 * 1024; // 1MB
 
   static Future initializeLogging() async {
-    shrinkLogFileIfNeeded();
+    await shrinkLogFileIfNeeded();
   }
 
   static Future<File> shrinkLogFileIfNeeded() async {
