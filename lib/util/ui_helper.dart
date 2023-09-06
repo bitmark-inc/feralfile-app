@@ -1166,6 +1166,12 @@ class UIHelper {
         error.response?.data['message'], "close".tr());
   }
 
+  static showAlreadyClaimedPostcard(
+      BuildContext context, DioException error) async {
+    return showErrorDialog(context, "you_already_claimed_this_postcard".tr(),
+        "send_it_to_someone_else".tr(), "close".tr());
+  }
+
   static showSharePostcardFailed(
       BuildContext context, DioException error) async {
     return showErrorDialog(context, "Share Failed",

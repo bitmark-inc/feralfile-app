@@ -164,7 +164,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       } catch (e) {
         if (e is DioException) {
           if (!mounted) return null;
-          await UIHelper.showReceivePostcardFailed(
+          await UIHelper.showAlreadyClaimedPostcard(
             context,
             e,
           );
