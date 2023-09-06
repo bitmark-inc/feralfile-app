@@ -8,8 +8,10 @@ import 'dart:math' as math;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-typedef Future<StoreVersionAndUrl?> GetStoreVersionAndUrl(String packageName);
-typedef void ShowUpdateDialog(BuildContext context, VersionCheck versionCheck);
+typedef GetStoreVersionAndUrl = Future<StoreVersionAndUrl?> Function(
+    String packageName);
+typedef ShowUpdateDialog = void Function(
+    BuildContext context, VersionCheck versionCheck);
 
 class StoreVersionAndUrl {
   final String storeVersion;
@@ -147,7 +149,7 @@ Future<StoreVersionAndUrl?> _getAndroidStoreVersionAndUrl(
       final elements = doc.getElementsByTagName('script');
 
       for (var e in elements) {
-        var match = new RegExp('\"(\\d+\\.\\d+\\.\\d+)\"').firstMatch(e.text);
+        var match = RegExp('\"(\\d+\\.\\d+\\.\\d+)\"').firstMatch(e.text);
         if (match != null) {
           return StoreVersionAndUrl(match.group(1)!, url);
         }
@@ -216,7 +218,7 @@ void _showUpdateDialog(BuildContext context, VersionCheck versionCheck) {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      title: Text('Update Available'),
+      title: const Text('Update Available'),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
@@ -227,14 +229,14 @@ void _showUpdateDialog(BuildContext context, VersionCheck versionCheck) {
       ),
       actions: <Widget>[
         TextButton(
-          child: Text('Update'),
+          child: const Text('Update'),
           onPressed: () async {
             Navigator.of(context).pop();
             await versionCheck.launchStore();
           },
         ),
         TextButton(
-          child: Text('Close'),
+          child: const Text('Close'),
           onPressed: () {
             Navigator.of(context).pop();
           },
