@@ -68,9 +68,11 @@ class _ScanQRPageState extends State<ScanQRPage>
   final _navigationService = injector<NavigationService>();
   late Lock _lock;
   Timer? _timer;
+  late bool isProcessing;
 
   @override
   void initState() {
+    isProcessing = false;
     super.initState();
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
@@ -473,13 +475,18 @@ class _ScanQRPageState extends State<ScanQRPage>
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
-        controller.pauseCamera();
-        Navigator.pop(context);
+        if (!isProcessing) {
+          isProcessing = true;
+          await controller.pauseCamera();
+          if (!mounted) return;
+          Navigator.pop(context);
 
-        injector<DeeplinkService>().handleDeeplink(
-          code,
-          delay: const Duration(seconds: 1),
-        );
+          injector<DeeplinkService>().handleDeeplink(
+            code,
+            delay: const Duration(seconds: 1),
+          );
+          isProcessing = false;
+        }
         return;
       }
 
