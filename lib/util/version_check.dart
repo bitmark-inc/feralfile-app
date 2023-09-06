@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
@@ -10,8 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 typedef GetStoreVersionAndUrl = Future<StoreVersionAndUrl?> Function(
     String packageName);
-typedef ShowUpdateDialog = void Function(
-    BuildContext context, VersionCheck versionCheck);
+typedef ShowUpdateDialog = void Function(VersionCheck versionCheck);
 
 class StoreVersionAndUrl {
   final String storeVersion;
@@ -79,7 +80,7 @@ class VersionCheck {
 
       if (hasUpdate) {
         showUpdateDialog ??= _showUpdateDialog;
-        showUpdateDialog!(context, this);
+        showUpdateDialog!(this);
       }
     }
   }
@@ -149,7 +150,7 @@ Future<StoreVersionAndUrl?> _getAndroidStoreVersionAndUrl(
       final elements = doc.getElementsByTagName('script');
 
       for (var e in elements) {
-        var match = RegExp('\"(\\d+\\.\\d+\\.\\d+)\"').firstMatch(e.text);
+        var match = RegExp('"(\\d+\\.\\d+\\.\\d+)"').firstMatch(e.text);
         if (match != null) {
           return StoreVersionAndUrl(match.group(1)!, url);
         }
@@ -213,9 +214,9 @@ bool _shouldUpdate(String? packageVersion, String? storeVersion) {
   return false;
 }
 
-void _showUpdateDialog(BuildContext context, VersionCheck versionCheck) {
+void _showUpdateDialog(VersionCheck versionCheck) {
   showDialog(
-    context: context,
+    context: injector<NavigationService>().navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
       title: const Text('Update Available'),
