@@ -429,6 +429,11 @@ class _$ConnectionDao extends ConnectionDao {
   Future<void> deleteConnection(Connection connection) async {
     await _connectionDeletionAdapter.delete(connection);
   }
+
+  @override
+  Future<void> deleteConnections(List<Connection> connections) async {
+    await _connectionDeletionAdapter.deleteList(connections);
+  }
 }
 
 class _$AuditDao extends AuditDao {
