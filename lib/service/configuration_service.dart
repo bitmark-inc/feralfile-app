@@ -25,6 +25,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
+  Future<void> setDidMigrateAddress(bool value);
+
+  bool getDidMigrateAddress();
+
   Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false});
 
   List<String> getHiddenFeeds();
@@ -296,6 +300,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
   static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
   static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
@@ -1335,5 +1340,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return _preferences.setStringList(
           KEY_HIDDEN_FEEDS, currentHiddenFeeds.toSet().toList());
     }
+  }
+
+  @override
+  bool getDidMigrateAddress() {
+    return _preferences.getBool(KEY_DID_MIGRATE_ADDRESS) ?? false;
+  }
+
+  @override
+  Future<void> setDidMigrateAddress(bool value) async {
+    await _preferences.setBool(KEY_DID_MIGRATE_ADDRESS, value);
   }
 }
