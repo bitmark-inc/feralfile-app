@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -62,7 +61,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    log("DefineViewRoutingEvent");
+    logger.info("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 
