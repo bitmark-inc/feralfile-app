@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/migration/migration_address_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -58,10 +57,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     handleBranchLink();
     handleDeepLink();
     handleIrlLink();
-    Future.delayed(const Duration(seconds: 1), () {
-      MigrateAddressUtil(injector(), injector(), injector())
-          .migrateViewOnlyAddresses();
-    });
   }
 
   @override
