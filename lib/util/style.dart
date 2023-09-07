@@ -181,7 +181,7 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
       color: Colors.transparent,
       decoration: TextDecoration.underline,
       shadows: [
-        Shadow(
+        const Shadow(
           offset: Offset(0, -1),
         )
       ],
@@ -236,7 +236,6 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
     horizontalRuleDecoration: const BoxDecoration(
       border: Border(
         top: BorderSide(
-          width: 1,
           color: Color.fromRGBO(236, 236, 236, 1),
         ),
       ),
