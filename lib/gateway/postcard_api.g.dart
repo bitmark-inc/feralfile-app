@@ -239,7 +239,11 @@ class _PostcardApi implements PostcardApi {
   }
 
   @override
-  Future<GetLeaderboardResponse> getLeaderboard(String unit) async {
+  Future<GetLeaderboardResponse> getLeaderboard(
+    String unit,
+    int size,
+    int offset,
+  ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -252,7 +256,7 @@ class _PostcardApi implements PostcardApi {
     )
             .compose(
               _dio.options,
-              '/v1/leaderboard?unit=${unit}',
+              '/v1/leaderboard?unit=${unit}&size=${size}&offset=${offset}',
               queryParameters: queryParameters,
               data: _data,
             )

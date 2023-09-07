@@ -44,8 +44,9 @@ abstract class PostcardApi {
     @Part(name: "counter") required int counter,
   });
 
-  @GET("/v1/leaderboard?unit={unit}")
-  Future<GetLeaderboardResponse> getLeaderboard(@Path("unit") String unit);
+  @GET("/v1/leaderboard?unit={unit}&size={size}&offset={offset}")
+  Future<GetLeaderboardResponse> getLeaderboard(@Path("unit") String unit,
+      @Path("size") int size, @Path("offset") int offset);
 }
 
 class GetLeaderboardResponse {

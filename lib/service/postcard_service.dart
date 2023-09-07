@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -90,7 +89,8 @@ abstract class PostcardService {
 
   Future<void> checkNotification();
 
-  Future<PostcardLeaderboard> fetchPostcardLeaderboard();
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard(
+      {required String unit, required int size, required int offset});
 
   String getTokenId(String id);
 }
@@ -372,15 +372,14 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
-    final leaderboardResponse = await _postcardApi
-        .getLeaderboard(DistanceFormatter.getDistanceUnit.name);
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard(
+      {required String unit, required int size, required int offset}) async {
+    final leaderboardResponse =
+        await _postcardApi.getLeaderboard(unit, size, offset);
     final ids = leaderboardResponse.items
         .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
         .toList();
-    final request = QueryListTokensRequest(
-      ids: ids,
-    );
+    final request = QueryListTokensRequest(ids: ids, size: ids.length);
     final tokens = await _indexerService.getNftTokens(request);
     leaderboardResponse.items.map((e) {
       final token =
@@ -392,6 +391,7 @@ class PostcardServiceImpl extends PostcardService {
       e.creators =
           token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
       e.previewUrl = token.galleryThumbnailURL ?? "";
+      e.rank = e.rank + offset;
       return e;
     }).toList();
 
