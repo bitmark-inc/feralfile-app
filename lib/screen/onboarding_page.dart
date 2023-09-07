@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -28,11 +29,8 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logging/logging.dart';
 
 import 'bloc/persona/persona_bloc.dart';
-
-final logger = Logger('App');
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -61,7 +59,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    logger.info("DefineViewRoutingEvent");
+    log.info("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 
