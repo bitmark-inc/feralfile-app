@@ -134,6 +134,7 @@ class PostcardDetailBloc
       try {
         const size = LEADERBOARD_PAGE_SIZE;
         final offset = state.leaderboard?.items.length ?? 0;
+        emit(state.copyWith(isFetchingLeaderboard: true));
         final leaderboard = await _postcardService.fetchPostcardLeaderboard(
             unit: DistanceFormatter.getDistanceUnit.name,
             size: size,
@@ -147,7 +148,8 @@ class PostcardDetailBloc
                           element.rank > state.leaderboard!.items.length)
                       .toList()),
                 lastUpdated: DateTime.now());
-        emit(state.copyWith(leaderboard: newLeaderboard));
+        emit(state.copyWith(
+            leaderboard: newLeaderboard, isFetchingLeaderboard: false));
       } catch (e) {
         log.info("FetchLeaderboardEvent: error ${e.toString()}");
       }

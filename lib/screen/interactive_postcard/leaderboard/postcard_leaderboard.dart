@@ -34,18 +34,22 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
   late PostcardLeaderboard? leaderboard;
   late Timer _leaderboardTimer;
   late ScrollController _scrollController;
+  late bool isFetchingLeaderboard;
 
   @override
   void initState() {
     leaderboard = null;
     _scrollController = ScrollController();
+    isFetchingLeaderboard = false;
     _scrollController.addListener(() {
       final isScrollingDown = _scrollController.position.userScrollDirection ==
           ScrollDirection.reverse;
       if (_scrollController.position.pixels + 300 >=
               _scrollController.position.maxScrollExtent &&
           isScrollingDown) {
-        onLoadmoreLeaderboard();
+        if (!isFetchingLeaderboard) {
+          onLoadmoreLeaderboard();
+        }
       }
     });
     super.initState();
@@ -98,6 +102,7 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
     }, listener: (context, state) {
       setState(() {
         leaderboard = state.leaderboard;
+        isFetchingLeaderboard = state.isFetchingLeaderboard;
       });
     });
   }
