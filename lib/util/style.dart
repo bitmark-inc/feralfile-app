@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -173,31 +174,37 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
 
 MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
   final theme = Theme.of(context);
+  final baseStyle = theme.textTheme.moMASans400Black12;
   final bodyText2 = theme.textTheme.ppMori400Black14;
   return MarkdownStyleSheet(
-    a: TextStyle(
-      fontFamily: AppTheme.ppMori,
-      color: theme.auSuperTeal,
-      fontWeight: FontWeight.w400,
-      fontSize: 14,
+    a: baseStyle.copyWith(
+      color: Colors.transparent,
+      decoration: TextDecoration.underline,
+      shadows: [
+        Shadow(
+          offset: Offset(0, -1),
+        )
+      ],
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: Colors.black,
     ),
-    p: theme.textTheme.ppMori400Black14,
-    pPadding: EdgeInsets.zero,
+    p: baseStyle,
+    pPadding: const EdgeInsets.symmetric(horizontal: 15),
     code: bodyText2.copyWith(backgroundColor: Colors.transparent),
-    h1: theme.textTheme.ppMori400Black16,
+    h1: baseStyle.copyWith(fontSize: 16),
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.ppMori400Black16,
+    h2: baseStyle.copyWith(fontSize: 16),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.ppMori400Black16,
+    h3: baseStyle.copyWith(fontSize: 16),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.ppMori400Black16,
+    h4: baseStyle.copyWith(fontSize: 16),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.ppMori400Black16,
+    h5: baseStyle.copyWith(fontSize: 16),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.ppMori400Black16,
+    h6: baseStyle.copyWith(fontSize: 16),
     h6Padding: EdgeInsets.zero,
     em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
-    strong: theme.textTheme.ppMori400Black14,
+    strong: baseStyle.copyWith(color: AppColor.auQuickSilver),
     del: const TextStyle(
         decoration: TextDecoration.lineThrough, color: Colors.white),
     blockquote: bodyText2,
@@ -226,11 +233,11 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(2.0),
     ),
-    horizontalRuleDecoration: BoxDecoration(
+    horizontalRuleDecoration: const BoxDecoration(
       border: Border(
         top: BorderSide(
-          width: 0.5,
-          color: theme.disableColor,
+          width: 1,
+          color: Color.fromRGBO(236, 236, 236, 1),
         ),
       ),
     ),

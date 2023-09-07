@@ -805,6 +805,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ],
             const SizedBox(height: 20.0),
             PostcardContainer(
+                padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
                 child: artworkDetailsRightSection(context, asset)),
             const SizedBox(height: 40.0),
           ],
