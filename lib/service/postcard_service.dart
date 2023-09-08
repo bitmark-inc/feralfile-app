@@ -92,6 +92,11 @@ abstract class PostcardService {
 
   Future<PostcardLeaderboard> fetchPostcardLeaderboard();
 
+  Future<dynamic> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+  });
+
   String getTokenId(String id);
 }
 
@@ -397,6 +402,18 @@ class PostcardServiceImpl extends PostcardService {
 
     return PostcardLeaderboard(
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
+  }
+
+  @override
+  Future<dynamic> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+  }) async {
+    final response = await _postcardApi.downloadStamp(
+      tokenId: tokenId,
+      stampIndex: stampIndex,
+    );
+    return response;
   }
 
   @override

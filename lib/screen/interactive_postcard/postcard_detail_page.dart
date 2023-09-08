@@ -856,8 +856,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             height: 24,
           ),
           onTap: () async {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
+            try {
+              final response = await _postcardService.downloadStamp(
+                  tokenId: asset.tokenId!, stampIndex: 1);
+              Navigator.of(context).pop();
+            } catch (e) {
+              log.info("Download stamp failed: error ${e.toString()}");
+            }
           },
         ),
         OptionItem(
