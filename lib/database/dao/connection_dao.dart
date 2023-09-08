@@ -62,6 +62,9 @@ abstract class ConnectionDao {
   @delete
   Future<void> deleteConnection(Connection connection);
 
+  @delete
+  Future<void> deleteConnections(List<Connection> connections);
+
   @Query(
       'DELETE FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
   Future<void> deleteConnectionsByAccountNumber(String accountNumber);
