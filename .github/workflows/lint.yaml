@@ -76,7 +76,7 @@ jobs:
       uses: reviewdog/action-detect-secrets@master
       with:
         reporter: github-pr-review
-        detect_secrets_flags: -all-files --force-use-all-plugins --exclude-files pubspec.*
+        detect_secrets_flags: --all-files --force-use-all-plugins --exclude-files pubspec.*
 
   dotenv-linter:
     name: runner / dotenv-linter
