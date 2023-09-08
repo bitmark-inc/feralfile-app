@@ -43,23 +43,6 @@ jobs:
           MESSAGE="Pull request: [${PR_TITLE}](${PR_URL})"
           echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v4
-
-      - name: Build iOS app
-        uses: ./.github/workflows/bmvn_build_appcenter_ios.yaml
-        with:
-          version: ${{ steps.extract-version.outputs.short_version }}
-          message: ${{ steps.pr-message.outputs.message }}
-          testnet: true
-      
-      - name: Build Android app
-        uses: ./.github/workflows/bmvn_build_appcenter_android.yaml
-        with:
-          version: ${{ steps.extract-version.outputs.short_version }}
-          build-number: ${{ steps.extract-version.outputs.build_number }}
-          message: ${{ steps.pr-message.outputs.message }}
-          testnet: true
-
   deployment-ios:
     needs: fetch-deployment
     uses: ./.github/workflows/bmvn_build_appcenter_ios.yaml
