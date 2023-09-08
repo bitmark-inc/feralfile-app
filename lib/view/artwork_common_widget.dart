@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -1823,7 +1824,7 @@ class PostcardRightsView extends StatefulWidget {
 }
 
 class _PostcardRightsViewState extends State<PostcardRightsView> {
-  final dio = Dio(BaseOptions(
+  final dio = baseDio(BaseOptions(
     connectTimeout: const Duration(seconds: 5),
   ));
 

@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -27,7 +28,7 @@ class RoyaltyState {
 
 class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
   final FeralFileService _feralFileService;
-  final dio = Dio(BaseOptions(
+  final dio = baseDio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
     connectTimeout: const Duration(seconds: 5),
   ));

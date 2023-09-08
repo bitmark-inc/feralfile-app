@@ -347,7 +347,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   _showRemoveCustomerSupport() async {
     final device = DeviceInfo.instance;
     if (!(await device.isSupportOS())) {
-      final dio = Dio(BaseOptions(
+      final dio = baseDio(BaseOptions(
         baseUrl: "https://raw.githubusercontent.com",
         connectTimeout: const Duration(seconds: 5),
       ));
