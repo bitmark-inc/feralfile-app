@@ -39,6 +39,8 @@ jobs:
           MESSAGE="Pull request: [${PR_TITLE}](${PR_URL})"
           echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
 
+      - uses: actions/checkout@v4
+
       - name: Build iOS app
         uses: ./.github/workflows/bmvn_build_appcenter_ios.yaml
         with:
