@@ -16,6 +16,25 @@ on:
         default: false
         required: false
         description: Using testnet (Default staging)
+  workflow_call:
+    inputs:
+      version:
+        description: Build version (eg 0.30.0)
+        type: string
+        required: true
+      build-number:
+        description: Build number
+        type: string
+        required: true
+      message:
+        description: Change logs
+        type: string
+        required: false
+      testnet:
+        type: boolean
+        default: false
+        required: false
+        description: Using testnet (Default staging)
 jobs:
   build:
     runs-on: [ self-hosted, macm2, build-ci-local-bmvn, android ]

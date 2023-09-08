@@ -14,6 +14,21 @@ on:
         default: false
         required: false
         description: Using testnet (Default staging)
+  workflow_call:
+    inputs:
+      version:
+        description: "App version"
+        type: string
+        required: false
+      message:
+        description: Change logs
+        type: string
+        required: false
+      testnet:
+        type: boolean
+        default: false
+        required: false
+        description: Using testnet (Default staging)
 
 jobs:
   fastlane-deploy:
