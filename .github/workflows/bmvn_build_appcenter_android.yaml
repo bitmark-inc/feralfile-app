@@ -113,3 +113,9 @@ jobs:
           silent: false
           group: "Collaborators,Bitmark Internal Testers"
           release_notes: ${{ github.event.inputs.message }}
+
+      - name: Upload Sentry debug symbols
+        env: 
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH }}
+        run: |
+          flutter packages pub run sentry_dart_plugin

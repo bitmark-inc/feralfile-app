@@ -152,3 +152,9 @@ jobs:
           bundle exec fastlane ciappcenter env:${{ env.FASTLAN_ENV }}
 
         working-directory: ios
+
+      - name: Upload Sentry debug symbols
+        env: 
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH }}
+        run: |
+          flutter packages pub run sentry_dart_plugin

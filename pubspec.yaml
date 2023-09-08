@@ -186,6 +186,7 @@ dev_dependencies:
   dependency_validator: null
   dotenv: ^4.0.1
   html_unescape: ^2.0.0
+  sentry_dart_plugin: ^1.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -249,3 +250,14 @@ flutter:
         - asset: assets/fonts/MoMASans/MoMA-Sans-Bold-Italic.otf
         - asset: assets/fonts/MoMASans/MoMA-Sans-Regular.otf
         - asset: assets/fonts/MoMASans/MoMA-Sans-Regular-Italic.otf
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  upload_sources: true
+  project: autonomy-client-flutter
+  org: bitmark-inc
+  wait_for_processing: false
+  log_level: info
+  commits: auto
+  ignore_missing: true
