@@ -89,7 +89,7 @@ final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
 Future<void> setup() async {
-  FileLogger.initializeLogging();
+  await FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {

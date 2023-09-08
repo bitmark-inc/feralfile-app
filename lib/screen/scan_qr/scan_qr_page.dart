@@ -467,13 +467,18 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
+      if (_isLoading) return;
       if (scanData.code == null) return;
       if (scanData.code == currentCode && isScanDataError) return;
       currentCode = scanData.code;
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
+        setState(() {
+          _isLoading = true;
+        });
         controller.pauseCamera();
+        if (!mounted) return;
         Navigator.pop(context);
 
         injector<DeeplinkService>().handleDeeplink(
@@ -502,11 +507,17 @@ class _ScanQRPageState extends State<ScanQRPage>
 
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
+          setState(() {
+            _isLoading = true;
+          });
           controller.pauseCamera();
           Navigator.pop(context, code);
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
+            setState(() {
+              _isLoading = true;
+            });
             _handleAutonomyConnect(code);
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
@@ -614,6 +625,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   void _handleAutonomyConnect(String code) {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
     _addScanQREvent(
         link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
@@ -622,6 +636,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   void _handleBeaconConnect(String code) {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
     _addScanQREvent(
         link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
