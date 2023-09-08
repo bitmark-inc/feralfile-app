@@ -32,7 +32,8 @@ jobs:
             ((BUILD_NUMBER++))
             
             SHORT_VERSION=$(echo "$API_RESPONSE" | jq -r '.[0].short_version')
-            echo "short_version=$SHORT_VERSION build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "short_version=$SHORT_VERSION" >> "$GITHUB_OUTPUT"
+            echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Create PR Message
         id: pr-message
