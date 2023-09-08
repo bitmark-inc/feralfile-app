@@ -830,40 +830,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  bool _isHidden(AssetToken token) {
-    return _configurationService
-        .getTempStorageHiddenTokenIDs()
-        .contains(token.id);
-  }
-
   Future _showArtworkOptionsDialog(AssetToken asset) async {
     if (!mounted) return;
-    final isHidden = _isHidden(asset);
-    UIHelper.showDrawerAction(
+    const isHidden = false;
+    UIHelper.showPostcardDrawerAction(
       context,
       options: [
         OptionItem(
-          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-          icon: const Icon(AuIcon.hidden_artwork),
-          onTap: () async {
-            await _configurationService
-                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            injector<SettingsDataService>().backup();
-
-            if (!mounted) return;
-            NftCollectionBloc.eventController.add(ReloadEvent());
-            Navigator.of(context).pop();
-            UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.settings.name == AppRouter.homePage ||
-                  route.settings.name == AppRouter.homePageNoTransition);
-            });
-          },
-        ),
-        OptionItem(
           title: 'share_on_'.tr(),
           icon: SvgPicture.asset(
-            'assets/images/Share.svg',
+            'assets/images/globe.svg',
             width: 24,
             height: 24,
           ),
@@ -872,6 +848,59 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
+        OptionItem(
+          title: 'download_stamp'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/download.svg',
+            width: 24,
+            height: 24,
+          ),
+          onTap: () async {
+            _shareTwitter(asset);
+            Navigator.of(context).pop();
+          },
+        ),
+        OptionItem(
+            title: 'hide'.tr(),
+            icon: SvgPicture.asset(
+              "assets/images/postcard_hide.svg",
+              colorFilter:
+                  const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
+            ),
+            onTap: () async {
+              await _configurationService
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+              injector<SettingsDataService>().backup();
+
+              if (!mounted) return;
+              NftCollectionBloc.eventController.add(ReloadEvent());
+              Navigator.of(context).pop();
+              UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                  onOK: () {
+                Navigator.of(context).popUntil((route) =>
+                    route.settings.name == AppRouter.homePage ||
+                    route.settings.name == AppRouter.homePageNoTransition);
+              });
+            },
+            builder: (BuildContext context, OptionItem item) {
+              final theme = Theme.of(context);
+              return Row(
+                children: [
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  if (item.icon != null) SizedBox(width: 30, child: item.icon),
+                  const SizedBox(
+                    width: 18,
+                  ),
+                  Text(
+                    item.title ?? '',
+                    style: theme.textTheme.moMASans700Black16
+                        .copyWith(color: MoMAColors.moMA3, fontSize: 18),
+                  ),
+                ],
+              );
+            }),
       ],
     );
   }

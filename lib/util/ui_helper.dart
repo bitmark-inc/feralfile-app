@@ -1114,9 +1114,9 @@ class UIHelper {
                         ),
                       ),
                     );
-                    if (options?[index].builder != null) {
-                      return options?[index].builder!.call(context, child);
-                    }
+                    // if (options?[index].builder != null) {
+                    //   return options?[index].builder!.call(context, child);
+                    // }
                     return GestureDetector(
                       onTap: options?[index].onTap,
                       child: child,
@@ -1130,6 +1130,89 @@ class UIHelper {
                   ),
                 ),
               ],
+            ),
+          );
+        });
+  }
+
+  static Future<void> showPostcardDrawerAction(BuildContext context,
+      {required List<OptionItem> options}) async {
+    final theme = Theme.of(context);
+    const backgroundColor = AppColor.white;
+    final textStyle = theme.textTheme.moMASans700Black16.copyWith(fontSize: 18);
+    await showModalBottomSheet<dynamic>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        enableDrag: false,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
+        barrierColor: Colors.black.withOpacity(0.5),
+        isScrollControlled: true,
+        builder: (context) {
+          return Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              color: backgroundColor,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 50),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      final child = Container(
+                        color: Colors.transparent,
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 20,
+                          ),
+                          child: options[index].builder != null
+                              ? options[index]
+                                  .builder!
+                                  .call(context, options[index])
+                              : Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 15,
+                                    ),
+                                    if (options[index].icon != null)
+                                      SizedBox(
+                                          width: 30,
+                                          child: options[index].icon),
+                                    const SizedBox(
+                                      width: 18,
+                                    ),
+                                    Text(
+                                      options[index].title ?? '',
+                                      style: textStyle,
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      );
+                      return GestureDetector(
+                        onTap: options[index].onTap,
+                        child: child,
+                      );
+                    },
+                    itemCount: options.length,
+                    separatorBuilder: (context, index) => const Divider(
+                      height: 1,
+                      thickness: 1.0,
+                      color: Color.fromRGBO(236, 236, 236, 1),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         });
@@ -1402,7 +1485,7 @@ class OptionItem {
   String? title;
   Function()? onTap;
   Widget? icon;
-  Widget Function(BuildContext context, Widget child)? builder;
+  Widget Function(BuildContext context, OptionItem item)? builder;
 
   OptionItem({
     this.title,
