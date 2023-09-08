@@ -40,16 +40,11 @@ APIErrorCode? getAPIErrorCode(int code) {
   }
 }
 
-Future<String> _getLogFilePath() async {
+Future<File> getLogFile() async {
   final directory = (await getTemporaryDirectory()).path;
   const fileName = "app.log";
-  debugPrint("Log file: $directory/$fileName");
 
-  return "$directory/$fileName";
-}
-
-Future<File> getLogFile() async {
-  return _createLogFile(await _getLogFilePath());
+  return _createLogFile("$directory/$fileName");
 }
 
 Future<File> _createLogFile(canonicalLogFileName) async =>
