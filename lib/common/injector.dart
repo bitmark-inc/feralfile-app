@@ -131,12 +131,19 @@ Future<void> setup() async {
     migrateCloudV7ToV8,
   ]).build();
 
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  );
+  final dio = baseDio(dioOptions);
+
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
   await NftCollection.initNftCollection(
-    indexerUrl: Environment.indexerURL,
-    logger: log,
-    apiLogger: apiLog,
-  );
+      indexerUrl: Environment.indexerURL,
+      logger: log,
+      apiLogger: apiLog,
+      dio: dio);
   injector
       .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
   injector.registerLazySingleton(() => NftCollection.prefs);
@@ -147,13 +154,6 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
   injector.registerLazySingleton(() => cloudDB);
-
-  final BaseOptions dioOptions = BaseOptions(
-    followRedirects: true,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  );
-  final dio = baseDio(dioOptions);
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
