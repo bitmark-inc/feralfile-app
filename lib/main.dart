@@ -44,13 +44,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   runZonedGuarded(() async {
     await dotenv.load();
-    await SentryFlutter.init((options) {
-      options.dsn = Environment.sentryDSN;
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-      options.attachStacktrace = true;
-    });
 
     WidgetsFlutterBinding.ensureInitialized();
     // feature/text_localization
@@ -82,8 +75,6 @@ void main() async {
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
     if (error.toString().contains("DatabaseException")) {
-      Sentry.captureException(error);
-
       log.info('[DatabaseException] Remove local database and resume app');
 
       await _deleteLocalDatabase();
@@ -115,11 +106,19 @@ _setupApp() async {
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
 
-  runApp(EasyLocalization(
-      supportedLocales: const [Locale('en', 'US')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en', 'US'),
-      child: const OverlaySupport.global(child: AutonomyApp())));
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = Environment.sentryDSN;
+      options.enableAutoSessionTracking = true;
+      options.tracesSampleRate = 0.25;
+      options.attachStacktrace = true;
+    },
+    appRunner: () => runApp(EasyLocalization(
+        supportedLocales: const [Locale('en', 'US')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en', 'US'),
+        child: const OverlaySupport.global(child: AutonomyApp()))),
+  );
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
