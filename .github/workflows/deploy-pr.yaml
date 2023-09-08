@@ -9,8 +9,12 @@ on:
       - develop
 
 jobs:
-  deployment:
-    runs-on: [ self-hosted, macm2, build-ci-local-bmvn, ios ]
+  fetch-deployment:
+    runs-on: ubuntu-latest
+    outputs:
+      short_version: ${{ steps.extract-version.outputs.short_version }}
+      build_number: ${{ steps.extract-version.outputs.build_number }}
+      message: ${{ steps.pr-message.outputs.message }}
     steps:
       - name: Extract Short Version
         id: extract-version
@@ -55,3 +59,20 @@ jobs:
           build-number: ${{ steps.extract-version.outputs.build_number }}
           message: ${{ steps.pr-message.outputs.message }}
           testnet: true
+
+  deployment-ios:
+    needs: fetch-deployment
+    uses: ./.github/workflows/bmvn_build_appcenter_ios.yaml
+    with:
+      version: ${{ needs.fetch-deployment.outputs.short_version }}
+      message: ${{ needs.fetch-deployment.outputs.message }}
+      testnet: true
+
+  deployment-android:
+    needs: fetch-deployment
+    uses: ./.github/workflows/bmvn_build_appcenter_android.yaml
+    with:
+      version: ${{ needs.fetch-deployment.outputs.short_version }}
+      message: ${{ needs.fetch-deployment.outputs.message }}
+      build-number: ${{ needs.fetch-deployment.outputs.build_number }}
+      testnet: true
