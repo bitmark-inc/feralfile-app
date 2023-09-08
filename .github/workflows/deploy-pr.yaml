@@ -50,6 +50,7 @@ jobs:
       version: ${{ needs.fetch-deployment.outputs.short_version }}
       message: ${{ needs.fetch-deployment.outputs.message }}
       testnet: true
+    secrets: inherit
 
   deployment-android:
     needs: fetch-deployment
@@ -59,3 +60,4 @@ jobs:
       message: ${{ needs.fetch-deployment.outputs.message }}
       build-number: ${{ needs.fetch-deployment.outputs.build_number }}
       testnet: true
+    secrets: inherit
