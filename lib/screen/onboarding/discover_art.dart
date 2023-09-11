@@ -39,57 +39,62 @@ class _DiscoverArtPageState extends State<DiscoverArtPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          systemOverlayStyle: systemUiOverlayDarkStyle,
-          toolbarHeight: 40,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-        ),
-        backgroundColor: AppColor.primaryBlack,
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _header(context),
-                    BlocBuilder<DiscoverArtBloc, DiscoverArtState>(
-                        builder: (context, state) {
-                      if (state.isLoading && state.tokenList.isEmpty) {
-                        return Center(
-                          child: GifView.asset(
-                            "assets/images/loading_white.gif",
-                            width: 52,
-                            height: 52,
-                            frameRate: 12,
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+          appBar: AppBar(
+            systemOverlayStyle: systemUiOverlayDarkStyle,
+            toolbarHeight: 40,
+            shadowColor: Colors.transparent,
+            elevation: 0,
+          ),
+          backgroundColor: AppColor.primaryBlack,
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _header(context),
+                      BlocBuilder<DiscoverArtBloc, DiscoverArtState>(
+                          builder: (context, state) {
+                        if (state.isLoading && state.tokenList.isEmpty) {
+                          return Center(
+                            child: GifView.asset(
+                              "assets/images/loading_white.gif",
+                              width: 52,
+                              height: 52,
+                              frameRate: 12,
+                            ),
+                          );
+                        }
+                        return BlocProvider.value(
+                          value: FollowArtistBloc(injector()),
+                          child: ListDiscoverArts(
+                            tokenList: state.tokenList,
+                            artistNames:
+                                state.artistNames as Map<String, List<String>>,
                           ),
                         );
-                      }
-                      return BlocProvider.value(
-                        value: FollowArtistBloc(injector()),
-                        child: ListDiscoverArts(
-                          tokenList: state.tokenList,
-                          artistNames:
-                              state.artistNames as Map<String, List<String>>,
-                        ),
-                      );
-                    }),
-                  ],
+                      }),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-                padding:
-                    ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-                child: PrimaryButton(
-                  text: "continue".tr(),
-                  onTap: () {
-                    doneOnboarding(context);
-                  },
-                ))
-          ],
-        ));
+              Padding(
+                  padding:
+                      ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+                  child: PrimaryButton(
+                    text: "continue".tr(),
+                    onTap: () {
+                      doneOnboarding(context);
+                    },
+                  ))
+            ],
+          )),
+    );
   }
 
   Widget _header(BuildContext context) {
