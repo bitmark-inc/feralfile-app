@@ -68,6 +68,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
+  final bool useIndexer;
 
   PostcardDetailPagePayload(
     List<ArtworkIdentity> identities,
@@ -76,6 +77,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
     PlayControlModel? playControl,
     String? twitterCaption,
     this.isFromLeaderboard = false,
+    this.useIndexer = false,
   }) : super(
           key: key,
           identities,
@@ -125,7 +127,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
               widget.payload.identities[widget.payload.currentIndex],
-              useIndexer: widget.payload.isFromLeaderboard),
+              useIndexer: widget.payload.isFromLeaderboard ||
+                  widget.payload.useIndexer),
         );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
