@@ -221,6 +221,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     final ignorePrefixes = [
       "wc://wc?requestId=",
+      "autonomy-wc://wc?requestId=",
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
