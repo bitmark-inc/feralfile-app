@@ -373,11 +373,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[ClaimTokenPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(
-        context,
-        e,
-        series: widget.series,
-      );
+      if (mounted) {
+        await UIHelper.showClaimTokenError(
+          context,
+          e,
+          series: widget.series,
+        );
+      }
       memoryValues.branchDeeplinkData.value = null;
     }
     setState(() {

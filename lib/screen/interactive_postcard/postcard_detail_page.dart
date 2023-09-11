@@ -68,7 +68,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
-  final bool useIndexer;
 
   PostcardDetailPagePayload(
     List<ArtworkIdentity> identities,
@@ -77,13 +76,14 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
     PlayControlModel? playControl,
     String? twitterCaption,
     this.isFromLeaderboard = false,
-    this.useIndexer = false,
+    bool useIndexer = false,
   }) : super(
           key: key,
           identities,
           currentIndex,
           playControl: playControl,
           twitterCaption: twitterCaption,
+          useIndexer: useIndexer,
         );
 }
 
