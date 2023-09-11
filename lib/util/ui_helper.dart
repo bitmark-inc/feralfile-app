@@ -1176,9 +1176,7 @@ class UIHelper {
                             vertical: 20,
                           ),
                           child: options[index].builder != null
-                              ? options[index]
-                                  .builder!
-                                  .call(context, options[index])
+                              ? options[index].builder!(context, options[index])
                               : Row(
                                   children: [
                                     const SizedBox(

@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -26,9 +27,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
-  Future<void> addPostcardSharedTime(String indexID);
+  Future<void> addPostcardSharedTime(ArtworkIdentity identity);
 
-  bool isSharedPostcardExpire(String indexID);
+  Future<void> removePostcardSharedTime(ArtworkIdentity identity);
+
+  bool isSharedPostcardExpire(ArtworkIdentity identity);
 
   Future<void> setDidMigrateAddress(bool value);
 
@@ -1341,26 +1344,37 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> addPostcardSharedTime(String indexID) async {
+  Future<void> addPostcardSharedTime(ArtworkIdentity identity) async {
+    final key = identity.key;
     final listPostcards =
         _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
-    listPostcards.removeWhere((element) => element.contains(indexID));
-    final postcardMap = {indexID: DateTime.now().millisecondsSinceEpoch};
+    listPostcards.removeWhere((element) => element.contains(key));
+    final postcardMap = {key: DateTime.now().millisecondsSinceEpoch};
     listPostcards.add(jsonEncode(postcardMap));
     await _preferences.setStringList(KEY_SHOW_POSTCARD_EXPIRED, listPostcards);
   }
 
   @override
-  bool isSharedPostcardExpire(String indexID) {
+  bool isSharedPostcardExpire(ArtworkIdentity identity) {
+    final key = identity.key;
     final listPostcards =
         _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
     final postcardStr =
-        listPostcards.firstWhereOrNull((element) => element.contains(indexID));
+        listPostcards.firstWhereOrNull((element) => element.contains(key));
     if (postcardStr == null) return false;
-    final postcardMap = jsonDecode(postcardStr) as Map<String, int>;
-    final shareTime = postcardMap[indexID] ?? 0;
+    final postcardMap = jsonDecode(postcardStr) as Map<String, dynamic>;
+    final sharedTime = postcardMap[key] ?? 0;
     final currentTime = DateTime.now().millisecondsSinceEpoch;
     const expireDuration = 24 * 60 * 60 * 1000;
-    return currentTime - shareTime > expireDuration;
+    return currentTime - sharedTime > expireDuration;
+  }
+
+  @override
+  Future<void> removePostcardSharedTime(ArtworkIdentity identity) async {
+    final key = identity.key;
+    final listPostcards =
+        _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
+    listPostcards.removeWhere((element) => element.contains(key));
+    await _preferences.setStringList(KEY_SHOW_POSTCARD_EXPIRED, listPostcards);
   }
 }
