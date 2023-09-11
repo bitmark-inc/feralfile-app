@@ -20,11 +20,16 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
+  Future<void> addPostcardSharedTime(String indexID);
+
+  bool isSharedPostcardExpire(String indexID);
+
   Future<void> setDidMigrateAddress(bool value);
 
   bool getDidMigrateAddress();
@@ -296,6 +301,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_SHOW_POSTCARD_EXPIRED = "show_postcard_expired";
   static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
   static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
   static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
@@ -1332,5 +1338,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidMigrateAddress(bool value) async {
     await _preferences.setBool(KEY_DID_MIGRATE_ADDRESS, value);
+  }
+
+  @override
+  Future<void> addPostcardSharedTime(String indexID) async {
+    final listPostcards =
+        _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
+    listPostcards.removeWhere((element) => element.contains(indexID));
+    final postcardMap = {indexID: DateTime.now().millisecondsSinceEpoch};
+    listPostcards.add(jsonEncode(postcardMap));
+    await _preferences.setStringList(KEY_SHOW_POSTCARD_EXPIRED, listPostcards);
+  }
+
+  @override
+  bool isSharedPostcardExpire(String indexID) {
+    final listPostcards =
+        _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
+    final postcardStr =
+        listPostcards.firstWhereOrNull((element) => element.contains(indexID));
+    if (postcardStr == null) return false;
+    final postcardMap = jsonDecode(postcardStr) as Map<String, int>;
+    final shareTime = postcardMap[indexID] ?? 0;
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    const expireDuration = 24 * 60 * 60 * 1000;
+    return currentTime - shareTime > expireDuration;
   }
 }
