@@ -16,7 +16,9 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -27,6 +29,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -49,7 +52,7 @@ class _StampPreviewState extends State<StampPreview> {
   int index = 0;
   bool confirming = false;
   Timer? timer;
-
+  bool alreadyShowPopup = false;
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _tokenService = injector<TokensService>();
@@ -83,6 +86,51 @@ class _StampPreviewState extends State<StampPreview> {
         _refreshPostcard();
       }
     });
+  }
+
+  Future<void> showPopup(BuildContext context) async {
+    final theme = Theme.of(context);
+    final options = [
+      OptionItem(
+        title: "stamp_minted".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16
+            .copyWith(color: MoMAColors.moMA3, fontSize: 18),
+        icon: SvgPicture.asset("assets/images/moma_arrow_right.svg"),
+        onTap: () {},
+      ),
+      OptionItem(
+        title: 'share_on_'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/globe.svg',
+          width: 24,
+          height: 24,
+        ),
+        onTap: () async {},
+      ),
+      OptionItem(
+        title: 'download_stamp'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+        ),
+        onTap: () async {
+          try {
+            final asset = widget.payload.asset;
+            final response = await _postcardService.downloadStamp(
+                tokenId: asset.tokenId!, stampIndex: 0);
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            UIHelper.showPostcardStampSaved(context);
+          } catch (e) {
+            log.info("Download stamp failed: error ${e.toString()}");
+            Navigator.of(context).pop();
+            UIHelper.showPostcardStampSavedFailed(context);
+          }
+        },
+      ),
+    ];
+    await UIHelper.showPostcardDrawerAction(context, options: options);
   }
 
   @override
@@ -133,14 +181,22 @@ class _StampPreviewState extends State<StampPreview> {
               if (state.assetToken == null) {
                 return;
               }
-              _navigationService.popUntilHomeOrSettings();
-              if (!mounted) return;
-              Navigator.of(context).pushNamed(
-                AppRouter.claimedPostcardDetailsPage,
-                arguments:
-                    PostcardDetailPagePayload([state.assetToken!.identity], 0),
-              );
-              _configurationService.setAutoShowPostcard(true);
+              timer?.cancel();
+              if (alreadyShowPopup) {
+                return;
+              }
+              alreadyShowPopup = true;
+              showPopup(context).then((value) => null).then((value) {
+                log.info("Popup closed");
+                _navigationService.popUntilHomeOrSettings();
+                if (!mounted) return;
+                Navigator.of(context).pushNamed(
+                  AppRouter.claimedPostcardDetailsPage,
+                  arguments: PostcardDetailPagePayload(
+                      [state.assetToken!.identity], 0),
+                );
+                _configurationService.setAutoShowPostcard(true);
+              });
             }
           },
           builder: (context, state) {

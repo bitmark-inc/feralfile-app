@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -115,6 +116,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   late bool sharingPostcard;
+
+  File? pngImage;
 
   @override
   void initState() {
@@ -519,6 +522,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 height: 20,
                               ),
                             ],
+                            (pngImage != null)
+                                ? Image.file(pngImage!)
+                                : const SizedBox(),
                             _postcardInfo(context, state),
                             const SizedBox(
                               height: 20,
@@ -859,9 +865,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             try {
               final response = await _postcardService.downloadStamp(
                   tokenId: asset.tokenId!, stampIndex: 1);
+              setState(() {
+                pngImage = response;
+              });
+              if (!mounted) return;
               Navigator.of(context).pop();
+              UIHelper.showPostcardStampSaved(context);
             } catch (e) {
               log.info("Download stamp failed: error ${e.toString()}");
+              Navigator.of(context).pop();
+              UIHelper.showPostcardStampSavedFailed(context);
             }
           },
         ),
