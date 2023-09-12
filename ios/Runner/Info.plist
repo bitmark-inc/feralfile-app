@@ -80,6 +80,12 @@
 	<string>This app requires access to the photo library.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -29,6 +30,7 @@ class FileHelper {
 
   static Future<File> writeFileToExternalStorage(
       Uint8List data, String name) async {
+    await ImageGallerySaver.saveImage(data, name: name);
     final appFolder = await createAppFolderIfNeed();
     var filePath = '${appFolder.path}/$name';
 

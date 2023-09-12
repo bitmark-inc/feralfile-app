@@ -166,6 +166,7 @@ dependencies:
   shimmer: ^3.0.0
   graphql_flutter: ^5.1.2
   card_swiper: ^3.0.1
+  image_gallery_saver: ^2.0.3
 dependency_overrides:
   intl: 0.18.0
 
