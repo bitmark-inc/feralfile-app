@@ -8,7 +8,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -117,8 +116,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _postcardService = injector<PostcardService>();
   late bool sharingPostcard;
 
-  File? pngImage;
-
   @override
   void initState() {
     _scrollController = ScrollController();
@@ -169,6 +166,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       "title": token.title,
       "artistID": token.artistID,
     });
+  }
+
+  Future<void> _shareStamp(AssetToken token) async {
+    final caption = widget.payload.twitterCaption ?? token.twitterCaption;
+    await _postcardService.shareStampToTwitter(
+        tokenId: token.tokenId!,
+        stampIndex: token.stampIndex,
+        caption: caption);
   }
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
@@ -522,9 +527,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 height: 20,
                               ),
                             ],
-                            (pngImage != null)
-                                ? Image.file(pngImage!)
-                                : const SizedBox(),
                             _postcardInfo(context, state),
                             const SizedBox(
                               height: 20,
@@ -850,7 +852,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             height: 24,
           ),
           onTap: () async {
-            _shareTwitter(asset);
+            await _shareStamp(asset);
+            if (!mounted) return;
             Navigator.of(context).pop();
           },
         ),
@@ -863,11 +866,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           ),
           onTap: () async {
             try {
-              final response = await _postcardService.downloadStamp(
-                  tokenId: asset.tokenId!, stampIndex: 1);
-              setState(() {
-                pngImage = response;
-              });
+              await _postcardService.downloadStamp(
+                  tokenId: asset.tokenId!, stampIndex: asset.stampIndex);
               if (!mounted) return;
               Navigator.of(context).pop();
               UIHelper.showPostcardStampSaved(context);

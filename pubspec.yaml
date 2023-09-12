@@ -89,7 +89,7 @@ dependencies:
   overlay_support: ^2.0.0
   package_info_plus: ^4.0.2
   page_transition: ^2.0.5
-  path_provider: ^2.0.9
+  path_provider: ^2.1.1
   permission_handler: ^10.0.0
   qr_code_scanner: ^1.0.0
   qr_flutter: ^4.0.0

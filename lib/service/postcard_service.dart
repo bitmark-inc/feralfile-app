@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -43,6 +44,7 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share/share.dart';
 
 import 'account_service.dart';
 
@@ -100,6 +102,12 @@ abstract class PostcardService {
   Future<File> downloadStamp({
     required String tokenId,
     required int stampIndex,
+  });
+
+  Future<void> shareStampToTwitter({
+    required String tokenId,
+    required int stampIndex,
+    String caption = "",
   });
 
   String getTokenId(String id);
@@ -409,16 +417,13 @@ class PostcardServiceImpl extends PostcardService {
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
   }
 
-  @override
-  Future<File> downloadStamp({
+  Future<File> _downloadStamp({
     required String tokenId,
     required int stampIndex,
-    bool isOverride = false,
   }) async {
     final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
     final secretKey = Environment.auClaimSecretKey;
     final url = Uri.parse("${Environment.auClaimAPIURL}$path");
-    const body = null;
     Map<String, String> header = {};
 
     final timestamp =
@@ -436,16 +441,49 @@ class PostcardServiceImpl extends PostcardService {
       "X-Api-Signature": sig,
       "X-Api-Timestamp": timestamp,
     });
-    final response = await http.post(url, body: body, headers: header);
+    final response = await http.post(url, headers: header);
+    if (response.statusCode != StatusCode.success.value) {
+      throw Exception(response.reasonPhrase);
+    }
     final bodyByte = response.bodyBytes;
     final tempFilePath =
-        "${(await getTemporaryDirectory()).path}/postcard/$tokenId/$stampIndex-$timestamp.png";
+        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex-$timestamp.png";
     final tempFile = File(tempFilePath);
     await tempFile.create(recursive: true);
     log.info("Created file $tempFilePath");
     await tempFile.writeAsBytes(bodyByte);
-
     return tempFile;
+  }
+
+  @override
+  Future<File> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+    bool isOverride = false,
+  }) async {
+    final imageFile =
+        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final imageByte = await imageFile.readAsBytes();
+
+    await FileHelper.writeFileToExternalStorage(
+        imageByte, "postcard-$tokenId-$stampIndex-$timestamp.png");
+    return imageFile;
+  }
+
+  @override
+  Future<void> shareStampToTwitter({
+    required String tokenId,
+    required int stampIndex,
+    String caption = "",
+  }) async {
+    final imageFile =
+        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
+    Share.shareFiles(
+      [imageFile.path],
+      text: caption,
+    );
   }
 
   @override

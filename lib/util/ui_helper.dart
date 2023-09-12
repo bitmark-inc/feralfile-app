@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
+import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
@@ -1135,11 +1136,16 @@ class UIHelper {
         });
   }
 
+  static Future<void> showAutoDismissDialog(BuildContext context,
+      {required Function() showDialog,
+      required Duration autoDismissAfter}) async {
+    Future.delayed(autoDismissAfter, () => hideInfoDialog(context));
+    await showDialog();
+  }
+
   static Future<void> showPostcardDrawerAction(BuildContext context,
       {required List<OptionItem> options}) async {
-    final theme = Theme.of(context);
     const backgroundColor = AppColor.white;
-    final textStyle = theme.textTheme.moMASans700Black16.copyWith(fontSize: 18);
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1168,41 +1174,23 @@ class UIHelper {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context, int index) {
-                      final child = Container(
-                        color: Colors.transparent,
-                        width: MediaQuery.of(context).size.width,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20,
-                          ),
-                          child: options[index].builder != null
-                              ? options[index]
-                                  .builder!
-                                  .call(context, options[index])
-                              : Row(
-                                  children: [
-                                    const SizedBox(
-                                      width: 15,
-                                    ),
-                                    if (options[index].icon != null)
-                                      SizedBox(
-                                          width: 30,
-                                          child: options[index].icon),
-                                    const SizedBox(
-                                      width: 18,
-                                    ),
-                                    Text(
-                                      options[index].title ?? '',
-                                      style: textStyle,
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      );
-                      return GestureDetector(
-                        onTap: options[index].onTap,
-                        child: child,
-                      );
+                      final item = options[index];
+                      if (item.builder != null) {
+                        final child = Container(
+                          color: Colors.transparent,
+                          width: MediaQuery.of(context).size.width,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 20,
+                              ),
+                              child: item.builder!.call(context, item)),
+                        );
+                        return GestureDetector(
+                          onTap: options[index].onTap,
+                          child: child,
+                        );
+                      }
+                      return PostcardDrawerItem(item: item);
                     },
                     itemCount: options.length,
                     separatorBuilder: (context, index) => const Divider(
@@ -1452,6 +1440,45 @@ class UIHelper {
           topLeft: Radius.circular(10), topRight: Radius.circular(10)),
     );
   }
+
+  static showPostcardStampSaved(BuildContext context) async {
+    final options = [
+      OptionItem(
+        title: "stamp_saved".tr(),
+        icon: SvgPicture.asset("assets/images/download.svg"),
+        onTap: () {},
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 3));
+  }
+
+  static showPostcardStampPhotoAccessFailed(BuildContext context) async {
+    final options = [
+      OptionItem(
+        title: "stamp_could_not_be_saved".tr(),
+        icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+    ];
+    await showPostcardDrawerAction(context, options: options);
+  }
+
+  static showPostcardStampSavedFailed(BuildContext context) async {
+    final options = [
+      OptionItem(
+        title: "postcard_save_failed".tr(),
+        icon: SvgPicture.asset("assets/images/download.svg"),
+        onTap: () {},
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 3));
+  }
 }
 
 Widget loadingScreen(ThemeData theme, String text) {
@@ -1483,12 +1510,16 @@ String getDateTimeRepresentation(DateTime dateTime) {
 
 class OptionItem {
   String? title;
+  TextStyle? titleStyle;
+  TextStyle? titleStyleOnPrecessing;
   Function()? onTap;
   Widget? icon;
+  Widget? iconOnProcessing;
   Widget Function(BuildContext context, OptionItem item)? builder;
 
   OptionItem({
     this.title,
+    this.titleStyle,
     this.onTap,
     this.icon,
     this.builder,

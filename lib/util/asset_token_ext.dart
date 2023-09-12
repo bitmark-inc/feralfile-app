@@ -619,3 +619,11 @@ extension AssetExt on Asset {
     );
   }
 }
+
+extension PostcardExtension on AssetToken {
+  int get stampIndex {
+    final listArtists = getArtists;
+    final owner = this.owner;
+    return listArtists.indexWhere((element) => owner == element.id);
+  }
+}

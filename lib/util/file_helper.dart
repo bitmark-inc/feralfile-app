@@ -8,12 +8,12 @@ class FileHelper {
   static Future<Directory> createAppFolderIfNeed() async {
     Directory directory = Directory("");
     if (Platform.isAndroid) {
-      directory = Directory("/storage/emulated/0");
+      directory = Directory("/storage/emulated/0/Download");
     } else {
       directory = await getApplicationDocumentsDirectory();
     }
     const appName = "Autonomy";
-    final dirPath = '${directory.path}/$appName';
+    final dirPath = '${directory.path}';
     if (await Directory(dirPath).exists()) {
       return Directory(dirPath);
     }
