@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -23,17 +24,22 @@ class TravelInfoBloc extends Bloc<TravelInfoEvent, TravelInfoState> {
         await e.getLocationName();
       }));
       final location = event.asset.postcardMetadata.locationInformation;
-      final lastTravelInfo = TravelInfo(
-          location.lastWhereOrNull(
-                (element) {
-                  final stampLocation = element.stampedLocation;
-                  if (stampLocation == null) return false;
-                  return !stampLocation.isNull && !stampLocation.isInternet;
-                },
-              ) ??
-              location.last,
-          null,
-          location.length);
+      final lastFromUserLocation =
+          travelInfo.isEmpty || travelInfo.last.isInternet
+              ? location.lastWhereOrNull(
+                    (element) {
+                      final stampLocation = element.stampedLocation;
+                      if (stampLocation == null) return false;
+                      return !stampLocation.isNull && !stampLocation.isInternet;
+                    },
+                  ) ??
+                  location.last
+              : UserLocations(
+                  stampedLocation: travelInfo.last.to?.stampedLocation ??
+                      travelInfo.last.to?.claimedLocation,
+                );
+      final lastTravelInfo =
+          TravelInfo(lastFromUserLocation, null, location.length);
       await lastTravelInfo.getLocationName();
       emit(TravelInfoState(
           listTravelInfo: travelInfo, lastTravelInfo: lastTravelInfo));
