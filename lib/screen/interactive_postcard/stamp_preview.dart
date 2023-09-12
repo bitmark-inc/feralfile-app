@@ -89,7 +89,7 @@ class _StampPreviewState extends State<StampPreview> {
     });
   }
 
-  Future<void> showPopup(BuildContext context) async {
+  Future<void> showOptions(BuildContext context, {Function()? callBack}) async {
     final theme = Theme.of(context);
     final options = [
       OptionItem(
@@ -109,6 +109,7 @@ class _StampPreviewState extends State<StampPreview> {
         onTap: () async {
           shareToTwitter(token: widget.payload.asset);
           Navigator.of(context).pop();
+          await callBack?.call();
         },
       ),
       OptionItem(
@@ -134,18 +135,22 @@ class _StampPreviewState extends State<StampPreview> {
                 tokenId: asset.tokenId!, stampIndex: 0);
             if (!mounted) return;
             Navigator.of(context).pop();
-            UIHelper.showPostcardStampSaved(context);
+            await UIHelper.showPostcardStampSaved(context);
+            await callBack?.call();
           } catch (e) {
             log.info("Download stamp failed: error ${e.toString()}");
+            if (!mounted) return;
             Navigator.of(context).pop();
 
             switch (e.runtimeType) {
               case MediaPermisstionException:
-                UIHelper.showPostcardStampPhotoAccessFailed(context);
+                await UIHelper.showPostcardStampPhotoAccessFailed(context);
                 break;
               default:
-                UIHelper.showPostcardStampSavedFailed(context);
+                if (!mounted) return;
+                await UIHelper.showPostcardStampSavedFailed(context);
             }
+            await callBack?.call();
           }
         },
       ),
@@ -206,7 +211,7 @@ class _StampPreviewState extends State<StampPreview> {
                 return;
               }
               alreadyShowPopup = true;
-              showPopup(context).then((value) => null).then((value) {
+              showOptions(context, callBack: () {
                 log.info("Popup closed");
                 _navigationService.popUntilHomeOrSettings();
                 if (!mounted) return;

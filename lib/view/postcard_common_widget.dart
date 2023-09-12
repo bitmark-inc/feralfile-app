@@ -78,9 +78,11 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
           isProcessing = true;
         });
         await item.onTap?.call();
-        setState(() {
-          isProcessing = false;
-        });
+        if (mounted) {
+          setState(() {
+            isProcessing = false;
+          });
+        }
       },
       child: child,
     );
