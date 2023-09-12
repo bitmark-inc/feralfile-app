@@ -10,7 +10,6 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -42,6 +41,7 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -63,8 +63,6 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
-import 'package:social_share/social_share.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -140,40 +138,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  void _manualShare(String caption, String url) async {
-    final encodeCaption = Uri.encodeQueryComponent(caption);
-    final twitterUrl =
-        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
-    final twitterUri = Uri.parse(twitterUrl);
-    launchUrl(twitterUri, mode: LaunchMode.externalApplication);
-  }
-
   void _shareTwitter(AssetToken token) {
-    final prefix = Environment.tokenWebviewPrefix;
-    final url = '$prefix/token/${token.id}';
-    final caption = widget.payload.twitterCaption ?? token.twitterCaption;
-    SocialShare.checkInstalledAppsForShare().then((data) {
-      if (data?[SocialApp.twitter]) {
-        SocialShare.shareTwitter(caption, url: url);
-      } else {
-        _manualShare(caption, url);
-      }
-    });
-    _metricClient.addEvent(MixpanelEvent.share, data: {
-      "id": token.id,
-      "to": "Twitter",
-      "caption": caption,
-      "title": token.title,
-      "artistID": token.artistID,
-    });
-  }
-
-  Future<void> _shareStamp(AssetToken token) async {
-    final caption = widget.payload.twitterCaption ?? token.twitterCaption;
-    await _postcardService.shareStampToTwitter(
-        tokenId: token.tokenId!,
-        stampIndex: token.stampIndex,
-        caption: caption);
+    shareToTwitter(token: token, twitterCaption: widget.payload.twitterCaption);
   }
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
@@ -851,33 +817,44 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             width: 24,
             height: 24,
           ),
-          onTap: () async {
-            await _shareStamp(asset);
-            if (!mounted) return;
+          onTap: () {
+            _shareTwitter(asset);
             Navigator.of(context).pop();
           },
         ),
-        OptionItem(
-          title: 'download_stamp'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/download.svg',
-            width: 24,
-            height: 24,
+        if (asset.stampIndex >= 0)
+          OptionItem(
+            title: 'download_stamp'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/download.svg',
+              width: 24,
+              height: 24,
+            ),
+            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn)),
+            onTap: () async {
+              try {
+                await _postcardService.downloadStamp(
+                    tokenId: asset.tokenId!, stampIndex: asset.stampIndex);
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                await UIHelper.showPostcardStampSaved(context);
+              } catch (e) {
+                log.info("Download stamp failed: error ${e.toString()}");
+                Navigator.of(context).pop();
+                switch (e.runtimeType) {
+                  case MediaPermisstionException:
+                    await UIHelper.showPostcardStampPhotoAccessFailed(context);
+                    break;
+                  default:
+                    await UIHelper.showPostcardStampSavedFailed(context);
+                }
+              }
+            },
           ),
-          onTap: () async {
-            try {
-              await _postcardService.downloadStamp(
-                  tokenId: asset.tokenId!, stampIndex: asset.stampIndex);
-              if (!mounted) return;
-              Navigator.of(context).pop();
-              UIHelper.showPostcardStampSaved(context);
-            } catch (e) {
-              log.info("Download stamp failed: error ${e.toString()}");
-              Navigator.of(context).pop();
-              UIHelper.showPostcardStampSavedFailed(context);
-            }
-          },
-        ),
         OptionItem(
             title: 'hide'.tr(),
             icon: SvgPicture.asset(

@@ -461,6 +461,10 @@ class PostcardServiceImpl extends PostcardService {
     required int stampIndex,
     bool isOverride = false,
   }) async {
+    final isPermissionGranted = await FileHelper().askPermission();
+    if (!isPermissionGranted) {
+      throw MediaPermisstionException("Permission is not granted");
+    }
     final imageFile =
         await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
     final timestamp =
@@ -504,4 +508,14 @@ enum DistanceUnit {
         return "mile";
     }
   }
+}
+
+class PostcardException implements Exception {
+  final String message;
+
+  PostcardException(this.message);
+}
+
+class MediaPermisstionException extends PostcardException {
+  MediaPermisstionException(String message) : super(message);
 }

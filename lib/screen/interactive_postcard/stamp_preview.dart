@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
@@ -105,7 +106,10 @@ class _StampPreviewState extends State<StampPreview> {
           width: 24,
           height: 24,
         ),
-        onTap: () async {},
+        onTap: () async {
+          shareToTwitter(token: widget.payload.asset);
+          Navigator.of(context).pop();
+        },
       ),
       OptionItem(
         title: 'download_stamp'.tr(),
@@ -114,10 +118,19 @@ class _StampPreviewState extends State<StampPreview> {
           width: 24,
           height: 24,
         ),
+        iconOnProcessing: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
+        ),
         onTap: () async {
           try {
             final asset = widget.payload.asset;
-            final response = await _postcardService.downloadStamp(
+            await _postcardService.downloadStamp(
                 tokenId: asset.tokenId!, stampIndex: 0);
             if (!mounted) return;
             Navigator.of(context).pop();
@@ -125,7 +138,14 @@ class _StampPreviewState extends State<StampPreview> {
           } catch (e) {
             log.info("Download stamp failed: error ${e.toString()}");
             Navigator.of(context).pop();
-            UIHelper.showPostcardStampSavedFailed(context);
+
+            switch (e.runtimeType) {
+              case MediaPermisstionException:
+                UIHelper.showPostcardStampPhotoAccessFailed(context);
+                break;
+              default:
+                UIHelper.showPostcardStampSavedFailed(context);
+            }
           }
         },
       ),

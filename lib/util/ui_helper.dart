@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
@@ -1441,7 +1442,7 @@ class UIHelper {
     );
   }
 
-  static showPostcardStampSaved(BuildContext context) async {
+  static Future<void> showPostcardStampSaved(BuildContext context) async {
     final options = [
       OptionItem(
         title: "stamp_saved".tr(),
@@ -1451,33 +1452,43 @@ class UIHelper {
     ];
     await showAutoDismissDialog(context, showDialog: () async {
       return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 3));
+    }, autoDismissAfter: const Duration(seconds: 2));
   }
 
-  static showPostcardStampPhotoAccessFailed(BuildContext context) async {
+  static Future<void> showPostcardStampPhotoAccessFailed(
+      BuildContext context) async {
     final options = [
       OptionItem(
         title: "stamp_could_not_be_saved".tr(),
+        titleStyle: Theme.of(context)
+            .textTheme
+            .moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
         icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
         onTap: () {
           Navigator.pop(context);
         },
       ),
     ];
-    await showPostcardDrawerAction(context, options: options);
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 2));
   }
 
-  static showPostcardStampSavedFailed(BuildContext context) async {
+  static Future<void> showPostcardStampSavedFailed(BuildContext context) async {
+    final theme = Theme.of(context);
     final options = [
       OptionItem(
-        title: "postcard_save_failed".tr(),
-        icon: SvgPicture.asset("assets/images/download.svg"),
+        title: "stamp_save_failed".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+        icon: SvgPicture.asset("assets/images/exit.svg"),
         onTap: () {},
       ),
     ];
     await showAutoDismissDialog(context, showDialog: () async {
       return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 3));
+    }, autoDismissAfter: const Duration(seconds: 2));
   }
 }
 
@@ -1522,6 +1533,7 @@ class OptionItem {
     this.titleStyle,
     this.onTap,
     this.icon,
+    this.iconOnProcessing,
     this.builder,
   });
 }

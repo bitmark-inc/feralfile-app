@@ -623,6 +623,9 @@ extension AssetExt on Asset {
 extension PostcardExtension on AssetToken {
   int get stampIndex {
     final listArtists = getArtists;
+    if (listArtists.isEmpty) {
+      return -1;
+    }
     final owner = this.owner;
     return listArtists.indexWhere((element) => owner == element.id);
   }

@@ -5,6 +5,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class FileHelper {
+  Future<bool> askPermission() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      status = await Permission.storage.request();
+    }
+    return status.isGranted;
+  }
+
   static Future<Directory> createAppFolderIfNeed() async {
     Directory directory = Directory("");
     if (Platform.isAndroid) {
@@ -12,8 +20,7 @@ class FileHelper {
     } else {
       directory = await getApplicationDocumentsDirectory();
     }
-    const appName = "Autonomy";
-    final dirPath = '${directory.path}';
+    final dirPath = directory.path;
     if (await Directory(dirPath).exists()) {
       return Directory(dirPath);
     }
@@ -22,11 +29,6 @@ class FileHelper {
 
   static Future<File> writeFileToExternalStorage(
       Uint8List data, String name) async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      await Permission.storage.request();
-    }
-
     final appFolder = await createAppFolderIfNeed();
     var filePath = '${appFolder.path}/$name';
 
