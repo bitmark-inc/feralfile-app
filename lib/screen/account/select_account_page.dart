@@ -1,10 +1,10 @@
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/list_address_account.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:autonomy_flutter/view/postcard_list_address_account.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,7 +51,8 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
         onBack: () {
           Navigator.of(context).pop();
         },
-        title: "gift_edition".tr(),
+        title: "claim_address".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
       ),
       body: Container(
         padding: const EdgeInsets.only(bottom: 32),
@@ -62,19 +63,11 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "where_do_want_to_receive_gift".tr(),
-                style: theme.textTheme.ppMori700Black24,
-              ),
-            ),
-            const SizedBox(height: 60),
-            Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: Text(
-                "claim_airdrop_select_account_desc".tr(args: [
-                  widget.blockchain,
+                "select_address_claim_postcard".tr(args: [
                   widget.blockchain,
                 ]),
-                style: theme.textTheme.ppMori400Black14,
+                style:
+                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
               ),
             ),
             const SizedBox(height: 30),
@@ -85,8 +78,9 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PrimaryButton(
-                text: "h_confirm".tr(),
+              child: PostcardButton(
+                text: "continue".tr(),
+                fontSize: 18,
                 isProcessing: _isConfirming,
                 onTap: _selectedAddress != null
                     ? () async {
@@ -99,6 +93,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
                         });
                       }
                     : null,
+                color: const Color.fromRGBO(79, 174, 79, 1),
               ),
             ),
           ],
@@ -116,7 +111,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
         });
       }
 
-      return ListAccountConnect(
+      return PostcardListAccountConnect(
         accounts: accounts,
         onSelectEth: !_isTezos ? select : null,
         onSelectTez: _isTezos ? select : null,
