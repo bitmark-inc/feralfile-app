@@ -563,6 +563,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         final postcardDetailPayload = PostcardDetailPagePayload(
           [ArtworkIdentity(indexID, owner)],
           0,
+          useIndexer: true,
         );
         if (!mounted) return;
         Navigator.of(context).popUntil((route) =>
