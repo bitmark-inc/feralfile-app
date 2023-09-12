@@ -91,6 +91,7 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
               .copyWith(fontSize: 18),
           withDivider: false,
           backgroundColor: POSTCARD_BACKGROUND_COLOR,
+          statusBarColor: POSTCARD_BACKGROUND_COLOR,
         ),
         backgroundColor: POSTCARD_BACKGROUND_COLOR,
         body: PostcardLeaderboardView(
