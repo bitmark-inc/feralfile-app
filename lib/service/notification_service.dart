@@ -161,20 +161,4 @@ class NotificationService {
             body: body,
             payload: payload));
   }
-
-  Future<void> showPostcardWasnotDeliveredNotification(
-      PostcardIdentity postcardIdentity) async {
-    final notificationId = random.nextInt(100000);
-    final payload = NotificationPayload(
-        notificationId: notificationId,
-        notificationType: NotificationType.Postcard,
-        metadata: jsonEncode(postcardIdentity.toJson()));
-
-    await showNotification(
-        title: "moma_postcard".tr(),
-        body: "your_postcard_not_delivered".tr(),
-        payload: payload.toJson(),
-        id: notificationId,
-        channelKey: postcardChannelKey);
-  }
 }

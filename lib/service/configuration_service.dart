@@ -14,25 +14,17 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
-  Future<void> addPostcardSharedTime(ArtworkIdentity identity);
-
-  Future<void> removePostcardSharedTime(ArtworkIdentity identity);
-
-  bool isSharedPostcardExpire(ArtworkIdentity identity);
-
   Future<void> setDidMigrateAddress(bool value);
 
   bool getDidMigrateAddress();
@@ -248,8 +240,6 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showWhatNewAddressTip;
 
-  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip;
-
   List<SharedPostcard> getSharedPostcard();
 
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
@@ -266,8 +256,6 @@ abstract class ConfigurationService {
 
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
-
-  Future<void> removeExpiredStampingPostcard();
 
   Future<void> setAutoShowPostcard(bool value);
 
@@ -304,7 +292,6 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String KEY_SHOW_POSTCARD_EXPIRED = "show_postcard_expired";
   static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
   static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
   static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
@@ -403,9 +390,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "show_anouncement_notification_info";
 
   static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
-
-  final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
-      ValueNotifier([]);
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1063,8 +1047,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
-      expiredPostcardSharedLinkTip.value =
-          await sharedPostcards.expiredPostcards;
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
       if (isRemoved) {
@@ -1086,8 +1068,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       uniqueSharedPostcard.unique((element) => element.tokenID + element.owner);
       await _preferences.setStringList(key,
           uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
-      expiredPostcardSharedLinkTip.value =
-          await uniqueSharedPostcard.expiredPostcards;
     }
   }
 
@@ -1147,7 +1127,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
     } else {
-      await removeExpiredStampingPostcard();
       var currentStampingPostcard = _preferences.getStringList(key) ?? [];
 
       if (isRemove) {
@@ -1159,18 +1138,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           key, currentStampingPostcard.toSet().toList());
     }
-  }
-
-  @override
-  Future<void> removeExpiredStampingPostcard() async {
-    final currentStampingPostcard = getStampingPostcard();
-    final now = DateTime.now();
-    final unexpiredStampingPostcard = currentStampingPostcard
-        .where((element) => element.timestamp
-            .isAfter(now.subtract(STAMPING_POSTCARD_LIMIT_TIME)))
-        .toList();
-    _preferences.setStringList(KEY_STAMPING_POSTCARD,
-        unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
   }
 
   @override
@@ -1257,10 +1224,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip =>
-      _expiredPostcardSharedLinkTip;
-
-  @override
   Future<void> updateShowAnouncementNotificationInfo(
     AnnouncementLocal announcement,
   ) async {
@@ -1341,40 +1304,5 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidMigrateAddress(bool value) async {
     await _preferences.setBool(KEY_DID_MIGRATE_ADDRESS, value);
-  }
-
-  @override
-  Future<void> addPostcardSharedTime(ArtworkIdentity identity) async {
-    final key = identity.key;
-    final listPostcards =
-        _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
-    listPostcards.removeWhere((element) => element.contains(key));
-    final postcardMap = {key: DateTime.now().millisecondsSinceEpoch};
-    listPostcards.add(jsonEncode(postcardMap));
-    await _preferences.setStringList(KEY_SHOW_POSTCARD_EXPIRED, listPostcards);
-  }
-
-  @override
-  bool isSharedPostcardExpire(ArtworkIdentity identity) {
-    final key = identity.key;
-    final listPostcards =
-        _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
-    final postcardStr =
-        listPostcards.firstWhereOrNull((element) => element.contains(key));
-    if (postcardStr == null) return false;
-    final postcardMap = jsonDecode(postcardStr) as Map<String, dynamic>;
-    final sharedTime = postcardMap[key] ?? 0;
-    final currentTime = DateTime.now().millisecondsSinceEpoch;
-    const expireDuration = 24 * 60 * 60 * 1000;
-    return currentTime - sharedTime > expireDuration;
-  }
-
-  @override
-  Future<void> removePostcardSharedTime(ArtworkIdentity identity) async {
-    final key = identity.key;
-    final listPostcards =
-        _preferences.getStringList(KEY_SHOW_POSTCARD_EXPIRED) ?? [];
-    listPostcards.removeWhere((element) => element.contains(key));
-    await _preferences.setStringList(KEY_SHOW_POSTCARD_EXPIRED, listPostcards);
   }
 }
