@@ -97,7 +97,8 @@ abstract class PostcardService {
 
   Future<void> checkNotification();
 
-  Future<PostcardLeaderboard> fetchPostcardLeaderboard();
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard(
+      {required String unit, required int size, required int offset});
 
   Future<File> downloadStamp({
     required String tokenId,
@@ -390,15 +391,14 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<PostcardLeaderboard> fetchPostcardLeaderboard() async {
-    final leaderboardResponse = await _postcardApi
-        .getLeaderboard(DistanceFormatter.getDistanceUnit.name);
+  Future<PostcardLeaderboard> fetchPostcardLeaderboard(
+      {required String unit, required int size, required int offset}) async {
+    final leaderboardResponse =
+        await _postcardApi.getLeaderboard(unit, size, offset);
     final ids = leaderboardResponse.items
         .map((e) => 'tez-${Environment.postcardContractAddress}-${e.id}')
         .toList();
-    final request = QueryListTokensRequest(
-      ids: ids,
-    );
+    final request = QueryListTokensRequest(ids: ids, size: ids.length);
     final tokens = await _indexerService.getNftTokens(request);
     leaderboardResponse.items.map((e) {
       final token =
@@ -410,6 +410,7 @@ class PostcardServiceImpl extends PostcardService {
       e.creators =
           token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
       e.previewUrl = token.galleryThumbnailURL ?? "";
+      e.rank = e.rank + offset;
       return e;
     }).toList();
 

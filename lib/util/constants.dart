@@ -179,6 +179,8 @@ const CONNECT_FAILED_DURATION = Duration(seconds: 10);
 
 const int COLLECTION_INITIAL_MIN_SIZE = 20;
 
+const int LEADERBOARD_PAGE_SIZE = 50;
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");

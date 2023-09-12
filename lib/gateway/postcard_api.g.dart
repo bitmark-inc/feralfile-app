@@ -239,9 +239,17 @@ class _PostcardApi implements PostcardApi {
   }
 
   @override
-  Future<GetLeaderboardResponse> getLeaderboard(String unit) async {
+  Future<GetLeaderboardResponse> getLeaderboard(
+    String unit,
+    int size,
+    int offset,
+  ) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'unit': unit,
+      r'size': size,
+      r'offset': offset,
+    };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
@@ -252,7 +260,7 @@ class _PostcardApi implements PostcardApi {
     )
             .compose(
               _dio.options,
-              '/v1/leaderboard?unit=${unit}',
+              '/v1/leaderboard',
               queryParameters: queryParameters,
               data: _data,
             )

@@ -44,14 +44,9 @@ abstract class PostcardApi {
     @Part(name: "counter") required int counter,
   });
 
-  @GET("/v1/leaderboard?unit={unit}")
-  Future<GetLeaderboardResponse> getLeaderboard(@Path("unit") String unit);
-
-  @POST("/v1/postcard/{token_id}/stamp/{stamp_index}")
-  Future<dynamic> downloadStamp({
-    @Path("token_id") required String tokenId,
-    @Path("stamp_index") required int stampIndex,
-  });
+  @GET("/v1/leaderboard")
+  Future<GetLeaderboardResponse> getLeaderboard(@Query("unit") String unit,
+      @Query("size") int size, @Query("offset") int offset);
 }
 
 class GetLeaderboardResponse {

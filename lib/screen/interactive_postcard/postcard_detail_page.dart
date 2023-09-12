@@ -74,12 +74,14 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
     PlayControlModel? playControl,
     String? twitterCaption,
     this.isFromLeaderboard = false,
+    bool useIndexer = false,
   }) : super(
           key: key,
           identities,
           currentIndex,
           playControl: playControl,
           twitterCaption: twitterCaption,
+          useIndexer: useIndexer,
         );
 }
 
@@ -123,7 +125,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
               widget.payload.identities[widget.payload.currentIndex],
-              useIndexer: widget.payload.isFromLeaderboard),
+              useIndexer: widget.payload.isFromLeaderboard ||
+                  widget.payload.useIndexer),
         );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());

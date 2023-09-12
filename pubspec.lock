@@ -511,10 +511,10 @@ packages:
     dependency: transitive
     description:
       name: eip1559
-      sha256: de454d6321bd753eb79116e9ec4f8df20895c2e97f9a3839a032f3a728985516
+      sha256: c2b81ac85f3e0e71aaf558201dd9a4600f051ece7ebacd0c5d70065c9b458004
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.2"
   eip55:
     dependency: transitive
     description:
@@ -1129,10 +1129,10 @@ packages:
     dependency: "direct main"
     description:
       name: gif_view
-      sha256: c14dc41501b479d9a14cd9135532c1e5bcad7d915d497a0f3e6d77c4edbc8f0e
+      sha256: "73a089a046fd1a5e63e3856cf30ef7bac1e64b78d79becde1449e955dddfb645"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.0"
   glob:
     dependency: transitive
     description:
@@ -1209,10 +1209,10 @@ packages:
     dependency: transitive
     description:
       name: graphql
-      sha256: ad11e6d12de4d73971ae1dd80885b09f3cbc0bf143b1cbc5622a6dc6d85735e7
+      sha256: "4ac531068107dffef188c74e7ff662777b729e9d5e0686f71623d4af1e3751c8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.2.0-beta.4"
+    version: "5.2.0-beta.6"
   graphql_flutter:
     dependency: "direct main"
     description:
@@ -1281,10 +1281,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.6"
+    version: "1.1.0"
   http2:
     dependency: transitive
     description:
@@ -1667,15 +1667,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
-  metric_client:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
-      resolved-ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
-      url: "https://github.com/autonomy-system/metric-client-dart"
-    source: git
-    version: "1.0.0"
   mime:
     dependency: "direct main"
     description:
@@ -1737,8 +1728,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7391ef57d17caa21beaba96aedcfa5a7e82139cc"
-      resolved-ref: "7391ef57d17caa21beaba96aedcfa5a7e82139cc"
+      ref: f836766acba29b2f7b5d80dbe598d568b2fe00e6
+      resolved-ref: f836766acba29b2f7b5d80dbe598d568b2fe00e6
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2471,66 +2462,66 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: "3979f0b1c5a97422cadae52d476c21fa3e0fb671ef51de6cae1d646d8b99fe1f"
+      sha256: "9f0a4593f7642b2f106e329734d0e5fc746baf8d0a59495eec586cd0d9ba7d02"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_flutter_pdf:
     dependency: transitive
     description:
       name: syncfusion_flutter_pdf
-      sha256: cebcafc60d52d52e0789c18b6332c2bd378f0a6cca006fe0373293bcc6a66e6d
+      sha256: "05d1a6cde581504cf1e86307fe308a6d1433903677b604d006ed67ef19a4fbc6"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_flutter_pdfviewer:
     dependency: transitive
     description:
       name: syncfusion_flutter_pdfviewer
-      sha256: "797a704efd843a606150d3d6317d5f2191173c334a5e5056b7f37855a8093af3"
+      sha256: "0b74b593578de1f4f9e7b8e11dd2fce45bfbcedb50eee7b4d6e785ed735a7885"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_flutter_signaturepad:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_signaturepad
-      sha256: bddbb370533dd238af45ae787af8ca751195f4ffe9ca09e18c0f75a7683630fc
+      sha256: "77321fef0d42b945e729f7cc3ee522ff55672c5d38870a993b466a190989305f"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_macos:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_macos
-      sha256: "6f2a9cdfc80aff8a13caba8d36527b3d68f5cb3530a7f2b29d269fbcff745afd"
+      sha256: "0705d68048ca717aee1627699b384fe9e1da8a944745eb6a711f8867dc2c37d2"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_platform_interface:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_platform_interface
-      sha256: "646230861e103d33173a4909a184a00b2aa5a01819d38b05ccbf99da51be9314"
+      sha256: c945e357e4ee94dbafa187a9fa44dde4332fe5721bb834afed77d788e0f8b0c1
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_web:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_web
-      sha256: ba0b72766f445ae171a5363df20abd50be0c1bc4576044df6afba3377a419de1
+      sha256: "161ce37dd021a7092f3935bd54b66839362a66b2119b950ac47d8328c933d5e2"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_windows:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_windows
-      sha256: "4cc6c92c211636550c4beb998f2db8f76d4f20eccbc8160730f2add0c8e23411"
+      sha256: eecef690d9ca8fb8a622b2d12e02103601f57ae51004708dae6159ad0caf6f8e
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   synchronized:
     dependency: "direct main"
     description:
@@ -2764,14 +2755,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
-  version_check:
-    dependency: "direct main"
-    description:
-      name: version_check
-      sha256: "5e452bc35fd98b48b9ce18fa75e7a8e07f2907f2586df7a0484059f542b1e56f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.0"
   video_player:
     dependency: "direct main"
     description:
@@ -2880,10 +2863,10 @@ packages:
     dependency: "direct main"
     description:
       name: web3dart
-      sha256: "0b96223a6b284e3146e65dc842ded139eca68a85c4ab79c5ba1a73284927d3cd"
+      sha256: bebbea9278723cef51d21caf65668860e7547f59114fe9f8af01b873a72ba0e6
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.1"
+    version: "2.7.1"
   web_socket_channel:
     dependency: "direct main"
     description:

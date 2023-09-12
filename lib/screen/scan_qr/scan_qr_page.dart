@@ -624,26 +624,31 @@ class _ScanQRPageState extends State<ScanQRPage>
         "[Scanner][incorrectScanItem] item: ${data.substring(0, data.length ~/ 2)}");
   }
 
-  void _handleAutonomyConnect(String code) {
+  Future<void> _handleAutonomyConnect(String code) async {
     setState(() {
       _isLoading = true;
     });
     controller.pauseCamera();
+    Navigator.pop(context);
+    await Future.delayed(const Duration(seconds: 1));
+
     _addScanQREvent(
         link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
     injector<Wc2Service>().connect(code);
-    Navigator.pop(context);
   }
 
-  void _handleBeaconConnect(String code) {
+  Future<void> _handleBeaconConnect(String code) async {
     setState(() {
       _isLoading = true;
     });
     controller.pauseCamera();
+    Navigator.pop(context);
+    await Future.delayed(const Duration(seconds: 1));
+
     _addScanQREvent(
         link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
     injector<TezosBeaconService>().addPeer(code);
-    Navigator.pop(context);
+
     injector<NavigationService>().showContactingDialog();
   }
 
