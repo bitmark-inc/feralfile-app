@@ -556,7 +556,8 @@ class AccountServiceImpl extends AccountService {
       addresses.addAll(linkedAccount.accountNumbers);
     }
     if (logHiddenAddress) {
-      log.info("[Account Service] all addresses: ${addresses.join(", ")}");
+      log.info(
+          "[Account Service] all addresses (persona ${addressPersona.length}): ${addresses.join(", ")}");
       final hiddenAddresses = addressPersona
           .where((element) => element.isHidden)
           .map((e) => e.address.maskOnly(5))
