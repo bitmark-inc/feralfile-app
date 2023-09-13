@@ -151,7 +151,7 @@ double get postcardAspectRatio => Platform.isAndroid
 
 const double STAMP_ASPECT_RATIO = 345.0 / 378;
 
-const POSTCARD_SHARE_LINK_VALID_DURATION = Duration(hours: 24);
+const POSTCARD_SHARE_LINK_VALID_DURATION = Duration(minutes: 5);
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
