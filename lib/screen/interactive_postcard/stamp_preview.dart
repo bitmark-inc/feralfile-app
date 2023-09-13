@@ -143,7 +143,7 @@ class _StampPreviewState extends State<StampPreview> {
             Navigator.of(context).pop();
 
             switch (e.runtimeType) {
-              case MediaPermisstionException:
+              case MediaPermissionException:
                 await UIHelper.showPostcardStampPhotoAccessFailed(context);
                 break;
               default:

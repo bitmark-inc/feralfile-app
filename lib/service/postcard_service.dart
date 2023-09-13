@@ -461,18 +461,16 @@ class PostcardServiceImpl extends PostcardService {
     required int stampIndex,
     bool isOverride = false,
   }) async {
-    final isPermissionGranted = await FileHelper().askPermission();
-    if (!isPermissionGranted) {
-      throw MediaPermisstionException("Permission is not granted");
-    }
     final imageFile =
         await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final imageByte = await imageFile.readAsBytes();
-
-    await FileHelper.writeFileToExternalStorage(
-        imageByte, "postcard-$tokenId-$stampIndex-$timestamp.png");
+    final imageName = "postcard-$tokenId-$stampIndex-$timestamp";
+    final isSuccess = await FileHelper.saveImageToGallery(imageByte, imageName);
+    if (!isSuccess) {
+      throw MediaPermissionException("Permission is not granted");
+    }
     return imageFile;
   }
 
@@ -516,6 +514,6 @@ class PostcardException implements Exception {
   PostcardException(this.message);
 }
 
-class MediaPermisstionException extends PostcardException {
-  MediaPermisstionException(String message) : super(message);
+class MediaPermissionException extends PostcardException {
+  MediaPermissionException(String message) : super(message);
 }

@@ -849,7 +849,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 log.info("Download stamp failed: error ${e.toString()}");
                 Navigator.of(context).pop();
                 switch (e.runtimeType) {
-                  case MediaPermisstionException:
+                  case MediaPermissionException:
                     await UIHelper.showPostcardStampPhotoAccessFailed(context);
                     break;
                   default:
