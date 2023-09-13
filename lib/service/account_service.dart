@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -35,15 +34,12 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:elliptic/elliptic.dart';
-import 'package:fast_base58/fast_base58.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
-import 'package:web3dart/crypto.dart';
 
 import 'iap_service.dart';
 
@@ -53,8 +49,6 @@ abstract class AccountService {
   Future<Persona> getOrCreateDefaultPersona();
 
   Future<WalletStorage?> getCurrentDefaultAccount();
-
-  Future<WalletStorage?> getAccount(String did);
 
   Future<WalletIndex> getAccountByAddress({
     required String chain,
@@ -69,20 +63,14 @@ abstract class AccountService {
 
   Future androidRestoreKeys();
 
-  Future<List<Persona>> getPersonas();
-
   Future<Persona> createPersona({String name = "", bool isDefault = false});
 
   Future<Persona> importPersona(String words,
       {WalletType walletType = WalletType.Autonomy});
 
-  Future<Persona> namePersona(Persona persona, String name);
-
   Future<Connection> nameLinkedAccount(Connection connection, String name);
 
   Future<Connection> linkManuallyAddress(String address, CryptoType cryptoType);
-
-  Future<bool> isLinkedIndexerTokenID(String indexerTokenID);
 
   Future deletePersona(Persona persona);
 
@@ -106,8 +94,6 @@ abstract class AccountService {
 
   Future<List<String>> getShowedAddresses();
 
-  Future<String> authorizeToViewer();
-
   Future<bool> addAddressPersona(
       Persona newPersona, List<AddressInfo> addresses);
 
@@ -129,7 +115,6 @@ class AccountServiceImpl extends AccountService {
   final AuditService _auditService;
   final AutonomyService _autonomyService;
   final BackupService _backupService;
-  final AutonomyApi _autonomyApi;
   final AddressService _addressService;
 
   final _defaultAccountLock = Lock();
@@ -141,14 +126,8 @@ class AccountServiceImpl extends AccountService {
     this._auditService,
     this._autonomyService,
     this._backupService,
-    this._autonomyApi,
     this._addressService,
   );
-
-  @override
-  Future<List<Persona>> getPersonas() {
-    return _cloudDB.personaDao.getPersonas();
-  }
 
   @override
   Future<Persona> createPersona(
@@ -226,17 +205,6 @@ class AccountServiceImpl extends AccountService {
     final defaultWallet = personas.first.wallet();
 
     return await defaultWallet.isWalletCreated() ? defaultWallet : null;
-  }
-
-  @override
-  Future<WalletStorage?> getAccount(String did) async {
-    var personas = await _cloudDB.personaDao.getPersonas();
-    for (Persona p in personas) {
-      if ((await p.wallet().getAccountDID()) == did) {
-        return p.wallet();
-      }
-    }
-    return null;
   }
 
   @override
@@ -404,15 +372,6 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<bool> isLinkedIndexerTokenID(String indexerTokenID) async {
-    final connection = await _cloudDB.connectionDao.findById(indexerTokenID);
-    if (connection == null) return false;
-
-    return connection.connectionType ==
-        ConnectionType.manuallyIndexerTokenID.rawValue;
-  }
-
-  @override
   bool isLinkedAccountHiddenInGallery(String address) {
     return _configurationService.isLinkedAccountHiddenInGallery(address);
   }
@@ -497,16 +456,6 @@ class AccountServiceImpl extends AccountService {
         await androidBackupKeys();
       }
     }
-  }
-
-  @override
-  Future<Persona> namePersona(Persona persona, String name) async {
-    await persona.wallet().updateName(name);
-    final updatedPersona = persona.copyWith(name: name);
-    await _cloudDB.personaDao.updatePersona(updatedPersona);
-    await _auditService.auditPersonaAction('name', updatedPersona);
-
-    return updatedPersona;
   }
 
   @override
@@ -633,20 +582,6 @@ class AccountServiceImpl extends AccountService {
     }
 
     return addresses;
-  }
-
-  @override
-  Future<String> authorizeToViewer() async {
-    var ec = getS256();
-    final privateKey = ec.generatePrivateKey();
-
-    final base58PublicKey = Base58Encode(
-        [231, 1] + hexToBytes(privateKey.publicKey.toCompressedHex()));
-    await _autonomyApi.addKeypair({
-      "publicKey": base58PublicKey,
-    });
-
-    return "keypair_$base58PublicKey||${privateKey.toHex()}";
   }
 
   @override
