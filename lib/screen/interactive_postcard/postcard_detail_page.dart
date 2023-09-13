@@ -890,7 +890,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final theme = Theme.of(context);
     final travelInfoWithoutInternetUser =
         asset.postcardMetadata.listTravelInfoWithoutLocationName;
-    final currentStampNumber = asset.postcardMetadata.numberOfStamp;
+    final currentStampNumber = asset.getArtists.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
