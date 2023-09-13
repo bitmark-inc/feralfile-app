@@ -111,7 +111,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       return null;
     }
 
-    final blockchain = asset.blockchain;
     final accountService = injector<AccountService>();
     final addresses = await accountService.getAddress(asset.blockchain);
     String? address;
