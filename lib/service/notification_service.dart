@@ -7,9 +7,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/rand.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 enum NotificationType {
   Postcard;

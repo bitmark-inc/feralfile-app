@@ -36,7 +36,6 @@ import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -88,7 +87,6 @@ class HomePageState extends State<HomePage>
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
-  final _postcardService = injector<PostcardService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
