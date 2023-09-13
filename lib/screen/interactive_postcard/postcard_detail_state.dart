@@ -142,7 +142,6 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool get canDoAction {
-    assetToken?.postcardMetadata.counter;
     if (postcardValue == null) {
       return postcardValueLoaded;
     }
