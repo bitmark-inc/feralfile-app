@@ -29,15 +29,13 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
+import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:eth_sig_util/util/utils.dart';
-import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -423,29 +421,14 @@ class PostcardServiceImpl extends PostcardService {
   }) async {
     final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
     final secretKey = Environment.auClaimSecretKey;
-    final url = Uri.parse("${Environment.auClaimAPIURL}$path");
-    Map<String, String> header = {};
-
-    final timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final hexBody = bytesToHex(sha256.convert([]).bytes);
-    final canonicalString = List<String>.of([
-      path.split("?").first,
-      hexBody,
-      timestamp,
-    ]).join("|");
-    final hmacSha256 = Hmac(sha256, utf8.encode(secretKey));
-    final digest = hmacSha256.convert(utf8.encode(canonicalString));
-    final sig = bytesToHex(digest.bytes);
-    header.addAll({
-      "X-Api-Signature": sig,
-      "X-Api-Timestamp": timestamp,
-    });
-    final response = await http.post(url, headers: header);
+    final response = await HttpHelper.post(
+        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
     if (response.statusCode != StatusCode.success.value) {
       throw Exception(response.reasonPhrase);
     }
     final bodyByte = response.bodyBytes;
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final tempFilePath =
         "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex-$timestamp.png";
     final tempFile = File(tempFilePath);
