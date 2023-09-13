@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
+import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -395,24 +396,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
                 toolbarHeight: 70,
                 centerTitle: false,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      "MoMA",
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.moMASans700Black24,
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      "postcard_project".tr(),
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.moMASans400Black24
-                          .copyWith(height: 1),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                title: Text(
+                  asset.title!,
+                  style: theme.textTheme.moMASans400Black12,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
@@ -435,6 +422,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               AppColor.primaryBlack, BlendMode.srcIn),
                         ),
                       ),
+                    ),
+                  ),
+                  Semantics(
+                    label: 'externalLink',
+                    child: const ExternalLink(
+                      color: AppColor.primaryBlack,
+                      disableColor: AppColor.disabledColor,
                     ),
                   ),
                   Visibility(
