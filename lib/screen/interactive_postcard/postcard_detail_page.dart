@@ -426,9 +426,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   ),
                   Semantics(
                     label: 'externalLink',
-                    child: ExternalLink(
-                      link: asset.secondaryMarketURL,
+                    child: const ExternalLink(
                       color: AppColor.primaryBlack,
+                      disableColor: AppColor.disabledColor,
                     ),
                   ),
                   Visibility(
