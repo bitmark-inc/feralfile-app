@@ -544,9 +544,7 @@ class AccountServiceImpl extends AccountService {
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
-    for (final linkedAccount in linkedAccounts) {
-      addresses.addAll(linkedAccount.accountNumbers);
-    }
+    addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
       log.info(
           "[Account Service] all addresses (persona ${addressPersona.length}): ${addresses.join(", ")}");
