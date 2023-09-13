@@ -46,11 +46,4 @@ extension PostcardMetadataExtension on PostcardMetadata {
     }
     return travelInfo;
   }
-
-  int get numberOfStamp {
-    return locationInformation
-        .where((element) => element.stampedLocation != null)
-        .toList()
-        .length;
-  }
 }

@@ -573,24 +573,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         isViewOnly != false) {
       return const SizedBox();
     }
-    if (state.isPostcardUpdatingOnBlockchain) {
-      return PostcardCustomButton(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              "confirming_on_blockchain".tr(),
-              style: theme.textTheme.moMASans700Black14,
-            ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: DotsLoading(),
-            ),
-          ],
-        ),
-      );
-    }
-    if (state.isPostcardUpdating) {
+    if (state.isPostcardUpdatingOnBlockchain || state.isPostcardUpdating) {
       return PostcardCustomButton(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -907,7 +890,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final theme = Theme.of(context);
     final travelInfoWithoutInternetUser =
         asset.postcardMetadata.listTravelInfoWithoutLocationName;
-    final currentStampNumber = asset.postcardMetadata.numberOfStamp;
+    final currentStampNumber = asset.getArtists.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
