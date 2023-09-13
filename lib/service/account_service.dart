@@ -551,7 +551,6 @@ class AccountServiceImpl extends AccountService {
 
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-    _configurationService.getLinkedAccountsHiddenInGallery();
 
     for (final linkedAccount in linkedAccounts) {
       addresses.addAll(linkedAccount.accountNumbers);
