@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
@@ -95,7 +96,7 @@ abstract class AccountService {
 
   bool isLinkedAccountHiddenInGallery(String address);
 
-  Future<List<String>> getAllAddresses();
+  Future<List<String>> getAllAddresses({bool logHiddenAddress = false});
 
   Future<List<AddressIndex>> getAllAddressIndexes();
 
@@ -539,24 +540,32 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<List<String>> getAllAddresses() async {
+  Future<List<String>> getAllAddresses({bool logHiddenAddress = false}) async {
     if (_configurationService.isDemoArtworksMode()) {
       return [];
     }
 
     List<String> addresses = [];
-
-    final personas = await _cloudDB.personaDao.getPersonas();
-
-    for (var persona in personas) {
-      addresses.addAll(await persona.getAddresses());
-    }
+    final addressPersona = await _cloudDB.addressDao.getAllAddresses();
+    addresses.addAll(addressPersona.map((e) => e.address));
 
     final linkedAccounts =
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
 
     for (final linkedAccount in linkedAccounts) {
       addresses.addAll(linkedAccount.accountNumbers);
+    }
+    if (logHiddenAddress) {
+      log.info(
+          "[Account Service] all addresses (persona ${addressPersona.length}): ${addresses.join(", ")}");
+      final hiddenAddresses = addressPersona
+          .where((element) => element.isHidden)
+          .map((e) => e.address.maskOnly(5))
+          .toList();
+      hiddenAddresses
+          .addAll(_configurationService.getLinkedAccountsHiddenInGallery());
+      log.info(
+          "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
 
     return addresses;
