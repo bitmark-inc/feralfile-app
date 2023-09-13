@@ -1116,9 +1116,11 @@ class UIHelper {
                         ),
                       ),
                     );
-                    // if (options?[index].builder != null) {
-                    //   return options?[index].builder!.call(context, child);
-                    // }
+                    if (options?[index].builder != null) {
+                      return options?[index]
+                          .builder!
+                          .call(context, options[index]);
+                    }
                     return GestureDetector(
                       onTap: options?[index].onTap,
                       child: child,
