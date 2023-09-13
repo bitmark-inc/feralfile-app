@@ -98,6 +98,11 @@ class _StampPreviewState extends State<StampPreview> {
             .copyWith(color: MoMAColors.moMA3, fontSize: 18),
         icon: SvgPicture.asset("assets/images/moma_arrow_right.svg"),
         onTap: () {},
+        separator: const Divider(
+          height: 1,
+          thickness: 1.0,
+          color: Color.fromRGBO(203, 203, 203, 1),
+        ),
       ),
       OptionItem(
         title: 'share_on_'.tr(),
@@ -105,6 +110,15 @@ class _StampPreviewState extends State<StampPreview> {
           'assets/images/globe.svg',
           width: 24,
           height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset(
+          'assets/images/globe.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
         ),
         onTap: () async {
           shareToTwitter(token: widget.payload.asset);

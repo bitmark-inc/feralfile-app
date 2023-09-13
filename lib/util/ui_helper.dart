@@ -1173,34 +1173,41 @@ class UIHelper {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ListView.separated(
+                  ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context, int index) {
                       final item = options[index];
-                      if (item.builder != null) {
-                        final child = Container(
-                          color: Colors.transparent,
-                          width: MediaQuery.of(context).size.width,
-                          child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 20,
-                              ),
-                              child: item.builder!.call(context, item)),
-                        );
-                        return GestureDetector(
-                          onTap: options[index].onTap,
-                          child: child,
-                        );
-                      }
-                      return PostcardDrawerItem(item: item);
+                      const defaultSeparator = Divider(
+                        height: 1,
+                        thickness: 1.0,
+                        color: Color.fromRGBO(227, 227, 227, 1),
+                      );
+                      return Column(
+                        children: [
+                          Builder(builder: (context) {
+                            if (item.builder != null) {
+                              final child = Container(
+                                color: Colors.transparent,
+                                width: MediaQuery.of(context).size.width,
+                                child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 20,
+                                    ),
+                                    child: item.builder!.call(context, item)),
+                              );
+                              return GestureDetector(
+                                onTap: options[index].onTap,
+                                child: child,
+                              );
+                            }
+                            return PostcardDrawerItem(item: item);
+                          }),
+                          item.separator ?? defaultSeparator,
+                        ],
+                      );
                     },
                     itemCount: options.length,
-                    separatorBuilder: (context, index) => const Divider(
-                      height: 1,
-                      thickness: 1.0,
-                      color: Color.fromRGBO(236, 236, 236, 1),
-                    ),
                   ),
                 ],
               ),
@@ -1529,13 +1536,16 @@ class OptionItem {
   Widget? icon;
   Widget? iconOnProcessing;
   Widget Function(BuildContext context, OptionItem item)? builder;
+  Widget? separator;
 
   OptionItem({
     this.title,
     this.titleStyle,
+    this.titleStyleOnPrecessing,
     this.onTap,
     this.icon,
     this.iconOnProcessing,
     this.builder,
+    this.separator,
   });
 }

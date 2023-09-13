@@ -416,7 +416,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     child: Semantics(
                       label: 'artworkDotIcon',
                       child: IconButton(
-                        onPressed: () => _showArtworkOptionsDialog(asset),
+                        onPressed: () =>
+                            _showArtworkOptionsDialog(context, asset),
                         constraints: const BoxConstraints(
                           maxWidth: 44,
                           maxHeight: 44,
@@ -790,7 +791,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Future _showArtworkOptionsDialog(AssetToken asset) async {
+  Future _showArtworkOptionsDialog(
+      BuildContext context, AssetToken asset) async {
+    final theme = Theme.of(context);
     if (!mounted) return;
     const isHidden = false;
     UIHelper.showPostcardDrawerAction(
@@ -802,6 +805,15 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             'assets/images/globe.svg',
             width: 24,
             height: 24,
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+              AppColor.disabledColor,
+              BlendMode.srcIn,
+            ),
           ),
           onTap: () {
             _shareTwitter(asset);
@@ -844,46 +856,36 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             },
           ),
         OptionItem(
-            title: 'hide'.tr(),
-            icon: SvgPicture.asset(
-              "assets/images/postcard_hide.svg",
-              colorFilter:
-                  const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
-            ),
-            onTap: () async {
-              await _configurationService
-                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              injector<SettingsDataService>().backup();
+          title: 'hide'.tr(),
+          titleStyle: theme.textTheme.moMASans700Black16
+              .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+          titleStyleOnPrecessing: theme.textTheme.moMASans700Black16.copyWith(
+              fontSize: 18, color: const Color.fromRGBO(245, 177, 177, 1)),
+          icon: SvgPicture.asset(
+            "assets/images/postcard_hide.svg",
+            colorFilter:
+                const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            "assets/images/postcard_hide.svg",
+            colorFilter: const ColorFilter.mode(
+                Color.fromRGBO(245, 177, 177, 1), BlendMode.srcIn),
+          ),
+          onTap: () async {
+            await _configurationService
+                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+            injector<SettingsDataService>().backup();
 
-              if (!mounted) return;
-              NftCollectionBloc.eventController.add(ReloadEvent());
-              Navigator.of(context).pop();
-              UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                  onOK: () {
-                Navigator.of(context).popUntil((route) =>
-                    route.settings.name == AppRouter.homePage ||
-                    route.settings.name == AppRouter.homePageNoTransition);
-              });
-            },
-            builder: (BuildContext context, OptionItem item) {
-              final theme = Theme.of(context);
-              return Row(
-                children: [
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  if (item.icon != null) SizedBox(width: 30, child: item.icon),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Text(
-                    item.title ?? '',
-                    style: theme.textTheme.moMASans700Black16
-                        .copyWith(color: MoMAColors.moMA3, fontSize: 18),
-                  ),
-                ],
-              );
-            }),
+            if (!mounted) return;
+            NftCollectionBloc.eventController.add(ReloadEvent());
+            Navigator.of(context).pop();
+            UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
+              Navigator.of(context).popUntil((route) =>
+                  route.settings.name == AppRouter.homePage ||
+                  route.settings.name == AppRouter.homePageNoTransition);
+            });
+          },
+        ),
       ],
     );
   }
