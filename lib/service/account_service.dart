@@ -340,14 +340,6 @@ class AccountServiceImpl extends AccountService {
     } catch (exception) {
       Sentry.captureException(exception);
     }
-    final metricClient = injector.get<MetricClientService>();
-    try {
-      await metricClient.addEvent(MixpanelEvent.deleteFullAccount,
-          hashedData: {"id": persona.uuid});
-    } catch (e) {
-      log.info(
-          "[AccountService] deletePersona: error during execute mixpanel event, ${e.toString()}");
-    }
 
     log.info("[AccountService] deletePersona finished - ${persona.uuid}");
   }
