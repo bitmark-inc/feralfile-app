@@ -5,7 +5,7 @@ import 'package:eth_sig_util/util/utils.dart';
 import 'package:http/http.dart' as http;
 
 class HttpHelper {
-  static Future<http.Response> post(
+  static Future<http.Response> hmacAuthenticationPost(
       {required String host,
       required String path,
       Map<String, dynamic>? body,

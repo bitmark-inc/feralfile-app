@@ -421,7 +421,7 @@ class PostcardServiceImpl extends PostcardService {
   }) async {
     final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
     final secretKey = Environment.auClaimSecretKey;
-    final response = await HttpHelper.post(
+    final response = await HttpHelper.hmacAuthenticationPost(
         host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
     if (response.statusCode != StatusCode.success.value) {
       throw Exception(response.reasonPhrase);
