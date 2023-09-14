@@ -54,14 +54,6 @@ class FindAccount extends AccountsEvent {
   FindAccount(this.personaUUID, this.address, this.type);
 }
 
-class FindLinkedAccount extends AccountsEvent {
-  final String connectionKey;
-  final String address;
-  final CryptoType type;
-
-  FindLinkedAccount(this.connectionKey, this.address, this.type);
-}
-
 class Account {
   String key;
   Persona? persona;

@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
+import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -116,12 +117,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  late bool sharingPostcard;
+  late bool _sharingPostcard;
 
   @override
   void initState() {
     _scrollController = ScrollController();
-    sharingPostcard = false;
+    _sharingPostcard = false;
     isViewOnly = widget.payload.isFromLeaderboard;
     super.initState();
     context.read<PostcardDetailBloc>().add(
@@ -132,7 +133,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
-    context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
   }
 
@@ -469,24 +469,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
                 toolbarHeight: 70,
                 centerTitle: false,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      "MoMA",
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.moMASans700Black24,
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      "postcard_project".tr(),
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.moMASans400Black24
-                          .copyWith(height: 1),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                title: Text(
+                  asset.title!,
+                  style: theme.textTheme.moMASans400Black12,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
@@ -509,6 +495,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               AppColor.primaryBlack, BlendMode.srcIn),
                         ),
                       ),
+                    ),
+                  ),
+                  Semantics(
+                    label: 'externalLink',
+                    child: const ExternalLink(
+                      color: AppColor.primaryBlack,
+                      disableColor: AppColor.disabledColor,
                     ),
                   ),
                   Visibility(
@@ -591,7 +584,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               height: 20,
                             ),
                             if (!isViewOnly) ...[
-                              _postcardAction(state),
+                              _postcardAction(context, state),
                               const SizedBox(
                                 height: 20,
                               ),
@@ -612,8 +605,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _artworkInfo(asset, state.toArtworkDetailState(),
-                                artistNames),
+                            _artworkInfo(context, asset,
+                                state.toArtworkDetailState(), artistNames),
                           ],
                         ),
                       ),
@@ -638,7 +631,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ));
   }
 
-  Widget _postcardAction(PostcardDetailState state) {
+  Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final asset = state.assetToken!;
     final theme = Theme.of(context);
     if (asset.postcardMetadata.isCompleted ||
@@ -677,11 +670,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       timer?.cancel();
       return PostcardButton(
         text: "invite_to_collaborate".tr(),
-        enabled: !sharingPostcard,
-        isProcessing: sharingPostcard,
+        enabled: !_sharingPostcard,
+        isProcessing: _sharingPostcard,
         onTap: () {
           withDebounce(() async {
-            await _sharePostcard(asset);
+            await _sharePostcard(context, asset);
             setState(() {});
           });
         },
@@ -695,10 +688,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Future<void> _sharePostcard(AssetToken asset) async {
+  Future<void> _sharePostcard(BuildContext context, AssetToken asset) async {
     try {
       setState(() {
-        sharingPostcard = true;
+        _sharingPostcard = true;
       });
       final shareTime = DateTime.now();
       final sharePostcardResponse = await _postcardService.sharePostcard(asset);
@@ -718,7 +711,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       }
     }
     setState(() {
-      sharingPostcard = false;
+      _sharingPostcard = false;
     });
   }
 
@@ -831,8 +824,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _artworkInfo(
-      AssetToken asset, ArtworkDetailState state, List<String?> artistNames) {
+  Widget _artworkInfo(BuildContext context, AssetToken asset,
+      ArtworkDetailState state, List<String?> artistNames) {
     return Column(
       children: [
         debugInfoWidget(context, currentAsset),
