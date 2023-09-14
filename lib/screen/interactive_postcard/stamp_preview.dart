@@ -16,7 +16,10 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/share_helper.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -27,6 +30,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -49,7 +53,7 @@ class _StampPreviewState extends State<StampPreview> {
   int index = 0;
   bool confirming = false;
   Timer? timer;
-
+  bool alreadyShowPopup = false;
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _tokenService = injector<TokensService>();
@@ -83,6 +87,89 @@ class _StampPreviewState extends State<StampPreview> {
         _refreshPostcard();
       }
     });
+  }
+
+  Future<void> showOptions(BuildContext context, {Function()? callBack}) async {
+    final theme = Theme.of(context);
+    final options = [
+      OptionItem(
+        title: "stamp_minted".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16
+            .copyWith(color: MoMAColors.moMA3, fontSize: 18),
+        icon: SvgPicture.asset("assets/images/moma_arrow_right.svg"),
+        onTap: () {},
+        separator: const Divider(
+          height: 1,
+          thickness: 1.0,
+          color: Color.fromRGBO(203, 203, 203, 1),
+        ),
+      ),
+      OptionItem(
+        title: 'share_on_'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/globe.svg',
+          width: 24,
+          height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset(
+          'assets/images/globe.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
+        ),
+        onTap: () async {
+          shareToTwitter(token: widget.payload.asset);
+          Navigator.of(context).pop();
+          await callBack?.call();
+        },
+      ),
+      OptionItem(
+        title: 'download_stamp'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
+        ),
+        onTap: () async {
+          try {
+            final asset = widget.payload.asset;
+            await _postcardService.downloadStamp(
+                tokenId: asset.tokenId!, stampIndex: 0);
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            await UIHelper.showPostcardStampSaved(context);
+            await callBack?.call();
+          } catch (e) {
+            log.info("Download stamp failed: error ${e.toString()}");
+            if (!mounted) return;
+            Navigator.of(context).pop();
+
+            switch (e.runtimeType) {
+              case MediaPermissionException:
+                await UIHelper.showPostcardStampPhotoAccessFailed(context);
+                break;
+              default:
+                if (!mounted) return;
+                await UIHelper.showPostcardStampSavedFailed(context);
+            }
+            await callBack?.call();
+          }
+        },
+      ),
+    ];
+    await UIHelper.showPostcardDrawerAction(context, options: options);
   }
 
   @override
@@ -133,14 +220,22 @@ class _StampPreviewState extends State<StampPreview> {
               if (state.assetToken == null) {
                 return;
               }
-              _navigationService.popUntilHomeOrSettings();
-              if (!mounted) return;
-              Navigator.of(context).pushNamed(
-                AppRouter.claimedPostcardDetailsPage,
-                arguments:
-                    PostcardDetailPagePayload([state.assetToken!.identity], 0),
-              );
-              _configurationService.setAutoShowPostcard(true);
+              timer?.cancel();
+              if (alreadyShowPopup) {
+                return;
+              }
+              alreadyShowPopup = true;
+              showOptions(context, callBack: () {
+                log.info("Popup closed");
+                _navigationService.popUntilHomeOrSettings();
+                if (!mounted) return;
+                Navigator.of(context).pushNamed(
+                  AppRouter.claimedPostcardDetailsPage,
+                  arguments: PostcardDetailPagePayload(
+                      [state.assetToken!.identity], 0),
+                );
+                _configurationService.setAutoShowPostcard(true);
+              });
             }
           },
           builder: (context, state) {

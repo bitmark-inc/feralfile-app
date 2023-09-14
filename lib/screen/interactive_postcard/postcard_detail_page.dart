@@ -10,7 +10,6 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -42,6 +41,7 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -64,8 +64,6 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
-import 'package:social_share/social_share.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -143,32 +141,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  void _manualShare(String caption, String url) async {
-    final encodeCaption = Uri.encodeQueryComponent(caption);
-    final twitterUrl =
-        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
-    final twitterUri = Uri.parse(twitterUrl);
-    launchUrl(twitterUri, mode: LaunchMode.externalApplication);
-  }
-
   void _shareTwitter(AssetToken token) {
-    final prefix = Environment.tokenWebviewPrefix;
-    final url = '$prefix/token/${token.id}';
-    final caption = widget.payload.twitterCaption ?? token.twitterCaption;
-    SocialShare.checkInstalledAppsForShare().then((data) {
-      if (data?[SocialApp.twitter]) {
-        SocialShare.shareTwitter(caption, url: url);
-      } else {
-        _manualShare(caption, url);
-      }
-    });
-    _metricClient.addEvent(MixpanelEvent.share, data: {
-      "id": token.id,
-      "to": "Twitter",
-      "caption": caption,
-      "title": token.title,
-      "artistID": token.artistID,
-    });
+    shareToTwitter(token: token, twitterCaption: widget.payload.twitterCaption);
   }
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
@@ -435,7 +409,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     child: Semantics(
                       label: 'artworkDotIcon',
                       child: IconButton(
-                        onPressed: () => _showArtworkOptionsDialog(asset),
+                        onPressed: () =>
+                            _showArtworkOptionsDialog(context, asset),
                         constraints: const BoxConstraints(
                           maxWidth: 44,
                           maxHeight: 44,
@@ -809,21 +784,86 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  bool _isHidden(AssetToken token) {
-    return _configurationService
-        .getTempStorageHiddenTokenIDs()
-        .contains(token.id);
-  }
-
-  Future _showArtworkOptionsDialog(AssetToken asset) async {
+  Future _showArtworkOptionsDialog(
+      BuildContext context, AssetToken asset) async {
+    final theme = Theme.of(context);
     if (!mounted) return;
-    final isHidden = _isHidden(asset);
-    UIHelper.showDrawerAction(
+    const isHidden = false;
+    UIHelper.showPostcardDrawerAction(
       context,
       options: [
         OptionItem(
-          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-          icon: const Icon(AuIcon.hidden_artwork),
+          title: 'share_on_'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+              AppColor.disabledColor,
+              BlendMode.srcIn,
+            ),
+          ),
+          onTap: () {
+            _shareTwitter(asset);
+            Navigator.of(context).pop();
+          },
+        ),
+        if (asset.stampIndex >= 0)
+          OptionItem(
+            title: 'download_stamp'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/download.svg',
+              width: 24,
+              height: 24,
+            ),
+            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn)),
+            onTap: () async {
+              try {
+                await _postcardService.downloadStamp(
+                    tokenId: asset.tokenId!, stampIndex: asset.stampIndex);
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                await UIHelper.showPostcardStampSaved(context);
+              } catch (e) {
+                log.info("Download stamp failed: error ${e.toString()}");
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                switch (e.runtimeType) {
+                  case MediaPermissionException:
+                    await UIHelper.showPostcardStampPhotoAccessFailed(context);
+                    break;
+                  default:
+                    if (!mounted) return;
+                    await UIHelper.showPostcardStampSavedFailed(context);
+                }
+              }
+            },
+          ),
+        OptionItem(
+          title: 'hide'.tr(),
+          titleStyle: theme.textTheme.moMASans700Black16
+              .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+          titleStyleOnPrecessing: theme.textTheme.moMASans700Black16.copyWith(
+              fontSize: 18, color: const Color.fromRGBO(245, 177, 177, 1)),
+          icon: SvgPicture.asset(
+            "assets/images/postcard_hide.svg",
+            colorFilter:
+                const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            "assets/images/postcard_hide.svg",
+            colorFilter: const ColorFilter.mode(
+                Color.fromRGBO(245, 177, 177, 1), BlendMode.srcIn),
+          ),
           onTap: () async {
             await _configurationService
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
@@ -837,18 +877,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   route.settings.name == AppRouter.homePage ||
                   route.settings.name == AppRouter.homePageNoTransition);
             });
-          },
-        ),
-        OptionItem(
-          title: 'share_on_'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/Share.svg',
-            width: 24,
-            height: 24,
-          ),
-          onTap: () async {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
           },
         ),
       ],
