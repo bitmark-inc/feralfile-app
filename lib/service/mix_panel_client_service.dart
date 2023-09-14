@@ -150,6 +150,14 @@ class MixPanelClientService {
     }
   }
 
+  Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
+    for (var entry in config.entries) {
+      if (getConfig(entry.key) == null) {
+        await setConfig(entry.key, entry.value);
+      }
+    }
+  }
+
   dynamic getConfig(String key, {dynamic defaultValue}) {
     return configHiveBox.get(key, defaultValue: defaultValue);
   }
