@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
@@ -1349,30 +1350,40 @@ class UIHelper {
   }
 
   static Future<void> showPostcardUpdates(BuildContext context) async {
-    await UIHelper.showPostCardDialog(
-        context,
-        "postcard_updates".tr(),
-        Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text(
-                "postcard_updates_content".tr(),
-                style: Theme.of(context).textTheme.moMASans700AuGrey18,
-              ),
+    bool isProcessing = false;
+    await UIHelper.showPostCardDialog(context, "postcard_notifications".tr(),
+        StatefulBuilder(builder: (context, buttonState) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Text(
+              "postcard_updates_content".tr(),
+              style: Theme.of(context).textTheme.moMASans700AuGrey18,
             ),
-            const SizedBox(height: 40),
-            PostcardButton(
-              text: "continue".tr(),
-              color: AppColor.momaGreen,
-              onTap: () {
-                Navigator.of(context)
-                    .popAndPushNamed(AppRouter.preferencesPage);
-              },
-            ),
-          ],
-        ),
-        isDismissible: true);
+          ),
+          const SizedBox(height: 40),
+          PostcardButton(
+            text: "enable".tr(),
+            color: AppColor.momaGreen,
+            isProcessing: isProcessing,
+            onTap: () async {
+              buttonState(() {
+                isProcessing = true;
+              });
+              try {
+                await registerPushNotifications(askPermission: true);
+                injector<ConfigurationService>().setPendingSettings(false);
+              } catch (error) {
+                log.warning("Error when setting notification: $error");
+              }
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    }), isDismissible: true);
   }
 
   static showAirdropClaimFailed(BuildContext context) async {
