@@ -251,8 +251,9 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                 .payload.series.exhibition?.mintBlockchain
                                 .capitalize() ??
                             "Tezos";
-                        final addresses =
-                            await _accountService.getAddress(blockchain);
+                        final addresses = await _accountService.getAddress(
+                            blockchain,
+                            withViewOnly: widget.payload.allowViewOnlyClaim);
 
                         String? address;
                         if (addresses.isEmpty) {
@@ -276,7 +277,6 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                               AppRouter.receivePostcardSelectAccountPage,
                               arguments: ReceivePostcardSelectAccountPageArgs(
                                 blockchain,
-                                withLinked: false,
                               ),
                             );
                             address = response as String?;
