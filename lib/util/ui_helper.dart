@@ -1369,6 +1369,29 @@ class UIHelper {
           topLeft: Radius.circular(10), topRight: Radius.circular(10)),
     );
   }
+
+  static Future<void> showPostcardRunOut(BuildContext context) async {
+    await await UIHelper.showDialog(
+      context,
+      "postcards_ran_out".tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("postcards_ran_out_desc".tr(),
+              style: Theme.of(context)
+                  .textTheme
+                  .ppMori400White14
+                  .copyWith(height: 2)),
+          const SizedBox(height: 40),
+          PrimaryButton(
+            onTap: () => Navigator.pop(context),
+            text: "close".tr(),
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
 }
 
 Widget loadingScreen(ThemeData theme, String text) {

@@ -526,12 +526,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (id == null) {
       return;
     }
-    final claimRequest =
-        await _postcardService.requestPostcard(RequestPostcardRequest(id: id));
-    _navigationService.navigateTo(
-      AppRouter.claimEmptyPostCard,
-      arguments: claimRequest,
-    );
+    try {
+      final claimRequest = await _postcardService
+          .requestPostcard(RequestPostcardRequest(id: id));
+      _navigationService.navigateTo(
+        AppRouter.claimEmptyPostCard,
+        arguments: claimRequest,
+      );
+    } catch (e) {
+      log.info("[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e");
+      _navigationService.showPostcardRunOut();
+    }
   }
 
   _handleActivationDeeplink(String? activationID, Otp? otp) async {
