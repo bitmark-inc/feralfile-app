@@ -113,17 +113,6 @@ class CanvasClientService {
     }
   }
 
-  Future<void> disconnectToDevice(CanvasDevice device) async {
-    _devices.remove(device);
-    final request = DisconnectRequest()..deviceId = _deviceId;
-    final stub = _getStub(device);
-    await stub.disconnect(request);
-    await _disconnectLocalDevice(device);
-    final channel = _getChannel(device);
-    await channel.shutdown();
-    log.info('CanvasClientService: Disconnected to device');
-  }
-
   Future<Pair<CanvasServerStatus, String?>> checkDeviceStatus(
       CanvasDevice device) async {
     final stub = _getStub(device);
@@ -160,18 +149,8 @@ class CanvasClientService {
     return Pair(status, sceneId);
   }
 
-  Future<void> updateDevices() async {
-    // check if device is still connected, if not, disconnect and remove from list devices
-    for (final device in _devices) {
-      final status = await checkDeviceStatus(device);
-      if (status.first != CanvasServerStatus.connected) {
-        await disconnectToDevice(device);
-      }
-    }
-  }
-
   Future<void> syncDevices() async {
-    final devices = await _db.canvasDeviceDao.getCanvasDevices();
+    final devices = await getAllDevices();
     _devices.clear();
     final List<CanvasDevice> devicesToAdd = [];
     await Future.forEach<CanvasDevice>(devices, (device) async {
@@ -191,7 +170,7 @@ class CanvasClientService {
           devicesToAdd.add(device);
           break;
         case CanvasServerStatus.notServing:
-          _disconnectLocalDevice(device);
+          _updateLocalDisconnectedDevice(device);
           break;
         case CanvasServerStatus.error:
           break;
@@ -199,10 +178,12 @@ class CanvasClientService {
     });
     devicesToAdd.unique((element) => element.ip);
     _devices.addAll(devicesToAdd);
+    log.info("Canvas client service sync device available ${_devices.length}");
   }
 
   Future<List<CanvasDevice>> getAllDevices() async {
     final devices = await _db.canvasDeviceDao.getCanvasDevices();
+    log.info("Canvas client service get devices local ${devices.length}");
     return devices;
   }
 
@@ -218,7 +199,7 @@ class CanvasClientService {
     return _devices;
   }
 
-  Future<void> _disconnectLocalDevice(CanvasDevice device) async {
+  Future<void> _updateLocalDisconnectedDevice(CanvasDevice device) async {
     final updatedDevice = device.copyWith(isConnecting: false);
     updatedDevice.playingSceneId = null;
     await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
