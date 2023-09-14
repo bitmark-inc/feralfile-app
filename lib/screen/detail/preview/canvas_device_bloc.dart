@@ -14,18 +14,6 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   CanvasDeviceGetDevicesEvent(this.sceneId, {this.syncAll = true});
 }
 
-class CanvasDevicePlayEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDevicePlayEvent(this.device);
-}
-
-class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceDisconnectEvent(this.device);
-}
-
 class CanvasDeviceAddEvent extends CanvasDeviceEvent {
   final DeviceState device;
 
@@ -178,23 +166,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                 (element) => element.device.id == event.device.device.id)
             ..add(DeviceState(device: event.device.device)));
       emit(newState);
-    });
-
-    on<CanvasDevicePlayEvent>((event, emit) async {});
-
-    on<CanvasDeviceDisconnectEvent>((event, emit) async {
-      final index = state.devices
-          .indexWhere((element) => element.device.id == event.device.id);
-      final loadingState =
-          state.copyWith(devices: state.devices, sceneId: state.sceneId);
-      loadingState.devices[index].status = DeviceStatus.loading;
-      emit(loadingState);
-      await _canvasClientService
-          .disconnectToDevice(state.devices[index].device);
-      final finalState =
-          state.copyWith(devices: state.devices, sceneId: state.sceneId);
-      finalState.devices.removeAt(index);
-      emit(finalState);
     });
 
     on<CanvasDeviceCastSingleEvent>((event, emit) async {

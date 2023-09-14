@@ -10,9 +10,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:http/http.dart' as http;
@@ -42,6 +45,8 @@ class PostcardDetailGetValueEvent extends PostcardDetailEvent {
 }
 
 class FetchLeaderboardEvent extends PostcardDetailEvent {}
+
+class RefreshLeaderboardEvent extends PostcardDetailEvent {}
 
 class PostcardDetailBloc
     extends AuBloc<PostcardDetailEvent, PostcardDetailState> {
@@ -127,10 +132,38 @@ class PostcardDetailBloc
 
     on<FetchLeaderboardEvent>((event, emit) async {
       try {
-        final leaderboard = await _postcardService.fetchPostcardLeaderboard();
-        emit(state.copyWith(leaderboard: leaderboard));
+        const size = LEADERBOARD_PAGE_SIZE;
+        final offset = state.leaderboard?.items.length ?? 0;
+        emit(state.copyWith(isFetchingLeaderboard: true));
+        final leaderboard = await _postcardService.fetchPostcardLeaderboard(
+            unit: DistanceFormatter.getDistanceUnit.name,
+            size: size,
+            offset: offset);
+        final newLeaderboard = state.leaderboard == null
+            ? leaderboard
+            : PostcardLeaderboard(
+                items: state.leaderboard!.items
+                  ..addAll(leaderboard.items
+                      .where((element) =>
+                          element.rank > state.leaderboard!.items.length)
+                      .toList()),
+                lastUpdated: DateTime.now());
+        emit(state.copyWith(
+            leaderboard: newLeaderboard, isFetchingLeaderboard: false));
       } catch (e) {
         log.info("FetchLeaderboardEvent: error ${e.toString()}");
+      }
+    });
+    on<RefreshLeaderboardEvent>((event, emit) async {
+      try {
+        const offset = 0;
+        final leaderboard = await _postcardService.fetchPostcardLeaderboard(
+            unit: DistanceFormatter.getDistanceUnit.name,
+            size: state.leaderboard?.items.length ?? 0,
+            offset: offset);
+        emit(state.copyWith(leaderboard: leaderboard));
+      } catch (e) {
+        log.info("RefreshLeaderboardEvent: error ${e.toString()}");
       }
     });
   }

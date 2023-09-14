@@ -1847,6 +1847,7 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
               header: "rights".tr(),
               headerStyle:
                   theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+              headerPadding: const EdgeInsets.only(left: 15, right: 15),
               withDivicer: false,
               iconOnExpanded: RotatedBox(
                 quarterTurns: 1,

@@ -21,8 +21,10 @@ import 'package:nft_collection/models/asset_token.dart';
 class PostcardLeaderboardView extends StatefulWidget {
   final PostcardLeaderboard? leaderboard;
   final AssetToken? assetToken;
+  final ScrollController? scrollController;
 
-  const PostcardLeaderboardView({Key? key, this.leaderboard, this.assetToken})
+  const PostcardLeaderboardView(
+      {Key? key, this.leaderboard, this.assetToken, this.scrollController})
       : super(key: key);
 
   @override
@@ -35,17 +37,14 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
   final distanceFormatter = DistanceFormatter();
   final postcardService = injector.get<PostcardService>();
   final _pageStorageBucket = PageStorageBucket();
-  late ScrollController _leaderboardScrollController;
 
   @override
   void initState() {
-    _leaderboardScrollController = ScrollController();
     super.initState();
   }
 
   @override
   void dispose() {
-    _leaderboardScrollController.dispose();
     super.dispose();
   }
 
@@ -55,6 +54,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
         children: [
           Expanded(
             child: AnimatedList(
+              controller: widget.scrollController,
               initialItemCount: 51,
               itemBuilder: (context, index, animation) {
                 if (index == 0) {
@@ -243,7 +243,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
               bucket: _pageStorageBucket,
               child: ListView.builder(
                 key: listKey,
-                controller: _leaderboardScrollController,
+                controller: widget.scrollController,
                 itemCount: leaderBoard.items.length + 1,
                 itemBuilder: (context, index) {
                   if (index == 0) {

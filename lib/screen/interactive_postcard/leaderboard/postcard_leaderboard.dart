@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/models.dart';
 
@@ -32,10 +33,25 @@ class PostcardLeaderboardPage extends StatefulWidget {
 class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
   late PostcardLeaderboard? leaderboard;
   late Timer _leaderboardTimer;
+  late ScrollController _scrollController;
+  late bool isFetchingLeaderboard;
 
   @override
   void initState() {
     leaderboard = null;
+    _scrollController = ScrollController();
+    isFetchingLeaderboard = false;
+    _scrollController.addListener(() {
+      final isScrollingDown = _scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse;
+      if (_scrollController.position.pixels + 300 >=
+              _scrollController.position.maxScrollExtent &&
+          isScrollingDown) {
+        if (!isFetchingLeaderboard) {
+          onLoadmoreLeaderboard();
+        }
+      }
+    });
     super.initState();
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     _setTimer();
@@ -44,13 +60,18 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
   @override
   void dispose() {
     _leaderboardTimer.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _setTimer() {
     _leaderboardTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
+      context.read<PostcardDetailBloc>().add(RefreshLeaderboardEvent());
     });
+  }
+
+  void onLoadmoreLeaderboard() {
+    context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
   }
 
   @override
@@ -70,16 +91,19 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
               .copyWith(fontSize: 18),
           withDivider: false,
           backgroundColor: POSTCARD_BACKGROUND_COLOR,
+          statusBarColor: POSTCARD_BACKGROUND_COLOR,
         ),
         backgroundColor: POSTCARD_BACKGROUND_COLOR,
         body: PostcardLeaderboardView(
           leaderboard: state.leaderboard,
           assetToken: widget.payload?.assetToken,
+          scrollController: _scrollController,
         ),
       );
     }, listener: (context, state) {
       setState(() {
         leaderboard = state.leaderboard;
+        isFetchingLeaderboard = state.isFetchingLeaderboard;
       });
     });
   }

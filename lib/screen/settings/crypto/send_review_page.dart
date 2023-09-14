@@ -120,6 +120,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
           break;
       }
     } catch (e) {
+      if (!mounted) return;
       UIHelper.showMessageAction(
         context,
         'transaction_failed'.tr(),

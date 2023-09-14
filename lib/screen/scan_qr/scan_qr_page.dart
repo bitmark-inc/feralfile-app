@@ -175,7 +175,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                           MultiBlocProvider(providers: [
                             BlocProvider(
                                 create: (_) => accounts.AccountsBloc(
-                                    injector(), injector<CloudDatabase>())),
+                                    injector(), injector())),
                             BlocProvider(
                               create: (_) => PersonaBloc(
                                 injector<CloudDatabase>(),
@@ -467,13 +467,18 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
+      if (_isLoading) return;
       if (scanData.code == null) return;
       if (scanData.code == currentCode && isScanDataError) return;
       currentCode = scanData.code;
       String code = scanData.code!;
 
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
+        setState(() {
+          _isLoading = true;
+        });
         controller.pauseCamera();
+        if (!mounted) return;
         Navigator.pop(context);
 
         injector<DeeplinkService>().handleDeeplink(
@@ -502,11 +507,17 @@ class _ScanQRPageState extends State<ScanQRPage>
 
         case ScannerItem.ETH_ADDRESS:
         case ScannerItem.XTZ_ADDRESS:
+          setState(() {
+            _isLoading = true;
+          });
           controller.pauseCamera();
           Navigator.pop(context, code);
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith("wc:") == true) {
+            setState(() {
+              _isLoading = true;
+            });
             _handleAutonomyConnect(code);
           } else if (code.startsWith("tezos:") == true) {
             _handleBeaconConnect(code);
@@ -613,20 +624,31 @@ class _ScanQRPageState extends State<ScanQRPage>
         "[Scanner][incorrectScanItem] item: ${data.substring(0, data.length ~/ 2)}");
   }
 
-  void _handleAutonomyConnect(String code) {
+  Future<void> _handleAutonomyConnect(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
+    Navigator.pop(context);
+    await Future.delayed(const Duration(seconds: 1));
+
     _addScanQREvent(
         link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
     injector<Wc2Service>().connect(code);
-    Navigator.pop(context);
   }
 
-  void _handleBeaconConnect(String code) {
+  Future<void> _handleBeaconConnect(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
     controller.pauseCamera();
+    Navigator.pop(context);
+    await Future.delayed(const Duration(seconds: 1));
+
     _addScanQREvent(
         link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
     injector<TezosBeaconService>().addPeer(code);
-    Navigator.pop(context);
+
     injector<NavigationService>().showContactingDialog();
   }
 

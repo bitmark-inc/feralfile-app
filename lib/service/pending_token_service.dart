@@ -44,7 +44,7 @@ extension FilterEventExt on FilterEvent {
   BigInt? getERC721TokenId() {
     if (topics?.length == 4) {
       return BigInt.tryParse(
-        topics?.last.replacePrefix("0x", "") ?? "",
+        topics?.last?.replacePrefix("0x", "") ?? "",
         radix: 16,
       );
     } else {
@@ -69,7 +69,7 @@ extension FilterEventExt on FilterEvent {
       tokenId = getERC721TokenId();
     }
 
-    final toAddressStr = topics?[2].substring(26);
+    final toAddressStr = topics![2]?.substring(26);
     if (toAddressStr == null) {
       return null;
     }

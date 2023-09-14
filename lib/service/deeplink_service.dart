@@ -218,11 +218,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "tezos://",
       "autonomy-tezos://",
     ];
+
+    final ignorePrefixes = [
+      "wc://wc?requestId=",
+    ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
       await injector<AccountService>().restoreIfNeeded();
     }
     // Check Universal Link
+    final callingIgnorePrefix =
+        ignorePrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingIgnorePrefix != null) return true;
+
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
 
@@ -518,12 +526,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (id == null) {
       return;
     }
-    final claimRequest =
-        await _postcardService.requestPostcard(RequestPostcardRequest(id: id));
-    _navigationService.navigateTo(
-      AppRouter.claimEmptyPostCard,
-      arguments: claimRequest,
-    );
+    try {
+      final claimRequest = await _postcardService
+          .requestPostcard(RequestPostcardRequest(id: id));
+      _navigationService.navigateTo(
+        AppRouter.claimEmptyPostCard,
+        arguments: claimRequest,
+      );
+    } catch (e) {
+      log.info("[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e");
+      _navigationService.showPostcardRunOut();
+    }
   }
 
   _handleActivationDeeplink(String? activationID, Otp? otp) async {

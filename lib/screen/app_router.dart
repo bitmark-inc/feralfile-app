@@ -224,7 +224,7 @@ class AppRouter {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
-    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
+    final accountsBloc = AccountsBloc(injector(), injector());
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),

@@ -1,14 +1,19 @@
 class OrdinalNumberFormatter {
   String format(int number) {
+    String suffix = "th";
     switch (number % 10) {
       case 1:
-        return '${number}st';
+        if (number % 100 != 11) suffix = "st";
+        break;
       case 2:
-        return '${number}nd';
+        if (number % 100 != 12) suffix = "nd";
+        break;
       case 3:
-        return '${number}rd';
+        if (number % 100 != 13) suffix = "rd";
+        break;
       default:
-        return '${number}th';
+        suffix = "th";
     }
+    return "$number$suffix";
   }
 }

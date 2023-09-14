@@ -7,9 +7,9 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -111,7 +111,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       return null;
     }
 
-    final blockchain = asset.blockchain;
     final accountService = injector<AccountService>();
     final addresses = await accountService.getAddress(asset.blockchain);
     String? address;
@@ -124,14 +123,17 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       address = addresses.first;
     } else {
       if (!mounted) return null;
-      final response = await Navigator.of(context).pushNamed(
-        AppRouter.receivePostcardSelectAccountPage,
-        arguments: ReceivePostcardSelectAccountPageArgs(
-          blockchain,
-          withLinked: false,
-        ),
+      final navigationService = injector.get<NavigationService>();
+      address = await navigationService.navigateTo(
+        AppRouter.selectAddressScreen,
+        arguments: {
+          'blockchain': 'Tezos',
+          'onConfirm': (String address) async {
+            navigationService.goBack(result: address);
+          },
+          'withLinked': false,
+        },
       );
-      address = response as String?;
     }
     AssetToken? pendingToken;
     if (address != null) {
@@ -164,7 +166,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       } catch (e) {
         if (e is DioException) {
           if (!mounted) return null;
-          await UIHelper.showReceivePostcardFailed(
+          await UIHelper.showAlreadyClaimedPostcard(
             context,
             e,
           );

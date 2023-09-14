@@ -6,15 +6,14 @@ on:
     paths-ignore:
       - '**/README.md'
 jobs:
-  build:
+  lint:
     name: lint the dart code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.6'
           channel: stable
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -63,7 +62,20 @@ jobs:
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub get
-      - name: Analyze Dart
-        uses: zgosalvez/github-actions-analyze-dart@v2
+      - uses: reviewdog/action-suggester@v1
         with:
-          fail-on-warnings: true
+          tool_name: shfmt
+      - name: Analyze Dart
+        uses: invertase/github-action-dart-analyzer@v1
+        with:
+          annotate: true
+          working-directory: ./
+
+  detect-secrets:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: detect-secrets
+      uses: reviewdog/action-detect-secrets@master
+      with:
+        reporter: github-pr-review

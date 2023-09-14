@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -61,7 +60,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
             didAuthenticate = await _localAuth.authenticate(
                 localizedReason: "authen_for_autonomy".tr());
           } catch (e) {
-            logger.info(e);
+            log.info(e);
           }
           if (didAuthenticate) {
             await _configurationService.setDevicePasscodeEnabled(

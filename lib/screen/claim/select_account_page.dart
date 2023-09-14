@@ -215,12 +215,13 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
-      if (!mounted) return;
-      await UIHelper.showClaimTokenError(
-        context,
-        e,
-        series: widget.artwork!,
-      );
+      if (mounted) {
+        await UIHelper.showClaimTokenError(
+          context,
+          e,
+          series: widget.artwork!,
+        );
+      }
       memoryValues.branchDeeplinkData.value = null;
     } finally {
       _setProcessingState(false);

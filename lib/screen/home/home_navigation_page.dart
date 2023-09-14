@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -208,8 +207,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       HomePage(key: _homePageKey),
       MultiBlocProvider(
         providers: [
-          BlocProvider.value(
-              value: AccountsBloc(injector(), injector<CloudDatabase>())),
+          BlocProvider.value(value: AccountsBloc(injector(), injector())),
         ],
         child: const WalletPage(),
       ),
@@ -563,6 +561,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         final postcardDetailPayload = PostcardDetailPagePayload(
           [ArtworkIdentity(indexID, owner)],
           0,
+          useIndexer: true,
         );
         if (!mounted) return;
         Navigator.of(context).popUntil((route) =>

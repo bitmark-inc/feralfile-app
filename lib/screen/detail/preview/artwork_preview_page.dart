@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -273,6 +274,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           appBar: isFullScreen
               ? null
               : AppBar(
+                  systemOverlayStyle: systemUiOverlayDarkStyle,
                   backgroundColor: theme.colorScheme.primary,
                   leadingWidth: 0,
                   centerTitle: false,

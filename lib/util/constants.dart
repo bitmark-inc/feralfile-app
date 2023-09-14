@@ -179,6 +179,8 @@ const CONNECT_FAILED_DURATION = Duration(seconds: 10);
 
 const int COLLECTION_INITIAL_MIN_SIZE = 20;
 
+const int LEADERBOARD_PAGE_SIZE = 50;
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
@@ -439,11 +441,6 @@ class Constants {
 }
 
 class MixpanelEvent {
-  static const addExistAccount = 'add_exist_account';
-  static const createNewAccount = 'create_new_account';
-  static const generateLink = 'generate_link';
-  static const backGenerateLink = 'back_generate_link';
-  static const backImportAccount = 'back_import_account';
   static const restoreAccount = 'restore_account';
   static const cancelContact = 'cancel_contact';
   static const connectContactSuccess = 'connect_contact_success';
@@ -457,13 +454,10 @@ class MixpanelEvent {
   static const clickArtworkInfo = 'click_artwork_info';
   static const acceptOwnership = 'accept_ownership';
   static const declineOwnership = 'decline_ownership';
-  static const generateReport = 'generate_report';
   static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
   static const clickLoadIPFSAgain = 'click_load_IPFS_again';
   static const showLoadingArtwork = 'show_loading_artwork';
   static const seeArtworkFullScreen = 'see_artwork_fullscreen';
-  static const streamArtwork = 'stream_artwork';
-  static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
   static const viewDiscoveryArtwork = 'view_discovery_artwork';
@@ -472,24 +466,18 @@ class MixpanelEvent {
   static const deviceBackground = 'device_background';
   static const signIn = 'Sign In';
   static const sign = 'Sign';
-  static const linkWallet = 'link_wallet';
   static const purchased = 'Purchased';
   static const trial = 'Trial';
-  static const linkFeralfile = 'link_feralfile';
   static const hideLinkedAccount = 'hide_linked_account';
   static const deleteFullAccount = 'delete_full_account';
   static const deleteLinkedAccount = 'delete_linked_account';
   static const importFullAccount = 'import_full_account';
   static const createFullAccount = 'create_full_account';
   static const connectExternal = 'connect_external';
-  static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
   static const addNFT = 'add_NFT';
   static const enableNotification = 'enable_notification';
   static const tabNotification = 'tab_notification';
-  static const finishArticles = 'finish_articles';
-  static const visitExhibition = 'visit_exhibition';
-  static const visitExhibitionArtwork = 'visit_exhibition_artwork';
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
   static const scanQR = 'scan_qr';
@@ -505,7 +493,6 @@ class MixpanelEvent {
   static const closeTipcard = "close_tip_card";
   static const pressTipcard = "press_tip_card";
   static const tapLinkInTipCard = "tap_link_in_tip_card";
-  static const hideAddress = "hide_address";
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";

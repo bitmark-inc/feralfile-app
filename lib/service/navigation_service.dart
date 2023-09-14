@@ -346,4 +346,11 @@ class NavigationService {
       await UIHelper.showLocationExplain(navigatorKey.currentContext!);
     }
   }
+
+  Future<void> showPostcardRunOut() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardRunOut(navigatorKey.currentContext!);
+    }
+  }
 }

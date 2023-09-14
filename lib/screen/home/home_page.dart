@@ -196,7 +196,7 @@ class HomePageState extends State<HomePage>
   }
 
   void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
-    //check minted postcard and naviagtor to artwork detail
+    //check minted postcard and navigator to artwork detail
     final config = injector.get<ConfigurationService>();
     final listTokenMints = config.getListPostcardMint();
     if (tokens.any((element) =>
@@ -225,7 +225,7 @@ class HomePageState extends State<HomePage>
 
     // Check if there is any Tezos token in the list
     List<String> allAccountNumbers =
-        await injector<AccountService>().getAllAddresses();
+        await injector<AccountService>().getAllAddresses(logHiddenAddress: true);
     final hashedAddresses = allAccountNumbers.fold(
         0, (int previousValue, element) => previousValue + element.hashCode);
 

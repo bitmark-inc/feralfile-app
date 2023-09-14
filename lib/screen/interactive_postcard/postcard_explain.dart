@@ -463,6 +463,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       maxLines: 2,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     onPressed: () {
                       _navigationService.showLocationExplain();

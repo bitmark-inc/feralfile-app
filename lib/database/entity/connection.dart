@@ -8,6 +8,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 
 import 'package:autonomy_flutter/model/connection_supports.dart';
@@ -123,14 +124,18 @@ class Connection {
 
   static Connection? getManuallyAddress(String? address) {
     if (address == null) return null;
+    String checkAddress = address;
     final cryptoType = CryptoType.fromAddress(address);
+    if (cryptoType == CryptoType.ETH) {
+      checkAddress = address.getETHEip55Address();
+    }
     if (cryptoType == CryptoType.UNKNOWN) return null;
     return Connection(
-        key: address,
+        key: checkAddress,
         name: cryptoType.source,
         data: "",
         connectionType: ConnectionType.manuallyAddress.rawValue,
-        accountNumber: address,
+        accountNumber: checkAddress,
         createdAt: DateTime.now());
   }
 

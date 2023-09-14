@@ -280,10 +280,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             operations: operations,
             sourceAddress: argument.sourceAddress,
           );
-          final txHash = await Navigator.of(context).pushNamed(
-            TBSendTransactionPage.tag,
-            arguments: beaconRequest,
-          );
+          final txHash = mounted
+              ? await Navigator.of(context).pushNamed(
+                  TBSendTransactionPage.tag,
+                  arguments: beaconRequest,
+                )
+              : null;
           if (txHash == null) {
             return _logAndReturnJSResult(
               '_sendTransaction',

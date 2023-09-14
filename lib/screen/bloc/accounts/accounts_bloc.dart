@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:collection/collection.dart';
@@ -22,11 +21,10 @@ import 'package:flutter/foundation.dart';
 part 'accounts_state.dart';
 
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
-  final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
+  final AccountService _accountService;
 
-  AccountsBloc(this._configurationService, this._cloudDB)
-      : super(AccountsState()) {
+  AccountsBloc(this._cloudDB, this._accountService) : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
     });
@@ -143,20 +141,8 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<FetchAllAddressesEvent>((event, emit) async {
-      List<String> addresses = [];
-      if (_configurationService.isDemoArtworksMode()) {
-        addresses = [await getDemoAccount()];
-      } else {
-        final personas = await _cloudDB.personaDao.getPersonas();
-
-        for (var persona in personas) {
-          addresses.addAll(await persona.getAddresses());
-        }
-
-        final linkedAccounts = await _cloudDB.connectionDao.getConnections();
-        addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
-        addresses.removeWhere((e) => e == '');
-      }
+      List<String> addresses = await _accountService.getAllAddresses();
+      addresses.removeWhere((e) => e == '');
 
       final newState = state.copyWith(
           addresses: addresses,
@@ -180,22 +166,6 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
             blockchain: event.type.source,
             accountNumber: event.address,
             createdAt: persona.createdAt));
-      }
-      emit(AccountsState(accounts: accounts));
-    });
-
-    on<FindLinkedAccount>((event, emit) async {
-      final connection =
-          await _cloudDB.connectionDao.findById(event.connectionKey);
-      List<Account> accounts = [];
-      if (connection != null) {
-        accounts.add(Account(
-            key: connection.key,
-            name: connection.name,
-            blockchain: event.type.source,
-            accountNumber: event.address,
-            connections: [connection],
-            createdAt: connection.createdAt));
       }
       emit(AccountsState(accounts: accounts));
     });

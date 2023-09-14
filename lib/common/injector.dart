@@ -89,7 +89,7 @@ final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
 Future<void> setup() async {
-  FileLogger.initializeLogging();
+  await FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
@@ -189,8 +189,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NavigationService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
-  injector.registerLazySingleton<MetricClientService>(
-      () => MetricClientService(injector()));
+  injector
+      .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
       () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
@@ -199,7 +199,6 @@ Future<void> setup() async {
         injector(),
         injector(),
         auditService,
-        injector(),
         injector(),
         injector(),
         injector(),
