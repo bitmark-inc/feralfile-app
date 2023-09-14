@@ -20,6 +20,10 @@ class MetricClientService {
 
   Future<void> initService() async {
     await mixPanelClient.initService();
+    await initConfigIfNeed({
+      MixpanelConfig.weekStartAt: DateTime.now().startDayOfWeek,
+      MixpanelConfig.countUseAutonomyInWeek: 0
+    });
     isFinishInit = true;
     await onOpenApp();
     useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
@@ -110,6 +114,10 @@ class MetricClientService {
     if (isFinishInit) {
       mixPanelClient.onRestore();
     }
+  }
+
+  Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
+    mixPanelClient.initConfigIfNeed(config);
   }
 
   dynamic getConfig(String key, {dynamic defaultValue}) {
