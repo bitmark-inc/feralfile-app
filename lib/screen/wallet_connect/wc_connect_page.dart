@@ -107,7 +107,6 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   void callAccountBloc() {
     context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-        includeLinkedAccount: false,
         getTezos: widget.connectionRequest.isBeaconConnect ||
             widget.connectionRequest.isAutonomyConnect,
         getEth: !widget.connectionRequest.isBeaconConnect));

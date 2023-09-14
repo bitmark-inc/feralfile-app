@@ -28,12 +28,14 @@ class SelectAccountPageArgs {
   final bool fromWebview;
 
   final Otp? otp;
+  final bool withViewOnly;
 
   SelectAccountPageArgs(
     this.blockchain,
     this.artwork,
     this.otp, {
     this.fromWebview = false,
+    this.withViewOnly = false,
   });
 }
 
@@ -42,6 +44,7 @@ class SelectAccountPage extends StatefulWidget {
   final FFSeries? artwork;
   final bool? fromWebview;
   final Otp? otp;
+  final bool withViewOnly;
 
   const SelectAccountPage({
     Key? key,
@@ -49,6 +52,7 @@ class SelectAccountPage extends StatefulWidget {
     required this.artwork,
     this.otp,
     this.fromWebview = false,
+    this.withViewOnly = false,
   }) : super(key: key);
 
   @override
@@ -88,8 +92,10 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   void _callAccountEvent() {
-    context.read<AccountsBloc>().add(
-        GetCategorizedAccountsEvent(getEth: !_isTezos, getTezos: _isTezos));
+    context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+        getEth: !_isTezos,
+        getTezos: _isTezos,
+        includeLinkedAccount: widget.withViewOnly));
   }
 
   @override
@@ -209,6 +215,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
+      if (!mounted) return;
       await UIHelper.showClaimTokenError(
         context,
         e,

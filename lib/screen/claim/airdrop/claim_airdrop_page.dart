@@ -31,11 +31,13 @@ class ClaimTokenPagePayload {
   final String claimID;
   final String shareCode;
   final FFSeries series;
+  final bool allowViewOnlyClaim;
 
   ClaimTokenPagePayload({
     required this.claimID,
     required this.shareCode,
     required this.series,
+    this.allowViewOnlyClaim = false,
   });
 }
 

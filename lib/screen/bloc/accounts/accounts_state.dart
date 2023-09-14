@@ -20,7 +20,7 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool autoAddAddress;
 
   GetCategorizedAccountsEvent({
-    this.includeLinkedAccount = true,
+    this.includeLinkedAccount = false,
     this.getTezos = true,
     this.getEth = true,
     this.autoAddAddress = false,
