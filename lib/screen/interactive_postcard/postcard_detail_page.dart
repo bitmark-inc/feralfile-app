@@ -682,7 +682,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     } else {
       return PostcardButton(
         text: "postcard_sent".tr(),
-        disabledColor: const Color.fromRGBO(79, 174, 79, 1),
+        disabledColor: AppColor.momaGreen,
         enabled: false,
       );
     }
