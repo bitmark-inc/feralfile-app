@@ -940,18 +940,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 Color.fromRGBO(245, 177, 177, 1), BlendMode.srcIn),
           ),
           onTap: () async {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
-          },
-        ),
-        OptionItem(
-          title: 'hide'.tr(),
-          icon: SvgPicture.asset(
-            "assets/images/postcard_hide.svg",
-            colorFilter:
-                const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
-          ),
-          onTap: () async {
             await _configurationService
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             injector<SettingsDataService>().backup();
