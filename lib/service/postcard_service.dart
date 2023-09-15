@@ -25,6 +25,9 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/file_helper.dart';
+import 'package:autonomy_flutter/util/http_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -34,6 +37,8 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share/share.dart';
 
 import 'account_service.dart';
 
@@ -86,6 +91,17 @@ abstract class PostcardService {
 
   Future<PostcardLeaderboard> fetchPostcardLeaderboard(
       {required String unit, required int size, required int offset});
+
+  Future<File> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+  });
+
+  Future<void> shareStampToTwitter({
+    required String tokenId,
+    required int stampIndex,
+    String caption = "",
+  });
 
   String getTokenId(String id);
 }
@@ -367,6 +383,62 @@ class PostcardServiceImpl extends PostcardService {
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
   }
 
+  Future<File> _downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+  }) async {
+    final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
+    final secretKey = Environment.auClaimSecretKey;
+    final response = await HttpHelper.hmacAuthenticationPost(
+        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+    if (response.statusCode != StatusCode.success.value) {
+      throw Exception(response.reasonPhrase);
+    }
+    final bodyByte = response.bodyBytes;
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final tempFilePath =
+        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex-$timestamp.png";
+    final tempFile = File(tempFilePath);
+    await tempFile.create(recursive: true);
+    log.info("Created file $tempFilePath");
+    await tempFile.writeAsBytes(bodyByte);
+    return tempFile;
+  }
+
+  @override
+  Future<File> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+    bool isOverride = false,
+  }) async {
+    final imageFile =
+        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final imageByte = await imageFile.readAsBytes();
+    final imageName = "postcard-$tokenId-$stampIndex-$timestamp";
+    final isSuccess = await FileHelper.saveImageToGallery(imageByte, imageName);
+    if (!isSuccess) {
+      throw MediaPermissionException("Permission is not granted");
+    }
+    return imageFile;
+  }
+
+  @override
+  Future<void> shareStampToTwitter({
+    required String tokenId,
+    required int stampIndex,
+    String caption = "",
+  }) async {
+    final imageFile =
+        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
+    Share.shareFiles(
+      [imageFile.path],
+      text: caption,
+    );
+  }
+
   @override
   String getTokenId(String id) {
     return "tez-${Environment.postcardContractAddress}-$id";
@@ -385,4 +457,14 @@ enum DistanceUnit {
         return "mile";
     }
   }
+}
+
+class PostcardException implements Exception {
+  final String message;
+
+  PostcardException(this.message);
+}
+
+class MediaPermissionException extends PostcardException {
+  MediaPermissionException(String message) : super(message);
 }

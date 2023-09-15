@@ -210,8 +210,11 @@ class HmacAuthInterceptor extends Interceptor {
       if (options.data is FormData || options.method.toUpperCase() == "GET") {
         body = "";
       } else {
-        body = bytesToHex(
-            sha256.convert(utf8.encode(json.encode(options.data))).bytes);
+        body = bytesToHex(sha256
+            .convert(options.data != null
+                ? utf8.encode(json.encode(options.data))
+                : [])
+            .bytes);
       }
       final canonicalString = List<String>.of([
         options.path.split("?").first,

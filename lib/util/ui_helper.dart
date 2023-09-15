@@ -27,10 +27,12 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
@@ -1189,6 +1191,11 @@ class UIHelper {
                         ),
                       ),
                     );
+                    if (options?[index].builder != null) {
+                      return options?[index]
+                          .builder!
+                          .call(context, options[index]);
+                    }
                     return GestureDetector(
                       onTap: options?[index].onTap,
                       child: child,
@@ -1202,6 +1209,83 @@ class UIHelper {
                   ),
                 ),
               ],
+            ),
+          );
+        });
+  }
+
+  static Future<void> showAutoDismissDialog(BuildContext context,
+      {required Function() showDialog,
+      required Duration autoDismissAfter}) async {
+    Future.delayed(autoDismissAfter, () => hideInfoDialog(context));
+    await showDialog();
+  }
+
+  static Future<void> showPostcardDrawerAction(BuildContext context,
+      {required List<OptionItem> options}) async {
+    const backgroundColor = AppColor.white;
+    await showModalBottomSheet<dynamic>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        enableDrag: false,
+        constraints: BoxConstraints(
+            maxWidth: ResponsiveLayout.isMobile
+                ? double.infinity
+                : Constants.maxWidthModalTablet),
+        barrierColor: Colors.black.withOpacity(0.5),
+        isScrollControlled: true,
+        builder: (context) {
+          return Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              color: backgroundColor,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 50),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      final item = options[index];
+                      const defaultSeparator = Divider(
+                        height: 1,
+                        thickness: 1.0,
+                        color: Color.fromRGBO(227, 227, 227, 1),
+                      );
+                      return Column(
+                        children: [
+                          Builder(builder: (context) {
+                            if (item.builder != null) {
+                              final child = Container(
+                                color: Colors.transparent,
+                                width: MediaQuery.of(context).size.width,
+                                child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 20,
+                                    ),
+                                    child: item.builder!.call(context, item)),
+                              );
+                              return GestureDetector(
+                                onTap: options[index].onTap,
+                                child: child,
+                              );
+                            }
+                            return PostcardDrawerItem(item: item);
+                          }),
+                          item.separator ?? defaultSeparator,
+                        ],
+                      );
+                    },
+                    itemCount: options.length,
+                  ),
+                ],
+              ),
             ),
           );
         });
@@ -1559,6 +1643,103 @@ class UIHelper {
       isDismissible: true,
     );
   }
+
+  static Future<void> showPostcardStampSaved(BuildContext context) async {
+    final options = [
+      OptionItem(
+        title: "stamp_saved".tr(),
+        icon: SvgPicture.asset("assets/images/download.svg"),
+        onTap: () {},
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 2));
+  }
+
+  static Future<void> showPostcardStampPhotoAccessFailed(
+      BuildContext context) async {
+    final options = [
+      OptionItem(
+        title: "stamp_could_not_be_saved".tr(),
+        titleStyle: Theme.of(context)
+            .textTheme
+            .moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+        icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 2));
+  }
+
+  static Future<void> showPostcardStampSavedFailed(BuildContext context) async {
+    final theme = Theme.of(context);
+    final options = [
+      OptionItem(
+        title: "stamp_save_failed".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+        icon: SvgPicture.asset("assets/images/exit.svg"),
+        onTap: () {},
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 2));
+  }
+
+  static Future<void> showPostcardCancelInvitation(BuildContext context,
+      {Function()? onConfirm, Function()? onBack}) async {
+    final theme = Theme.of(context);
+    final options = [
+      OptionItem(
+          builder: (context, _) {
+            final theme = Theme.of(context);
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "cancel_invitation".tr(),
+                    style: theme.textTheme.moMASans700Black16
+                        .copyWith(fontSize: 18),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text("cancel_invitation_desc".tr(),
+                      style: theme.textTheme.moMASans400Black16
+                          .copyWith(fontSize: 12)),
+                ],
+              ),
+            );
+          },
+          separator: const Divider(
+            color: AppColor.auGrey,
+            height: 1,
+            thickness: 1.0,
+          )),
+      OptionItem(
+        title: "ok".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+        titleStyleOnPrecessing: theme.textTheme.moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3Disable),
+        onTap: onConfirm,
+      ),
+      OptionItem(
+        title: "go_back".tr(),
+        onTap: onBack,
+      ),
+    ];
+    await showPostcardDrawerAction(context, options: options);
+  }
 }
 
 Widget loadingScreen(ThemeData theme, String text) {
@@ -1590,14 +1771,22 @@ String getDateTimeRepresentation(DateTime dateTime) {
 
 class OptionItem {
   String? title;
+  TextStyle? titleStyle;
+  TextStyle? titleStyleOnPrecessing;
   Function()? onTap;
   Widget? icon;
+  Widget? iconOnProcessing;
   Widget Function(BuildContext context, OptionItem item)? builder;
+  Widget? separator;
 
   OptionItem({
     this.title,
+    this.titleStyle,
+    this.titleStyleOnPrecessing,
     this.onTap,
     this.icon,
+    this.iconOnProcessing,
     this.builder,
+    this.separator,
   });
 }
