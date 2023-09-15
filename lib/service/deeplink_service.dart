@@ -218,18 +218,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "tezos://",
       "autonomy-tezos://",
     ];
-
-    final ignorePrefixes = [
-      "wc://wc?requestId=",
-    ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
       await injector<AccountService>().restoreIfNeeded();
     }
     // Check Universal Link
-    final callingIgnorePrefix =
-        ignorePrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
-    if (callingIgnorePrefix != null) return true;
 
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));

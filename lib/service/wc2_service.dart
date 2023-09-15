@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
@@ -91,12 +92,14 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future connect(String uri, {Function()? onTimeout}) async {
-    pendingUri = uri;
-    _timer?.cancel();
-    _timer = Timer(CONNECT_FAILED_DURATION, () {
-      onTimeout?.call();
-    });
-    await _wc2channel.pairClient(uri);
+    if (uri.isAutonomyConnectUri) {
+      pendingUri = uri;
+      _timer?.cancel();
+      _timer = Timer(CONNECT_FAILED_DURATION, () {
+        onTimeout?.call();
+      });
+      await _wc2channel.pairClient(uri);
+    }
   }
 
   Future cleanup() async {
