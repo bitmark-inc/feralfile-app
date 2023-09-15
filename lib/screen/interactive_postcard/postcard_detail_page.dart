@@ -1244,42 +1244,21 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
               ),
               onTap: () {
-                UIHelper.showDialog(context, "cancel_invitation".tr(),
-                    StatefulBuilder(builder: (context, setState) {
-                  return Column(
-                    children: [
-                      Text(
-                        "cancel_invitation_desc".tr(),
-                        style: Theme.of(context).textTheme.ppMori400White14,
-                      ),
-                      const SizedBox(height: 40),
-                      PrimaryButton(
-                        text: "cancel".tr(),
-                        isProcessing: canceling,
-                        enabled: !canceling,
-                        onTap: () async {
-                          setState(() {
-                            canceling = true;
-                          });
-                          await cancelShare(asset);
-                          setState(() {
-                            canceling = false;
-                          });
-                          if (mounted) {
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      OutlineButton(
-                        text: "close".tr(),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  );
-                }), isDismissible: true);
+                UIHelper.showPostcardCancelInvitation(context,
+                    onConfirm: () async {
+                  setState(() {
+                    canceling = true;
+                  });
+                  await cancelShare(asset);
+                  setState(() {
+                    canceling = false;
+                  });
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                }, onBack: () {
+                  Navigator.of(context).pop();
+                });
               },
             ),
           ],

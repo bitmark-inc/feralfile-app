@@ -32,6 +32,8 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
         theme.textTheme.moMASans700Black16.copyWith(fontSize: 18);
     final defaultProcessingTextStyle =
         defaultTextStyle.copyWith(color: AppColor.disabledColor);
+    final icon =
+        isProcessing ? (item.iconOnProcessing ?? item.icon) : item.icon;
     final child = Container(
       color: Colors.transparent,
       width: MediaQuery.of(context).size.width,
@@ -47,14 +49,15 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
                 const SizedBox(
                   width: 15,
                 ),
-                SizedBox(
+                if (icon != null) ...[
+                  SizedBox(
                     width: 30,
-                    child: isProcessing
-                        ? (item.iconOnProcessing ?? item.icon)
-                        : item.icon),
-                const SizedBox(
-                  width: 18,
-                ),
+                    child: icon,
+                  ),
+                  const SizedBox(
+                    width: 18,
+                  ),
+                ],
                 Expanded(
                   child: Text(
                     item.title ?? '',
