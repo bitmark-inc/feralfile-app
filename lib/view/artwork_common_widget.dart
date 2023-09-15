@@ -227,11 +227,10 @@ Widget tokenGalleryThumbnailWidget(
 }
 
 class GalleryNetworkUnSupportThumbnailWidget extends StatelessWidget {
-  final String type;
   final String url;
 
   const GalleryNetworkUnSupportThumbnailWidget(
-      {Key? key, this.type = '.svg', required this.url})
+      {Key? key, required this.url})
       : super(key: key);
 
   @override
