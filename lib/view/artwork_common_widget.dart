@@ -1003,7 +1003,7 @@ Widget postcardDetailsMetadataSection(
           Padding(
             padding: padding,
             child: CustomMetaDataItem(
-              title: "creators".tr(),
+              title: "artists".tr(),
               titleStyle: titleStyle,
               content: ListItemExpandedWidget(
                 children: [

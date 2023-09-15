@@ -986,13 +986,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (postcardDetailState.canDoAction) ...[
-                  if (postcardDetailState.isSending())
-                    _sendingTripItem(context, asset, lastTravelInfo)
-                  else
-                    _notSentItem(lastTravelInfo),
-                  emptyDivider,
-                ],
+                if (postcardDetailState.isSending() &&
+                    postcardDetailState.canDoAction)
+                  _sendingTripItem(context, asset, lastTravelInfo)
+                else
+                  _notSentItem(lastTravelInfo),
+                emptyDivider,
                 ...travelInfo.reversed
                     .mapIndexed((int index, TravelInfo e) {
                       final withDivider = index != travelInfo.length - 1;
