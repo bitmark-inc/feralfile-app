@@ -211,14 +211,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         (p) => p.owner == assetToken.owner && p.tokenID == assetToken.id);
   }
 
-  void _manualShare(String caption, String url) async {
-    final encodeCaption = Uri.encodeQueryComponent(caption);
-    final twitterUrl =
-        "${SocialApp.twitterPrefix}?url=$url&text=$encodeCaption";
-    final twitterUri = Uri.parse(twitterUrl);
-    launchUrl(twitterUri, mode: LaunchMode.externalApplication);
-  }
-
   void _shareTwitter(AssetToken token) {
     shareToTwitter(token: token, twitterCaption: widget.payload.twitterCaption);
   }
@@ -953,16 +945,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           },
         ),
         OptionItem(
-            title: 'hide'.tr(),
-            icon: SvgPicture.asset(
-              "assets/images/postcard_hide.svg",
-              colorFilter:
-                  const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
-            ),
-            onTap: () async {
-              await _configurationService
-                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              injector<SettingsDataService>().backup();
+          title: 'hide'.tr(),
+          icon: SvgPicture.asset(
+            "assets/images/postcard_hide.svg",
+            colorFilter:
+                const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
+          ),
+          onTap: () async {
+            await _configurationService
+                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+            injector<SettingsDataService>().backup();
 
             if (!mounted) return;
             NftCollectionBloc.eventController.add(ReloadEvent());
