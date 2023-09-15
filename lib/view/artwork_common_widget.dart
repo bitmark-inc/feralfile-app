@@ -183,7 +183,7 @@ Widget tokenGalleryThumbnailWidget(
               loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
               errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
               unsupportWidgetBuilder: (context) =>
-                  const GalleryUnSupportThumbnailWidget(),
+                  GalleryNetworkUnSupportThumbnailWidget(url: thumbnailUrl),
             )
           : CachedNetworkImage(
               imageUrl: thumbnailUrl,
@@ -224,6 +224,23 @@ Widget tokenGalleryThumbnailWidget(
             ),
     ),
   );
+}
+
+class GalleryNetworkUnSupportThumbnailWidget extends StatelessWidget {
+  final String type;
+  final String url;
+
+  const GalleryNetworkUnSupportThumbnailWidget(
+      {Key? key, this.type = '.svg', required this.url})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.network(
+      url,
+      placeholderBuilder: (_) => const GalleryUnSupportThumbnailWidget(),
+    );
+  }
 }
 
 class GalleryUnSupportThumbnailWidget extends StatelessWidget {
