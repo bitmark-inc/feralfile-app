@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -148,7 +149,9 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);
-    final connection = await cloudDB.connectionDao.findById(owner);
+    final viewOnlyConnections = await cloudDB.connectionDao.getLinkedAccounts();
+    final connection = viewOnlyConnections.firstWhereOrNull(
+        (viewOnlyConnection) => viewOnlyConnection.key == owner);
     return walletAddress == null && connection != null;
   }
 
