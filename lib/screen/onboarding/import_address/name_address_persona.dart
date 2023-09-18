@@ -44,7 +44,6 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    bool isProcessing = false;
     return Scaffold(
       appBar: getBackAppBar(context,
           title: "import_address".tr(),
@@ -75,9 +74,8 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
             Row(
               children: [
                 Expanded(
-                  child: PrimaryButton(
+                  child: PrimaryAsyncButton(
                     text: "continue".tr(),
-                    isProcessing: isProcessing,
                     onTap: isSavingAliasDisabled
                         ? null
                         : () async {
@@ -90,7 +88,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
                                 walletAddress.copyWith(
                                     name: _nameController.text.trim()));
                             if (!mounted) return;
-                            doneNaming(context);
+                            await doneNaming(context);
                           },
                   ),
                 ),
@@ -103,7 +101,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
   }
 }
 
-Future doneNaming(BuildContext context) async {
+Future<void> doneNaming(BuildContext context) async {
   if (Platform.isAndroid) {
     final isAndroidEndToEndEncryptionAvailable =
         await injector<AccountService>().isAndroidEndToEndEncryptionAvailable();
