@@ -141,6 +141,76 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Future<void> _showSharingExpired(BuildContext context) async {
+    await UIHelper.showPostcardDrawerAction(context, options: [
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SizedBox(
+              width: 30,
+              child: SvgPicture.asset(
+                'assets/images/restart.svg',
+                width: 24,
+                height: 24,
+              ),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                "you_need_resend".tr(),
+                style: Theme.of(context).textTheme.moMASans700Black18,
+              ),
+            ),
+          ],
+        ),
+      ),
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SvgPicture.asset(
+              'assets/images/arrow_right.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                "no_one_received".tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
+            ),
+          ],
+        ),
+      ),
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SvgPicture.asset(
+              'assets/images/cross.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                "resend_new_link".tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
+            ),
+          ],
+        ),
+      )
+    ]);
+  }
+
+  Future<void> _removeShareConfig(AssetToken assetToken) async {
+    await _configurationService.removeSharedPostcardWhere(
+        (p) => p.owner == assetToken.owner && p.tokenID == assetToken.id);
+  }
+
   void _shareTwitter(AssetToken token) {
     shareToTwitter(token: token, twitterCaption: widget.payload.twitterCaption);
   }
@@ -334,10 +404,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
         }
 
-        if (!state.isSending()) {
-          _configurationService.removeSharedPostcardWhere((element) =>
-              element.tokenID == assetToken.id &&
-              element.owner == assetToken.owner);
+        if (state.didSendNext) {
+          _removeShareConfig(assetToken);
+        }
+
+        if (state.isShareExpired() && state.canDoAction) {
+          if (!mounted) return;
+          _showSharingExpired(context);
+          _removeShareConfig(assetToken);
         }
       }
       if (!mounted) return;
@@ -583,7 +657,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     } else {
       return PostcardButton(
         text: "postcard_sent".tr(),
-        disabledColor: const Color.fromRGBO(79, 174, 79, 1),
+        disabledColor: AppColor.momaGreen,
         enabled: false,
       );
     }
@@ -594,6 +668,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       setState(() {
         _sharingPostcard = true;
       });
+      final shareTime = DateTime.now();
       final sharePostcardResponse = await _postcardService.sharePostcard(asset);
       if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
@@ -602,7 +677,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         Share.share(shareMessage);
       }
       _configurationService.updateSharedPostcard(
-          [SharedPostcard(asset.id, asset.owner, DateTime.now())]);
+          [SharedPostcard(asset.id, asset.owner, shareTime)]);
     } catch (e) {
       if (e is DioException) {
         if (mounted) {

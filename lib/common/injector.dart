@@ -228,8 +228,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       CrowdSourcingApi(authenticatedDio, baseUrl: Environment.indexerURL));
 
-  injector.registerLazySingleton(
-      () => BackgroundService(injector(), injector(), injector()));
+  injector
+      .registerLazySingleton(() => BackgroundService(injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
@@ -328,7 +328,7 @@ Future<void> setup() async {
       () => CanvasClientService(injector()));
 
   injector.registerLazySingleton<PostcardService>(() => PostcardServiceImpl(
-      injector(), injector(), injector(), injector(), injector(), injector()));
+      injector(), injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton<AirdropService>(
     () => AirdropService(

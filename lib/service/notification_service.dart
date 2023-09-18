@@ -7,9 +7,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/rand.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 enum NotificationType {
   Postcard;
@@ -160,21 +158,5 @@ class NotificationService {
             title: title,
             body: body,
             payload: payload));
-  }
-
-  Future<void> showPostcardWasnotDeliveredNotification(
-      PostcardIdentity postcardIdentity) async {
-    final notificationId = random.nextInt(100000);
-    final payload = NotificationPayload(
-        notificationId: notificationId,
-        notificationType: NotificationType.Postcard,
-        metadata: jsonEncode(postcardIdentity.toJson()));
-
-    await showNotification(
-        title: "moma_postcard".tr(),
-        body: "your_postcard_not_delivered".tr(),
-        payload: payload.toJson(),
-        id: notificationId,
-        channelKey: postcardChannelKey);
   }
 }

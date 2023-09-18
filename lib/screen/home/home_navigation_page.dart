@@ -550,6 +550,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
         break;
       case 'new_postcard_trip':
+      case 'postcard_share_expired':
         final data = notification.additionalData;
         if (data == null) return;
         final indexID = data["indexID"];

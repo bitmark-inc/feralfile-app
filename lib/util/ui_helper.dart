@@ -25,10 +25,13 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/notification_util.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -148,6 +151,78 @@ class UIHelper {
                           style: theme.primaryTextTheme.ppMori700White24),
                     ),
                     const SizedBox(height: 40),
+                    content,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Future<dynamic> showPostCardDialog(
+    BuildContext context,
+    String title,
+    Widget content, {
+    bool isDismissible = false,
+    isRoundCorner = true,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+    EdgeInsets? padding,
+  }) async {
+    log.info("[UIHelper] showPostcardInfoDialog: $title");
+    currentDialogTitle = title;
+    final theme = Theme.of(context);
+
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    return await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      constraints: BoxConstraints(
+          maxWidth: ResponsiveLayout.isMobile
+              ? double.infinity
+              : Constants.maxWidthModalTablet),
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return Container(
+          color: Colors.transparent,
+          child: ClipPath(
+            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: isRoundCorner
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                      )
+                    : null,
+              ),
+              padding: padding ??
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Text(title,
+                          style: theme.primaryTextTheme.moMASans700Black18),
+                    ),
+                    addDivider(height: 40, color: AppColor.chatPrimaryColor),
                     content,
                   ],
                 ),
@@ -1278,26 +1353,40 @@ class UIHelper {
   }
 
   static Future<void> showPostcardUpdates(BuildContext context) async {
-    await UIHelper.showDialog(
-        context,
-        "postcard_updates".tr(),
-        Column(
-          children: [
-            Text(
+    bool isProcessing = false;
+    await UIHelper.showPostCardDialog(context, "postcard_notifications".tr(),
+        StatefulBuilder(builder: (context, buttonState) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Text(
               "postcard_updates_content".tr(),
-              style: Theme.of(context).textTheme.ppMori400White14,
+              style: Theme.of(context).textTheme.moMASans700AuGrey18,
             ),
-            const SizedBox(height: 40),
-            PrimaryButton(
-              text: "enable_noti".tr(),
-              onTap: () {
-                Navigator.of(context)
-                    .popAndPushNamed(AppRouter.preferencesPage);
-              },
-            ),
-          ],
-        ),
-        isDismissible: true);
+          ),
+          const SizedBox(height: 40),
+          PostcardButton(
+            text: "enable".tr(),
+            color: AppColor.momaGreen,
+            isProcessing: isProcessing,
+            onTap: () async {
+              buttonState(() {
+                isProcessing = true;
+              });
+              try {
+                await registerPushNotifications(askPermission: true);
+                injector<ConfigurationService>().setPendingSettings(false);
+              } catch (error) {
+                log.warning("Error when setting notification: $error");
+              }
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    }), isDismissible: true);
   }
 
   static showAirdropClaimFailed(BuildContext context) async {

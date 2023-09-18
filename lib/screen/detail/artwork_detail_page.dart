@@ -640,4 +640,6 @@ class ArtworkIdentity {
       _$ArtworkIdentityFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
+
+  String get key => "$id||$owner";
 }
