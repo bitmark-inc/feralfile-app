@@ -80,9 +80,6 @@
 	<string>This app requires access to the photo library.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>Allow to give Autonomy permission to save your stamp to your photos.</string>
-    <true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
