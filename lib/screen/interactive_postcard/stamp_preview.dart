@@ -95,7 +95,7 @@ class _StampPreviewState extends State<StampPreview> {
       OptionItem(
         title: "stamp_minted".tr(),
         titleStyle: theme.textTheme.moMASans700Black16
-            .copyWith(color: MoMAColors.moMA3, fontSize: 18),
+            .copyWith(color: MoMAColors.moMA1, fontSize: 18),
         icon: SvgPicture.asset("assets/images/moma_arrow_right.svg"),
         onTap: () {},
         separator: const Divider(
