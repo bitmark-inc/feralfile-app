@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -146,6 +147,7 @@ class PrimaryAsyncButton extends StatefulWidget {
   final String? text;
   final double? width;
   final bool enabled;
+  final String? processingText;
 
   const PrimaryAsyncButton(
       {Key? key,
@@ -153,7 +155,8 @@ class PrimaryAsyncButton extends StatefulWidget {
       this.color,
       this.text,
       this.width,
-      this.enabled = true})
+      this.enabled = true,
+      this.processingText})
       : super(key: key);
 
   @override
@@ -166,19 +169,25 @@ class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
   @override
   Widget build(BuildContext context) {
     return PrimaryButton(
-      onTap: () async {
-        setState(() {
-          _isProcessing = true;
-        });
-        await widget.onTap?.call();
-        setState(() {
-          _isProcessing = false;
-        });
+      onTap: () {
+        withDebounce(
+          () async {
+            setState(() {
+              _isProcessing = true;
+            });
+            await widget.onTap?.call();
+            setState(() {
+              _isProcessing = false;
+            });
+          },
+        );
       },
       color: widget.color,
-      text: widget.text,
+      text: _isProcessing && widget.processingText != null
+          ? widget.processingText
+          : widget.text,
       width: widget.width,
-      enabled: widget.enabled,
+      enabled: widget.enabled && !_isProcessing,
       isProcessing: _isProcessing,
     );
   }

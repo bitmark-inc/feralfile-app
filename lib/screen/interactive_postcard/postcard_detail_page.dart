@@ -36,7 +36,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -115,12 +114,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  late bool _sharingPostcard;
 
   @override
   void initState() {
     _scrollController = ScrollController();
-    _sharingPostcard = false;
     isViewOnly = widget.payload.isFromLeaderboard;
     super.initState();
     context.read<PostcardDetailBloc>().add(
@@ -643,15 +640,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
     if (!state.isSending()) {
       timer?.cancel();
-      return PostcardButton(
+      return PostcardAsyncButton(
         text: "invite_to_collaborate".tr(),
-        enabled: !_sharingPostcard,
-        isProcessing: _sharingPostcard,
-        onTap: () {
-          withDebounce(() async {
-            await _sharePostcard(context, asset);
-            setState(() {});
-          });
+        onTap: () async {
+          await _sharePostcard(context, asset);
+          setState(() {});
         },
       );
     } else {
@@ -665,9 +658,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Future<void> _sharePostcard(BuildContext context, AssetToken asset) async {
     try {
-      setState(() {
-        _sharingPostcard = true;
-      });
       final shareTime = DateTime.now();
       final sharePostcardResponse = await _postcardService.sharePostcard(asset);
       if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
@@ -685,9 +675,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
       }
     }
-    setState(() {
-      _sharingPostcard = false;
-    });
   }
 
   Future<void> cancelShare(AssetToken asset) async {
