@@ -139,3 +139,47 @@ class OutlineButton extends StatelessWidget {
     );
   }
 }
+
+class PrimaryAsyncButton extends StatefulWidget {
+  final Function()? onTap;
+  final Color? color;
+  final String? text;
+  final double? width;
+  final bool enabled;
+
+  const PrimaryAsyncButton(
+      {Key? key,
+      this.onTap,
+      this.color,
+      this.text,
+      this.width,
+      this.enabled = true})
+      : super(key: key);
+
+  @override
+  State<PrimaryAsyncButton> createState() => _PrimaryAsyncButtonState();
+}
+
+class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
+  bool _isProcessing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return PrimaryButton(
+      onTap: () async {
+        setState(() {
+          _isProcessing = true;
+        });
+        await widget.onTap?.call();
+        setState(() {
+          _isProcessing = false;
+        });
+      },
+      color: widget.color,
+      text: widget.text,
+      width: widget.width,
+      enabled: widget.enabled,
+      isProcessing: _isProcessing,
+    );
+  }
+}
