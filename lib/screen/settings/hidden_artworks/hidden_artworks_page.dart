@@ -162,7 +162,8 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                       errorWidgetBuilder: (_) =>
                                           const GalleryThumbnailErrorWidget(),
                                       unsupportWidgetBuilder: (context) =>
-                                          const GalleryUnSupportThumbnailWidget(),
+                                          GalleryNetworkUnSupportThumbnailWidget(
+                                              url: thumbnailUrl),
                                     )
                                   : CachedNetworkImage(
                                       imageUrl: thumbnailUrl,
