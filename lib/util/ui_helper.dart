@@ -1353,40 +1353,36 @@ class UIHelper {
   }
 
   static Future<void> showPostcardUpdates(BuildContext context) async {
-    bool isProcessing = false;
-    await UIHelper.showPostCardDialog(context, "postcard_notifications".tr(),
-        StatefulBuilder(builder: (context, buttonState) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Text(
-              "postcard_updates_content".tr(),
-              style: Theme.of(context).textTheme.moMASans700AuGrey18,
+    await UIHelper.showPostCardDialog(
+        context,
+        "postcard_notifications".tr(),
+        Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Text(
+                "postcard_updates_content".tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
             ),
-          ),
-          const SizedBox(height: 40),
-          PostcardButton(
-            text: "enable".tr(),
-            color: AppColor.momaGreen,
-            isProcessing: isProcessing,
-            onTap: () async {
-              buttonState(() {
-                isProcessing = true;
-              });
-              try {
-                await registerPushNotifications(askPermission: true);
-                injector<ConfigurationService>().setPendingSettings(false);
-              } catch (error) {
-                log.warning("Error when setting notification: $error");
-              }
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      );
-    }), isDismissible: true);
+            const SizedBox(height: 40),
+            PostcardAsyncButton(
+              text: "enable".tr(),
+              color: AppColor.momaGreen,
+              onTap: () async {
+                try {
+                  await registerPushNotifications(askPermission: true);
+                  injector<ConfigurationService>().setPendingSettings(false);
+                } catch (error) {
+                  log.warning("Error when setting notification: $error");
+                }
+                if (!context.mounted) return;
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+        isDismissible: true);
   }
 
   static showAirdropClaimFailed(BuildContext context) async {
