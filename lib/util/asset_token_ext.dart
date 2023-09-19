@@ -149,7 +149,8 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);
-    final viewOnlyConnections = await cloudDB.connectionDao.getLinkedAccounts();
+    final viewOnlyConnections =
+        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
     final connection = viewOnlyConnections.firstWhereOrNull(
         (viewOnlyConnection) => viewOnlyConnection.key == owner);
     return walletAddress == null && connection != null;
