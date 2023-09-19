@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -249,10 +248,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                     Navigator.of(context).pushNamed(
                                         HandSignaturePage.handSignaturePage,
                                         arguments: HandSignaturePayload(
-                                            bytes!,
-                                            widget.payload.asset,
-                                            internetUserGeoLocation.position,
-                                            ""));
+                                          bytes!,
+                                          widget.payload.asset,
+                                        ));
                                   },
                                 );
                               },
