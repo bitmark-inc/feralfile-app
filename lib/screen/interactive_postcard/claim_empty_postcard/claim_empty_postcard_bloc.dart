@@ -84,14 +84,10 @@ class ClaimEmptyPostCardBloc
         return;
       }
       try {
-        if (address != null) {
-          final token = await _postcardService.claimEmptyPostcardToAddress(
-              address: address, requestPostcardResponse: event.claimRequest);
-          emit(state.copyWith(
-              isClaiming: false, isClaimed: true, assetToken: token));
-        } else {
-          emit(state.copyWith(isClaimed: false, isClaiming: false));
-        }
+        final token = await _postcardService.claimEmptyPostcardToAddress(
+            address: address, requestPostcardResponse: event.claimRequest);
+        emit(state.copyWith(
+            isClaiming: false, isClaimed: true, assetToken: token));
       } on DioException catch (e) {
         emit(
           state.copyWith(
