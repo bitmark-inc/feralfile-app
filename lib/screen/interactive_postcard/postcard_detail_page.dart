@@ -634,7 +634,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         text: "stamp_postcard".tr(),
         onTap: () {
           Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
-              arguments: DesignStampPayload(asset, moMAGeoLocation));
+              arguments: DesignStampPayload(asset));
         },
       );
     }

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -29,8 +29,6 @@ class DesignStampPage extends StatefulWidget {
 class _DesignStampPageState extends State<DesignStampPage> {
   List<Color?> _rectColors = List<Color?>.filled(100, null);
   Color _selectedColor = AppColor.primaryBlack;
-  String _location = "MoMA";
-  late String _date;
   final WidgetsToImageController _controller = WidgetsToImageController();
   bool _line = true;
   late SimpleStack _undoController;
@@ -38,8 +36,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
   @override
   void initState() {
     super.initState();
-    _location = widget.payload.location.address;
-
     _undoController = SimpleStack<List<Color?>>(
       List<Color?>.filled(100, null),
       onUpdate: (val) {
@@ -51,9 +47,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
       },
     );
 
-    // date now dd-mm-yy
-    final dateTimeFormater = DateFormat('dd-MM-yyyy');
-    _date = dateTimeFormater.format(DateTime.now());
     stampColors.shuffle();
     _selectedColor = stampColors[0];
   }
@@ -162,10 +155,11 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                       ),
                                     ),
                                   ),
-                                  _stampLocation(context, cellSize)
+                                  // _stampLocation(context, cellSize)
                                 ],
                               ),
                             ),
+                            SizedBox(height: cellSize.toDouble()),
                             Padding(
                               padding: const EdgeInsets.only(left: 15),
                               child: colorPicker(),
@@ -257,8 +251,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                         arguments: HandSignaturePayload(
                                             bytes!,
                                             widget.payload.asset,
-                                            widget.payload.location.position,
-                                            _location));
+                                            internetUserGeoLocation.position,
+                                            ""));
                                   },
                                 );
                               },
@@ -287,34 +281,34 @@ class _DesignStampPageState extends State<DesignStampPage> {
     }
   }
 
-  Widget _stampLocation(BuildContext context, int cellSize) {
-    final theme = Theme.of(context);
-    return Container(
-      color: AppColor.primaryBlack,
-      child: SizedBox(
-        height: cellSize * 1.0,
-        width: cellSize * 10,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 15),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _location,
-                  style: theme.textTheme.moMASans400White14,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                _date,
-                style: theme.textTheme.moMASans400White14,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _stampLocation(BuildContext context, int cellSize) {
+  //   final theme = Theme.of(context);
+  //   return Container(
+  //     color: AppColor.primaryBlack,
+  //     child: SizedBox(
+  //       height: cellSize * 1.0,
+  //       width: cellSize * 10,
+  //       child: Container(
+  //         margin: const EdgeInsets.symmetric(horizontal: 15),
+  //         child: Row(
+  //           children: [
+  //             Expanded(
+  //               child: Text(
+  //                 _location,
+  //                 style: theme.textTheme.moMASans400White14,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             ),
+  //             Text(
+  //               _date,
+  //               style: theme.textTheme.moMASans400White14,
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   List<Color> stampColors = [
     MomaPallet.pink,
@@ -449,7 +443,6 @@ class StampPainter extends CustomPainter {
 
 class DesignStampPayload {
   final AssetToken asset;
-  final GeoLocation location;
 
-  DesignStampPayload(this.asset, this.location);
+  DesignStampPayload(this.asset);
 }

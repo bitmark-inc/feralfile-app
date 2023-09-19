@@ -74,7 +74,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_start_stamping.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
@@ -219,7 +218,8 @@ class AppRouter {
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
-  static const startStampingPostcardPage = 'start_stamping_postcard_page';
+
+  // static const startStampingPostcardPage = 'start_stamping_postcard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -1248,18 +1248,18 @@ class AppRouter {
           },
         );
 
-      case startStampingPostcardPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: StartStampingPostCardPage(
-                payload: settings.arguments as StartStampingPostCardPagePayload,
-              ),
-            );
-          },
-        );
+      // case startStampingPostcardPage:
+      //   return CupertinoPageRoute(
+      //     settings: settings,
+      //     builder: (context) {
+      //       return BlocProvider.value(
+      //         value: accountsBloc,
+      //         child: StartStampingPostCardPage(
+      //           payload: settings.arguments as StartStampingPostCardPagePayload,
+      //         ),
+      //       );
+      //     },
+      //   );
       case postcardLocationExplain:
         return CupertinoPageRoute(
           settings: settings,

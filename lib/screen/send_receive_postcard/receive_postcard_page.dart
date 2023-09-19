@@ -149,7 +149,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
           (route) => false,
         );
         Navigator.of(context).pushNamed(AppRouter.designStamp,
-            arguments: DesignStampPayload(pendingToken, location));
+            arguments: DesignStampPayload(pendingToken));
       } catch (e) {
         if (e is DioException) {
           if (!mounted) return null;
