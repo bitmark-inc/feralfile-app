@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -119,7 +120,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   bool _isRated = false;
   bool _isFileAttached = false;
   Pair<String, List<int>>? _debugLog;
-  late bool loading;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = "assets/images/sendMessage.svg";
@@ -168,7 +168,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   @override
   void initState() {
     _fetchCustomerSupportAvailability();
-    loading = false;
     injector<CustomerSupportService>().processMessages();
     injector<CustomerSupportService>()
         .triggerReloadMessages
@@ -378,50 +377,41 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               messages: messages,
               onSendPressed: _handleSendPressed,
               user: _user,
-              listBottomWidget:
-                  (widget.payload.announcement?.isMemento6 == true)
-                      ? FutureBuilder(
-                          future: _airdropService
-                              .getTokenByContract(momaMementoContractAddresses),
-                          builder: (context, snapshot) {
-                            final token = snapshot.data as AssetToken?;
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 18, right: 18, bottom: 15),
-                              child: PrimaryButton(
-                                text: "claim_your_gift".tr(),
-                                enabled: !loading && token != null,
-                                isProcessing: loading,
-                                onTap: () async {
-                                  if (token == null) return;
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  try {
-                                    final response = await _airdropService
-                                        .claimRequestGift(token);
-                                    final series = await _feralFileService
-                                        .getSeries(response.seriesID);
-                                    if (!mounted) return;
-                                    Navigator.of(context).pushNamed(
-                                        AppRouter.claimAirdropPage,
-                                        arguments: ClaimTokenPagePayload(
-                                            claimID: response.claimID,
-                                            series: series,
-                                            shareCode: ''));
-                                  } catch (e) {
-                                    setState(() {
-                                      loading = false;
-                                    });
-                                  }
-                                  setState(() {
-                                    loading = false;
-                                  });
-                                },
-                              ),
-                            );
-                          })
-                      : null,
+              listBottomWidget: (widget.payload.announcement?.isMemento6 ==
+                      true)
+                  ? FutureBuilder(
+                      future: _airdropService
+                          .getTokenByContract(momaMementoContractAddresses),
+                      builder: (context, snapshot) {
+                        final token = snapshot.data as AssetToken?;
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              left: 18, right: 18, bottom: 15),
+                          child: PrimaryAsyncButton(
+                            text: "claim_your_gift".tr(),
+                            enabled: token != null,
+                            onTap: () async {
+                              if (token == null) return;
+                              try {
+                                final response = await _airdropService
+                                    .claimRequestGift(token);
+                                final series = await _feralFileService
+                                    .getSeries(response.seriesID);
+                                if (!mounted) return;
+                                Navigator.of(context).pushNamed(
+                                    AppRouter.claimAirdropPage,
+                                    arguments: ClaimTokenPagePayload(
+                                        claimID: response.claimID,
+                                        series: series,
+                                        shareCode: ''));
+                              } catch (e) {
+                                log.info("Claim your gift tap ${e.toString()}");
+                              }
+                            },
+                          ),
+                        );
+                      })
+                  : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
                   : _isRated == false && _status == 'closed'

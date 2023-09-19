@@ -23,7 +23,6 @@ class ImportSeedsPage extends StatefulWidget {
 }
 
 class _ImportSeedsPageState extends State<ImportSeedsPage> {
-  bool _isImporting = false;
   bool isError = false;
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
@@ -80,13 +79,10 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
               ),
             ),
             const SizedBox(height: 20),
-            PrimaryButton(
+            PrimaryAsyncButton(
               text: "continue".tr(),
               enabled: _isSubmissionEnabled && !isError,
-              isProcessing: _isImporting,
-              onTap: () {
-                _import();
-              },
+              onTap: () => _import(),
             ),
           ],
         ),
@@ -94,19 +90,15 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
     );
   }
 
-  Future _import() async {
+  Future<void> _import() async {
     try {
       setState(() {
         isError = false;
-        _isImporting = true;
       });
       final accountService = injector<AccountService>();
 
       final persona =
           await accountService.importPersona(_phraseTextController.text.trim());
-      setState(() {
-        _isImporting = false;
-      });
       if (!mounted) return;
       Navigator.of(context).pushNamed(SelectAddressesPage.tag,
           arguments: SelectAddressesPayload(persona: persona));
@@ -121,7 +113,6 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;
-        _isImporting = false;
       });
     }
   }

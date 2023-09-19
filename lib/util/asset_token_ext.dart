@@ -149,9 +149,10 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);
-    final connections = await cloudDB.connectionDao.getConnections();
-    final connection =
-        connections.firstWhereOrNull((element) => element.key == owner);
+    final viewOnlyConnections =
+        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final connection = viewOnlyConnections.firstWhereOrNull(
+        (viewOnlyConnection) => viewOnlyConnection.key == owner);
     return walletAddress == null && connection != null;
   }
 
@@ -620,5 +621,16 @@ extension AssetExt on Asset {
       isFeralfileFrame ?? this.isFeralfileFrame,
       artworkMetadata ?? this.artworkMetadata,
     );
+  }
+}
+
+extension PostcardExtension on AssetToken {
+  int get stampIndex {
+    final listArtists = getArtists;
+    if (listArtists.isEmpty) {
+      return -1;
+    }
+    final owner = this.owner;
+    return listArtists.indexWhere((element) => owner == element.id);
   }
 }

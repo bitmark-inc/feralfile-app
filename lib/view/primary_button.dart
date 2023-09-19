@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -136,6 +137,58 @@ class OutlineButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class PrimaryAsyncButton extends StatefulWidget {
+  final Function()? onTap;
+  final Color? color;
+  final String? text;
+  final double? width;
+  final bool enabled;
+  final String? processingText;
+
+  const PrimaryAsyncButton(
+      {Key? key,
+      this.onTap,
+      this.color,
+      this.text,
+      this.width,
+      this.enabled = true,
+      this.processingText})
+      : super(key: key);
+
+  @override
+  State<PrimaryAsyncButton> createState() => _PrimaryAsyncButtonState();
+}
+
+class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
+  bool _isProcessing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return PrimaryButton(
+      onTap: () {
+        withDebounce(
+          () async {
+            setState(() {
+              _isProcessing = true;
+            });
+            await widget.onTap?.call();
+            setState(() {
+              _isProcessing = false;
+            });
+          },
+        );
+      },
+      color: widget.color,
+      text: _isProcessing && widget.processingText != null
+          ? widget.processingText
+          : widget.text,
+      width: widget.width,
+      enabled: widget.enabled && !_isProcessing,
+      isProcessing: _isProcessing,
     );
   }
 }

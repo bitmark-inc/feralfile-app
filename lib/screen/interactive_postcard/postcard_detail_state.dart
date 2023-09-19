@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:collection/collection.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 
@@ -92,6 +93,18 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     });
   }
 
+  bool isShareExpired() {
+    if (assetToken == null) return false;
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    final sharedPostcard = sharedPostcards.firstWhereOrNull((element) {
+      return element.owner == assetToken?.owner &&
+          element.tokenID == assetToken?.id;
+    });
+    if (sharedPostcard == null) return false;
+    return sharedPostcard.isExpired;
+  }
+
   bool isStamping() {
     final stampingPostcard = injector<PostcardService>().getStampingPostcard();
     final lastOwner = postcardValue?.postman;
@@ -135,5 +148,15 @@ extension PostcardDetailStateExtension on PostcardDetailState {
     final lastOwner = postcardValue?.postman;
     final owner = assetToken?.owner;
     return lastOwner == owner && !isCompleted;
+  }
+
+  bool get didSendNext {
+    if (assetToken == null) return false;
+    final owner = assetToken!.owner;
+    final artists = assetToken!.getArtists;
+    final artistOwner =
+        artists.firstWhereOrNull((element) => element.id == owner);
+    if (artistOwner == null) return false;
+    return artistOwner != artists.last;
   }
 }

@@ -17,17 +17,17 @@ import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/file_helper.dart';
+import 'package:autonomy_flutter/util/http_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -37,6 +37,8 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share/share.dart';
 
 import 'account_service.dart';
 
@@ -87,10 +89,19 @@ abstract class PostcardService {
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
 
-  Future<void> checkNotification();
-
   Future<PostcardLeaderboard> fetchPostcardLeaderboard(
       {required String unit, required int size, required int offset});
+
+  Future<File> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+  });
+
+  Future<void> shareStampToTwitter({
+    required String tokenId,
+    required int stampIndex,
+    String caption = "",
+  });
 
   String getTokenId(String id);
 }
@@ -101,14 +112,12 @@ class PostcardServiceImpl extends PostcardService {
   final IndexerService _indexerService;
   final TZKTApi _tzktApi;
   final ConfigurationService _configurationService;
-  final NotificationService _notificationService;
 
   PostcardServiceImpl(
       this._postcardApi,
       this._tezosService,
       this._indexerService,
       this._tzktApi,
-      this._notificationService,
       this._configurationService);
 
   @override
@@ -342,31 +351,6 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<void> checkNotification() async {
-    final expiredPostcardShareLink =
-        await _configurationService.getSharedPostcard().expiredPostcards;
-    if (_configurationService.isNotificationEnabled() ?? false) {
-      Timer.periodic(const Duration(seconds: 1), (timer) async {
-        final index = timer.tick - 1;
-        if (index >= expiredPostcardShareLink.length) {
-          timer.cancel();
-        } else {
-          final expiredPostcard = expiredPostcardShareLink[index];
-          await _notificationService.showPostcardWasnotDeliveredNotification(
-              PostcardIdentity(
-                  id: expiredPostcard.tokenID, owner: expiredPostcard.owner));
-          await _configurationService
-              .updateSharedPostcard([expiredPostcard], isRemoved: true);
-        }
-      });
-      _configurationService.expiredPostcardSharedLinkTip.value = [];
-    } else {
-      _configurationService.expiredPostcardSharedLinkTip.value =
-          expiredPostcardShareLink;
-    }
-  }
-
-  @override
   Future<void> cancelSharePostcard(AssetToken asset) async {
     await sharePostcard(asset);
   }
@@ -399,6 +383,62 @@ class PostcardServiceImpl extends PostcardService {
         items: leaderboardResponse.items, lastUpdated: DateTime.now());
   }
 
+  Future<File> _downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+  }) async {
+    final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
+    final secretKey = Environment.auClaimSecretKey;
+    final response = await HttpHelper.hmacAuthenticationPost(
+        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+    if (response.statusCode != StatusCode.success.value) {
+      throw Exception(response.reasonPhrase);
+    }
+    final bodyByte = response.bodyBytes;
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final tempFilePath =
+        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex-$timestamp.png";
+    final tempFile = File(tempFilePath);
+    await tempFile.create(recursive: true);
+    log.info("Created file $tempFilePath");
+    await tempFile.writeAsBytes(bodyByte);
+    return tempFile;
+  }
+
+  @override
+  Future<File> downloadStamp({
+    required String tokenId,
+    required int stampIndex,
+    bool isOverride = false,
+  }) async {
+    final imageFile =
+        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final imageByte = await imageFile.readAsBytes();
+    final imageName = "postcard-$tokenId-$stampIndex-$timestamp";
+    final isSuccess = await FileHelper.saveImageToGallery(imageByte, imageName);
+    if (!isSuccess) {
+      throw MediaPermissionException("Permission is not granted");
+    }
+    return imageFile;
+  }
+
+  @override
+  Future<void> shareStampToTwitter({
+    required String tokenId,
+    required int stampIndex,
+    String caption = "",
+  }) async {
+    final imageFile =
+        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
+    Share.shareFiles(
+      [imageFile.path],
+      text: caption,
+    );
+  }
+
   @override
   String getTokenId(String id) {
     return "tez-${Environment.postcardContractAddress}-$id";
@@ -417,4 +457,14 @@ enum DistanceUnit {
         return "mile";
     }
   }
+}
+
+class PostcardException implements Exception {
+  final String message;
+
+  PostcardException(this.message);
+}
+
+class MediaPermissionException extends PostcardException {
+  MediaPermissionException(String message) : super(message);
 }

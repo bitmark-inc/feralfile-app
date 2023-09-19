@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -32,7 +33,7 @@ class _GithubDocPageState extends State<GithubDocPage> {
   late String document;
   late String title;
 
-  final dio = Dio(BaseOptions(
+  final dio = baseDio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
     connectTimeout: const Duration(seconds: 5),
   ));

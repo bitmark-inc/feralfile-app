@@ -240,8 +240,6 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showWhatNewAddressTip;
 
-  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip;
-
   List<SharedPostcard> getSharedPostcard();
 
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
@@ -258,8 +256,6 @@ abstract class ConfigurationService {
 
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
-
-  Future<void> removeExpiredStampingPostcard();
 
   Future<void> setAutoShowPostcard(bool value);
 
@@ -394,9 +390,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "show_anouncement_notification_info";
 
   static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
-
-  final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
-      ValueNotifier([]);
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -1054,8 +1047,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
-      expiredPostcardSharedLinkTip.value =
-          await sharedPostcards.expiredPostcards;
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
       if (isRemoved) {
@@ -1077,8 +1068,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       uniqueSharedPostcard.unique((element) => element.tokenID + element.owner);
       await _preferences.setStringList(key,
           uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
-      expiredPostcardSharedLinkTip.value =
-          await uniqueSharedPostcard.expiredPostcards;
     }
   }
 
@@ -1138,7 +1127,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
     } else {
-      await removeExpiredStampingPostcard();
       var currentStampingPostcard = _preferences.getStringList(key) ?? [];
 
       if (isRemove) {
@@ -1150,18 +1138,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           key, currentStampingPostcard.toSet().toList());
     }
-  }
-
-  @override
-  Future<void> removeExpiredStampingPostcard() async {
-    final currentStampingPostcard = getStampingPostcard();
-    final now = DateTime.now();
-    final unexpiredStampingPostcard = currentStampingPostcard
-        .where((element) => element.timestamp
-            .isAfter(now.subtract(STAMPING_POSTCARD_LIMIT_TIME)))
-        .toList();
-    _preferences.setStringList(KEY_STAMPING_POSTCARD,
-        unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
   }
 
   @override
@@ -1246,10 +1222,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future setShowWhatNewAddressTipRead(int currentVersion) async {
     await _preferences.setInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP, currentVersion);
   }
-
-  @override
-  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip =>
-      _expiredPostcardSharedLinkTip;
 
   @override
   Future<void> updateShowAnouncementNotificationInfo(

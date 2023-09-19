@@ -37,7 +37,6 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   final List<AddressInfo> _addresses = [];
   final List<AddressInfo> _selectedAddresses = [];
   bool _onlyBalance = true;
-  bool _addingAddresses = false;
 
   @override
   void didChangeDependencies() {
@@ -169,20 +168,13 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                       borderColor: AppColor.primaryBlack,
                     ),
                     const SizedBox(height: 10),
-                    PrimaryButton(
+                    PrimaryAsyncButton(
                       text: "continue".tr(),
-                      isProcessing: _addingAddresses,
                       enabled: _selectedAddresses.isNotEmpty,
                       onTap: () async {
-                        setState(() {
-                          _addingAddresses = true;
-                        });
                         final didReplaceConnection =
                             await injector<AccountService>().addAddressPersona(
                                 widget.payload.persona, _selectedAddresses);
-                        setState(() {
-                          _addingAddresses = false;
-                        });
                         if (_selectedAddresses.length > 1 ||
                             didReplaceConnection) {
                           if (!mounted) return;

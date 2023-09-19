@@ -93,8 +93,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
-      resolved-ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
+      ref: ace58fc3707e1fc7277aa8600e2b632e595c4a65
+      resolved-ref: ace58fc3707e1fc7277aa8600e2b632e595c4a65
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -379,6 +379,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.3"
+  cronet_http:
+    dependency: transitive
+    description:
+      name: cronet_http
+      sha256: "5bc88e2ea1a42f60ef69713468c08e2c6c318a3373246e35cb3d0a9e40f536d6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   cross_file:
     dependency: transitive
     description:
@@ -403,6 +411,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.3"
+  cupertino_http:
+    dependency: transitive
+    description:
+      name: cupertino_http
+      sha256: dfdd1d3e89a8261e371b658e544dd77e09e28bea13851a34b0873eb4d0811690
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   cupertino_icons:
     dependency: transitive
     description:
@@ -930,15 +946,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_to_airplay:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
-      resolved-ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
-      url: "https://github.com/autonomy-system/flutter_to_airplay.git"
-    source: git
-    version: "2.0.2"
   flutter_vibrate:
     dependency: "direct main"
     description:
@@ -1141,6 +1148,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  globbing:
+    dependency: transitive
+    description:
+      name: globbing
+      sha256: "4f89cfaf6fa74c9c1740a96259da06bd45411ede56744e28017cc534a12b6e2d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   googleapis_auth:
     dependency: transitive
     description:
@@ -1317,6 +1332,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.17"
+  image_gallery_saver:
+    dependency: "direct main"
+    description:
+      name: image_gallery_saver
+      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   image_picker:
     dependency: "direct main"
     description:
@@ -1437,6 +1460,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.0"
+  injector:
+    dependency: transitive
+    description:
+      name: injector
+      sha256: ed389bed5b48a699d5b9561c985023d0d5cc88dd5ff2237aadcce5a5ab433e4e
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -1707,6 +1738,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2"
+  native_dio_adapter:
+    dependency: "direct main"
+    description:
+      name: native_dio_adapter
+      sha256: "506efc7f9c75ecc07742e26d1fd72510908cd940ee315295710b87075047bcb0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0+2"
   nested:
     dependency: transitive
     description:
@@ -1719,8 +1758,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ff46114af2f7b35c49e4874ee89d71e18e5a4b4d
-      resolved-ref: ff46114af2f7b35c49e4874ee89d71e18e5a4b4d
+      ref: ba86a24e9a2ce63ed64e259e6807211075761d03
+      resolved-ref: ba86a24e9a2ce63ed64e259e6807211075761d03
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1728,8 +1767,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f836766acba29b2f7b5d80dbe598d568b2fe00e6
-      resolved-ref: f836766acba29b2f7b5d80dbe598d568b2fe00e6
+      ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
+      resolved-ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1841,10 +1880,10 @@ packages:
     dependency: "direct main"
     description:
       name: path_provider
-      sha256: "3087813781ab814e4157b172f1a11c46be20179fcc9bea043e0fba36bc0acaa2"
+      sha256: a1aa8aaa2542a6bc57e381f132af822420216c80d4781f7aa085ca3229208aaa
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.15"
+    version: "2.1.1"
   path_provider_android:
     dependency: transitive
     description:
@@ -2173,6 +2212,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.9.0"
+  sentry_dart_plugin:
+    dependency: "direct dev"
+    description:
+      name: sentry_dart_plugin
+      sha256: b1474670254d550771da082abcd33ad56d6fd44451282faa99433530fa279256
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   sentry_dio:
     dependency: "direct main"
     description:
@@ -2530,6 +2577,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  system_info2:
+    dependency: transitive
+    description:
+      name: system_info2
+      sha256: "65206bbef475217008b5827374767550a5420ce70a04d2d7e94d1d2253f3efc9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   term_glyph:
     dependency: transitive
     description:

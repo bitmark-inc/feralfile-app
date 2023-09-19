@@ -62,7 +62,6 @@ class SelectAccountPage extends StatefulWidget {
 }
 
 class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
-  bool _processing = false;
   String? _selectedAddress;
   late final bool _isTezos;
 
@@ -139,26 +138,22 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PrimaryButton(
-                isProcessing: _processing,
-                enabled: !_processing,
+              child: PrimaryAsyncButton(
                 text: "h_confirm".tr(),
-                onTap: _selectedAddress == null
-                    ? null
-                    : () async {
-                        if (widget.fromWebview == true) {
-                          Navigator.pop(context, _selectedAddress);
-                          return;
-                        }
-                        if (widget.artwork != null) {
-                          await _claimToken(
-                            context,
-                            _selectedAddress!,
-                            widget.artwork!.id,
-                            otp: widget.otp,
-                          );
-                        }
-                      },
+                onTap: () async {
+                  if (widget.fromWebview == true) {
+                    Navigator.pop(context, _selectedAddress);
+                    return;
+                  }
+                  if (widget.artwork != null) {
+                    await _claimToken(
+                      context,
+                      _selectedAddress!,
+                      widget.artwork!.id,
+                      otp: widget.otp,
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -184,12 +179,6 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     });
   }
 
-  void _setProcessingState(bool processing) {
-    setState(() {
-      _processing = processing;
-    });
-  }
-
   Future _claimToken(
     BuildContext context,
     String address,
@@ -198,7 +187,6 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }) async {
     ClaimResponse? claimResponse;
     try {
-      _setProcessingState(true);
       final ffService = injector<FeralFileService>();
       claimResponse = await ffService.claimToken(
         seriesId: artworkId,
@@ -223,8 +211,6 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         );
       }
       memoryValues.branchDeeplinkData.value = null;
-    } finally {
-      _setProcessingState(false);
     }
 
     if (!mounted) return;

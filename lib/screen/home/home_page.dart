@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
@@ -37,7 +36,6 @@ import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -52,7 +50,6 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -90,7 +87,6 @@ class HomePageState extends State<HomePage>
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
-  final _postcardService = injector<PostcardService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -452,7 +448,6 @@ class HomePageState extends State<HomePage>
         _configurationService.showCreatePlaylistTip,
         _configurationService.showLinkOrImportTip,
         _configurationService.showBackupSettingTip,
-        _configurationService.expiredPostcardSharedLinkTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -468,8 +463,6 @@ class HomePageState extends State<HomePage>
     final isShowCreatePlaylistTip = values[1] as bool;
     final isShowLinkOrImportTip = values[2] as bool;
     final isShowBackupSettingTip = values[3] as bool;
-    final expiredPostcardShareLink = values[4] as List<SharedPostcard>;
-    final compactedToken = nftBloc.state.tokens.items;
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
@@ -547,32 +540,6 @@ class HomePageState extends State<HomePage>
                     : "backup_tip_card_content_ios".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: _configurationService.showBackupSettingTip),
-      if (!(_configurationService.isNotificationEnabled() ?? false))
-        ...expiredPostcardShareLink.map((e) {
-          final title = compactedToken
-                  .firstWhereOrNull((element) => element.id == e.tokenID)
-                  ?.title ??
-              "";
-          return Tipcard(
-            titleText: "moma_postcard".tr(),
-            onPressed: () async {
-              final payload = PostcardDetailPagePayload(
-                  [ArtworkIdentity(e.tokenID, e.owner)], 0);
-              Navigator.of(context).pushNamed(
-                  AppRouter.claimedPostcardDetailsPage,
-                  arguments: payload);
-              _configurationService.updateSharedPostcard([e], isRemoved: true);
-            },
-            onClosed: () async {
-              _configurationService.updateSharedPostcard([e], isRemoved: true);
-            },
-            buttonText: "go_to_postcard".tr(),
-            content: Text(
-                "postcard_not_deliveried".tr(namedArgs: {"title": title}),
-                style: theme.textTheme.ppMori400Black14),
-            listener: ValueNotifier<bool>(true),
-          );
-        }).toList(),
     ];
   }
 
@@ -673,7 +640,6 @@ class HomePageState extends State<HomePage>
             data: {"title": "try_autonomy_pro_free".tr()});
       }
     }
-    await _postcardService.checkNotification();
   }
 
   void _handleForeground() async {
