@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -130,6 +131,7 @@ class AddressItem extends StatelessWidget {
     this.tezSelectedAddress,
     this.onTap,
     this.isAutoSelect = false,
+    this.isViewOnly = false,
   }) : super(key: key);
 
   final CryptoType cryptoType;
@@ -139,6 +141,7 @@ class AddressItem extends StatelessWidget {
   final bool isAutoSelect;
   final Function()? onTap;
   final String name;
+  final bool isViewOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +172,18 @@ class AddressItem extends StatelessWidget {
                               ? 'Tezos'
                               : '',
                   style: theme.textTheme.ppMori700Black14,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const Spacer(),
+                const SizedBox(
+                  width: 10,
+                ),
+                if (isViewOnly) ...[
+                  viewOnlyLabel(context),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                ],
                 Text(
                   address.toIdentityOrMask({}) ?? '',
                   style: theme.textTheme.ibmBlackNormal14,
@@ -239,6 +252,7 @@ class _PersonalConnectItemState extends State<PersonalConnectItem> {
           cryptoType: e.isEth ? CryptoType.ETH : CryptoType.XTZ,
           ethSelectedAddress: widget.ethSelectedAddress,
           tezSelectedAddress: widget.tezSelectedAddress,
+          isViewOnly: e.isViewOnly,
         ),
         addOnlyDivider(),
       ],

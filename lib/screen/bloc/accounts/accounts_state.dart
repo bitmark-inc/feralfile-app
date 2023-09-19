@@ -73,6 +73,8 @@ class Account {
   String get className =>
       persona != null && walletAddress != null ? "Persona" : "Connection";
 
+  bool get isViewOnly => persona == null && walletAddress == null;
+
   Account({
     required this.key,
     this.persona,
