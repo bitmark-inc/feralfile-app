@@ -4,9 +4,12 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
@@ -203,12 +206,35 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
         loading = false;
       });
       if (!mounted) return;
-      Navigator.of(context).pushNamed(StampPreview.tag,
-          arguments: StampPreviewPayload(
-              imagePath: imagePath,
-              metadataPath: metadataPath,
-              asset: asset,
-              location: widget.payload.location));
+      Navigator.of(context).popAndPushNamed(
+        AppRouter.postcardLocationExplain,
+        arguments: PostcardExplainPayload(
+          asset,
+          PostcardAsyncButton(
+            text: "continue".tr(),
+            fontSize: 18,
+            onTap: () async {
+              final counter = asset.postcardMetadata.counter;
+              GeoLocation? geoLocation;
+              if (counter <= 1) {
+                geoLocation = moMAGeoLocation;
+              } else {
+                geoLocation = await getGeoLocationWithPermission();
+              }
+              if (geoLocation == null) return;
+              if (!mounted) return;
+              Navigator.of(context).pushNamed(StampPreview.tag,
+                  arguments: StampPreviewPayload(
+                      imagePath: imagePath,
+                      metadataPath: metadataPath,
+                      asset: asset,
+                      location: geoLocation.position));
+            },
+            color: AppColor.momaGreen,
+          ),
+          onSkip: () {},
+        ),
+      );
     } catch (e) {
       setState(() {
         loading = false;
