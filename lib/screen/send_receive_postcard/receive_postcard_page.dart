@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -97,20 +97,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   Future<AssetToken?> _receivePostcard(
       BuildContext context, AssetToken asset) async {
     GeoLocation? location;
-    try {
-      location = await getGeoLocationWithPermission(
-          timeout: const Duration(seconds: 5));
-      if (location == null) return null;
-    } catch (e) {
-      log.info("[Postcard] Error getting location: $e");
-      if (!mounted) return null;
-      await UIHelper.showWeakGPSSignal(context);
-      setState(() {
-        _isProcessing = false;
-      });
-      return null;
-    }
-
+    location = internetUserGeoLocation;
     final accountService = injector<AccountService>();
     final addresses = await accountService.getAddress(asset.blockchain);
     String? address;
