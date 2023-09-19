@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -317,16 +318,16 @@ class FeedServiceImpl extends FeedService {
       FileLogger.log(record);
       SentryBreadcrumbLogger.log(record);
     });
-    final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
+    final authenticatedDio = baseDio(BaseOptions(
+        followRedirects: true)); // Authenticated dio instance for AU servers
     authenticatedDio.interceptors.add(_quickAuthInterceptor);
     authenticatedDio.interceptors.add(LoggingInterceptor());
     (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
         parseJson;
-    authenticatedDio.options = BaseOptions(followRedirects: true);
     injector.registerLazySingleton(
         () => FeedApi(authenticatedDio, baseUrl: feedURL));
 
-    final dio = Dio();
+    final dio = baseDio(BaseOptions(followRedirects: true));
     (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
     injector.registerLazySingleton(() => IndexerApi(dio, baseUrl: indexerURL));
     testnetInjector
