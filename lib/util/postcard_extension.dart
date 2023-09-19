@@ -29,14 +29,13 @@ extension PostcardMetadataExtension on PostcardMetadata {
     int lastStampLocation = 0;
     for (int i = 1; i < stamps.length; i++) {
       final stamp = stamps[i];
-      if (!(stamp.claimedLocation?.isInternet ?? true)) {
+      if (!(stamp.stampedLocation?.isInternet ?? true)) {
         travelInfo.add(TravelInfo(stamps[lastStampLocation], stamp, i));
         lastStampLocation = i;
       } else {
         travelInfo.add(TravelInfo(stamps[i - 1], stamp, i));
       }
-      if (!(stamp.stampedLocation?.isInternet ?? true) &&
-          !(stamp.claimedLocation?.isInternet ?? true)) {
+      if (!(stamp.stampedLocation?.isInternet ?? true)) {
         lastStampLocation = i;
       }
     }
