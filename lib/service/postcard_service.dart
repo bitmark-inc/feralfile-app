@@ -113,12 +113,8 @@ class PostcardServiceImpl extends PostcardService {
   final TZKTApi _tzktApi;
   final ConfigurationService _configurationService;
 
-  PostcardServiceImpl(
-      this._postcardApi,
-      this._tezosService,
-      this._indexerService,
-      this._tzktApi,
-      this._configurationService);
+  PostcardServiceImpl(this._postcardApi, this._tezosService,
+      this._indexerService, this._tzktApi, this._configurationService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
