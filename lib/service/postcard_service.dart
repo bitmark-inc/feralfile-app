@@ -112,6 +112,13 @@ abstract class PostcardService {
   Future<AssetToken> claimEmptyPostcardToAddress(
       {required String address,
       required RequestPostcardResponse requestPostcardResponse});
+
+  Future<AssetToken> claimSharedPostcardToAddress({
+    required String address,
+    required AssetToken assetToken,
+    required String shareCode,
+    required Location location,
+  });
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -524,6 +531,37 @@ class PostcardServiceImpl extends PostcardService {
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
     return token;
+  }
+
+  @override
+  Future<AssetToken> claimSharedPostcardToAddress(
+      {required String address,
+      required AssetToken assetToken,
+      required String shareCode,
+      required Location location}) async {
+    receivePostcard(
+      shareCode: shareCode,
+      location: location,
+      address: address,
+    );
+    var postcardMetadata = assetToken.postcardMetadata;
+    postcardMetadata.locationInformation
+        .add(UserLocations(claimedLocation: location));
+    var newAsset = assetToken.asset;
+    newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    final pendingToken = assetToken.copyWith(
+      owner: address,
+      asset: newAsset,
+      balance: 1,
+    );
+
+    final tokenService = injector<TokensService>();
+    await tokenService.setCustomTokens([pendingToken]);
+    tokenService.reindexAddresses([address]);
+    NftCollectionBloc.eventController.add(
+      GetTokensByOwnerEvent(pageKey: PageKey.init()),
+    );
+    return pendingToken;
   }
 }
 
