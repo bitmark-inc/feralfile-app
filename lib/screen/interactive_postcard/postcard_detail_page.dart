@@ -633,7 +633,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
+          Navigator.of(context).pushNamed(AppRouter.designStamp,
               arguments: DesignStampPayload(asset));
         },
       );

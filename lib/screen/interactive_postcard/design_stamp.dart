@@ -154,7 +154,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                       ),
                                     ),
                                   ),
-                                  // _stampLocation(context, cellSize)
                                 ],
                               ),
                             ),
@@ -278,35 +277,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
       });
     }
   }
-
-  // Widget _stampLocation(BuildContext context, int cellSize) {
-  //   final theme = Theme.of(context);
-  //   return Container(
-  //     color: AppColor.primaryBlack,
-  //     child: SizedBox(
-  //       height: cellSize * 1.0,
-  //       width: cellSize * 10,
-  //       child: Container(
-  //         margin: const EdgeInsets.symmetric(horizontal: 15),
-  //         child: Row(
-  //           children: [
-  //             Expanded(
-  //               child: Text(
-  //                 _location,
-  //                 style: theme.textTheme.moMASans400White14,
-  //                 overflow: TextOverflow.ellipsis,
-  //               ),
-  //             ),
-  //             Text(
-  //               _date,
-  //               style: theme.textTheme.moMASans400White14,
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   List<Color> stampColors = [
     MomaPallet.pink,

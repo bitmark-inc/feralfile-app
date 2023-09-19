@@ -218,8 +218,6 @@ class AppRouter {
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
-
-  // static const startStampingPostcardPage = 'start_stamping_postcard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -1247,19 +1245,6 @@ class AppRouter {
             );
           },
         );
-
-      // case startStampingPostcardPage:
-      //   return CupertinoPageRoute(
-      //     settings: settings,
-      //     builder: (context) {
-      //       return BlocProvider.value(
-      //         value: accountsBloc,
-      //         child: StartStampingPostCardPage(
-      //           payload: settings.arguments as StartStampingPostCardPagePayload,
-      //         ),
-      //       );
-      //     },
-      //   );
       case postcardLocationExplain:
         return CupertinoPageRoute(
           settings: settings,

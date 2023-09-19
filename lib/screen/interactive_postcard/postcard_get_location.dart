@@ -15,7 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
 class PostcardLocationExplain extends StatefulWidget {
-  static const String tag = 'postcard_explain_screen';
   final PostcardExplainPayload payload;
 
   const PostcardLocationExplain({Key? key, required this.payload})

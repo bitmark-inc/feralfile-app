@@ -1,8 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -27,12 +25,10 @@ class PostcardExplain extends StatefulWidget {
 }
 
 class _PostcardExplainState extends State<PostcardExplain> {
-  bool _isLastPage = false;
   final VideoPlayerController _controller =
       VideoPlayerController.asset("assets/videos/postcard_explain.mp4");
   final VideoPlayerController _colouringController =
       VideoPlayerController.asset("assets/videos/colouring_video.mp4");
-  final NavigationService _navigationService = injector<NavigationService>();
   late int _currentIndex;
 
   @override
@@ -73,6 +69,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     ];
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
+    final isLastPage = _currentIndex == pages.length - 1;
     return Scaffold(
       backgroundColor: AppColor.chatPrimaryColor,
       appBar: AppBar(
@@ -103,7 +100,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
         ),
         toolbarHeight: 160,
         actions: [
-          if (_currentIndex == 0 || _isLastPage) ...[
+          if (_currentIndex == 0 || isLastPage) ...[
             IconButton(
               tooltip: "CLOSE",
               onPressed: () {
@@ -113,7 +110,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
             )
           ] else ...[
             _skipButton(context, () {
-              widget.payload.onSkip.call();
+              widget.payload.onSkip?.call();
             })
           ],
         ],
@@ -128,7 +125,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
             Swiper(
               onIndexChanged: (index) {
                 setState(() {
-                  _isLastPage = index == pages.length - 1;
                   _currentIndex = index;
                   if (index == 0) {
                     _controller.play();
@@ -156,7 +152,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
               loop: false,
             ),
             Visibility(
-              visible: _isLastPage,
+              visible: isLastPage,
               child: Positioned(
                 bottom: 0,
                 left: 0,
@@ -374,125 +370,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
       ),
     );
   }
-
-  Widget _locationExplainItem(
-      {required BuildContext context,
-      required String imagePath,
-      required String location,
-      required double distance}) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Image.asset(imagePath),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SvgPicture.asset(
-                    "assets/images/location_blue.svg",
-                  ),
-                  Text(
-                    location,
-                    style: theme.textTheme.moMASans400Black16
-                        .copyWith(fontSize: 18),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              "plus_distance".tr(namedArgs: {
-                "distance": DistanceFormatter().showDistance(
-                    distance: distance, distanceUnit: DistanceUnit.mile),
-              }),
-              style: theme.textTheme.moMASans400Black16.copyWith(
-                  fontSize: 18, color: const Color.fromRGBO(131, 79, 196, 1)),
-            )
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _locationExplain(BuildContext context) {
-    final theme = Theme.of(context);
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Column(
-            children: [
-              _locationExplainItem(
-                  context: context,
-                  location: "Berlin, Germany",
-                  distance: 3964,
-                  imagePath: "assets/images/postcard_location_explain_1.png"),
-              const SizedBox(height: 16),
-              _locationExplainItem(
-                  context: context,
-                  location: "Paris, France",
-                  distance: 545,
-                  imagePath: "assets/images/postcard_location_explain_2.png"),
-              const SizedBox(height: 16),
-              _locationExplainItem(
-                  context: context,
-                  location: "Reykjavík, Iceland",
-                  distance: 1340,
-                  imagePath: "assets/images/postcard_location_explain_3.png"),
-            ],
-          ),
-          const SizedBox(height: 60),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      "your_location_is_used".tr(),
-                      style: theme.textTheme.moMASans700Black14
-                          .copyWith(fontSize: 18),
-                      maxLines: 2,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {
-                      _navigationService.showLocationExplain();
-                    },
-                    icon: const Icon(AuIcon.info),
-                    padding: const EdgeInsets.all(0),
-                    constraints: const BoxConstraints(
-                      maxWidth: 24,
-                      maxHeight: 24,
-                    ),
-                    iconSize: 24,
-                  )
-                ],
-              ),
-              const SizedBox(height: 38),
-              Text(
-                "enable_location_to_contribute".tr(),
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
 }
 
 class PostcardExplainPayload {
   final AssetToken asset;
   final Widget startButton;
-  Function() onSkip;
+  Function()? onSkip;
 
-  PostcardExplainPayload(this.asset, this.startButton, {required this.onSkip});
+  PostcardExplainPayload(this.asset, this.startButton, {this.onSkip});
 }
