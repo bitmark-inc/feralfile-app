@@ -35,8 +35,12 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
+import 'package:nft_collection/services/tokens_service.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share/share.dart';
 
@@ -104,6 +108,10 @@ abstract class PostcardService {
   });
 
   String getTokenId(String id);
+
+  Future<AssetToken> claimEmptyPostcardToAddress(
+      {required String address,
+      required RequestPostcardResponse requestPostcardResponse});
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -112,9 +120,17 @@ class PostcardServiceImpl extends PostcardService {
   final IndexerService _indexerService;
   final TZKTApi _tzktApi;
   final ConfigurationService _configurationService;
+  final AccountService _accountService;
+  final TokensService _tokensService;
 
-  PostcardServiceImpl(this._postcardApi, this._tezosService,
-      this._indexerService, this._tzktApi, this._configurationService);
+  PostcardServiceImpl(
+      this._postcardApi,
+      this._tezosService,
+      this._indexerService,
+      this._tzktApi,
+      this._configurationService,
+      this._accountService,
+      this._tokensService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -438,6 +454,76 @@ class PostcardServiceImpl extends PostcardService {
   @override
   String getTokenId(String id) {
     return "tez-${Environment.postcardContractAddress}-$id";
+  }
+
+  Future<AssetToken> claimEmptyPostcardToAddress(
+      {required String address,
+      required RequestPostcardResponse requestPostcardResponse}) async {
+    final tezosService = injector.get<TezosService>();
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final account = await _accountService.getAccountByAddress(
+      chain: 'tezos',
+      address: address,
+    );
+    final signature = await tezosService.signMessage(account.wallet,
+        account.index, Uint8List.fromList(utf8.encode(timestamp)));
+    final publicKey =
+        await account.wallet.getTezosPublicKey(index: account.index);
+    final claimRequest = ClaimPostCardRequest(
+      address: address,
+      claimID: requestPostcardResponse.claimID,
+      timestamp: timestamp,
+      publicKey: publicKey,
+      signature: signature,
+      location: [moMAGeoLocation.position?.lat, moMAGeoLocation.position?.lon],
+    );
+    final result = await claimEmptyPostcard(claimRequest);
+    final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
+    final postcardMetadata = PostcardMetadata(
+      locationInformation: [
+        UserLocations(
+          claimedLocation: moMAGeoLocation.position,
+        )
+      ],
+    );
+    final token = AssetToken(
+      asset: Asset.init(
+        indexID: tokenID,
+        artistName: 'MoMa',
+        maxEdition: 1,
+        mimeType: 'image/png',
+        title: requestPostcardResponse.name,
+        previewURL: requestPostcardResponse.previewURL,
+        source: 'postcard',
+        artworkMetadata: jsonEncode(postcardMetadata.toJson()),
+        medium: 'software',
+      ),
+      blockchain: "tezos",
+      fungible: false,
+      contractType: 'fa2',
+      tokenId: result.tokenID,
+      contractAddress: result.contractAddress,
+      edition: 0,
+      editionName: "",
+      id: tokenID,
+      balance: 1,
+      owner: address,
+      lastActivityTime: DateTime.now(),
+      lastRefreshedTime: DateTime(1),
+      pending: true,
+      originTokenInfo: [],
+      provenance: [],
+      owners: {},
+    );
+
+    await _tokensService.setCustomTokens([token]);
+    _tokensService.reindexAddresses([address]);
+    injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
+    NftCollectionBloc.eventController.add(
+      GetTokensByOwnerEvent(pageKey: PageKey.init()),
+    );
+    return token;
   }
 }
 
