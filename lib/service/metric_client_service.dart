@@ -136,7 +136,7 @@ class MetricClientService {
             as int;
     final now = DateTime.now();
     final startDayOfWeek = now.startDayOfWeek;
-    if (startDayOfWeek.isAfter(weekStartAt.add(const Duration(days: 7)))) {
+    if (!now.isBefore(weekStartAt.add(const Duration(days: 7)))) {
       addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
         "number": countUseAutonomyInWeek,
         MixpanelEventProp.time: weekStartAt,

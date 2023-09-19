@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_list_address_account.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:autonomy_theme/style/style.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +28,6 @@ class SelectAccountScreen extends StatefulWidget {
 
 class _SelectAccountScreenState extends State<SelectAccountScreen> {
   String? _selectedAddress;
-  bool _isConfirming = false;
   late final bool _isTezos;
 
   @override
@@ -78,22 +78,12 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PostcardButton(
+              child: PostcardAsyncButton(
                 text: "continue".tr(),
                 fontSize: 18,
-                isProcessing: _isConfirming,
-                onTap: _selectedAddress != null
-                    ? () async {
-                        setState(() {
-                          _isConfirming = true;
-                        });
-                        await widget.onConfirm(_selectedAddress!);
-                        setState(() {
-                          _isConfirming = false;
-                        });
-                      }
-                    : null,
-                color: const Color.fromRGBO(79, 174, 79, 1),
+                enabled: _selectedAddress != null,
+                onTap: () => widget.onConfirm(_selectedAddress!),
+                color: AppColor.momaGreen,
               ),
             ),
           ],
