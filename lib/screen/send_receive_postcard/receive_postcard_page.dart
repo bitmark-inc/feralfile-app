@@ -76,21 +76,24 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     final asset = widget.asset;
     return PostcardExplain(
       payload: PostcardExplainPayload(
-          asset,
-          PostcardButton(
-            text: "continue".tr(),
-            fontSize: 18,
-            enabled: !(_isProcessing),
-            isProcessing: _isProcessing,
-            onTap: () async {
-              setState(() {
-                _isProcessing = true;
-              });
-              await _receivePostcard(context, asset);
-            },
-            color: const Color.fromRGBO(79, 174, 79, 1),
-          ),
-          onSkip: () {}),
+        asset,
+        PostcardButton(
+          text: "continue".tr(),
+          fontSize: 18,
+          enabled: !(_isProcessing),
+          isProcessing: _isProcessing,
+          onTap: () async {
+            setState(() {
+              _isProcessing = true;
+            });
+            await _receivePostcard(context, asset);
+          },
+          color: const Color.fromRGBO(79, 174, 79, 1),
+        ),
+        onSkip: () {
+          _receivePostcard(context, asset);
+        },
+      ),
     );
   }
 
@@ -125,17 +128,21 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     AssetToken? pendingToken;
     if (address != null) {
       try {
-        final response = await injector<PostcardService>().receivePostcard(
-            shareCode: widget.shareCode,
-            location: location.position,
-            address: address);
+        injector<PostcardService>().receivePostcard(
+          shareCode: widget.shareCode,
+          location: location.position,
+          address: address,
+        );
         var postcardMetadata = asset.postcardMetadata;
         postcardMetadata.locationInformation
             .add(UserLocations(claimedLocation: location.position));
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-        pendingToken =
-            asset.copyWith(owner: response.owner, asset: newAsset, balance: 1);
+        pendingToken = asset.copyWith(
+          owner: address,
+          asset: newAsset,
+          balance: 1,
+        );
 
         final tokenService = injector<TokensService>();
         await tokenService.setCustomTokens([pendingToken]);
