@@ -163,18 +163,19 @@ class AddressItem extends StatelessWidget {
                 const SizedBox(
                   width: 10,
                 ),
-                Text(
-                  name.isNotEmpty
-                      ? name
-                      : cryptoType == CryptoType.ETH
-                          ? 'Ethereum'
-                          : cryptoType == CryptoType.XTZ
-                              ? 'Tezos'
-                              : '',
-                  style: theme.textTheme.ppMori700Black14,
-                  overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Text(
+                    name.isNotEmpty
+                        ? name
+                        : cryptoType == CryptoType.ETH
+                            ? 'Ethereum'
+                            : cryptoType == CryptoType.XTZ
+                                ? 'Tezos'
+                                : '',
+                    style: theme.textTheme.ppMori700Black14,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
                 const SizedBox(
                   width: 10,
                 ),
