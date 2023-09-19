@@ -54,17 +54,21 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
           if (artwork == null) return Container();
           return PostcardExplain(
             payload: PostcardExplainPayload(
-                artwork,
-                PostcardButton(
-                  text: "continue".tr(),
-                  fontSize: 18,
-                  enabled: state.isClaiming != true,
-                  isProcessing: state.isClaiming == true,
-                  onTap: () {
-                    bloc.add(AcceptGiftEvent(widget.claimRequest));
-                  },
-                  color: const Color.fromRGBO(79, 174, 79, 1),
-                )),
+              artwork,
+              PostcardButton(
+                text: "continue".tr(),
+                fontSize: 18,
+                enabled: state.isClaiming != true,
+                isProcessing: state.isClaiming == true,
+                onTap: () {
+                  bloc.add(AcceptGiftEvent(widget.claimRequest));
+                },
+                color: const Color.fromRGBO(79, 174, 79, 1),
+              ),
+              onSkip: () {
+                bloc.add(AcceptGiftEvent(widget.claimRequest));
+              },
+            ),
           );
         });
   }

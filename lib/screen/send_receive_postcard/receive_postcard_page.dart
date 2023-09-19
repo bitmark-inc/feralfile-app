@@ -76,21 +76,21 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     final asset = widget.asset;
     return PostcardExplain(
       payload: PostcardExplainPayload(
-        asset,
-        PostcardButton(
-          text: "continue".tr(),
-          fontSize: 18,
-          enabled: !(_isProcessing),
-          isProcessing: _isProcessing,
-          onTap: () async {
-            setState(() {
-              _isProcessing = true;
-            });
-            await _receivePostcard(context, asset);
-          },
-          color: const Color.fromRGBO(79, 174, 79, 1),
-        ),
-      ),
+          asset,
+          PostcardButton(
+            text: "continue".tr(),
+            fontSize: 18,
+            enabled: !(_isProcessing),
+            isProcessing: _isProcessing,
+            onTap: () async {
+              setState(() {
+                _isProcessing = true;
+              });
+              await _receivePostcard(context, asset);
+            },
+            color: const Color.fromRGBO(79, 174, 79, 1),
+          ),
+          onSkip: () {}),
     );
   }
 

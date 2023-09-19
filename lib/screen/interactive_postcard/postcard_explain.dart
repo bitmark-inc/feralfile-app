@@ -33,12 +33,14 @@ class _PostcardExplainState extends State<PostcardExplain> {
   final VideoPlayerController _colouringController =
       VideoPlayerController.asset("assets/videos/colouring_video.mp4");
   final NavigationService _navigationService = injector<NavigationService>();
+  late int _currentIndex;
 
   @override
   void initState() {
     _initPlayer();
     super.initState();
     injector<ConfigurationService>().setAutoShowPostcard(false);
+    _currentIndex = 0;
   }
 
   Future<void> _initPlayer() async {
@@ -68,7 +70,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
       _page2(3, totalDistance: 7926),
       _page2(4, totalDistance: 91103),
       _page4(5),
-      _locationExplain(context),
     ];
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
@@ -102,13 +103,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
         ),
         toolbarHeight: 160,
         actions: [
-          IconButton(
-            tooltip: "CLOSE",
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            icon: closeIcon(),
-          )
+          if (_currentIndex == 0 || _isLastPage) ...[
+            IconButton(
+              tooltip: "CLOSE",
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              icon: closeIcon(),
+            )
+          ] else ...[
+            _skipButton(context, () {
+              widget.payload.onSkip.call();
+            })
+          ],
         ],
         backgroundColor: Colors.transparent,
         shadowColor: Colors.transparent,
@@ -122,6 +129,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
               onIndexChanged: (index) {
                 setState(() {
                   _isLastPage = index == pages.length - 1;
+                  _currentIndex = index;
                   if (index == 0) {
                     _controller.play();
                   }
@@ -165,10 +173,18 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
+  Widget _skipButton(BuildContext context, Function()? onSkip) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 11),
+      child: GestureDetector(
+        onTap: onSkip,
+        child: SvgPicture.asset("assets/images/skip.svg"),
+      ),
+    );
+  }
+
   Widget _page1(VideoPlayerController controller) {
     final theme = Theme.of(context);
-    final termsConditionsStyle = theme.textTheme.moMASans400Grey12
-        .copyWith(color: AppColor.auQuickSilver);
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -185,33 +201,14 @@ class _PostcardExplainState extends State<PostcardExplain> {
             children: [
               Text(
                 "moma_project_invite".tr(),
-                style: theme.textTheme.moMASans400Black14,
+                style:
+                    theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
               ),
-              const SizedBox(height: 20),
-              RichText(
-                text: TextSpan(
-                  style: termsConditionsStyle,
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: "by_continuing".tr(),
-                    ),
-                    TextSpan(
-                      text: "terms_and_conditions".tr(),
-                      /*
-                      style: termsConditionsStyle.copyWith(
-                          decoration: TextDecoration.underline),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () => launchUrl(
-                            Uri.parse(MOMA_TERMS_CONDITIONS_URL),
-                            mode: LaunchMode.externalApplication),
-
-                       */
-                    ),
-                    const TextSpan(
-                      text: ".",
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 8),
+              Text(
+                "with_15_blank_stamps".tr(),
+                style:
+                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
               )
             ],
           )
@@ -495,6 +492,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
 class PostcardExplainPayload {
   final AssetToken asset;
   final Widget startButton;
+  Function() onSkip;
 
-  PostcardExplainPayload(this.asset, this.startButton);
+  PostcardExplainPayload(this.asset, this.startButton, {required this.onSkip});
 }

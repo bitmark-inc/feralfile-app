@@ -46,21 +46,21 @@ class _StartStampingPostCardPageState extends State<StartStampingPostCardPage> {
     final asset = widget.payload.asset;
     return PostcardExplain(
       payload: PostcardExplainPayload(
-        asset,
-        PostcardButton(
-          text: "continue".tr(),
-          fontSize: 18,
-          enabled: !(_isProcessing),
-          isProcessing: _isProcessing,
-          onTap: () async {
-            setState(() {
-              _isProcessing = true;
-            });
-            _onStarted(context, widget.payload.asset);
-          },
-          color: const Color.fromRGBO(79, 174, 79, 1),
-        ),
-      ),
+          asset,
+          PostcardButton(
+            text: "continue".tr(),
+            fontSize: 18,
+            enabled: !(_isProcessing),
+            isProcessing: _isProcessing,
+            onTap: () async {
+              setState(() {
+                _isProcessing = true;
+              });
+              _onStarted(context, widget.payload.asset);
+            },
+            color: const Color.fromRGBO(79, 174, 79, 1),
+          ),
+          onSkip: () {}),
     );
   }
 
