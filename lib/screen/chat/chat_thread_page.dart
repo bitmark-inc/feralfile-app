@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -23,7 +24,6 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/util/utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_types/flutter_chat_types.dart';
@@ -53,7 +53,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   bool _didFetchAllMessages = false;
   String? _historyRequestId;
   bool _stopConnect = false;
-  late int? _chatPrivateBannerTimestamp;
+  int? _chatPrivateBannerTimestamp;
 
   @override
   void initState() {
@@ -82,8 +82,12 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         "/v1/chat/ws?index_id=${_payload.token.id}&address=${_payload.address}";
     final header = await _getHeader(link);
     _websocketChannel = IOWebSocketChannel.connect(
-        "${Environment.postcardChatServerUrl}$link",
-        headers: header);
+      "${Environment.postcardChatServerUrl}$link",
+      headers: header,
+      customClient: HttpClient(),
+      pingInterval: const Duration(seconds: 50),
+    );
+    _websocketChannel?.ready;
     _websocketChannel?.stream.listen(
       (event) {
         log.info("[CHAT] event: $event");
@@ -217,7 +221,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           element.createdAt != null &&
           element.createdAt! < _chatPrivateBannerTimestamp!);
       if (index == -1) {
-        index = 0;
+        index = _messages.length;
       }
       _messages.insert(
           index,
@@ -285,7 +289,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                 theme: _chatTheme,
                 dateHeaderThreshold: 12 * 60 * 60 * 1000,
                 groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
-                emptyState: const CupertinoActivityIndicator(),
+                emptyState: const SizedBox(),
                 messages: _messages,
                 onSendPressed: (_) {},
                 user: types.User(id: const Uuid().v4()),
@@ -426,11 +430,15 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
   String _getStamperName(String address) {
     final artists = widget.payload.token.getArtists;
+    artists.removeWhere((element) => element.id == null);
     final artist = artists.firstWhereOrNull((element) => element.id == address);
+    late final int index;
     if (artists.isEmpty || artist == null) {
-      return "";
+      index = artists.length + 1;
+    } else {
+      index = artists.indexOf(artist) + 1;
     }
-    return "Stamper ${artists.indexOf(artist) + 1}";
+    return "Stamper $index";
   }
 
   DefaultChatTheme get _chatTheme {
