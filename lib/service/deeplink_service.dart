@@ -363,7 +363,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
           break;
         }
         if (type == "claim_empty_postcard" && id != null) {
-          _handleClaimEmptyPostcardDeeplink(id);
+          final requiredOTP = id == POSTCARD_ONSITE_REQUEST_ID;
+          if (requiredOTP) {
+            final otp = _getOtpFromBranchData(data);
+            if (otp == null) {
+              log.info("[DeeplinkService] MoMA onsite otp is null");
+              return;
+            }
+            if (otp.isExpired) {
+              log.info("[DeeplinkService] MoMA onsite otp is expired");
+              return;
+            }
+            _handleClaimEmptyPostcardDeeplink(id, otp: otp.code);
+          } else {
+            _handleClaimEmptyPostcardDeeplink(id);
+          }
           return;
         }
         final String? sharedCode = data["share_code"];
@@ -518,19 +532,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
   }
 
-  _handleClaimEmptyPostcardDeeplink(String? id) async {
+  _handleClaimEmptyPostcardDeeplink(String? id, {String? otp}) async {
     if (id == null) {
       return;
     }
     try {
       final claimRequest = await _postcardService
-          .requestPostcard(RequestPostcardRequest(id: id));
+          .requestPostcard(RequestPostcardRequest(id: id, otp: otp));
       _navigationService.navigateTo(
         AppRouter.claimEmptyPostCard,
         arguments: claimRequest,
       );
     } catch (e) {
       log.info("[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e");
+
+      /// should refactor this, now dialog should show that qr code is expired
       _navigationService.showPostcardRunOut();
     }
   }
