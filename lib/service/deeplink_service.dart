@@ -372,6 +372,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             }
             if (otp.isExpired) {
               log.info("[DeeplinkService] MoMA onsite otp is expired");
+              _navigationService.showPostcardQRCodeExpired();
               return;
             }
             _handleClaimEmptyPostcardDeeplink(id, otp: otp.code);

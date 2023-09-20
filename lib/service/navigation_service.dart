@@ -358,8 +358,7 @@ class NavigationService {
   Future<void> showPostcardQRCodeExpired() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
-      /// should refactor this, now dialog should show that qr code is expired
-      // await UIHelper.showPostcardRunOut(navigatorKey.currentContext!);
+      await UIHelper.showPostcardQRExpired(navigatorKey.currentContext!);
     }
   }
 }
