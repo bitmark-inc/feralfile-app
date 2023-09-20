@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
@@ -533,6 +534,9 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (url.isEmpty) {
+      return SvgPicture.asset("assets/images/default_avatar.svg");
+    }
     return SizedBox(
         width: 41, height: 41, child: CachedNetworkImage(imageUrl: url));
   }
