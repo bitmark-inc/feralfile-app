@@ -169,15 +169,18 @@ class ClaimPostCardResponse {
 
 class RequestPostcardRequest {
   final String id;
+  final String? otp;
 
   RequestPostcardRequest({
     required this.id,
+    this.otp
   });
 
   // fromJson method
   factory RequestPostcardRequest.fromJson(Map<String, dynamic> json) {
     return RequestPostcardRequest(
       id: json['id'] as String,
+      otp: json['otp'] as String?,
     );
   }
 
@@ -185,6 +188,7 @@ class RequestPostcardRequest {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'id': id,
+      'totpCode': otp,
     };
   }
 }
