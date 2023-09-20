@@ -463,6 +463,7 @@ class PostcardServiceImpl extends PostcardService {
     return "tez-${Environment.postcardContractAddress}-$id";
   }
 
+  @override
   Future<AssetToken> claimEmptyPostcardToAddress(
       {required String address,
       required RequestPostcardResponse requestPostcardResponse}) async {
