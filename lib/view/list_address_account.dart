@@ -172,7 +172,7 @@ class AddressItem extends StatelessWidget {
                             : cryptoType == CryptoType.XTZ
                                 ? 'Tezos'
                                 : '',
-                    style: theme.textTheme.ppMori700Black14,
+                    style: theme.textTheme.ppMori400Black14,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

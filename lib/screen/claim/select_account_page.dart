@@ -140,6 +140,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryAsyncButton(
                 text: "h_confirm".tr(),
+                enabled: _selectedAddress != null,
                 onTap: () async {
                   if (widget.fromWebview == true) {
                     Navigator.pop(context, _selectedAddress);
