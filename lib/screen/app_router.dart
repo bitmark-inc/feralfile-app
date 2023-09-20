@@ -16,8 +16,6 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
-import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
@@ -85,9 +83,11 @@ import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
@@ -921,6 +921,7 @@ class AppRouter {
               return ClaimTokenPage(
                 series: args.series,
                 otp: args.otp,
+                allowViewOnlyClaim: args.allowViewOnlyClaim,
               );
             });
 
@@ -946,6 +947,7 @@ class AppRouter {
                   artwork: args.artwork,
                   otp: args.otp,
                   fromWebview: args.fromWebview,
+                  withViewOnly: args.withViewOnly,
                 ),
               );
             });

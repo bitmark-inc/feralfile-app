@@ -88,7 +88,8 @@ abstract class AccountService {
 
   Future<List<AddressIndex>> getAllAddressIndexes();
 
-  Future<List<String>> getAddress(String blockchain);
+  Future<List<String>> getAddress(String blockchain,
+      {bool withViewOnly = false});
 
   Future<List<AddressIndex>> getHiddenAddressIndexes();
 
@@ -532,7 +533,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<List<String>> getAddress(String blockchain) async {
+  Future<List<String>> getAddress(String blockchain,
+      {bool withViewOnly = false}) async {
     final addresses = <String>[];
     // Full accounts
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -549,6 +551,19 @@ class AccountServiceImpl extends AccountService {
             addresses.addAll(await persona.getEthAddresses());
           }
           break;
+      }
+    }
+
+    if (withViewOnly) {
+      final connections =
+          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+      for (var connection in connections) {
+        if (connection.accountNumber.isEmpty) continue;
+        final crytoType =
+            CryptoType.fromAddress(connection.accountNumber).source;
+        if (crytoType.toLowerCase() == blockchain.toLowerCase()) {
+          addresses.add(connection.accountNumber);
+        }
       }
     }
 
