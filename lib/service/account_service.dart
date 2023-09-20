@@ -555,7 +555,8 @@ class AccountServiceImpl extends AccountService {
     }
 
     if (withViewOnly) {
-      final connections = await _cloudDB.connectionDao.getConnections();
+      final connections =
+          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       for (var connection in connections) {
         if (connection.accountNumber.isEmpty) continue;
         final crytoType =

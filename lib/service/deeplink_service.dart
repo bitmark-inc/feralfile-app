@@ -394,7 +394,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.navigateTo(
             AppRouter.claimAirdropPage,
             arguments: ClaimTokenPagePayload(
-                claimID: "", shareCode: sharedInfor.shareCode, series: series),
+                claimID: "",
+                shareCode: sharedInfor.shareCode,
+                series: series,
+                allowViewOnlyClaim: true),
           );
         } else {
           _navigationService.waitTooLongDialog();
