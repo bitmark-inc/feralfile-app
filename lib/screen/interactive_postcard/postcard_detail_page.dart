@@ -317,7 +317,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     Navigator.of(context).pushNamed(
       ChatThreadPage.tag,
       arguments: ChatThreadPagePayload(
-          tokenId: asset.id,
+          token: asset,
           wallet: wallet.first,
           address: asset.owner,
           index: wallet.second,
