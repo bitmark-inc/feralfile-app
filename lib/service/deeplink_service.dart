@@ -546,8 +546,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } catch (e) {
       log.info("[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e");
 
-      /// should refactor this, now dialog should show that qr code is expired
-      _navigationService.showPostcardRunOut();
+      if (otp == null) {
+        _navigationService.showPostcardRunOut();
+      } else {
+        _navigationService.showPostcardQRCodeExpired();
+      }
     }
   }
 

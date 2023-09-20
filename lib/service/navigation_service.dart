@@ -26,6 +26,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -351,6 +352,14 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showPostcardRunOut(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showPostcardQRCodeExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      /// should refactor this, now dialog should show that qr code is expired
+      // await UIHelper.showPostcardRunOut(navigatorKey.currentContext!);
     }
   }
 }
