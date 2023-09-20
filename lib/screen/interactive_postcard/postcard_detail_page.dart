@@ -561,6 +561,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 height: 20,
                               ),
                             ],
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 16, right: 15),
+                              child: Text(
+                                "send_postcard_to_someone_else".tr(),
+                                style: theme.textTheme.moMASans400Black12,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
                             _postcardInfo(context, state),
                             const SizedBox(
                               height: 20,
