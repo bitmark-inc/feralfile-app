@@ -99,8 +99,35 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           addresses.add(tezosAddress.first);
         }
       }
+      List<Account> viewOnlyAccounts = [];
+      if (event.includeLinkedAccount) {
+        final connections = await _cloudDB.connectionDao.getConnections();
+        final categorizedConnection = [];
+        if (event.getTezos) {
+          final tezosConnections = connections.where((connection) {
+            final crytoType =
+                CryptoType.fromAddress(connection.accountNumber).source;
+            return crytoType == CryptoType.XTZ.source;
+          }).toList();
+          categorizedConnection.addAll(tezosConnections);
+        }
+        if (event.getEth) {
+          final ethConnections = connections.where((connection) {
+            final crytoType =
+                CryptoType.fromAddress(connection.accountNumber).source;
+            return crytoType == CryptoType.ETH.source;
+          }).toList();
+          categorizedConnection.addAll(ethConnections);
+        }
+        viewOnlyAccounts.addAll(
+          categorizedConnection.map(
+            (e) => _getAccountFromConnectionAddress(e, e.accountNumber),
+          ),
+        );
+      }
 
       List<Account> accounts = await getAccountPersona(addresses);
+      accounts.addAll(viewOnlyAccounts);
       accounts.sort(_compareAccount);
       emit(state.copyWith(accounts: accounts));
     });

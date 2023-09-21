@@ -20,7 +20,7 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool autoAddAddress;
 
   GetCategorizedAccountsEvent({
-    this.includeLinkedAccount = true,
+    this.includeLinkedAccount = false,
     this.getTezos = true,
     this.getEth = true,
     this.autoAddAddress = false,
@@ -72,6 +72,8 @@ class Account {
 
   String get className =>
       persona != null && walletAddress != null ? "Persona" : "Connection";
+
+  bool get isViewOnly => persona == null && walletAddress == null;
 
   Account({
     required this.key,

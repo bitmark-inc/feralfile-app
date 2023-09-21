@@ -317,7 +317,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     Navigator.of(context).pushNamed(
       ChatThreadPage.tag,
       arguments: ChatThreadPagePayload(
-          tokenId: asset.id,
+          token: asset,
           wallet: wallet.first,
           address: asset.owner,
           index: wallet.second,
@@ -638,20 +638,44 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         },
       );
     }
+    final sendPostcardExplain = [
+      const SizedBox(
+        height: 20,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 16, right: 15),
+        child: Text(
+          "send_postcard_to_someone_else".tr(),
+          style: theme.textTheme.moMASans400Black12,
+        ),
+      ),
+    ];
     if (!state.isSending()) {
       timer?.cancel();
-      return PostcardAsyncButton(
-        text: "invite_to_collaborate".tr(),
-        onTap: () async {
-          await _sharePostcard(context, asset);
-          setState(() {});
-        },
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PostcardAsyncButton(
+            text: "invite_to_collaborate".tr(),
+            onTap: () async {
+              await _sharePostcard(context, asset);
+              setState(() {});
+            },
+          ),
+          ...sendPostcardExplain,
+        ],
       );
     } else {
-      return PostcardButton(
-        text: "postcard_sent".tr(),
-        disabledColor: AppColor.momaGreen,
-        enabled: false,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PostcardButton(
+            text: "postcard_sent".tr(),
+            disabledColor: AppColor.momaGreen,
+            enabled: false,
+          ),
+          ...sendPostcardExplain,
+        ],
       );
     }
   }

@@ -39,6 +39,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -345,7 +346,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   _showRemoveCustomerSupport() async {
     final device = DeviceInfo.instance;
     if (!(await device.isSupportOS())) {
-      final dio = Dio(BaseOptions(
+      final dio = baseDio(BaseOptions(
         baseUrl: "https://raw.githubusercontent.com",
         connectTimeout: const Duration(seconds: 5),
       ));

@@ -20,11 +20,17 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
+  Future<void> setShowedPostcardChatBanner(String key,
+      {String type = "private_chat"});
+
+  int? getShowedPostcardChatBanner(String key, {String type = "private_chat"});
+
   Future<void> setDidMigrateAddress(bool value);
 
   bool getDidMigrateAddress();
@@ -292,6 +298,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_POSTCARD_CHAT_BANNER = "postcard_chat_banner";
   static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
   static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
   static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
@@ -1304,5 +1311,30 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidMigrateAddress(bool value) async {
     await _preferences.setBool(KEY_DID_MIGRATE_ADDRESS, value);
+  }
+
+  @override
+  int? getShowedPostcardChatBanner(String key, {String type = "private_chat"}) {
+    final prefix = "$key||$type";
+    final listElement =
+        _preferences.getStringList(KEY_POSTCARD_CHAT_BANNER) ?? [];
+    final element =
+        listElement.firstWhereOrNull((element) => element.contains(prefix));
+    if (element == null) {
+      setShowedPostcardChatBanner(key, type: type);
+      return null;
+    }
+    return int.tryParse(element.split(":").last);
+  }
+
+  @override
+  Future<void> setShowedPostcardChatBanner(String key,
+      {String type = "private_chat"}) async {
+    final prefix = "$key||$type";
+    final listElement =
+        _preferences.getStringList(KEY_POSTCARD_CHAT_BANNER) ?? [];
+    listElement.removeWhere((element) => element.contains(prefix));
+    listElement.add("$prefix:${DateTime.now().millisecondsSinceEpoch}");
+    await _preferences.setStringList(KEY_POSTCARD_CHAT_BANNER, listElement);
   }
 }

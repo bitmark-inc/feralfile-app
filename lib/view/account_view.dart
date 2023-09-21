@@ -229,3 +229,17 @@ Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
     ),
   );
 }
+
+Widget viewOnlyLabel(BuildContext context) {
+  final theme = Theme.of(context);
+  return Container(
+    decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border.all(color: AppColor.auGrey),
+        borderRadius: BorderRadius.circular(20)),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      child: Text("view_only".tr(), style: theme.textTheme.ppMori400Grey14),
+    ),
+  );
+}

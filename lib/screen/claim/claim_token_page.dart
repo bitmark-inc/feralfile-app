@@ -33,21 +33,25 @@ import 'package:url_launcher/url_launcher.dart';
 class ClaimTokenPageArgs {
   final FFSeries series;
   final Otp? otp;
+  final bool allowViewOnlyClaim;
 
   ClaimTokenPageArgs({
     required this.series,
     this.otp,
+    this.allowViewOnlyClaim = false,
   });
 }
 
 class ClaimTokenPage extends StatefulWidget {
   final FFSeries series;
   final Otp? otp;
+  final bool allowViewOnlyClaim;
 
   const ClaimTokenPage({
     Key? key,
     required this.series,
     this.otp,
+    this.allowViewOnlyClaim = false,
   }) : super(key: key);
 
   @override
@@ -251,8 +255,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                 .capitalize() ??
                             "Tezos";
                         final accountService = injector<AccountService>();
-                        final addresses =
-                            await accountService.getAddress(blockchain);
+                        final addresses = await accountService.getAddress(
+                            blockchain,
+                            withViewOnly: widget.allowViewOnlyClaim);
 
                         String? address;
                         if (addresses.isEmpty) {
@@ -282,6 +287,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                               blockchain,
                               widget.series,
                               widget.otp,
+                              withViewOnly: widget.allowViewOnlyClaim,
                             ),
                           );
                         }

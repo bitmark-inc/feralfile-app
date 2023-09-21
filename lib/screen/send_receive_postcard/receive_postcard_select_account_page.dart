@@ -66,8 +66,10 @@ class _ReceivePostcardSelectAccountPageState
   }
 
   void _callAccountEvent() {
-    context.read<AccountsBloc>().add(
-        GetCategorizedAccountsEvent(getEth: !_isTezos, getTezos: _isTezos));
+    context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+        getEth: !_isTezos,
+        getTezos: _isTezos,
+        includeLinkedAccount: widget.withLinked));
   }
 
   @override

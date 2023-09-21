@@ -67,7 +67,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
-import 'package:autonomy_flutter/util/isolated_util.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
@@ -131,12 +131,19 @@ Future<void> setup() async {
     migrateCloudV7ToV8,
   ]).build();
 
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  );
+  final dio = baseDio(dioOptions);
+
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
   await NftCollection.initNftCollection(
-    indexerUrl: Environment.indexerURL,
-    logger: log,
-    apiLogger: apiLog,
-  );
+      indexerUrl: Environment.indexerURL,
+      logger: log,
+      apiLogger: apiLog,
+      dio: dio);
   injector
       .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
   injector.registerLazySingleton(() => NftCollection.prefs);
@@ -147,17 +154,6 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
   injector.registerLazySingleton(() => cloudDB);
-
-  final BaseOptions dioOptions = BaseOptions(
-    followRedirects: true,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  );
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(LoggingInterceptor());
-  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
-  dio.options = dioOptions;
-  dio.addSentry();
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
@@ -298,13 +294,13 @@ Future<void> setup() async {
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
   injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
-      _feralFileDio(dioOptions),
+      feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      _postcardDio(dioOptions.copyWith(
+      postcardDio(dioOptions.copyWith(
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30))),
       baseUrl: Environment.auClaimAPIURL));
@@ -359,11 +355,11 @@ Future<void> setup() async {
       .registerLazySingleton<NotificationService>(() => NotificationService());
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
-      _airdropDio(dioOptions.copyWith(followRedirects: true)),
+      airdropDio(dioOptions.copyWith(followRedirects: true)),
       baseUrl: Environment.autonomyAirdropURL));
 
   injector.registerLazySingleton<ActivationApi>(() => ActivationApi(
-      _airdropDio(dioOptions.copyWith(followRedirects: true)),
+      airdropDio(dioOptions.copyWith(followRedirects: true)),
       baseUrl: Environment.autonomyActivationURL));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
@@ -399,51 +395,4 @@ Future<void> setup() async {
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
-}
-
-Dio _feralFileDio(BaseOptions options) {
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(LoggingInterceptor());
-  dio.interceptors.add(FeralfileAuthInterceptor());
-  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
-  dio.interceptors.add(RetryInterceptor(
-    dio: dio,
-    logPrint: (message) {
-      log.warning("[request retry] $message");
-    },
-    retryDelays: const [
-      // set delays between retries
-      Duration(seconds: 1),
-      Duration(seconds: 2),
-      Duration(seconds: 3),
-    ],
-  ));
-  dio.options = options;
-  dio.addSentry();
-  return dio;
-}
-
-Dio _postcardDio(BaseOptions options) {
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(LoggingInterceptor());
-  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.options = options;
-  dio.addSentry();
-  return dio;
-}
-
-Dio _airdropDio(BaseOptions options) {
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(AutonomyAuthInterceptor());
-  (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AirdropInterceptor());
-  dio.options = options;
-  dio.addSentry();
-  return dio;
-}
-
-parseJson(String text) {
-  return IsolatedUtil().parseAndDecode(text);
 }

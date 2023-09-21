@@ -921,6 +921,7 @@ class AppRouter {
               return ClaimTokenPage(
                 series: args.series,
                 otp: args.otp,
+                allowViewOnlyClaim: args.allowViewOnlyClaim,
               );
             });
 
@@ -946,6 +947,7 @@ class AppRouter {
                   artwork: args.artwork,
                   otp: args.otp,
                   fromWebview: args.fromWebview,
+                  withViewOnly: args.withViewOnly,
                 ),
               );
             });

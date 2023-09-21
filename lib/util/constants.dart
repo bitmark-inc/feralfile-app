@@ -101,7 +101,7 @@ List<String> get momaMementoContractAddresses {
 const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
 
 const MEMENTO_6_SERIES_ID_MAINNET = "2b75da9b-c605-4842-bf59-8e2e1fe04be6";
-const MEMENTO_6_SERIES_ID_TESTNET = "b95fc2e8-c7ca-4db8-9f81-7bd231ff1c48";
+const MEMENTO_6_SERIES_ID_TESTNET = "420f4f8e-f45f-4627-b36c-e9fa5bf6af43";
 
 String get memento6SeriesId => Environment.appTestnetConfig
     ? MEMENTO_6_SERIES_ID_TESTNET
@@ -180,6 +180,8 @@ const CONNECT_FAILED_DURATION = Duration(seconds: 10);
 const int COLLECTION_INITIAL_MIN_SIZE = 20;
 
 const int LEADERBOARD_PAGE_SIZE = 50;
+
+const String POSTCARD_ONSITE_REQUEST_ID = "moma-postcard-onsite";
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
