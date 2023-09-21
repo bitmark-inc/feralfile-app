@@ -421,8 +421,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
         final identityState = context.watch<IdentityBloc>().state;
         final asset = state.assetToken!;
-
-        final artistNames = asset.getArtists
+        final artistNames = (asset.getArtists.isEmpty
+                ? [Artist(name: "no_artists".tr())]
+                : asset.getArtists)
             .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
