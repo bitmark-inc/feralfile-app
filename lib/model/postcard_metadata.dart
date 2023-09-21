@@ -220,7 +220,7 @@ class Location {
 
   Future<String> getAddress() async {
     if (isNull) {
-      return internetUserGeoLocation.address;
+      return internetUserGeoLocation.address!;
     }
     return getLocationNameFromCoordinates(lat!, lon!);
   }

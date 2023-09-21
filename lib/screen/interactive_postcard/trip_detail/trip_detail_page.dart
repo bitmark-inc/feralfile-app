@@ -101,7 +101,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        travelInfo.sentLocation ?? "",
+                        travelInfo.from.address ?? "",
                         style: theme.textTheme.moMASans400White14,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
@@ -117,7 +117,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        travelInfo.receivedLocation ?? "",
+                        travelInfo.to.address ?? "",
                         style: theme.textTheme.moMASans400White14,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,

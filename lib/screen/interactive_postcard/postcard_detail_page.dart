@@ -1089,15 +1089,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           : const SizedBox();
                       final emptyDividerIfNeed =
                           withDivider ? emptyDivider : const SizedBox();
-                      if (e.to == null) {
-                        if (postcardDetailState.isSending() &&
-                            postcardDetailState.isLastOwner) {
-                          return [
-                            _sendingTripItem(context, asset, lastTravelInfo),
-                            emptyDividerIfNeed,
-                          ];
-                        }
-                        return e.from.stampedLocation?.isInternet == true
+                      if (e.to == completeGeoLocation) {
+                        return e.from.isInternet == true
                             ? [_webCompleteTravelWidget(e), divider]
                             : [_completeTravelWidget(e), emptyDividerIfNeed];
                       }
@@ -1185,7 +1178,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          travelInfo.sentLocation ?? "",
+                          travelInfo.from.address ?? "",
                           style: theme.textTheme.moMASans400Black12
                               .copyWith(color: overrideColor),
                         ),
@@ -1200,7 +1193,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                travelInfo.receivedLocation ?? "-",
+                                travelInfo.to.address ?? "-",
                                 style: theme.textTheme.moMASans400Black12
                                     .copyWith(color: overrideColor),
                               ),
@@ -1276,7 +1269,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   style: theme.textTheme.moMASans400Black12.copyWith(
                       color: overrideColor ?? AppColor.auQuickSilver)),
               Text(
-                travelInfo.sentLocation ?? "",
+                travelInfo.to.address ?? "",
                 style: theme.textTheme.moMASans400Black12
                     .copyWith(color: overrideColor),
               ),
@@ -1304,7 +1297,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         Row(
           children: [
             Text(
-              sendingTrip.sentLocation ?? "",
+              sendingTrip.from.address ?? "",
               style: theme.textTheme.moMASans400Black12,
             ),
           ],

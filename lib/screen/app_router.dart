@@ -95,7 +95,6 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.da
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
@@ -203,7 +202,6 @@ class AppRouter {
   static const claimEmptyPostCard = "claim_empty_postcard";
   static const selectAddressScreen = "select_address_screen";
   static const receivePostcardPage = 'receive_postcard_page';
-  static const postcardDetailPage = 'postcard_detail_page';
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
@@ -1087,28 +1085,6 @@ class AppRouter {
                   shareCode: args.shareCode,
                 ),
               );
-            });
-      case postcardDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(
-                  providers: [
-                    BlocProvider(create: (_) => TravelInfoBloc()),
-                    BlocProvider(
-                        create: (_) => PostcardDetailBloc(
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                            )),
-                    BlocProvider.value(value: accountsBloc),
-                    BlocProvider(create: (_) => identityBloc),
-                  ],
-                  child: PostcardDetailPage(
-                    asset: settings.arguments as AssetToken,
-                  ));
             });
       case receivePostcardSelectAccountPage:
         return CupertinoPageRoute(builder: (context) {

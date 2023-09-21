@@ -7,23 +7,23 @@
 
 import 'dart:math';
 
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/position_utils.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 
 class TravelInfo {
-  final UserLocations from;
-  final UserLocations? to;
+  GeoLocation from;
+  GeoLocation to;
   final int index;
-  String? sentLocation;
-  String? receivedLocation;
 
-  TravelInfo(this.from, this.to, this.index,
-      {this.sentLocation, this.receivedLocation});
+  TravelInfo(
+    this.from,
+    this.to,
+    this.index,
+  );
 
   TravelInfo copyWith({
-    UserLocations? from,
-    UserLocations? to,
+    GeoLocation? from,
+    GeoLocation? to,
     int? index,
     String? sentLocation,
     String? receivedLocation,
@@ -32,31 +32,27 @@ class TravelInfo {
       from ?? this.from,
       to ?? this.to,
       index ?? this.index,
-      sentLocation: sentLocation ?? this.sentLocation,
-      receivedLocation: receivedLocation ?? this.receivedLocation,
     );
   }
 
   double? getDistance() {
-    if (to == null) return null;
-    final fromStampedLocation = from.stampedLocation;
-    final toStampedLocation = to!.stampedLocation;
-    if (fromStampedLocation == null || toStampedLocation == null) {
+    final ignoreGeoLocation = [
+      notSendGeoLocation,
+      sendingGeoLocation,
+      completeGeoLocation
+    ];
+    if (ignoreGeoLocation.contains(from) || ignoreGeoLocation.contains(to)) {
       return null;
     }
-
-    if (fromStampedLocation.isInternet ||
-        toStampedLocation.isInternet ||
-        fromStampedLocation.isNull ||
-        toStampedLocation.isNull) {
+    if (from.isInternet || to.isInternet) {
       return 0;
     }
 
     return _getDistanceFromLatLonInKm(
-      fromStampedLocation.lat!,
-      fromStampedLocation.lon!,
-      toStampedLocation.lat!,
-      toStampedLocation.lon!,
+      from.position.lat!,
+      from.position.lon!,
+      to.position.lat!,
+      to.position.lon!,
     );
   }
 
@@ -79,27 +75,11 @@ class TravelInfo {
   }
 
   Future<void> _getSentLocation() async {
-    final stampedLocation = from.stampedLocation;
-    if (stampedLocation == null || stampedLocation.isInternet) {
-      sentLocation = internetUserGeoLocation.address;
-      return;
-    }
-    sentLocation = await getLocationNameFromCoordinates(
-        stampedLocation.lat!, stampedLocation.lon!);
+    await from.getAddress();
   }
 
   Future<void> _getReceivedLocation() async {
-    if (to == null) {
-      receivedLocation = null;
-    } else {
-      final stampLocation = to!.stampedLocation;
-      if (stampLocation == null || stampLocation.isInternet) {
-        receivedLocation = internetUserGeoLocation.address;
-        return;
-      }
-      receivedLocation = await getLocationNameFromCoordinates(
-          stampLocation.lat!, stampLocation.lon!);
-    }
+    await to.getAddress();
   }
 
   Future<void> getLocationName() async {
@@ -108,7 +88,7 @@ class TravelInfo {
   }
 
   bool get isInternet {
-    return from.stampedLocation?.isInternet == true;
+    return from.isInternet == true;
   }
 }
 
@@ -122,25 +102,5 @@ extension ListTravelInfo on List<TravelInfo> {
       totalDistance += travelInfo.getDistance() ?? 0;
     }
     return totalDistance;
-  }
-
-  TravelInfo get notSentTravelInfo {
-    if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 1,
-          sentLocation: moMAGeoLocation.address);
-    }
-    final lastTravelInfo = last;
-    return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
-        sentLocation: lastTravelInfo.receivedLocation);
-  }
-
-  TravelInfo get sendingTravelInfo {
-    if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 1,
-          sentLocation: moMAGeoLocation.address);
-    }
-    final lastTravelInfo = last;
-    return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
-        sentLocation: lastTravelInfo.receivedLocation);
   }
 }
