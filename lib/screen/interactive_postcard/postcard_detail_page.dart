@@ -11,6 +11,8 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/chat_message.dart' as app;
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
@@ -31,6 +33,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_de
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/postcard_chat_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -49,6 +52,7 @@ import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:collection/collection.dart';
@@ -58,11 +62,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
+import 'package:uuid/uuid.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -318,9 +324,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       ChatThreadPage.tag,
       arguments: ChatThreadPagePayload(
           token: asset,
-          wallet: wallet.first,
+          wallet: wallet,
           address: asset.owner,
-          index: wallet.second,
           cryptoType:
               asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
           name: asset.title ?? ''),
@@ -447,27 +452,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
-                  Visibility(
-                    visible: isViewOnly == false,
-                    child: Semantics(
-                      label: 'chat',
-                      child: IconButton(
-                        onPressed: () async {
-                          gotoChatThread(context);
-                        },
-                        constraints: const BoxConstraints(
-                          maxWidth: 44,
-                          maxHeight: 44,
-                        ),
-                        icon: SvgPicture.asset(
-                          'assets/images/icon_chat.svg',
-                          width: 22,
-                          colorFilter: const ColorFilter.mode(
-                              AppColor.primaryBlack, BlendMode.srcIn),
-                        ),
-                      ),
-                    ),
-                  ),
                   Semantics(
                     label: 'externalLink',
                     child: const ExternalLink(
@@ -515,6 +499,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               ),
               body: Column(
                 children: [
+                  state.assetToken == null
+                      ? const SizedBox()
+                      : Padding(
+                          padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                          child: MessagePreview(
+                              payload: MessagePreviewPayload(
+                                  asset: state.assetToken!)),
+                        ),
                   Expanded(
                     child: Padding(
                       padding: ResponsiveLayout.getPadding,
@@ -1419,4 +1411,181 @@ class PostcardContainer extends StatelessWidget {
       child: child,
     );
   }
+}
+
+class MessagePreview extends StatefulWidget {
+  final MessagePreviewPayload payload;
+
+  const MessagePreview({Key? key, required this.payload}) : super(key: key);
+
+  @override
+  State<MessagePreview> createState() => _MessagePreviewState();
+}
+
+class _MessagePreviewState extends State<MessagePreview> {
+  final PostcardChatService _postcardChatService =
+      PostcardChatService(maintainConnection: false);
+  Pair<WalletStorage, int>? _wallet;
+  app.Message? _lastMessage;
+  late AssetToken _assetToken;
+  int _newMessageCount = 0;
+  final String _fetchId = const Uuid().v4();
+
+  @override
+  void initState() {
+    super.initState();
+    _assetToken = widget.payload.asset;
+    _websocketInit();
+  }
+
+  Future<void> _websocketInit() async {
+    _newMessageCount = 0;
+    final wallet = await widget.payload.asset.getOwnerWallet();
+    if (wallet == null) {
+      return;
+    }
+    _wallet = wallet;
+    final address = widget.payload.asset.owner;
+    final id = widget.payload.asset.id;
+    await _postcardChatService.connect(
+        address: address, id: id, wallet: wallet);
+    _postcardChatService.addListener(
+        onNewMessages: (newMessages) {
+          if (newMessages.isNotEmpty) {
+            _refreshLastMessage(newMessages);
+          }
+        },
+        onResponseMessage: (_, __) {},
+        onResponseMessageReturnPayload: (newMessages, id) {
+          if (newMessages.isNotEmpty) {
+            _refreshLastMessage(newMessages);
+          }
+        },
+        onDoneCalled: () {});
+
+    log.info("[CHAT] getHistory");
+
+    _postcardChatService.sendMessage(json.encode({
+      "command": "HISTORY",
+      "id": _fetchId,
+      "payload": {
+        "lastTimestamp": DateTime.now().millisecondsSinceEpoch,
+      }
+    }));
+  }
+
+  void _refreshLastMessage(List<app.Message> messages) {
+    final chatConfig = injector<ConfigurationService>().getPostcardChatConfig(
+        address: widget.payload.asset.owner, id: widget.payload.asset.id);
+    final lastReadMessageTimestamp = chatConfig.lastMessageReadTimeStamp ?? 0;
+    int addedNewMessage = messages
+        .indexWhere((element) => element.timestamp < lastReadMessageTimestamp);
+    if (addedNewMessage == -1) {
+      addedNewMessage = messages.length;
+    }
+    _newMessageCount += addedNewMessage;
+    final lastMessageTimestamp = _lastMessage?.timestamp ?? 0;
+    if (messages.first.timestamp >= lastMessageTimestamp) {
+      _lastMessage = messages.first;
+    }
+    if (context.mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: AppColor.white,
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _wallet == null
+              ? const Row(
+                  children: [Spacer()],
+                )
+              : TappableForwardRow(
+                  padding: const EdgeInsets.all(0),
+                  leftWidget: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      RichText(
+                        text: TextSpan(children: [
+                          TextSpan(
+                              text: "messages".tr(),
+                              style: theme.textTheme.moMASans700Black18),
+                          TextSpan(
+                              text: "        ",
+                              style: theme.textTheme.moMASans700Black18),
+                          TextSpan(
+                            text: _getNewMessageString(_newMessageCount),
+                            style: theme.textTheme.moMASans400Black14.copyWith(
+                                color: const Color.fromRGBO(236, 100, 99, 1),
+                                fontSize: 10),
+                          )
+                        ]),
+                      )
+                    ],
+                  ),
+                  onTap: () async {
+                    await _postcardChatService.disconnect();
+                    if (!mounted) return;
+                    await Navigator.of(context).pushNamed(
+                      ChatThreadPage.tag,
+                      arguments: ChatThreadPagePayload(
+                          token: _assetToken,
+                          wallet: _wallet!,
+                          address: _assetToken.owner,
+                          cryptoType: _assetToken.blockchain == "ethereum"
+                              ? CryptoType.ETH
+                              : CryptoType.XTZ,
+                          name: _assetToken.title ?? ''),
+                    );
+                    setState(() {
+                      _websocketInit();
+                    });
+                  },
+                ),
+          const SizedBox(height: 20),
+          _lastMessage == null
+              ? const SizedBox()
+              : Row(
+                  children: [
+                    MessageView(
+                      message: _lastMessage!.toTypesMessage(),
+                      assetToken: _assetToken,
+                      text: _lastMessage!.message,
+                    )
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+
+  String _getNewMessageString(int num) {
+    if (num == 0) {
+      return "";
+    }
+    if (num > 99) {
+      return "99+ new";
+    }
+    return "$num new";
+  }
+
+  @override
+  void dispose() {
+    _postcardChatService.disconnect();
+    super.dispose();
+  }
+}
+
+class MessagePreviewPayload {
+  final AssetToken asset;
+
+  const MessagePreviewPayload({required this.asset});
 }

@@ -633,4 +633,18 @@ extension PostcardExtension on AssetToken {
     final owner = this.owner;
     return listArtists.indexWhere((element) => owner == element.id);
   }
+
+  String getStamperName(String address) {
+    final artists = getArtists;
+    artists.removeWhere((element) => element.id == null);
+    final artist = artists.firstWhereOrNull((element) => element.id == address);
+    late final int index;
+    if (artists.isEmpty || artist == null) {
+      index = artists.length + 1;
+    } else {
+      index = artists.indexOf(artist) + 1;
+    }
+    return "Stamper $index";
+  }
+
 }

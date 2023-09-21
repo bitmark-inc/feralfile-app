@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -26,10 +27,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
-  Future<void> setShowedPostcardChatBanner(String key,
-      {String type = "private_chat"});
+  Future<void> setPostcardChatConfig(PostcardChatConfig config);
 
-  int? getShowedPostcardChatBanner(String key, {String type = "private_chat"});
+  PostcardChatConfig getPostcardChatConfig(
+      {required String address, required String id});
 
   Future<void> setDidMigrateAddress(bool value);
 
@@ -298,7 +299,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String KEY_POSTCARD_CHAT_BANNER = "postcard_chat_banner";
+  static const String KEY_POSTCARD_CHAT_CONFIG = "postcard_chat_config";
   static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
   static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
   static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
@@ -1101,15 +1102,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(POSTCARD_MINT, tokenID);
     } else {
-      var currentPortcardMints =
+      var currentPostcardMints =
           _preferences.getStringList(POSTCARD_MINT) ?? [];
       if (isRemoved) {
-        currentPortcardMints
+        currentPostcardMints
             .removeWhere((element) => tokenID.contains(element));
       } else {
-        currentPortcardMints.addAll(tokenID);
+        currentPostcardMints.addAll(tokenID);
       }
-      await _preferences.setStringList(POSTCARD_MINT, currentPortcardMints);
+      await _preferences.setStringList(POSTCARD_MINT, currentPostcardMints);
     }
   }
 
@@ -1314,27 +1315,30 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  int? getShowedPostcardChatBanner(String key, {String type = "private_chat"}) {
-    final prefix = "$key||$type";
-    final listElement =
-        _preferences.getStringList(KEY_POSTCARD_CHAT_BANNER) ?? [];
-    final element =
-        listElement.firstWhereOrNull((element) => element.contains(prefix));
-    if (element == null) {
-      setShowedPostcardChatBanner(key, type: type);
-      return null;
-    }
-    return int.tryParse(element.split(":").last);
+  PostcardChatConfig getPostcardChatConfig(
+      {required String address, required String id}) {
+    final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
+    final chatConfigs =
+        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList();
+    return chatConfigs.firstWhereOrNull(
+            (element) => element.address == address && element.tokenId == id) ??
+        PostcardChatConfig(address: address, tokenId: id);
   }
 
   @override
-  Future<void> setShowedPostcardChatBanner(String key,
-      {String type = "private_chat"}) async {
-    final prefix = "$key||$type";
-    final listElement =
-        _preferences.getStringList(KEY_POSTCARD_CHAT_BANNER) ?? [];
-    listElement.removeWhere((element) => element.contains(prefix));
-    listElement.add("$prefix:${DateTime.now().millisecondsSinceEpoch}");
-    await _preferences.setStringList(KEY_POSTCARD_CHAT_BANNER, listElement);
+  Future<void> setPostcardChatConfig(PostcardChatConfig config) async {
+    final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
+    final chatConfigs =
+        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList();
+    chatConfigs.removeWhere((element) =>
+        element.address == config.address && element.tokenId == config.tokenId);
+    chatConfigs.add(config);
+    await _preferences.setStringList(
+        KEY_POSTCARD_CHAT_CONFIG,
+        chatConfigs
+            .map((e) => jsonEncode(e.toJson()))
+            .toList()
+            .toSet()
+            .toList());
   }
 }
