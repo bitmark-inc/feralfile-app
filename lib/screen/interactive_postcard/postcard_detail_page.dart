@@ -999,6 +999,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final travelInfoWithoutInternetUser =
         asset.postcardMetadata.listTravelInfoWithoutLocationName;
     final currentStampNumber = asset.getArtists.length;
+    final numberFormatter = NumberFormat();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1053,16 +1054,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (travelInfo == null || lastTravelInfo == null) {
           return const SizedBox();
         }
-        const emptyDivider = SizedBox(
-          height: 20,
-        );
-        const verticalDivider = SizedBox(
-          height: 20,
-          child: VerticalDivider(
-            color: Colors.black,
-            thickness: 1,
-          ),
-        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1070,53 +1061,71 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(
               height: 32,
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (postcardDetailState.isSending() &&
-                    postcardDetailState.canDoAction)
-                  _sendingTripItem(context, asset, lastTravelInfo)
-                else
-                  _notSentItem(lastTravelInfo),
-                emptyDivider,
-                ...travelInfo.reversed
-                    .mapIndexed((int index, TravelInfo e) {
-                      final withDivider = index != travelInfo.length - 1;
-                      final divider = withDivider
-                          ? (travelInfo.reversed.toList()[index + 1].isInternet
-                              ? verticalDivider
-                              : emptyDivider)
-                          : const SizedBox();
-                      final emptyDividerIfNeed =
-                          withDivider ? emptyDivider : const SizedBox();
-                      if (e.to == completeGeoLocation) {
-                        return e.from.isInternet == true
-                            ? [_webCompleteTravelWidget(e), divider]
-                            : [_completeTravelWidget(e), emptyDividerIfNeed];
-                      }
-                      if (e.isInternet) {
-                        return [
-                          _webTravelWidget(e, onTap: () {
-                            _gotoTripDetail(context, e);
-                          }),
-                          divider,
-                        ];
-                      }
-                      return [
-                        _travelWidget(e, onTap: () {
-                          _gotoTripDetail(context, e);
-                        }),
-                        emptyDividerIfNeed
-                      ];
-                    })
-                    .toList()
-                    .flattened
-                    .toList(),
-              ],
-            ),
+            _postcardJourney(
+                context, postcardDetailState, travelInfo, lastTravelInfo)
           ],
         );
       },
+    );
+  }
+
+  Widget _postcardJourney(
+      BuildContext context,
+      PostcardDetailState postcardDetailState,
+      List<TravelInfo> travelInfo,
+      TravelInfo lastTravelInfo) {
+    final asset = postcardDetailState.assetToken;
+    const emptyDivider = SizedBox(
+      height: 20,
+    );
+    const verticalDivider = SizedBox(
+      height: 20,
+      child: VerticalDivider(
+        color: Colors.black,
+        thickness: 1,
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _locationAddress(context, address: moMAGeoLocation.address!, index: 1),
+        ...travelInfo
+            .mapIndexed((int index, TravelInfo e) {
+              final withDivider = index != travelInfo.length - 1;
+              final divider = withDivider
+                  ? (travelInfo.toList()[index + 1].isInternet
+                      ? verticalDivider
+                      : emptyDivider)
+                  : const SizedBox();
+              final emptyDividerIfNeed =
+                  withDivider ? emptyDivider : const SizedBox();
+              if (e.to == completeGeoLocation) {
+                return e.from.isInternet == true
+                    ? [_webCompleteTravelWidget(e), divider]
+                    : [_completeTravelWidget(e), emptyDividerIfNeed];
+              }
+              if (e.isInternet) {
+                return [
+                  _webTravelWidget(e, onTap: () {
+                    _gotoTripDetail(context, e);
+                  }),
+                  divider,
+                ];
+              }
+              return [
+                _travelWidget(e, onTap: () {
+                  _gotoTripDetail(context, e);
+                }),
+                emptyDividerIfNeed
+              ];
+            })
+            .toList()
+            .flattened
+            .toList(),
+        emptyDivider,
+        if (postcardDetailState.isSending() && postcardDetailState.canDoAction)
+          _sendingTripItem(context, asset!, travelInfo.length + 1)
+      ],
     );
   }
 
@@ -1158,71 +1167,80 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Widget _postcardJourneyArrow(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: VerticalDivider(
+        color: Colors.amber,
+        thickness: 1,
+      ),
+    );
+    return SvgPicture.asset(
+      "assets/images/postcard_arow.svg",
+      colorFilter: ColorFilter.mode(Colors.amber, BlendMode.srcIn),
+    );
+  }
+
+  Widget _postcardWebUserArrow(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: VerticalDivider(
+        color: Colors.black,
+        thickness: 1,
+      ),
+    );
+    return SvgPicture.asset("assets/images/postcard_arow.svg");
+  }
+
+  Widget _locationAddress(BuildContext context,
+      {required int index, required String address, Color? overrideColor}) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: () {},
+      child: Row(
+        children: [
+          Text(
+            numberFormatter.format(index),
+            style: theme.textTheme.moMASans400Black12.copyWith(
+              color: overrideColor ?? AppColor.auQuickSilver,
+            ),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            address ?? "",
+            style: theme.textTheme.moMASans400Black12
+                .copyWith(color: overrideColor),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _travelWidget(TravelInfo travelInfo,
       {Function()? onTap, Color? overrideColor}) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(numberFormatter.format(travelInfo.index),
-                        style: theme.textTheme.moMASans400Black12.copyWith(
-                            color: overrideColor ?? AppColor.auQuickSilver)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          travelInfo.from.address ?? "",
-                          style: theme.textTheme.moMASans400Black12
-                              .copyWith(color: overrideColor),
-                        ),
-                        Row(
-                          children: [
-                            SvgPicture.asset(
-                              "assets/images/arrow_3.svg",
-                              colorFilter: ColorFilter.mode(
-                                  overrideColor ?? AppColor.primaryBlack,
-                                  BlendMode.srcIn),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                travelInfo.to.address ?? "-",
-                                style: theme.textTheme.moMASans400Black12
-                                    .copyWith(color: overrideColor),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              distanceFormatter.format(
-                                  distance: travelInfo.getDistance()),
-                              style: theme.textTheme.moMASans700Black12
-                                  .copyWith(
-                                      color: overrideColor ??
-                                          const Color.fromRGBO(
-                                              131, 79, 196, 1)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Positioned.fill(
-              child: Container(
-            color: Colors.transparent,
-          ))
-        ],
-      ),
+    return Column(
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              height: 210,
+              width: 10,
+              child: _postcardJourneyArrow(context),
+            ),
+            const SizedBox(width: 30),
+            Text(
+              distanceFormatter.format(distance: travelInfo.getDistance()),
+              style: theme.textTheme.moMASans700Black12.copyWith(
+                  color:
+                      overrideColor ?? const Color.fromRGBO(131, 79, 196, 1)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _locationAddress(context,
+            address: travelInfo.to.address ?? "", index: travelInfo.index + 1),
+      ],
     );
   }
 
@@ -1284,36 +1302,27 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _sendingTripItem(
-      BuildContext context, AssetToken asset, TravelInfo sendingTrip) {
+  Widget _sendingTripItem(BuildContext context, AssetToken asset, int index) {
     final theme = Theme.of(context);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          numberFormatter.format(sendingTrip.index),
-          style: theme.textTheme.moMASans400Grey12,
-        ),
         Row(
           children: [
-            Text(
-              sendingTrip.from.address ?? "",
-              style: theme.textTheme.moMASans400Black12,
+            SizedBox(
+              height: 210,
+              width: 10,
+              child: _postcardJourneyArrow(context),
             ),
           ],
         ),
+        const SizedBox(height: 10),
         Row(
           children: [
-            SvgPicture.asset(
-              "assets/images/arrow_3.svg",
-              colorFilter: const ColorFilter.mode(
-                  AppColor.primaryBlack, BlendMode.srcIn),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              "waiting_for_recipient".tr(),
-              style: theme.textTheme.moMASans400Black12
-                  .copyWith(color: AppColor.auQuickSilver),
+            _locationAddress(
+              context,
+              address: "waiting_for_recipient".tr(),
+              index: index,
+              overrideColor: AppColor.auQuickSilver,
             ),
             const Spacer(),
             GestureDetector(
@@ -1339,10 +1348,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   Navigator.of(context).pop();
                 });
               },
-            ),
+            )
           ],
         ),
-        const SizedBox(height: 30),
       ],
     );
   }

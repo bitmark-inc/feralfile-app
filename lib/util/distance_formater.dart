@@ -34,15 +34,15 @@ class DistanceFormatter {
     }
     if (withFullName) {
       if (isMiles()) {
-        return '${_numberFormat.format(convertKmToMiles(distance))} miles';
+        return '+ ${_numberFormat.format(convertKmToMiles(distance))} miles';
       }
-      return '${_numberFormat.format(distance)} kilometers';
+      return '+ ${_numberFormat.format(distance)} kilometers';
     }
 
     if (isMiles()) {
-      return '${_numberFormat.format(convertKmToMiles(distance))} mi';
+      return '+ ${_numberFormat.format(convertKmToMiles(distance))} mi';
     }
-    return '${_numberFormat.format(distance)} km';
+    return '+ ${_numberFormat.format(distance)} km';
   }
 
   String showDistance(
