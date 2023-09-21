@@ -646,5 +646,4 @@ extension PostcardExtension on AssetToken {
     }
     return "Stamper $index";
   }
-
 }

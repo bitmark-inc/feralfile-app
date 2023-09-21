@@ -220,8 +220,8 @@ class HomePageState extends State<HomePage>
     }
 
     // Check if there is any Tezos token in the list
-    List<String> allAccountNumbers =
-        await injector<AccountService>().getAllAddresses(logHiddenAddress: true);
+    List<String> allAccountNumbers = await injector<AccountService>()
+        .getAllAddresses(logHiddenAddress: true);
     final hashedAddresses = allAccountNumbers.fold(
         0, (int previousValue, element) => previousValue + element.hashCode);
 
