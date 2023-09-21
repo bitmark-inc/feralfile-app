@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -233,10 +234,11 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               if (geoLocation == null) return;
               final metadataFilename =
                   '$contractAddress-$tokenId-$counter-metadata.json';
-              final claimLocation = asset
-                  .postcardMetadata.locationInformation.last.claimedLocation!;
+              final claimLocation =
+                  asset.postcardMetadata.locationInformation.lastOrNull ??
+                      moMAGeoLocation.position;
               final claimAddress = await claimLocation.getAddress();
-              final stampAddress = await geoLocation.position?.getAddress();
+              final stampAddress = await geoLocation.position.getAddress();
               final Map<String, dynamic> metadata = {
                 "address": stampAddress, // stamp address
                 "claimAddress": claimAddress,

@@ -352,8 +352,7 @@ class _StampPreviewState extends State<StampPreview> {
       if (widget.payload.location != null) {
         var postcardMetadata = asset.postcardMetadata;
         final stampedLocation = widget.payload.location!;
-        postcardMetadata.locationInformation.last.stampedLocation =
-            stampedLocation;
+        postcardMetadata.locationInformation.add(stampedLocation);
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
         final pendingToken = asset.copyWith(asset: newAsset);

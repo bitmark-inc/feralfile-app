@@ -632,4 +632,8 @@ extension PostcardExtension on AssetToken {
     final owner = this.owner;
     return listArtists.indexWhere((element) => owner == element.id);
   }
+
+  int get numberOwners {
+    return maxEdition ?? 0;
+  }
 }

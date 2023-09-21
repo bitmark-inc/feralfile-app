@@ -484,15 +484,13 @@ class PostcardServiceImpl extends PostcardService {
       timestamp: timestamp,
       publicKey: publicKey,
       signature: signature,
-      location: [moMAGeoLocation.position?.lat, moMAGeoLocation.position?.lon],
+      location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
       locationInformation: [
-        UserLocations(
-          claimedLocation: moMAGeoLocation.position,
-        )
+        moMAGeoLocation.position,
       ],
     );
     final token = AssetToken(
@@ -546,8 +544,6 @@ class PostcardServiceImpl extends PostcardService {
       address: address,
     );
     var postcardMetadata = assetToken.postcardMetadata;
-    postcardMetadata.locationInformation
-        .add(UserLocations(claimedLocation: location));
     var newAsset = assetToken.asset;
     newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
     final pendingToken = assetToken.copyWith(

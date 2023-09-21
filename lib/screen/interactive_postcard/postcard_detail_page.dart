@@ -1050,8 +1050,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       listener: (context, state) {},
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
-        final lastTravelInfo = state.lastTravelInfo;
-        if (travelInfo == null || lastTravelInfo == null) {
+        if (travelInfo == null) {
           return const SizedBox();
         }
         return Column(
@@ -1061,8 +1060,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(
               height: 32,
             ),
-            _postcardJourney(
-                context, postcardDetailState, travelInfo, lastTravelInfo)
+            _postcardJourney(context, postcardDetailState, travelInfo)
           ],
         );
       },
@@ -1070,10 +1068,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _postcardJourney(
-      BuildContext context,
-      PostcardDetailState postcardDetailState,
-      List<TravelInfo> travelInfo,
-      TravelInfo lastTravelInfo) {
+    BuildContext context,
+    PostcardDetailState postcardDetailState,
+    List<TravelInfo> travelInfo,
+  ) {
     final asset = postcardDetailState.assetToken;
     const emptyDivider = SizedBox(
       height: 20,

@@ -1,20 +1,29 @@
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
+import 'package:collection/collection.dart';
 
 class PostcardMetadata {
-  List<UserLocations> locationInformation;
+  List<Location> locationInformation;
 
   // constructor
   PostcardMetadata({required this.locationInformation});
 
   // from json method
   factory PostcardMetadata.fromJson(Map<String, dynamic> json) {
-    return PostcardMetadata(
+    final metadata = PostcardMetadata(
       locationInformation: (json['locationInformation'] as List<dynamic>)
-          .map((e) => UserLocations.fromJson(e as Map<String, dynamic>))
+          .map((e) {
+            final location = e['stampedLocation'] == null
+                ? null
+                : Location.fromJson(
+                    e['stampedLocation'] as Map<String, dynamic>);
+            return location;
+          })
+          .whereNotNull()
           .toList(),
     );
+    return metadata;
   }
 
   // to json method
@@ -107,61 +116,6 @@ class Royalties {
       'decimals': decimals,
       'shares': shares,
     };
-  }
-}
-
-class ArtworkData {
-  final List<UserLocations> locationInformation;
-
-  // constructor
-  ArtworkData({required this.locationInformation});
-
-  // from json method
-  factory ArtworkData.fromJson(Map<String, dynamic> json) {
-    return ArtworkData(
-      locationInformation: (json['locationInformation'] as List<dynamic>)
-          .map((e) => UserLocations.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
-}
-
-class UserLocations {
-  Location? claimedLocation;
-  Location? stampedLocation;
-
-  // constructor
-  UserLocations({this.claimedLocation, this.stampedLocation});
-
-  // from json method
-  factory UserLocations.fromJson(Map<String, dynamic> json) {
-    return UserLocations(
-      claimedLocation: json['claimedLocation'] == null
-          ? null
-          : Location.fromJson(json['claimedLocation'] as Map<String, dynamic>),
-      stampedLocation: json['stampedLocation'] == null
-          ? null
-          : Location.fromJson(json['stampedLocation'] as Map<String, dynamic>),
-    );
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'claimedLocation': claimedLocation?.toJson(),
-      'stampedLocation': stampedLocation?.toJson(),
-    };
-  }
-
-  //copyWith method
-  UserLocations copyWith({
-    Location? claimedLocation,
-    Location? stampedLocation,
-  }) {
-    return UserLocations(
-      claimedLocation: claimedLocation ?? this.claimedLocation,
-      stampedLocation: stampedLocation ?? this.stampedLocation,
-    );
   }
 }
 

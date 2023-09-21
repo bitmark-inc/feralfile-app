@@ -119,8 +119,7 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool get isPostcardUpdating {
-    return isStamping() ||
-        postcardValue?.counter != assetToken?.postcardMetadata.counter;
+    return isStamping() || postcardValue?.counter != assetToken?.numberOwners;
   }
 
   bool get isPostcardUpdatingOnBlockchain {

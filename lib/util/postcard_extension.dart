@@ -9,7 +9,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
   }
 
   bool get isStamped {
-    return locationInformation.last.stampedLocation != null;
+    return locationInformation.last != null;
   }
 
   bool get isFinalClaimed {
@@ -30,29 +30,26 @@ extension PostcardMetadataExtension on PostcardMetadata {
     int lastStampLocation = 0;
     for (int i = 1; i < stamps.length; i++) {
       final stamp = stamps[i];
-      if (!(stamp.stampedLocation?.isInternet ?? true)) {
-        final from = GeoLocation(
-            position: stamps[lastStampLocation].stampedLocation!,
-            address: null);
-        final to = GeoLocation(position: stamp.stampedLocation!, address: null);
+      if (!(stamp.isInternet ?? true)) {
+        final from =
+            GeoLocation(position: stamps[lastStampLocation], address: null);
+        final to = GeoLocation(position: stamp, address: null);
         travelInfo.add(
           TravelInfo(from, to, i),
         );
         lastStampLocation = i;
       } else {
-        final from = GeoLocation(
-            position: stamps[i - 1].stampedLocation!, address: null);
-        final to = GeoLocation(position: stamp.stampedLocation!, address: null);
+        final from = GeoLocation(position: stamps[i - 1], address: null);
+        final to = GeoLocation(position: stamp, address: null);
         travelInfo.add(TravelInfo(from, to, i));
       }
-      if (!(stamp.stampedLocation?.isInternet ?? true)) {
+      if (!(stamp.isInternet)) {
         lastStampLocation = i;
       }
     }
 
     if (isCompleted) {
-      final from =
-          GeoLocation(position: stamps.last.stampedLocation!, address: null);
+      final from = GeoLocation(position: stamps.last, address: null);
       final to = completeGeoLocation;
       travelInfo.add(TravelInfo(from, to, stamps.length));
     }
