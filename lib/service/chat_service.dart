@@ -25,24 +25,20 @@ abstract class ChatService {
     required Pair<WalletStorage, int> wallet,
   });
 
-  void addListener({
-    required Function(List<app.Message>) onNewMessages,
-    required Function(String messageId, String type) onResponseMessage,
-    required Function(List<app.Message> message, String id)
-        onResponseMessageReturnPayload,
-    required Function() onDoneCalled,
-  });
+  void addListener(ChatListener listener);
+
+  void removeListener();
 
   void sendMessage(dynamic message);
 
-  Future<void> disconnect();
+  Future<void> dispose();
 }
 
 class PostcardChatService implements ChatService {
-  final bool maintainConnection;
+  final List<PostcardChatListener> _listeners = [];
 
   //constructor
-  PostcardChatService({required this.maintainConnection});
+  PostcardChatService();
 
   WebSocketChannel? _websocketChannel;
   String? _address;
@@ -75,16 +71,9 @@ class PostcardChatService implements ChatService {
       pingInterval: const Duration(seconds: 50),
     );
     await _websocketChannel?.ready;
-  }
 
-  @override
-  void addListener({
-    required Function(List<app.Message>) onNewMessages,
-    required Function(String messageId, String type) onResponseMessage,
-    required Function(List<app.Message> message, String id)
-        onResponseMessageReturnPayload,
-    required Function() onDoneCalled,
-  }) {
+    // listen events
+
     _websocketChannel?.stream.listen(
       (event) {
         log.info("[CHAT] event: $event");
@@ -96,7 +85,9 @@ class PostcardChatService implements ChatService {
                       as List<dynamic>)
                   .map((e) => app.Message.fromJson(e as Map<String, dynamic>))
                   .toList();
-              onNewMessages(newMessages);
+              for (var element in _listeners) {
+                element.onNewMessages(newMessages);
+              }
             } catch (e) {
               log.info("[CHAT] NEW_MESSAGE error: $e");
             }
@@ -104,17 +95,23 @@ class PostcardChatService implements ChatService {
           case 'RESP':
             if (response.payload["ok"] != null &&
                 response.payload["ok"].toString() == "1") {
-              onResponseMessage(response.id, ChatService.SENT);
+              for (var element in _listeners) {
+                element.onResponseMessage(response.id, ChatService.SENT);
+              }
             } else if (response.payload["error"] != null) {
-              onResponseMessage(response.id, ChatService.ERROR);
+              for (var element in _listeners) {
+                element.onResponseMessage(response.id, ChatService.ERROR);
+              }
             } else {
               try {
                 final newMessages =
                     (response.payload["messages"] as List<dynamic>)
                         .map((e) => app.Message.fromJson(e))
                         .toList();
-
-                onResponseMessageReturnPayload(newMessages, response.id);
+                for (var element in _listeners) {
+                  element.onResponseMessageReturnPayload(
+                      newMessages, response.id);
+                }
               } catch (e) {
                 log.info("[CHAT page] RESP error: $e");
               }
@@ -126,7 +123,6 @@ class PostcardChatService implements ChatService {
       },
       onDone: () async {
         log.info("[CHAT] onDone");
-        if (!maintainConnection) return;
 
         Future.delayed(const Duration(seconds: 5), () async {
           if (_address != null && _id != null && _wallet != null) {
@@ -139,12 +135,12 @@ class PostcardChatService implements ChatService {
               id: _id!,
               wallet: _wallet!,
             );
-            addListener(
-                onNewMessages: onNewMessages,
-                onResponseMessage: onResponseMessage,
-                onResponseMessageReturnPayload: onResponseMessageReturnPayload,
-                onDoneCalled: onDoneCalled);
-            onDoneCalled.call();
+            for (var element in _listeners) {
+              addListener(element);
+            }
+            for (var element in _listeners) {
+              element.onDoneCalled.call();
+            }
           }
         });
       },
@@ -152,7 +148,14 @@ class PostcardChatService implements ChatService {
   }
 
   @override
-  Future<void> disconnect() async {
+  void addListener(ChatListener listener) {
+    if (listener is PostcardChatListener) {
+      _listeners.add(listener);
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
     log.info("[CHAT] disconnect");
     _address = null;
     _id = null;
@@ -193,4 +196,28 @@ class PostcardChatService implements ChatService {
     header["Authorization"] = "Bearer $token";
     return header;
   }
+
+  @override
+  void removeListener() {
+    _listeners.removeLast();
+    if (_listeners.isEmpty) {
+      dispose();
+    }
+  }
+}
+
+abstract class ChatListener {}
+
+class PostcardChatListener implements ChatListener {
+  Function(List<app.Message>) onNewMessages;
+  Function(String messageId, String type) onResponseMessage;
+  Function(List<app.Message> message, String id) onResponseMessageReturnPayload;
+  Function() onDoneCalled;
+
+  PostcardChatListener({
+    required this.onNewMessages,
+    required this.onResponseMessage,
+    required this.onResponseMessageReturnPayload,
+    required this.onDoneCalled,
+  }) : super();
 }

@@ -31,8 +31,7 @@ class MessagePreview extends StatefulWidget {
 }
 
 class _MessagePreviewState extends State<MessagePreview> {
-  final ChatService _postcardChatService =
-      PostcardChatService(maintainConnection: false);
+  final ChatService _postcardChatService = injector<ChatService>();
   Pair<WalletStorage, int>? _wallet;
   app.Message? _lastMessage;
   late AssetToken _assetToken;
@@ -57,7 +56,7 @@ class _MessagePreviewState extends State<MessagePreview> {
     final id = widget.payload.asset.id;
     await _postcardChatService.connect(
         address: address, id: id, wallet: wallet);
-    _postcardChatService.addListener(
+    _postcardChatService.addListener(PostcardChatListener(
         onNewMessages: (newMessages) {
           if (newMessages.isNotEmpty) {
             _refreshLastMessage(newMessages);
@@ -69,7 +68,7 @@ class _MessagePreviewState extends State<MessagePreview> {
             _refreshLastMessage(newMessages);
           }
         },
-        onDoneCalled: () {});
+        onDoneCalled: () {}));
 
     log.info("[CHAT] getHistory");
 
@@ -140,7 +139,6 @@ class _MessagePreviewState extends State<MessagePreview> {
                     ],
                   ),
                   onTap: () async {
-                    await _postcardChatService.disconnect();
                     if (!mounted) return;
                     await Navigator.of(context).pushNamed(
                       ChatThreadPage.tag,
@@ -154,7 +152,7 @@ class _MessagePreviewState extends State<MessagePreview> {
                           name: _assetToken.title ?? ''),
                     );
                     setState(() {
-                      _websocketInit();
+                      _newMessageCount = 0;
                     });
                   },
                 ),
@@ -187,7 +185,7 @@ class _MessagePreviewState extends State<MessagePreview> {
 
   @override
   void dispose() {
-    _postcardChatService.disconnect();
+    _postcardChatService.removeListener();
     super.dispose();
   }
 }
