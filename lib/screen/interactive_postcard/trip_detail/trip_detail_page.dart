@@ -108,10 +108,13 @@ class _TripDetailPageState extends State<TripDetailPage> {
                       ),
                     ),
                   ),
-                  SvgPicture.asset(
-                    "assets/images/arrow_3.svg",
-                    colorFilter:
-                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: SvgPicture.asset(
+                      "assets/images/arrow_3.svg",
+                      colorFilter: const ColorFilter.mode(
+                          AppColor.white, BlendMode.srcIn),
+                    ),
                   ),
                   Expanded(
                     child: Align(

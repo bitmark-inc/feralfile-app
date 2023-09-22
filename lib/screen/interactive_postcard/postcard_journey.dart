@@ -1,13 +1,14 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -16,7 +17,6 @@ import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -50,6 +50,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
     return GestureDetector(
       onTap: onTap,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             numberFormatter.format(index),
@@ -68,13 +69,13 @@ class _PostcardJourneyState extends State<PostcardJourney> {
     );
   }
 
-  _gotoTripDetail(BuildContext context, TravelInfo travelInfo) {
-    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
+  _gotoTripDetail(
+      BuildContext context, List<TravelInfo> listTravelInfo, int index) {
     final assetToken = widget.assetToken;
     Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
         arguments: TripDetailPayload(
-          stampIndex: travelInfo.index - 1,
-          travelsInfo: travelsInfo!,
+          stampIndex: index,
+          travelsInfo: listTravelInfo,
           assetToken: assetToken,
         ));
   }
@@ -92,6 +93,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
                 distance: travelInfo.getDistance(), prefix: "+"),
             style: theme.textTheme.moMASans400Black12.copyWith(
               color: overrideColor ?? MoMAColors.moMA12,
+              fontSize: 10,
             ),
           ),
         ),
@@ -126,13 +128,32 @@ class _PostcardJourneyState extends State<PostcardJourney> {
 
   Widget _postcardJourneyArrow(BuildContext context) {
     return SizedBox(
-      width: 9,
+      width: 9.5,
       child: Expanded(
         child: Align(
+          alignment: Alignment.topRight,
           child: SvgPicture.asset(
-            "assets/images/postcard_arrow.svg",
+            "assets/images/arrow-50-head.svg",
             fit: BoxFit.fitHeight,
             height: 50,
+            width: 9,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _postcardWebUserArrowWithHead(BuildContext context) {
+    return SizedBox(
+      width: 9.5,
+      child: Expanded(
+        child: Align(
+          alignment: Alignment.topRight,
+          child: SvgPicture.asset(
+            "assets/images/arrow-80-head.svg",
+            fit: BoxFit.fitHeight,
+            height: 80,
+            width: 9,
           ),
         ),
       ),
@@ -144,10 +165,11 @@ class _PostcardJourneyState extends State<PostcardJourney> {
       width: 9,
       child: Expanded(
         child: Align(
+          alignment: Alignment.topCenter,
           child: SvgPicture.asset(
-            "assets/images/postcard_arrow_without_head.svg",
+            "assets/images/arrow-80.svg",
             fit: BoxFit.fitHeight,
-            height: 50,
+            height: 80,
           ),
         ),
       ),
@@ -202,12 +224,19 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   Widget _arrowLine(BuildContext context,
       {required Widget arrow, required Widget child, Function()? onTap}) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(width: 12, child: Center(child: arrow)),
-        const SizedBox(width: 30),
-        GestureDetector(
-          onTap: onTap,
-          child: child,
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: onTap,
+              child: child,
+            ),
+          ],
         ),
       ],
     );
@@ -222,20 +251,36 @@ class _PostcardJourneyState extends State<PostcardJourney> {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: _locationAddress(context,
-              address: 'postcard_starting_location'
-                  .tr(namedArgs: {'location': moMAGeoLocation.address!}),
-              index: 1),
+          child: _locationAddress(
+            context,
+            address: 'postcard_starting_location'
+                .tr(namedArgs: {'location': moMAGeoLocation.address!}),
+            index: 1,
+            onTap: () {
+              if (travelInfo.isNotEmpty) {
+                _gotoTripDetail(context, travelInfo, 0);
+              }
+            },
+          ),
         ),
         ...travelInfo
             .mapIndexed((int index, TravelInfo e) {
+              List<TravelInfo> travelInfoOnTripDetail = travelInfo.toList();
+              if (index + 1 > travelInfo.length - 1) {
+                travelInfoOnTripDetail.add(TravelInfo(
+                    e.to,
+                    GeoLocation(
+                        position: Location(lat: null, lon: null), address: ""),
+                    e.index + 1));
+              }
               if (e.isInternet) {
-                final arrow = index == travelInfo.length - 1
-                    ? _postcardJourneyArrow(context)
+                final arrow = e.index == travelInfo.length &&
+                        !(asset.isSending && asset.isLastOwner)
+                    ? _postcardWebUserArrowWithHead(context)
                     : _postcardWebUserArrow(context);
                 return [
                   _webTravelWidget(e, onTap: () {
-                    _gotoTripDetail(context, e);
+                    _gotoTripDetail(context, travelInfoOnTripDetail, index + 1);
                   }, arrow: arrow),
                 ];
               }
@@ -243,7 +288,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
                 _travelWidget(
                   e,
                   onTap: () {
-                    _gotoTripDetail(context, e);
+                    _gotoTripDetail(context, travelInfoOnTripDetail, index + 1);
                   },
                 ),
               ];
