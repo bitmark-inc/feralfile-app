@@ -27,18 +27,15 @@ abstract class ChatService {
 
   void addListener(ChatListener listener);
 
-  void removeListener();
+  void removeListener(ChatListener listener);
 
   void sendMessage(dynamic message);
 
   Future<void> dispose();
 }
 
-class PostcardChatService implements ChatService {
-  final List<PostcardChatListener> _listeners = [];
-
-  //constructor
-  PostcardChatService();
+class ChatServiceImpl implements ChatService {
+  final List<ChatListener> _listeners = [];
 
   WebSocketChannel? _websocketChannel;
   String? _address;
@@ -149,9 +146,7 @@ class PostcardChatService implements ChatService {
 
   @override
   void addListener(ChatListener listener) {
-    if (listener is PostcardChatListener) {
-      _listeners.add(listener);
-    }
+    _listeners.add(listener);
   }
 
   @override
@@ -198,26 +193,24 @@ class PostcardChatService implements ChatService {
   }
 
   @override
-  void removeListener() {
-    _listeners.removeLast();
+  void removeListener(ChatListener listener) {
+    _listeners.remove(listener);
     if (_listeners.isEmpty) {
       dispose();
     }
   }
 }
 
-abstract class ChatListener {}
-
-class PostcardChatListener implements ChatListener {
+class ChatListener {
   Function(List<app.Message>) onNewMessages;
   Function(String messageId, String type) onResponseMessage;
   Function(List<app.Message> message, String id) onResponseMessageReturnPayload;
   Function() onDoneCalled;
 
-  PostcardChatListener({
+  ChatListener({
     required this.onNewMessages,
     required this.onResponseMessage,
     required this.onResponseMessageReturnPayload,
     required this.onDoneCalled,
-  }) : super();
+  });
 }

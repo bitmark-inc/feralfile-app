@@ -37,6 +37,7 @@ class _MessagePreviewState extends State<MessagePreview> {
   late AssetToken _assetToken;
   int _newMessageCount = 0;
   final String _fetchId = const Uuid().v4();
+  late final ChatListener _chatListener;
 
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _MessagePreviewState extends State<MessagePreview> {
     final id = widget.payload.asset.id;
     await _postcardChatService.connect(
         address: address, id: id, wallet: wallet);
-    _postcardChatService.addListener(PostcardChatListener(
+    _chatListener = ChatListener(
         onNewMessages: (newMessages) {
           if (newMessages.isNotEmpty) {
             _refreshLastMessage(newMessages);
@@ -68,7 +69,8 @@ class _MessagePreviewState extends State<MessagePreview> {
             _refreshLastMessage(newMessages);
           }
         },
-        onDoneCalled: () {}));
+        onDoneCalled: () {});
+    _postcardChatService.addListener(_chatListener);
 
     log.info("[CHAT] getHistory");
 
@@ -185,7 +187,7 @@ class _MessagePreviewState extends State<MessagePreview> {
 
   @override
   void dispose() {
-    _postcardChatService.removeListener();
+    _postcardChatService.removeListener(_chatListener);
     super.dispose();
   }
 }

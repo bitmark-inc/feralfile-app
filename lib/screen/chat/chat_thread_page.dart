@@ -48,6 +48,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   final ConfigurationService _configurationService =
       injector<ConfigurationService>();
   final ChatService _postcardChatService = injector<ChatService>();
+  late final ChatListener _chatListener;
 
   @override
   void initState() {
@@ -81,7 +82,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         address: _payload.address,
         id: _payload.token.id,
         wallet: _payload.wallet);
-    _postcardChatService.addListener(PostcardChatListener(
+    _chatListener = ChatListener(
         onNewMessages: _handleNewMessages,
         onResponseMessage: _handleSentMessageResp,
         onResponseMessageReturnPayload: (newMessages, id) {
@@ -95,7 +96,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           if (_historyRequestId != null) {
             _getHistory(historyId: _historyRequestId);
           }
-        }));
+        });
+    _postcardChatService.addListener(_chatListener);
   }
 
   void _resentMessages() {
@@ -197,7 +199,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
   @override
   void dispose() {
-    _postcardChatService.removeListener();
+    _postcardChatService.removeListener(_chatListener);
     memoryValues.currentGroupChatId = null;
     super.dispose();
   }
