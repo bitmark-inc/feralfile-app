@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -577,57 +578,6 @@ class PostcardChatConfig {
       firstTimeJoined: firstTimeJoined ?? this.firstTimeJoined,
       lastMessageReadTimeStamp:
           lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
-    );
-  }
-}
-
-class MessageView extends StatelessWidget {
-  final types.Message message;
-  final AssetToken assetToken;
-  final String text;
-
-  const MessageView(
-      {Key? key,
-      required this.message,
-      required this.assetToken,
-      required this.text})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final time = message.createdAt ?? 0;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            message.status == types.Status.sending
-                ? Row(
-                    children: [
-                      redDotIcon(color: AppColor.auSuperTeal),
-                      const SizedBox(width: 8),
-                    ],
-                  )
-                : const SizedBox(),
-            Text(
-              assetToken.getStamperName(message.author.id),
-              style: theme.textTheme.moMASans700Black12,
-            ),
-            const SizedBox(width: 15),
-            Text(
-              getChatDateTimeRepresentation(
-                  DateTime.fromMillisecondsSinceEpoch(time)),
-              style: theme.textTheme.moMASans400Black12
-                  .copyWith(color: AppColor.auQuickSilver, fontSize: 10),
-            ),
-          ],
-        ),
-        Text(
-          text,
-          style: theme.textTheme.moMASans400Black14,
-        )
-      ],
     );
   }
 }
