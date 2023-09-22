@@ -430,6 +430,7 @@ class PostcardServiceImpl extends PostcardService {
     required int stampIndex,
     bool isOverride = false,
   }) async {
+    log.info("[Postcard Service] download stamp $tokenId $stampIndex");
     final imageFile =
         await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
     final timestamp =

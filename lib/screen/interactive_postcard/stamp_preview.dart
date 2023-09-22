@@ -88,7 +88,8 @@ class _StampPreviewState extends State<StampPreview> {
     });
   }
 
-  Future<void> showOptions(BuildContext context, {Function()? callBack}) async {
+  Future<void> showOptions(BuildContext context,
+      {required AssetToken assetToken, Function()? callBack}) async {
     final theme = Theme.of(context);
     final options = [
       OptionItem(
@@ -120,7 +121,7 @@ class _StampPreviewState extends State<StampPreview> {
           ),
         ),
         onTap: () async {
-          shareToTwitter(token: widget.payload.asset);
+          shareToTwitter(token: assetToken);
           Navigator.of(context).pop();
           await callBack?.call();
         },
@@ -143,9 +144,9 @@ class _StampPreviewState extends State<StampPreview> {
         ),
         onTap: () async {
           try {
-            final asset = widget.payload.asset;
             await _postcardService.downloadStamp(
-                tokenId: asset.tokenId!, stampIndex: 0);
+                tokenId: assetToken.tokenId!,
+                stampIndex: assetToken.stampIndex);
             if (!mounted) return;
             Navigator.of(context).pop();
             await UIHelper.showPostcardStampSaved(context);
@@ -216,7 +217,8 @@ class _StampPreviewState extends State<StampPreview> {
           listener: (context, state) {
             if (!(state.isPostcardUpdatingOnBlockchain ||
                 state.isPostcardUpdating)) {
-              if (state.assetToken == null) {
+              final assetToken = state.assetToken;
+              if (assetToken == null) {
                 return;
               }
               timer?.cancel();
@@ -224,14 +226,14 @@ class _StampPreviewState extends State<StampPreview> {
                 return;
               }
               alreadyShowPopup = true;
-              showOptions(context, callBack: () {
+              showOptions(context, assetToken: assetToken, callBack: () {
                 log.info("Popup closed");
                 _navigationService.popUntilHomeOrSettings();
                 if (!mounted) return;
                 Navigator.of(context).pushNamed(
                   AppRouter.claimedPostcardDetailsPage,
-                  arguments: PostcardDetailPagePayload(
-                      [state.assetToken!.identity], 0),
+                  arguments:
+                      PostcardDetailPagePayload([assetToken.identity], 0),
                 );
                 _configurationService.setAutoShowPostcard(true);
               });
