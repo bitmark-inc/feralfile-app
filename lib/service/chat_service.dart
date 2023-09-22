@@ -133,9 +133,6 @@ class ChatServiceImpl implements ChatService {
               wallet: _wallet!,
             );
             for (var element in _listeners) {
-              addListener(element);
-            }
-            for (var element in _listeners) {
               element.onDoneCalled.call();
             }
           }
