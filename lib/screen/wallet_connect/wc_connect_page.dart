@@ -331,7 +331,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "you_have_permission".tr(),
+                              "you_about_to_grant".tr(),
                               style: theme.textTheme.ppMori400Black16,
                             ),
                             const SizedBox(
