@@ -11,12 +11,34 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:eth_sig_util/util/utils.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-class PostcardChatService {
+abstract class ChatService {
+  static const ERROR = "error";
+  static const SENT = "sent";
+
+  Future<void> connect({
+    required String address,
+    required String id,
+    required Pair<WalletStorage, int> wallet,
+  });
+
+  void addListener({
+    required Function(List<app.Message>) onNewMessages,
+    required Function(String messageId, String type) onResponseMessage,
+    required Function(List<app.Message> message, String id)
+        onResponseMessageReturnPayload,
+    required Function() onDoneCalled,
+  });
+
+  void sendMessage(dynamic message);
+
+  Future<void> disconnect();
+}
+
+class PostcardChatService implements ChatService {
   final bool maintainConnection;
 
   //constructor
@@ -27,6 +49,7 @@ class PostcardChatService {
   String? _id;
   Pair<WalletStorage, int>? _wallet;
 
+  @override
   Future<void> connect({
     required String address,
     required String id,
@@ -54,9 +77,10 @@ class PostcardChatService {
     await _websocketChannel?.ready;
   }
 
+  @override
   void addListener({
     required Function(List<app.Message>) onNewMessages,
-    required Function(String messageId, types.Status type) onResponseMessage,
+    required Function(String messageId, String type) onResponseMessage,
     required Function(List<app.Message> message, String id)
         onResponseMessageReturnPayload,
     required Function() onDoneCalled,
@@ -80,9 +104,9 @@ class PostcardChatService {
           case 'RESP':
             if (response.payload["ok"] != null &&
                 response.payload["ok"].toString() == "1") {
-              onResponseMessage(response.id, types.Status.sent);
+              onResponseMessage(response.id, ChatService.SENT);
             } else if (response.payload["error"] != null) {
-              onResponseMessage(response.id, types.Status.error);
+              onResponseMessage(response.id, ChatService.ERROR);
             } else {
               try {
                 final newMessages =
@@ -127,6 +151,7 @@ class PostcardChatService {
     );
   }
 
+  @override
   Future<void> disconnect() async {
     log.info("[CHAT] disconnect");
     _address = null;
@@ -136,11 +161,10 @@ class PostcardChatService {
     _websocketChannel = null;
   }
 
+  @override
   void sendMessage(dynamic message) {
     _websocketChannel?.sink.add(message);
   }
-
-  Stream<dynamic>? get stream => _websocketChannel?.stream;
 
   Future<Map<String, dynamic>> _getHeader(
       String link, Pair<WalletStorage, int> wallet, String address) async {

@@ -4,7 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/postcard_chat_service.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -31,7 +31,7 @@ class MessagePreview extends StatefulWidget {
 }
 
 class _MessagePreviewState extends State<MessagePreview> {
-  final PostcardChatService _postcardChatService =
+  final ChatService _postcardChatService =
       PostcardChatService(maintainConnection: false);
   Pair<WalletStorage, int>? _wallet;
   app.Message? _lastMessage;

@@ -5,7 +5,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/postcard_chat_service.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -47,7 +47,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   int? _chatPrivateBannerTimestamp;
   final ConfigurationService _configurationService =
       injector<ConfigurationService>();
-  final PostcardChatService _postcardChatService =
+  final ChatService _postcardChatService =
       PostcardChatService(maintainConnection: true);
 
   @override
@@ -177,16 +177,16 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     }
   }
 
-  void _handleSentMessageResp(String messageId, types.Status type) {
+  void _handleSentMessageResp(String messageId, String type) {
     final index = _messages.indexWhere((element) => element.id == messageId);
     if (index != -1) {
       setState(() {
         switch (type) {
-          case types.Status.sent:
+          case ChatService.SENT:
             _messages[index] =
                 _messages[index].copyWith(status: types.Status.sent);
             break;
-          case types.Status.error:
+          case ChatService.ERROR:
             _messages.removeAt(index);
             break;
           default:
