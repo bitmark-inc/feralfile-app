@@ -103,11 +103,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool isViewOnly;
 
   late DistanceFormatter distanceFormatter;
-  bool viewJourney = true;
   Timer? timer;
-  bool isUpdating = false;
-  bool canceling = false;
-  final numberFormatter = NumberFormat("00");
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -702,18 +698,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Future<void> cancelShare(AssetToken asset) async {
-    try {
-      await _postcardService.cancelSharePostcard(asset);
-      await _configurationService.removeSharedPostcardWhere((sharedPostcard) =>
-          sharedPostcard.tokenID == asset.id &&
-          sharedPostcard.owner == asset.owner);
-      setState(() {});
-    } catch (error) {
-      log.info("Cancel share postcard failed: error ${error.toString()}");
-    }
-  }
-
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
     return PostcardContainer(
       child: _travelInfoWidget(state),
@@ -980,7 +964,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           return const SizedBox();
         }
         return PostcardTravelInfo(
-            assetToken: asset, listTravelInfo: travelInfo);
+          assetToken: asset,
+          listTravelInfo: travelInfo,
+          onCancalShare: () {
+            setState(() {});
+          },
+        );
       },
     );
   }

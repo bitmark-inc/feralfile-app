@@ -506,7 +506,7 @@ class PostcardServiceImpl extends PostcardService {
         medium: 'software',
       ),
       blockchain: "tezos",
-      fungible: false,
+      fungible: true,
       contractType: 'fa2',
       tokenId: result.tokenID,
       contractAddress: result.contractAddress,
@@ -520,7 +520,9 @@ class PostcardServiceImpl extends PostcardService {
       pending: true,
       originTokenInfo: [],
       provenance: [],
-      owners: {},
+      owners: {
+        address: 1,
+      },
     );
 
     await _tokensService.setCustomTokens([token]);
@@ -546,10 +548,13 @@ class PostcardServiceImpl extends PostcardService {
     var postcardMetadata = assetToken.postcardMetadata;
     var newAsset = assetToken.asset;
     newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    newAsset?.maxEdition = newAsset.maxEdition! + 1;
+    final newOwners = assetToken.owners..addEntries([MapEntry(address, 1)]);
     final pendingToken = assetToken.copyWith(
       owner: address,
       asset: newAsset,
       balance: 1,
+      owners: newOwners,
     );
 
     final tokenService = injector<TokensService>();
