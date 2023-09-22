@@ -175,6 +175,7 @@ class _MessagePreviewState extends State<MessagePreview> {
                                 assetToken: _assetToken,
                                 text: _lastMessage!.message,
                                 expandAll: false,
+                                showFullTime: true,
                               ),
                             )
                           ],
@@ -213,19 +214,21 @@ class MessageView extends StatelessWidget {
   final AssetToken assetToken;
   final String text;
   final bool expandAll;
+  final bool showFullTime;
 
   const MessageView(
       {Key? key,
       required this.message,
       required this.assetToken,
       required this.text,
-      this.expandAll = true})
+      this.expandAll = true,
+      this.showFullTime = false})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final time = message.createdAt ?? 0;
+    final time = DateTime.fromMillisecondsSinceEpoch(message.createdAt ?? 0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -245,8 +248,9 @@ class MessageView extends StatelessWidget {
             ),
             const SizedBox(width: 15),
             Text(
-              getChatDateTimeRepresentation(
-                  DateTime.fromMillisecondsSinceEpoch(time)),
+              showFullTime
+                  ? getChatDateTimeRepresentation(time)
+                  : getLocalTimeOnly(time),
               style: theme.textTheme.moMASans400Black12
                   .copyWith(color: AppColor.auQuickSilver, fontSize: 10),
             ),
