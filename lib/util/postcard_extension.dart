@@ -1,36 +1,15 @@
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 
 extension PostcardMetadataExtension on PostcardMetadata {
-  int get counter {
-    return locationInformation.length;
-  }
-
-  bool get isStamped {
-    return locationInformation.last != null;
-  }
-
-  bool get isFinalClaimed {
-    return locationInformation.length == MAX_STAMP_IN_POSTCARD - 1;
-  }
-
-  bool get isFinal {
-    return locationInformation.length == MAX_STAMP_IN_POSTCARD;
-  }
-
-  bool get isCompleted {
-    return isFinal && isStamped;
-  }
-
   List<TravelInfo> get listTravelInfoWithoutLocationName {
     final stamps = locationInformation;
     final travelInfo = <TravelInfo>[];
     int lastStampLocation = 0;
     for (int i = 1; i < stamps.length; i++) {
       final stamp = stamps[i];
-      if (!(stamp.isInternet ?? true)) {
+      if (!(stamp.isInternet)) {
         final from =
             GeoLocation(position: stamps[lastStampLocation], address: null);
         final to = GeoLocation(position: stamp, address: null);
@@ -46,12 +25,6 @@ extension PostcardMetadataExtension on PostcardMetadata {
       if (!(stamp.isInternet)) {
         lastStampLocation = i;
       }
-    }
-
-    if (isCompleted) {
-      final from = GeoLocation(position: stamps.last, address: null);
-      final to = completeGeoLocation;
-      travelInfo.add(TravelInfo(from, to, stamps.length));
     }
     return travelInfo;
   }

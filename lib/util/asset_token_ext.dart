@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
@@ -276,7 +275,7 @@ extension AssetTokenExtension on AssetToken {
     }
     final tokenId = this.tokenId ?? "";
     final address = owner;
-    final counter = postcardMetadata.counter;
+    final counter = numberOwners;
     final contractAddress = Environment.postcardContractAddress;
     final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
     final metadataPath =
@@ -635,5 +634,37 @@ extension PostcardExtension on AssetToken {
 
   int get numberOwners {
     return maxEdition ?? 0;
+  }
+
+  bool get isStamped {
+    return numberOwners == getArtists.length;
+  }
+
+  bool get isFinalClaimed {
+    return numberOwners == MAX_STAMP_IN_POSTCARD - 1;
+  }
+
+  bool get isFinal {
+    return numberOwners == MAX_STAMP_IN_POSTCARD;
+  }
+
+  bool get isCompleted {
+    return isFinal && isStamped;
+  }
+
+  bool get isSending {
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    return sharedPostcards.any((element) {
+      return !element.isExpired &&
+          element.owner == owner &&
+          element.tokenID == id;
+    });
+  }
+
+  bool get isLastOwner {
+    final artists = getArtists;
+    final index = stampIndex;
+    return index == -1 || index == artists.length - 1;
   }
 }

@@ -37,15 +37,16 @@ class TravelInfo {
 
   double? getDistance() {
     final ignoreGeoLocation = [
-      notSendGeoLocation,
       sendingGeoLocation,
-      completeGeoLocation
     ];
     if (ignoreGeoLocation.contains(from) || ignoreGeoLocation.contains(to)) {
       return null;
     }
     if (from.isInternet || to.isInternet) {
       return 0;
+    }
+    if (from.position.isNull || to.position.isNull) {
+      return null;
     }
 
     return _getDistanceFromLatLonInKm(
@@ -88,7 +89,7 @@ class TravelInfo {
   }
 
   bool get isInternet {
-    return from.isInternet == true;
+    return to.isInternet == true;
   }
 }
 

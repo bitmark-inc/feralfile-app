@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
@@ -204,7 +203,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     try {
       final asset = widget.payload.asset;
       final tokenId = asset.tokenId ?? "";
-      final counter = asset.postcardMetadata.counter;
+      final counter = asset.numberOwners;
       final contractAddress = Environment.postcardContractAddress;
 
       final imageDataFilename = '$contractAddress-$tokenId-$counter-image.png';
@@ -224,7 +223,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             text: "continue".tr(),
             fontSize: 18,
             onTap: () async {
-              final counter = asset.postcardMetadata.counter;
+              final counter = asset.numberOwners;
               GeoLocation? geoLocation;
               if (counter <= 1) {
                 geoLocation = moMAGeoLocation;

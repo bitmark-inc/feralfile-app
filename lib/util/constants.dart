@@ -121,24 +121,15 @@ const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
 const POSTCARD_ABOUT_THE_PROJECT =
     "https://www.moma.org/calendar/exhibitions/5618?preview=true";
 
-final moMAGeoLocation = GeoLocation(
-    position: Location(lat: 40.761, lon: -73.980),
-    address: "MoMA (starting location)");
+final moMAGeoLocation =
+    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
 
 final internetUserGeoLocation =
     GeoLocation(position: Location(lat: null, lon: null), address: "Web");
 
-final notSendGeoLocation = GeoLocation(
-    position: Location(lat: double.infinity, lon: double.infinity),
-    address: "-");
-
 final sendingGeoLocation = GeoLocation(
     position: Location(lat: double.infinity, lon: double.infinity),
     address: "Sending...");
-
-final completeGeoLocation = GeoLocation(
-    position: Location(lat: double.infinity, lon: double.infinity),
-    address: "Completed");
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 

@@ -29,8 +29,9 @@ class PostcardMetadata {
   // to json method
   Map<String, dynamic> toJson() {
     return {
-      'locationInformation':
-          locationInformation.map((e) => e.toJson()).toList(),
+      'locationInformation': locationInformation
+          .map((e) => {'stampedLocation': e.toJson()})
+          .toList(),
     };
   }
 }

@@ -25,9 +25,9 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcard_travel_info.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -337,8 +337,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         currentAsset?.medium == null;
     return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
         listenWhen: (previous, current) {
-      if (previous.assetToken?.postcardMetadata.isCompleted != true &&
-          current.assetToken?.postcardMetadata.isCompleted == true &&
+      if (previous.assetToken?.isCompleted != true &&
+          current.assetToken?.isCompleted == true &&
           current.assetToken?.isAlreadyShowYouDidIt == false &&
           isViewOnly == false) {
         _youDidIt(context, current.assetToken!);
@@ -607,7 +607,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final asset = state.assetToken!;
     final theme = Theme.of(context);
-    if (asset.postcardMetadata.isCompleted ||
+    if (asset.isCompleted ||
         !state.isLastOwner ||
         !state.postcardValueLoaded ||
         isViewOnly != false) {
@@ -970,391 +970,19 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _progressItem(
-      BuildContext context, int index, int currentStampNumber) {
-    final color =
-        index < currentStampNumber ? MoMAColors.moMA12 : AppColor.auLightGrey;
-    final borderRadius = index == 0
-        ? const BorderRadius.only(
-            topLeft: Radius.circular(50),
-            bottomLeft: Radius.circular(50),
-          )
-        : index == MAX_STAMP_IN_POSTCARD - 1
-            ? const BorderRadius.only(
-                topRight: Radius.circular(50),
-                bottomRight: Radius.circular(50),
-              )
-            : BorderRadius.zero;
-    return Container(
-      height: 13,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: borderRadius,
-      ),
-    );
-  }
-
-  Widget _postcardProgress(AssetToken asset) {
-    final theme = Theme.of(context);
-    final travelInfoWithoutInternetUser =
-        asset.postcardMetadata.listTravelInfoWithoutLocationName;
-    final currentStampNumber = asset.getArtists.length;
-    final numberFormatter = NumberFormat();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "total_distance_traveled".tr(),
-          style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
-        ),
-        Text(
-            distanceFormatter.format(
-                distance: travelInfoWithoutInternetUser.totalDistance),
-            style: theme.textTheme.moMASans400Black12
-                .copyWith(color: MoMAColors.moMA12)),
-        const SizedBox(height: 15),
-        Row(
-          children: [
-            Text(
-              "postcard_progress".tr(),
-              style: theme.textTheme.moMASans400Grey12,
-            ),
-            const Spacer(),
-            Text(
-                "stamps_".tr(namedArgs: {
-                  "current": numberFormatter.format(currentStampNumber),
-                  "total": MAX_STAMP_IN_POSTCARD.toString(),
-                }),
-                style: theme.textTheme.moMASans400Grey12)
-          ],
-        ),
-        Row(
-          children: [
-            ...List.generate(MAX_STAMP_IN_POSTCARD, (index) {
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: _progressItem(context, index, currentStampNumber),
-                ),
-              );
-            }),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
     final asset = postcardDetailState.assetToken;
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
       listener: (context, state) {},
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
-        if (travelInfo == null) {
+        if (travelInfo == null || asset == null) {
           return const SizedBox();
         }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _postcardProgress(asset!),
-            const SizedBox(
-              height: 32,
-            ),
-            _postcardJourney(context, postcardDetailState, travelInfo)
-          ],
-        );
+        return PostcardTravelInfo(
+            assetToken: asset, listTravelInfo: travelInfo);
       },
     );
-  }
-
-  Widget _postcardJourney(
-    BuildContext context,
-    PostcardDetailState postcardDetailState,
-    List<TravelInfo> travelInfo,
-  ) {
-    final asset = postcardDetailState.assetToken;
-    const emptyDivider = SizedBox(
-      height: 20,
-    );
-    const verticalDivider = SizedBox(
-      height: 20,
-      child: VerticalDivider(
-        color: Colors.black,
-        thickness: 1,
-      ),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _locationAddress(context, address: moMAGeoLocation.address!, index: 1),
-        ...travelInfo
-            .mapIndexed((int index, TravelInfo e) {
-              final withDivider = index != travelInfo.length - 1;
-              final divider = withDivider
-                  ? (travelInfo.toList()[index + 1].isInternet
-                      ? verticalDivider
-                      : emptyDivider)
-                  : const SizedBox();
-              final emptyDividerIfNeed =
-                  withDivider ? emptyDivider : const SizedBox();
-              if (e.to == completeGeoLocation) {
-                return e.from.isInternet == true
-                    ? [_webCompleteTravelWidget(e), divider]
-                    : [_completeTravelWidget(e), emptyDividerIfNeed];
-              }
-              if (e.isInternet) {
-                return [
-                  _webTravelWidget(e, onTap: () {
-                    _gotoTripDetail(context, e);
-                  }),
-                  divider,
-                ];
-              }
-              return [
-                _travelWidget(e, onTap: () {
-                  _gotoTripDetail(context, e);
-                }),
-                emptyDividerIfNeed
-              ];
-            })
-            .toList()
-            .flattened
-            .toList(),
-        emptyDivider,
-        if (postcardDetailState.isSending() && postcardDetailState.canDoAction)
-          _sendingTripItem(context, asset!, travelInfo.length + 1)
-      ],
-    );
-  }
-
-  _gotoTripDetail(BuildContext context, TravelInfo travelInfo) {
-    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
-    Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
-        arguments: TripDetailPayload(
-          stampIndex: travelInfo.index - 1,
-          travelsInfo: travelsInfo!,
-          assetToken: currentAsset!,
-        ));
-  }
-
-  Widget _webTravelWidget(TravelInfo travelInfo, {Function()? onTap}) {
-    return SizedBox(
-      child: Stack(
-        alignment: Alignment.topLeft,
-        children: [
-          Row(
-            children: [
-              const SizedBox(width: 25),
-              Expanded(
-                child: _travelWidget(travelInfo,
-                    onTap: onTap, overrideColor: AppColor.auQuickSilver),
-              ),
-            ],
-          ),
-          const Positioned.fill(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: VerticalDivider(
-                color: Colors.black,
-                thickness: 1,
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _postcardJourneyArrow(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: VerticalDivider(
-        color: Colors.amber,
-        thickness: 1,
-      ),
-    );
-    return SvgPicture.asset(
-      "assets/images/postcard_arow.svg",
-      colorFilter: ColorFilter.mode(Colors.amber, BlendMode.srcIn),
-    );
-  }
-
-  Widget _postcardWebUserArrow(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: VerticalDivider(
-        color: Colors.black,
-        thickness: 1,
-      ),
-    );
-    return SvgPicture.asset("assets/images/postcard_arow.svg");
-  }
-
-  Widget _locationAddress(BuildContext context,
-      {required int index, required String address, Color? overrideColor}) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () {},
-      child: Row(
-        children: [
-          Text(
-            numberFormatter.format(index),
-            style: theme.textTheme.moMASans400Black12.copyWith(
-              color: overrideColor ?? AppColor.auQuickSilver,
-            ),
-          ),
-          const SizedBox(width: 7),
-          Text(
-            address ?? "",
-            style: theme.textTheme.moMASans400Black12
-                .copyWith(color: overrideColor),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _travelWidget(TravelInfo travelInfo,
-      {Function()? onTap, Color? overrideColor}) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Row(
-          children: [
-            SizedBox(
-              height: 210,
-              width: 10,
-              child: _postcardJourneyArrow(context),
-            ),
-            const SizedBox(width: 30),
-            Text(
-              distanceFormatter.format(distance: travelInfo.getDistance()),
-              style: theme.textTheme.moMASans700Black12.copyWith(
-                  color:
-                      overrideColor ?? const Color.fromRGBO(131, 79, 196, 1)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _locationAddress(context,
-            address: travelInfo.to.address ?? "", index: travelInfo.index + 1),
-      ],
-    );
-  }
-
-  Widget _webCompleteTravelWidget(TravelInfo travelInfo) {
-    return SizedBox(
-      child: Stack(
-        alignment: Alignment.topLeft,
-        children: [
-          Row(
-            children: [
-              const SizedBox(width: 25),
-              Expanded(
-                child: _completeTravelWidget(travelInfo,
-                    overrideColor: AppColor.auQuickSilver),
-              ),
-            ],
-          ),
-          const Positioned.fill(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: VerticalDivider(
-                color: Colors.black,
-                thickness: 1,
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _completeTravelWidget(TravelInfo travelInfo, {Color? overrideColor}) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () {
-        _gotoTripDetail(context, travelInfo);
-      },
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(numberFormatter.format(travelInfo.index),
-                  style: theme.textTheme.moMASans400Black12.copyWith(
-                      color: overrideColor ?? AppColor.auQuickSilver)),
-              Text(
-                travelInfo.to.address ?? "",
-                style: theme.textTheme.moMASans400Black12
-                    .copyWith(color: overrideColor),
-              ),
-            ],
-          ),
-          Positioned.fill(
-              child: Container(
-            color: Colors.transparent,
-          ))
-        ],
-      ),
-    );
-  }
-
-  Widget _sendingTripItem(BuildContext context, AssetToken asset, int index) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Row(
-          children: [
-            SizedBox(
-              height: 210,
-              width: 10,
-              child: _postcardJourneyArrow(context),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            _locationAddress(
-              context,
-              address: "waiting_for_recipient".tr(),
-              index: index,
-              overrideColor: AppColor.auQuickSilver,
-            ),
-            const Spacer(),
-            GestureDetector(
-              child: Text(
-                "cancel".tr(),
-                style: theme.textTheme.moMASans400Grey12
-                    .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
-              ),
-              onTap: () {
-                UIHelper.showPostcardCancelInvitation(context,
-                    onConfirm: () async {
-                  setState(() {
-                    canceling = true;
-                  });
-                  await cancelShare(asset);
-                  setState(() {
-                    canceling = false;
-                  });
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                }, onBack: () {
-                  Navigator.of(context).pop();
-                });
-              },
-            )
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _notSentItem(TravelInfo lastTravelInfo) {
-    return _travelWidget(lastTravelInfo, onTap: () {});
   }
 }
 

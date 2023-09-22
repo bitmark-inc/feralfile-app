@@ -116,9 +116,7 @@ class GeoLocation {
     return [
       moMAGeoLocation,
       internetUserGeoLocation,
-      notSendGeoLocation,
       sendingGeoLocation,
-      completeGeoLocation
     ];
   }
 

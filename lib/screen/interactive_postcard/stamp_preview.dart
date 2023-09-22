@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -272,7 +271,7 @@ class _StampPreviewState extends State<StampPreview> {
     final theme = Theme.of(context);
     if (!confirming) {
       return PostcardButton(
-        text: widget.payload.asset.postcardMetadata.isCompleted
+        text: widget.payload.asset.isCompleted
             ? "complete_postcard_journey_".tr()
             : "confirm_your_design".tr(),
         fontSize: 18,
@@ -313,7 +312,7 @@ class _StampPreviewState extends State<StampPreview> {
     final asset = widget.payload.asset;
     final tokenId = asset.tokenId ?? "";
     final address = asset.owner;
-    final counter = asset.postcardMetadata.counter;
+    final counter = asset.numberOwners;
     final contractAddress = Environment.postcardContractAddress;
 
     final walletIndex = await asset.getOwnerWallet();
@@ -339,7 +338,7 @@ class _StampPreviewState extends State<StampPreview> {
       injector<NavigationService>().popUntilHomeOrSettings();
     } else {
       log.info("[POSTCARD] Stamp success");
-      _postcardService.updateStampingPostcard([
+      await _postcardService.updateStampingPostcard([
         StampingPostcard(
           indexId: asset.id,
           address: address,

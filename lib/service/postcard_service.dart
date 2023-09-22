@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
@@ -186,7 +185,7 @@ class PostcardServiceImpl extends PostcardService {
     if (ownerWallet == null) {
       throw Exception("Owner wallet is null");
     }
-    final counter = asset.postcardMetadata.counter;
+    final counter = asset.numberOwners;
     final contractAddress = asset.contractAddress ?? '';
     final tokenId = asset.tokenId ?? '';
     final data = [
