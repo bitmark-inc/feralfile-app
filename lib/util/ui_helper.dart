@@ -1185,7 +1185,8 @@ class UIHelper {
                               ),
                             Text(
                               options?[index].title ?? '',
-                              style: theme.textTheme.ppMori400Black14,
+                              style: options?[index].titleStyle ??
+                                  theme.textTheme.ppMori400Black14,
                             ),
                           ],
                         ),
