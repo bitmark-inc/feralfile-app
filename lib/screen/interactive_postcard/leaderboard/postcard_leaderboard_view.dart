@@ -147,12 +147,17 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     }
     final tokenId = postcardService.getTokenId(leaderBoardItem.id);
     final owner = leaderBoardItem.creators[0];
-    final payload = PostcardDetailPagePayload([
-      ArtworkIdentity(
-        tokenId,
-        owner,
-      )
-    ], 0, isFromLeaderboard: true);
+    final payload = PostcardDetailPagePayload(
+      [
+        ArtworkIdentity(
+          tokenId,
+          owner,
+        )
+      ],
+      0,
+      isFromLeaderboard: true,
+      useIndexer: true,
+    );
     Navigator.of(context).pushNamed(
       AppRouter.claimedPostcardDetailsPage,
       arguments: payload,
