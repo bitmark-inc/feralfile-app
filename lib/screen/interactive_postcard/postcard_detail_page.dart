@@ -494,14 +494,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               ),
               body: Column(
                 children: [
-                  state.assetToken == null
-                      ? const SizedBox()
-                      : Padding(
-                          padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                          child: MessagePreview(
-                              payload: MessagePreviewPayload(
-                                  asset: state.assetToken!)),
-                        ),
                   Expanded(
                     child: Padding(
                       padding: ResponsiveLayout.getPadding,
@@ -510,6 +502,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            state.assetToken == null
+                                ? const SizedBox()
+                                : Padding(
+                                    padding: const EdgeInsets.only(top: 15),
+                                    child: MessagePreview(
+                                        payload: MessagePreviewPayload(
+                                            asset: state.assetToken!)),
+                                  ),
                             const SizedBox(
                               height: 30,
                             ),

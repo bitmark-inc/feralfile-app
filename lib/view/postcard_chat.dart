@@ -38,6 +38,7 @@ class _MessagePreviewState extends State<MessagePreview> {
   int _newMessageCount = 0;
   final String _fetchId = const Uuid().v4();
   late final ChatListener _chatListener;
+  bool _didFetch = false;
 
   @override
   void initState() {
@@ -97,6 +98,7 @@ class _MessagePreviewState extends State<MessagePreview> {
     if (messages.first.timestamp >= lastMessageTimestamp) {
       _lastMessage = messages.first;
     }
+    _didFetch = true;
     if (context.mounted) {
       setState(() {});
     }
@@ -117,7 +119,7 @@ class _MessagePreviewState extends State<MessagePreview> {
               ? const Row(
                   children: [Spacer()],
                 )
-              : TappableForwardRow(
+              : TappableForwardRowWithContent(
                   padding: const EdgeInsets.all(0),
                   leftWidget: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -157,18 +159,26 @@ class _MessagePreviewState extends State<MessagePreview> {
                       _newMessageCount = 0;
                     });
                   },
-                ),
-          const SizedBox(height: 20),
-          _lastMessage == null
-              ? const SizedBox()
-              : Row(
-                  children: [
-                    MessageView(
-                      message: _lastMessage!.toTypesMessage(),
-                      assetToken: _assetToken,
-                      text: _lastMessage!.message,
-                    )
-                  ],
+                  bottomWidget: _lastMessage == null
+                      ? _didFetch
+                          ? Text(
+                              "no_message_start".tr(),
+                              style: theme.textTheme.moMASans400Black12
+                                  .copyWith(color: AppColor.auQuickSilver),
+                            )
+                          : const SizedBox()
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: MessageView(
+                                message: _lastMessage!.toTypesMessage(),
+                                assetToken: _assetToken,
+                                text: _lastMessage!.message,
+                                expandAll: false,
+                              ),
+                            )
+                          ],
+                        ),
                 ),
         ],
       ),
@@ -202,12 +212,14 @@ class MessageView extends StatelessWidget {
   final types.Message message;
   final AssetToken assetToken;
   final String text;
+  final bool expandAll;
 
   const MessageView(
       {Key? key,
       required this.message,
       required this.assetToken,
-      required this.text})
+      required this.text,
+      this.expandAll = true})
       : super(key: key);
 
   @override
@@ -243,6 +255,7 @@ class MessageView extends StatelessWidget {
         Text(
           text,
           style: theme.textTheme.moMASans400Black14,
+          overflow: expandAll ? null : TextOverflow.ellipsis,
         )
       ],
     );
