@@ -37,7 +37,7 @@ class _MessagePreviewState extends State<MessagePreview> {
   late AssetToken _assetToken;
   int _newMessageCount = 0;
   final String _fetchId = const Uuid().v4();
-  late final ChatListener _chatListener;
+  ChatListener? _chatListener;
   bool _didFetch = false;
 
   @override
@@ -71,7 +71,7 @@ class _MessagePreviewState extends State<MessagePreview> {
           }
         },
         onDoneCalled: () {});
-    _postcardChatService.addListener(_chatListener);
+    _postcardChatService.addListener(_chatListener!);
 
     log.info("[CHAT] getHistory");
 
@@ -191,14 +191,16 @@ class _MessagePreviewState extends State<MessagePreview> {
       return "";
     }
     if (num > 99) {
-      return "99+ new";
+      return "_new".tr(args: ["99+"]);
     }
-    return "$num new";
+    return "_new".tr(args: [num.toString()]);
   }
 
   @override
   void dispose() {
-    _postcardChatService.removeListener(_chatListener);
+    if (_chatListener != null) {
+      _postcardChatService.removeListener(_chatListener!);
+    }
     super.dispose();
   }
 }

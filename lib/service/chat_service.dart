@@ -120,7 +120,7 @@ class ChatServiceImpl implements ChatService {
       },
       onDone: () async {
         log.info("[CHAT] onDone");
-
+        if (_listeners.isEmpty) return;
         Future.delayed(const Duration(seconds: 5), () async {
           if (_address != null && _id != null && _wallet != null) {
             _address = null;
