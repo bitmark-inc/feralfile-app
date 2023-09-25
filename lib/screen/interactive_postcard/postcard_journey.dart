@@ -69,7 +69,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
     );
   }
 
-  _gotoTripDetail(
+  void _gotoTripDetail(
       BuildContext context, List<TravelInfo> listTravelInfo, int index) {
     final assetToken = widget.assetToken;
     Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
@@ -273,7 +273,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
                         position: Location(lat: null, lon: null), address: ""),
                     e.index + 1));
               }
-              if (e.isInternet) {
+              if (e.to.isInternet) {
                 final arrow = e.index == travelInfo.length &&
                         !(asset.isSending && asset.isLastOwner)
                     ? _postcardWebUserArrowWithHead(context)
