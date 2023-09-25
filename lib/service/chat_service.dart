@@ -184,7 +184,7 @@ class ChatServiceImpl implements ChatService {
       "public_key": pubKey,
       "signature": authSig,
       "timestamp": timestamp
-    });
+    }, address: address);
     header["Authorization"] = "Bearer $token";
     return header;
   }

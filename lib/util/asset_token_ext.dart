@@ -644,6 +644,6 @@ extension PostcardExtension on AssetToken {
     } else {
       index = artists.indexOf(artist) + 1;
     }
-    return "Stamper $index";
+    return "stamper_".tr(args: [index.toString()]);
   }
 }

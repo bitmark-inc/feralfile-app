@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -43,7 +44,7 @@ String getLocalTimeOnly(DateTime dateTime) {
 String getChatDateTimeRepresentation(DateTime dateTime) {
   final DateTime now = DateTime.now();
   if (DateUtils.isSameDay(dateTime, now)) {
-    return "Today, ${timeFormatterHM.format(dateTime)}";
+    return "today_at".tr(args: [timeFormatterHM.format(dateTime)]);
   }
   if (isInAWeekOffset(dateTime)) {
     return dateFormatterWdHM.format(dateTime.toLocal());
