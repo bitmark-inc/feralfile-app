@@ -113,12 +113,8 @@ class PostcardServiceImpl extends PostcardService {
   final TZKTApi _tzktApi;
   final ConfigurationService _configurationService;
 
-  PostcardServiceImpl(
-      this._postcardApi,
-      this._tezosService,
-      this._indexerService,
-      this._tzktApi,
-      this._configurationService);
+  PostcardServiceImpl(this._postcardApi, this._tezosService,
+      this._indexerService, this._tzktApi, this._configurationService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -387,22 +383,23 @@ class PostcardServiceImpl extends PostcardService {
     required String tokenId,
     required int stampIndex,
   }) async {
-    final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
-    final secretKey = Environment.auClaimSecretKey;
-    final response = await HttpHelper.hmacAuthenticationPost(
-        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
-    if (response.statusCode != StatusCode.success.value) {
-      throw Exception(response.reasonPhrase);
-    }
-    final bodyByte = response.bodyBytes;
-    final timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final tempFilePath =
-        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex-$timestamp.png";
+        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex.png";
     final tempFile = File(tempFilePath);
-    await tempFile.create(recursive: true);
-    log.info("Created file $tempFilePath");
-    await tempFile.writeAsBytes(bodyByte);
+    final isFileExist = await tempFile.exists();
+    if (!isFileExist) {
+      final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
+      final secretKey = Environment.auClaimSecretKey;
+      final response = await HttpHelper.hmacAuthenticationPost(
+          host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+      if (response.statusCode != StatusCode.success.value) {
+        throw Exception(response.reasonPhrase);
+      }
+      final bodyByte = response.bodyBytes;
+      await tempFile.create(recursive: true);
+      log.info("Created file $tempFilePath");
+      await tempFile.writeAsBytes(bodyByte);
+    }
     return tempFile;
   }
 
