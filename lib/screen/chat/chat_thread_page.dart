@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -141,10 +142,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       _messages.insertAll(0, otherPeopleMessages);
       _messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
-
-    _updateLastMessageReadTimeStamp(
-        (_messages.first.createdAt ?? DateTime.now().millisecondsSinceEpoch) +
-            1);
+    max(0, _messages.length - 1);
+    _updateLastMessageReadTimeStamp((max(
+            _messages.first.createdAt ?? DateTime.now().millisecondsSinceEpoch,
+            newMessages.first.timestamp)) +
+        1);
 
     if (_chatPrivateBannerTimestamp != null) {
       _messages.removeWhere((element) => element.id == _chatPrivateBannerId);
@@ -186,8 +188,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       setState(() {
         switch (type) {
           case ChatService.SENT:
-            _messages[index] =
-                _messages[index].copyWith(status: types.Status.sent);
+            _messages[index] = _messages[index].copyWith(
+                status: types.Status.sent,
+                createdAt: DateTime.now().millisecondsSinceEpoch);
             break;
           case ChatService.ERROR:
             _messages.removeAt(index);
