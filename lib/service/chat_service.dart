@@ -30,7 +30,7 @@ abstract class ChatService {
 
   void removeListener(ChatListener listener);
 
-  void sendMessage(dynamic message);
+  void sendMessage(dynamic message, {String? listenerId, String? requestId});
 
   Future<void> dispose();
 
@@ -39,6 +39,7 @@ abstract class ChatService {
 
 class ChatServiceImpl implements ChatService {
   final List<ChatListener> _listeners = [];
+  final Map<String, String> _pendingRequests = {};
 
   WebSocketChannel? _websocketChannel;
   String? _address;
@@ -105,11 +106,17 @@ class ChatServiceImpl implements ChatService {
             if (response.payload["ok"] != null &&
                 response.payload["ok"].toString() == "1") {
               for (var element in _listeners) {
-                element.onResponseMessage(response.id, ChatService.SENT);
+                if (_doCall(requestId: response.id, listenerId: element.id)) {
+                  element.onResponseMessage(response.id, ChatService.SENT);
+                  _pendingRequests.remove(MapEntry(response.id, element.id));
+                }
               }
             } else if (response.payload["error"] != null) {
               for (var element in _listeners) {
-                element.onResponseMessage(response.id, ChatService.ERROR);
+                if (_doCall(requestId: response.id, listenerId: element.id)) {
+                  element.onResponseMessage(response.id, ChatService.ERROR);
+                  _pendingRequests.remove(MapEntry(response.id, element.id));
+                }
               }
             } else {
               try {
@@ -118,8 +125,11 @@ class ChatServiceImpl implements ChatService {
                         .map((e) => app.Message.fromJson(e))
                         .toList();
                 for (var element in _listeners) {
-                  element.onResponseMessageReturnPayload(
-                      newMessages, response.id);
+                  if (_doCall(requestId: response.id, listenerId: element.id)) {
+                    element.onResponseMessageReturnPayload(
+                        newMessages, response.id);
+                    _pendingRequests.remove(MapEntry(response.id, element.id));
+                  }
                 }
               } catch (e) {
                 log.info("[CHAT page] RESP error: $e");
@@ -167,9 +177,12 @@ class ChatServiceImpl implements ChatService {
   }
 
   @override
-  void sendMessage(dynamic message) {
+  void sendMessage(dynamic message, {String? listenerId, String? requestId}) {
     log.info("[CHAT] sendMessage: $message");
     _websocketChannel?.sink.add(message);
+    if (listenerId != null && requestId != null) {
+      _pendingRequests[requestId] = listenerId;
+    }
   }
 
   Future<Map<String, dynamic>> _getHeader(
@@ -212,6 +225,13 @@ class ChatServiceImpl implements ChatService {
   bool isConnecting({required String address, required String id}) {
     return _address == address && _id == id;
   }
+
+  bool _doCall({required String requestId, required String listenerId}) {
+    if (_pendingRequests.containsKey(requestId)) {
+      return listenerId == _pendingRequests[requestId];
+    }
+    return true;
+  }
 }
 
 class ChatListener {
@@ -219,11 +239,13 @@ class ChatListener {
   Function(String messageId, String type) onResponseMessage;
   Function(List<app.Message> message, String id) onResponseMessageReturnPayload;
   Function() onDoneCalled;
+  final String id;
 
   ChatListener({
     required this.onNewMessages,
     required this.onResponseMessage,
     required this.onResponseMessageReturnPayload,
     required this.onDoneCalled,
+    required this.id,
   });
 }

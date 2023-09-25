@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -59,25 +58,31 @@ class _MessagePreviewState extends State<MessagePreview> {
     await _postcardChatService.connect(
         address: address, id: id, wallet: wallet);
     _chatListener = ChatListener(
-        onNewMessages: (newMessages) {
-          if (newMessages.isNotEmpty) {
-            _refreshLastMessage(newMessages);
-          }
-        },
-        onResponseMessage: (_, __) {},
-        onResponseMessageReturnPayload: (newMessages, id) {
+      onNewMessages: (newMessages) {
+        if (newMessages.isNotEmpty) {
           _refreshLastMessage(newMessages);
-        },
-        onDoneCalled: () {});
+        }
+      },
+      onResponseMessage: (_, __) {},
+      onResponseMessageReturnPayload: (newMessages, id) {
+        _refreshLastMessage(newMessages);
+      },
+      onDoneCalled: () {},
+      id: const Uuid().v4(),
+    );
     _postcardChatService.addListener(_chatListener!);
 
-    _postcardChatService.sendMessage(json.encode({
-      "command": "HISTORY",
-      "id": _fetchId,
-      "payload": {
-        "lastTimestamp": DateTime.now().millisecondsSinceEpoch,
-      }
-    }));
+    _postcardChatService.sendMessage(
+      json.encode({
+        "command": "HISTORY",
+        "id": _fetchId,
+        "payload": {
+          "lastTimestamp": DateTime.now().millisecondsSinceEpoch,
+        }
+      }),
+      requestId: _fetchId,
+      listenerId: _chatListener?.id,
+    );
   }
 
   void _refreshLastMessage(List<app.Message> messages) {

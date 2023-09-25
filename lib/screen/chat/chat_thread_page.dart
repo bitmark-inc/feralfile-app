@@ -83,20 +83,22 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         id: _payload.token.id,
         wallet: _payload.wallet);
     _chatListener = ChatListener(
-        onNewMessages: _handleNewMessages,
-        onResponseMessage: _handleSentMessageResp,
-        onResponseMessageReturnPayload: (newMessages, id) {
-          _handleNewMessages(newMessages, id: id);
-          if (newMessages.length < 100) {
-            _didFetchAllMessages = true;
-          }
-        },
-        onDoneCalled: () {
-          _resentMessages();
-          if (_historyRequestId != null) {
-            _getHistory(historyId: _historyRequestId);
-          }
-        });
+      onNewMessages: _handleNewMessages,
+      onResponseMessage: _handleSentMessageResp,
+      onResponseMessageReturnPayload: (newMessages, id) {
+        _handleNewMessages(newMessages, id: id);
+        if (newMessages.length < 100) {
+          _didFetchAllMessages = true;
+        }
+      },
+      onDoneCalled: () {
+        _resentMessages();
+        if (_historyRequestId != null) {
+          _getHistory(historyId: _historyRequestId);
+        }
+      },
+      id: const Uuid().v4(),
+    );
     _postcardChatService.addListener(_chatListener!);
   }
 
@@ -117,13 +119,17 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       return;
     }
     final id = historyId ?? const Uuid().v4();
-    _postcardChatService.sendMessage(json.encode({
-      "command": "HISTORY",
-      "id": id,
-      "payload": {
-        "lastTimestamp": _lastMessageTimestamp,
-      }
-    }));
+    _postcardChatService.sendMessage(
+      json.encode({
+        "command": "HISTORY",
+        "id": id,
+        "payload": {
+          "lastTimestamp": _lastMessageTimestamp,
+        }
+      }),
+      listenerId: _chatListener?.id,
+      requestId: id,
+    );
     _historyRequestId = id;
   }
 

@@ -64,6 +64,7 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
+import 'package:uuid/uuid.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -115,6 +116,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  Key _messageKey = Key(const Uuid().v4());
+
+  void _changeMessageViewKey() {
+    setState(() {
+      _messageKey = Key(const Uuid().v4());
+    });
+  }
 
   @override
   void initState() {
@@ -315,16 +323,19 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final wallet = await asset.getOwnerWallet();
     if (wallet == null) return;
     if (!mounted) return;
-    Navigator.of(context).pushNamed(
-      ChatThreadPage.tag,
-      arguments: ChatThreadPagePayload(
-          token: asset,
-          wallet: wallet,
-          address: asset.owner,
-          cryptoType:
-              asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
-          name: asset.title ?? ''),
-    );
+    Navigator.of(context)
+        .pushNamed(
+          ChatThreadPage.tag,
+          arguments: ChatThreadPagePayload(
+              token: asset,
+              wallet: wallet,
+              address: asset.owner,
+              cryptoType: asset.blockchain == "ethereum"
+                  ? CryptoType.ETH
+                  : CryptoType.XTZ,
+              name: asset.title ?? ''),
+        )
+        .then((value) => _changeMessageViewKey());
   }
 
   @override
@@ -508,6 +519,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 : Padding(
                                     padding: const EdgeInsets.only(top: 15),
                                     child: MessagePreview(
+                                        key: _messageKey,
                                         payload: MessagePreviewPayload(
                                             asset: state.assetToken!)),
                                   ),
