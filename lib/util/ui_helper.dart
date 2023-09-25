@@ -52,8 +52,7 @@ import 'package:share/share.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
-const SHOW_DIALOG_DURATION = Duration(seconds: 2);
-const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
+const RETURN_AFTER_SHOW_DIALOG = Duration(seconds: 2);
 
 void doneOnboarding(BuildContext context) async {
   injector<IAPService>().restore();

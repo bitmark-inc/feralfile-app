@@ -6,9 +6,8 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -121,19 +120,15 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
         if (!mounted) return;
         UIHelper.showInfoDialog(context, 'account_linked'.tr(),
             'autonomy_has_linked_your_address'.tr());
+        _addressController.clear();
         break;
 
       default:
         return;
     }
 
-    Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context).popUntil(
-            (route) => route.settings.name == AppRouter.homePageNoTransition);
-      } else {
-        doneOnboarding(context);
-      }
+    Future.delayed(RETURN_AFTER_SHOW_DIALOG, () {
+      injector<NavigationService>().popUntilHomeOrSettings();
     });
   }
 }
