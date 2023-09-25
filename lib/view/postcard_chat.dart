@@ -66,9 +66,7 @@ class _MessagePreviewState extends State<MessagePreview> {
         },
         onResponseMessage: (_, __) {},
         onResponseMessageReturnPayload: (newMessages, id) {
-          if (newMessages.isNotEmpty) {
-            _refreshLastMessage(newMessages);
-          }
+          _refreshLastMessage(newMessages);
         },
         onDoneCalled: () {});
     _postcardChatService.addListener(_chatListener!);
@@ -85,17 +83,19 @@ class _MessagePreviewState extends State<MessagePreview> {
   }
 
   void _refreshLastMessage(List<app.Message> messages) {
-    final chatConfig = injector<ConfigurationService>().getPostcardChatConfig(
-        address: widget.payload.asset.owner, id: widget.payload.asset.id);
-    final lastReadMessageTimestamp = chatConfig.lastMessageReadTimeStamp ?? 0;
-    int addedNewMessage = messages
-        .where((element) => element.timestamp > lastReadMessageTimestamp)
-        .toList()
-        .length;
-    _newMessageCount += addedNewMessage;
-    final lastMessageTimestamp = _lastMessage?.timestamp ?? 0;
-    if (messages.first.timestamp >= lastMessageTimestamp) {
-      _lastMessage = messages.first;
+    if (messages.isNotEmpty) {
+      final chatConfig = injector<ConfigurationService>().getPostcardChatConfig(
+          address: widget.payload.asset.owner, id: widget.payload.asset.id);
+      final lastReadMessageTimestamp = chatConfig.lastMessageReadTimeStamp ?? 0;
+      int addedNewMessage = messages
+          .where((element) => element.timestamp > lastReadMessageTimestamp)
+          .toList()
+          .length;
+      _newMessageCount += addedNewMessage;
+      final lastMessageTimestamp = _lastMessage?.timestamp ?? 0;
+      if (messages.first.timestamp >= lastMessageTimestamp) {
+        _lastMessage = messages.first;
+      }
     }
     _didFetch = true;
     if (context.mounted) {
