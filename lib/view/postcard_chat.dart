@@ -89,10 +89,9 @@ class _MessagePreviewState extends State<MessagePreview> {
         address: widget.payload.asset.owner, id: widget.payload.asset.id);
     final lastReadMessageTimestamp = chatConfig.lastMessageReadTimeStamp ?? 0;
     int addedNewMessage = messages
-        .indexWhere((element) => element.timestamp < lastReadMessageTimestamp);
-    if (addedNewMessage == -1) {
-      addedNewMessage = messages.length;
-    }
+        .where((element) => element.timestamp > lastReadMessageTimestamp)
+        .toList()
+        .length;
     _newMessageCount += addedNewMessage;
     final lastMessageTimestamp = _lastMessage?.timestamp ?? 0;
     if (messages.first.timestamp >= lastMessageTimestamp) {
