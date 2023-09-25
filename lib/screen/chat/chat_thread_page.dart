@@ -165,7 +165,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           ));
     }
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _messages;
+      });
     }
   }
 
