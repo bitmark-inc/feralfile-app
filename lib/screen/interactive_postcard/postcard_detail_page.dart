@@ -502,7 +502,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            state.assetToken == null
+                            state.assetToken == null ||
+                                    state.assetToken?.pending != false
                                 ? const SizedBox()
                                 : Padding(
                                     padding: const EdgeInsets.only(top: 15),

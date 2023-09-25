@@ -7,7 +7,6 @@
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd HH:mm', "en_US");
 final DateFormat dateFormatterMDHM = DateFormat('dd MMMM, HH:mm', "en_US");

@@ -49,13 +49,18 @@ class ChatServiceImpl implements ChatService {
     required Pair<WalletStorage, int> wallet,
   }) async {
     log.info("[CHAT] connect: $address, $id");
-    if (_address == address &&
-        _id == id &&
-        _wallet == wallet &&
-        _websocketChannel != null) {
+    if (_address == address && _id == id && _wallet == wallet) {
       log.info("[CHAT] connect to the same channel. Do nothing");
       return;
     }
+    await _connect(address: address, id: id, wallet: wallet);
+  }
+
+  Future<void> _connect({
+    required String address,
+    required String id,
+    required Pair<WalletStorage, int> wallet,
+  }) async {
     _address = address;
     _id = id;
     _wallet = wallet;
@@ -121,13 +126,10 @@ class ChatServiceImpl implements ChatService {
       onDone: () async {
         log.info("[CHAT] onDone");
         if (_listeners.isEmpty) return;
-        Future.delayed(const Duration(seconds: 5), () async {
+        Future.delayed(const Duration(seconds: 15), () async {
           if (_address != null && _id != null && _wallet != null) {
-            _address = null;
-            _id = null;
-            _wallet = null;
             log.info("[CHAT] _websocketChannel reconnecting");
-            await connect(
+            await _connect(
               address: _address!,
               id: _id!,
               wallet: _wallet!,
@@ -152,6 +154,7 @@ class ChatServiceImpl implements ChatService {
     _address = null;
     _id = null;
     _wallet = null;
+    _listeners.clear();
     await _websocketChannel?.sink.close();
     _websocketChannel = null;
   }
