@@ -117,7 +117,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                 .claimSharedPostcardToAddress(
                   address: address,
                   assetToken: asset,
-                  location: geoLocation.position!,
+                  location: geoLocation.position,
                   shareCode: widget.shareCode,
                 );
             pendingToken = token;
@@ -140,7 +140,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
           await injector.get<PostcardService>().claimSharedPostcardToAddress(
                 address: address,
                 assetToken: asset,
-                location: geoLocation.position!,
+                location: geoLocation.position,
                 shareCode: widget.shareCode,
               );
       if (!mounted) return null;
