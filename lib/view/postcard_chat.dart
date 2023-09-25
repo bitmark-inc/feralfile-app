@@ -71,8 +71,6 @@ class _MessagePreviewState extends State<MessagePreview> {
         onDoneCalled: () {});
     _postcardChatService.addListener(_chatListener!);
 
-    log.info("[CHAT] getHistory");
-
     _postcardChatService.sendMessage(json.encode({
       "command": "HISTORY",
       "id": _fetchId,

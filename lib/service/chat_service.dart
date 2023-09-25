@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -32,6 +33,8 @@ abstract class ChatService {
   void sendMessage(dynamic message);
 
   Future<void> dispose();
+
+  bool isConnecting({required String address, required String id});
 }
 
 class ChatServiceImpl implements ChatService {
@@ -41,6 +44,7 @@ class ChatServiceImpl implements ChatService {
   String? _address;
   String? _id;
   Pair<WalletStorage, int>? _wallet;
+  final _connectLock = Lock();
 
   @override
   Future<void> connect({
@@ -48,12 +52,13 @@ class ChatServiceImpl implements ChatService {
     required String id,
     required Pair<WalletStorage, int> wallet,
   }) async {
-    log.info("[CHAT] connect: $address, $id");
-    if (_address == address && _id == id && _wallet == wallet) {
-      log.info("[CHAT] connect to the same channel. Do nothing");
-      return;
-    }
-    await _connect(address: address, id: id, wallet: wallet);
+    await _connectLock.synchronized(() async {
+      if (_address == address && _id == id) {
+        log.info("[CHAT] connect to the same channel. Do nothing");
+        return;
+      }
+      await _connect(address: address, id: id, wallet: wallet);
+    });
   }
 
   Future<void> _connect({
@@ -61,6 +66,8 @@ class ChatServiceImpl implements ChatService {
     required String id,
     required Pair<WalletStorage, int> wallet,
   }) async {
+    log.info("[CHAT] connect: $address, $id");
+
     _address = address;
     _id = id;
     _wallet = wallet;
@@ -72,10 +79,10 @@ class ChatServiceImpl implements ChatService {
       customClient: HttpClient(),
       pingInterval: const Duration(seconds: 50),
     );
-    await _websocketChannel?.ready;
+    _websocketChannel?.ready;
 
     // listen events
-
+    log.info("[CHAT] listen events");
     _websocketChannel?.stream.listen(
       (event) {
         log.info("[CHAT] event: $event");
@@ -161,6 +168,7 @@ class ChatServiceImpl implements ChatService {
 
   @override
   void sendMessage(dynamic message) {
+    log.info("[CHAT] sendMessage: $message");
     _websocketChannel?.sink.add(message);
   }
 
@@ -198,6 +206,11 @@ class ChatServiceImpl implements ChatService {
     if (_listeners.isEmpty) {
       dispose();
     }
+  }
+
+  @override
+  bool isConnecting({required String address, required String id}) {
+    return _address == address && _id == id;
   }
 }
 

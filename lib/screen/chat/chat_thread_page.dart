@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
@@ -117,8 +116,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (_historyRequestId != null && historyId == null) {
       return;
     }
-    log.info(
-        "[CHAT] getHistory ${DateTime.fromMillisecondsSinceEpoch(_lastMessageTimestamp!)}");
     final id = historyId ?? const Uuid().v4();
     _postcardChatService.sendMessage(json.encode({
       "command": "HISTORY",
@@ -131,10 +128,12 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _handleNewMessages(List<app.Message> newMessages, {String? id}) {
-    if (id != null && id == _historyRequestId) {
-      _messages.addAll(_convertMessages(newMessages));
-      _lastMessageTimestamp = newMessages.last.timestamp;
-      _historyRequestId = null;
+    if (id != null) {
+      if (id == _historyRequestId) {
+        _messages.addAll(_convertMessages(newMessages));
+        _lastMessageTimestamp = newMessages.last.timestamp;
+        _historyRequestId = null;
+      }
     } else {
       final otherPeopleMessages = _convertMessages(newMessages);
       otherPeopleMessages

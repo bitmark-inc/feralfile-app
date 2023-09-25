@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -532,6 +533,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             .assetTokenDao
             .findAllAssetTokensByTokenIDs([tokenId]);
         final owner = tokens.first.owner;
+        final isSkip =
+            injector<ChatService>().isConnecting(address: owner, id: tokenId);
+        if (isSkip) return;
         final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
         final postcardDetailPayload = PostcardDetailPagePayload(
             [ArtworkIdentity(tokenId, owner)], 0,
