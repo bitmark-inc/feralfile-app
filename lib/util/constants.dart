@@ -499,6 +499,8 @@ class MixpanelEvent {
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";
   static const numberUseAppInAWeek = "number_use_app_in_a_week";
+  static const postcardStamp = "postcard_stamp";
+  static const postcardClaimEmpty = "postcard_claim_empty";
 }
 
 class MixpanelEventProp {
