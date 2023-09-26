@@ -30,10 +30,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
   final VideoPlayerController _colouringController =
       VideoPlayerController.asset("assets/videos/colouring_video.mp4");
   late int _currentIndex;
+  late SwiperController _swiperController;
 
   @override
   void initState() {
     _initPlayer();
+    _swiperController = SwiperController();
     super.initState();
     injector<ConfigurationService>().setAutoShowPostcard(false);
     _currentIndex = 0;
@@ -67,6 +69,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
       _page2(4, totalDistance: 91103),
       _page4(5),
     ];
+    final swiperSize = pages.length;
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
     final isLastPage = _currentIndex == pages.length - 1;
@@ -109,8 +112,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
               icon: closeIcon(),
             )
           ] else ...[
-            _skipButton(context, () {
-              widget.payload.onSkip?.call();
+            _skipButton(context, () async {
+              await _swiperController.move(swiperSize - 1);
             })
           ],
         ],
@@ -140,7 +143,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   child: pages[index],
                 );
               },
-              itemCount: pages.length,
+              itemCount: swiperSize,
               pagination: const SwiperPagination(
                   builder: DotSwiperPaginationBuilder(
                       color: AppColor.auLightGrey,
@@ -150,6 +153,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   disableColor: Colors.transparent,
                   size: 0),
               loop: false,
+              controller: _swiperController,
             ),
             Visibility(
               visible: isLastPage,
@@ -375,7 +379,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
 class PostcardExplainPayload {
   final AssetToken asset;
   final Widget startButton;
-  Function()? onSkip;
 
-  PostcardExplainPayload(this.asset, this.startButton, {this.onSkip});
+  PostcardExplainPayload(this.asset, this.startButton);
 }
