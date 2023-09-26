@@ -26,6 +26,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:ui' as ui;
 
 class ChatThreadPage extends StatefulWidget {
   static const String tag = "chat_thread_page";
@@ -512,7 +513,7 @@ class _AuInputChatState extends State<AuInputChat> {
                   textCapitalization: TextCapitalization.sentences,
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 25),
               GestureDetector(
                 onTap: () {
                   final trimmedText = _textController.text.trim();
@@ -528,14 +529,16 @@ class _AuInputChatState extends State<AuInputChat> {
                     color: AppColor.auLightGrey,
                   ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  child: AnimatedDefaultTextStyle(
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                        color: _isTyping ? null : AppColor.auQuickSilver),
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      "send".tr(),
-                    ),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: SvgPicture.asset(
+                    "assets/images/send_arrow.svg",
+                    width: 21,
+                    height: 21,
+                    colorFilter: ui.ColorFilter.mode(
+                        _isTyping
+                            ? AppColor.primaryBlack
+                            : AppColor.auQuickSilver,
+                        BlendMode.srcIn),
                   ),
                 ),
               )
