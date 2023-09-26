@@ -25,9 +25,9 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
@@ -1525,7 +1525,7 @@ class UIHelper {
           ),
           const SizedBox(height: 40),
           Text("if_your_location_is_not_enabled".tr(),
-              style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18)),
+              style: theme.textTheme.moMASans400Black16.copyWith(fontSize: 18)),
           const SizedBox(height: 40),
         ],
       ),
