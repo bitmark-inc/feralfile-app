@@ -328,6 +328,7 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
             _isProcessing = true;
           });
           await widget.onTap?.call();
+          if (!mounted) return;
           setState(() {
             _isProcessing = false;
           });

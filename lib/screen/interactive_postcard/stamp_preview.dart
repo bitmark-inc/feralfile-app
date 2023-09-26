@@ -272,13 +272,18 @@ class _StampPreviewState extends State<StampPreview> {
   Widget _postcardAction(PostcardDetailState state) {
     final theme = Theme.of(context);
     if (!confirming) {
-      return PostcardButton(
+      return PostcardAsyncButton(
         text: widget.payload.asset.isCompleted
             ? "complete_postcard_journey_".tr()
             : "confirm_your_design".tr(),
         fontSize: 18,
         onTap: () async {
-          await _onConfirm();
+          final isSuccess = await _onConfirm();
+          if (mounted && isSuccess) {
+            setState(() {
+              confirming = true;
+            });
+          }
         },
       );
     }
@@ -302,10 +307,7 @@ class _StampPreviewState extends State<StampPreview> {
     return const SizedBox();
   }
 
-  Future<void> _onConfirm() async {
-    setState(() {
-      confirming = true;
-    });
+  Future<bool> _onConfirm() async {
     final imagePath = widget.payload.imagePath;
     final metadataPath = widget.payload.metadataPath;
     File imageFile = File(imagePath);
@@ -320,10 +322,7 @@ class _StampPreviewState extends State<StampPreview> {
     final walletIndex = await asset.getOwnerWallet();
     if (walletIndex == null) {
       log.info("[POSTCARD] Wallet index not found");
-      setState(() {
-        confirming = true;
-      });
-      return;
+      return false;
     }
 
     final isStampSuccess = await _postcardService.stampPostcard(
@@ -338,6 +337,7 @@ class _StampPreviewState extends State<StampPreview> {
     if (!isStampSuccess) {
       log.info("[POSTCARD] Stamp failed");
       injector<NavigationService>().popUntilHomeOrSettings();
+      return false;
     } else {
       log.info("[POSTCARD] Stamp success");
       await _postcardService.updateStampingPostcard([
@@ -365,6 +365,7 @@ class _StampPreviewState extends State<StampPreview> {
         _setTimer();
       }
     }
+    return true;
   }
 }
 
