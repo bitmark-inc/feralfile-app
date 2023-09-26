@@ -120,7 +120,7 @@ class ChatServiceImpl implements ChatService {
               }
             } else {
               try {
-                final newMessages =
+                final List<app.Message> newMessages =
                     (response.payload["messages"] as List<dynamic>)
                         .map((e) => app.Message.fromJson(e))
                         .toList();

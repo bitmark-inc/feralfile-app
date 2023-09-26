@@ -137,7 +137,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (id != null) {
       if (id == _historyRequestId) {
         _messages.addAll(_convertMessages(newMessages));
-        _lastMessageTimestamp = newMessages.last.timestamp;
+        if (newMessages.isNotEmpty) {
+          _lastMessageTimestamp = newMessages.last.timestamp;
+        } else {
+          _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+        }
         _historyRequestId = null;
       }
     } else {
@@ -147,11 +151,16 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       _messages.insertAll(0, otherPeopleMessages);
       _messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
-    max(0, _messages.length - 1);
-    _updateLastMessageReadTimeStamp((max(
-            _messages.first.createdAt ?? DateTime.now().millisecondsSinceEpoch,
-            newMessages.first.timestamp)) +
-        1);
+    final currentMessageTimestamp =
+        _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
+    final newMessageTimestamp =
+        newMessages.isNotEmpty ? newMessages.first.timestamp : 0;
+    int readTimestamp = max(currentMessageTimestamp, newMessageTimestamp);
+    readTimestamp = readTimestamp == 0
+        ? DateTime.now().millisecondsSinceEpoch
+        : readTimestamp;
+
+    _updateLastMessageReadTimeStamp(readTimestamp + 1);
 
     if (_chatPrivateBannerTimestamp != null) {
       _messages.removeWhere((element) => element.id == _chatPrivateBannerId);
