@@ -541,7 +541,7 @@ class PostcardServiceImpl extends PostcardService {
       required AssetToken assetToken,
       required String shareCode,
       required Location location}) async {
-    receivePostcard(
+    await receivePostcard(
       shareCode: shareCode,
       location: location,
       address: address,

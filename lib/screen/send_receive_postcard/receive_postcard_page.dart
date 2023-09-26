@@ -83,9 +83,6 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
           },
           color: const Color.fromRGBO(79, 174, 79, 1),
         ),
-        onSkip: () {
-          _receivePostcard(context, asset);
-        },
       ),
     );
   }
@@ -112,33 +109,16 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         arguments: {
           'blockchain': 'Tezos',
           'onConfirm': (String address) async {
-            final token = await injector
-                .get<PostcardService>()
-                .claimSharedPostcardToAddress(
-                  address: address,
-                  assetToken: asset,
-                  location: geoLocation.position,
-                  shareCode: widget.shareCode,
-                );
-            pendingToken = token;
             navigationService.goBack(result: address);
-            if (!mounted) return null;
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.homePage,
-              (route) => false,
-            );
-            Navigator.of(context).pushNamed(AppRouter.designStamp,
-                arguments: DesignStampPayload(token));
           },
           'withLinked': false,
         },
       );
-      return pendingToken;
     }
     try {
       pendingToken =
           await injector.get<PostcardService>().claimSharedPostcardToAddress(
-                address: address,
+                address: address!,
                 assetToken: asset,
                 location: geoLocation.position,
                 shareCode: widget.shareCode,

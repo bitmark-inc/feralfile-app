@@ -254,7 +254,6 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             },
             color: AppColor.momaGreen,
           ),
-          onSkip: () {},
         ),
       );
     } catch (e) {
