@@ -638,12 +638,11 @@ extension PostcardExtension on AssetToken {
     final artists = getArtists;
     artists.removeWhere((element) => element.id == null);
     final artist = artists.firstWhereOrNull((element) => element.id == address);
-    late final int index;
     if (artists.isEmpty || artist == null) {
-      index = artists.length + 1;
+      return "pending_stamper".tr();
     } else {
-      index = artists.indexOf(artist) + 1;
+      final index = artists.indexOf(artist) + 1;
+      return "stamper_".tr(args: [index.toString()]);
     }
-    return "stamper_".tr(args: [index.toString()]);
   }
 }
