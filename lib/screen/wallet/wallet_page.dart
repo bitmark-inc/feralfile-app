@@ -74,6 +74,10 @@ class _WalletPageState extends State<WalletPage>
   }
 
   void _showAddWalletOption() {
+    final transparentTextTheme = Theme.of(context)
+        .textTheme
+        .ppMori400Green14
+        .copyWith(color: Colors.transparent);
     final options = [
       OptionItem(
         title: "create_a_new_wallet".tr(),
@@ -112,12 +116,15 @@ class _WalletPageState extends State<WalletPage>
               arguments: ViewExistingAddressPayload(false));
         },
       ),
-      OptionItem(onTap: () async {
-        final debug = await isAppCenterBuild();
-        if (debug && mounted) {
-          Navigator.of(context).popAndPushNamed(AccessMethodPage.tag);
-        }
-      }),
+      OptionItem(
+          title: "debug_artwork",
+          titleStyle: transparentTextTheme,
+          onTap: () async {
+            final debug = await isAppCenterBuild();
+            if (debug && mounted) {
+              Navigator.of(context).popAndPushNamed(AccessMethodPage.tag);
+            }
+          }),
     ];
     UIHelper.showDrawerAction(context, options: options);
   }
