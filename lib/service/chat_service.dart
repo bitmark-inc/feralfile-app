@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
@@ -35,6 +36,8 @@ abstract class ChatService {
   Future<void> dispose();
 
   bool isConnecting({required String address, required String id});
+
+  Future<void> reconnect();
 }
 
 class ChatServiceImpl implements ChatService {
@@ -46,6 +49,7 @@ class ChatServiceImpl implements ChatService {
   String? _id;
   Pair<WalletStorage, int>? _wallet;
   final _connectLock = Lock();
+  dynamic _reconnectCallback;
 
   @override
   Future<void> connect({
@@ -67,97 +71,107 @@ class ChatServiceImpl implements ChatService {
     required String id,
     required Pair<WalletStorage, int> wallet,
   }) async {
-    log.info("[CHAT] connect: $address, $id");
+    try {
+      log.info("[CHAT] connect: $address, $id");
 
-    _address = address;
-    _id = id;
-    _wallet = wallet;
-    final link = "/v1/chat/ws?index_id=$id&address=$address";
-    final header = await _getHeader(link, wallet, address);
-    _websocketChannel = IOWebSocketChannel.connect(
-      "${Environment.postcardChatServerUrl}$link",
-      headers: header,
-      customClient: HttpClient(),
-      pingInterval: const Duration(seconds: 50),
-    );
-    _websocketChannel?.ready;
-
-    // listen events
-    log.info("[CHAT] listen events");
-    _websocketChannel?.stream.listen(
-      (event) {
-        log.info("[CHAT] event: $event");
-        final response = app.WebsocketMessage.fromJson(json.decode(event));
-        switch (response.command) {
-          case 'NEW_MESSAGE':
-            try {
-              final newMessages = (response.payload["messages"]
-                      as List<dynamic>)
-                  .map((e) => app.Message.fromJson(e as Map<String, dynamic>))
-                  .toList();
-              for (var element in _listeners) {
-                element.onNewMessages(newMessages);
-              }
-            } catch (e) {
-              log.info("[CHAT] NEW_MESSAGE error: $e");
-            }
-            break;
-          case 'RESP':
-            if (response.payload["ok"] != null &&
-                response.payload["ok"].toString() == "1") {
-              for (var element in _listeners) {
-                if (_doCall(requestId: response.id, listenerId: element.id)) {
-                  element.onResponseMessage(response.id, ChatService.SENT);
-                  _pendingRequests.remove(MapEntry(response.id, element.id));
-                }
-              }
-            } else if (response.payload["error"] != null) {
-              for (var element in _listeners) {
-                if (_doCall(requestId: response.id, listenerId: element.id)) {
-                  element.onResponseMessage(response.id, ChatService.ERROR);
-                  _pendingRequests.remove(MapEntry(response.id, element.id));
-                }
-              }
-            } else {
+      _address = address;
+      _id = id;
+      _wallet = wallet;
+      final link = "/v1/chat/ws?index_id=$id&address=$address";
+      final header = await _getHeader(link, wallet, address);
+      _websocketChannel = IOWebSocketChannel.connect(
+        "${Environment.postcardChatServerUrl}$link",
+        headers: header,
+        customClient: HttpClient(),
+        pingInterval: const Duration(seconds: 50),
+      );
+      // listen events
+      log.info("[CHAT] listen events");
+      _websocketChannel?.stream.listen(
+        (event) {
+          log.info("[CHAT] event: $event");
+          final response = app.WebsocketMessage.fromJson(json.decode(event));
+          switch (response.command) {
+            case 'NEW_MESSAGE':
               try {
-                final List<app.Message> newMessages =
-                    (response.payload["messages"] as List<dynamic>)
-                        .map((e) => app.Message.fromJson(e))
-                        .toList();
+                final newMessages = (response.payload["messages"]
+                        as List<dynamic>)
+                    .map((e) => app.Message.fromJson(e as Map<String, dynamic>))
+                    .toList();
+                for (var element in _listeners) {
+                  element.onNewMessages(newMessages);
+                }
+              } catch (e) {
+                log.info("[CHAT] NEW_MESSAGE error: $e");
+              }
+              break;
+            case 'RESP':
+              if (response.payload["ok"] != null &&
+                  response.payload["ok"].toString() == "1") {
                 for (var element in _listeners) {
                   if (_doCall(requestId: response.id, listenerId: element.id)) {
-                    element.onResponseMessageReturnPayload(
-                        newMessages, response.id);
+                    element.onResponseMessage(response.id, ChatService.SENT);
                     _pendingRequests.remove(MapEntry(response.id, element.id));
                   }
                 }
-              } catch (e) {
-                log.info("[CHAT page] RESP error: $e");
+              } else if (response.payload["error"] != null) {
+                for (var element in _listeners) {
+                  if (_doCall(requestId: response.id, listenerId: element.id)) {
+                    element.onResponseMessage(response.id, ChatService.ERROR);
+                    _pendingRequests.remove(MapEntry(response.id, element.id));
+                  }
+                }
+              } else {
+                try {
+                  final List<app.Message> newMessages =
+                      (response.payload["messages"] as List<dynamic>)
+                          .map((e) => app.Message.fromJson(e))
+                          .toList();
+                  for (var element in _listeners) {
+                    if (_doCall(
+                        requestId: response.id, listenerId: element.id)) {
+                      element.onResponseMessageReturnPayload(
+                          newMessages, response.id);
+                      _pendingRequests
+                          .remove(MapEntry(response.id, element.id));
+                    }
+                  }
+                } catch (e) {
+                  log.info("[CHAT page] RESP error: $e");
+                }
+              }
+              break;
+            default:
+              break;
+          }
+        },
+        onDone: () async {
+          log.info("[CHAT] onDone");
+          if (_listeners.isEmpty) return;
+          Future.delayed(const Duration(seconds: 5), () async {
+            if (_address != null && _id != null && _wallet != null) {
+              _reconnectCallback = () async {
+                log.info("[CHAT] _websocketChannel reconnecting");
+                await _connect(
+                  address: _address!,
+                  id: _id!,
+                  wallet: _wallet!,
+                );
+                for (var element in _listeners) {
+                  element.onDoneCalled.call();
+                }
+              };
+              if (memoryValues.isForeground) {
+                await reconnect();
               }
             }
-            break;
-          default:
-            break;
-        }
-      },
-      onDone: () async {
-        log.info("[CHAT] onDone");
-        if (_listeners.isEmpty) return;
-        Future.delayed(const Duration(seconds: 5), () async {
-          if (_address != null && _id != null && _wallet != null) {
-            log.info("[CHAT] _websocketChannel reconnecting");
-            await _connect(
-              address: _address!,
-              id: _id!,
-              wallet: _wallet!,
-            );
-            for (var element in _listeners) {
-              element.onDoneCalled.call();
-            }
-          }
-        });
-      },
-    );
+          });
+        },
+      );
+      await _websocketChannel?.ready;
+    } catch (e) {
+      log.info("[CHAT] connect error: $e");
+    }
   }
 
   @override
@@ -231,6 +245,12 @@ class ChatServiceImpl implements ChatService {
       return listenerId == _pendingRequests[requestId];
     }
     return true;
+  }
+
+  @override
+  Future<void> reconnect() async {
+    await _reconnectCallback?.call();
+    _reconnectCallback = null;
   }
 }
 

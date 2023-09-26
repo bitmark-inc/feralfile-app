@@ -612,9 +612,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     switch (event) {
       case FGBGType.foreground:
         _handleForeground();
+        memoryValues.isForeground = true;
+        injector<ChatService>().reconnect();
         break;
       case FGBGType.background:
         _handleBackground();
+        memoryValues.isForeground = false;
         break;
     }
   }
