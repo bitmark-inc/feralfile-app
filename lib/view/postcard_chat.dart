@@ -264,7 +264,7 @@ class MessageView extends StatelessWidget {
           text,
           style: theme.textTheme.moMASans400Black14,
           overflow: expandAll ? null : TextOverflow.ellipsis,
-          maxLines: 1,
+          maxLines: expandAll ? null : 1,
         )
       ],
     );
