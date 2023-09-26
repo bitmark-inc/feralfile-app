@@ -129,15 +129,13 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   Widget _postcardJourneyArrow(BuildContext context) {
     return SizedBox(
       width: 9.5,
-      child: Expanded(
-        child: Align(
-          alignment: Alignment.topRight,
-          child: SvgPicture.asset(
-            "assets/images/arrow-50-head.svg",
-            fit: BoxFit.fitHeight,
-            height: 50,
-            width: 9,
-          ),
+      child: Align(
+        alignment: Alignment.topRight,
+        child: SvgPicture.asset(
+          "assets/images/arrow-50-head.svg",
+          fit: BoxFit.fitHeight,
+          height: 50,
+          width: 9,
         ),
       ),
     );
@@ -146,15 +144,13 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   Widget _postcardWebUserArrowWithHead(BuildContext context) {
     return SizedBox(
       width: 9.5,
-      child: Expanded(
-        child: Align(
-          alignment: Alignment.topRight,
-          child: SvgPicture.asset(
-            "assets/images/arrow-80-head.svg",
-            fit: BoxFit.fitHeight,
-            height: 80,
-            width: 9,
-          ),
+      child: Align(
+        alignment: Alignment.topRight,
+        child: SvgPicture.asset(
+          "assets/images/arrow-80-head.svg",
+          fit: BoxFit.fitHeight,
+          height: 80,
+          width: 9,
         ),
       ),
     );
@@ -163,14 +159,12 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   Widget _postcardWebUserArrow(BuildContext context) {
     return SizedBox(
       width: 9,
-      child: Expanded(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: SvgPicture.asset(
-            "assets/images/arrow-80.svg",
-            fit: BoxFit.fitHeight,
-            height: 80,
-          ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SvgPicture.asset(
+          "assets/images/arrow-80.svg",
+          fit: BoxFit.fitHeight,
+          height: 80,
         ),
       ),
     );
