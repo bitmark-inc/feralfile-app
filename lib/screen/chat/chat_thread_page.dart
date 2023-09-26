@@ -444,11 +444,15 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (url.isEmpty) {
-      return SvgPicture.asset("assets/images/default_avatar.svg");
-    }
     return SizedBox(
-        width: 41, height: 41, child: CachedNetworkImage(imageUrl: url));
+        width: 41,
+        height: 41,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          errorWidget: (context, url, error) {
+            return SvgPicture.asset("assets/images/default_avatar.svg");
+          },
+        ));
   }
 }
 
