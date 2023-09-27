@@ -5,14 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:native_dio_adapter/native_dio_adapter.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 
 Dio feralFileDio(BaseOptions options) {
@@ -66,9 +64,6 @@ Dio baseDio(BaseOptions options) {
   dio.interceptors.add(LoggingInterceptor());
   (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio.options = dioOptions;
-  if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
-    dio.httpClientAdapter = NativeAdapter();
-  }
   dio.addSentry();
 
   return dio;
