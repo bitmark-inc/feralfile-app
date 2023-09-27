@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
@@ -59,6 +60,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -516,13 +518,26 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             state.assetToken == null ||
                                     state.assetToken?.pending == true
                                 ? const SizedBox()
-                                : Padding(
-                                    padding: const EdgeInsets.only(top: 15),
-                                    child: MessagePreview(
-                                        key: _messageKey,
-                                        payload: MessagePreviewPayload(
-                                            asset: state.assetToken!)),
-                                  ),
+                                : FutureBuilder<Pair<WalletStorage, int>?>(
+                                    future: state.assetToken!.getOwnerWallet(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        final wallet = snapshot.data;
+                                        if (wallet == null) {
+                                          return const SizedBox();
+                                        }
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 15),
+                                          child: MessagePreview(
+                                              key: _messageKey,
+                                              payload: MessagePreviewPayload(
+                                                  asset: state.assetToken!,
+                                                  wallet: wallet)),
+                                        );
+                                      }
+                                      return const SizedBox();
+                                    }),
                             const SizedBox(
                               height: 30,
                             ),
