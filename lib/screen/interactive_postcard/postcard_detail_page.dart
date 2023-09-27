@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -101,7 +102,7 @@ class ClaimedPostcardDetailPage extends StatefulWidget {
 }
 
 class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
-    with AfterLayoutMixin<ClaimedPostcardDetailPage> {
+    with AfterLayoutMixin<ClaimedPostcardDetailPage>, RouteAware {
   late ScrollController _scrollController;
   late bool withSharing;
   late bool isViewOnly;
@@ -117,10 +118,22 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _postcardService = injector<PostcardService>();
   Key _messageKey = Key(const Uuid().v4());
 
-  void _changeMessageViewKey() {
+  void _changeMessageViewKey({String? assetHash}) {
     setState(() {
-      _messageKey = Key(const Uuid().v4());
+      _messageKey = Key(assetHash ?? const Uuid().v4());
     });
+  }
+
+  @override
+  void didPopNext() {
+    _changeMessageViewKey(assetHash: currentAsset?.hashCode.toString());
+    super.didPopNext();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
