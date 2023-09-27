@@ -878,6 +878,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Future _showArtworkOptionsDialog(
       BuildContext context, AssetToken asset) async {
     final theme = Theme.of(context);
+    final isViewOnly = await asset.isViewOnly();
     if (!mounted) return;
     const isHidden = false;
     UIHelper.showPostcardDrawerAction(
@@ -904,7 +905,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (asset.stampIndex >= 0)
+        if (asset.stampIndex >= 0 && !isViewOnly)
           OptionItem(
             title: 'download_stamp'.tr(),
             icon: SvgPicture.asset(
@@ -939,39 +940,40 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               }
             },
           ),
-        OptionItem(
-          title: 'download_postcard'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/download.svg',
-            width: 24,
-            height: 24,
-          ),
-          iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+        if (!isViewOnly)
+          OptionItem(
+            title: 'download_postcard'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/download.svg',
               width: 24,
               height: 24,
-              colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor, BlendMode.srcIn)),
-          onTap: () async {
-            try {
-              await _postcardService.downloadPostcard(asset.tokenId!);
-              if (!mounted) return;
-              Navigator.of(context).pop();
-              await UIHelper.showPostcardSaved(context);
-            } catch (e) {
-              log.info("Download postcard failed: error ${e.toString()}");
-              if (!mounted) return;
-              Navigator.of(context).pop();
-              switch (e.runtimeType) {
-                case MediaPermissionException:
-                  await UIHelper.showPostcardPhotoAccessFailed(context);
-                  break;
-                default:
-                  if (!mounted) return;
-                  await UIHelper.showPostcardSavedFailed(context);
+            ),
+            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn)),
+            onTap: () async {
+              try {
+                await _postcardService.downloadPostcard(asset.tokenId!);
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                await UIHelper.showPostcardSaved(context);
+              } catch (e) {
+                log.info("Download postcard failed: error ${e.toString()}");
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                switch (e.runtimeType) {
+                  case MediaPermissionException:
+                    await UIHelper.showPostcardPhotoAccessFailed(context);
+                    break;
+                  default:
+                    if (!mounted) return;
+                    await UIHelper.showPostcardSavedFailed(context);
+                }
               }
-            }
-          },
-        ),
+            },
+          ),
         OptionItem(
           title: 'hide'.tr(),
           titleStyle: theme.textTheme.moMASans700Black16
