@@ -38,27 +38,25 @@ class TravelInfo {
   }
 
   double? getDistance() {
-    if (to == null ||
-        from.stampedLocation == null ||
-        to!.claimedLocation == null) {
+    if (to == null) return null;
+    final fromStampedLocation = from.stampedLocation;
+    final toStampedLocation = to!.stampedLocation;
+    if (fromStampedLocation == null || toStampedLocation == null) {
       return null;
     }
 
-    final stampedLocation = from.stampedLocation!;
-    final claimedLocation = to!.claimedLocation!;
-
-    if (stampedLocation.isInternet ||
-        claimedLocation.isInternet ||
-        stampedLocation.isNull ||
-        claimedLocation.isNull) {
+    if (fromStampedLocation.isInternet ||
+        toStampedLocation.isInternet ||
+        fromStampedLocation.isNull ||
+        toStampedLocation.isNull) {
       return 0;
     }
 
     return _getDistanceFromLatLonInKm(
-      stampedLocation.lat!,
-      stampedLocation.lon!,
-      claimedLocation.lat!,
-      claimedLocation.lon!,
+      fromStampedLocation.lat!,
+      fromStampedLocation.lon!,
+      toStampedLocation.lat!,
+      toStampedLocation.lon!,
     );
   }
 
@@ -94,13 +92,13 @@ class TravelInfo {
     if (to == null) {
       receivedLocation = null;
     } else {
-      final claimedLocation = to!.claimedLocation;
-      if (claimedLocation == null || claimedLocation.isInternet) {
+      final stampLocation = to!.stampedLocation;
+      if (stampLocation == null || stampLocation.isInternet) {
         receivedLocation = internetUserGeoLocation.address;
         return;
       }
       receivedLocation = await getLocationNameFromCoordinates(
-          claimedLocation.lat!, claimedLocation.lon!);
+          stampLocation.lat!, stampLocation.lon!);
     }
   }
 
@@ -110,8 +108,7 @@ class TravelInfo {
   }
 
   bool get isInternet {
-    return from.stampedLocation?.isInternet == true ||
-        to?.claimedLocation?.isInternet == true;
+    return from.stampedLocation?.isInternet == true;
   }
 }
 
