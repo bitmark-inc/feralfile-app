@@ -432,19 +432,21 @@ class PostcardServiceImpl extends PostcardService {
         "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/postcard.png";
     final tempFile = File(tempFilePath);
     final isFileExist = await tempFile.exists();
-    if (!isFileExist) {
-      final path = "/v1/postcard/$tokenId/printing";
-      final secretKey = Environment.auClaimSecretKey;
-      final response = await HttpHelper.hmacAuthenticationPost(
-          host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
-      if (response.statusCode != StatusCode.success.value) {
-        throw Exception(response.reasonPhrase);
-      }
-      final bodyByte = response.bodyBytes;
-      await tempFile.create(recursive: true);
-      log.info("Created file $tempFilePath");
-      await tempFile.writeAsBytes(bodyByte);
+    final path = "/v1/postcard/$tokenId/printing";
+    final secretKey = Environment.auClaimSecretKey;
+    final response = await HttpHelper.hmacAuthenticationPost(
+        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+    if (response.statusCode != StatusCode.success.value) {
+      throw Exception(response.reasonPhrase);
     }
+    final bodyByte = response.bodyBytes;
+    if (!isFileExist) {
+      await tempFile.create(recursive: true);
+    }
+    log.info("Created file $tempFilePath");
+    await tempFile.writeAsBytes(bodyByte);
+    log.info("Write file $tempFilePath");
+
     return tempFile;
   }
 
@@ -465,7 +467,6 @@ class PostcardServiceImpl extends PostcardService {
     if (!isSuccess) {
       throw MediaPermissionException("Permission is not granted");
     }
-    await imageFile.delete();
   }
 
   @override
