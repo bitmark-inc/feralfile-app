@@ -465,6 +465,7 @@ class PostcardServiceImpl extends PostcardService {
     if (!isSuccess) {
       throw MediaPermissionException("Permission is not granted");
     }
+    await imageFile.delete();
     return imageFile;
   }
 
@@ -480,6 +481,7 @@ class PostcardServiceImpl extends PostcardService {
     if (!isSuccess) {
       throw MediaPermissionException("Permission is not granted");
     }
+    await imageFile.delete();
     return imageFile;
   }
 
