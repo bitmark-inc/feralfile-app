@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
-import 'package:autonomy_flutter/gateway/bitmark_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/crowd_sourcing_api.dart';
@@ -45,18 +44,18 @@ import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/ledger_hardware/ledger_hardware_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -68,12 +67,11 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_dapp_service/wallet_connect_dapp_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
@@ -95,7 +93,7 @@ final injector = GetIt.instance;
 final testnetInjector = GetIt.asNewInstance();
 
 Future<void> setup() async {
-  FileLogger.initializeLogging();
+  await FileLogger.initializeLogging();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
@@ -122,6 +120,7 @@ Future<void> setup() async {
     migrateV13ToV14,
     migrateV14ToV15,
     migrateV15ToV16,
+    migrateV16ToV17
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -136,12 +135,19 @@ Future<void> setup() async {
     migrateCloudV7ToV8,
   ]).build();
 
+  final BaseOptions dioOptions = BaseOptions(
+    followRedirects: true,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  );
+  final dio = baseDio(dioOptions);
+
   final pendingTokenExpireMs = Environment.pendingTokenExpireMs;
   await NftCollection.initNftCollection(
-    indexerUrl: Environment.indexerURL,
-    logger: log,
-    apiLogger: apiLog,
-  );
+      indexerUrl: Environment.indexerURL,
+      logger: log,
+      apiLogger: apiLog,
+      dio: dio);
   injector
       .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
   injector.registerLazySingleton(() => NftCollection.prefs);
@@ -154,19 +160,11 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.albumDao);
   injector.registerLazySingleton(() => cloudDB);
 
-  final BaseOptions dioOptions = BaseOptions(
-    followRedirects: true,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  );
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(LoggingInterceptor());
-  dio.options = dioOptions;
-  dio.addSentry();
-
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
+  (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
+      parseJson;
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
@@ -190,24 +188,18 @@ Future<void> setup() async {
 
   injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton(() => NavigationService());
-  injector.registerLazySingleton(() => LedgerHardwareService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
-  injector.registerLazySingleton<MetricClientService>(
-      () => MetricClientService(injector()));
+  injector
+      .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector()));
-  injector.registerLazySingleton(
-      () => WalletConnectService(injector(), injector(), injector()));
+      () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
-  injector.registerLazySingleton(() => WalletConnectDappService(injector()));
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
         injector(),
         injector(),
-        injector(),
         auditService,
-        injector(),
         injector(),
         injector(),
         injector(),
@@ -226,7 +218,7 @@ Future<void> setup() async {
       : Environment.tzktMainnetURL;
   injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
   injector.registerLazySingleton(() => EtherchainApi(dio));
-  injector.registerLazySingleton(() => BranchApi(Dio()));
+  injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
@@ -237,8 +229,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() =>
       CrowdSourcingApi(authenticatedDio, baseUrl: Environment.indexerURL));
 
-  injector.registerLazySingleton(
-      () => BackgroundService(injector(), injector(), injector()));
+  injector
+      .registerLazySingleton(() => BackgroundService(injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
@@ -301,20 +293,19 @@ Future<void> setup() async {
   injector.registerLazySingleton<ClientTokenService>(
       () => ClientTokenService(injector(), injector(), injector(), injector()));
 
+  injector.registerLazySingleton(() => FolloweeService(injector(), injector()));
   final tezosNodeClientURL = Environment.appTestnetConfig
       ? Environment.tezosNodeClientTestnetURL
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
   injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
-      _feralFileDio(dioOptions),
+      feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
-  injector.registerLazySingleton<BitmarkApi>(
-      () => BitmarkApi(dio, baseUrl: Environment.bitmarkAPIURL));
   injector.registerLazySingleton<IndexerApi>(
       () => IndexerApi(dio, baseUrl: Environment.indexerURL));
 
   injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      _postcardDio(dioOptions.copyWith(
+      postcardDio(dioOptions.copyWith(
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30))),
       baseUrl: Environment.auClaimAPIURL));
@@ -338,10 +329,15 @@ Future<void> setup() async {
       () => CanvasClientService(injector()));
 
   injector.registerLazySingleton<PostcardService>(() => PostcardServiceImpl(
-      injector(), injector(), injector(), injector(), injector(), injector()));
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector()));
 
-  injector.registerLazySingleton<EditorialService>(
-      () => EditorialServiceImpl(injector(), injector()));
+  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl());
 
   injector.registerLazySingleton<AirdropService>(
     () => AirdropService(
@@ -366,22 +362,19 @@ Future<void> setup() async {
       .registerLazySingleton<NotificationService>(() => NotificationService());
 
   injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
-      _airdropDio(dioOptions.copyWith(followRedirects: true)),
+      airdropDio(dioOptions.copyWith(followRedirects: true)),
       baseUrl: Environment.autonomyAirdropURL));
 
   injector.registerLazySingleton<ActivationApi>(() => ActivationApi(
-      _airdropDio(dioOptions.copyWith(followRedirects: true)),
+      airdropDio(dioOptions.copyWith(followRedirects: true)),
       baseUrl: Environment.autonomyActivationURL));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
         injector(),
-        injector(),
-        injector(),
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
-        injector(),
         injector(),
         injector(),
         injector(),
@@ -413,44 +406,4 @@ Future<void> setup() async {
   injector.registerFactory<AlbumBloc>(() => AlbumBloc());
   injector.registerFactory<IdentityBloc>(
       () => IdentityBloc(injector(), injector()));
-}
-
-Dio _feralFileDio(BaseOptions options) {
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(LoggingInterceptor());
-  dio.interceptors.add(FeralfileAuthInterceptor());
-  dio.interceptors.add(RetryInterceptor(
-    dio: dio,
-    logPrint: (message) {
-      log.warning("[request retry] $message");
-    },
-    retryDelays: const [
-      // set delays between retries
-      Duration(seconds: 1),
-      Duration(seconds: 2),
-      Duration(seconds: 3),
-    ],
-  ));
-  dio.options = options;
-  dio.addSentry();
-  return dio;
-}
-
-Dio _postcardDio(BaseOptions options) {
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(LoggingInterceptor());
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.options = options;
-  dio.addSentry();
-  return dio;
-}
-
-Dio _airdropDio(BaseOptions options) {
-  final dio = Dio(); // Default a dio instance
-  dio.interceptors.add(AutonomyAuthInterceptor());
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AirdropInterceptor());
-  dio.options = options;
-  dio.addSentry();
-  return dio;
 }

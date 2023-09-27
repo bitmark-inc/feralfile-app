@@ -183,14 +183,19 @@ class AirdropService {
       final ownerAddress = assetToken.owner;
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      final ownerWallet = await _accountService.getAccountByAddress(
-          chain: assetToken.blockchain, address: ownerAddress);
-      final ownerPublicKey =
-          await ownerWallet.wallet.getTezosPublicKey(index: ownerWallet.index);
-      final signature = await _tezosService.signMessage(
-          ownerWallet.wallet,
-          ownerWallet.index,
-          Uint8List.fromList(utf8.encode("${assetToken.id}|$timestamp")));
+      final isViewOnly = await assetToken.isViewOnly();
+      String signature = "";
+      String ownerPublicKey = "";
+      if (!isViewOnly) {
+        final ownerWallet = await _accountService.getAccountByAddress(
+            chain: assetToken.blockchain, address: ownerAddress);
+        ownerPublicKey = await ownerWallet.wallet
+            .getTezosPublicKey(index: ownerWallet.index);
+        signature = await _tezosService.signMessage(
+            ownerWallet.wallet,
+            ownerWallet.index,
+            Uint8List.fromList(utf8.encode("${assetToken.id}|$timestamp")));
+      }
       final shareRequest = AirdropShareRequest(
           tokenId: assetToken.id,
           ownerAddress: assetToken.owner,
@@ -345,9 +350,9 @@ class AirdropClaimShareResponse {
 class AirdropShareRequest {
   String tokenId;
   String ownerAddress;
-  String ownerPublicKey;
+  String? ownerPublicKey;
   String timestamp;
-  String signature;
+  String? signature;
 
   AirdropShareRequest(
       {required this.tokenId,

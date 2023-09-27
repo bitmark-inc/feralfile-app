@@ -5,35 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:wallet_connect/wallet_connect.dart';
-
 class SystemException implements Exception {
   final String reason;
 
   SystemException(this.reason);
 }
 
-class AlreadyLinkedException implements Exception {
-  final Connection connection;
-  AlreadyLinkedException(this.connection);
-}
-
 class AbortedException implements Exception {}
 
 class LinkingFailedException implements Exception {}
-
-class RequiredPremiumFeature implements Exception {
-  final PremiumFeature feature;
-  final WCPeerMeta peerMeta;
-  final int id;
-  RequiredPremiumFeature({
-    required this.feature,
-    required this.peerMeta,
-    required this.id,
-  });
-}
 
 class InvalidDeeplink implements Exception {}
 

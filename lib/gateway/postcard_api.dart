@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -44,8 +44,9 @@ abstract class PostcardApi {
     @Part(name: "counter") required int counter,
   });
 
-  @GET("/v1/leaderboard?unit={unit}")
-  Future<GetLeaderboardResponse> getLeaderboard(@Path("unit") String unit);
+  @GET("/v1/leaderboard")
+  Future<GetLeaderboardResponse> getLeaderboard(@Query("unit") String unit,
+      @Query("size") int size, @Query("offset") int offset);
 }
 
 class GetLeaderboardResponse {

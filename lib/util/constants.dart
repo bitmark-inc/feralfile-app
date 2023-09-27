@@ -34,7 +34,6 @@ const STAR_RATING = "###STAR#RATING#";
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/bencebitmark/autonomy-user-test';
-const FF_TOKEN_DEEPLINK_PREFIX = 'https://autonomy.io/apps/feralfile?token=';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     "https://github.com/bitmark-inc/autonomy-client";
@@ -57,7 +56,7 @@ const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
     "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 
 const POSTCARD_RIGHTS_DOCS =
-    "https://raw.githubusercontent.com/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+    "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md";
 const MOMA_MEMENTO_EXHIBITION_IDS = [
   "00370334-6151-4c04-b6be-dc09e325d57d",
   "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
@@ -102,7 +101,7 @@ List<String> get momaMementoContractAddresses {
 const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
 
 const MEMENTO_6_SERIES_ID_MAINNET = "2b75da9b-c605-4842-bf59-8e2e1fe04be6";
-const MEMENTO_6_SERIES_ID_TESTNET = "b95fc2e8-c7ca-4db8-9f81-7bd231ff1c48";
+const MEMENTO_6_SERIES_ID_TESTNET = "420f4f8e-f45f-4627-b36c-e9fa5bf6af43";
 
 String get memento6SeriesId => Environment.appTestnetConfig
     ? MEMENTO_6_SERIES_ID_TESTNET
@@ -117,8 +116,16 @@ const double cellSpacing = 3.0;
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
+const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
+
+const POSTCARD_ABOUT_THE_PROJECT =
+    "https://www.moma.org/calendar/exhibitions/5618?preview=true";
+
 final moMAGeoLocation =
     GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
+
+final internetUserGeoLocation =
+    GeoLocation(position: Location(lat: null, lon: null), address: "Web");
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
@@ -128,6 +135,8 @@ const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
 const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
 const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
+
+const String MIXPANEL_HIVE_BOX = "mixpanel_hive_box";
 
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
     "postcard software artwork loaded";
@@ -162,14 +171,17 @@ const publicTezosNodes = [
 const TV_APP_STORE_URL =
     "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
 
-const POSRCARD_GAME_START = "4.09.23";
-const POSRCARD_GAME_END = "5.09.23";
+const MOMA_TERMS_CONDITIONS_URL = "";
 
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 
 const CONNECT_FAILED_DURATION = Duration(seconds: 10);
 
 const int COLLECTION_INITIAL_MIN_SIZE = 20;
+
+const int LEADERBOARD_PAGE_SIZE = 50;
+
+const String POSTCARD_ONSITE_REQUEST_ID = "moma-postcard-onsite";
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -199,6 +211,17 @@ String feralFileExhibitionUrl(String slug) =>
 
 String feralFileArtworkUrl(String slug) =>
     "${Environment.feralFileAPIURL}/artworks/$slug";
+
+String get etherScanUrl {
+  switch (Environment.web3ChainId) {
+    case 11155111:
+      return "https://sepolia.etherscan.io";
+    case 5:
+      return "https://goerli.etherscan.io";
+    default:
+      return "https://etherscan.io";
+  }
+}
 
 enum WalletApp {
   MetaMask,
@@ -351,6 +374,15 @@ enum AnnouncementID {
   final String value;
 }
 
+enum StatusCode {
+  notFound(404),
+  success(200);
+
+  const StatusCode(this.value);
+
+  final int value;
+}
+
 extension CryptoTypeHelpers on CryptoType {
   String get code {
     switch (this) {
@@ -411,11 +443,6 @@ class Constants {
 }
 
 class MixpanelEvent {
-  static const addExistAccount = 'add_exist_account';
-  static const createNewAccount = 'create_new_account';
-  static const generateLink = 'generate_link';
-  static const backGenerateLink = 'back_generate_link';
-  static const backImportAccount = 'back_import_account';
   static const restoreAccount = 'restore_account';
   static const cancelContact = 'cancel_contact';
   static const connectContactSuccess = 'connect_contact_success';
@@ -429,45 +456,30 @@ class MixpanelEvent {
   static const clickArtworkInfo = 'click_artwork_info';
   static const acceptOwnership = 'accept_ownership';
   static const declineOwnership = 'decline_ownership';
-  static const generateReport = 'generate_report';
   static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
   static const clickLoadIPFSAgain = 'click_load_IPFS_again';
   static const showLoadingArtwork = 'show_loading_artwork';
   static const seeArtworkFullScreen = 'see_artwork_fullscreen';
-  static const streamArtwork = 'stream_artwork';
-  static const linkLedger = 'link_ledger';
   static const viewArtwork = 'view_artwork';
   static const viewDiscovery = 'view_discovery';
   static const viewDiscoveryArtwork = 'view_discovery_artwork';
   static const timeViewDiscovery = 'time_view_discovery';
   static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
-  static const unhandledError = 'unhandled_error';
   static const signIn = 'Sign In';
   static const sign = 'Sign';
-  static const linkWallet = 'link_wallet';
   static const purchased = 'Purchased';
   static const trial = 'Trial';
-  static const linkFeralfile = 'link_feralfile';
   static const hideLinkedAccount = 'hide_linked_account';
   static const deleteFullAccount = 'delete_full_account';
   static const deleteLinkedAccount = 'delete_linked_account';
   static const importFullAccount = 'import_full_account';
   static const createFullAccount = 'create_full_account';
   static const connectExternal = 'connect_external';
-  static const connectAutonomyDisplay = 'connect_autonomy_display';
   static const subcription = 'Subcription';
-  static const editorialViewArticle = 'editorial_view_article';
-  static const editorialReadingArticle = 'editorial_reading_article';
   static const addNFT = 'add_NFT';
   static const enableNotification = 'enable_notification';
   static const tabNotification = 'tab_notification';
-  static const viewEditorial = 'view_editorial';
-  static const timeViewEditorial = 'time_view_editorial';
-  static const finishArticles = 'finish_articles';
-  static const visitExhibition = 'visit_exhibition';
-  static const visitExhibitionArtwork = 'visit_exhibition_artwork';
-  static const tabOnLinkInEditorial = 'tab_on_link_in_editorial';
   static const createPlaylist = 'create_playlist';
   static const undoCreatePlaylist = 'undo_create_playlist';
   static const scanQR = 'scan_qr';
@@ -483,11 +495,14 @@ class MixpanelEvent {
   static const closeTipcard = "close_tip_card";
   static const pressTipcard = "press_tip_card";
   static const tapLinkInTipCard = "tap_link_in_tip_card";
-  static const hideAddress = "hide_address";
   static const hideAddresses = "hide_addresses";
   static const callIrlFunction = "call_irl_function";
   static const numberNft = "number_nft";
-  static const editorialReadingTimeByWeek = "editorial_reading_time_by_week";
+  static const numberUseAppInAWeek = "number_use_app_in_a_week";
+}
+
+class MixpanelEventProp {
+  static const time = 'Time';
 }
 
 class MixpanelProp {
@@ -497,12 +512,14 @@ class MixpanelProp {
   static const address = 'Address';
   static const subscription = 'Subscription';
   static const numberNft = 'Number NFT';
+
+  static String connectedToMarket(String name) => "Connected to $name";
 }
 
-// class MixpanelConfig {
-//   static const EditorialPeriodStart = "editorialPeriodStart";
-//   static const totalEditorialReading = 'totalEditorialReading';
-// }
+class MixpanelConfig {
+  static const countUseAutonomyInWeek = "countUseAutonomyInWeek";
+  static const weekStartAt = 'weekStartAt';
+}
 
 class SubscriptionStatus {
   static const free = 'Free';
@@ -535,3 +552,5 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = "_closeWebview";
 }
+
+const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);

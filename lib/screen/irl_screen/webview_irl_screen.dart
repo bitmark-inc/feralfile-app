@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
@@ -23,7 +24,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final String url;
@@ -238,7 +238,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
             final args = WCSendTransactionPageArgs(
               1,
-              WCPeerMeta.fromJson(argument.metadata ??
+              AppMetadata.fromJson(argument.metadata ??
                   {
                     "name": "",
                     "url": "",
@@ -280,10 +280,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             operations: operations,
             sourceAddress: argument.sourceAddress,
           );
-          final txHash = await Navigator.of(context).pushNamed(
-            TBSendTransactionPage.tag,
-            arguments: beaconRequest,
-          );
+          final txHash = mounted
+              ? await Navigator.of(context).pushNamed(
+                  TBSendTransactionPage.tag,
+                  arguments: beaconRequest,
+                )
+              : null;
           if (txHash == null) {
             return _logAndReturnJSResult(
               '_sendTransaction',

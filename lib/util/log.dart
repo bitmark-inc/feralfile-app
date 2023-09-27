@@ -64,7 +64,7 @@ class FileLogger {
   static const shrinkSize = 1024 * 1024; // 1MB
 
   static Future initializeLogging() async {
-    shrinkLogFileIfNeeded();
+    await shrinkLogFileIfNeeded();
   }
 
   static Future<File> shrinkLogFileIfNeeded() async {
@@ -84,6 +84,12 @@ class FileLogger {
 
     return _logFile;
   }
+
+  static setLogFile(File file) {
+    _logFile = file;
+  }
+
+  static get logFile => _logFile;
 
   static Future log(LogRecord record) async {
     final text = '${record.toString()}\n';

@@ -1,17 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -54,12 +60,14 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
   @override
   Widget build(BuildContext context) {
+    const backgroundColor = AppColor.chatPrimaryColor;
     return Scaffold(
-      backgroundColor: AppColor.primaryBlack,
+      backgroundColor: backgroundColor,
+      appBar: getLightEmptyAppBar(backgroundColor),
       body: RotatedBox(
         quarterTurns: -1,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 15, 50, 15),
+          padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -126,7 +134,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         enabled: !loading,
                         text: "clear".tr(),
                         color: AppColor.white,
-                        textColor: AppColor.auGrey,
+                        textColor: AppColor.auQuickSilver,
                       ),
                     ),
                     Expanded(
@@ -154,6 +162,40 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     signatureGlobalKey.currentState!.clear();
   }
 
+  Future<File> _writeImageData(
+      {required ui.Image data, required String fileName}) async {
+    final data = await signatureGlobalKey.currentState!.toImage();
+    log.info(
+        ['[POSTCARD][_handleSaveButtonPressed] [data] [${data.toString()} ]']);
+    final bytes = await data.toByteData(format: ImageByteFormat.png);
+    final signature = img.decodePng(bytes!.buffer.asUint8List());
+    final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
+    final resizedSignature =
+        await resizeImage(ResizeImageParams(signature, STAMP_SIZE, newHeight));
+    if (resizedStamp == null) {
+      await resizeStamp();
+    }
+    final image =
+        await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
+    log.info(
+        '[POSTCARD][_handleSaveButtonPressed] [image] [${image.toString()}');
+    final dir = (await getApplicationDocumentsDirectory()).path;
+    final imagePath = '$dir/$fileName';
+    File imageFile = File(imagePath);
+    await imageFile.writeAsBytes(img.encodePng(image));
+    return imageFile;
+  }
+
+  Future<File> _writeMetadata(
+      {required Map<String, dynamic> metadata,
+      required String fileName}) async {
+    final dir = (await getApplicationDocumentsDirectory()).path;
+    final metadataPath = '$dir/$fileName';
+    File metadataFile = File(metadataPath);
+    await metadataFile.writeAsString(jsonEncode(metadata));
+    return metadataFile;
+  }
+
   void _handleSaveButtonPressed() async {
     setState(() {
       loading = true;
@@ -161,48 +203,59 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     try {
       final asset = widget.payload.asset;
       final tokenId = asset.tokenId ?? "";
-      final counter = asset.postcardMetadata.counter;
+      final counter = asset.numberOwners;
       final contractAddress = Environment.postcardContractAddress;
-      final data = await signatureGlobalKey.currentState!.toImage();
-      log.info([
-        '[POSTCARD][_handleSaveButtonPressed] [data] [${data.toString()} ]'
-      ]);
-      final bytes = await data.toByteData(format: ImageByteFormat.png);
-      final signature = img.decodePng(bytes!.buffer.asUint8List());
-      final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
-      final resizedSignature = await resizeImage(
-          ResizeImageParams(signature, STAMP_SIZE, newHeight));
-      if (resizedStamp == null) {
-        await resizeStamp();
-      }
-      final image = await compositeImage(
-          [resizedStamp!, img.encodePng(resizedSignature)]);
-      log.info(
-          '[POSTCARD][_handleSaveButtonPressed] [image] [${image.toString()}');
-      final dir = (await getApplicationDocumentsDirectory()).path;
-      final imagePath =
-          '$dir/${contractAddress}_${tokenId}_${counter}_image.png';
-      final metadataPath =
-          '$dir/${contractAddress}_${tokenId}_${counter}_metadata.json';
-      File imageFile = File(imagePath);
-      File metadataFile = File(metadataPath);
 
-      final Map<String, dynamic> metadata = {
-        "address": widget.payload.address,
-        "stampedAt": DateTime.now().toIso8601String()
-      };
-      await imageFile.writeAsBytes(img.encodePng(image));
-      await metadataFile.writeAsString(jsonEncode(metadata));
+      final imageDataFilename = '$contractAddress-$tokenId-$counter-image.png';
+      final imageData = await signatureGlobalKey.currentState!.toImage();
+      final imageDataFile =
+          await _writeImageData(data: imageData, fileName: imageDataFilename);
+
       setState(() {
         loading = false;
       });
       if (!mounted) return;
-      Navigator.of(context).pushNamed(StampPreview.tag,
-          arguments: StampPreviewPayload(
-              imagePath: imagePath,
-              metadataPath: metadataPath,
-              asset: asset,
-              location: widget.payload.location));
+      Navigator.of(context).popAndPushNamed(
+        AppRouter.postcardLocationExplain,
+        arguments: PostcardExplainPayload(
+          asset,
+          PostcardAsyncButton(
+            text: "continue".tr(),
+            fontSize: 18,
+            onTap: () async {
+              final counter = asset.numberOwners;
+              GeoLocation? geoLocation;
+              if (counter <= 1) {
+                geoLocation = moMAGeoLocation;
+              } else {
+                geoLocation = await getGeoLocationWithPermission();
+              }
+              if (geoLocation == null) return;
+              final metadataFilename =
+                  '$contractAddress-$tokenId-$counter-metadata.json';
+              final claimLocation =
+                  asset.postcardMetadata.locationInformation.lastOrNull ??
+                      moMAGeoLocation.position;
+              final claimAddress = await claimLocation.getAddress();
+              final stampAddress = await geoLocation.position.getAddress();
+              final Map<String, dynamic> metadata = {
+                "address": stampAddress, // stamp address
+                "claimAddress": claimAddress,
+                "stampedAt": DateTime.now().toIso8601String()
+              };
+              final metadataFile = await _writeMetadata(
+                  metadata: metadata, fileName: metadataFilename);
+              injector<NavigationService>().navigateTo(StampPreview.tag,
+                  arguments: StampPreviewPayload(
+                      imagePath: imageDataFile.path,
+                      metadataPath: metadataFile.path,
+                      asset: asset,
+                      location: geoLocation.position));
+            },
+            color: AppColor.momaGreen,
+          ),
+        ),
+      );
     } catch (e) {
       setState(() {
         loading = false;
@@ -217,8 +270,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 class HandSignaturePayload {
   final Uint8List image;
   final AssetToken asset;
-  final Location? location;
-  final String address;
 
-  HandSignaturePayload(this.image, this.asset, this.location, this.address);
+  HandSignaturePayload(
+    this.image,
+    this.asset,
+  );
 }

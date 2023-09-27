@@ -7,8 +7,8 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/suggested_artist.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
 import 'package:dio/dio.dart';
@@ -29,11 +29,11 @@ abstract class PubdocAPI {
   @GET("/demo/demo_account.json")
   Future<String> getDemoAccount();
 
-  @GET("/editorial/editorial.json")
-  Future<String> getEditorial();
-
   @GET("/tutorial_videos/tutorial_videos.json")
   Future<String> getTutorialVideos();
+
+  @GET("/artists/suggested_artists.json")
+  Future<String> getSuggestedArtists();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {
@@ -50,15 +50,18 @@ extension PubdocAPIHelpers on PubdocAPI {
     return list ?? [];
   }
 
-  Future<Editorial> getEditorialInfo() async {
-    final value = await getEditorial();
-    return Editorial.fromJson(jsonDecode(value));
-  }
-
   Future<List<VideoData>> getTutorialVideosFromGithub() async {
     final value = await getTutorialVideos();
     final list = (jsonDecode(value) as List?)?.map((element) {
       return VideoData.fromJson(element);
+    }).toList();
+    return list ?? [];
+  }
+
+  Future<List<SuggestedArtist>> getSuggestedArtistsFromGithub() async {
+    final value = await getSuggestedArtists();
+    final list = (jsonDecode(value) as List<dynamic>?)?.map((element) {
+      return SuggestedArtist.fromJson(element);
     }).toList();
     return list ?? [];
   }

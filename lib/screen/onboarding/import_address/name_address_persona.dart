@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -42,7 +44,6 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    bool isProcessing = false;
     return Scaffold(
       appBar: getBackAppBar(context,
           title: "import_address".tr(),
@@ -61,7 +62,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
             AuTextField(
                 labelSemantics: "enter_alias_full",
                 title: "",
-                placeholder: "enter_address_alias".tr(),
+                placeholder: "enter_address".tr(),
                 controller: _nameController,
                 onChanged: (valueChanged) {
                   if (_nameController.text.trim().isEmpty !=
@@ -73,9 +74,8 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
             Row(
               children: [
                 Expanded(
-                  child: PrimaryButton(
+                  child: PrimaryAsyncButton(
                     text: "continue".tr(),
-                    isProcessing: isProcessing,
                     onTap: isSavingAliasDisabled
                         ? null
                         : () async {
@@ -88,7 +88,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
                                 walletAddress.copyWith(
                                     name: _nameController.text.trim()));
                             if (!mounted) return;
-                            doneNaming(context);
+                            await doneNaming(context);
                           },
                   ),
                 ),
@@ -101,29 +101,32 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
   }
 }
 
-Future doneNaming(BuildContext context) async {
+Future<void> doneNaming(BuildContext context) async {
   if (Platform.isAndroid) {
     final isAndroidEndToEndEncryptionAvailable =
         await injector<AccountService>().isAndroidEndToEndEncryptionAvailable();
 
     if (context.mounted) {
+      final payload = CloudAndroidPagePayload(
+          isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable);
       if (injector<ConfigurationService>().isDoneOnboarding()) {
         Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
-            arguments: isAndroidEndToEndEncryptionAvailable);
+            arguments: payload);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.cloudAndroidPage, (route) => false,
-            arguments: isAndroidEndToEndEncryptionAvailable);
+            arguments: payload);
       }
     }
   } else {
+    final payload = CloudPagePayload(section: "nameAlias");
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context)
-          .pushReplacementNamed(AppRouter.cloudPage, arguments: "nameAlias");
+          .pushReplacementNamed(AppRouter.cloudPage, arguments: payload);
     } else {
       Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.cloudPage, (route) => false,
-          arguments: "nameAlias");
+          arguments: payload);
     }
   }
 }

@@ -24,14 +24,12 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -51,7 +49,6 @@ abstract class DeeplinkService {
 
 class DeeplinkServiceImpl extends DeeplinkService {
   final ConfigurationService _configurationService;
-  final WalletConnectService _walletConnectService;
   final Wc2Service _walletConnect2Service;
   final TezosBeaconService _tezosBeaconService;
   final FeralFileService _feralFileService;
@@ -69,7 +66,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   DeeplinkServiceImpl(
     this._configurationService,
-    this._walletConnectService,
     this._walletConnect2Service,
     this._tezosBeaconService,
     this._feralFileService,
@@ -121,17 +117,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (link == "autonomy://") return;
 
     if (link == null) return;
-    if (_deepLinkHandlingMap[link] != null) return;
 
     log.info("[DeeplinkService] receive deeplink $link");
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
+      if (_deepLinkHandlingMap[link] != null) return;
       _deepLinkHandleClock("Handle Deep Link Time Out", link);
       _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
-          await _handleFeralFileDeeplink(link) ||
           await _handleBranchDeeplink(link) ||
           await _handleIRL(link);
       _deepLinkHandlingMap.remove(link);
@@ -181,10 +176,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         case "home":
           _navigationService.restorablePushHomePage();
           break;
-        case "editorial":
-          memoryValues.homePageInitialTab = HomePageTab.EDITORIAL;
-          _navigationService.restorablePushHomePage();
-          break;
         case "discover":
           memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
           _navigationService.restorablePushHomePage();
@@ -232,6 +223,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await injector<AccountService>().restoreIfNeeded();
     }
     // Check Universal Link
+
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
 
@@ -240,11 +232,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           link: link, linkType: LinkType.dAppConnect, prefix: callingWCPrefix);
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
-      if (decodedWcUri.isAutonomyConnectUri) {
-        await _walletConnect2Service.connect(decodedWcUri);
-      } else {
-        await _walletConnectService.connect(decodedWcUri);
-      }
+      await _walletConnect2Service.connect(decodedWcUri);
       return true;
     }
 
@@ -266,11 +254,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           link: link,
           linkType: LinkType.dAppConnect,
           prefix: callingWCDeeplinkPrefix);
-      if (link.isAutonomyConnectUri) {
-        await _walletConnect2Service.connect(wcLink);
-      } else {
-        await _walletConnectService.connect(wcLink);
-      }
+      await _walletConnect2Service.connect(wcLink);
       return true;
     }
 
@@ -288,22 +272,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       return true;
     }
     memoryValues.deepLink.value = null;
-    return false;
-  }
-
-  Future<bool> _handleFeralFileDeeplink(String link) async {
-    log.info("[DeeplinkService] _handleFeralFileDeeplink");
-
-    if (link.startsWith(FF_TOKEN_DEEPLINK_PREFIX)) {
-      _addScanQREvent(
-          link: link,
-          linkType: LinkType.feralFile,
-          prefix: FF_TOKEN_DEEPLINK_PREFIX);
-      await _linkFeralFileToken(
-          link.replacePrefix(FF_TOKEN_DEEPLINK_PREFIX, ""));
-      return true;
-    }
-
     return false;
   }
 
@@ -347,7 +315,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           linkType: LinkType.branch,
           prefix: callingBranchDeepLinkPrefix,
           addData: response["data"]);
-      handleBranchDeeplinkData(response["data"]);
+      await handleBranchDeeplinkData(response["data"]);
       return true;
     }
     return false;
@@ -362,14 +330,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
     final source = data["source"];
     switch (source) {
-      case "FeralFile":
-        final String? tokenId = data["token_id"];
-        if (tokenId != null) {
-          log.info("[DeeplinkService] _linkFeralFileToken $tokenId");
-          await _linkFeralFileToken(tokenId);
-        }
-        memoryValues.branchDeeplinkData.value = null;
-        break;
       case "FeralFile_AirDrop":
         final String? exhibitionId = data["exhibition_id"];
         final String? seriesId = data["series_id"];
@@ -403,7 +363,22 @@ class DeeplinkServiceImpl extends DeeplinkService {
           break;
         }
         if (type == "claim_empty_postcard" && id != null) {
-          _handleClaimEmptyPostcardDeeplink(id);
+          final requiredOTP = id == POSTCARD_ONSITE_REQUEST_ID;
+          if (requiredOTP) {
+            final otp = _getOtpFromBranchData(data);
+            if (otp == null) {
+              log.info("[DeeplinkService] MoMA onsite otp is null");
+              return;
+            }
+            if (otp.isExpired) {
+              log.info("[DeeplinkService] MoMA onsite otp is expired");
+              _navigationService.showPostcardQRCodeExpired();
+              return;
+            }
+            _handleClaimEmptyPostcardDeeplink(id, otp: otp.code);
+          } else {
+            _handleClaimEmptyPostcardDeeplink(id);
+          }
           return;
         }
         final String? sharedCode = data["share_code"];
@@ -434,7 +409,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.navigateTo(
             AppRouter.claimAirdropPage,
             arguments: ClaimTokenPagePayload(
-                claimID: "", shareCode: sharedInfor.shareCode, series: series),
+                claimID: "",
+                shareCode: sharedInfor.shareCode,
+                series: series,
+                allowViewOnlyClaim: true),
           );
         } else {
           _navigationService.waitTooLongDialog();
@@ -461,26 +439,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         memoryValues.branchDeeplinkData.value = null;
     }
     _deepLinkHandlingMap.remove(data["~referring_link"]);
-  }
-
-  Future<void> _linkFeralFileToken(String tokenId) async {
-    final doneOnboarding = _configurationService.isDoneOnboarding();
-
-    final connection = await _feralFileService.linkFF(
-      tokenId,
-      delayLink: !doneOnboarding,
-    );
-
-    if (doneOnboarding) {
-      _navigationService.showFFAccountLinked(connection.name);
-
-      await Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
-        _navigationService.popUntilHomeOrSettings();
-      });
-    } else {
-      _navigationService.showFFAccountLinked(connection.name,
-          inOnboarding: true);
-    }
   }
 
   Future _claimFFAirdropToken({
@@ -554,29 +512,47 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   _handlePostcardDeeplink(String shareCode) async {
-    final sharedInfor =
-        await _postcardService.getSharedPostcardInfor(shareCode);
-    if (sharedInfor.status == SharedPostcardStatus.claimed) {
-      await _navigationService.showAlreadyDeliveredPostcard();
-      return;
+    try {
+      final sharedInfor =
+          await _postcardService.getSharedPostcardInfor(shareCode);
+      if (sharedInfor.status == SharedPostcardStatus.claimed) {
+        await _navigationService.showAlreadyDeliveredPostcard();
+        return;
+      }
+      final contractAddress = Environment.postcardContractAddress;
+      final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
+      final postcard = await _postcardService.getPostcard(tokenId);
+      _navigationService.openPostcardReceivedPage(
+          asset: postcard, shareCode: sharedInfor.shareCode);
+    } catch (e) {
+      log.info("[DeeplinkService] _handlePostcardDeeplink error $e");
+      if (e is DioException &&
+          (e.response?.statusCode == StatusCode.notFound.value)) {
+        _navigationService.showPostcardShareLinkInvalid();
+      }
     }
-    final contractAddress = Environment.postcardContractAddress;
-    final tokenId = 'tez-$contractAddress-${sharedInfor.tokenID}';
-    final postcard = await _postcardService.getPostcard(tokenId);
-    _navigationService.openPostcardReceivedPage(
-        asset: postcard, shareCode: sharedInfor.shareCode);
   }
 
-  _handleClaimEmptyPostcardDeeplink(String? id) async {
+  _handleClaimEmptyPostcardDeeplink(String? id, {String? otp}) async {
     if (id == null) {
       return;
     }
-    final claimRequest =
-        await _postcardService.requestPostcard(RequestPostcardRequest(id: id));
-    _navigationService.navigateTo(
-      AppRouter.claimEmptyPostCard,
-      arguments: claimRequest,
-    );
+    try {
+      final claimRequest = await _postcardService
+          .requestPostcard(RequestPostcardRequest(id: id, otp: otp));
+      _navigationService.navigateTo(
+        AppRouter.claimEmptyPostCard,
+        arguments: claimRequest,
+      );
+    } catch (e) {
+      log.info("[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e");
+
+      if (otp == null) {
+        _navigationService.showPostcardRunOut();
+      } else {
+        _navigationService.showPostcardQRCodeExpired();
+      }
+    }
   }
 
   _handleActivationDeeplink(String? activationID, Otp? otp) async {

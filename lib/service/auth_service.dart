@@ -86,10 +86,7 @@ class AuthService {
       _configurationService.setIAPJWT(null);
     }
 
-    _feedService
-        .refreshJWTToken(newJwt.jwtToken)
-        .then((value) => _feedService.checkNewFeeds());
-
+    _feedService.refreshJWTToken(newJwt.jwtToken);
     return newJwt;
   }
 }

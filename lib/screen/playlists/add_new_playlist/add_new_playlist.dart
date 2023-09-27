@@ -317,7 +317,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
         mainAxisSpacing: cellSpacing,
       ),
       itemBuilder: (context, index) {
-        return ThubnailPlaylistItem(
+        if (index >= tokens.length) return const SizedBox();
+        return ThumbnailPlaylistItem(
           token: tokens[index],
           cachedImageSize: cachedImageSize,
           isSelected: selectedTokens?.contains(tokens[index].id) ?? false,
@@ -327,12 +328,14 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
           usingThumbnailID: index > 50,
         );
       },
-      itemCount: tokens.length,
+
+      /// add 3 blank cells to make space for save button
+      itemCount: tokens.length + 3,
     );
   }
 }
 
-class ThubnailPlaylistItem extends StatefulWidget {
+class ThumbnailPlaylistItem extends StatefulWidget {
   final bool showSelect;
   final bool isSelected;
   final CompactedAssetToken token;
@@ -341,7 +344,7 @@ class ThubnailPlaylistItem extends StatefulWidget {
   final bool usingThumbnailID;
   final bool showTriggerOrder;
 
-  const ThubnailPlaylistItem({
+  const ThumbnailPlaylistItem({
     Key? key,
     required this.token,
     required this.cachedImageSize,
@@ -353,10 +356,10 @@ class ThubnailPlaylistItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ThubnailPlaylistItem> createState() => _ThubnailPlaylistItemState();
+  State<ThumbnailPlaylistItem> createState() => _ThumbnailPlaylistItemState();
 }
 
-class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
+class _ThumbnailPlaylistItemState extends State<ThumbnailPlaylistItem> {
   bool isSelected = false;
 
   @override
@@ -366,7 +369,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
   }
 
   @override
-  void didUpdateWidget(covariant ThubnailPlaylistItem oldWidget) {
+  void didUpdateWidget(covariant ThumbnailPlaylistItem oldWidget) {
     setState(() {
       isSelected = widget.isSelected;
     });

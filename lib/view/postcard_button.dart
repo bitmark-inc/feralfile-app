@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:flutter/material.dart';
@@ -5,36 +6,45 @@ import 'package:flutter/material.dart';
 class PostcardButton extends StatelessWidget {
   final Function()? onTap;
   final Color? color;
+  final Color? disabledColor;
   final String? text;
   final double? width;
   final bool isProcessing;
   final bool enabled;
   final Color? textColor;
+  final Color? disabledTextColor;
+  final double? fontSize;
 
   const PostcardButton({
     Key? key,
     this.onTap,
     this.color,
+    this.disabledColor,
     this.text,
     this.width,
     this.enabled = true,
     this.isProcessing = false,
     this.textColor,
+    this.disabledTextColor,
+    this.fontSize,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const defaultActiveColor = Colors.amber;
+    const defaultDisabledColor = AppColor.disabledColor;
+    final backgroundColor = enabled
+        ? color ?? defaultActiveColor
+        : disabledColor ?? defaultDisabledColor; //theme.auLightGrey;
     return SizedBox(
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              enabled ? color ?? defaultActiveColor : theme.auLightGrey,
+          backgroundColor: backgroundColor,
           shadowColor: Colors.transparent,
-          disabledForegroundColor: theme.auLightGrey,
-          disabledBackgroundColor: theme.auLightGrey,
+          disabledForegroundColor: disabledColor ?? defaultDisabledColor,
+          disabledBackgroundColor: disabledColor ?? defaultDisabledColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
@@ -60,8 +70,9 @@ class PostcardButton extends StatelessWidget {
                     : const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.moMASans700Black14
-                      .copyWith(color: textColor),
+                  style: theme.textTheme.moMASans700Black18.copyWith(
+                      color: enabled ? textColor : disabledTextColor,
+                      fontSize: fontSize),
                 ),
               ],
             ),
@@ -79,6 +90,7 @@ class PostcardCustomButton extends StatelessWidget {
   final bool isProcessing;
   final bool enabled;
   final Widget child;
+  final Color? disableColor;
 
   const PostcardCustomButton({
     Key? key,
@@ -88,21 +100,24 @@ class PostcardCustomButton extends StatelessWidget {
     required this.child,
     this.enabled = true,
     this.isProcessing = false,
+    this.disableColor,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const defaultActiveColor = Colors.amber;
+    const defaultDisabledColor = AppColor.disabledColor;
     return SizedBox(
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              enabled ? color ?? defaultActiveColor : theme.auLightGrey,
+          backgroundColor: enabled
+              ? color ?? defaultActiveColor
+              : disableColor ?? defaultDisabledColor,
           shadowColor: Colors.transparent,
-          disabledForegroundColor: theme.auLightGrey,
-          disabledBackgroundColor: theme.auLightGrey,
+          disabledForegroundColor: disableColor ?? defaultDisabledColor,
+          disabledBackgroundColor: disableColor ?? defaultDisabledColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
@@ -269,6 +284,65 @@ class PostcardCustomOutlineButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class PostcardAsyncButton extends StatefulWidget {
+  final Function()? onTap;
+  final Color? color;
+  final Color? disabledColor;
+  final String? text;
+  final double? width;
+  final bool enabled;
+  final Color? textColor;
+  final Color? disabledTextColor;
+  final double? fontSize;
+
+  const PostcardAsyncButton({
+    Key? key,
+    this.onTap,
+    this.color,
+    this.disabledColor,
+    this.text,
+    this.width,
+    this.enabled = true,
+    this.textColor,
+    this.disabledTextColor,
+    this.fontSize,
+  }) : super(key: key);
+
+  @override
+  State<PostcardAsyncButton> createState() => _PostcardAsyncButtonState();
+}
+
+class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
+  bool _isProcessing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return PostcardButton(
+      onTap: () {
+        withDebounce(() async {
+          setState(() {
+            _isProcessing = true;
+          });
+          await widget.onTap?.call();
+          if (!mounted) return;
+          setState(() {
+            _isProcessing = false;
+          });
+        });
+      },
+      color: widget.color,
+      width: widget.width,
+      enabled: widget.enabled && !_isProcessing,
+      text: widget.text,
+      textColor: widget.textColor,
+      disabledColor: widget.disabledColor,
+      disabledTextColor: widget.disabledTextColor,
+      fontSize: widget.fontSize,
+      isProcessing: _isProcessing,
     );
   }
 }

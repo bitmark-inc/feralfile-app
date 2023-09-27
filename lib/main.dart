@@ -11,7 +11,6 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -46,13 +45,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   runZonedGuarded(() async {
     await dotenv.load();
-    await SentryFlutter.init((options) {
-      options.dsn = Environment.sentryDSN;
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-      options.attachStacktrace = true;
-    });
 
     WidgetsFlutterBinding.ensureInitialized();
     // feature/text_localization
@@ -84,8 +76,6 @@ void main() async {
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
     if (error.toString().contains("DatabaseException")) {
-      Sentry.captureException(error);
-
       log.info('[DatabaseException] Remove local database and resume app');
 
       await _deleteLocalDatabase();
@@ -119,11 +109,19 @@ _setupApp() async {
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
 
-  runApp(EasyLocalization(
-      supportedLocales: const [Locale('en', 'US')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en', 'US'),
-      child: const OverlaySupport.global(child: AutonomyApp())));
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = Environment.sentryDSN;
+      options.enableAutoSessionTracking = true;
+      options.tracesSampleRate = 0.25;
+      options.attachStacktrace = true;
+    },
+    appRunner: () => runApp(EasyLocalization(
+        supportedLocales: const [Locale('en', 'US')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en', 'US'),
+        child: const OverlaySupport.global(child: AutonomyApp()))),
+  );
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
@@ -200,11 +198,11 @@ class MemoryValues {
   DateTime? inForegroundAt;
   bool inGalleryView;
   ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
-  List<Connection>? linkedFFConnections = [];
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
   HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
   String? currentGroupChatId;
+  bool isForeground = true;
 
   MemoryValues({
     this.scopedPersona,
@@ -212,7 +210,6 @@ class MemoryValues {
     this.inForegroundAt,
     this.inGalleryView = true,
     required this.branchDeeplinkData,
-    this.linkedFFConnections,
     required this.deepLink,
     required this.irlLink,
   });
@@ -232,7 +229,6 @@ class MemoryValues {
 enum HomePageTab {
   HOME,
   DISCOVER,
-  EDITORIAL,
 }
 
 enum HomeNavigatorTab {

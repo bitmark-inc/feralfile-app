@@ -6,11 +6,9 @@
 //
 
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
@@ -20,8 +18,8 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -30,11 +28,6 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logging/logging.dart';
-
-import 'bloc/persona/persona_bloc.dart';
-
-final logger = Logger('App');
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -48,7 +41,6 @@ class _OnboardingPageState extends State<OnboardingPage>
   bool fromBranchLink = false;
   bool fromDeeplink = false;
   bool fromIrlLink = false;
-  bool creatingAccount = false;
 
   final metricClient = injector.get<MetricClientService>();
 
@@ -63,7 +55,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    log("DefineViewRoutingEvent");
+    log.info("DefineViewRoutingEvent");
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 
@@ -215,40 +207,8 @@ class _OnboardingPageState extends State<OnboardingPage>
         if (state.onboardingStep != OnboardingStep.dashboard) {
           await injector<VersionService>().checkForUpdate();
         }
-        injector<WalletConnectService>().initSessions(forced: true);
       },
       builder: (context, state) {
-        if (creatingAccount) {
-          return BlocListener<PersonaBloc, PersonaState>(
-            listener: (context, personaState) async {
-              switch (personaState.createAccountState) {
-                case ActionState.done:
-                  final createdPersona = personaState.persona;
-                  if (createdPersona != null) {
-                    Navigator.of(context).pushNamed(AppRouter.namePersonaPage,
-                        arguments:
-                            NamePersonaPayload(uuid: createdPersona.uuid));
-                  }
-                  Future.delayed(const Duration(seconds: 1), () {
-                    setState(() {
-                      creatingAccount = false;
-                    });
-                  });
-
-                  break;
-                case ActionState.error:
-                  setState(() {
-                    creatingAccount = false;
-                  });
-                  break;
-                default:
-                  break;
-              }
-            },
-            child: loadingScreen(theme, "generating_wallet".tr()),
-          );
-        }
-
         if (state.isLoading) {
           return loadingScreen(theme, "restoring_autonomy".tr());
         }

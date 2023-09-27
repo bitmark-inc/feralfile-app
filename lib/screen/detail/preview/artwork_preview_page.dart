@@ -28,7 +28,9 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +71,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   List<ArtworkIdentity> tokens = [];
   Timer? _timer;
   late int initialPage;
-  bool _isPremium = false;
 
   final metricClient = injector.get<MetricClientService>();
 
@@ -91,13 +92,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final currentIdentity = tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
         useIndexer: widget.payload.useIndexer));
-    _checkPremium();
     super.initState();
-  }
-
-  Future<void> _checkPremium() async {
-    _isPremium = await isPremium();
-    setState(() {});
   }
 
   setTimer({int? time}) {
@@ -117,18 +112,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     }
   }
 
-  void _uncasting() {
-    final canvasDeviceState = _canvasDeviceBloc.state;
-    for (var e in canvasDeviceState.devices) {
-      if (e.status == DeviceStatus.playing) {
-        _canvasDeviceBloc.add(CanvasDeviceUncastingSingleEvent(e.device));
-      }
-    }
-  }
-
   @override
   void dispose() {
-    _uncasting();
     _focusNode.dispose();
     disableLandscapeMode();
     WakelockPlus.disable();
@@ -246,7 +231,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   Future<void> _onCastTap(AssetToken? assetToken) async {
     keyboardManagerKey.currentState?.hideKeyboard();
-    UIHelper.showFlexibleDialog(
+    await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
         value: _canvasDeviceBloc,
@@ -259,6 +244,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       ),
       isDismissible: true,
     );
+    _fetchDevice(assetToken?.id ?? "");
   }
 
   @override
@@ -279,7 +265,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final identityState = context.watch<IdentityBloc>().state;
         final artistName =
             assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
-
+        _fetchDevice(assetToken?.id ?? "");
         var subTitle = "";
         if (artistName != null && artistName.isNotEmpty) {
           subTitle = artistName;
@@ -288,6 +274,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           appBar: isFullScreen
               ? null
               : AppBar(
+                  systemOverlayStyle: systemUiOverlayDarkStyle,
                   backgroundColor: theme.colorScheme.primary,
                   leadingWidth: 0,
                   centerTitle: false,
@@ -367,7 +354,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   ),
                 ),
                 Visibility(
-                  visible: !isFullScreen && _isPremium,
+                  visible: !isFullScreen,
                   child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                       bloc: _canvasDeviceBloc,
                       builder: (context, state) {
@@ -412,7 +399,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 CastButton(
-                                  assetToken: assetToken,
                                   onCastTap: () => _onCastTap(assetToken),
                                   isCasting: isCasting,
                                 ),
@@ -458,33 +444,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       },
     );
   }
-}
 
-class CastButton extends StatelessWidget {
-  final AssetToken? assetToken;
-  final VoidCallback? onCastTap;
-  final bool isCasting;
-
-  const CastButton(
-      {Key? key, this.assetToken, this.onCastTap, this.isCasting = false})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: onCastTap,
-      child: Semantics(
-        label: 'cast_icon',
-        child: SvgPicture.asset(
-          'assets/images/cast_icon.svg',
-          colorFilter: ColorFilter.mode(
-              isCasting ? theme.auSuperTeal : theme.colorScheme.secondary,
-              BlendMode.srcIn),
-        ),
-      ),
-    );
+  Future<void> _fetchDevice(String tokenID) async {
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(tokenID, syncAll: false));
   }
 }
 

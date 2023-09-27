@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/tzkt_operation.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -26,6 +25,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -582,7 +582,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           Navigator.of(context).pushNamed(
             AppRouter.inappWebviewPage,
             arguments:
-                InAppWebViewPayload(_txURL(address, widget.payload.type)),
+                InAppWebViewPayload(addressURL(address, widget.payload.type)),
           );
         },
       ),
@@ -607,19 +607,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         },
       ),
     ]);
-  }
-
-  String _txURL(String address, CryptoType cryptoType) {
-    switch (cryptoType) {
-      case CryptoType.ETH:
-        return "https://etherscan.io/address/$address";
-      case CryptoType.XTZ:
-        return "https://tzkt.io/$address/operations";
-      case CryptoType.USDC:
-        return "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=$address";
-      default:
-        return "";
-    }
   }
 
   Widget _sendReceiveSection(BuildContext context) {
@@ -660,8 +647,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 }
 
                 if (!mounted) return;
-                final tx = payload['tx'] as TZKTOperation;
-                tx.sender = TZKTActor(address: address);
                 UIHelper.showMessageAction(
                   context,
                   'success'.tr(),

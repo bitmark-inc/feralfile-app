@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -22,11 +23,11 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 import 'package:web3dart/credentials.dart';
 
 import '../database/cloud_database.dart';
@@ -91,12 +92,14 @@ class Wc2Service extends Wc2Handler {
   }
 
   Future connect(String uri, {Function()? onTimeout}) async {
-    pendingUri = uri;
-    _timer?.cancel();
-    _timer = Timer(CONNECT_FAILED_DURATION, () {
-      onTimeout?.call();
-    });
-    await _wc2channel.pairClient(uri);
+    if (uri.isAutonomyConnectUri) {
+      pendingUri = uri;
+      _timer?.cancel();
+      _timer = Timer(CONNECT_FAILED_DURATION, () {
+        onTimeout?.call();
+      });
+      await _wc2channel.pairClient(uri);
+    }
   }
 
   Future cleanup() async {
@@ -318,7 +321,7 @@ class Wc2Service extends Wc2Handler {
         arguments: WCSignMessagePageArgs(
           request.id,
           request.topic,
-          request.proposer!.toWCPeerMeta(),
+          request.proposer!,
           message,
           signType,
           wallet.wallet.uuid,
@@ -348,8 +351,8 @@ class Wc2Service extends Wc2Handler {
         return;
       }
       final metaData = request.proposer != null
-          ? request.proposer!.toWCPeerMeta()
-          : WCPeerMeta(icons: [], name: "", url: "", description: "");
+          ? request.proposer!
+          : AppMetadata(icons: [], name: "", url: "", description: "");
       final args = WCSendTransactionPageArgs(
         request.id,
         metaData,
@@ -375,7 +378,7 @@ class Wc2Service extends Wc2Handler {
         arguments: WCSignMessagePageArgs(
           request.id,
           request.topic,
-          request.proposer!.toWCPeerMeta(),
+          request.proposer!,
           request.params["message"],
           signType,
           "",
@@ -423,8 +426,8 @@ class Wc2Service extends Wc2Handler {
         return;
       }
       final metaData = request.proposer != null
-          ? request.proposer!.toWCPeerMeta()
-          : WCPeerMeta(icons: [], name: "", url: "", description: "");
+          ? request.proposer!
+          : AppMetadata(icons: [], name: "", url: "", description: "");
       final args = WCSendTransactionPageArgs(
         request.id,
         metaData,

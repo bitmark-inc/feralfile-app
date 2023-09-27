@@ -10,15 +10,13 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -68,28 +66,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
     _renameController.text = _connection.name;
     isHideGalleryEnabled =
         injector<AccountService>().isLinkedAccountHiddenInGallery(_address);
-    context
-        .read<AccountsBloc>()
-        .add(FindLinkedAccount(_connection.key, _address, widget.payload.type));
-    switch (widget.payload.type) {
-      case CryptoType.ETH:
-        context
-            .read<EthereumBloc>()
-            .add(GetEthereumBalanceWithAddressEvent([_address]));
-        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
-        break;
-      case CryptoType.XTZ:
-        context
-            .read<TezosBloc>()
-            .add(GetTezosBalanceWithAddressEvent([_address]));
-        break;
-      case CryptoType.USDC:
-        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
-        break;
-      case CryptoType.UNKNOWN:
-        // do nothing
-        break;
-    }
+
+    _callBloc();
     controller = ScrollController();
     controller.addListener(_listener);
   }
@@ -109,6 +87,10 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
 
   @override
   void didPopNext() {
+    _callBloc();
+  }
+
+  void _callBloc() {
     final cryptoType = widget.payload.type;
     context
         .read<WalletDetailBloc>()
@@ -133,9 +115,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   @override
   Widget build(BuildContext context) {
     final cryptoType = widget.payload.type;
-    context
-        .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, _address));
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
 
     return Scaffold(
@@ -503,24 +482,11 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           Navigator.of(context).pushNamed(
             AppRouter.inappWebviewPage,
             arguments:
-                InAppWebViewPayload(_txURL(_address, widget.payload.type)),
+                InAppWebViewPayload(addressURL(_address, widget.payload.type)),
           );
         },
       ),
     ]);
-  }
-
-  String _txURL(String address, CryptoType cryptoType) {
-    switch (cryptoType) {
-      case CryptoType.ETH:
-        return "https://etherscan.io/address/$address";
-      case CryptoType.XTZ:
-        return "https://tzkt.io/$address/operations";
-      case CryptoType.USDC:
-        return "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=$address";
-      default:
-        return "";
-    }
   }
 
   _showOptionDialog() {

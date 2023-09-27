@@ -3,10 +3,12 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -53,7 +55,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                     const SizedBox(height: 10),
                     AuTextField(
                       title: "",
-                      placeholder: "enter_address_alias".tr(),
+                      placeholder: "enter_address".tr(),
                       controller: _controller,
                       isError: _isError,
                       suffix: IconButton(
@@ -99,13 +101,24 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                 switch (cryptoType) {
                   case CryptoType.ETH:
                   case CryptoType.XTZ:
-                    final connection = await injector<AccountService>()
-                        .linkManuallyAddress(
-                            _controller.text.trim(), cryptoType);
-                    if (!mounted) return;
-                    Navigator.of(context).pushNamed(
-                        AppRouter.nameLinkedAccountPage,
-                        arguments: connection);
+                    try {
+                      final connection = await injector<AccountService>()
+                          .linkManuallyAddress(
+                              _controller.text.trim(), cryptoType);
+                      if (!mounted) return;
+                      Navigator.of(context).pushNamed(
+                          AppRouter.nameLinkedAccountPage,
+                          arguments: connection);
+                    } on LinkAddressException catch (e) {
+                      setState(() {
+                        _isError = true;
+                      });
+                      UIHelper.showInfoDialog(context, e.message, "",
+                          isDismissible: true,
+                          closeButton: "close".tr(), onClose: () {
+                        injector<NavigationService>().popUntilHome();
+                      });
+                    } catch (_) {}
                     break;
                   default:
                     setState(() {

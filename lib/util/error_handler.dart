@@ -10,15 +10,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -273,13 +272,6 @@ Future<bool> showErrorDialogFromException(Object exception,
       UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
           isDismissible: true, autoDismissAfter: 3);
       return true;
-    } else if (exception is RequiredPremiumFeature) {
-      UIHelper.showFeatureRequiresSubscriptionDialog(
-          context, exception.feature, exception.peerMeta, exception.id);
-      return true;
-    } else if (exception is AlreadyLinkedException) {
-      UIHelper.showAlreadyLinked(context, exception.connection);
-      return true;
     } else if (exception is InvalidDeeplink) {
       UIHelper.showInfoDialog(context, "😵", "link_not_valid".tr(),
           isDismissible: true, autoDismissAfter: 3);
@@ -300,10 +292,6 @@ Future<bool> showErrorDialogFromException(Object exception,
   }
 
   log.warning("Unhandled error: $exception", exception);
-
-  final metricClient = injector.get<MetricClientService>();
-  metricClient.addEvent(MixpanelEvent.unhandledError,
-      data: {"message": exception.toString()});
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries

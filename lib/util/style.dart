@@ -5,8 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/text_style_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -172,6 +172,77 @@ MarkdownStyleSheet markDownRightStyle(BuildContext context) {
   );
 }
 
+MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  final baseStyle = theme.textTheme.moMASans400Black12;
+  final bodyText2 = theme.textTheme.ppMori400Black14;
+  return MarkdownStyleSheet(
+    a: baseStyle.copyWith(
+      color: Colors.transparent,
+      decoration: TextDecoration.underline,
+      shadows: [
+        const Shadow(
+          offset: Offset(0, -1),
+        )
+      ],
+      decorationStyle: TextDecorationStyle.solid,
+      decorationColor: Colors.black,
+    ),
+    p: baseStyle,
+    pPadding: const EdgeInsets.symmetric(horizontal: 15),
+    code: bodyText2.copyWith(backgroundColor: Colors.transparent),
+    h1: baseStyle.copyWith(fontSize: 16),
+    h1Padding: EdgeInsets.zero,
+    h2: baseStyle.copyWith(fontSize: 16),
+    h2Padding: EdgeInsets.zero,
+    h3: baseStyle.copyWith(fontSize: 16),
+    h3Padding: EdgeInsets.zero,
+    h4: baseStyle.copyWith(fontSize: 16),
+    h4Padding: EdgeInsets.zero,
+    h5: baseStyle.copyWith(fontSize: 16),
+    h5Padding: EdgeInsets.zero,
+    h6: baseStyle.copyWith(fontSize: 16),
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.black),
+    strong: baseStyle.copyWith(color: AppColor.auQuickSilver),
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: Colors.white),
+    blockquote: bodyText2,
+    img: bodyText2,
+    checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
+    blockSpacing: 16.0,
+    listIndent: 24.0,
+    listBullet: bodyText2.copyWith(color: Colors.black),
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: bodyText2,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquoteDecoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2.0),
+    ),
+    horizontalRuleDecoration: const BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          color: Color.fromRGBO(236, 236, 236, 1),
+        ),
+      ),
+    ),
+  );
+}
+
 MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
   final theme = Theme.of(context);
   final bodyText2 = theme.textTheme.ppMori400White12;
@@ -301,82 +372,6 @@ MarkdownStyleSheet markDownDetailPageStyle(
       border: Border(
         top: BorderSide(
           color: theme.dividerColor,
-        ),
-      ),
-    ),
-  );
-}
-
-MarkdownStyleSheet editorialMarkDownStyle(BuildContext context,
-    {TextStyle? preferredStyle, EdgeInsets? pPadding, double? adjustSize}) {
-  const textColor = AppColor.white;
-  final theme = Theme.of(context);
-  final size = adjustSize ?? 0;
-  final textStyleWhite =
-      theme.textTheme.ppMori400White12.copyWith(fontSize: 17).adjustSize(size);
-  preferredStyle = preferredStyle ?? textStyleWhite;
-  return MarkdownStyleSheet(
-    a: preferredStyle.merge(
-      const TextStyle(
-        color: AppColor.auSuperTeal,
-      ),
-    ),
-    p: preferredStyle,
-    pPadding: pPadding ?? const EdgeInsets.only(bottom: 16),
-    code: textStyleWhite.copyWith(backgroundColor: Colors.transparent),
-    h1: preferredStyle
-        .copyWith(fontSize: 24, fontWeight: FontWeight.w700)
-        .adjustSize(size),
-    h1Padding: const EdgeInsets.only(bottom: 24),
-    h2: preferredStyle
-        .copyWith(fontSize: 20, fontWeight: FontWeight.w700)
-        .adjustSize(size),
-    h2Padding: EdgeInsets.zero,
-    h3: preferredStyle,
-    h3Padding: EdgeInsets.zero,
-    h4: preferredStyle,
-    h4Padding: EdgeInsets.zero,
-    h5: preferredStyle,
-    h5Padding: EdgeInsets.zero,
-    h6: preferredStyle,
-    h6Padding: EdgeInsets.zero,
-    em: preferredStyle.copyWith(fontStyle: FontStyle.italic),
-    strong: preferredStyle.copyWith(fontWeight: FontWeight.bold),
-    del: preferredStyle.copyWith(
-        decoration: TextDecoration.lineThrough, color: textColor),
-    blockquote: preferredStyle.copyWith(color: AppColor.white),
-    img: preferredStyle
-        .copyWith(fontSize: 12, color: AppColor.disabledColor)
-        .adjustSize(size),
-    checkbox: textStyleWhite.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 15.0,
-    listIndent: 24.0,
-    listBullet: textStyleWhite.copyWith(color: textColor),
-    listBulletPadding: const EdgeInsets.only(right: 4),
-    tableHead: const TextStyle(fontWeight: FontWeight.w600),
-    tableBody: textStyleWhite,
-    tableHeadAlign: TextAlign.center,
-    tableBorder: TableBorder.all(
-      color: theme.dividerColor,
-    ),
-    tableColumnWidth: const FlexColumnWidth(),
-    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-    tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.only(left: 20),
-    blockquoteDecoration: const BoxDecoration(
-      border: Border(
-        left: BorderSide(width: 2, color: AppColor.auSuperTeal),
-      ),
-    ),
-    codeblockPadding: const EdgeInsets.all(8.0),
-    codeblockDecoration: BoxDecoration(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
-    ),
-    horizontalRuleDecoration: const BoxDecoration(
-      border: Border(
-        top: BorderSide(
-          color: AppColor.auSuperTeal,
         ),
       ),
     ),

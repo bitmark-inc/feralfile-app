@@ -20,7 +20,7 @@ class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool autoAddAddress;
 
   GetCategorizedAccountsEvent({
-    this.includeLinkedAccount = true,
+    this.includeLinkedAccount = false,
     this.getTezos = true,
     this.getEth = true,
     this.autoAddAddress = false,
@@ -32,17 +32,6 @@ class GetAccountsIRLEvent extends AccountsEvent {
   final String? blockchain;
 
   GetAccountsIRLEvent({this.param, this.blockchain});
-}
-
-class LinkLedgerWalletEvent extends AccountsEvent {
-  final String address;
-  final String blockchain;
-  final String ledgerName;
-  final String ledgerBLEUUID;
-  final Map<String, dynamic> data;
-
-  LinkLedgerWalletEvent(this.address, this.blockchain, this.ledgerName,
-      this.ledgerBLEUUID, this.data);
 }
 
 class NameLinkedAccountEvent extends AccountsEvent {
@@ -65,14 +54,6 @@ class FindAccount extends AccountsEvent {
   FindAccount(this.personaUUID, this.address, this.type);
 }
 
-class FindLinkedAccount extends AccountsEvent {
-  final String connectionKey;
-  final String address;
-  final CryptoType type;
-
-  FindLinkedAccount(this.connectionKey, this.address, this.type);
-}
-
 class Account {
   String key;
   Persona? persona;
@@ -91,6 +72,8 @@ class Account {
 
   String get className =>
       persona != null && walletAddress != null ? "Persona" : "Connection";
+
+  bool get isViewOnly => persona == null && walletAddress == null;
 
   Account({
     required this.key,

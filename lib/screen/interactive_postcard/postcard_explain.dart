@@ -1,17 +1,16 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:video_player/video_player.dart';
 
@@ -26,25 +25,30 @@ class PostcardExplain extends StatefulWidget {
 }
 
 class _PostcardExplainState extends State<PostcardExplain> {
-  bool _isLastPage = false;
   final VideoPlayerController _controller =
       VideoPlayerController.asset("assets/videos/postcard_explain.mp4");
   final VideoPlayerController _colouringController =
       VideoPlayerController.asset("assets/videos/colouring_video.mp4");
+  late int _currentIndex;
+  late SwiperController _swiperController;
 
   @override
   void initState() {
+    _initPlayer();
+    _swiperController = SwiperController();
     super.initState();
     injector<ConfigurationService>().setAutoShowPostcard(false);
-    _colouringController.initialize().then((_) {
-      _colouringController.setLooping(true);
-      setState(() {});
-      _colouringController.play();
-    });
-    _controller.initialize().then((_) {
+    _currentIndex = 0;
+  }
+
+  Future<void> _initPlayer() async {
+    await _controller.initialize().then((_) {
       _controller.setLooping(true);
       setState(() {});
       _controller.play();
+    });
+    await _colouringController.initialize().then((_) {
+      _colouringController.setLooping(true);
     });
   }
 
@@ -58,15 +62,17 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _page1(),
+      _page1(_controller),
       _page3(1, _colouringController),
       _page2(2, totalDistance: 0),
       _page2(3, totalDistance: 7926),
       _page2(4, totalDistance: 91103),
-      _page4(5)
+      _page4(5),
     ];
+    final swiperSize = pages.length;
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
+    final isLastPage = _currentIndex == pages.length - 1;
     return Scaffold(
       backgroundColor: AppColor.chatPrimaryColor,
       appBar: AppBar(
@@ -97,13 +103,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
         ),
         toolbarHeight: 160,
         actions: [
-          IconButton(
-            tooltip: "CLOSE",
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            icon: closeIcon(),
-          )
+          if (_currentIndex == 0 || isLastPage) ...[
+            IconButton(
+              tooltip: "CLOSE",
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              icon: closeIcon(),
+            )
+          ] else ...[
+            _skipButton(context, () async {
+              await _swiperController.move(swiperSize - 1);
+            })
+          ],
         ],
         backgroundColor: Colors.transparent,
         shadowColor: Colors.transparent,
@@ -116,7 +128,13 @@ class _PostcardExplainState extends State<PostcardExplain> {
             Swiper(
               onIndexChanged: (index) {
                 setState(() {
-                  _isLastPage = index == pages.length - 1;
+                  _currentIndex = index;
+                  if (index == 0) {
+                    _controller.play();
+                  }
+                  if (index == 1) {
+                    _colouringController.play();
+                  }
                 });
               },
               itemBuilder: (context, index) {
@@ -125,7 +143,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   child: pages[index],
                 );
               },
-              itemCount: pages.length,
+              itemCount: swiperSize,
               pagination: const SwiperPagination(
                   builder: DotSwiperPaginationBuilder(
                       color: AppColor.auLightGrey,
@@ -135,9 +153,10 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   disableColor: Colors.transparent,
                   size: 0),
               loop: false,
+              controller: _swiperController,
             ),
             Visibility(
-              visible: _isLastPage,
+              visible: isLastPage,
               child: Positioned(
                 bottom: 0,
                 left: 0,
@@ -154,17 +173,27 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
-  Widget _page1() {
+  Widget _skipButton(BuildContext context, Function()? onSkip) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 11),
+      child: GestureDetector(
+        onTap: onSkip,
+        child: SvgPicture.asset("assets/images/skip.svg"),
+      ),
+    );
+  }
+
+  Widget _page1(VideoPlayerController controller) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       child: Column(
         children: [
           SizedBox(
               height: 265,
-              child: _controller.value.isInitialized
+              child: controller.value.isInitialized
                   ? AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller))
+                      aspectRatio: controller.value.aspectRatio,
+                      child: VideoPlayer(controller))
                   : Container()),
           const SizedBox(height: 60),
           Column(
@@ -172,22 +201,15 @@ class _PostcardExplainState extends State<PostcardExplain> {
             children: [
               Text(
                 "moma_project_invite".tr(),
-                style: theme.textTheme.moMASans400Black14,
+                style:
+                    theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Text(
-                      "game_runs_from_".tr(
-                        namedArgs: {
-                          "from": POSRCARD_GAME_START,
-                          "to": POSRCARD_GAME_END,
-                        },
-                      ),
-                      style: theme.textTheme.moMASans400Grey12
-                          .copyWith(color: AppColor.auQuickSilver)),
-                ],
-              ),
+              const SizedBox(height: 8),
+              Text(
+                "with_15_blank_stamps".tr(),
+                style:
+                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
+              )
             ],
           )
         ],

@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
@@ -215,84 +214,6 @@ Widget _blockchainLogo(String? blockchain) {
   }
 }
 
-Widget accountLogo(BuildContext context, Account account, {double size = 29}) {
-  if (account.persona != null) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        children: [
-          Container(
-              padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
-              alignment: Alignment.centerLeft,
-              child: Image.asset("assets/images/moma_logo.png")),
-        ],
-      ),
-    );
-  }
-
-  final connection = account.connections?.first;
-  if (connection != null) {
-    return SizedBox(width: 29, height: 29, child: _appLogo(connection));
-  }
-
-  return const SizedBox(
-    width: 24,
-  );
-}
-
-Widget _appLogo(Connection connection) {
-  switch (connection.connectionType) {
-    case 'feralFileToken':
-    case 'feralFileWeb3':
-      return SvgPicture.asset("assets/images/feralfileAppIcon.svg");
-
-    case 'ledger':
-      return SvgPicture.asset("assets/images/iconLedger.svg");
-
-    case 'walletConnect':
-      final walletName =
-          connection.wcConnectedSession?.sessionStore.remotePeerMeta.name;
-
-      switch (walletName) {
-        case "MetaMask":
-          return Image.asset("assets/images/metamask-alternative.png");
-        case "Trust Wallet":
-          return Image.asset("assets/images/trust-alternative.png");
-        default:
-          return Image.asset("assets/images/walletconnect-alternative.png");
-      }
-
-    case 'walletBeacon':
-      final walletName = connection.walletBeaconConnection?.peer.name;
-      switch (walletName) {
-        case "Kukai Wallet":
-          return Image.asset("assets/images/kukai_wallet.png");
-        case "Temple - Tezos Wallet":
-        case "Temple - Tezos Wallet (ex. Thanos)":
-          return Image.asset("assets/images/temple_wallet.png");
-        default:
-          return Image.asset("assets/images/tezos_wallet.png");
-      }
-
-    case 'walletBrowserConnect':
-      final walletName = connection.data;
-      switch (walletName) {
-        case "MetaMask":
-          return Image.asset("assets/images/metamask-alternative.png");
-        default:
-          return const SizedBox(
-            width: 24,
-          );
-      }
-
-    default:
-      return const SizedBox(
-        width: 24,
-      );
-  }
-}
-
 Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
   final theme = Theme.of(context);
   return Container(
@@ -305,6 +226,20 @@ Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
     child: Text(
       "view_only".tr(),
       style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
+    ),
+  );
+}
+
+Widget viewOnlyLabel(BuildContext context) {
+  final theme = Theme.of(context);
+  return Container(
+    decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border.all(color: AppColor.auGrey),
+        borderRadius: BorderRadius.circular(20)),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      child: Text("view_only".tr(), style: theme.textTheme.ppMori400Grey14),
     ),
   );
 }

@@ -28,12 +28,14 @@ class SelectAccountPageArgs {
   final bool fromWebview;
 
   final Otp? otp;
+  final bool withViewOnly;
 
   SelectAccountPageArgs(
     this.blockchain,
     this.artwork,
     this.otp, {
     this.fromWebview = false,
+    this.withViewOnly = false,
   });
 }
 
@@ -42,6 +44,7 @@ class SelectAccountPage extends StatefulWidget {
   final FFSeries? artwork;
   final bool? fromWebview;
   final Otp? otp;
+  final bool withViewOnly;
 
   const SelectAccountPage({
     Key? key,
@@ -49,6 +52,7 @@ class SelectAccountPage extends StatefulWidget {
     required this.artwork,
     this.otp,
     this.fromWebview = false,
+    this.withViewOnly = false,
   }) : super(key: key);
 
   @override
@@ -58,7 +62,6 @@ class SelectAccountPage extends StatefulWidget {
 }
 
 class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
-  bool _processing = false;
   String? _selectedAddress;
   late final bool _isTezos;
 
@@ -88,8 +91,10 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }
 
   void _callAccountEvent() {
-    context.read<AccountsBloc>().add(
-        GetCategorizedAccountsEvent(getEth: !_isTezos, getTezos: _isTezos));
+    context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
+        getEth: !_isTezos,
+        getTezos: _isTezos,
+        includeLinkedAccount: widget.withViewOnly));
   }
 
   @override
@@ -133,26 +138,23 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PrimaryButton(
-                isProcessing: _processing,
-                enabled: !_processing,
+              child: PrimaryAsyncButton(
                 text: "h_confirm".tr(),
-                onTap: _selectedAddress == null
-                    ? null
-                    : () async {
-                        if (widget.fromWebview == true) {
-                          Navigator.pop(context, _selectedAddress);
-                          return;
-                        }
-                        if (widget.artwork != null) {
-                          await _claimToken(
-                            context,
-                            _selectedAddress!,
-                            widget.artwork!.id,
-                            otp: widget.otp,
-                          );
-                        }
-                      },
+                enabled: _selectedAddress != null,
+                onTap: () async {
+                  if (widget.fromWebview == true) {
+                    Navigator.pop(context, _selectedAddress);
+                    return;
+                  }
+                  if (widget.artwork != null) {
+                    await _claimToken(
+                      context,
+                      _selectedAddress!,
+                      widget.artwork!.id,
+                      otp: widget.otp,
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -178,12 +180,6 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     });
   }
 
-  void _setProcessingState(bool processing) {
-    setState(() {
-      _processing = processing;
-    });
-  }
-
   Future _claimToken(
     BuildContext context,
     String address,
@@ -192,7 +188,6 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
   }) async {
     ClaimResponse? claimResponse;
     try {
-      _setProcessingState(true);
       final ffService = injector<FeralFileService>();
       claimResponse = await ffService.claimToken(
         seriesId: artworkId,
@@ -209,14 +204,14 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info("[SelectAccountPage] Claim token failed. $e");
-      await UIHelper.showClaimTokenError(
-        context,
-        e,
-        series: widget.artwork!,
-      );
+      if (mounted) {
+        await UIHelper.showClaimTokenError(
+          context,
+          e,
+          series: widget.artwork!,
+        );
+      }
       memoryValues.branchDeeplinkData.value = null;
-    } finally {
-      _setProcessingState(false);
     }
 
     if (!mounted) return;

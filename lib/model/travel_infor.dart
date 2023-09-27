@@ -7,22 +7,22 @@
 
 import 'dart:math';
 
-import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/util/position_utils.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
 
 class TravelInfo {
-  final UserLocations from;
-  final UserLocations? to;
+  GeoLocation from;
+  GeoLocation to;
   final int index;
-  String? sentLocation;
-  String? receivedLocation;
 
-  TravelInfo(this.from, this.to, this.index,
-      {this.sentLocation, this.receivedLocation});
+  TravelInfo(
+    this.from,
+    this.to,
+    this.index,
+  );
 
   TravelInfo copyWith({
-    UserLocations? from,
-    UserLocations? to,
+    GeoLocation? from,
+    GeoLocation? to,
     int? index,
     String? sentLocation,
     String? receivedLocation,
@@ -31,20 +31,23 @@ class TravelInfo {
       from ?? this.from,
       to ?? this.to,
       index ?? this.index,
-      sentLocation: sentLocation ?? this.sentLocation,
-      receivedLocation: receivedLocation ?? this.receivedLocation,
     );
   }
 
   double? getDistance() {
-    if (to == null) {
+    if (from.isInternet || to.isInternet) {
+      return 0;
+    }
+    if (from.position.isNull || to.position.isNull) {
       return null;
     }
+
     return _getDistanceFromLatLonInKm(
-        from.stampedLocation!.lat,
-        from.stampedLocation!.lon,
-        to!.claimedLocation!.lat,
-        to!.claimedLocation!.lon);
+      from.position.lat!,
+      from.position.lon!,
+      to.position.lat!,
+      to.position.lon!,
+    );
   }
 
   // get distance from longitude and latitude
@@ -66,19 +69,11 @@ class TravelInfo {
   }
 
   Future<void> _getSentLocation() async {
-    if (from.stampedLocation != null) {
-      sentLocation = await getLocationNameFromCoordinates(
-          from.stampedLocation!.lat, from.stampedLocation!.lon);
-    }
+    await from.getAddress();
   }
 
   Future<void> _getReceivedLocation() async {
-    if (to == null) {
-      receivedLocation = null;
-    } else {
-      receivedLocation = await getLocationNameFromCoordinates(
-          to!.claimedLocation!.lat, to!.claimedLocation!.lon);
-    }
+    await to.getAddress();
   }
 
   Future<void> getLocationName() async {
@@ -97,23 +92,5 @@ extension ListTravelInfo on List<TravelInfo> {
       totalDistance += travelInfo.getDistance() ?? 0;
     }
     return totalDistance;
-  }
-
-  TravelInfo get notSentTravelInfo {
-    if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 1, sentLocation: "MoMA");
-    }
-    final lastTravelInfo = last;
-    return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
-        sentLocation: lastTravelInfo.receivedLocation);
-  }
-
-  TravelInfo get sendingTravelInfo {
-    if (isEmpty) {
-      return TravelInfo(UserLocations(), null, 1, sentLocation: "MoMA");
-    }
-    final lastTravelInfo = last;
-    return TravelInfo(lastTravelInfo.to!, null, lastTravelInfo.index + 1,
-        sentLocation: lastTravelInfo.receivedLocation);
   }
 }

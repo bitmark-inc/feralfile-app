@@ -13,13 +13,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
@@ -32,15 +31,12 @@ import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -53,7 +49,6 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -68,7 +63,6 @@ import 'package:open_settings/open_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../util/token_ext.dart';
 
@@ -104,7 +98,6 @@ class HomePageState extends State<HomePage>
 
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
-  final _postcardService = injector<PostcardService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -121,13 +114,30 @@ class HomePageState extends State<HomePage>
         case ReloadEvent:
         case GetTokensByOwnerEvent:
         case UpdateTokensEvent:
+        case GetTokensBeforeByOwnerEvent:
           nftBloc.add(event);
+          break;
+        case AddArtistsEvent:
+
+          /// add following
+          final addEvent = event as AddArtistsEvent;
+          log.info("AddArtistsEvent ${addEvent.artists}");
+          final artists = event.artists;
+          artists.removeWhere((element) =>
+              invalidAddress.contains(element) || element.length < 36);
+          injector<FolloweeService>().addArtistsCollection(artists);
+          break;
+        case RemoveArtistsEvent:
+
+          /// remove following
+          final removeEvent = event as RemoveArtistsEvent;
+          log.info("RemoveArtistsEvent ${removeEvent.artists}");
+          injector<FolloweeService>()
+              .deleteArtistsCollection(removeEvent.artists);
           break;
         default:
       }
     });
-
-    refreshFeeds();
     _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
@@ -155,7 +165,6 @@ class HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    injector<FeralFileService>().completeDelayedFFConnections();
     _handleForeground();
     injector<AutonomyService>().postLinkedAddresses();
     _checkForKeySync(context);
@@ -174,7 +183,7 @@ class HomePageState extends State<HomePage>
   void didPopNext() async {
     super.didPopNext();
     final connectivityResult = await (Connectivity().checkConnectivity());
-    _clientTokenService.refreshTokens().then((value) => refreshFeeds());
+    _clientTokenService.refreshTokens();
     refreshNotification();
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
@@ -194,14 +203,7 @@ class HomePageState extends State<HomePage>
   }
 
   void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
-    final artistIds = tokens
-        .map((e) => e.artistID)
-        .where((value) => value?.isNotEmpty == true)
-        .map((e) => e as String)
-        .toList();
-    injector<FeedService>().refreshFollowings(artistIds);
-
-    //check minted postcard and naviagtor to artwork detail
+    //check minted postcard and navigator to artwork detail
     final config = injector.get<ConfigurationService>();
     final listTokenMints = config.getListPostcardMint();
     if (tokens.any((element) =>
@@ -215,7 +217,7 @@ class HomePageState extends State<HomePage>
           .toList();
       if (config.isAutoShowPostcard()) {
         log.info("Auto show minted postcard");
-        final payload = ArtworkDetailPayload(tokenMints, 0);
+        final payload = PostcardDetailPagePayload(tokenMints, 0);
         Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,
@@ -229,8 +231,8 @@ class HomePageState extends State<HomePage>
     }
 
     // Check if there is any Tezos token in the list
-    List<String> allAccountNumbers =
-        await injector<AccountService>().getAllAddresses();
+    List<String> allAccountNumbers = await injector<AccountService>()
+        .getAllAddresses(logHiddenAddress: true);
     final hashedAddresses = allAccountNumbers.fold(
         0, (int previousValue, element) => previousValue + element.hashCode);
 
@@ -308,31 +310,12 @@ class HomePageState extends State<HomePage>
       },
     );
 
-    return BlocListener<UpgradesBloc, UpgradeState>(
-      listener: (context, state) {
-        ConfigurationService config = injector<ConfigurationService>();
-        WCPeerMeta? peerMeta = config.getTVConnectPeerMeta();
-        int? id = config.getTVConnectID();
-        if (peerMeta != null || id != null) {
-          if (state.status == IAPProductStatus.trial ||
-              state.status == IAPProductStatus.completed) {
-            injector<NavigationService>().navigateTo(AppRouter.tvConnectPage,
-                arguments: WCConnectPageArgs(id!, peerMeta!));
-            config.deleteTVConnectData();
-          } else if (state.status != IAPProductStatus.loading &&
-              state.status != IAPProductStatus.pending) {
-            injector<WalletConnectService>().rejectRequest(peerMeta!, id!);
-            config.deleteTVConnectData();
-          }
-        }
-      },
-      child: PrimaryScrollController(
-        controller: _controller,
-        child: Scaffold(
-          appBar: getLightEmptyAppBar(),
-          backgroundColor: theme.colorScheme.background,
-          body: contentWidget,
-        ),
+    return PrimaryScrollController(
+      controller: _controller,
+      child: Scaffold(
+        appBar: getLightEmptyAppBar(),
+        backgroundColor: theme.colorScheme.background,
+        body: contentWidget,
       ),
     );
   }
@@ -433,7 +416,9 @@ class HomePageState extends State<HomePage>
                     .where((e) => e.pending != true || e.hasMetadata)
                     .toList()
                     .indexOf(asset);
-                final payload = ArtworkDetailPayload(accountIdentities, index);
+                final payload = asset.isPostcard
+                    ? PostcardDetailPagePayload(accountIdentities, index)
+                    : ArtworkDetailPayload(accountIdentities, index);
 
                 final pageName = asset.isPostcard
                     ? AppRouter.claimedPostcardDetailsPage
@@ -467,7 +452,6 @@ class HomePageState extends State<HomePage>
         _configurationService.showCreatePlaylistTip,
         _configurationService.showLinkOrImportTip,
         _configurationService.showBackupSettingTip,
-        _configurationService.expiredPostcardSharedLinkTip,
       ],
       builder: (BuildContext context, List<dynamic> values, Widget? child) {
         return CarouselWithIndicator(
@@ -483,15 +467,11 @@ class HomePageState extends State<HomePage>
     final isShowCreatePlaylistTip = values[1] as bool;
     final isShowLinkOrImportTip = values[2] as bool;
     final isShowBackupSettingTip = values[3] as bool;
-    final expiredPostcardShareLink = values[4] as List<SharedPostcard>;
-    final compactedToken = nftBloc.state.tokens.items;
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
             titleText: "do_you_have_NFTs_in_other_wallets".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.accessMethodPage);
-            },
+            onPressed: () {},
             buttonText: "add_wallet".tr(),
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
@@ -564,32 +544,6 @@ class HomePageState extends State<HomePage>
                     : "backup_tip_card_content_ios".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: _configurationService.showBackupSettingTip),
-      if (!(_configurationService.isNotificationEnabled() ?? false))
-        ...expiredPostcardShareLink.map((e) {
-          final title = compactedToken
-                  .firstWhereOrNull((element) => element.id == e.tokenID)
-                  ?.title ??
-              "";
-          return Tipcard(
-            titleText: "moma_postcard".tr(),
-            onPressed: () async {
-              final payload = ArtworkDetailPayload(
-                  [ArtworkIdentity(e.tokenID, e.owner)], 0);
-              Navigator.of(context).pushNamed(
-                  AppRouter.claimedPostcardDetailsPage,
-                  arguments: payload);
-              _configurationService.updateSharedPostcard([e], isRemoved: true);
-            },
-            onClosed: () async {
-              _configurationService.updateSharedPostcard([e], isRemoved: true);
-            },
-            buttonText: "go_to_postcard".tr(),
-            content: Text(
-                "postcard_not_deliveried".tr(namedArgs: {"title": title}),
-                style: theme.textTheme.ppMori400Black14),
-            listener: ValueNotifier<bool>(true),
-          );
-        }).toList(),
     ];
   }
 
@@ -601,10 +555,6 @@ class HomePageState extends State<HomePage>
       if (!mounted) return;
       Navigator.of(context).pushNamed(AppRouter.keySyncPage);
     }
-  }
-
-  void refreshFeeds() async {
-    await injector<FeedService>().checkNewFeeds();
   }
 
   void scrollToTop() {
@@ -694,7 +644,6 @@ class HomePageState extends State<HomePage>
             data: {"title": "try_autonomy_pro_free".tr()});
       }
     }
-    await _postcardService.checkNotification();
   }
 
   void _handleForeground() async {
@@ -714,9 +663,6 @@ class HomePageState extends State<HomePage>
       }
     }
 
-    injector<WalletConnectService>().initSessions(forced: true);
-
-    refreshFeeds();
     _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
     _metricClient.addEvent("device_foreground");
@@ -728,9 +674,7 @@ class HomePageState extends State<HomePage>
             .jwtToken;
 
     final feedService = injector<FeedService>();
-    feedService
-        .refreshJWTToken(jwtToken)
-        .then((value) => feedService.checkNewFeeds());
+    feedService.refreshJWTToken(jwtToken);
 
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();

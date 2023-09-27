@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -17,9 +16,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_page.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_state.dart';
+import 'package:autonomy_flutter/screen/discover/discover_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -31,10 +28,10 @@ import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/editorial_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -44,6 +41,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -57,7 +55,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
+import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -81,10 +81,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
-  final GlobalKey<EditorialPageState> _editorialPageStateKey = GlobalKey();
+  final GlobalKey<DiscoverPageState> _discoverPageStateKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   final _feedService = injector<FeedService>();
-  final _editorialService = injector<EditorialService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _metricClientService = injector<MetricClientService>();
@@ -106,7 +105,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           _homePageKey.currentState?.scrollToTop();
         }
         if (index == 0) {
-          _editorialPageStateKey.currentState?.scrollToTop();
+          _discoverPageStateKey.currentState?.scrollToTop();
         }
       }
       setState(() {
@@ -116,13 +115,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       if (index == 1) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
-          _editorialService.checkNewEditorial();
         });
         _playListService.refreshPlayLists();
       } else if (index == 0) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
-          _editorialService.checkNewEditorial();
         });
         final metricClient = injector<MetricClientService>();
         if (_configurationService.hasFeed()) {
@@ -131,13 +128,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           feedBloc.add(GetFeedsEvent());
           metricClient.addEvent(MixpanelEvent.viewDiscovery);
           metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
-        } else {
-          final editorialBloc = context.read<EditorialBloc>();
-          editorialBloc.add(OpenEditorialEvent());
-          metricClient.addEvent(MixpanelEvent.viewEditorial);
-          metricClient.timerEvent(MixpanelEvent.timeViewEditorial);
         }
-        context.read<EditorialBloc>().add(GetEditorialEvent());
       }
     } else {
       UIHelper.showDrawerAction(
@@ -204,7 +195,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
     _clientTokenService.refreshTokens().then((value) {
       _feedService.checkNewFeeds();
-      _editorialService.checkNewEditorial();
     });
 
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
@@ -215,14 +205,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ValueListenableBuilder<bool>(
           valueListenable: _feedService.hasFeed,
           builder: (BuildContext context, bool isShowDiscover, Widget? child) {
-            return EditorialPage(
-                key: _editorialPageStateKey, isShowDiscover: isShowDiscover);
+            return DiscoverPage(key: _discoverPageStateKey);
           }),
       HomePage(key: _homePageKey),
       MultiBlocProvider(
         providers: [
-          BlocProvider.value(
-              value: AccountsBloc(injector(), injector<CloudDatabase>())),
+          BlocProvider.value(value: AccountsBloc(injector(), injector())),
         ],
         child: const WalletPage(),
       ),
@@ -232,14 +220,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         icon: MultiValueListenableBuilder(
             valueListenables: [
               _feedService.unviewedCount,
-              _editorialService.unviewedCount
             ],
             builder:
                 (BuildContext context, List<dynamic> values, Widget? child) {
-              final feedUnviewCount = values[0] as int;
-              final editorialUnviewCount = values[1] as int;
-              final unviewCount = feedUnviewCount + editorialUnviewCount;
-              if (feedUnviewCount > 0) {
+              final unviewCount = values[0] as int;
+              if (unviewCount > 0) {
                 context.read<FeedBloc>().add(GetFeedsEvent());
               }
               return Stack(
@@ -342,6 +327,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
 
     injector<CanvasClientService>().init();
+    _syncArtist();
+  }
+
+  _syncArtist() async {
+    if (_configurationService.getDidSyncArtists()) {
+      return;
+    }
+    final artists = await injector<AssetTokenDao>().findAllArtists();
+    NftCollectionBloc.addEventFollowing(AddArtistsEvent(artists: artists));
+    _configurationService.setDidSyncArtists(true);
   }
 
   @override
@@ -353,7 +348,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   _showRemoveCustomerSupport() async {
     final device = DeviceInfo.instance;
     if (!(await device.isSupportOS())) {
-      final dio = Dio(BaseOptions(
+      final dio = baseDio(BaseOptions(
         baseUrl: "https://raw.githubusercontent.com",
         connectTimeout: const Duration(seconds: 5),
       ));
@@ -443,6 +438,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
 
       case 'gallery_new_nft':
+      case 'new_postcard_trip':
         _clientTokenService.refreshTokens();
         break;
       case "artwork_created":
@@ -528,7 +524,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
-        _editorialPageStateKey.currentState?.selectTab(HomePageTab.DISCOVER);
         _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
         break;
       case "new_message":
@@ -539,8 +534,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             .assetTokenDao
             .findAllAssetTokensByTokenIDs([tokenId]);
         final owner = tokens.first.owner;
+        final isSkip =
+            injector<ChatService>().isConnecting(address: owner, id: tokenId);
+        if (isSkip) return;
         final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
-        final postcardDetailPayload = ArtworkDetailPayload(
+        final postcardDetailPayload = PostcardDetailPagePayload(
             [ArtworkIdentity(tokenId, owner)], 0,
             key: key);
         if (!mounted) return;
@@ -557,6 +555,29 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         });
 
         break;
+      case 'new_postcard_trip':
+      case 'postcard_share_expired':
+        final data = notification.additionalData;
+        if (data == null) return;
+        final indexID = data["indexID"];
+        final tokens = await injector<NftCollectionDatabase>()
+            .assetTokenDao
+            .findAllAssetTokensByTokenIDs([indexID]);
+        if (tokens.isEmpty) return;
+        final owner = tokens.first.owner;
+        final postcardDetailPayload = PostcardDetailPagePayload(
+          [ArtworkIdentity(indexID, owner)],
+          0,
+          useIndexer: true,
+        );
+        if (!mounted) return;
+        Navigator.of(context).popUntil((route) =>
+            route.settings.name == AppRouter.homePage ||
+            route.settings.name == AppRouter.homePageNoTransition);
+        Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
+            arguments: postcardDetailPayload);
+        break;
+
       default:
         log.warning("unhandled notification type: $notificationType");
         break;
@@ -585,15 +606,19 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     _cloudBackup();
+    _metricClientService.useAppTimer?.cancel();
   }
 
   void _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
         _handleForeground();
+        memoryValues.isForeground = true;
+        injector<ChatService>().reconnect();
         break;
       case FGBGType.background:
         _handleBackground();
+        memoryValues.isForeground = false;
         break;
     }
   }
@@ -637,6 +662,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _handleForeground() async {
     await injector<CustomerSupportService>().fetchAnnouncement();
     announcementNotificationIfNeed();
+    Timer? useAppTimer = _metricClientService.useAppTimer;
+    useAppTimer?.cancel();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
+      await _metricClientService.onUseAppInForeground();
+    });
   }
 
   @override

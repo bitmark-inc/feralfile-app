@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -76,16 +77,6 @@ class NavigationService {
         ?.pushNamedAndRemoveUntil(routeName, predicate);
   }
 
-  void showFFAccountLinked(String alias, {bool inOnboarding = false}) {
-    log.info("NavigationService.showFFAccountLinked: $alias");
-
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      UIHelper.showFFAccountLinked(navigatorKey.currentContext!, alias,
-          inOnboarding: inOnboarding);
-    }
-  }
-
   NavigatorState navigatorState() {
     return Navigator.of(navigatorKey.currentContext!);
   }
@@ -142,6 +133,7 @@ class NavigationService {
     Otp? otp,
   }) async {
     log.info("NavigationService.openClaimTokenPage");
+    final isAllowViewOnlyClaim = AirdropType.Memento6.seriesId == series.id;
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(
@@ -149,6 +141,7 @@ class NavigationService {
         arguments: ClaimTokenPageArgs(
           series: series,
           otp: otp,
+          allowViewOnlyClaim: isAllowViewOnlyClaim,
         ),
       );
     } else {
@@ -338,6 +331,34 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showPostcardShareLinkExpired(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showPostcardShareLinkInvalid() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardShareLinkInvalid(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showLocationExplain() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showLocationExplain(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showPostcardRunOut() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardRunOut(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showPostcardQRCodeExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardQRExpired(navigatorKey.currentContext!);
     }
   }
 }

@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -21,9 +22,9 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CloudPage extends StatelessWidget {
-  final String section;
+  final CloudPagePayload payload;
 
-  const CloudPage({Key? key, required this.section}) : super(key: key);
+  const CloudPage({Key? key, required this.payload}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +95,7 @@ class CloudPage extends StatelessWidget {
   }
 
   Widget _buttonsGroup(BuildContext context, bool isAvailable) {
-    switch (section) {
+    switch (payload.section) {
       case "nameAlias":
         if (isAvailable) {
           return Row(
@@ -154,8 +155,18 @@ class CloudPage extends StatelessWidget {
           route.settings.name == AppRouter.wcConnectPage ||
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition);
+    } else if (payload.goToDiscoverPage) {
+      Navigator.of(context).pushNamed(DiscoverArtPage.tag);
     } else {
       doneOnboarding(context);
     }
   }
+}
+
+// payload class
+class CloudPagePayload {
+  final String section;
+  final bool goToDiscoverPage;
+
+  CloudPagePayload({required this.section, this.goToDiscoverPage = false});
 }

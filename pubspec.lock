@@ -93,8 +93,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
-      resolved-ref: "9010ebc5d282391d174b90f3f1e3aa4f7f00388c"
+      ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
+      resolved-ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -102,8 +102,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
-      resolved-ref: "48c86e89b451494cd7affdcb0141a7e4db9c1307"
+      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
+      resolved-ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
       url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
     source: git
     version: "0.0.1"
@@ -139,38 +139,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.1.2"
-  bonsoir:
-    dependency: "direct main"
-    description:
-      name: bonsoir
-      sha256: d5b0cb2d38ac8b0057990e3046ef0e4552b63f6d636284c7e57ac2b257e2000a
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0+1"
-  bonsoir_android:
-    dependency: transitive
-    description:
-      name: bonsoir_android
-      sha256: "21c38f707df0755b5bedd05c5fd52cb5e9fa9f4a4efbcef94cb9669029c73d75"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
-  bonsoir_darwin:
-    dependency: transitive
-    description:
-      name: bonsoir_darwin
-      sha256: fe36cb2acec37c175213364a91ae1b2866a47e061f18b11322ac8e0ca39d5e61
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0+1"
-  bonsoir_platform_interface:
-    dependency: transitive
-    description:
-      name: bonsoir_platform_interface
-      sha256: "97081d861ff2e7b45edd9e17ae1b35530d5a7ec561e3377e00da2e0cfae500dc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -299,6 +267,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  card_swiper:
+    dependency: "direct main"
+    description:
+      name: card_swiper
+      sha256: "21e52a144decbf0054e7cfed8bbe46fc89635e6c86b767eaccfe7d5aeba32528"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
   carousel_slider:
     dependency: "direct main"
     description:
@@ -359,10 +335,10 @@ packages:
     dependency: "direct main"
     description:
       name: collection
-      sha256: "4a07be6cb69c84d677a6c3096fcf960cc3285a8330b4603e0d463d15d9bd934c"
+      sha256: f092b211a4319e98e5ff58223576de6c2803db36221657b46c82574721240687
       url: "https://pub.dev"
     source: hosted
-    version: "1.17.1"
+    version: "1.17.2"
   confetti:
     dependency: "direct main"
     description:
@@ -419,14 +395,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
-  cryptography:
-    dependency: transitive
-    description:
-      name: cryptography
-      sha256: df156c5109286340817d21fa7b62f9140f17915077127dd70f8bd7a2a0997a35
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.5.0"
   csslib:
     dependency: transitive
     description:
@@ -543,10 +511,10 @@ packages:
     dependency: transitive
     description:
       name: eip1559
-      sha256: de454d6321bd753eb79116e9ec4f8df20895c2e97f9a3839a032f3a728985516
+      sha256: c2b81ac85f3e0e71aaf558201dd9a4600f051ece7ebacd0c5d70065c9b458004
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.2"
   eip55:
     dependency: transitive
     description:
@@ -689,15 +657,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.1.3"
-  flutter_blue:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "9ae9c8e8a366d0d820208148603412700ed150f0"
-      resolved-ref: "9ae9c8e8a366d0d820208148603412700ed150f0"
-      url: "https://github.com/autonomy-system/flutter_blue.git"
-    source: git
-    version: "0.8.0"
   flutter_blurhash:
     dependency: transitive
     description:
@@ -958,14 +917,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
-  flutter_swiper_view:
-    dependency: "direct main"
-    description:
-      name: flutter_swiper_view
-      sha256: "2a165b259e8a4c49d4da5626b967ed42a73dac2d075bd9e266ad8d23b9f01879"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.8"
   flutter_switch:
     dependency: "direct main"
     description:
@@ -979,15 +930,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_to_airplay:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
-      resolved-ref: "622b2717fd2d0fa70a06e62817b845e2361b100e"
-      url: "https://github.com/autonomy-system/flutter_to_airplay.git"
-    source: git
-    version: "2.0.2"
   flutter_vibrate:
     dependency: "direct main"
     description:
@@ -1178,10 +1120,10 @@ packages:
     dependency: "direct main"
     description:
       name: gif_view
-      sha256: c14dc41501b479d9a14cd9135532c1e5bcad7d915d497a0f3e6d77c4edbc8f0e
+      sha256: "73a089a046fd1a5e63e3856cf30ef7bac1e64b78d79becde1449e955dddfb645"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.0"
   glob:
     dependency: transitive
     description:
@@ -1190,6 +1132,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  globbing:
+    dependency: transitive
+    description:
+      name: globbing
+      sha256: "4f89cfaf6fa74c9c1740a96259da06bd45411ede56744e28017cc534a12b6e2d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   googleapis_auth:
     dependency: transitive
     description:
@@ -1258,12 +1208,12 @@ packages:
     dependency: transitive
     description:
       name: graphql
-      sha256: ad11e6d12de4d73971ae1dd80885b09f3cbc0bf143b1cbc5622a6dc6d85735e7
+      sha256: "4ac531068107dffef188c74e7ff662777b729e9d5e0686f71623d4af1e3751c8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.2.0-beta.4"
+    version: "5.2.0-beta.6"
   graphql_flutter:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: graphql_flutter
       sha256: cfbeaa0542bc70d2f207352517fa1049e463560331389bda5bc563fa447b9bb6
@@ -1330,10 +1280,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.6"
+    version: "1.1.0"
   http2:
     dependency: transitive
     description:
@@ -1366,6 +1316,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.17"
+  image_gallery_saver:
+    dependency: "direct main"
+    description:
+      name: image_gallery_saver
+      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   image_picker:
     dependency: "direct main"
     description:
@@ -1486,6 +1444,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.0"
+  injector:
+    dependency: transitive
+    description:
+      name: injector
+      sha256: ed389bed5b48a699d5b9561c985023d0d5cc88dd5ff2237aadcce5a5ab433e4e
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -1680,18 +1646,18 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: "6501fbd55da300384b768785b83e5ce66991266cec21af89ab9ae7f5ce1c4cbb"
+      sha256: "1803e76e6653768d64ed8ff2e1e67bea3ad4b923eb5c56a295c3e634bad5960e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.15"
+    version: "0.12.16"
   material_color_utilities:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: d92141dc6fe1dad30722f9aa826c7fbc896d021d792f80678280601aff8cf724
+      sha256: "9528f2f296073ff54cb9fee677df673ace1218163c3bc7628093e7eed5203d41"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.5.0"
   measured_size:
     dependency: "direct main"
     description:
@@ -1716,15 +1682,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
-  metric_client:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
-      resolved-ref: ec37709d6f7a3901e3bd4238ba178205a88f6261
-      url: "https://github.com/autonomy-system/metric-client-dart"
-    source: git
-    version: "1.0.0"
   mime:
     dependency: "direct main"
     description:
@@ -1777,8 +1734,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f0c02be99ec76f1b72cbad737edc0701e3fb6a9c
-      resolved-ref: f0c02be99ec76f1b72cbad737edc0701e3fb6a9c
+      ref: "68e7cc0c937b4621997e1ac3437682e8a4211e84"
+      resolved-ref: "68e7cc0c937b4621997e1ac3437682e8a4211e84"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1786,8 +1743,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "01047611a1546a9ad791f587ebad76698feaac93"
-      resolved-ref: "01047611a1546a9ad791f587ebad76698feaac93"
+      ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
+      resolved-ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1899,10 +1856,10 @@ packages:
     dependency: "direct main"
     description:
       name: path_provider
-      sha256: "3087813781ab814e4157b172f1a11c46be20179fcc9bea043e0fba36bc0acaa2"
+      sha256: a1aa8aaa2542a6bc57e381f132af822420216c80d4781f7aa085ca3229208aaa
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.15"
+    version: "2.1.1"
   path_provider_android:
     dependency: transitive
     description:
@@ -2059,18 +2016,18 @@ packages:
     dependency: transitive
     description:
       name: protobuf
-      sha256: "01dd9bd0fa02548bf2ceee13545d4a0ec6046459d847b6b061d8a27237108a08"
+      sha256: "4034a02b7e231e7e60bff30a8ac13a7347abfdac0798595fae0b90a3f0afe759"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "3.0.0"
   protoc_plugin:
     dependency: transitive
     description:
       name: protoc_plugin
-      sha256: e2be5014ba145dc0f8de20ac425afa2a513aff64fe350d338e481d40de0573df
+      sha256: "41f06692f6d46018a6547f088d5598282f6d00cf6c33c535647c075b9ee62dd7"
       url: "https://pub.dev"
     source: hosted
-    version: "20.0.1"
+    version: "21.0.2"
   provider:
     dependency: transitive
     description:
@@ -2231,6 +2188,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.9.0"
+  sentry_dart_plugin:
+    dependency: "direct dev"
+    description:
+      name: sentry_dart_plugin
+      sha256: b1474670254d550771da082abcd33ad56d6fd44451282faa99433530fa279256
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   sentry_dio:
     dependency: "direct main"
     description:
@@ -2424,10 +2389,10 @@ packages:
     dependency: transitive
     description:
       name: source_span
-      sha256: dd904f795d4b4f3b870833847c461801f6750a9fa8e61ea5ac53f9422b31f250
+      sha256: "53e943d4206a5e30df338fd4c6e7a077e02254531b138a15aec3bd143c1a8b3c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.9.1"
+    version: "1.10.0"
   sqflite:
     dependency: "direct main"
     description:
@@ -2520,66 +2485,66 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: "3979f0b1c5a97422cadae52d476c21fa3e0fb671ef51de6cae1d646d8b99fe1f"
+      sha256: "9f0a4593f7642b2f106e329734d0e5fc746baf8d0a59495eec586cd0d9ba7d02"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_flutter_pdf:
     dependency: transitive
     description:
       name: syncfusion_flutter_pdf
-      sha256: cebcafc60d52d52e0789c18b6332c2bd378f0a6cca006fe0373293bcc6a66e6d
+      sha256: "05d1a6cde581504cf1e86307fe308a6d1433903677b604d006ed67ef19a4fbc6"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_flutter_pdfviewer:
     dependency: transitive
     description:
       name: syncfusion_flutter_pdfviewer
-      sha256: "797a704efd843a606150d3d6317d5f2191173c334a5e5056b7f37855a8093af3"
+      sha256: "0b74b593578de1f4f9e7b8e11dd2fce45bfbcedb50eee7b4d6e785ed735a7885"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_flutter_signaturepad:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_signaturepad
-      sha256: bddbb370533dd238af45ae787af8ca751195f4ffe9ca09e18c0f75a7683630fc
+      sha256: "77321fef0d42b945e729f7cc3ee522ff55672c5d38870a993b466a190989305f"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_macos:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_macos
-      sha256: "6f2a9cdfc80aff8a13caba8d36527b3d68f5cb3530a7f2b29d269fbcff745afd"
+      sha256: "0705d68048ca717aee1627699b384fe9e1da8a944745eb6a711f8867dc2c37d2"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_platform_interface:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_platform_interface
-      sha256: "646230861e103d33173a4909a184a00b2aa5a01819d38b05ccbf99da51be9314"
+      sha256: c945e357e4ee94dbafa187a9fa44dde4332fe5721bb834afed77d788e0f8b0c1
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_web:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_web
-      sha256: ba0b72766f445ae171a5363df20abd50be0c1bc4576044df6afba3377a419de1
+      sha256: "161ce37dd021a7092f3935bd54b66839362a66b2119b950ac47d8328c933d5e2"
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   syncfusion_pdfviewer_windows:
     dependency: transitive
     description:
       name: syncfusion_pdfviewer_windows
-      sha256: "4cc6c92c211636550c4beb998f2db8f76d4f20eccbc8160730f2add0c8e23411"
+      sha256: eecef690d9ca8fb8a622b2d12e02103601f57ae51004708dae6159ad0caf6f8e
       url: "https://pub.dev"
     source: hosted
-    version: "20.4.54"
+    version: "22.2.12"
   synchronized:
     dependency: "direct main"
     description:
@@ -2588,6 +2553,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  system_info2:
+    dependency: transitive
+    description:
+      name: system_info2
+      sha256: "65206bbef475217008b5827374767550a5420ce70a04d2d7e94d1d2253f3efc9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   term_glyph:
     dependency: transitive
     description:
@@ -2600,26 +2573,26 @@ packages:
     dependency: "direct dev"
     description:
       name: test
-      sha256: "3dac9aecf2c3991d09b9cdde4f98ded7b30804a88a0d7e4e7e1678e78d6b97f4"
+      sha256: "13b41f318e2a5751c3169137103b60c584297353d4b1761b66029bae6411fe46"
       url: "https://pub.dev"
     source: hosted
-    version: "1.24.1"
+    version: "1.24.3"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: eb6ac1540b26de412b3403a163d919ba86f6a973fe6cc50ae3541b80092fdcfb
+      sha256: "75760ffd7786fffdfb9597c35c5b27eaeec82be8edfb6d71d32651128ed7aab8"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1"
+    version: "0.6.0"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "5138dbffb77b2289ecb12b81c11ba46036590b72a64a7a90d6ffb880f1a29e93"
+      sha256: "99806e9e6d95c7b059b7a0fc08f07fc53fabe54a829497f0d9676299f1e8637e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1"
+    version: "0.5.3"
   tezart:
     dependency: "direct main"
     description:
@@ -2813,14 +2786,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
-  version_check:
-    dependency: "direct main"
-    description:
-      name: version_check
-      sha256: "5e452bc35fd98b48b9ce18fa75e7a8e07f2907f2586df7a0484059f542b1e56f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.0"
   video_player:
     dependency: "direct main"
     description:
@@ -2881,10 +2846,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: f6deed8ed625c52864792459709183da231ebf66ff0cf09e69b573227c377efe
+      sha256: c620a6f783fa22436da68e42db7ebbf18b8c44b9a46ab911f666ff09ffd9153f
       url: "https://pub.dev"
     source: hosted
-    version: "11.3.0"
+    version: "11.7.1"
   wakelock_plus:
     dependency: "direct main"
     description:
@@ -2909,15 +2874,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.12+1"
-  wallet_connect:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
-      resolved-ref: c92140c717e14a4b0a36d1ceb5c48e35d896ee74
-      url: "https://github.com/autonomy-system/wallet-connect-dart.git"
-    source: git
-    version: "1.0.4"
   watcher:
     dependency: transitive
     description:
@@ -2926,14 +2882,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  web:
+    dependency: transitive
+    description:
+      name: web
+      sha256: dc8ccd225a2005c1be616fe02951e2e342092edf968cf0844220383757ef8f10
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4-beta"
   web3dart:
     dependency: "direct main"
     description:
       name: web3dart
-      sha256: "0b96223a6b284e3146e65dc842ded139eca68a85c4ab79c5ba1a73284927d3cd"
+      sha256: bebbea9278723cef51d21caf65668860e7547f59114fe9f8af01b873a72ba0e6
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.1"
+    version: "2.7.1"
   web_socket_channel:
     dependency: "direct main"
     description:
@@ -3055,5 +3019,5 @@ packages:
     source: hosted
     version: "2.0.2"
 sdks:
-  dart: ">=3.0.0 <4.0.0"
+  dart: ">=3.1.0-185.0.dev <4.0.0"
   flutter: ">=3.10.0"

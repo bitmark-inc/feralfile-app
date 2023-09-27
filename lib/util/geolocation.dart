@@ -8,6 +8,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart' as postcard;
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/number_utils.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -42,9 +43,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
   final hasPermission = await checkLocationPermissions();
   final navigationService = injector<NavigationService>();
   if (!hasPermission) {
-    UIHelper.showDeclinedGeolocalization(
-        navigationService.navigatorKey.currentContext!);
-    return null;
+    return internetUserGeoLocation;
   } else {
     try {
       final location =
@@ -55,12 +54,7 @@ Future<GeoLocation?> getGeoLocationWithPermission(
         return null;
       }
       log.info("Location: ${location.latitude}, ${location.longitude}");
-      final placeMark = await getPlaceMarkFromCoordinates(
-          location.latitude, location.longitude);
-      if (placeMark == null) {
-        return null;
-      }
-      final address = getLocationName(placeMark);
+      final address = await location.toLocation().getAddress();
       final geolocation = isFuzzy
           ? await getFuzzyGeolocation(address, location)
           : GeoLocation(position: location.toLocation(), address: address);
@@ -104,10 +98,44 @@ bool isValidLocation(Location position, double latitude, double longitude) {
 
 class GeoLocation {
   final postcard.Location position;
-  final String address;
+  String? address;
 
   //constructor
   GeoLocation({required this.position, required this.address});
+
+  Future<String> getAddress() async {
+    if (address != null) {
+      return address!;
+    }
+    final newAddress = await position.getAddress();
+    address = newAddress;
+    return newAddress;
+  }
+
+  static List<GeoLocation> get defaultGeolocations {
+    return [
+      moMAGeoLocation,
+      internetUserGeoLocation,
+    ];
+  }
+
+  bool get isInternet {
+    return this == internetUserGeoLocation;
+  }
+
+  // == method
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is GeoLocation &&
+        other.position == position &&
+        other.address == address;
+  }
+
+  // hashcode method
+  @override
+  int get hashCode => position.hashCode ^ address.hashCode;
 }
 
 extension PositionExtension on Position {

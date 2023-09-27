@@ -6,9 +6,12 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/database/entity/followee.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/feed.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -19,19 +22,22 @@ import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
+import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gif_view/gif_view.dart';
 import 'package:measured_size/measured_size.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -62,11 +68,7 @@ class FeedPreviewPage extends StatelessWidget {
             ),
           ),
           BlocProvider(
-            create: (_) => IdentityBloc(
-              NftCollection.database,
-              injector(),
-            ),
-          ),
+              create: (_) => IdentityBloc(injector<AppDatabase>(), injector())),
         ],
         child: FeedPreviewScreen(
           controller: controller,
@@ -95,6 +97,7 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
 
   late FeedBloc _bloc;
   final _metricClient = injector<MetricClientService>();
+  late FeedState _state;
 
   @override
   void initState() {
@@ -124,6 +127,54 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
 
   final nftCollectionBloc = injector<NftCollectionBloc>();
 
+  Widget _errorWidget(BuildContext context, Object error) {
+    DiscoveryLoadFailureReason reason;
+    switch (error.runtimeType) {
+      case DioException:
+        final dioError = error as DioException;
+        switch (dioError.type) {
+          case DioExceptionType.connectionTimeout:
+          case DioExceptionType.sendTimeout:
+          case DioExceptionType.receiveTimeout:
+          case DioExceptionType.connectionError:
+            reason = DiscoveryLoadFailureReason.noInternet;
+            break;
+          default:
+            if (dioError.error is SocketException) {
+              reason = DiscoveryLoadFailureReason.noInternet;
+            } else {
+              reason = DiscoveryLoadFailureReason.serverError;
+            }
+            break;
+        }
+        break;
+      default:
+        reason = DiscoveryLoadFailureReason.serverError;
+        break;
+    }
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        SvgPicture.asset(
+          "assets/images/autonomy_icon_white.svg",
+          colorFilter:
+              const ColorFilter.mode(AppColor.disabledColor, BlendMode.srcIn),
+          width: 60,
+          height: 60,
+        ),
+        const SizedBox(
+          height: 40,
+        ),
+        Text(
+          reason.message,
+          style: theme.textTheme.ppMori400Black14
+              .copyWith(color: AppColor.disabledColor),
+          textAlign: TextAlign.center,
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -132,18 +183,19 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
       body: BlocConsumer<FeedBloc, FeedState>(
           listener: (context, state) {},
           builder: (context, state) {
+            _state = state;
             if (state.error != null) {
-              return Padding(
-                padding:
-                    ResponsiveLayout.pageEdgeInsets.copyWith(top: 24, right: 5),
-                child: Text(
-                  "discover_unable_to_load".tr(),
-                  style: theme.textTheme.ppMori400White14,
-                ),
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                    child: _errorWidget(context, state.error!),
+                  ),
+                ],
               );
             }
-            if (state.feedTokenEventsMap?.isEmpty ?? true) {
-              return _emptyOrLoadingDiscoveryWidget(state.appFeedData);
+            if (_state.feedTokenEventsMap?.isEmpty ?? true) {
+              return _emptyOrLoadingDiscoveryWidget(_state.appFeedData);
             }
             _metricClient.addEvent(MixpanelEvent.loadingDiscovery);
             return Column(children: [
@@ -176,9 +228,10 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => _listItem(
-                            state.feedTokenEventsMap!.entries.elementAt(index)),
-                        childCount: state.feedTokenEventsMap?.length ?? 0,
+                        (context, index) => _listItem(_state
+                            .feedTokenEventsMap!.entries
+                            .elementAt(index)),
+                        childCount: _state.feedTokenEventsMap?.length ?? 0,
                       ),
                     )
                   ],
@@ -196,10 +249,13 @@ class _FeedPreviewScreenState extends State<FeedPreviewScreen>
         _moveToInfo(entry.key, entry.value);
       },
       child: BlocProvider(
-        create: (_) => IdentityBloc(NftCollection.database, injector()),
+        create: (_) => IdentityBloc(injector<AppDatabase>(), injector()),
         child: Align(
             alignment: Alignment.topCenter,
-            child: FeedView(feedEvents: entry.value, feedToken: entry.key)),
+            child: FeedView(
+              feedEvents: entry.value,
+              feedToken: entry.key,
+            )),
       ),
     );
   }
@@ -437,6 +493,8 @@ class FeedView extends StatefulWidget {
   const FeedView({Key? key, required this.feedEvents, this.feedToken})
       : super(key: key);
 
+  static final List<String> hiddenFeeds = [];
+
   @override
   State<FeedView> createState() => _FeedViewState();
 }
@@ -468,7 +526,7 @@ class _FeedViewState extends State<FeedView> {
     }
   }
 
-  Widget _controlViewWhenNoAsset(FeedEvent event) {
+  Widget _controlViewWhenNoAsset(BuildContext context, FeedEvent event) {
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -536,20 +594,14 @@ class _FeedViewState extends State<FeedView> {
 
   @override
   Widget build(BuildContext context) {
+    if (FeedView.hiddenFeeds.contains(widget.feedToken?.id)) {
+      return const SizedBox();
+    }
     final asset = widget.feedToken;
     final events = widget.feedEvents;
     if (asset == null) {
-      return _controlViewWhenNoAsset(events.first);
+      return _controlViewWhenNoAsset(context, events.first);
     }
-    final neededIdentities = [
-      asset.artistName ?? '',
-      ...events.map((e) => e.recipient)
-    ];
-    neededIdentities.removeWhere((element) => element == '');
-    if (neededIdentities.isNotEmpty) {
-      context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
-    }
-
     final theme = Theme.of(context);
     return Container(
       color: theme.colorScheme.primary,
@@ -579,65 +631,38 @@ class _FeedViewState extends State<FeedView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Wrap(
-                              runSpacing: 4.0,
-                              children: [
-                                ...events
-                                    .mapIndexed((i, event) => [
-                                          GestureDetector(
-                                            child: Text(
-                                              followingNames[i],
-                                              style: theme
-                                                  .textTheme.ppMori700White14
-                                                  .copyWith(
-                                                      color:
-                                                          AppColor.auSuperTeal),
-                                            ),
-                                            onTap: () {
-                                              Navigator.of(context).pushNamed(
-                                                AppRouter.galleryPage,
-                                                arguments: GalleryPagePayload(
-                                                  address: event.recipient,
-                                                  artistName: followingNames[i],
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          if (i < events.length - 1)
-                                            Text(", ",
-                                                style: theme
-                                                    .textTheme.ppMori400White14)
-                                        ])
-                                    .flattened,
-                                const SizedBox(width: 4),
-                                if (followingNames
-                                    .join()
-                                    .trim()
-                                    .isNotEmpty) ...[
-                                  RichText(
-                                    text: TextSpan(
-                                      style: theme.textTheme.ppMori400White14,
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              events.first.actionRepresentation,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ]
-                              ],
+                            Expanded(
+                                child: _eventInfoWidget(
+                                    context, events, followingNames)),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 15),
+                              child: IconButton(
+                                tooltip: "AppbarAction",
+                                constraints:
+                                    const BoxConstraints(maxWidth: 36.0),
+                                onPressed: () async {
+                                  Followee? followee;
+                                  if (followingNames.length == 1) {
+                                    final followees =
+                                        await injector<FolloweeService>()
+                                            .getFromAddresses(
+                                                [events.first.recipient]);
+                                    if (followees.isNotEmpty &&
+                                        followees.first.canRemove) {
+                                      followee = followees.first;
+                                    }
+                                  }
+                                  await _showMoreDialog(followee);
+                                },
+                                icon: const Icon(
+                                  Icons.more_horiz,
+                                  color: AppColor.disabledColor,
+                                ),
+                              ),
                             ),
-                            if (followingNames.join().trim().isNotEmpty) ...[
-                              const Spacer(),
-                              Text(
-                                  events.length > 1
-                                      ? "last_time_format"
-                                          .tr(args: [followingTime])
-                                      : followingTime,
-                                  style: theme.textTheme.ppMori400Grey12),
-                            ]
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -652,17 +677,18 @@ class _FeedViewState extends State<FeedView> {
                           height: 15,
                         ),
                         ArtworkDetailsHeader(
-                          title: asset.title != null && asset.title!.isEmpty
+                          isReverse: true,
+                          subTitle: asset.title != null && asset.title!.isEmpty
                               ? 'nft'.tr()
                               : asset.title ?? "",
-                          subTitle: artistName ?? '',
-                          onTitleTap: () {
+                          title: artistName ?? '',
+                          onSubTitleTap: () {
+                            final payload = FeedDetailPayload(asset, events);
                             Navigator.of(context).pushNamed(
-                              AppRouter.irlWebView,
-                              arguments: asset.secondaryMarketURL,
-                            );
+                                AppRouter.feedArtworkDetailsPage,
+                                arguments: payload);
                           },
-                          onSubTitleTap: asset.artistID != null
+                          onTitleTap: asset.artistID != null
                               ? () => Navigator.of(context)
                                   .pushNamed(AppRouter.galleryPage,
                                       arguments: GalleryPagePayload(
@@ -672,7 +698,13 @@ class _FeedViewState extends State<FeedView> {
                                       ))
                               : null,
                         ),
-                        const SizedBox(height: 60)
+                        const SizedBox(height: 10),
+                        Text(
+                            events.length > 1
+                                ? "last_time_format".tr(args: [followingTime])
+                                : followingTime,
+                            style: theme.textTheme.ppMori400Grey12),
+                        const SizedBox(height: 50)
                       ],
                     ),
                   ),
@@ -683,5 +715,133 @@ class _FeedViewState extends State<FeedView> {
         ],
       ),
     );
+  }
+
+  Future<void> _showMoreDialog(Followee? followee) async {
+    if (!mounted) return;
+    UIHelper.showRawDialog(
+        context,
+        Column(
+          children: [
+            if (followee != null) ...[
+              OutlineButton(
+                onTap: () async {
+                  await injector<FolloweeService>()
+                      .removeArtistManual(followee);
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                },
+                text: "remove_address_from_feed".tr(),
+              ),
+              const SizedBox(height: 10),
+            ],
+            OutlineButton(
+              onTap: () {
+                injector<ConfigurationService>()
+                    .setHiddenFeed([widget.feedToken?.id ?? ""]);
+                FeedView.hiddenFeeds.add(widget.feedToken?.id ?? "");
+                setState(() {});
+                Navigator.pop(context);
+              },
+              text: "hide".tr().capitalize(),
+            ),
+          ],
+        ));
+  }
+
+  Widget _eventInfoWidget(BuildContext context, List<FeedEvent> events,
+      List<String> followingNames) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Wrap(
+        runSpacing: 4.0,
+        spacing: 4.0,
+        children: [
+          ..._recipientInfoWidgets(context, events, followingNames),
+          if (followingNames.join().trim().isNotEmpty) ...[
+            RichText(
+              text: TextSpan(
+                style: theme.textTheme.ppMori400White14,
+                children: [
+                  TextSpan(
+                    text: events.first.actionRepresentation,
+                  ),
+                ],
+              ),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _recipientWidget(BuildContext context, FeedEvent event, String name) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      child: Text(
+        name,
+        style: theme.textTheme.ppMori700White14
+            .copyWith(color: AppColor.auSuperTeal),
+        overflow: TextOverflow.ellipsis,
+      ),
+      onTap: () {
+        Navigator.of(context).pushNamed(
+          AppRouter.galleryPage,
+          arguments: GalleryPagePayload(
+            address: event.recipient,
+            artistName: name,
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _recipientInfoWidgets(BuildContext context,
+      List<FeedEvent> events, List<String> followingNames) {
+    final theme = Theme.of(context);
+    switch (events.length) {
+      case 0:
+        return [const SizedBox()];
+      case 1:
+        return [
+          _recipientWidget(context, events.first, followingNames.first),
+        ];
+      case 2:
+        return [
+          _recipientWidget(context, events.first, followingNames.first),
+          Text(
+            "and".tr(),
+            style: theme.textTheme.ppMori400White14,
+          ),
+          _recipientWidget(context, events.last, followingNames.last),
+        ];
+      default:
+        return [
+          _recipientWidget(context, events.first, followingNames.first),
+          Text(
+            "and".tr(),
+            style: theme.textTheme.ppMori400White14,
+          ),
+          Text(
+            "num_others".tr(args: [(events.length - 1).toString()]),
+            style: theme.textTheme.ppMori400White14,
+          ),
+        ];
+    }
+  }
+}
+
+enum DiscoveryLoadFailureReason {
+  noInternet,
+  serverError;
+
+  String get message {
+    switch (this) {
+      case DiscoveryLoadFailureReason.noInternet:
+        return "no_internet_connection".tr();
+      case DiscoveryLoadFailureReason.serverError:
+        return "discover_unable_to_load".tr();
+    }
   }
 }

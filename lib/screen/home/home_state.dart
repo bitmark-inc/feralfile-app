@@ -10,12 +10,6 @@ import 'package:nft_collection/models/asset_token.dart';
 
 abstract class HomeEvent {}
 
-class HomeConnectWCEvent extends HomeEvent {
-  final String uri;
-
-  HomeConnectWCEvent(this.uri);
-}
-
 class HomeConnectTZEvent extends HomeEvent {
   final String uri;
 

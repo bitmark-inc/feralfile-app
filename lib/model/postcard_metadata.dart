@@ -1,23 +1,37 @@
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/position_utils.dart';
+import 'package:collection/collection.dart';
+
 class PostcardMetadata {
-  List<UserLocations> locationInformation;
+  List<Location> locationInformation;
 
   // constructor
   PostcardMetadata({required this.locationInformation});
 
   // from json method
   factory PostcardMetadata.fromJson(Map<String, dynamic> json) {
-    return PostcardMetadata(
+    final metadata = PostcardMetadata(
       locationInformation: (json['locationInformation'] as List<dynamic>)
-          .map((e) => UserLocations.fromJson(e as Map<String, dynamic>))
+          .map((e) {
+            final location = e['stampedLocation'] == null
+                ? null
+                : Location.fromJson(
+                    e['stampedLocation'] as Map<String, dynamic>);
+            return location;
+          })
+          .whereNotNull()
           .toList(),
     );
+    return metadata;
   }
 
   // to json method
   Map<String, dynamic> toJson() {
     return {
-      'locationInformation':
-          locationInformation.map((e) => e.toJson()).toList(),
+      'locationInformation': locationInformation
+          .map((e) => {'stampedLocation': e.toJson()})
+          .toList(),
     };
   }
 }
@@ -106,74 +120,20 @@ class Royalties {
   }
 }
 
-class ArtworkData {
-  final List<UserLocations> locationInformation;
-
-  // constructor
-  ArtworkData({required this.locationInformation});
-
-  // from json method
-  factory ArtworkData.fromJson(Map<String, dynamic> json) {
-    return ArtworkData(
-      locationInformation: (json['locationInformation'] as List<dynamic>)
-          .map((e) => UserLocations.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
-}
-
-class UserLocations {
-  Location? claimedLocation;
-  Location? stampedLocation;
-
-  // constructor
-  UserLocations({this.claimedLocation, this.stampedLocation});
-
-  // from json method
-  factory UserLocations.fromJson(Map<String, dynamic> json) {
-    return UserLocations(
-      claimedLocation: json['claimedLocation'] == null
-          ? null
-          : Location.fromJson(json['claimedLocation'] as Map<String, dynamic>),
-      stampedLocation: json['stampedLocation'] == null
-          ? null
-          : Location.fromJson(json['stampedLocation'] as Map<String, dynamic>),
-    );
-  }
-
-  // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'claimedLocation': claimedLocation?.toJson(),
-      'stampedLocation': stampedLocation?.toJson(),
-    };
-  }
-
-  //copyWith method
-  UserLocations copyWith({
-    Location? claimedLocation,
-    Location? stampedLocation,
-  }) {
-    return UserLocations(
-      claimedLocation: claimedLocation ?? this.claimedLocation,
-      stampedLocation: stampedLocation ?? this.stampedLocation,
-    );
-  }
-}
-
 class Location {
-  final double lat;
-  final double lon;
+  final double? lat;
+  final double? lon;
 
   // constructor
   Location({required this.lat, required this.lon});
 
   // from json method
   factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-      lat: json['lat'] as double,
-      lon: json['lon'] as double,
+    final location = Location(
+      lat: double.tryParse("${json['lat']}"),
+      lon: double.tryParse("${json['lon']}"),
     );
+    return location;
   }
 
   // toJson method
@@ -182,5 +142,41 @@ class Location {
       'lat': lat,
       'lon': lon,
     };
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Location && other.lat == lat && other.lon == lon;
+  }
+
+  bool get isDefault {
+    final defaultGeolocations = GeoLocation.defaultGeolocations;
+    return defaultGeolocations.any((element) => element.position == this);
+  }
+
+  bool get isMoMA {
+    final momaGeolocations = moMAGeoLocation;
+    return momaGeolocations.position == this;
+  }
+
+  bool get isInternet {
+    final internetGeolocations = internetUserGeoLocation;
+    return internetGeolocations.position == this;
+  }
+
+  bool get isNull {
+    return lat == null || lon == null;
+  }
+
+  @override
+  int get hashCode => lat.hashCode ^ lon.hashCode;
+
+  Future<String> getAddress() async {
+    if (isNull) {
+      return internetUserGeoLocation.address!;
+    }
+    return getLocationNameFromCoordinates(lat!, lon!);
   }
 }

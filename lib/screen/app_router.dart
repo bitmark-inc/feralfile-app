@@ -6,41 +6,29 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/editorial.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
-import 'package:autonomy_flutter/screen/account/accounts_preview_page.dart';
-import 'package:autonomy_flutter/screen/account/add_account_page.dart';
-import 'package:autonomy_flutter/screen/account/import_account_page.dart';
-import 'package:autonomy_flutter/screen/account/link_wallet_connect_page.dart';
-import 'package:autonomy_flutter/screen/account/name_linked_account_page.dart';
-import 'package:autonomy_flutter/screen/account/name_persona_page.dart';
-import 'package:autonomy_flutter/screen/account/new_account_page.dart';
-import 'package:autonomy_flutter/screen/account/persona_details_page.dart';
+import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
-import 'package:autonomy_flutter/screen/account/select_ledger_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
-import 'package:autonomy_flutter/screen/be_own_gallery_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/feralfile/feralfile_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/tzkt_transaction/tzkt_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
@@ -63,14 +51,14 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
-import 'package:autonomy_flutter/screen/editorial/article/article_detail.dart';
-import 'package:autonomy_flutter/screen/editorial/editorial_bloc.dart';
-import 'package:autonomy_flutter/screen/editorial/feralfile/exhibition_bloc.dart';
+import 'package:autonomy_flutter/screen/discover/following_bloc.dart';
+import 'package:autonomy_flutter/screen/discover/following_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
 import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
@@ -84,9 +72,11 @@ import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_started_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
@@ -94,11 +84,13 @@ import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
-import 'package:autonomy_flutter/screen/more_autonomy_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
+import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
@@ -107,7 +99,6 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.da
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
@@ -129,8 +120,6 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/survey/survey.dart';
-import 'package:autonomy_flutter/screen/survey/survey_thankyou.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
@@ -138,25 +127,17 @@ import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/tv_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_disconnect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
-import 'account/link_beacon_connect_page.dart';
-import 'detail/preview/canvas_device_bloc.dart';
-import 'interactive_postcard/postcard_detail_page.dart';
 import 'onboarding/import_address/import_seeds.dart';
 import 'onboarding/new_address/choose_chain_page.dart';
 import 'onboarding/view_address/view_existing_address.dart';
@@ -167,25 +148,8 @@ class AppRouter {
   static const editPlayListPage = "editPlayList";
   static const previewPrimerPage = "preview_primer";
   static const onboardingPage = "onboarding";
-  static const beOwnGalleryPage = 'be_own_gallery';
-  static const moreAutonomyPage = 'more_autonomy';
   static const notificationOnboardingPage = 'notification_onboarding';
-  static const newAccountPage = "new_account";
-  static const addAccountPage = 'add_account';
-  static const linkAccountpage = "link_account";
-  static const linkLedgerWalletPage = "link_ledger_wallet";
-  static const selectLedgerWalletPage = "select_ledger_waller";
-  static const linkWalletConnectPage = "link_wallet_connect";
-  static const linkBeaconConnectPage = "link_beacon_connect";
-  static const accountsPreviewPage = 'accounts_preview';
-  static const accessMethodPage = 'access_method_page';
-  static const linkAppOptionPage = 'link_app_option_page';
-  static const linkMetamaskPage = 'link_metamask';
-  static const linkTezosKukaiPage = 'link_tezos_kukai_page';
-  static const linkTezosTemplePage = 'link_tezos_temple_page';
-  static const namePersonaPage = "name_persona_page";
   static const nameLinkedAccountPage = 'name_linked_account';
-  static const importAccountPage = 'import_account';
   static const homePage = "home_page";
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
@@ -195,7 +159,6 @@ class AppRouter {
   static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
   static const settingsPage = "settings";
-  static const personaDetailsPage = "persona_details";
   static const personaConnectionsPage = "persona_connections";
   static const connectionDetailsPage = 'connection_details';
   static const linkedAccountDetailsPage = 'linked_account_details';
@@ -228,7 +191,6 @@ class AppRouter {
   static const airdropTokenDetailPage = 'airdrop_token_detail_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
-  static const articleDetailPage = 'article_detail_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
@@ -242,12 +204,10 @@ class AppRouter {
   static const claimEmptyPostCard = "claim_empty_postcard";
   static const selectAddressScreen = "select_address_screen";
   static const receivePostcardPage = 'receive_postcard_page';
-  static const postcardDetailPage = 'postcard_detail_page';
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardStartedPage = 'postcard_started';
   static const postcardConfirmingPage = 'postcard_confirming_page';
   static const tripDetailPage = 'trip_detail_page';
   static const canvasHelpPage = 'canvas_help_page';
@@ -257,6 +217,8 @@ class AppRouter {
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
   static const previewActivationClaimPage = 'preview_activation_claim_page';
+  static const postcardLeaderboardPage = 'postcard_leaderboard_page';
+  static const postcardLocationExplain = 'postcard_location_explain';
   static const albumPage = 'album_page';
   static const addToCollectionPage = 'add_to_collection_page';
 
@@ -264,19 +226,25 @@ class AppRouter {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
     final usdcBloc = USDCBloc(injector());
-    final accountsBloc = AccountsBloc(injector(), injector<CloudDatabase>());
+    final accountsBloc = AccountsBloc(injector(), injector());
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),
       injector<AuditService>(),
     );
+    final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
 
     switch (settings.name) {
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => ViewPlaylistScreen(
-            payload: settings.arguments as ViewPlaylistScreenPayload,
+          builder: (context) => BlocProvider(
+            create: (_) => CanvasDeviceBloc(
+              injector(),
+            ),
+            child: ViewPlaylistScreen(
+              payload: settings.arguments as ViewPlaylistScreenPayload,
+            ),
           ),
         );
       case createPlayListPage:
@@ -307,9 +275,6 @@ class AppRouter {
                 injector<AuditService>(),
               ),
             ),
-            BlocProvider(
-              create: (_) => personaBloc,
-            ),
           ], child: const OnboardingPage()),
         );
 
@@ -321,14 +286,24 @@ class AppRouter {
             settings: settings,
             child: MultiBlocProvider(
               providers: [
-                BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(NftCollection.database, injector())),
+                BlocProvider(create: (_) => identityBloc),
               ],
               child: PreviewPrimerPage(
                 token: settings.arguments as AssetToken,
               ),
             ));
+
+      case FollowingPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => identityBloc,
+                  ),
+                  BlocProvider(
+                    create: (_) => FollowingBloc(injector()),
+                  ),
+                ], child: const FollowingPage()));
 
       case homePageNoTransition:
         return PageRouteBuilder(
@@ -338,16 +313,13 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => HomeBloc(
                               injector(),
-                              injector(),
                             )),
-                    BlocProvider(
-                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
                               injector(),
                               injector(),
                             )),
-                    BlocProvider(create: (_) => EditorialBloc(injector())),
                     BlocProvider(
                       create: (_) => FeedBloc(
                         injector(),
@@ -355,7 +327,6 @@ class AppRouter {
                         injector(),
                       ),
                     ),
-                    BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -372,16 +343,13 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => HomeBloc(
                               injector(),
-                              injector(),
                             )),
-                    BlocProvider(
-                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                     BlocProvider(
                         create: (_) => UpgradesBloc(
                               injector(),
                               injector(),
                             )),
-                    BlocProvider(create: (_) => EditorialBloc(injector())),
                     BlocProvider(
                       create: (_) => FeedBloc(
                         injector(),
@@ -389,18 +357,12 @@ class AppRouter {
                         injector(),
                       ),
                     ),
-                    BlocProvider(create: (_) => ExhibitionBloc(injector())),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
                   ],
                   child: const HomeNavigationPage(),
                 ));
-      case beOwnGalleryPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => const BeOwnGalleryPage(),
-        );
 
       case ChatThreadPage.tag:
         return CupertinoPageRoute(
@@ -423,6 +385,11 @@ class AppRouter {
               payload: settings.arguments as DesignStampPayload),
         );
 
+      case AccessMethodPage.tag:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => const AccessMethodPage(),
+        );
       case handSignaturePage:
         return CupertinoPageRoute(
           settings: settings,
@@ -436,8 +403,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(
                   providers: [
-                    BlocProvider(
-                        create: (_) => IdentityBloc(injector(), injector())),
+                    BlocProvider(create: (_) => identityBloc),
                     BlocProvider(
                         create: (_) => PostcardDetailBloc(
                               injector(),
@@ -451,81 +417,13 @@ class AppRouter {
                       payload: settings.arguments as StampPreviewPayload),
                 ));
 
-      case moreAutonomyPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => UpgradesBloc(injector(), injector()),
-            child: const MoreAutonomyPage(),
-          ),
-        );
       case notificationOnboardingPage:
         return CupertinoPageRoute(
           settings: settings,
           fullscreenDialog: true,
           builder: (context) => const NotificationOnboardingPage(),
         );
-      case newAccountPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => personaBloc, child: NewAccountPage()));
 
-      case addAccountPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => personaBloc, child: const AddAccountPage()));
-
-      case accountsPreviewPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                ], child: const AccountsPreviewPage()));
-
-      case accessMethodPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider(
-                    create: (_) => FeralfileBloc.create(),
-                  ),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                ], child: const AccessMethodPage()));
-
-      case linkBeaconConnectPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) =>
-                LinkBeaconConnectPage(uri: settings.arguments as String));
-
-      case selectLedgerWalletPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const SelectLedgerPage());
-
-      case linkWalletConnectPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider.value(
-                value: accountsBloc,
-                child: LinkWalletConnectPage(
-                  unableOpenAppname: (settings.arguments as String?) ?? "",
-                )));
-
-      case AppRouter.namePersonaPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => personaBloc,
-                  child: NamePersonaPage(
-                      payload: settings.arguments as NamePersonaPayload),
-                ));
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
           settings: settings,
@@ -537,20 +435,8 @@ class AppRouter {
             settings: settings,
             builder: (context) => BlocProvider.value(
                 value: accountsBloc,
-                child: NameLinkedAccountPage(
+                child: NameViewOnlyAddressPage(
                     connection: settings.arguments as Connection)));
-
-      case importAccountPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => ScanWalletBloc(
-              injector(),
-              injector(),
-            ),
-            child: const ImportAccountPage(),
-          ),
-        );
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -569,26 +455,18 @@ class AppRouter {
         }
         throw Exception('Invalid route: ${settings.name}');
 
-      case WCDisconnectPage.tag:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) =>
-              WCDisconnectPage(client: settings.arguments as WCClient),
-        );
       case WCSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BlocProvider(
-              create: (_) => FeralfileBloc.create(),
-              child: WCSignMessagePage(
-                  args: settings.arguments as WCSignMessagePageArgs)),
+          builder: (context) => WCSignMessagePage(
+              args: settings.arguments as WCSignMessagePageArgs),
         );
+
       case WCSendTransactionPage.tag:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-              injector(),
               injector(),
               injector(),
               injector(),
@@ -604,10 +482,8 @@ class AppRouter {
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
-            child: BlocProvider(
-                create: (_) => FeralfileBloc.create(),
-                child: ScanQRPage(
-                    scannerItem: settings.arguments as ScannerItem)));
+            child: ScanQRPage(scannerItem: settings.arguments as ScannerItem));
+
       case settingsPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -617,28 +493,8 @@ class AppRouter {
                   BlocProvider(create: (_) => personaBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                 ], child: const SettingsPage()));
-
-      case personaDetailsPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: ethereumBloc),
-                      BlocProvider.value(value: tezosBloc),
-                      BlocProvider.value(value: usdcBloc),
-                      BlocProvider(
-                        create: (_) => ScanWalletBloc(
-                          injector(),
-                          injector(),
-                        ),
-                      ),
-                    ],
-                    child: PersonaDetailsPage(
-                      persona: settings.arguments as Persona,
-                    )));
 
       case personaConnectionsPage:
         return CupertinoPageRoute(
@@ -694,7 +550,6 @@ class AppRouter {
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
-                    BlocProvider(create: (_) => TZKTTransactionBloc()),
                   ],
                   child: WalletDetailPage(
                       payload: settings.arguments as WalletDetailsPayload),
@@ -704,14 +559,10 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(
                   providers: [
-                    BlocProvider.value(value: accountsBloc),
-                    BlocProvider.value(value: ethereumBloc),
-                    BlocProvider.value(value: tezosBloc),
                     BlocProvider.value(value: usdcBloc),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
-                    BlocProvider(create: (_) => TZKTTransactionBloc()),
                   ],
                   child: LinkedWalletDetailPage(
                       payload:
@@ -751,10 +602,7 @@ class AppRouter {
                   ),
                 ),
                 BlocProvider(
-                  create: (_) => IdentityBloc(
-                    NftCollection.database,
-                    injector(),
-                  ),
+                  create: (_) => identityBloc,
                 ),
                 BlocProvider(
                   create: (_) => CanvasDeviceBloc(
@@ -781,6 +629,14 @@ class AppRouter {
       case ChooseChainPage.tag:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ChooseChainPage());
+
+      case DiscoverArtPage.tag:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => BlocProvider(
+                  create: (_) => DiscoverArtBloc(injector(), injector()),
+                  child: const DiscoverArtPage(),
+                ));
 
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
@@ -826,12 +682,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
-                  BlocProvider(
-                    create: (_) => IdentityBloc(
-                      NftCollection.database,
-                      injector(),
-                    ),
-                  ),
+                  BlocProvider(create: (_) => identityBloc),
                 ],
                 child: FeedArtworkDetailsPage(
                   payload: settings.arguments as FeedDetailPayload,
@@ -844,8 +695,7 @@ class AppRouter {
                     providers: [
                       BlocProvider(
                           create: (_) => GalleryBloc(injector(), injector())),
-                      BlocProvider(
-                          create: (_) => IdentityBloc(injector(), injector())),
+                      BlocProvider(create: (_) => identityBloc),
                     ],
                     child: GalleryPage(
                       payload: settings.arguments as GalleryPagePayload,
@@ -860,8 +710,7 @@ class AppRouter {
             child: MultiBlocProvider(
                 providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
@@ -877,7 +726,7 @@ class AppRouter {
                     payload: settings.arguments as ArtworkDetailPayload)));
 
       case claimedPostcardDetailsPage:
-        final payload = settings.arguments as ArtworkDetailPayload;
+        final payload = settings.arguments as PostcardDetailPagePayload;
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
@@ -886,8 +735,7 @@ class AppRouter {
             child: MultiBlocProvider(
                 providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                      create: (_) => IdentityBloc(injector(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(
@@ -931,14 +779,14 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudPage(
-                  section: settings.arguments as String,
+                  payload: settings.arguments as CloudPagePayload,
                 ));
 
       case cloudAndroidPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudAndroidPage(
-                  isEncryptionAvailable: settings.arguments as bool?,
+                  payload: settings.arguments as CloudAndroidPagePayload,
                 ));
 
       case globalReceivePage:
@@ -1026,16 +874,6 @@ class AppRouter {
                   child: const HiddenArtworksPage(),
                 ));
 
-      case SurveyPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            fullscreenDialog: true,
-            builder: (context) => const SurveyPage());
-      case SurveyThankyouPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const SurveyThankyouPage());
-
       case githubDocPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1050,20 +888,6 @@ class AppRouter {
                   child: const KeySyncPage(),
                 ));
 
-      case tvConnectPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                        create: (_) => personaBloc,
-                      ),
-                    ],
-                    child: TVConnectPage(
-                        wcConnectArgs:
-                            settings.arguments as WCConnectPageArgs)));
-
       case sendArtworkPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -1076,12 +900,7 @@ class AppRouter {
                         injector(),
                         injector(),
                         (settings.arguments as SendArtworkPayload).asset)),
-                BlocProvider(
-                  create: (_) => IdentityBloc(
-                    NftCollection.database,
-                    injector(),
-                  ),
-                ),
+                BlocProvider(create: (_) => identityBloc),
               ],
               child: SendArtworkPage(
                   payload: settings.arguments as SendArtworkPayload)),
@@ -1091,10 +910,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => IdentityBloc(
-                    NftCollection.database,
-                    injector(),
-                  ),
+                  create: (_) => identityBloc,
                   child: SendArtworkReviewPage(
                       payload: settings.arguments as SendArtworkReviewPayload),
                 ));
@@ -1107,6 +923,7 @@ class AppRouter {
               return ClaimTokenPage(
                 series: args.series,
                 otp: args.otp,
+                allowViewOnlyClaim: args.allowViewOnlyClaim,
               );
             });
 
@@ -1132,6 +949,7 @@ class AppRouter {
                   artwork: args.artwork,
                   otp: args.otp,
                   fromWebview: args.fromWebview,
+                  withViewOnly: args.withViewOnly,
                 ),
               );
             });
@@ -1152,6 +970,13 @@ class AppRouter {
           ),
         );
 
+      case linkManually:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              return LinkManuallyPage(type: settings.arguments as String);
+            });
+
       case wc2PermissionPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1164,13 +989,7 @@ class AppRouter {
                     ],
                     child: Wc2RequestPage(
                         request: settings.arguments as Wc2Request)));
-      case articleDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return ArticleDetailPage(
-                  post: settings.arguments as EditorialPost);
-            });
+
       case walletPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1211,9 +1030,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return MultiBlocProvider(providers: [
-                BlocProvider(
-                    create: (_) =>
-                        IdentityBloc(NftCollection.database, injector())),
+                BlocProvider(create: (_) => identityBloc),
               ], child: const DataManagementPage());
             });
       case helpUsPage:
@@ -1265,39 +1082,13 @@ class AppRouter {
               final args = settings.arguments as ReceivePostcardPageArgs;
               return MultiBlocProvider(
                 providers: [
-                  BlocProvider(
-                      create: (_) => IdentityBloc(
-                          injector<NftCollectionDatabase>(), injector())),
+                  BlocProvider(create: (_) => identityBloc),
                 ],
                 child: ReceivePostCardPage(
                   asset: args.asset,
                   shareCode: args.shareCode,
                 ),
               );
-            });
-      case postcardDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(
-                  providers: [
-                    BlocProvider(create: (_) => TravelInfoBloc()),
-                    BlocProvider(
-                        create: (_) => PostcardDetailBloc(
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                            )),
-                    BlocProvider.value(value: accountsBloc),
-                    BlocProvider(
-                        create: (_) => IdentityBloc(
-                            injector<NftCollectionDatabase>(), injector())),
-                  ],
-                  child: PostcardDetailPage(
-                    asset: settings.arguments as AssetToken,
-                  ));
             });
       case receivePostcardSelectAccountPage:
         return CupertinoPageRoute(builder: (context) {
@@ -1328,15 +1119,6 @@ class AppRouter {
               return IRLSignMessageScreen(payload: payload);
             });
 
-      case postcardStartedPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) {
-            return PostcardStartedPage(
-              assetToken: settings.arguments as AssetToken,
-            );
-          },
-        );
       case tripDetailPage:
         final payload = settings.arguments as TripDetailPayload;
         return CupertinoPageRoute(
@@ -1418,6 +1200,39 @@ class AppRouter {
               child: PreviewActivationTokenPage(
                 assetToken: settings.arguments as AssetToken,
               ),
+            );
+          },
+        );
+
+      case postcardLeaderboardPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: accountsBloc),
+                BlocProvider(
+                  create: (_) => PostcardDetailBloc(
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector(),
+                    injector(),
+                  ),
+                ),
+              ],
+              child: PostcardLeaderboardPage(
+                payload: settings.arguments as PostcardLeaderboardPagePayload,
+              ),
+            );
+          },
+        );
+      case postcardLocationExplain:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return PostcardLocationExplain(
+              payload: settings.arguments as PostcardExplainPayload,
             );
           },
         );

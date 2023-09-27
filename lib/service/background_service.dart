@@ -7,10 +7,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/gateway/crowd_sourcing_api.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:http/http.dart' as http;
@@ -19,10 +16,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 class BackgroundService {
   final ConfigurationService _configurationService;
   final CrowdSourcingApi _crowdSourcingApi;
-  final NotificationService _notificationService;
 
-  BackgroundService(this._configurationService, this._crowdSourcingApi,
-      this._notificationService);
+  BackgroundService(this._configurationService, this._crowdSourcingApi);
 
   Future configureBackgroundTask() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -38,8 +33,6 @@ class BackgroundService {
 
       if (taskId == packageInfo.packageName) {
         await mimeTypeUpdateWorkflow();
-      } else if (taskId == "${packageInfo.packageName}.notification") {
-        await expiredPostcardSharedLinkNotification();
       }
 
       BackgroundFetch.finish(taskId);
@@ -69,7 +62,6 @@ class BackgroundService {
 
     log.info('[BackgroundService] Headless event received.');
     await mimeTypeUpdateWorkflow();
-    await expiredPostcardSharedLinkNotification();
 
     BackgroundFetch.finish(taskId);
   }
@@ -136,25 +128,5 @@ class BackgroundService {
     });
 
     log.info('[BackgroundService] mimeTypeUpdateWorkflow finished.');
-  }
-
-  Future expiredPostcardSharedLinkNotification() async {
-    final expiredPostcardShareLink =
-        await _configurationService.getSharedPostcard().expiredPostcards;
-    if (_configurationService.isNotificationEnabled() ?? false) {
-      Timer.periodic(const Duration(milliseconds: 500), (timer) async {
-        final index = timer.tick - 1;
-        if (index >= expiredPostcardShareLink.length) {
-          timer.cancel();
-        } else {
-          final expiredPostcard = expiredPostcardShareLink[index];
-          await _notificationService.showPostcardWasnotDeliveredNotification(
-              PostcardIdentity(
-                  id: expiredPostcard.tokenID, owner: expiredPostcard.owner));
-          await _configurationService
-              .updateSharedPostcard([expiredPostcard], isRemoved: true);
-        }
-      });
-    }
   }
 }

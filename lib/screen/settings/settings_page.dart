@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -18,6 +20,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/version_check.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -30,7 +33,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:version_check/version_check.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -167,10 +169,12 @@ class _SettingsPageState extends State<SettingsPage>
                         if (!mounted) return;
                         Navigator.of(context).pushNamed(
                             AppRouter.cloudAndroidPage,
-                            arguments: isAndroidEndToEndEncryptionAvailable);
+                            arguments: CloudAndroidPagePayload(
+                                isEncryptionAvailable:
+                                    isAndroidEndToEndEncryptionAvailable));
                       } else {
                         Navigator.of(context).pushNamed(AppRouter.cloudPage,
-                            arguments: "settings");
+                            arguments: CloudPagePayload(section: "nameAlias"));
                       }
                     },
                     stateWidget: const CloudState(),
@@ -256,8 +260,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Future<void> _checkVersion() async {
-    final versionCheck =
-        VersionCheck(showUpdateDialog: (context, versionCheck) {});
+    final versionCheck = VersionCheck(showUpdateDialog: (versionCheck) {});
     await versionCheck.checkVersion(context);
     setState(() {
       _versionCheck = versionCheck;

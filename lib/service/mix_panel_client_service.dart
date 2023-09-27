@@ -3,23 +3,28 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
   final ConfigurationService _configurationService;
+  final CloudDatabase _cloudDatabase;
 
-  MixPanelClientService(this._accountService, this._configurationService);
+  MixPanelClientService(
+      this._accountService, this._configurationService, this._cloudDatabase);
 
   late Mixpanel mixpanel;
+  late Box configHiveBox;
 
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
@@ -36,6 +41,7 @@ class MixPanelClientService {
     mixpanel.registerSuperPropertiesOnce({
       MixpanelProp.client: "Autonomy Wallet",
     });
+    configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
 
   Future initIfDefaultAccount() async {
@@ -111,40 +117,52 @@ class MixPanelClientService {
     mixpanel.getPeople().set(prop, value);
   }
 
-  MixpanelConfig? getConfig() {
-    return _configurationService.getMixpanelConfig();
+  void incrementPropertyLabel(String prop, double value) {
+    mixpanel.getPeople().increment(prop, value);
   }
 
-  Future<void> setConfig(MixpanelConfig config) async {
-    await _configurationService.setMixpanelConfig(config);
-  }
-}
-
-@JsonSerializable()
-class MixpanelConfig {
-  final DateTime? editorialPeriodStart;
-  final double? totalEditorialReading;
-
-  MixpanelConfig({this.editorialPeriodStart, this.totalEditorialReading});
-
-  Map<String, dynamic> toJson() => {
-        "editorialPeriodStart": editorialPeriodStart?.toIso8601String(),
-        "totalEditorialReading": totalEditorialReading,
-      };
-
-  factory MixpanelConfig.fromJson(Map<String, dynamic> json) {
-    return MixpanelConfig(
-      editorialPeriodStart: DateTime.tryParse(json['editorialPeriodStart']),
-      totalEditorialReading: json['totalEditorialReading'],
-    );
+  void onAddConnection(Connection connection) {
+    if ([
+      ConnectionType.beaconP2PPeer.rawValue,
+      ConnectionType.dappConnect2.rawValue,
+      ConnectionType.walletConnect2.rawValue
+    ].contains(connection.connectionType)) {
+      incrementPropertyLabel(
+          MixpanelProp.connectedToMarket(connection.name), 1);
+    }
   }
 
-  MixpanelConfig copyWith(
-      {DateTime? editorialPeriodStart, double? totalEditorialReading}) {
-    return MixpanelConfig(
-      editorialPeriodStart: editorialPeriodStart ?? this.editorialPeriodStart,
-      totalEditorialReading:
-          totalEditorialReading ?? this.totalEditorialReading,
-    );
+  void onRemoveConnection(Connection connection) {
+    if ([
+      ConnectionType.beaconP2PPeer.rawValue,
+      ConnectionType.dappConnect2.rawValue,
+      ConnectionType.walletConnect2.rawValue
+    ].contains(connection.connectionType)) {
+      incrementPropertyLabel(
+          MixpanelProp.connectedToMarket(connection.name), -1);
+    }
+  }
+
+  Future<void> onRestore() async {
+    final connections = await _cloudDatabase.connectionDao.getConnections();
+    for (var connection in connections) {
+      onAddConnection(connection);
+    }
+  }
+
+  Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
+    for (var entry in config.entries) {
+      if (getConfig(entry.key) == null) {
+        await setConfig(entry.key, entry.value);
+      }
+    }
+  }
+
+  dynamic getConfig(String key, {dynamic defaultValue}) {
+    return configHiveBox.get(key, defaultValue: defaultValue);
+  }
+
+  Future<void> setConfig(String key, dynamic value) async {
+    await configHiveBox.put(key, value);
   }
 }

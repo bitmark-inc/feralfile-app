@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
@@ -150,7 +149,10 @@ extension AssetTokenExtension on AssetToken {
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);
-    final connection = await cloudDB.connectionDao.findById(owner);
+    final viewOnlyConnections =
+        await cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final connection = viewOnlyConnections.firstWhereOrNull(
+        (viewOnlyConnection) => viewOnlyConnection.key == owner);
     return walletAddress == null && connection != null;
   }
 
@@ -275,7 +277,7 @@ extension AssetTokenExtension on AssetToken {
     }
     final tokenId = this.tokenId ?? "";
     final address = owner;
-    final counter = postcardMetadata.counter;
+    final counter = numberOwners;
     final contractAddress = Environment.postcardContractAddress;
     final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
     final metadataPath =
@@ -362,7 +364,7 @@ extension AssetTokenExtension on AssetToken {
   List<Artist> get getArtists {
     final lst = jsonDecode(artists ?? "[]") as List<dynamic>;
     if (lst.length <= 1) {
-      return [Artist(name: "no_artists".tr())];
+      return [];
     }
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
   }
@@ -619,6 +621,65 @@ extension AssetExt on Asset {
       isFeralfileFrame ?? this.isFeralfileFrame,
       artworkMetadata ?? this.artworkMetadata,
     );
+  }
+}
+
+extension PostcardExtension on AssetToken {
+  int get stampIndex {
+    final listArtists = getArtists;
+    if (listArtists.isEmpty) {
+      return -1;
+    }
+    final owner = this.owner;
+    return listArtists.indexWhere((element) => owner == element.id);
+  }
+
+  int get numberOwners {
+    return maxEdition ?? 0;
+  }
+
+  bool get isStamped {
+    return numberOwners == getArtists.length;
+  }
+
+  bool get isFinalClaimed {
+    return numberOwners == MAX_STAMP_IN_POSTCARD - 1;
+  }
+
+  bool get isFinal {
+    return numberOwners == MAX_STAMP_IN_POSTCARD;
+  }
+
+  bool get isCompleted {
+    return isFinal && isStamped;
+  }
+
+  bool get isSending {
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    return sharedPostcards.any((element) {
+      return !element.isExpired &&
+          element.owner == owner &&
+          element.tokenID == id;
+    });
+  }
+
+  bool get isLastOwner {
+    final artists = getArtists;
+    final index = stampIndex;
+    return index == -1 || index == artists.length - 1;
+  }
+
+  String getStamperName(String address) {
+    final artists = getArtists;
+    artists.removeWhere((element) => element.id == null);
+    final artist = artists.firstWhereOrNull((element) => element.id == address);
+    if (artists.isEmpty || artist == null) {
+      return "pending_stamper".tr();
+    } else {
+      final index = artists.indexOf(artist) + 1;
+      return "stamper_".tr(args: [index.toString()]);
+    }
   }
 }
 

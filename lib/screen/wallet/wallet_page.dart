@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
@@ -74,6 +74,10 @@ class _WalletPageState extends State<WalletPage>
   }
 
   void _showAddWalletOption() {
+    final transparentTextTheme = Theme.of(context)
+        .textTheme
+        .ppMori400Green14
+        .copyWith(color: Colors.transparent);
     final options = [
       OptionItem(
         title: "create_a_new_wallet".tr(),
@@ -113,13 +117,14 @@ class _WalletPageState extends State<WalletPage>
         },
       ),
       OptionItem(
-        onTap: () async {
-          final debug = await isAppCenterBuild();
-          if (debug && mounted) {
-            Navigator.of(context).popAndPushNamed(AppRouter.accessMethodPage);
-          }
-        },
-      ),
+          title: "debug_artwork",
+          titleStyle: transparentTextTheme,
+          onTap: () async {
+            final debug = await isAppCenterBuild();
+            if (debug && mounted) {
+              Navigator.of(context).popAndPushNamed(AccessMethodPage.tag);
+            }
+          }),
     ];
     UIHelper.showDrawerAction(context, options: options);
   }

@@ -14,19 +14,32 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wallet_connect/wallet_connect.dart';
 
 abstract class ConfigurationService {
+  Future<void> setPostcardChatConfig(PostcardChatConfig config);
+
+  PostcardChatConfig getPostcardChatConfig(
+      {required String address, required String id});
+
+  Future<void> setDidMigrateAddress(bool value);
+
+  bool getDidMigrateAddress();
+
+  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false});
+
+  List<String> getHiddenFeeds();
+
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
 
   int? getAnnouncementLastPullTime();
@@ -46,18 +59,6 @@ abstract class ConfigurationService {
   Future<void> setPremium(bool value);
 
   bool isPremium();
-
-  Future<void> setTVConnectData(WCPeerMeta peerMeta, int id);
-
-  Future<void> deleteTVConnectData();
-
-  WCPeerMeta? getTVConnectPeerMeta();
-
-  int? getTVConnectID();
-
-  Future<void> setWCSessions(List<WCSessionStore> value);
-
-  List<WCSessionStore> getWCSessions();
 
   Future<void> setDevicePasscodeEnabled(bool value);
 
@@ -143,10 +144,6 @@ abstract class ConfigurationService {
 
   Future<void> removePlayList(String id);
 
-  List<String> getFinishedSurveys();
-
-  Future<void> setFinishedSurvey(List<String> surveyNames);
-
   Future<String> getAccountHMACSecret();
 
   bool isFinishedFeedOnBoarding();
@@ -169,10 +166,6 @@ abstract class ConfigurationService {
   Future<void> setHasFeed(bool value);
 
   bool hasFeed();
-
-  Future setLastTimeOpenEditorial(DateTime time);
-
-  DateTime? getLastTimeOpenEditorial();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -254,8 +247,6 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showWhatNewAddressTip;
 
-  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip;
-
   List<SharedPostcard> getSharedPostcard();
 
   Future<void> updateSharedPostcard(List<SharedPostcard> sharedPostcards,
@@ -273,8 +264,6 @@ abstract class ConfigurationService {
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
 
-  Future<void> removeExpiredStampingPostcard();
-
   Future<void> setAutoShowPostcard(bool value);
 
   bool isAutoShowPostcard();
@@ -283,10 +272,6 @@ abstract class ConfigurationService {
 
   Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> value,
       {bool override = false});
-
-  Future<void> setMixpanelConfig(MixpanelConfig config);
-
-  MixpanelConfig? getMixpanelConfig();
 
   Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
       {bool override = false});
@@ -306,12 +291,20 @@ abstract class ConfigurationService {
   bool getAlreadyClaimedAirdrop(String seriesId);
 
   Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
+
+  // set and get for did_sync_artists
+  Future<void> setDidSyncArtists(bool value);
+
+  bool getDidSyncArtists();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_POSTCARD_CHAT_CONFIG = "postcard_chat_config";
+  static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
+  static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
+  static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
-  static const String KEY_WC_SESSIONS = "key_wc_sessions";
   static const String IS_PREMIUM = "is_premium";
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
@@ -332,7 +325,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
-  static const String KEY_FINISHED_SURVEYS = "finished_surveys";
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
   static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
   static const String KEY_SHARED_POSTCARD = "shared_postcard";
@@ -355,10 +347,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
   static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
-  static const String KEY_LAST_TIME_OPEN_EDITORIAL = "last_time_open_editorial";
-
-  static const String TV_CONNECT_PEER_META = "tv_connect_peer_meta";
-  static const String TV_CONNECT_ID = "tv_connect_id";
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
@@ -410,9 +398,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "show_anouncement_notification_info";
 
   static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
-
-  final ValueNotifier<List<SharedPostcard>> _expiredPostcardSharedLinkTip =
-      ValueNotifier([]);
 
   @override
   Future setAlreadyShowNotifTip(bool show) async {
@@ -507,51 +492,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final json = jsonDecode(data);
       return JWT.fromJson(json);
     }
-  }
-
-  @override
-  Future<void> setTVConnectData(WCPeerMeta peerMeta, int id) async {
-    final json = jsonEncode(peerMeta);
-    await _preferences.setString(TV_CONNECT_PEER_META, json);
-    await _preferences.setInt(TV_CONNECT_ID, id);
-  }
-
-  @override
-  Future<void> deleteTVConnectData() async {
-    await _preferences.remove(TV_CONNECT_PEER_META);
-    await _preferences.remove(TV_CONNECT_ID);
-  }
-
-  @override
-  WCPeerMeta? getTVConnectPeerMeta() {
-    final data = _preferences.getString(TV_CONNECT_PEER_META);
-    if (data == null) {
-      return null;
-    } else {
-      final json = jsonDecode(data);
-      return WCPeerMeta.fromJson(json);
-    }
-  }
-
-  @override
-  int? getTVConnectID() {
-    return _preferences.getInt(TV_CONNECT_ID);
-  }
-
-  @override
-  Future<void> setWCSessions(List<WCSessionStore> value) async {
-    log.info("setWCSessions: $value");
-    final json = jsonEncode(value);
-    await _preferences.setString(KEY_WC_SESSIONS, json);
-  }
-
-  @override
-  List<WCSessionStore> getWCSessions() {
-    final json = _preferences.getString(KEY_WC_SESSIONS);
-    final sessions = json != null ? jsonDecode(json) : List.empty();
-    return List.from(sessions)
-        .map((e) => WCSessionStore.fromJson(e))
-        .toList(growable: false);
   }
 
   @override
@@ -853,19 +793,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<String> getFinishedSurveys() {
-    return _preferences.getStringList(KEY_FINISHED_SURVEYS) ?? [];
-  }
-
-  @override
-  Future<void> setFinishedSurvey(List<String> surveyNames) {
-    var finishedSurveys = getFinishedSurveys();
-    finishedSurveys.addAll(surveyNames);
-    return _preferences.setStringList(
-        KEY_FINISHED_SURVEYS, finishedSurveys.toSet().toList());
-  }
-
-  @override
   bool isFinishedFeedOnBoarding() {
     return _preferences.getBool(KEY_FINISHED_FEED_ONBOARDING) ?? false;
   }
@@ -1128,8 +1055,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
-      expiredPostcardSharedLinkTip.value =
-          await sharedPostcards.expiredPostcards;
     } else {
       var sentPostcard = _preferences.getStringList(key) ?? [];
       if (isRemoved) {
@@ -1151,8 +1076,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       uniqueSharedPostcard.unique((element) => element.tokenID + element.owner);
       await _preferences.setStringList(key,
           uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
-      expiredPostcardSharedLinkTip.value =
-          await uniqueSharedPostcard.expiredPostcards;
     }
   }
 
@@ -1179,15 +1102,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(POSTCARD_MINT, tokenID);
     } else {
-      var currentPortcardMints =
+      var currentPostcardMints =
           _preferences.getStringList(POSTCARD_MINT) ?? [];
       if (isRemoved) {
-        currentPortcardMints
+        currentPostcardMints
             .removeWhere((element) => tokenID.contains(element));
       } else {
-        currentPortcardMints.addAll(tokenID);
+        currentPostcardMints.addAll(tokenID);
       }
-      await _preferences.setStringList(POSTCARD_MINT, currentPortcardMints);
+      await _preferences.setStringList(POSTCARD_MINT, currentPostcardMints);
     }
   }
 
@@ -1212,7 +1135,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(key, updatePostcards);
     } else {
-      await removeExpiredStampingPostcard();
       var currentStampingPostcard = _preferences.getStringList(key) ?? [];
 
       if (isRemove) {
@@ -1224,18 +1146,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(
           key, currentStampingPostcard.toSet().toList());
     }
-  }
-
-  @override
-  Future<void> removeExpiredStampingPostcard() async {
-    final currentStampingPostcard = getStampingPostcard();
-    final now = DateTime.now();
-    final unexpiredStampingPostcard = currentStampingPostcard
-        .where((element) => element.timestamp
-            .isAfter(now.subtract(STAMPING_POSTCARD_LIMIT_TIME)))
-        .toList();
-    _preferences.setStringList(KEY_STAMPING_POSTCARD,
-        unexpiredStampingPostcard.map((e) => jsonEncode(e.toJson())).toList());
   }
 
   @override
@@ -1272,37 +1182,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       currentValue.addAll(updateValues);
       await _preferences.setStringList(key, currentValue.toSet().toList());
     }
-  }
-
-  @override
-  DateTime? getLastTimeOpenEditorial() {
-    final timeString = _preferences.getString(KEY_LAST_TIME_OPEN_EDITORIAL);
-    if (timeString == null) {
-      return null;
-    }
-    return DateTime.parse(timeString);
-  }
-
-  @override
-  Future setLastTimeOpenEditorial(DateTime time) {
-    return _preferences.setString(
-        KEY_LAST_TIME_OPEN_EDITORIAL, time.toIso8601String());
-  }
-
-  @override
-  MixpanelConfig? getMixpanelConfig() {
-    final data = _preferences.getString(KEY_MIXPANEL_PROPS);
-    if (data == null) {
-      return null;
-    }
-    final config = MixpanelConfig.fromJson(jsonDecode(data));
-    return config;
-  }
-
-  @override
-  Future<void> setMixpanelConfig(MixpanelConfig config) async {
-    await _preferences.setString(
-        KEY_MIXPANEL_PROPS, jsonEncode(config.toJson()));
   }
 
   @override
@@ -1353,10 +1232,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  ValueNotifier<List<SharedPostcard>> get expiredPostcardSharedLinkTip =>
-      _expiredPostcardSharedLinkTip;
-
-  @override
   Future<void> updateShowAnouncementNotificationInfo(
     AnnouncementLocal announcement,
   ) async {
@@ -1397,5 +1272,73 @@ class ConfigurationServiceImpl implements ConfigurationService {
       data.remove(seriesId);
     }
     await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
+  }
+
+  @override
+  bool getDidSyncArtists() {
+    // get did sync artists
+    return _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
+  }
+
+  @override
+  Future<void> setDidSyncArtists(bool value) {
+    // set did sync artists
+    return _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
+  }
+
+  @override
+  List<String> getHiddenFeeds() {
+    return _preferences.getStringList(KEY_HIDDEN_FEEDS) ?? [];
+  }
+
+  @override
+  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false}) {
+    if (isOverride) {
+      return _preferences.setStringList(KEY_HIDDEN_FEEDS, tokenIds);
+    } else {
+      final currentHiddenFeeds = getHiddenFeeds();
+      currentHiddenFeeds.addAll(tokenIds);
+      currentHiddenFeeds.toSet().toList();
+      return _preferences.setStringList(
+          KEY_HIDDEN_FEEDS, currentHiddenFeeds.toSet().toList());
+    }
+  }
+
+  @override
+  bool getDidMigrateAddress() {
+    return _preferences.getBool(KEY_DID_MIGRATE_ADDRESS) ?? false;
+  }
+
+  @override
+  Future<void> setDidMigrateAddress(bool value) async {
+    await _preferences.setBool(KEY_DID_MIGRATE_ADDRESS, value);
+  }
+
+  @override
+  PostcardChatConfig getPostcardChatConfig(
+      {required String address, required String id}) {
+    final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
+    final chatConfigs =
+        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList();
+    return chatConfigs.firstWhereOrNull(
+            (element) => element.address == address && element.tokenId == id) ??
+        PostcardChatConfig(address: address, tokenId: id);
+  }
+
+  @override
+  Future<void> setPostcardChatConfig(PostcardChatConfig config) async {
+    final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
+    final chatConfigs =
+        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList();
+    chatConfigs.removeWhere((element) =>
+        element.address == config.address && element.tokenId == config.tokenId);
+    chatConfigs.add(config);
+    await _preferences.setStringList(
+        KEY_POSTCARD_CHAT_CONFIG,
+        chatConfigs
+            .map((e) => jsonEncode(e.toJson()))
+            .toList()
+            .toSet()
+            .toList());
   }
 }

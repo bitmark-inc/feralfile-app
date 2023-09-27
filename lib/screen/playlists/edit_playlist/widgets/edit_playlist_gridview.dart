@@ -65,7 +65,7 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
       children: widget.tokens
           .map(
             (e) => e != null
-                ? ThubnailPlaylistItem(
+                ? ThumbnailPlaylistItem(
                     key: ValueKey(e),
                     token: e,
                     cachedImageSize: cachedImageSize,

@@ -6,18 +6,16 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class GalleryPagePayload {
   String address;
@@ -100,59 +98,12 @@ class _GalleryPageState extends State<GalleryPage> {
           }
         },
         builder: (context, state) {
-          final artistURL = widget.payload.artistURL;
           final tokens = state.tokens;
           return Scaffold(
-            appBar: AppBar(
-              leadingWidth: 0,
-              centerTitle: false,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'artist_collection'.tr(),
-                    style: theme.textTheme.ppMori400Grey14,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: artistURL != null
-                            ? () {
-                                final uri = Uri.tryParse(artistURL);
-                                if (uri != null) {
-                                  launchUrl(uri);
-                                }
-                              }
-                            : null,
-                        child: Text(
-                          widget.payload.artistName,
-                          style: theme.textTheme.ppMori400White16,
-                        ),
-                      ),
-                      if (tokens != null && tokens.isEmpty) ...[
-                        Text(
-                          'indexing'.tr(),
-                          style: theme.textTheme.ppMori400White16,
-                        ),
-                      ]
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(
-                    AuIcon.close,
-                    color: theme.colorScheme.secondary,
-                  ),
-                  tooltip: 'close_icon',
-                )
-              ],
-            ),
+            appBar: getBackAppBar(context,
+                title: widget.payload.artistName,
+                onBack: () => Navigator.pop(context),
+                isWhite: false),
             backgroundColor: theme.colorScheme.primary,
             body: _assetsWidget(tokens, state.isLoading),
           );

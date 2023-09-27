@@ -1,56 +1,34 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:metric_client/metric_client.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 
 class MetricClientService {
-  final AccountService _accountService;
+  late Timer? useAppTimer;
 
-  MetricClientService(this._accountService);
+  MetricClientService();
 
-  late DeviceConfig _deviceConfig;
   final mixPanelClient = injector<MixPanelClientService>();
   bool isFinishInit = false;
 
   Future<void> initService() async {
-    final root = await getTemporaryDirectory();
-    await MetricClient.init(
-      storageOption: StorageOption(
-        name: 'metric',
-        path: '${root.path}/metric',
-      ),
-      apiOption: APIOption(
-        endpoint: Environment.metricEndpoint,
-        secret: Environment.metricSecretKey,
-      ),
-    );
-    final deviceID = await getDeviceID() ?? "unknown";
-    final hashedDeviceID = sha224.convert(utf8.encode(deviceID)).toString();
-    final packageInfo = await PackageInfo.fromPlatform();
-    final isAppcenterBuild = await isAppCenterBuild();
-
-    _deviceConfig = DeviceConfig(
-      deviceId: hashedDeviceID,
-      platform: Platform.operatingSystem,
-      version: packageInfo.version,
-      internalBuild: isAppcenterBuild,
-    );
-
     await mixPanelClient.initService();
+    await initConfigIfNeed({
+      MixpanelConfig.weekStartAt: DateTime.now().startDayOfWeek,
+      MixpanelConfig.countUseAutonomyInWeek: 0
+    });
     isFinishInit = true;
+    await onOpenApp();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
+      await onUseAppInForeground();
+    });
   }
 
   Future<void> addEvent(
@@ -64,19 +42,7 @@ class MetricClientService {
     if (configurationService.isAnalyticsEnabled() == false) {
       return;
     }
-    final defaultAccount = await _accountService.getCurrentDefaultAccount();
-    final defaultDID = (await defaultAccount?.getAccountDID()) ?? 'unknown';
-    final hashedUserID = sha224.convert(utf8.encode(defaultDID)).toString();
     if (isFinishInit) {
-      MetricClient.addEvent(
-        name,
-        message: message,
-        userId: hashedUserID,
-        data: data,
-        hashedData: hashedData,
-        deviceConfig: _deviceConfig,
-      );
-
       mixPanelClient.trackEvent(
         name,
         message: message,
@@ -96,10 +62,8 @@ class MetricClientService {
   Future<void> sendAndClearMetrics() async {
     try {
       if (!kDebugMode) {
-        await MetricClient.sendMetrics();
         await mixPanelClient.sendData();
       }
-      await MetricClient.clear();
     } catch (e) {
       log(e.toString());
     }
@@ -128,11 +92,65 @@ class MetricClientService {
     }
   }
 
-  MixpanelConfig? getConfig() {
-    return mixPanelClient.getConfig();
+  void incrementPropertyLabel(String prop, double value) {
+    if (isFinishInit) {
+      mixPanelClient.incrementPropertyLabel(prop, value);
+    }
   }
 
-  Future<void> setConfig(MixpanelConfig config) async {
-    await mixPanelClient.setConfig(config);
+  void onAddConnection(Connection connection) {
+    if (isFinishInit) {
+      mixPanelClient.onAddConnection(connection);
+    }
+  }
+
+  void onRemoveConnection(Connection connection) {
+    if (isFinishInit) {
+      mixPanelClient.onRemoveConnection(connection);
+    }
+  }
+
+  void onRestore() {
+    if (isFinishInit) {
+      mixPanelClient.onRestore();
+    }
+  }
+
+  Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
+    mixPanelClient.initConfigIfNeed(config);
+  }
+
+  dynamic getConfig(String key, {dynamic defaultValue}) {
+    return mixPanelClient.getConfig(key, defaultValue: defaultValue);
+  }
+
+  Future<void> setConfig(String key, dynamic value) async {
+    await mixPanelClient.setConfig(key, value);
+  }
+
+  Future<void> onOpenApp() async {
+    final weekStartAt = getConfig(MixpanelConfig.weekStartAt,
+        defaultValue: DateTime.now().startDayOfWeek) as DateTime;
+    final countUseAutonomyInWeek =
+        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
+            as int;
+    final now = DateTime.now();
+    final startDayOfWeek = now.startDayOfWeek;
+    if (!now.isBefore(weekStartAt.add(const Duration(days: 7)))) {
+      addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
+        "number": countUseAutonomyInWeek,
+        MixpanelEventProp.time: weekStartAt,
+      });
+      await setConfig(MixpanelConfig.weekStartAt, startDayOfWeek);
+      await setConfig(MixpanelConfig.countUseAutonomyInWeek, 0);
+    }
+  }
+
+  Future<void> onUseAppInForeground() async {
+    final countUseAutonomyInWeek =
+        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
+            as int;
+    final countUseApp = countUseAutonomyInWeek + 1;
+    await setConfig(MixpanelConfig.countUseAutonomyInWeek, countUseApp);
   }
 }

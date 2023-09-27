@@ -28,21 +28,27 @@ class DistanceFormatter {
 
   DistanceFormatter();
 
-  String format({double? distance, withFullName = false}) {
+  String format({double? distance, withFullName = false, String? prefix}) {
     if (distance == null) {
       return '-';
     }
+    String result = '';
     if (withFullName) {
       if (isMiles()) {
-        return '${_numberFormat.format(distance)} miles';
+        result = "_miles"
+            .tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
       }
-      return '${_numberFormat.format(distance)} kilometers';
+      result = "_kilometers".tr(args: [_numberFormat.format(distance)]);
+    } else {
+      if (isMiles()) {
+        result =
+            "_mi".tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
+      } else {
+        result = "_km".tr(args: [_numberFormat.format(distance)]);
+      }
     }
-
-    if (isMiles()) {
-      return '${_numberFormat.format(convertKmToMiles(distance))} mi';
-    }
-    return '${_numberFormat.format(distance)} km';
+    result = prefix != null ? '$prefix $result' : result;
+    return result;
   }
 
   String showDistance(

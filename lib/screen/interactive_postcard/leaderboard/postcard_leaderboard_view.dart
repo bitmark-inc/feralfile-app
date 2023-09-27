@@ -1,19 +1,30 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
+import 'package:autonomy_flutter/util/number_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/skeleton.dart';
+import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class PostcardLeaderboardView extends StatefulWidget {
   final PostcardLeaderboard? leaderboard;
   final AssetToken? assetToken;
-  const PostcardLeaderboardView({Key? key, this.leaderboard, this.assetToken})
+  final ScrollController? scrollController;
+
+  const PostcardLeaderboardView(
+      {Key? key, this.leaderboard, this.assetToken, this.scrollController})
       : super(key: key);
 
   @override
@@ -22,35 +33,32 @@ class PostcardLeaderboardView extends StatefulWidget {
 }
 
 class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
-  final numberFormatter = NumberFormat("00");
+  final numberFormatter = OrdinalNumberFormatter();
   final distanceFormatter = DistanceFormatter();
   final postcardService = injector.get<PostcardService>();
   final _pageStorageBucket = PageStorageBucket();
-  late ScrollController _leaderboardScrollController;
 
   @override
   void initState() {
-    _leaderboardScrollController = ScrollController();
     super.initState();
   }
 
   @override
   void dispose() {
-    _leaderboardScrollController.dispose();
     super.dispose();
   }
 
   Widget _loadingLeaderboard(BuildContext context) {
     return SizedBox(
-      height: 500,
       child: Column(
         children: [
           Expanded(
             child: AnimatedList(
+              controller: widget.scrollController,
               initialItemCount: 51,
               itemBuilder: (context, index, animation) {
                 if (index == 0) {
-                  return _loadingLeaderboardHeader(context);
+                  return _leaderboardHeader(context);
                 }
                 return _loadingLeaderboardItem(context, index: index);
               },
@@ -61,147 +69,166 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     );
   }
 
-  Widget _loadingLeaderboardHeader(BuildContext context) {
+  Widget _leaderboardHeader(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "updating_leaderboard".tr(),
-              style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
+              "last_updated".tr(),
+              style: theme.textTheme.moMASans400Grey12,
             )
           ],
         ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _leaderboardHeader(BuildContext context, DateTime lastUpdated) {
-    final theme = Theme.of(context);
-    final dateFormater = DateFormat("yyyy-MM-dd HH:mm");
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "last_updated"
-                  .tr(namedArgs: {"time": dateFormater.format(lastUpdated)}),
-              style: theme.textTheme.moMASans400Grey12.copyWith(fontSize: 10),
-            )
-          ],
-        ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 15),
+        addOnlyDivider(color: AppColor.auLightGrey)
       ],
     );
   }
 
   Widget _loadingLeaderboardItem(BuildContext context, {int index = 1}) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TappableForwardRow(
+            onTap: () {},
+            leftWidget: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  numberFormatter.format(index),
-                  style: theme.textTheme.moMASans400Black12,
+                SizedBox(
+                  height: 65,
+                  width: 85,
+                  child: SkeletonContainer(),
                 ),
-                const SizedBox(width: 36),
+                SizedBox(width: 16),
                 Expanded(
-                  flex: 2,
-                  child: SkeletonContainer(
-                    width: 64,
-                    height: 17,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Expanded(child: Container()),
-                Expanded(
-                  child: SkeletonContainer(
-                    width: 64,
-                    height: 17,
-                    borderRadius: BorderRadius.circular(4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonContainer(
+                        width: 70,
+                        height: 17,
+                      ),
+                      SizedBox(height: 5),
+                      SkeletonContainer(
+                        width: 110,
+                        height: 17,
+                      )
+                    ],
                   ),
                 ),
               ],
             ),
+            forwardIcon: SvgPicture.asset(
+              'assets/images/iconForward.svg',
+              colorFilter: const ColorFilter.mode(
+                  AppColor.secondarySpanishGrey, BlendMode.srcIn),
+            ),
           ),
-          addOnlyDivider(color: AppColor.auLightGrey),
-        ],
-      ),
+        ),
+        addOnlyDivider(color: AppColor.auLightGrey),
+      ],
     );
   }
 
-  Widget _leaderboardItem(PostcardLeaderboardItem leaderBoardItem,
+  void _onTapLeaderboardItem(BuildContext context,
+      PostcardLeaderboardItem leaderBoardItem, bool isYour) {
+    if (isYour) {
+      Navigator.of(context).pop();
+      return;
+    }
+    if (leaderBoardItem.creators.isEmpty) {
+      return;
+    }
+    final tokenId = postcardService.getTokenId(leaderBoardItem.id);
+    final owner = leaderBoardItem.creators[0];
+    final payload = PostcardDetailPagePayload(
+      [
+        ArtworkIdentity(
+          tokenId,
+          owner,
+        )
+      ],
+      0,
+      isFromLeaderboard: true,
+      useIndexer: true,
+    );
+    Navigator.of(context).pushNamed(
+      AppRouter.claimedPostcardDetailsPage,
+      arguments: payload,
+    );
+  }
+
+  Widget _leaderboardItem(
+      BuildContext context, PostcardLeaderboardItem leaderBoardItem,
       {required bool isYour}) {
     final theme = Theme.of(context);
-    const moMAColor = Color.fromRGBO(131, 79, 196, 1);
-    return Stack(
+    final backgroundColor = isYour ? AppColor.auLightGrey : Colors.transparent;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Positioned(
-          left: 0,
-          top: 0,
-          bottom: 0,
-          child: Container(
-            color: isYour ? moMAColor : Colors.transparent,
-            width: 12,
-            height: 24,
-          ),
-        ),
-        Padding(
+        Container(
+          color: backgroundColor,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: Row(
-                  children: [
-                    Text(
-                      numberFormatter.format(leaderBoardItem.rank),
-                      style: theme.textTheme.moMASans400Black12,
-                    ),
-                    const SizedBox(width: 36),
-                    Expanded(
-                      child: RichText(
+          child: TappableForwardRow(
+            onTap: () {
+              _onTapLeaderboardItem(context, leaderBoardItem, isYour);
+            },
+            leftWidget: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 65,
+                  width: 85,
+                  child:
+                      CachedNetworkImage(imageUrl: leaderBoardItem.previewUrl),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      RichText(
                         text: TextSpan(
+                          style: theme.textTheme.moMASans400Black12
+                              .copyWith(fontSize: 18),
                           children: [
                             TextSpan(
-                              text: leaderBoardItem.title,
-                              style: theme.textTheme.moMASans400Black12
-                                  .copyWith(color: moMAColor),
+                              text:
+                                  numberFormatter.format(leaderBoardItem.rank),
                             ),
                             if (isYour)
                               TextSpan(
                                 text: "_your".tr(),
-                                style: const TextStyle(
-                                    color: AppColor.auLightGrey),
                               ),
                           ],
                         ),
                       ),
-                    ),
-                    Text(
-                      distanceFormatter.showDistance(
-                          distance: leaderBoardItem.totalDistance,
-                          distanceUnit: DistanceFormatter.getDistanceUnit),
-                      style: theme.textTheme.moMASans400Black12,
-                    ),
-                  ],
+                      Text(
+                        distanceFormatter.showDistance(
+                            distance: leaderBoardItem.totalDistance,
+                            distanceUnit: DistanceFormatter.getDistanceUnit),
+                        style: theme.textTheme.moMASans400Black12
+                            .copyWith(color: MoMAColors.moMA12, fontSize: 18),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              addOnlyDivider(color: AppColor.auLightGrey),
-            ],
+              ],
+            ),
+            forwardIcon: SvgPicture.asset(
+              'assets/images/iconForward.svg',
+              colorFilter: const ColorFilter.mode(
+                  AppColor.primaryBlack, BlendMode.srcIn),
+            ),
           ),
         ),
+        addOnlyDivider(color: AppColor.auLightGrey),
       ],
     );
   }
@@ -214,24 +241,24 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     }
     const listKey = PageStorageKey("leaderboard");
     return SizedBox(
-      height: 500,
       child: Column(
         children: [
           Expanded(
             child: PageStorage(
               bucket: _pageStorageBucket,
-              child: AnimatedList(
+              child: ListView.builder(
                 key: listKey,
-                controller: _leaderboardScrollController,
-                initialItemCount: leaderBoard.items.length + 1,
-                itemBuilder: (context, index, animation) {
+                controller: widget.scrollController,
+                itemCount: leaderBoard.items.length + 1,
+                itemBuilder: (context, index) {
                   if (index == 0) {
-                    return _leaderboardHeader(context, leaderBoard.lastUpdated);
+                    return _leaderboardHeader(context);
                   }
                   final item = leaderBoard.items[index - 1];
-                  final isYours = item.id == widget.assetToken?.id;
-                  return _leaderboardItem(item, isYour: isYours);
+                  final isYours = item.id == widget.assetToken?.tokenId;
+                  return _leaderboardItem(context, item, isYour: isYours);
                 },
+                cacheExtent: double.infinity,
               ),
             ),
           ),

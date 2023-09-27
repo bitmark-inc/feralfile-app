@@ -11,9 +11,6 @@ SettingsDataBackup _$SettingsDataBackupFromJson(Map<String, dynamic> json) =>
       addresses:
           (json['addresses'] as List<dynamic>).map((e) => e as String).toList(),
       isAnalyticsEnabled: json['isAnalyticsEnabled'] as bool,
-      finishedSurveys: (json['finishedSurveys'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
       hiddenMainnetTokenIDs: (json['hiddenMainnetTokenIDs'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -39,7 +36,6 @@ Map<String, dynamic> _$SettingsDataBackupToJson(SettingsDataBackup instance) =>
     <String, dynamic>{
       'addresses': instance.addresses,
       'isAnalyticsEnabled': instance.isAnalyticsEnabled,
-      'finishedSurveys': instance.finishedSurveys,
       'hiddenMainnetTokenIDs': instance.hiddenMainnetTokenIDs,
       'hiddenTestnetTokenIDs': instance.hiddenTestnetTokenIDs,
       'hiddenLinkedAccountsFromGallery':

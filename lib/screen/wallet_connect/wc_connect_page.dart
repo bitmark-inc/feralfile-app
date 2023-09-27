@@ -6,7 +6,6 @@
 //
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -19,7 +18,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -39,7 +37,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:wallet_connect/models/wc_peer_meta.dart';
 
 import '../../service/account_service.dart';
 
@@ -110,7 +107,6 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   void callAccountBloc() {
     context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-        includeLinkedAccount: false,
         getTezos: widget.connectionRequest.isBeaconConnect ||
             widget.connectionRequest.isAutonomyConnect,
         getEth: !widget.connectionRequest.isBeaconConnect));
@@ -152,12 +148,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       } catch (e) {
         log.info("[WCConnectPage] Reject WalletConnect2 Proposal $e");
       }
-      return;
-    }
-
-    if (connectionRequest.isWalletConnect) {
-      injector<WalletConnectService>()
-          .rejectSession((connectionRequest as WCConnectPageArgs).peerMeta);
       return;
     }
 
@@ -223,41 +213,6 @@ class _WCConnectPageState extends State<WCConnectPage>
         }
 
         break;
-      case WCConnectPageArgs:
-        final address = await injector<EthereumService>()
-            .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-
-        final chainId = Environment.web3ChainId;
-
-        final approvedAddresses = [address];
-        log.info(
-            "[WCConnectPage] approve WCConnect with addresses $approvedAddresses");
-        await injector<WalletConnectService>().approveSession(
-          selectedPersona!.wallet.uuid,
-          selectedPersona!.index,
-          (connectionRequest as WCConnectPageArgs).peerMeta,
-          approvedAddresses,
-          chainId,
-        );
-
-        payloadAddress = address;
-        payloadType = CryptoType.ETH;
-
-        if (connectionRequest.name == AUTONOMY_TV_PEER_NAME) {
-          metricClient.addEvent(MixpanelEvent.connectAutonomyDisplay);
-          injector<ConfigurationService>().setAlreadyShowTvAppTip(true);
-          injector<ConfigurationService>().showTvAppTip.value = false;
-        } else {
-          metricClient.addEvent(
-            MixpanelEvent.connectExternal,
-            data: {
-              "method": "wallet_connect",
-              "name": connectionRequest.name,
-              "url": connectionRequest.url,
-            },
-          );
-        }
-        break;
       case BeaconRequest:
         final wallet = selectedPersona!.wallet;
         final index = selectedPersona!.index;
@@ -284,6 +239,9 @@ class _WCConnectPageState extends State<WCConnectPage>
         break;
       default:
     }
+
+    metricClient.incrementPropertyLabel(
+        MixpanelProp.connectedToMarket(connectionRequest.name ?? 'unknown'), 1);
 
     if (!mounted) return;
     UIHelper.hideInfoDialog(context);
@@ -372,7 +330,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "you_have_permission".tr(),
+                              "you_about_to_grant".tr(),
                               style: theme.textTheme.ppMori400Black16,
                             ),
                             const SizedBox(
@@ -472,17 +430,13 @@ class _WCConnectPageState extends State<WCConnectPage>
     if (connectionRequest.isAutonomyConnect ||
         connectionRequest.isWalletConnect2) {
       final wc2Proposer = (connectionRequest as Wc2Proposal).proposer;
-      final peer = WCPeerMeta(
+      final peer = AppMetadata(
         name: wc2Proposer.name,
         url: wc2Proposer.url,
         description: wc2Proposer.description,
         icons: wc2Proposer.icons,
       );
       return _wcAppInfo(context, peer);
-    }
-    if (connectionRequest.isWalletConnect) {
-      return _wcAppInfo(
-          context, (connectionRequest as WCConnectPageArgs).peerMeta);
     }
 
     if (connectionRequest.isBeaconConnect) {
@@ -551,7 +505,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     }
   }
 
-  Widget _wcAppInfo(BuildContext context, WCPeerMeta peerMeta) {
+  Widget _wcAppInfo(BuildContext context, AppMetadata peerMeta) {
     final theme = Theme.of(context);
 
     return Row(
@@ -627,8 +581,7 @@ class _WCConnectPageState extends State<WCConnectPage>
     String select = "";
     if (widget.connectionRequest.isBeaconConnect) {
       select = "select_tezos".tr(args: ["1"]);
-    } else if (widget.connectionRequest.isWalletConnect ||
-        widget.connectionRequest.isWalletConnect2) {
+    } else if (widget.connectionRequest.isWalletConnect2) {
       select = "select_ethereum".tr(args: ["1"]);
     }
 

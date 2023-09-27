@@ -1,4 +1,6 @@
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:collection/collection.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hive/hive.dart';
 
@@ -47,9 +49,11 @@ Future<Placemark?> getPlaceMarkFromCoordinates(
 // get location name from longitude and latitude
 Future<String> getLocationNameFromCoordinates(
     double latitude, double longitude) async {
-  if (latitude == moMAGeoLocation.position.lat &&
-      longitude == moMAGeoLocation.position.lon) {
-    return moMAGeoLocation.address;
+  final defaultGeoLocations = GeoLocation.defaultGeolocations;
+  final geoLocation = defaultGeoLocations.firstWhereOrNull((element) =>
+      element.position.lat == latitude && element.position.lon == longitude);
+  if (geoLocation != null) {
+    return geoLocation.address!;
   }
   final box = await Hive.openBox(POSTCARD_LOCATION_HIVE_BOX);
   final key =

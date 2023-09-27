@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -34,8 +35,8 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
     return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
         listener: (context, state) {
           if (state.isClaimed == true) {
-            Navigator.of(context).popAndPushNamed(AppRouter.postcardStartedPage,
-                arguments: state.assetToken!);
+            Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
+                arguments: DesignStampPayload(state.assetToken!));
           }
           if (state.error != null && state.error!.isNotEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -51,15 +52,18 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
           if (artwork == null) return Container();
           return PostcardExplain(
             payload: PostcardExplainPayload(
-                artwork,
-                PostcardButton(
-                  text: "get_started".tr(),
-                  enabled: state.isClaiming != true,
-                  isProcessing: state.isClaiming == true,
-                  onTap: () {
-                    bloc.add(AcceptGiftEvent(widget.claimRequest));
-                  },
-                )),
+              artwork,
+              PostcardButton(
+                text: "continue".tr(),
+                fontSize: 18,
+                enabled: state.isClaiming != true,
+                isProcessing: state.isClaiming == true,
+                onTap: () {
+                  bloc.add(AcceptGiftEvent(widget.claimRequest));
+                },
+                color: const Color.fromRGBO(79, 174, 79, 1),
+              ),
+            ),
           );
         });
   }

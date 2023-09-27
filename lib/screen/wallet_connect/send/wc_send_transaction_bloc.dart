@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
-import 'package:autonomy_flutter/service/wallet_connect_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -29,7 +28,6 @@ class WCSendTransactionBloc
     extends AuBloc<WCSendTransactionEvent, WCSendTransactionState> {
   final NavigationService _navigationService;
   final EthereumService _ethereumService;
-  final WalletConnectService _walletConnectService;
   final Wc2Service _wc2Service;
   final CurrencyService _currencyService;
 
@@ -37,7 +35,6 @@ class WCSendTransactionBloc
     this._navigationService,
     this._ethereumService,
     this._wc2Service,
-    this._walletConnectService,
     this._currencyService,
   ) : super(WCSendTransactionState()) {
     on<WCSendTransactionEstimateEvent>((event, emit) async {
@@ -94,12 +91,7 @@ class WCSendTransactionBloc
             persona, index, Uint8List.fromList(utf8.encode(timestamp)));
 
         if (!event.isIRL) {
-          if (event.isWalletConnect2) {
-            await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
-          } else {
-            _walletConnectService.approveRequest(
-                event.peerMeta, event.requestId, txHash);
-          }
+          await _wc2Service.respondOnApprove(event.topic ?? "", txHash);
         }
         log.info(
             '[WCSendTransactionBloc][End] send transaction success, txHash: $txHash');
@@ -132,11 +124,7 @@ class WCSendTransactionBloc
     on<WCSendTransactionRejectEvent>((event, emit) async {
       log.info('[WCSendTransactionBloc][End] send transaction reject');
       if (!event.isIRL) {
-        if (event.isWalletConnect2) {
-          _wc2Service.respondOnReject(event.topic ?? "");
-        } else {
-          _walletConnectService.rejectRequest(event.peerMeta, event.requestId);
-        }
+        _wc2Service.respondOnReject(event.topic ?? "");
       }
       _navigationService.goBack();
     });

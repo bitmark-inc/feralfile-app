@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/play_control_model.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -8,7 +9,9 @@ class PlaylistControl extends StatelessWidget {
   final Function()? onPlayTap;
   final Function()? onTimerTap;
   final Function()? onShuffleTap;
+  final Function()? onCastTap;
   final bool showPlay;
+  final bool isCasting;
 
   const PlaylistControl({
     Key? key,
@@ -17,6 +20,8 @@ class PlaylistControl extends StatelessWidget {
     this.onShuffleTap,
     this.showPlay = true,
     required this.playControl,
+    this.onCastTap,
+    required this.isCasting,
   }) : super(key: key);
 
   @override
@@ -28,7 +33,7 @@ class PlaylistControl extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ControlItem(
@@ -40,32 +45,33 @@ class PlaylistControl extends StatelessWidget {
               ),
               iconFocus: Stack(
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/time_off_icon.svg',
-                    width: 24,
-                    colorFilter: ColorFilter.mode(
-                        theme.colorScheme.secondary, BlendMode.srcIn),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 4, 2),
+                    child: SvgPicture.asset(
+                      'assets/images/time_off_icon.svg',
+                      width: 24,
+                      colorFilter: ColorFilter.mode(
+                          theme.colorScheme.secondary, BlendMode.srcIn),
+                    ),
                   ),
                   Positioned(
-                    bottom: -2,
-                    right: -1,
+                    bottom: 0,
+                    right: 0,
                     child: Visibility(
                       visible: playControl.timer != 0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 2,
-                          horizontal: 3,
-                        ),
+                        padding: const EdgeInsets.fromLTRB(3, 2, 3, 0),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.secondary,
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           playControl.timer.toString(),
                           style: TextStyle(
                             fontFamily: 'PPMori',
                             color: theme.colorScheme.primary,
-                            fontSize: 9,
+                            fontSize: 8,
+                            height: 1,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -78,9 +84,6 @@ class PlaylistControl extends StatelessWidget {
               onTap: () {
                 onTimerTap?.call();
               },
-            ),
-            const SizedBox(
-              width: 15,
             ),
             ControlItem(
               icon: SvgPicture.asset(
@@ -101,9 +104,6 @@ class PlaylistControl extends StatelessWidget {
               },
             ),
             if (showPlay) ...[
-              const SizedBox(
-                width: 15,
-              ),
               ControlItem(
                 icon: SvgPicture.asset(
                   'assets/images/play_icon.svg',
@@ -121,6 +121,13 @@ class PlaylistControl extends StatelessWidget {
                   onPlayTap?.call();
                 },
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CastButton(
+                  onCastTap: () => {onCastTap?.call()},
+                  isCasting: isCasting,
+                ),
+              )
             ]
           ],
         ),
