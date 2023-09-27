@@ -493,7 +493,6 @@ class PostcardServiceImpl extends PostcardService {
     final result = await claimEmptyPostcard(claimRequest);
     _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
       'postcardId': result.tokenID,
-      'owner': address,
     });
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(

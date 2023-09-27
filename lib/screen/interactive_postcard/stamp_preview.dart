@@ -345,7 +345,6 @@ class _StampPreviewState extends State<StampPreview> {
       log.info("[POSTCARD] Stamp success");
       _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
         'postcardId': asset.tokenId,
-        'owner': asset.owner,
         'index': counter,
       });
       await _postcardService.updateStampingPostcard([
