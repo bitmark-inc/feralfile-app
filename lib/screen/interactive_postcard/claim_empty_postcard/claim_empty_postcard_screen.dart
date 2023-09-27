@@ -63,9 +63,6 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                 },
                 color: const Color.fromRGBO(79, 174, 79, 1),
               ),
-              onSkip: () {
-                bloc.add(AcceptGiftEvent(widget.claimRequest));
-              },
             ),
           );
         });

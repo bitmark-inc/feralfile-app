@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:http/http.dart' as http;
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -190,8 +189,8 @@ class PostcardDetailBloc
           postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
       if (stampingPostcard != null) {
         if (state.isLastOwner &&
-            stampingPostcard.counter == asset.postcardMetadata.counter) {
-          final isStamped = asset.postcardMetadata.isStamped;
+            stampingPostcard.counter == asset.numberOwners) {
+          final isStamped = asset.isStamped;
           if (!isStamped) {
             log.info("[PostcardDetail] Stamping... ");
             imagePath = stampingPostcard.imagePath;

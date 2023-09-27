@@ -14,10 +14,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -203,7 +203,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     try {
       final asset = widget.payload.asset;
       final tokenId = asset.tokenId ?? "";
-      final counter = asset.postcardMetadata.counter;
+      final counter = asset.numberOwners;
       final contractAddress = Environment.postcardContractAddress;
 
       final imageDataFilename = '$contractAddress-$tokenId-$counter-image.png';
@@ -223,7 +223,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             text: "continue".tr(),
             fontSize: 18,
             onTap: () async {
-              final counter = asset.postcardMetadata.counter;
+              final counter = asset.numberOwners;
               GeoLocation? geoLocation;
               if (counter <= 1) {
                 geoLocation = moMAGeoLocation;
@@ -233,10 +233,11 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               if (geoLocation == null) return;
               final metadataFilename =
                   '$contractAddress-$tokenId-$counter-metadata.json';
-              final claimLocation = asset
-                  .postcardMetadata.locationInformation.last.claimedLocation!;
+              final claimLocation =
+                  asset.postcardMetadata.locationInformation.lastOrNull ??
+                      moMAGeoLocation.position;
               final claimAddress = await claimLocation.getAddress();
-              final stampAddress = await geoLocation.position?.getAddress();
+              final stampAddress = await geoLocation.position.getAddress();
               final Map<String, dynamic> metadata = {
                 "address": stampAddress, // stamp address
                 "claimAddress": claimAddress,
@@ -253,7 +254,6 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             },
             color: AppColor.momaGreen,
           ),
-          onSkip: () {},
         ),
       );
     } catch (e) {

@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
@@ -186,7 +185,7 @@ class PostcardServiceImpl extends PostcardService {
     if (ownerWallet == null) {
       throw Exception("Owner wallet is null");
     }
-    final counter = asset.postcardMetadata.counter;
+    final counter = asset.numberOwners;
     final contractAddress = asset.contractAddress ?? '';
     final tokenId = asset.tokenId ?? '';
     final data = [
@@ -486,15 +485,13 @@ class PostcardServiceImpl extends PostcardService {
       timestamp: timestamp,
       publicKey: publicKey,
       signature: signature,
-      location: [moMAGeoLocation.position?.lat, moMAGeoLocation.position?.lon],
+      location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
       locationInformation: [
-        UserLocations(
-          claimedLocation: moMAGeoLocation.position,
-        )
+        moMAGeoLocation.position,
       ],
     );
     final token = AssetToken(
@@ -510,7 +507,7 @@ class PostcardServiceImpl extends PostcardService {
         medium: 'software',
       ),
       blockchain: "tezos",
-      fungible: false,
+      fungible: true,
       contractType: 'fa2',
       tokenId: result.tokenID,
       contractAddress: result.contractAddress,
@@ -524,7 +521,9 @@ class PostcardServiceImpl extends PostcardService {
       pending: true,
       originTokenInfo: [],
       provenance: [],
-      owners: {},
+      owners: {
+        address: 1,
+      },
     );
 
     await _tokensService.setCustomTokens([token]);
@@ -542,20 +541,21 @@ class PostcardServiceImpl extends PostcardService {
       required AssetToken assetToken,
       required String shareCode,
       required Location location}) async {
-    receivePostcard(
+    await receivePostcard(
       shareCode: shareCode,
       location: location,
       address: address,
     );
     var postcardMetadata = assetToken.postcardMetadata;
-    postcardMetadata.locationInformation
-        .add(UserLocations(claimedLocation: location));
     var newAsset = assetToken.asset;
     newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    newAsset?.maxEdition = newAsset.maxEdition! + 1;
+    final newOwners = assetToken.owners..addEntries([MapEntry(address, 1)]);
     final pendingToken = assetToken.copyWith(
       owner: address,
       asset: newAsset,
       balance: 1,
+      owners: newOwners,
     );
 
     final tokenService = injector<TokensService>();

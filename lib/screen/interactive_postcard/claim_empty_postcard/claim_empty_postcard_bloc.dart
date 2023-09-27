@@ -71,23 +71,21 @@ class ClaimEmptyPostCardBloc
           arguments: {
             'blockchain': 'Tezos',
             'onConfirm': (String address) async {
-              final token = await _postcardService.claimEmptyPostcardToAddress(
-                  address: address,
-                  requestPostcardResponse: event.claimRequest);
               navigationService.goBack(result: address);
-              emit(state.copyWith(
-                  isClaiming: false, isClaimed: true, assetToken: token));
             },
             'withLinked': false,
           },
         );
-        return;
       }
       try {
-        final token = await _postcardService.claimEmptyPostcardToAddress(
-            address: address, requestPostcardResponse: event.claimRequest);
-        emit(state.copyWith(
-            isClaiming: false, isClaimed: true, assetToken: token));
+        if (address != null) {
+          final token = await _postcardService.claimEmptyPostcardToAddress(
+              address: address, requestPostcardResponse: event.claimRequest);
+          emit(state.copyWith(
+              isClaiming: false, isClaimed: true, assetToken: token));
+        } else {
+          emit(state.copyWith(isClaiming: false, isClaimed: false));
+        }
       } on DioException catch (e) {
         emit(
           state.copyWith(

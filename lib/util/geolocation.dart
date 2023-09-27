@@ -54,17 +54,12 @@ Future<GeoLocation?> getGeoLocationWithPermission(
         return null;
       }
       log.info("Location: ${location.latitude}, ${location.longitude}");
-      final placeMark = await getPlaceMarkFromCoordinates(
-          location.latitude, location.longitude);
-      if (placeMark == null) {
-        return null;
-      }
-      final address = getLocationName(placeMark);
+      final address = await location.toLocation().getAddress();
       final geolocation = isFuzzy
           ? await getFuzzyGeolocation(address, location)
           : GeoLocation(position: location.toLocation(), address: address);
       log.info(
-          "Fuzzy Location: ${geolocation.position?.lat}, ${geolocation.position?.lon}");
+          "Fuzzy Location: ${geolocation.position.lat}, ${geolocation.position.lon}");
       return geolocation;
     } catch (e) {
       await UIHelper.showWeakGPSSignal(
@@ -102,15 +97,45 @@ bool isValidLocation(Location position, double latitude, double longitude) {
 }
 
 class GeoLocation {
-  final postcard.Location? position;
-  final String address;
+  final postcard.Location position;
+  String? address;
 
   //constructor
   GeoLocation({required this.position, required this.address});
 
-  static List<GeoLocation> get defaultGeolocations {
-    return [moMAGeoLocation, internetUserGeoLocation];
+  Future<String> getAddress() async {
+    if (address != null) {
+      return address!;
+    }
+    final newAddress = await position.getAddress();
+    address = newAddress;
+    return newAddress;
   }
+
+  static List<GeoLocation> get defaultGeolocations {
+    return [
+      moMAGeoLocation,
+      internetUserGeoLocation,
+    ];
+  }
+
+  bool get isInternet {
+    return this == internetUserGeoLocation;
+  }
+
+  // == method
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is GeoLocation &&
+        other.position == position &&
+        other.address == address;
+  }
+
+  // hashcode method
+  @override
+  int get hashCode => position.hashCode ^ address.hashCode;
 }
 
 extension PositionExtension on Position {

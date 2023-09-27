@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -62,7 +61,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     final json = await File(widget.jsonPath!).readAsBytes();
     base64Json = base64Encode(json);
     base64Image = base64Encode(image);
-    final index = widget.assetToken.postcardMetadata.counter - 1;
+    final index = widget.assetToken.getArtists.length;
     if (base64Image != null && base64Json != null) {
       log.info("[Postcard] getNewStamp");
       log.info("[Postcard] $index");
