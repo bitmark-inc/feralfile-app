@@ -33,7 +33,6 @@ dependencies:
   device_info_plus: ^9.0.2
   dio: ^5.3.2
   dio_smart_retry: ^5.0.0
-  native_dio_adapter: ^1.0.0+2
   easy_debounce: ^2.0.2+1
   fast_base58: ^0.2.1
   floor: ^1.2.0

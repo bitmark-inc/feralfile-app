@@ -82,7 +82,6 @@ class _PostcardJourneyState extends State<PostcardJourney> {
     Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
         arguments: TripDetailPayload(
           stampIndex: index,
-          travelsInfo: listTravelInfo,
           assetToken: assetToken,
         ));
   }

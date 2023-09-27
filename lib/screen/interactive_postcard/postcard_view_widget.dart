@@ -18,6 +18,7 @@ class PostcardViewWidget extends StatefulWidget {
   final String? imagePath;
   final String? jsonPath;
   final int? zoomIndex;
+  final Color backgroundColor;
 
   const PostcardViewWidget({
     super.key,
@@ -25,6 +26,7 @@ class PostcardViewWidget extends StatefulWidget {
     this.imagePath,
     this.jsonPath,
     this.zoomIndex,
+    this.backgroundColor = Colors.black,
   });
 
   @override
@@ -92,7 +94,8 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
               await _convertFileToBase64();
               if (widget.zoomIndex != null) {
-                _zoomIntoStamp(index: widget.zoomIndex!);
+                _zoomIntoStamp(
+                    index: widget.zoomIndex!, color: widget.backgroundColor);
               }
               if (mounted) {
                 setState(() {
@@ -110,7 +113,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
               child: Container(
             width: double.infinity,
             height: double.infinity,
-            color: Colors.black,
+            color: widget.backgroundColor,
             child: Center(
               child: GifView.asset(
                 "assets/images/loading_white_tran.gif",
