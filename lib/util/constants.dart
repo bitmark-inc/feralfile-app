@@ -127,10 +127,6 @@ final moMAGeoLocation =
 final internetUserGeoLocation =
     GeoLocation(position: Location(lat: null, lon: null), address: "Web");
 
-final sendingGeoLocation = GeoLocation(
-    position: Location(lat: double.infinity, lon: double.infinity),
-    address: "Sending...");
-
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const int STAMP_SIZE = 2160;

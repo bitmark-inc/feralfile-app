@@ -7,7 +7,6 @@
 
 import 'dart:math';
 
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 
 class TravelInfo {
@@ -36,12 +35,6 @@ class TravelInfo {
   }
 
   double? getDistance() {
-    final ignoreGeoLocation = [
-      sendingGeoLocation,
-    ];
-    if (ignoreGeoLocation.contains(from) || ignoreGeoLocation.contains(to)) {
-      return null;
-    }
     if (from.isInternet || to.isInternet) {
       return 0;
     }
