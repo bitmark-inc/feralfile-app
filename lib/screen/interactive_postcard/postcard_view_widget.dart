@@ -66,7 +66,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
       log.info("[Postcard] getNewStamp");
       log.info("[Postcard] $index");
       log.info(base64Json);
-      log.info(base64Image);
+      log.info("[Postcard] base64Image ${base64Image.runtimeType}");
       _controller?.evaluateJavascript(
         source: "getNewStamp($index, '$base64Image', '$base64Json')",
       );
