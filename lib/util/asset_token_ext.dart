@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -666,5 +667,17 @@ extension PostcardExtension on AssetToken {
     final artists = getArtists;
     final index = stampIndex;
     return index == -1 || index == artists.length - 1;
+  }
+
+  String getStamperName(String address) {
+    final artists = getArtists;
+    artists.removeWhere((element) => element.id == null);
+    final artist = artists.firstWhereOrNull((element) => element.id == address);
+    if (artists.isEmpty || artist == null) {
+      return "pending_stamper".tr();
+    } else {
+      final index = artists.indexOf(artist) + 1;
+      return "stamper_".tr(args: [index.toString()]);
+    }
   }
 }

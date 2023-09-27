@@ -47,6 +47,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -63,6 +64,7 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
+import 'package:uuid/uuid.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -110,6 +112,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  Key _messageKey = Key(const Uuid().v4());
+
+  void _changeMessageViewKey() {
+    setState(() {
+      _messageKey = Key(const Uuid().v4());
+    });
+  }
 
   @override
   void initState() {
@@ -310,17 +319,19 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final wallet = await asset.getOwnerWallet();
     if (wallet == null) return;
     if (!mounted) return;
-    Navigator.of(context).pushNamed(
-      ChatThreadPage.tag,
-      arguments: ChatThreadPagePayload(
-          token: asset,
-          wallet: wallet.first,
-          address: asset.owner,
-          index: wallet.second,
-          cryptoType:
-              asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
-          name: asset.title ?? ''),
-    );
+    Navigator.of(context)
+        .pushNamed(
+          ChatThreadPage.tag,
+          arguments: ChatThreadPagePayload(
+              token: asset,
+              wallet: wallet,
+              address: asset.owner,
+              cryptoType: asset.blockchain == "ethereum"
+                  ? CryptoType.ETH
+                  : CryptoType.XTZ,
+              name: asset.title ?? ''),
+        )
+        .then((value) => _changeMessageViewKey());
   }
 
   @override
@@ -444,27 +455,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
-                  Visibility(
-                    visible: isViewOnly == false,
-                    child: Semantics(
-                      label: 'chat',
-                      child: IconButton(
-                        onPressed: () async {
-                          gotoChatThread(context);
-                        },
-                        constraints: const BoxConstraints(
-                          maxWidth: 44,
-                          maxHeight: 44,
-                        ),
-                        icon: SvgPicture.asset(
-                          'assets/images/icon_chat.svg',
-                          width: 22,
-                          colorFilter: const ColorFilter.mode(
-                              AppColor.primaryBlack, BlendMode.srcIn),
-                        ),
-                      ),
-                    ),
-                  ),
                   Semantics(
                     label: 'externalLink',
                     child: const ExternalLink(
@@ -520,6 +510,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            state.assetToken == null ||
+                                    state.assetToken?.pending == true
+                                ? const SizedBox()
+                                : Padding(
+                                    padding: const EdgeInsets.only(top: 15),
+                                    child: MessagePreview(
+                                        key: _messageKey,
+                                        payload: MessagePreviewPayload(
+                                            asset: state.assetToken!)),
+                                  ),
                             const SizedBox(
                               height: 30,
                             ),

@@ -1,3 +1,5 @@
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+
 class Message {
   String id;
   int timestamp;
@@ -29,6 +31,17 @@ class Message {
       'sender': sender,
       'message': message,
     };
+  }
+
+  types.Message toTypesMessage({types.Status status = types.Status.sent}) {
+    return types.SystemMessage(
+      id: id,
+      author: types.User(id: sender),
+      createdAt: timestamp,
+      text: message,
+      status: status,
+      type: types.MessageType.system,
+    );
   }
 }
 
