@@ -32,7 +32,7 @@ AppBar getBackAppBar(
   final secondaryColor = isWhite ? AppColor.white : AppColor.primaryBlack;
   return AppBar(
     systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: backgroundColor ?? statusBarColor ?? secondaryColor,
+        statusBarColor: statusBarColor ?? backgroundColor ?? secondaryColor,
         statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
