@@ -20,10 +20,10 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_start_stamping.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
@@ -633,8 +633,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context).pushNamed(AppRouter.startStampingPostcardPage,
-              arguments: StartStampingPostCardPagePayload(asset: asset));
+          Navigator.of(context).pushNamed(AppRouter.designStamp,
+              arguments: DesignStampPayload(asset));
         },
       );
     }
