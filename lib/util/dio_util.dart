@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
