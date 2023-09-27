@@ -45,7 +45,7 @@ class _AddressAliasState extends State<AddressAlias> {
         _nameAddress = "enter_tex_alias".tr();
         break;
       default:
-        _nameAddress = "enter_address_alias".tr();
+        _nameAddress = "name_address".tr();
         break;
     }
     focusNode.requestFocus();
@@ -63,7 +63,7 @@ class _AddressAliasState extends State<AddressAlias> {
     bool isProcessing = false;
     return Scaffold(
       appBar: getBackAppBar(context,
-          title: "create_a_new_wallet".tr(),
+          title: "address_alias".tr(),
           onBack: () => Navigator.of(context).pop()),
       body: BlocConsumer<PersonaBloc, PersonaState>(
         listener: (context, state) async {
@@ -98,7 +98,7 @@ class _AddressAliasState extends State<AddressAlias> {
                 AuTextField(
                     labelSemantics: "enter_alias_full",
                     title: "",
-                    placeholder: "enter_address".tr(),
+                    placeholder: "name_address".tr(),
                     controller: _nameController,
                     focusNode: focusNode,
                     onChanged: (valueChanged) {

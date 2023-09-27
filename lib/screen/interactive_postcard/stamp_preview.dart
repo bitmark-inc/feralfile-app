@@ -89,7 +89,8 @@ class _StampPreviewState extends State<StampPreview> {
     });
   }
 
-  Future<void> showOptions(BuildContext context, {Function()? callBack}) async {
+  Future<void> showOptions(BuildContext context,
+      {required AssetToken assetToken, Function()? callBack}) async {
     final theme = Theme.of(context);
     final options = [
       OptionItem(
@@ -121,7 +122,7 @@ class _StampPreviewState extends State<StampPreview> {
           ),
         ),
         onTap: () async {
-          shareToTwitter(token: widget.payload.asset);
+          shareToTwitter(token: assetToken);
           Navigator.of(context).pop();
           await callBack?.call();
         },
@@ -144,9 +145,9 @@ class _StampPreviewState extends State<StampPreview> {
         ),
         onTap: () async {
           try {
-            final asset = widget.payload.asset;
             await _postcardService.downloadStamp(
-                tokenId: asset.tokenId!, stampIndex: 0);
+                tokenId: assetToken.tokenId!,
+                stampIndex: assetToken.stampIndex);
             if (!mounted) return;
             Navigator.of(context).pop();
             await UIHelper.showPostcardStampSaved(context);
@@ -217,7 +218,8 @@ class _StampPreviewState extends State<StampPreview> {
           listener: (context, state) {
             if (!(state.isPostcardUpdatingOnBlockchain ||
                 state.isPostcardUpdating)) {
-              if (state.assetToken == null) {
+              final assetToken = state.assetToken;
+              if (assetToken == null) {
                 return;
               }
               timer?.cancel();
@@ -225,14 +227,14 @@ class _StampPreviewState extends State<StampPreview> {
                 return;
               }
               alreadyShowPopup = true;
-              showOptions(context, callBack: () {
+              showOptions(context, assetToken: assetToken, callBack: () {
                 log.info("Popup closed");
                 _navigationService.popUntilHomeOrSettings();
                 if (!mounted) return;
                 Navigator.of(context).pushNamed(
                   AppRouter.claimedPostcardDetailsPage,
-                  arguments: PostcardDetailPagePayload(
-                      [state.assetToken!.identity], 0),
+                  arguments:
+                      PostcardDetailPagePayload([assetToken.identity], 0),
                 );
                 _configurationService.setAutoShowPostcard(true);
               });
@@ -271,13 +273,18 @@ class _StampPreviewState extends State<StampPreview> {
   Widget _postcardAction(PostcardDetailState state) {
     final theme = Theme.of(context);
     if (!confirming) {
-      return PostcardButton(
+      return PostcardAsyncButton(
         text: widget.payload.asset.postcardMetadata.isCompleted
             ? "complete_postcard_journey_".tr()
             : "confirm_your_design".tr(),
         fontSize: 18,
         onTap: () async {
-          await _onConfirm();
+          final isSuccess = await _onConfirm();
+          if (mounted && isSuccess) {
+            setState(() {
+              confirming = true;
+            });
+          }
         },
       );
     }
@@ -301,10 +308,7 @@ class _StampPreviewState extends State<StampPreview> {
     return const SizedBox();
   }
 
-  Future<void> _onConfirm() async {
-    setState(() {
-      confirming = true;
-    });
+  Future<bool> _onConfirm() async {
     final imagePath = widget.payload.imagePath;
     final metadataPath = widget.payload.metadataPath;
     File imageFile = File(imagePath);
@@ -319,10 +323,7 @@ class _StampPreviewState extends State<StampPreview> {
     final walletIndex = await asset.getOwnerWallet();
     if (walletIndex == null) {
       log.info("[POSTCARD] Wallet index not found");
-      setState(() {
-        confirming = true;
-      });
-      return;
+      return false;
     }
 
     final isStampSuccess = await _postcardService.stampPostcard(
@@ -337,6 +338,7 @@ class _StampPreviewState extends State<StampPreview> {
     if (!isStampSuccess) {
       log.info("[POSTCARD] Stamp failed");
       injector<NavigationService>().popUntilHomeOrSettings();
+      return false;
     } else {
       log.info("[POSTCARD] Stamp success");
       _postcardService.updateStampingPostcard([
@@ -365,6 +367,7 @@ class _StampPreviewState extends State<StampPreview> {
         _setTimer();
       }
     }
+    return true;
   }
 }
 

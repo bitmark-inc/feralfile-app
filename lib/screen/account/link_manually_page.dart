@@ -6,9 +6,9 @@
 //
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_filled_button.dart';
@@ -30,6 +30,7 @@ class LinkManuallyPage extends StatefulWidget {
 class _LinkManuallyPageState extends State<LinkManuallyPage> {
   final TextEditingController _addressController = TextEditingController();
   bool _linkEnabled = false;
+  final _navigationService = injector<NavigationService>();
 
   String get title {
     switch (widget.type) {
@@ -129,8 +130,7 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
 
     Future.delayed(SHORT_SHOW_DIALOG_DURATION, () {
       if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context).popUntil(
-            (route) => route.settings.name == AppRouter.homePageNoTransition);
+        _navigationService.popUntilHome();
       } else {
         doneOnboarding(context);
       }
