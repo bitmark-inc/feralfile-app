@@ -115,33 +115,35 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         },
       );
     }
-    try {
-      pendingToken =
-          await injector.get<PostcardService>().claimSharedPostcardToAddress(
-                address: address!,
-                assetToken: asset,
-                location: geoLocation.position,
-                shareCode: widget.shareCode,
-              );
-      if (!mounted) return null;
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRouter.homePage,
-        (route) => false,
-      );
-      Navigator.of(context).pushNamed(AppRouter.designStamp,
-          arguments: DesignStampPayload(pendingToken));
-    } catch (e) {
-      if (e is DioException) {
-        if (!mounted) return null;
-        await UIHelper.showAlreadyClaimedPostcard(
-          context,
-          e,
-        );
+    if (address != null) {
+      try {
+        pendingToken =
+            await injector.get<PostcardService>().claimSharedPostcardToAddress(
+                  address: address,
+                  assetToken: asset,
+                  location: geoLocation.position,
+                  shareCode: widget.shareCode,
+                );
         if (!mounted) return null;
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.homePage,
           (route) => false,
         );
+        Navigator.of(context).pushNamed(AppRouter.designStamp,
+            arguments: DesignStampPayload(pendingToken));
+      } catch (e) {
+        if (e is DioException) {
+          if (!mounted) return null;
+          await UIHelper.showAlreadyClaimedPostcard(
+            context,
+            e,
+          );
+          if (!mounted) return null;
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          );
+        }
       }
     }
     setState(() {
