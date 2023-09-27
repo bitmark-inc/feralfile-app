@@ -199,6 +199,7 @@ class MemoryValues {
   ValueNotifier<String?> irlLink;
   HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
   String? currentGroupChatId;
+  bool isForeground = true;
 
   MemoryValues({
     this.scopedPersona,
