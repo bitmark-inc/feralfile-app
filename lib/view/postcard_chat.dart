@@ -124,24 +124,18 @@ class _MessagePreviewState extends State<MessagePreview> {
               : TappableForwardRowWithContent(
                   padding: const EdgeInsets.all(0),
                   leftWidget: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      RichText(
-                        text: TextSpan(children: [
-                          TextSpan(
-                              text: "messages".tr(),
-                              style: theme.textTheme.moMASans700Black18),
-                          TextSpan(
-                              text: "        ",
-                              style: theme.textTheme.moMASans700Black18),
-                          TextSpan(
-                            text: _getNewMessageString(_newMessageCount),
-                            style: theme.textTheme.moMASans400Black14.copyWith(
-                                color: const Color.fromRGBO(236, 100, 99, 1),
-                                fontSize: 10),
-                          )
-                        ]),
-                      )
+                      Text(
+                        "messages".tr(),
+                        style: theme.textTheme.moMASans700Black18,
+                      ),
+                      const SizedBox(width: 30),
+                      Text(_getNewMessageString(_newMessageCount),
+                          style: theme.textTheme.moMASans400Black14.copyWith(
+                              color: const Color.fromRGBO(236, 100, 99, 1),
+                              fontSize: 10)),
                     ],
                   ),
                   onTap: () async {
