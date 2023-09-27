@@ -40,6 +40,13 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   final distanceFormatter = DistanceFormatter();
   final _postcardService = injector.get<PostcardService>();
   final _configurationService = injector.get<ConfigurationService>();
+  late bool isSending;
+
+  @override
+  void initState() {
+    isSending = widget.assetToken.isSending;
+    super.initState();
+  }
 
   Widget _locationAddress(BuildContext context,
       {required int index,
@@ -173,12 +180,9 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   Widget _sendingTripItem(BuildContext context, AssetToken asset, int index) {
     final theme = Theme.of(context);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            _postcardJourneyArrow(context),
-          ],
-        ),
+        _postcardJourneyArrow(context),
         Row(
           children: [
             Padding(
@@ -287,7 +291,6 @@ class _PostcardJourneyState extends State<PostcardJourney> {
                 ),
               ];
             })
-            .toList()
             .flattened
             .toList(),
         if (asset.isSending && asset.isLastOwner)
@@ -302,7 +305,11 @@ class _PostcardJourneyState extends State<PostcardJourney> {
       await _configurationService.removeSharedPostcardWhere((sharedPostcard) =>
           sharedPostcard.tokenID == asset.id &&
           sharedPostcard.owner == asset.owner);
-      setState(() {});
+      if (mounted) {
+        setState(() {
+          isSending = asset.isSending;
+        });
+      }
       widget.onCancalShare?.call();
     } catch (error) {
       log.info("Cancel share postcard failed: error ${error.toString()}");

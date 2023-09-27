@@ -103,6 +103,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late ScrollController _scrollController;
   late bool withSharing;
   late bool isViewOnly;
+  late bool isSending;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -124,6 +125,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void initState() {
     _scrollController = ScrollController();
     isViewOnly = widget.payload.isFromLeaderboard;
+    isSending = false;
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -369,6 +371,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         setState(() {
           currentAsset = state.assetToken;
           isViewOnly = viewOnly;
+          isSending = state.isSending();
         });
         if (viewOnly) {
           return;
@@ -647,7 +650,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
       ),
     ];
-    if (!state.isSending()) {
+    if (!isSending) {
       timer?.cancel();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -656,7 +659,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             text: "invite_to_collaborate".tr(),
             onTap: () async {
               await _sharePostcard(context, asset);
-              setState(() {});
+              setState(() {
+                isSending = state.isSending();
+              });
             },
           ),
           ...sendPostcardExplain,
@@ -966,8 +971,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return PostcardTravelInfo(
           assetToken: asset,
           listTravelInfo: travelInfo,
-          onCancalShare: () {
-            setState(() {});
+          onCancelShare: () {
+            setState(() {
+              isSending = postcardDetailState.isSending();
+            });
           },
         );
       },

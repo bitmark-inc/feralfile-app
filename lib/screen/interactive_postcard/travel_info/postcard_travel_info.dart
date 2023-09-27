@@ -14,13 +14,13 @@ import 'package:nft_collection/models/asset_token.dart';
 class PostcardTravelInfo extends StatefulWidget {
   final AssetToken assetToken;
   final List<TravelInfo> listTravelInfo;
-  final Function()? onCancalShare;
+  final Function()? onCancelShare;
 
   const PostcardTravelInfo(
       {Key? key,
       required this.assetToken,
       required this.listTravelInfo,
-      this.onCancalShare})
+      this.onCancelShare})
       : super(key: key);
 
   @override
@@ -121,7 +121,7 @@ class _PostcardTravelInfoState extends State<PostcardTravelInfo> {
           assetToken: assetToken,
           listTravelInfo: listTravelInfo,
           onCancalShare: () {
-            widget.onCancalShare?.call();
+            widget.onCancelShare?.call();
           },
         )
       ],
