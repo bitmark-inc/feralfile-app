@@ -1127,11 +1127,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   _gotoTripDetail(BuildContext context, TravelInfo travelInfo) {
-    final travelsInfo = context.read<TravelInfoBloc>().state.listTravelInfo;
     Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
         arguments: TripDetailPayload(
           stampIndex: travelInfo.index - 1,
-          travelsInfo: travelsInfo!,
           assetToken: currentAsset!,
         ));
   }
