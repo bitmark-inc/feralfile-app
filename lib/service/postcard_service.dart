@@ -95,12 +95,12 @@ abstract class PostcardService {
   Future<PostcardLeaderboard> fetchPostcardLeaderboard(
       {required String unit, required int size, required int offset});
 
-  Future<File> downloadStamp({
+  Future<void> downloadStamp({
     required String tokenId,
     required int stampIndex,
   });
 
-  Future<File> downloadPostcard(String tokenId);
+  Future<void> downloadPostcard(String tokenId);
 
   Future<void> shareStampToTwitter({
     required String tokenId,
@@ -449,7 +449,7 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<File> downloadStamp({
+  Future<void> downloadStamp({
     required String tokenId,
     required int stampIndex,
     bool isOverride = false,
@@ -466,11 +466,10 @@ class PostcardServiceImpl extends PostcardService {
       throw MediaPermissionException("Permission is not granted");
     }
     await imageFile.delete();
-    return imageFile;
   }
 
   @override
-  Future<File> downloadPostcard(String tokenId) async {
+  Future<void> downloadPostcard(String tokenId) async {
     log.info("[Postcard Service] download postcard $tokenId");
     final imageFile = await _downloadPostcard(tokenId);
     final timestamp =
@@ -482,7 +481,6 @@ class PostcardServiceImpl extends PostcardService {
       throw MediaPermissionException("Permission is not granted");
     }
     await imageFile.delete();
-    return imageFile;
   }
 
   @override

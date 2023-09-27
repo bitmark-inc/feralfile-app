@@ -168,6 +168,39 @@ class _StampPreviewState extends State<StampPreview> {
           }
         },
       ),
+      OptionItem(
+        title: 'download_postcard'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+                AppColor.disabledColor, BlendMode.srcIn)),
+        onTap: () async {
+          try {
+            await _postcardService.downloadPostcard(assetToken.tokenId!);
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            await UIHelper.showPostcardSaved(context);
+          } catch (e) {
+            log.info("Download postcard failed: error ${e.toString()}");
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            switch (e.runtimeType) {
+              case MediaPermissionException:
+                await UIHelper.showPostcardPhotoAccessFailed(context);
+                break;
+              default:
+                if (!mounted) return;
+                await UIHelper.showPostcardSavedFailed(context);
+            }
+          }
+        },
+      ),
     ];
     await UIHelper.showPostcardDrawerAction(context, options: options);
   }
