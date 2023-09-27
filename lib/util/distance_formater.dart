@@ -35,14 +35,16 @@ class DistanceFormatter {
     String result = '';
     if (withFullName) {
       if (isMiles()) {
-        result = '${_numberFormat.format(convertKmToMiles(distance))} miles';
+        result = "_miles"
+            .tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
       }
-      result = '${_numberFormat.format(distance)} kilometers';
+      result = "_kilometers".tr(args: [_numberFormat.format(distance)]);
     } else {
       if (isMiles()) {
-        result = '${_numberFormat.format(convertKmToMiles(distance))} mi';
+        result =
+            "_mi".tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
       } else {
-        result = '${_numberFormat.format(distance)} km';
+        result = "_km".tr(args: [_numberFormat.format(distance)]);
       }
     }
     result = prefix != null ? '$prefix $result' : result;
