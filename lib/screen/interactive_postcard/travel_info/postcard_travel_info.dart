@@ -120,7 +120,7 @@ class _PostcardTravelInfoState extends State<PostcardTravelInfo> {
         PostcardJourney(
           assetToken: assetToken,
           listTravelInfo: listTravelInfo,
-          onCancalShare: () {
+          onCancelShare: () {
             widget.onCancelShare?.call();
           },
         )

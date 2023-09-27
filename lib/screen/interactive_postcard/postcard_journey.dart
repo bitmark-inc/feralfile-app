@@ -23,13 +23,13 @@ import 'package:nft_collection/models/asset_token.dart';
 class PostcardJourney extends StatefulWidget {
   final AssetToken assetToken;
   final List<TravelInfo> listTravelInfo;
-  final Function()? onCancalShare;
+  final Function()? onCancelShare;
 
   const PostcardJourney(
       {super.key,
       required this.assetToken,
       required this.listTravelInfo,
-      this.onCancalShare});
+      this.onCancelShare});
 
   @override
   State<PostcardJourney> createState() => _PostcardJourneyState();
@@ -309,7 +309,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
           isSending = asset.isSending;
         });
       }
-      widget.onCancalShare?.call();
+      widget.onCancelShare?.call();
     } catch (error) {
       log.info("Cancel share postcard failed: error ${error.toString()}");
     }
