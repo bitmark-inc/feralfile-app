@@ -95,10 +95,12 @@ abstract class PostcardService {
   Future<PostcardLeaderboard> fetchPostcardLeaderboard(
       {required String unit, required int size, required int offset});
 
-  Future<File> downloadStamp({
+  Future<void> downloadStamp({
     required String tokenId,
     required int stampIndex,
   });
+
+  Future<void> downloadPostcard(String tokenId);
 
   Future<void> shareStampToTwitter({
     required String tokenId,
@@ -425,8 +427,31 @@ class PostcardServiceImpl extends PostcardService {
     return tempFile;
   }
 
+  Future<File> _downloadPostcard(String tokenId) async {
+    final tempFilePath =
+        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/postcard.png";
+    final tempFile = File(tempFilePath);
+    final isFileExist = await tempFile.exists();
+    final path = "/v1/postcard/$tokenId/printing";
+    final secretKey = Environment.auClaimSecretKey;
+    final response = await HttpHelper.hmacAuthenticationPost(
+        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+    if (response.statusCode != StatusCode.success.value) {
+      throw Exception(response.reasonPhrase);
+    }
+    final bodyByte = response.bodyBytes;
+    if (!isFileExist) {
+      await tempFile.create(recursive: true);
+    }
+    log.info("Created file $tempFilePath");
+    await tempFile.writeAsBytes(bodyByte);
+    log.info("Write file $tempFilePath");
+
+    return tempFile;
+  }
+
   @override
-  Future<File> downloadStamp({
+  Future<void> downloadStamp({
     required String tokenId,
     required int stampIndex,
     bool isOverride = false,
@@ -442,7 +467,21 @@ class PostcardServiceImpl extends PostcardService {
     if (!isSuccess) {
       throw MediaPermissionException("Permission is not granted");
     }
-    return imageFile;
+  }
+
+  @override
+  Future<void> downloadPostcard(String tokenId) async {
+    log.info("[Postcard Service] download postcard $tokenId");
+    final imageFile = await _downloadPostcard(tokenId);
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final imageByte = await imageFile.readAsBytes();
+    final imageName = "postcard-$tokenId-$timestamp";
+    final isSuccess = await FileHelper.saveImageToGallery(imageByte, imageName);
+    if (!isSuccess) {
+      throw MediaPermissionException("Permission is not granted");
+    }
+    await imageFile.delete();
   }
 
   @override

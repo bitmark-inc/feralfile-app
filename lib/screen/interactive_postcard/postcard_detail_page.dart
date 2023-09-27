@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -101,7 +102,7 @@ class ClaimedPostcardDetailPage extends StatefulWidget {
 }
 
 class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
-    with AfterLayoutMixin<ClaimedPostcardDetailPage> {
+    with AfterLayoutMixin<ClaimedPostcardDetailPage>, RouteAware {
   late ScrollController _scrollController;
   late bool withSharing;
   late bool isViewOnly;
@@ -117,10 +118,22 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _postcardService = injector<PostcardService>();
   Key _messageKey = Key(const Uuid().v4());
 
-  void _changeMessageViewKey() {
+  void _changeMessageViewKey({String? assetHash}) {
     setState(() {
-      _messageKey = Key(const Uuid().v4());
+      _messageKey = Key(assetHash ?? const Uuid().v4());
     });
+  }
+
+  @override
+  void didPopNext() {
+    _changeMessageViewKey(assetHash: currentAsset?.hashCode.toString());
+    super.didPopNext();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -878,6 +891,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Future _showArtworkOptionsDialog(
       BuildContext context, AssetToken asset) async {
     final theme = Theme.of(context);
+    final isViewOnly = await asset.isViewOnly();
     if (!mounted) return;
     const isHidden = false;
     UIHelper.showPostcardDrawerAction(
@@ -904,7 +918,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (asset.stampIndex >= 0)
+        if (asset.stampIndex >= 0 && !isViewOnly)
           OptionItem(
             title: 'download_stamp'.tr(),
             icon: SvgPicture.asset(
@@ -935,6 +949,40 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   default:
                     if (!mounted) return;
                     await UIHelper.showPostcardStampSavedFailed(context);
+                }
+              }
+            },
+          ),
+        if (!isViewOnly)
+          OptionItem(
+            title: 'download_postcard'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/download.svg',
+              width: 24,
+              height: 24,
+            ),
+            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn)),
+            onTap: () async {
+              try {
+                await _postcardService.downloadPostcard(asset.tokenId!);
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                await UIHelper.showPostcardSaved(context);
+              } catch (e) {
+                log.info("Download postcard failed: error ${e.toString()}");
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                switch (e.runtimeType) {
+                  case MediaPermissionException:
+                    await UIHelper.showPostcardPhotoAccessFailed(context);
+                    break;
+                  default:
+                    if (!mounted) return;
+                    await UIHelper.showPostcardSavedFailed(context);
                 }
               }
             },

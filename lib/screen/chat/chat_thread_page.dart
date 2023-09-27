@@ -525,6 +525,9 @@ class _AuInputChatState extends State<AuInputChat> {
                     widget.onSendPressed
                         .call(types.PartialText(text: trimmedText));
                     _textController.clear();
+                    setState(() {
+                      _isTyping = false;
+                    });
                   }
                 },
                 child: Container(
