@@ -127,7 +127,6 @@ class _MessagePreviewState extends State<MessagePreview> {
           ],
         ),
         onTap: () async {
-          if (!mounted) return;
           await Navigator.of(context).pushNamed(
             ChatThreadPage.tag,
             arguments: ChatThreadPagePayload(
@@ -141,6 +140,7 @@ class _MessagePreviewState extends State<MessagePreview> {
           );
           setState(() {
             _newMessageCount = 0;
+            _assetToken = widget.payload.getAssetToken() ?? _assetToken;
           });
         },
         bottomWidget: _lastMessage == null
@@ -190,8 +190,10 @@ class _MessagePreviewState extends State<MessagePreview> {
 class MessagePreviewPayload {
   final AssetToken asset;
   final Pair<WalletStorage, int> wallet;
+  final AssetToken? Function() getAssetToken;
 
-  const MessagePreviewPayload({required this.asset, required this.wallet});
+  const MessagePreviewPayload(
+      {required this.asset, required this.wallet, required this.getAssetToken});
 }
 
 class MessageView extends StatelessWidget {
