@@ -11,7 +11,6 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -31,6 +30,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -67,7 +67,6 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
-import 'package:uuid/uuid.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -102,7 +101,7 @@ class ClaimedPostcardDetailPage extends StatefulWidget {
 }
 
 class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
-    with AfterLayoutMixin<ClaimedPostcardDetailPage>, RouteAware {
+    with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
   late bool isViewOnly;
@@ -116,25 +115,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  Key _messageKey = Key(const Uuid().v4());
-
-  void _changeMessageViewKey({String? assetHash}) {
-    setState(() {
-      _messageKey = Key(assetHash ?? const Uuid().v4());
-    });
-  }
-
-  @override
-  void didPopNext() {
-    _changeMessageViewKey(assetHash: currentAsset?.hashCode.toString());
-    super.didPopNext();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
 
   @override
   void initState() {
@@ -301,6 +281,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     timer?.cancel();
+    injector<ChatService>().dispose();
     super.dispose();
   }
 
@@ -311,19 +292,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final wallet = await asset.getOwnerWallet();
     if (wallet == null) return;
     if (!mounted) return;
-    Navigator.of(context)
-        .pushNamed(
-          ChatThreadPage.tag,
-          arguments: ChatThreadPagePayload(
-              token: asset,
-              wallet: wallet,
-              address: asset.owner,
-              cryptoType: asset.blockchain == "ethereum"
-                  ? CryptoType.ETH
-                  : CryptoType.XTZ,
-              name: asset.title ?? ''),
-        )
-        .then((value) => _changeMessageViewKey());
+    Navigator.of(context).pushNamed(
+      ChatThreadPage.tag,
+      arguments: ChatThreadPagePayload(
+          token: asset,
+          wallet: wallet,
+          address: asset.owner,
+          cryptoType:
+              asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
+          name: asset.title ?? ''),
+    );
   }
 
   @override
@@ -518,10 +496,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                           padding:
                                               const EdgeInsets.only(top: 15),
                                           child: MessagePreview(
-                                              key: _messageKey,
                                               payload: MessagePreviewPayload(
-                                                  asset: state.assetToken!,
-                                                  wallet: wallet)),
+                                            asset: state.assetToken!,
+                                            wallet: wallet,
+                                            getAssetToken: getCurrentAssetToken,
+                                          )),
                                         );
                                       }
                                       return const SizedBox();
@@ -596,6 +575,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return const SizedBox();
       }
     });
+  }
+
+  AssetToken? getCurrentAssetToken() {
+    return context.read<PostcardDetailBloc>().state.assetToken;
   }
 
   void _refreshPostcard() {

@@ -29,7 +29,7 @@ abstract class ChatService {
 
   void addListener(ChatListener listener);
 
-  void removeListener(ChatListener listener);
+  Future<void> removeListener(ChatListener listener);
 
   void sendMessage(dynamic message, {String? listenerId, String? requestId});
 
@@ -181,6 +181,7 @@ class ChatServiceImpl implements ChatService {
 
   @override
   Future<void> dispose() async {
+    if (_websocketChannel == null) return;
     log.info("[CHAT] disconnect");
     _address = null;
     _id = null;
@@ -228,10 +229,10 @@ class ChatServiceImpl implements ChatService {
   }
 
   @override
-  void removeListener(ChatListener listener) {
+  Future<void> removeListener(ChatListener listener) async {
     _listeners.remove(listener);
     if (_listeners.isEmpty) {
-      dispose();
+      await dispose();
     }
   }
 
