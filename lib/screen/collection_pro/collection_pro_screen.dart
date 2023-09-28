@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
@@ -43,7 +44,7 @@ class CollectionProState extends State<CollectionPro>
   final _bloc = injector.get<CollectionProBloc>();
   final _identityBloc = injector.get<IdentityBloc>();
   final controller = ScrollController();
-  late String searchStr;
+  late ValueNotifier<String> searchStr;
   late bool isSearching;
   final SectionInfo sectionInfo = SectionInfo(state: {
     CollectionProSection.collection: true,
@@ -54,9 +55,12 @@ class CollectionProState extends State<CollectionPro>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    loadCollection();
-    searchStr = '';
+    searchStr = ValueNotifier('');
+    searchStr.addListener(() {
+      loadCollection();
+    });
     isSearching = false;
+    loadCollection();
     super.initState();
   }
 
@@ -79,7 +83,7 @@ class CollectionProState extends State<CollectionPro>
   }
 
   loadCollection() {
-    _bloc.add(LoadCollectionEvent());
+    _bloc.add(LoadCollectionEvent(filterStr: searchStr.value));
   }
 
   fetchIdentities(CollectionLoadedState state) {
@@ -135,7 +139,7 @@ class CollectionProState extends State<CollectionPro>
                             searchBar: AuSearchBar(
                               onChanged: (text) {
                                 setState(() {
-                                  searchStr = text;
+                                  searchStr.value = text;
                                 });
                               },
                             ),
@@ -146,7 +150,7 @@ class CollectionProState extends State<CollectionPro>
                             },
                             onCancel: () {
                               setState(() {
-                                searchStr = '';
+                                searchStr.value = '';
                                 isSearching = false;
                               });
                             },
@@ -163,26 +167,38 @@ class CollectionProState extends State<CollectionPro>
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 60),
                       ),
-                      const SliverToBoxAdapter(
-                        child: CollectionSection(),
+                      SliverToBoxAdapter(
+                        child: ValueListenableBuilder(
+                          valueListenable: searchStr,
+                          builder: (BuildContext context, String value,
+                              Widget? child) {
+                            return CollectionSection(
+                              filterString: value,
+                            );
+                          },
+                        ),
                       ),
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 60),
                       ),
                       SliverToBoxAdapter(
                         child: AlbumSection(
-                            listAlbum: listAlbumByMedium,
-                            albumType: AlbumType.medium,
-                            identityMap: identityMap),
+                          listAlbum: listAlbumByMedium,
+                          albumType: AlbumType.medium,
+                          identityMap: identityMap,
+                          searchStr: searchStr.value,
+                        ),
                       ),
                       const SliverToBoxAdapter(
                         child: SizedBox(height: 60),
                       ),
                       SliverToBoxAdapter(
                         child: AlbumSection(
-                            listAlbum: listAlbumByArtist,
-                            albumType: AlbumType.artist,
-                            identityMap: identityMap),
+                          listAlbum: listAlbumByArtist,
+                          albumType: AlbumType.artist,
+                          identityMap: identityMap,
+                          searchStr: searchStr.value,
+                        ),
                       ),
                     ],
                   );
@@ -238,12 +254,14 @@ class AlbumSection extends StatefulWidget {
   final List<AlbumModel>? listAlbum;
   final AlbumType albumType;
   final Map<String, String>? identityMap;
+  final String searchStr;
 
   const AlbumSection(
       {super.key,
       required this.listAlbum,
       required this.albumType,
-      this.identityMap});
+      this.identityMap,
+      required this.searchStr});
 
   @override
   State<AlbumSection> createState() => _AlbumSectionState();
@@ -291,6 +309,7 @@ class _AlbumSectionState extends State<AlbumSection> {
           arguments: AlbumScreenPayload(
             type: widget.albumType,
             album: album,
+            filterStr: widget.searchStr,
           ),
         );
       },
@@ -345,9 +364,9 @@ class _AlbumSectionState extends State<AlbumSection> {
 }
 
 class CollectionSection extends StatefulWidget {
-  final String? filterString;
+  final String filterString;
 
-  const CollectionSection({super.key, this.filterString});
+  const CollectionSection({super.key, this.filterString = ""});
 
   @override
   State<CollectionSection> createState() => _CollectionSectionState();
@@ -358,27 +377,28 @@ class _CollectionSectionState extends State<CollectionSection>
   final _configurationService = injector.get<ConfigurationService>();
   final _playlistService = injector.get<PlaylistService>();
   final _versionService = injector.get<VersionService>();
+  final _settingDataService = injector.get<SettingsDataService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
+  late bool isDemo;
 
   Future<List<PlayListModel>?> getPlaylist() async {
     final isSubscribed = _configurationService.isPremium();
-    final isDemo = _configurationService.isDemoArtworksMode();
-
     if (!isSubscribed && !isDemo) return null;
     if (isDemo) {
       return _versionService.getDemoAccountFromGithub();
     }
-    return _playlistService.getPlayList();
+    final playlists = await _playlistService.getPlayList();
+    return playlists.filter(widget.filterString);
   }
 
   _initPlayList() async {
     _playlists.value = await getPlaylist() ?? [];
-    _playlists.value!.filter(widget.filterString);
   }
 
   @override
   void initState() {
     _playlists = ValueNotifier(null);
+    isDemo = _configurationService.isDemoArtworksMode();
     super.initState();
     _initPlayList();
     WidgetsBinding.instance.addObserver(this);
@@ -459,6 +479,16 @@ class _CollectionSectionState extends State<CollectionSection>
                 child: ListPlaylistsScreen(
                   key: Key(playlistKey),
                   playlists: _playlists,
+                  onReorder: (oldIndex, newIndex) async {
+                    final item = value!.removeAt(oldIndex);
+                    value.insert(newIndex, item);
+                    if (isDemo || value == null) return;
+                    await injector
+                        .get<PlaylistService>()
+                        .setPlayList(value, override: true);
+                    _initPlayList();
+                    _settingDataService.backup();
+                  },
                 ),
               ),
             )

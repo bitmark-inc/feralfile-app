@@ -46,6 +46,12 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
       emit(state.copyWith(playListModel: playlist, selectedItem: []));
     });
 
+    on<UpdateNamePlaylist>((event, emit) {
+      final playlist = state.playListModel;
+      playlist?.name = event.name;
+      emit(state.copyWith(playListModel: playlist));
+    });
+
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
       final service = injector.get<PlaylistService>();

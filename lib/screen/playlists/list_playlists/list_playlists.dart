@@ -4,8 +4,6 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -15,8 +13,10 @@ import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   final ValueNotifier<List<PlayListModel>?> playlists;
+  final Function(int oldIndex, int newIndex) onReorder;
 
-  const ListPlaylistsScreen({Key? key, required this.playlists})
+  const ListPlaylistsScreen(
+      {Key? key, required this.playlists, required this.onReorder})
       : super(key: key);
 
   @override
@@ -45,13 +45,13 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     super.dispose();
   }
 
-  _onUpdatePlaylists() async {
-    if (isDemo || widget.playlists.value == null) return;
-    await injector
-        .get<PlaylistService>()
-        .setPlayList(widget.playlists.value!, override: true);
-    injector.get<SettingsDataService>().backup();
-  }
+  // _onUpdatePlaylists() async {
+  //   if (isDemo || widget.playlists.value == null) return;
+  //   await injector
+  //       .get<PlaylistService>()
+  //       .setPlayList(widget.playlists.value!, override: true);
+  //   injector.get<SettingsDataService>().backup();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -60,18 +60,19 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: widget.playlists,
       builder: (context, value, child) {
-        // return ReorderableGridView(onReorder: onReorder, gridDelegate: gridDelegate, childrenDelegate: SliverChildListDelegate())
         return value == null
             ? const SizedBox.shrink()
             : ReorderableGridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    final item = value.removeAt(oldIndex);
-                    value.insert(newIndex, item);
-                    _onUpdatePlaylists();
-                  });
-                },
+                onReorder: widget.onReorder,
+                //   (oldIndex, newIndex) {
+                //   setState(() {
+                //     final item = value.removeAt(oldIndex);
+                //     value.insert(newIndex, item);
+                //     widget.onReorder.call();
+                //     // _onUpdatePlaylists();
+                //   });
+                // },
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: cellPerRow,
                   crossAxisSpacing: cellSpacing,

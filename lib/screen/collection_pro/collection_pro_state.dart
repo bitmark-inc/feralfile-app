@@ -29,4 +29,8 @@ class CollectionLoadedState extends CollectionProState {
 
 class CollectionLoadingState extends CollectionProState {}
 
-class LoadCollectionEvent extends CollectionProEvent {}
+class LoadCollectionEvent extends CollectionProEvent {
+  String filterStr;
+
+  LoadCollectionEvent({this.filterStr = ""});
+}

@@ -15,8 +15,10 @@ enum AlbumType { artist, medium }
 class AlbumScreenPayload {
   final AlbumType type;
   final AlbumModel album;
+  final String filterStr;
 
-  const AlbumScreenPayload({required this.type, required this.album});
+  const AlbumScreenPayload(
+      {required this.type, required this.album, required this.filterStr});
 }
 
 class AlbumScreen extends StatefulWidget {
@@ -34,8 +36,10 @@ class _AlbumScreenState extends State<AlbumScreen> {
   @override
   void initState() {
     super.initState();
-    _bloc.add(
-        LoadAlbumEvent(type: widget.payload.type, id: widget.payload.album.id));
+    _bloc.add(LoadAlbumEvent(
+        type: widget.payload.type,
+        id: widget.payload.album.id,
+        filterStr: widget.payload.filterStr));
   }
 
   @override

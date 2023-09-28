@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -36,6 +37,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final bloc = injector.get<EditPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>(param1: false);
   List<CompactedAssetToken> tokensPlaylist = [];
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -156,46 +158,53 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            elevation: 1,
-            leadingWidth: 80,
-            leading: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 14),
-                child: Center(
-                  child: Text(
-                    tr('cancel'),
-                    style: theme.textTheme.ppMori400Black14,
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: GestureDetector(
-                  onTap: () {
-                    onSave(playList);
-                  },
+              elevation: 1,
+              leadingWidth: 80,
+              leading: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 14),
                   child: Center(
                     child: Text(
-                      tr('done'),
-                      style: theme.textTheme.ppMori700Black14,
+                      tr('cancel'),
+                      style: theme.textTheme.ppMori400Black14,
                     ),
                   ),
                 ),
               ),
-            ],
-            backgroundColor: theme.colorScheme.background,
-            automaticallyImplyLeading: false,
-            centerTitle: true,
-            title: Text(
-              (playList?.name?.isNotEmpty ?? false)
-                  ? playList!.name!
-                  : tr('untitled'),
-              style: theme.textTheme.ppMori400Black14,
-            ),
-          ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 14),
+                  child: GestureDetector(
+                    onTap: () {
+                      onSave(playList);
+                    },
+                    child: Center(
+                      child: Text(
+                        tr('done'),
+                        style: theme.textTheme.ppMori700Black14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              backgroundColor: theme.colorScheme.background,
+              automaticallyImplyLeading: false,
+              centerTitle: true,
+              title: TextNamePlaylist(
+                focusNode: _focusNode,
+                playList: playList,
+                onEditPlaylistName: (value) {
+                  bloc.add(SavePlaylist());
+                },
+              )
+              //   Text(
+              //   (playList?.name?.isNotEmpty ?? false)
+              //       ? playList!.name!
+              //       : tr('untitled'),
+              //   style: theme.textTheme.ppMori400Black14,
+              // ),
+              ),
           body: SafeArea(
             bottom: false,
             child: Stack(

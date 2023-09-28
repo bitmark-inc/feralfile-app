@@ -8,6 +8,7 @@ import 'package:nft_collection/nft_collection.dart';
 
 class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
   final _assetTokenDao = injector.get<AssetTokenDao>();
+
   AlbumBloc() : super(AlbumInitState()) {
     on<LoadAlbumEvent>((event, emit) async {
       emit(
@@ -37,6 +38,12 @@ class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
         );
         final tokens = assetTokens
             .map((e) => CompactedAssetToken.fromAssetToken(e))
+            .toList()
+            .where((element) =>
+                element.title
+                    ?.toLowerCase()
+                    .contains(event.filterStr.toLowerCase()) ??
+                false)
             .toList();
         emit(
           AlbumLoadedState(
