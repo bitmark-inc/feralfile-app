@@ -324,14 +324,18 @@ Future<void> setup() async {
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
 
-  injector.registerLazySingleton<PostcardService>(() => PostcardServiceImpl(
+  injector.registerLazySingleton<PostcardService>(
+    () => PostcardServiceImpl(
       injector(),
       injector(),
       injector(),
       injector(),
       injector(),
       injector(),
-      injector()));
+      injector(),
+      injector(),
+    ),
+  );
 
   injector.registerLazySingleton<ChatService>(() => ChatServiceImpl());
 

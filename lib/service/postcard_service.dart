@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -130,6 +131,7 @@ class PostcardServiceImpl extends PostcardService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final TokensService _tokensService;
+  final MetricClientService _metricClientService;
 
   PostcardServiceImpl(
       this._postcardApi,
@@ -138,7 +140,8 @@ class PostcardServiceImpl extends PostcardService {
       this._tzktApi,
       this._configurationService,
       this._accountService,
-      this._tokensService);
+      this._tokensService,
+      this._metricClientService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -527,6 +530,9 @@ class PostcardServiceImpl extends PostcardService {
       location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
+    _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
+      'postcardId': result.tokenID,
+    });
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
       locationInformation: [
