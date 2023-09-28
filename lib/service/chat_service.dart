@@ -181,6 +181,7 @@ class ChatServiceImpl implements ChatService {
 
   @override
   Future<void> dispose() async {
+    if (_websocketChannel == null) return;
     log.info("[CHAT] disconnect");
     _address = null;
     _id = null;

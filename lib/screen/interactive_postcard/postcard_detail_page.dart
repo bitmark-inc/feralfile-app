@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -280,6 +281,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     timer?.cancel();
+    injector<ChatService>().dispose();
     super.dispose();
   }
 

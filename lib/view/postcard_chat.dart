@@ -177,14 +177,6 @@ class _MessagePreviewState extends State<MessagePreview> {
     }
     return "_new".tr(args: [num.toString()]);
   }
-
-  @override
-  void dispose() {
-    if (_chatListener != null) {
-      _postcardChatService.removeListener(_chatListener!);
-    }
-    super.dispose();
-  }
 }
 
 class MessagePreviewPayload {
