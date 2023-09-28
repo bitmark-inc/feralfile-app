@@ -37,8 +37,9 @@ class DistanceFormatter {
       if (isMiles()) {
         result = "_miles"
             .tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
+      } else {
+        result = "_kilometers".tr(args: [_numberFormat.format(distance)]);
       }
-      result = "_kilometers".tr(args: [_numberFormat.format(distance)]);
     } else {
       if (isMiles()) {
         result =
