@@ -25,9 +25,9 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
@@ -1526,7 +1526,7 @@ class UIHelper {
           ),
           const SizedBox(height: 40),
           Text("if_your_location_is_not_enabled".tr(),
-              style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18)),
+              style: theme.textTheme.moMASans400Black16.copyWith(fontSize: 18)),
           const SizedBox(height: 40),
         ],
       ),
@@ -1584,9 +1584,18 @@ class UIHelper {
   }
 
   static Future<void> showPostcardStampSaved(BuildContext context) async {
+    return await _showFileSaved(context, title: "stamp".tr());
+  }
+
+  static Future<void> showPostcardSaved(BuildContext context) async {
+    return await _showFileSaved(context, title: "postcard".tr());
+  }
+
+  static Future<void> _showFileSaved(BuildContext context,
+      {required String title}) async {
     final options = [
       OptionItem(
-        title: "stamp_saved".tr(),
+        title: "_saved".tr(args: [title]),
         icon: SvgPicture.asset("assets/images/download.svg"),
         onTap: () {},
       ),
@@ -1598,9 +1607,19 @@ class UIHelper {
 
   static Future<void> showPostcardStampPhotoAccessFailed(
       BuildContext context) async {
+    return await _showPhotoAccessFailed(context, title: "stamp".tr());
+  }
+
+  static Future<void> showPostcardPhotoAccessFailed(
+      BuildContext context) async {
+    return await _showPhotoAccessFailed(context, title: "postcard".tr());
+  }
+
+  static Future<void> _showPhotoAccessFailed(BuildContext context,
+      {required String title}) async {
     final options = [
       OptionItem(
-        title: "stamp_could_not_be_saved".tr(),
+        title: "_could_not_be_saved".tr(args: [title]),
         titleStyle: Theme.of(context)
             .textTheme
             .moMASans700Black16
@@ -1617,10 +1636,19 @@ class UIHelper {
   }
 
   static Future<void> showPostcardStampSavedFailed(BuildContext context) async {
+    return await _showFileSaveFailed(context, title: "stamp".tr());
+  }
+
+  static Future<void> showPostcardSavedFailed(BuildContext context) async {
+    return await _showFileSaveFailed(context, title: "postcard".tr());
+  }
+
+  static Future<void> _showFileSaveFailed(BuildContext context,
+      {required String title}) async {
     final theme = Theme.of(context);
     final options = [
       OptionItem(
-        title: "stamp_save_failed".tr(),
+        title: "_save_failed".tr(args: [title]),
         titleStyle: theme.textTheme.moMASans700Black16
             .copyWith(fontSize: 18, color: MoMAColors.moMA3),
         icon: SvgPicture.asset("assets/images/exit.svg"),

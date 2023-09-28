@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:sentry_dio/sentry_dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 Dio feralFileDio(BaseOptions options) {
   final dio = baseDio(options);
@@ -64,7 +65,16 @@ Dio baseDio(BaseOptions options) {
   dio.interceptors.add(LoggingInterceptor());
   (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio.options = dioOptions;
-  dio.addSentry();
+
+  // Temporarily comment out due to an error of fetching in the background
+  // Error: ClientException: Exception building CronetEngine: Bad state:
+  // The BackgroundIsolateBinaryMessenger.instance value is invalid until
+  // BackgroundIsolateBinaryMessenger.ensureInitialized is executed.
+  //
+  // if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
+  //   dio.httpClientAdapter = NativeAdapter();
+  // }
+  dio.addSentry(failedRequestStatusCodes: [SentryStatusCode.range(500, 599)]);
 
   return dio;
 }

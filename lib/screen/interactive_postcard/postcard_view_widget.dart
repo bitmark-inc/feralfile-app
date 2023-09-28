@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -19,6 +18,7 @@ class PostcardViewWidget extends StatefulWidget {
   final String? imagePath;
   final String? jsonPath;
   final int? zoomIndex;
+  final Color backgroundColor;
 
   const PostcardViewWidget({
     super.key,
@@ -26,6 +26,7 @@ class PostcardViewWidget extends StatefulWidget {
     this.imagePath,
     this.jsonPath,
     this.zoomIndex,
+    this.backgroundColor = Colors.black,
   });
 
   @override
@@ -60,12 +61,12 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     final json = await File(widget.jsonPath!).readAsBytes();
     base64Json = base64Encode(json);
     base64Image = base64Encode(image);
-    final index = widget.assetToken.postcardMetadata.counter - 1;
+    final index = widget.assetToken.getArtists.length;
     if (base64Image != null && base64Json != null) {
       log.info("[Postcard] getNewStamp");
       log.info("[Postcard] $index");
       log.info(base64Json);
-      log.info(base64Image);
+      log.info("[Postcard] base64Image ${base64Image.runtimeType}");
       _controller?.evaluateJavascript(
         source: "getNewStamp($index, '$base64Image', '$base64Json')",
       );
@@ -93,7 +94,8 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
               await _convertFileToBase64();
               if (widget.zoomIndex != null) {
-                _zoomIntoStamp(index: widget.zoomIndex!);
+                _zoomIntoStamp(
+                    index: widget.zoomIndex!, color: widget.backgroundColor);
               }
               if (mounted) {
                 setState(() {
@@ -111,7 +113,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
               child: Container(
             width: double.infinity,
             height: double.infinity,
-            color: Colors.black,
+            color: widget.backgroundColor,
             child: Center(
               child: GifView.asset(
                 "assets/images/loading_white_tran.gif",

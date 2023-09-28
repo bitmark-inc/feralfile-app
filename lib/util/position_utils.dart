@@ -51,9 +51,9 @@ Future<String> getLocationNameFromCoordinates(
     double latitude, double longitude) async {
   final defaultGeoLocations = GeoLocation.defaultGeolocations;
   final geoLocation = defaultGeoLocations.firstWhereOrNull((element) =>
-      element.position?.lat == latitude && element.position?.lon == longitude);
+      element.position.lat == latitude && element.position.lon == longitude);
   if (geoLocation != null) {
-    return geoLocation.address;
+    return geoLocation.address!;
   }
   final box = await Hive.openBox(POSTCARD_LOCATION_HIVE_BOX);
   final key =

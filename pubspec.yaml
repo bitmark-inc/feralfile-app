@@ -33,7 +33,6 @@ dependencies:
   device_info_plus: ^9.0.2
   dio: ^5.3.2
   dio_smart_retry: ^5.0.0
-  native_dio_adapter: ^1.0.0+2
   easy_debounce: ^2.0.2+1
   fast_base58: ^0.2.1
   floor: ^1.2.0
@@ -115,7 +114,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: ace58fc3707e1fc7277aa8600e2b632e595c4a65
+      ref: 144b94a396e78841a74b353d22e9e94b5e279ce1
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1

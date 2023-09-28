@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -169,6 +168,39 @@ class _StampPreviewState extends State<StampPreview> {
           }
         },
       ),
+        OptionItem(
+          title: 'download_postcard'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/download.svg',
+            width: 24,
+            height: 24,
+          ),
+          iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                  AppColor.disabledColor, BlendMode.srcIn)),
+          onTap: () async {
+            try {
+              await _postcardService.downloadPostcard(assetToken.tokenId!);
+              if (!mounted) return;
+              Navigator.of(context).pop();
+              await UIHelper.showPostcardSaved(context);
+            } catch (e) {
+              log.info("Download postcard failed: error ${e.toString()}");
+              if (!mounted) return;
+              Navigator.of(context).pop();
+              switch (e.runtimeType) {
+                case MediaPermissionException:
+                  await UIHelper.showPostcardPhotoAccessFailed(context);
+                  break;
+                default:
+                  if (!mounted) return;
+                  await UIHelper.showPostcardSavedFailed(context);
+              }
+            }
+          },
+        ),
     ];
     await UIHelper.showPostcardDrawerAction(context, options: options);
   }
@@ -274,7 +306,7 @@ class _StampPreviewState extends State<StampPreview> {
     final theme = Theme.of(context);
     if (!confirming) {
       return PostcardAsyncButton(
-        text: widget.payload.asset.postcardMetadata.isCompleted
+        text: widget.payload.asset.isCompleted
             ? "complete_postcard_journey_".tr()
             : "confirm_your_design".tr(),
         fontSize: 18,
@@ -317,7 +349,7 @@ class _StampPreviewState extends State<StampPreview> {
     final asset = widget.payload.asset;
     final tokenId = asset.tokenId ?? "";
     final address = asset.owner;
-    final counter = asset.postcardMetadata.counter;
+    final counter = asset.numberOwners;
     final contractAddress = Environment.postcardContractAddress;
 
     final walletIndex = await asset.getOwnerWallet();
@@ -341,7 +373,7 @@ class _StampPreviewState extends State<StampPreview> {
       return false;
     } else {
       log.info("[POSTCARD] Stamp success");
-      _postcardService.updateStampingPostcard([
+      await _postcardService.updateStampingPostcard([
         StampingPostcard(
           indexId: asset.id,
           address: address,
@@ -354,8 +386,7 @@ class _StampPreviewState extends State<StampPreview> {
       if (widget.payload.location != null) {
         var postcardMetadata = asset.postcardMetadata;
         final stampedLocation = widget.payload.location!;
-        postcardMetadata.locationInformation.last.stampedLocation =
-            stampedLocation;
+        postcardMetadata.locationInformation.add(stampedLocation);
         var newAsset = asset.asset;
         newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
         final pendingToken = asset.copyWith(asset: newAsset);

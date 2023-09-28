@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:collection/collection.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -119,8 +118,7 @@ extension PostcardDetailStateExtension on PostcardDetailState {
   }
 
   bool get isPostcardUpdating {
-    return isStamping() ||
-        postcardValue?.counter != assetToken?.postcardMetadata.counter;
+    return isStamping();
   }
 
   bool get isPostcardUpdatingOnBlockchain {

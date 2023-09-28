@@ -93,8 +93,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ace58fc3707e1fc7277aa8600e2b632e595c4a65
-      resolved-ref: ace58fc3707e1fc7277aa8600e2b632e595c4a65
+      ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
+      resolved-ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -379,14 +379,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.3"
-  cronet_http:
-    dependency: transitive
-    description:
-      name: cronet_http
-      sha256: "5bc88e2ea1a42f60ef69713468c08e2c6c318a3373246e35cb3d0a9e40f536d6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
   cross_file:
     dependency: transitive
     description:
@@ -411,14 +403,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.3"
-  cupertino_http:
-    dependency: transitive
-    description:
-      name: cupertino_http
-      sha256: dfdd1d3e89a8261e371b658e544dd77e09e28bea13851a34b0873eb4d0811690
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.1"
   cupertino_icons:
     dependency: transitive
     description:
@@ -1738,14 +1722,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2"
-  native_dio_adapter:
-    dependency: "direct main"
-    description:
-      name: native_dio_adapter
-      sha256: "506efc7f9c75ecc07742e26d1fd72510908cd940ee315295710b87075047bcb0"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0+2"
   nested:
     dependency: transitive
     description:

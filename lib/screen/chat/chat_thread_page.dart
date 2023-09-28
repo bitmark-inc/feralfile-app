@@ -1,39 +1,32 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:math';
 
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/chat_message.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
-import 'package:autonomy_flutter/service/chat_auth_service.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:eth_sig_util/util/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:ui' as ui;
 
 class ChatThreadPage extends StatefulWidget {
   static const String tag = "chat_thread_page";
@@ -48,13 +41,15 @@ class ChatThreadPage extends StatefulWidget {
 class _ChatThreadPageState extends State<ChatThreadPage> {
   final List<types.Message> _messages = [];
   late types.User _user;
-  WebSocketChannel? _websocketChannel;
   late ChatThreadPagePayload _payload;
   int? _lastMessageTimestamp;
   bool _didFetchAllMessages = false;
   String? _historyRequestId;
-  bool _stopConnect = false;
   int? _chatPrivateBannerTimestamp;
+  final ConfigurationService _configurationService =
+      injector<ConfigurationService>();
+  final ChatService _postcardChatService = injector<ChatService>();
+  ChatListener? _chatListener;
 
   @override
   void initState() {
@@ -67,9 +62,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _checkReadPrivateChatBanner() {
-    _chatPrivateBannerTimestamp = injector<ConfigurationService>()
-        .getShowedPostcardChatBanner(
-            "${_payload.token.id}||${_payload.address}");
+    final config = _configurationService.getPostcardChatConfig(
+        address: _payload.address, id: _payload.token.id);
+    _chatPrivateBannerTimestamp = config.firstTimeJoined;
+    if (_chatPrivateBannerTimestamp == null) {
+      final newConfig = config.copyWith(
+          firstTimeJoined: DateTime.now().millisecondsSinceEpoch);
+      _configurationService.setPostcardChatConfig(newConfig);
+    }
   }
 
   Future<void> _websocketInitAndFetchHistory() async {
@@ -79,72 +79,28 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   Future<void> _websocketInit() async {
-    final link =
-        "/v1/chat/ws?index_id=${_payload.token.id}&address=${_payload.address}";
-    final header = await _getHeader(link);
-    _websocketChannel = IOWebSocketChannel.connect(
-      "${Environment.postcardChatServerUrl}$link",
-      headers: header,
-      customClient: HttpClient(),
-      pingInterval: const Duration(seconds: 50),
-    );
-    _websocketChannel?.ready;
-    _websocketChannel?.stream.listen(
-      (event) {
-        log.info("[CHAT] event: $event");
-        final response = WebsocketMessage.fromJson(json.decode(event));
-        switch (response.command) {
-          case 'NEW_MESSAGE':
-            try {
-              final newMessages = (response.payload["messages"]
-                      as List<dynamic>)
-                  .map((e) => app.Message.fromJson(e as Map<String, dynamic>))
-                  .toList();
-              _handleNewMessages(newMessages);
-            } catch (e) {
-              log.info("[CHAT] NEW_MESSAGE error: $e");
-            }
-            break;
-          case 'RESP':
-            if (response.payload["ok"] != null &&
-                response.payload["ok"].toString() == "1") {
-              _handleSentMessageResp(response.id, types.Status.sent);
-            } else if (response.payload["error"] != null) {
-              _handleSentMessageResp(response.id, types.Status.error);
-            } else {
-              try {
-                final newMessages =
-                    (response.payload["messages"] as List<dynamic>)
-                        .map((e) => app.Message.fromJson(e))
-                        .toList();
-
-                _handleNewMessages(newMessages, id: response.id);
-                if (newMessages.length < 100) {
-                  _didFetchAllMessages = true;
-                }
-              } catch (e) {
-                log.info("[CHAT] RESP error: $e");
-              }
-            }
-            break;
-          default:
-            break;
+    await _postcardChatService.connect(
+        address: _payload.address,
+        id: _payload.token.id,
+        wallet: _payload.wallet);
+    _chatListener = ChatListener(
+      onNewMessages: _handleNewMessages,
+      onResponseMessage: _handleSentMessageResp,
+      onResponseMessageReturnPayload: (newMessages, id) {
+        _handleNewMessages(newMessages, id: id);
+        if (newMessages.length < 100) {
+          _didFetchAllMessages = true;
         }
       },
-      onDone: () async {
-        log.info(
-            "[CHAT] _websocketChannel disconnected. Reconnect _websocketChannel");
-        Future.delayed(const Duration(seconds: 5), () async {
-          if (!_stopConnect) {
-            await _websocketInit();
-            _resentMessages();
-            if (_historyRequestId != null) {
-              _getHistory(historyId: _historyRequestId);
-            }
-          }
-        });
+      onDoneCalled: () {
+        _resentMessages();
+        if (_historyRequestId != null) {
+          _getHistory(historyId: _historyRequestId);
+        }
       },
+      id: const Uuid().v4(),
     );
+    _postcardChatService.addListener(_chatListener!);
   }
 
   void _resentMessages() {
@@ -163,52 +119,32 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (_historyRequestId != null && historyId == null) {
       return;
     }
-    log.info(
-        "[CHAT] getHistory ${DateTime.fromMillisecondsSinceEpoch(_lastMessageTimestamp!)}");
     final id = historyId ?? const Uuid().v4();
-    _websocketChannel?.sink.add(json.encode({
-      "command": "HISTORY",
-      "id": id,
-      "payload": {
-        "lastTimestamp": _lastMessageTimestamp,
-      }
-    }));
+    _postcardChatService.sendMessage(
+      json.encode({
+        "command": "HISTORY",
+        "id": id,
+        "payload": {
+          "lastTimestamp": _lastMessageTimestamp,
+        }
+      }),
+      listenerId: _chatListener?.id,
+      requestId: id,
+    );
     _historyRequestId = id;
   }
 
-  Future<Map<String, dynamic>> _getHeader(String link) async {
-    final Map<String, dynamic> header = {};
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    header["X-Api-Timestamp"] = timestamp;
-    final canonicalString = List<String>.of([
-      link,
-      "",
-      timestamp.toString(),
-    ]).join("|");
-    final hmacSha256 = Hmac(sha256, utf8.encode(Environment.chatServerHmacKey));
-    final digest = hmacSha256.convert(utf8.encode(canonicalString));
-    final sig = bytesToHex(digest.bytes);
-    header["X-Api-Signature"] = sig;
-
-    final pubKey =
-        await _payload.wallet.getTezosPublicKey(index: _payload.index);
-    final authSig = await injector<TezosService>().signMessage(_payload.wallet,
-        _payload.index, Uint8List.fromList(utf8.encode(timestamp.toString())));
-    final token = await injector<ChatAuthService>().getAuthToken({
-      "address": _payload.address,
-      "public_key": pubKey,
-      "signature": authSig,
-      "timestamp": timestamp
-    });
-    header["Authorization"] = "Bearer $token";
-    return header;
-  }
-
   void _handleNewMessages(List<app.Message> newMessages, {String? id}) {
-    if (id != null && id == _historyRequestId) {
-      _messages.addAll(_convertMessages(newMessages));
-      _lastMessageTimestamp = newMessages.last.timestamp;
-      _historyRequestId = null;
+    if (id != null) {
+      if (id == _historyRequestId) {
+        _messages.addAll(_convertMessages(newMessages));
+        if (newMessages.isNotEmpty) {
+          _lastMessageTimestamp = newMessages.last.timestamp;
+        } else {
+          _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+        }
+        _historyRequestId = null;
+      }
     } else {
       final otherPeopleMessages = _convertMessages(newMessages);
       otherPeopleMessages
@@ -216,6 +152,17 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       _messages.insertAll(0, otherPeopleMessages);
       _messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
+    final currentMessageTimestamp =
+        _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
+    final newMessageTimestamp =
+        newMessages.isNotEmpty ? newMessages.first.timestamp : 0;
+    int readTimestamp = max(currentMessageTimestamp, newMessageTimestamp);
+    readTimestamp = readTimestamp == 0
+        ? DateTime.now().millisecondsSinceEpoch
+        : readTimestamp;
+
+    _updateLastMessageReadTimeStamp(readTimestamp + 1);
+
     if (_chatPrivateBannerTimestamp != null) {
       _messages.removeWhere((element) => element.id == _chatPrivateBannerId);
       int index = _messages.indexWhere((element) =>
@@ -234,19 +181,33 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
             status: types.Status.delivered,
           ));
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {
+        _messages;
+      });
+    }
   }
 
-  void _handleSentMessageResp(String messageId, types.Status type) {
+  Future<void> _updateLastMessageReadTimeStamp(int timestamp) async {
+    final oldConfig = _configurationService.getPostcardChatConfig(
+        address: _payload.address, id: _payload.token.id);
+    if (timestamp > (oldConfig.lastMessageReadTimeStamp ?? 0)) {
+      final newConfig = oldConfig.copyWith(lastMessageReadTimeStamp: timestamp);
+      await _configurationService.setPostcardChatConfig(newConfig);
+    }
+  }
+
+  void _handleSentMessageResp(String messageId, String type) {
     final index = _messages.indexWhere((element) => element.id == messageId);
     if (index != -1) {
       setState(() {
         switch (type) {
-          case types.Status.sent:
-            _messages[index] =
-                _messages[index].copyWith(status: types.Status.sent);
+          case ChatService.SENT:
+            _messages[index] = _messages[index].copyWith(
+                status: types.Status.sent,
+                createdAt: DateTime.now().millisecondsSinceEpoch);
             break;
-          case types.Status.error:
+          case ChatService.ERROR:
             _messages.removeAt(index);
             break;
           default:
@@ -258,9 +219,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
   @override
   void dispose() {
-    _websocketChannel?.sink.close();
-    _websocketChannel = null;
-    _stopConnect = true;
+    if (_chatListener != null) {
+      _postcardChatService.removeListener(_chatListener!);
+    }
     memoryValues.currentGroupChatId = null;
     super.dispose();
   }
@@ -344,10 +305,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (message.id == _chatPrivateBannerId) {
       return _chatPrivateBanner(context, text: message.text);
     }
-    final theme = Theme.of(context);
     final isMe = message.author.id == _user.id;
     final avatarUrl = _getAvatarUrl(message.author.id);
-    final time = message.createdAt ?? 0;
     return Column(
       children: [
         addOnlyDivider(color: AppColor.auLightGrey),
@@ -363,33 +322,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        message.status == types.Status.sending
-                            ? Row(
-                                children: [
-                                  redDotIcon(color: AppColor.auSuperTeal),
-                                  const SizedBox(width: 8),
-                                ],
-                              )
-                            : const SizedBox(),
-                        Text(
-                          _getStamperName(message.author.id),
-                          style: theme.textTheme.moMASans700Black12,
-                        ),
-                        const SizedBox(width: 15),
-                        Text(
-                          getChatDateTimeRepresentation(
-                              DateTime.fromMillisecondsSinceEpoch(time)),
-                          style: theme.textTheme.moMASans400Black12.copyWith(
-                              color: AppColor.auQuickSilver, fontSize: 10),
-                        ),
-                      ],
+                    MessageView(
+                      message: message,
+                      assetToken: _payload.token,
+                      text: message.text,
                     ),
-                    Text(
-                      message.text,
-                      style: theme.textTheme.moMASans400Black14,
-                    )
                   ],
                 ),
               ),
@@ -422,24 +359,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   _sendMessage(types.SystemMessage message) {
-    _websocketChannel?.sink.add(json.encode({
+    _postcardChatService.sendMessage(json.encode({
       "command": "SEND",
       "id": message.id,
       "payload": {"message": message.text}
     }));
-  }
-
-  String _getStamperName(String address) {
-    final artists = widget.payload.token.getArtists;
-    artists.removeWhere((element) => element.id == null);
-    final artist = artists.firstWhereOrNull((element) => element.id == address);
-    late final int index;
-    if (artists.isEmpty || artist == null) {
-      index = artists.length + 1;
-    } else {
-      index = artists.indexOf(artist) + 1;
-    }
-    return "Stamper $index";
   }
 
   DefaultChatTheme get _chatTheme {
@@ -493,27 +417,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   List<types.Message> _convertMessages(List<app.Message> appMessages) {
-    return appMessages.map((e) => _convertAppMessage(e)).toList();
-  }
-
-  types.Message _convertAppMessage(app.Message message,
-      {types.Status status = types.Status.sent}) {
-    return types.SystemMessage(
-      id: message.id,
-      author: types.User(id: message.sender),
-      createdAt: message.timestamp,
-      text: message.message,
-      status: status,
-      type: MessageType.system,
-    );
+    return appMessages.map((e) => e.toTypesMessage()).toList();
   }
 }
 
 class ChatThreadPagePayload {
   final AssetToken token;
-  final WalletStorage wallet;
+  Pair<WalletStorage, int> wallet;
   final String address;
-  final int index;
   final CryptoType cryptoType;
   final String name;
 
@@ -521,7 +432,6 @@ class ChatThreadPagePayload {
     required this.token,
     required this.wallet,
     required this.address,
-    required this.index,
     required this.cryptoType,
     required this.name,
   });
@@ -534,11 +444,15 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (url.isEmpty) {
-      return SvgPicture.asset("assets/images/default_avatar.svg");
-    }
     return SizedBox(
-        width: 41, height: 41, child: CachedNetworkImage(imageUrl: url));
+        width: 41,
+        height: 41,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          errorWidget: (context, url, error) {
+            return SvgPicture.asset("assets/images/default_avatar.svg");
+          },
+        ));
   }
 }
 
@@ -603,7 +517,7 @@ class _AuInputChatState extends State<AuInputChat> {
                   textCapitalization: TextCapitalization.sentences,
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 25),
               GestureDetector(
                 onTap: () {
                   final trimmedText = _textController.text.trim();
@@ -611,6 +525,9 @@ class _AuInputChatState extends State<AuInputChat> {
                     widget.onSendPressed
                         .call(types.PartialText(text: trimmedText));
                     _textController.clear();
+                    setState(() {
+                      _isTyping = false;
+                    });
                   }
                 },
                 child: Container(
@@ -619,14 +536,16 @@ class _AuInputChatState extends State<AuInputChat> {
                     color: AppColor.auLightGrey,
                   ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  child: AnimatedDefaultTextStyle(
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                        color: _isTyping ? null : AppColor.auQuickSilver),
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      "send".tr(),
-                    ),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: SvgPicture.asset(
+                    "assets/images/send_arrow.svg",
+                    width: 21,
+                    height: 21,
+                    colorFilter: ui.ColorFilter.mode(
+                        _isTyping
+                            ? AppColor.primaryBlack
+                            : AppColor.auQuickSilver,
+                        BlendMode.srcIn),
                   ),
                 ),
               )
@@ -644,5 +563,53 @@ class _AuInputChatState extends State<AuInputChat> {
     _textController.dispose();
     FocusManager.instance.primaryFocus?.unfocus();
     super.dispose();
+  }
+}
+
+class PostcardChatConfig {
+  final String address;
+  final String tokenId;
+  final int? firstTimeJoined;
+  final int? lastMessageReadTimeStamp;
+
+  PostcardChatConfig({
+    required this.address,
+    required this.tokenId,
+    this.firstTimeJoined,
+    this.lastMessageReadTimeStamp,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "address": address,
+      "tokenId": tokenId,
+      "firstTimeJoined": firstTimeJoined,
+      "lastMessageReadTimeStamp": lastMessageReadTimeStamp,
+    };
+  }
+
+  factory PostcardChatConfig.fromJson(Map<String, dynamic> json) {
+    return PostcardChatConfig(
+      address: json["address"] as String,
+      tokenId: json["tokenId"] as String,
+      firstTimeJoined: json["firstTimeJoined"] as int?,
+      lastMessageReadTimeStamp: json["lastMessageReadTimeStamp"] as int?,
+    );
+  }
+
+  //copyWith
+  PostcardChatConfig copyWith({
+    String? address,
+    String? tokenId,
+    int? firstTimeJoined,
+    int? lastMessageReadTimeStamp,
+  }) {
+    return PostcardChatConfig(
+      address: address ?? this.address,
+      tokenId: tokenId ?? this.tokenId,
+      firstTimeJoined: firstTimeJoined ?? this.firstTimeJoined,
+      lastMessageReadTimeStamp:
+          lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
+    );
   }
 }
