@@ -238,39 +238,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final listTravelInfo =
         asset.postcardMetadata.listTravelInfoWithoutLocationName;
     final totalDistance = listTravelInfo.totalDistance;
-    final theme = Theme.of(context);
-    Widget content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-            text: TextSpan(children: [
-          TextSpan(text: "your_postcard_has_traveled".tr()),
-          TextSpan(
-              text: distanceFormatter.format(
-                  distance: totalDistance, withFullName: true),
-              style: const TextStyle(fontWeight: FontWeight.w700)),
-          TextSpan(text: "tag_your_postcard_collaborators".tr()),
-        ], style: theme.textTheme.moMASans400White14)),
-        const SizedBox(height: 24),
-        PrimaryButton(
-          text: "share_on_".tr(),
-          onTap: () {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
-          },
-        ),
-        const SizedBox(height: 8),
-        OutlineButton(
-          text: "close".tr(),
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
     _configurationService.setListPostcardAlreadyShowYouDidIt(
         [PostcardIdentity(id: asset.id, owner: asset.owner)]);
-    return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
+    return UIHelper.showPostcardFinish15Stamps(context,
+        distanceFormatter.format(distance: totalDistance, withFullName: true),
+        onShareTap: () {
+      _shareTwitter(asset);
+      Navigator.of(context).pop();
+    });
   }
 
   Future<void> _postcardUpdated(BuildContext context) async {

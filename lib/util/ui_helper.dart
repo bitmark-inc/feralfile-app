@@ -322,6 +322,136 @@ class UIHelper {
     );
   }
 
+  static Future<void> showPostcardDialogWithConfetti(
+    BuildContext context,
+    List<Widget> contents, {
+    bool isDismissible = true,
+    int autoDismissAfter = 0,
+    FeedbackType? feedback = FeedbackType.selection,
+  }) async {
+    log.info("[UIHelper] showPostcardDialogWithConfetti");
+    currentDialogTitle = "showPostcardDialogWithConfetti";
+
+    const backgroundColor = AppColor.white;
+    const defaultSeparator = Divider(
+      height: 1,
+      thickness: 1.0,
+      color: Color.fromRGBO(227, 227, 227, 1),
+    );
+    final confettiController =
+        ConfettiController(duration: const Duration(seconds: 15));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      confettiController.play();
+    });
+    if (autoDismissAfter > 0) {
+      Future.delayed(
+          Duration(seconds: autoDismissAfter), () => hideInfoDialog(context));
+    }
+
+    if (feedback != null) {
+      Vibrate.feedback(feedback);
+    }
+
+    await Navigator.push(
+      context,
+      TransparentRoute(
+        color: AppColor.primaryBlack.withOpacity(0.4),
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                      color: backgroundColor,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 15, right: 15, bottom: 50),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemBuilder: (BuildContext context, int index) {
+                              final item = contents[index];
+
+                              return Column(
+                                children: [
+                                  item,
+                                  defaultSeparator,
+                                ],
+                              );
+                            },
+                            itemCount: contents.length,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                AllConfettiWidget(controller: confettiController),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  static Future<void> showPostcardFinish15Stamps(
+      BuildContext context, String distance,
+      {dynamic Function()? onShareTap}) async {
+    final theme = Theme.of(context);
+    final contents = [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "congratulations".tr(),
+              style: theme.primaryTextTheme.moMASans700Black18,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "your_group_stamped_15".tr(args: [distance]),
+              style: theme.primaryTextTheme.moMASans400Black12,
+            ),
+          ],
+        ),
+      ),
+      PostcardDrawerItem(
+        item: OptionItem(
+          title: 'share_on_'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+              AppColor.disabledColor,
+              BlendMode.srcIn,
+            ),
+          ),
+          onTap: onShareTap,
+        ),
+      )
+    ];
+    await showPostcardDialogWithConfetti(context, contents);
+  }
+
   static Future<void> showScrollableDialog(
     BuildContext context,
     Widget content, {
@@ -1305,9 +1435,8 @@ class UIHelper {
   }
 
   static Future showWeakGPSSignal(BuildContext context) async {
-    final title = "unable_to_stamp_postcard".tr();
-    final description = "we_are_unable_to_stamp".tr();
-    return showErrorDialog(context, title, description, "close".tr());
+    final message = "gps_too_weak".tr();
+    return await _showPostcardError(context, message: message);
   }
 
   static Future showMockedLocation(BuildContext context) async {
@@ -1605,6 +1734,23 @@ class UIHelper {
     }, autoDismissAfter: const Duration(seconds: 2));
   }
 
+  static Future<void> _showPostcardError(BuildContext context,
+      {String message = "", Widget? icon}) async {
+    final options = [
+      OptionItem(
+        title: message,
+        icon: icon,
+        titleStyle: Theme.of(context)
+            .textTheme
+            .moMASans700Black16
+            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 2));
+  }
+
   static Future<void> showPostcardStampPhotoAccessFailed(
       BuildContext context) async {
     return await _showPhotoAccessFailed(context, title: "stamp".tr());
@@ -1617,22 +1763,11 @@ class UIHelper {
 
   static Future<void> _showPhotoAccessFailed(BuildContext context,
       {required String title}) async {
-    final options = [
-      OptionItem(
-        title: "_could_not_be_saved".tr(args: [title]),
-        titleStyle: Theme.of(context)
-            .textTheme
-            .moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-        icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
-        onTap: () {
-          Navigator.pop(context);
-        },
-      ),
-    ];
-    await showAutoDismissDialog(context, showDialog: () async {
-      return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    return await _showPostcardError(
+      context,
+      message: "_could_not_be_saved".tr(args: [title]),
+      icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
+    );
   }
 
   static Future<void> showPostcardStampSavedFailed(BuildContext context) async {
@@ -1645,19 +1780,9 @@ class UIHelper {
 
   static Future<void> _showFileSaveFailed(BuildContext context,
       {required String title}) async {
-    final theme = Theme.of(context);
-    final options = [
-      OptionItem(
-        title: "_save_failed".tr(args: [title]),
-        titleStyle: theme.textTheme.moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-        icon: SvgPicture.asset("assets/images/exit.svg"),
-        onTap: () {},
-      ),
-    ];
-    await showAutoDismissDialog(context, showDialog: () async {
-      return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    return await _showPostcardError(context,
+        message: "_save_failed".tr(args: [title]),
+        icon: SvgPicture.asset("assets/images/exit.svg"));
   }
 
   static Future<void> showPostcardCancelInvitation(BuildContext context,
