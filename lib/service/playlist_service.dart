@@ -11,6 +11,8 @@ abstract class PlaylistService {
       {bool override = false});
 
   Future<void> refreshPlayLists();
+
+  Future<PlayListModel> getAllNftPlaylist();
 }
 
 class PlayListServiceImp implements PlaylistService {
@@ -24,6 +26,7 @@ class PlayListServiceImp implements PlaylistService {
   @override
   Future<List<PlayListModel>> getPlayList() async {
     final playlists = _getRawPlayList();
+
     if (playlists.isEmpty) {
       return [];
     }
@@ -72,5 +75,11 @@ class PlayListServiceImp implements PlaylistService {
       }
     }
     setPlayList(playlists, override: true);
+  }
+
+  @override
+  Future<PlayListModel> getAllNftPlaylist() {
+    // TODO: implement getAllNftPlaylist
+    throw UnimplementedError();
   }
 }

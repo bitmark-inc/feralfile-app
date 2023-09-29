@@ -123,7 +123,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 68e7cc0c937b4621997e1ac3437682e8a4211e84
+      ref: 83e9a7d804383d44f4264f47aff388b44b17dd31
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication

@@ -8,15 +8,15 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:reorderable_grid_view/reorderable_grid_view.dart';
-
-class ListPlaylistsScreen extends StatefulWidget {
-  final ValueNotifier<List<PlayListModel>?> playlists;
+import 'package:flutter_vibrate/flutter_vibratfinal ValueNotifier<List<PlayListModel>?> playlists;
   final Function(int oldIndex, int newIndex) onReorder;
+  final String filter;
 
   const ListPlaylistsScreen(
-      {Key? key, required this.playlists, required this.onReorder})
+      {Key? key,
+      required this.playlists,
+      required this.onReorder,
+      this.filter = ""})
       : super(key: key);
 
   @override
@@ -45,14 +45,6 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     super.dispose();
   }
 
-  // _onUpdatePlaylists() async {
-  //   if (isDemo || widget.playlists.value == null) return;
-  //   await injector
-  //       .get<PlaylistService>()
-  //       .setPlayList(widget.playlists.value!, override: true);
-  //   injector.get<SettingsDataService>().backup();
-  // }
-
   @override
   Widget build(BuildContext context) {
     const cellPerRow = 2;
@@ -65,34 +57,27 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
             : ReorderableGridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 onReorder: widget.onReorder,
-                //   (oldIndex, newIndex) {
-                //   setState(() {
-                //     final item = value.removeAt(oldIndex);
-                //     value.insert(newIndex, item);
-                //     widget.onReorder.call();
-                //     // _onUpdatePlaylists();
-                //   });
-                // },
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: cellPerRow,
                   crossAxisSpacing: cellSpacing,
                   mainAxisSpacing: cellSpacing,
                 ),
                 itemBuilder: (context, index) {
+                  final playlist = value[index - 1];
                   return PlaylistItem(
-                      key: ValueKey(value[index]),
-                      playlist: value[index],
+                      key: ValueKey(playlist),
+                      playlist: playlist,
                       onSelected: () => Navigator.pushNamed(
                             context,
                             AppRouter.viewPlayListPage,
                             arguments: ViewPlaylistScreenPayload(
-                                playListModel: value[index]),
+                                playListModel: playlist),
                           ));
                 },
                 onDragStart: (index) {
                   Vibrate.feedback(FeedbackType.light);
                 },
-                itemCount: value.length,
+                itemCount: value.length + 1,
               );
       },
     );

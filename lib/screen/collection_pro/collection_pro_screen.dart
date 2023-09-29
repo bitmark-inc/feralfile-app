@@ -30,6 +30,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
+import 'album.dart';
+
 class CollectionPro extends StatefulWidget {
   final List<CompactedAssetToken> tokens;
 
@@ -200,6 +202,9 @@ class CollectionProState extends State<CollectionPro>
                           searchStr: searchStr.value,
                         ),
                       ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 40),
+                      )
                     ],
                   );
                 },
@@ -277,7 +282,7 @@ class _AlbumSectionState extends State<AlbumSection> {
     switch (widget.albumType) {
       case AlbumType.medium:
         return SvgPicture.asset(
-          "assets/images/medium_image.svg",
+          MediumCategoryExt.icon(album.id),
           width: 42,
           height: 42,
         );
@@ -388,6 +393,7 @@ class _CollectionSectionState extends State<CollectionSection>
       return _versionService.getDemoAccountFromGithub();
     }
     final playlists = await _playlistService.getPlayList();
+    // final allNftsPlaylist = Pla
     return playlists.filter(widget.filterString);
   }
 
@@ -482,7 +488,7 @@ class _CollectionSectionState extends State<CollectionSection>
                   onReorder: (oldIndex, newIndex) async {
                     final item = value!.removeAt(oldIndex);
                     value.insert(newIndex, item);
-                    if (isDemo || value == null) return;
+                    if (isDemo) return;
                     await injector
                         .get<PlaylistService>()
                         .setPlayList(value, override: true);
@@ -599,24 +605,5 @@ enum CollectionProSection {
       CollectionProSection.medium,
       CollectionProSection.artist,
     ];
-  }
-}
-
-extension CollectionProSectionExtension on CollectionProSection {
-  String get title {
-    switch (this) {
-      case CollectionProSection.collection:
-        return "Collections";
-      case CollectionProSection.medium:
-        return "Medium";
-      case CollectionProSection.artist:
-        return "Artist";
-    }
-  }
-}
-
-extension CollectionProSectionListExtension on List<CollectionProSection> {
-  bool shouldShowSection(CollectionProSection section) {
-    return isEmpty || contains(section);
   }
 }
