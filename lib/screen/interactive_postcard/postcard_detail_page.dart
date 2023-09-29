@@ -224,7 +224,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         distanceFormatter.format(distance: totalDistance, withFullName: true),
         onShareTap: () {
       _shareTwitter(asset);
-      Navigator.of(context).pop();
+      Navigator.pop(context);
     });
   }
 

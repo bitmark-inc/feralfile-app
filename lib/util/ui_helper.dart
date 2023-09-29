@@ -359,6 +359,20 @@ class UIHelper {
           ),
           onTap: onShareTap,
         ),
+      ),
+      PostcardDrawerItem(
+        item: OptionItem(
+            title: 'close'.tr(),
+            icon: SvgPicture.asset('assets/images/exit.svg',
+                width: 24,
+                height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColor.primaryBlack,
+                BlendMode.srcIn,
+              ),),
+            onTap: () {
+              Navigator.pop(context);
+            }),
       )
     ];
     await showPostcardDialogWithConfetti(context, contents);
