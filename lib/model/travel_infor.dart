@@ -83,10 +83,7 @@ class TravelInfo {
 }
 
 extension ListTravelInfo on List<TravelInfo> {
-  double? get totalDistance {
-    if (isEmpty) {
-      return null;
-    }
+  double get totalDistance {
     double totalDistance = 0;
     for (var travelInfo in this) {
       totalDistance += travelInfo.getDistance() ?? 0;
