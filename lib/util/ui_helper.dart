@@ -35,7 +35,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/transparent_router.dart';
+import 'package:autonomy_flutter/view/slide_router.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -266,48 +266,62 @@ class UIHelper {
 
     await Navigator.push(
       context,
-      TransparentRoute(
+      SlidableRoute(
         color: AppColor.primaryBlack.withOpacity(0.4),
         builder: (context) {
           return Scaffold(
             backgroundColor: Colors.transparent,
             body: Stack(
               children: [
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
+                Column(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          hideInfoDialog(context);
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                        ),
                       ),
-                      color: backgroundColor,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 15, right: 15, bottom: 50),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (BuildContext context, int index) {
-                              final item = contents[index];
-
-                              return Column(
-                                children: [
-                                  item,
-                                  defaultSeparator,
-                                ],
-                              );
-                            },
-                            itemCount: contents.length,
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
                           ),
-                        ],
+                          color: backgroundColor,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 15, right: 15, bottom: 50),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemBuilder: (BuildContext context, int index) {
+                                  final item = contents[index];
+
+                                  return Column(
+                                    children: [
+                                      item,
+                                      defaultSeparator,
+                                    ],
+                                  );
+                                },
+                                itemCount: contents.length,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                 AllConfettiWidget(controller: confettiController),
               ],
@@ -359,7 +373,7 @@ class UIHelper {
           ),
           onTap: onShareTap,
         ),
-      )
+      ),
     ];
     await showPostcardDialogWithConfetti(context, contents);
   }
