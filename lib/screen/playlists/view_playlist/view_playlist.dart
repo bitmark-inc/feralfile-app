@@ -370,6 +370,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     ],
                   ),
             actions: [
+              const SizedBox(width: 15),
               GestureDetector(
                 onTap: () {
                   _onOrderTap(context, _getAvailableOrders());

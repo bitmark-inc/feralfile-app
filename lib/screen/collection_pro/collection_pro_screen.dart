@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
@@ -345,12 +346,9 @@ class _AlbumSectionState extends State<AlbumSection> {
     }
   }
 
-  Widget _item(
-      BuildContext context, AlbumModel album, Map<String, String> identityMap) {
+  Widget _item(BuildContext context, AlbumModel album) {
     final theme = Theme.of(context);
-    final title =
-        ((album.name != album.id) ? album.name : identityMap[album.id]) ??
-            album.id;
+    final title = album.name ?? album.id;
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
@@ -401,7 +399,14 @@ class _AlbumSectionState extends State<AlbumSection> {
             itemCount: listAlbum.length,
             itemBuilder: (context, index) {
               final album = listAlbum[index];
-              return _item(context, album, widget.identityMap ?? {});
+              final albumName = album.name ?? album.id;
+              if (widget.identityMap?[albumName] != null) {
+                album.name = widget.identityMap?[albumName];
+              }
+              if (album.name == album.id) {
+                album.name = album.name?.maskOnly(5);
+              }
+              return _item(context, album);
             },
             separatorBuilder: (BuildContext context, int index) {
               return addDivider();
@@ -443,8 +448,14 @@ class _CollectionSectionState extends State<CollectionSection>
     }
     final hiddenTokenIds = _configurationService.getHiddenOrSentTokenIDs();
     allTokenIds.removeWhere((element) => hiddenTokenIds.contains(element));
-    final allNftsPlaylist =
-        PlayListModel(id: "all_nfts", name: "All", tokenIDs: allTokenIds);
+    final token =
+        await _assetTokenDao.findAllAssetTokensByTokenIDs([allTokenIds.first]);
+
+    final allNftsPlaylist = PlayListModel(
+        id: "all_nfts",
+        name: "All",
+        tokenIDs: allTokenIds,
+        thumbnailURL: token.first.thumbnailURL);
     return [allNftsPlaylist];
   }
 
