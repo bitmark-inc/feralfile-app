@@ -27,7 +27,7 @@ class _SearchBarState extends State<AuSearchBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      height: 50,
+      height: 37,
       decoration: BoxDecoration(
         color: AppColor.auLightGrey,
         borderRadius: BorderRadius.circular(5),
@@ -50,7 +50,7 @@ class _SearchBarState extends State<AuSearchBar> {
                 focusNode: _focusNode,
                 style: theme.textTheme.ppMori400Black14,
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.all(0),
+                  contentPadding: const EdgeInsets.only(bottom: 10),
                   hintText: "search".tr(),
                   hintStyle: theme.textTheme.ppMori400Grey14
                       .copyWith(color: AppColor.secondarySpanishGrey),
@@ -71,6 +71,7 @@ class _SearchBarState extends State<AuSearchBar> {
               ),
             ),
           ),
+          const SizedBox(width: 10),
           if (_isSearching)
             GestureDetector(
               onTap: () {
@@ -85,6 +86,48 @@ class _SearchBarState extends State<AuSearchBar> {
             ),
         ],
       ),
+    );
+  }
+}
+
+class ActionBar extends StatefulWidget {
+  final AuSearchBar searchBar;
+  final Function()? onSearch;
+  final Function()? onCancel;
+
+  const ActionBar(
+      {super.key, required this.searchBar, this.onSearch, this.onCancel});
+
+  @override
+  State<ActionBar> createState() => _ActionBarState();
+}
+
+class _ActionBarState extends State<ActionBar> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Expanded(
+          child: widget.searchBar,
+        ),
+        const SizedBox(width: 14),
+        GestureDetector(
+          onTap: () {
+            widget.onCancel?.call();
+          },
+          child: Text(
+            "Cancel",
+            style: theme.textTheme.ppMori400Grey14,
+          ),
+        )
+      ],
     );
   }
 }

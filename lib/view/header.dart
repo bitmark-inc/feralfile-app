@@ -19,33 +19,32 @@ class HeaderView extends StatelessWidget {
   final double paddingTop;
   final bool isWhite;
   final Widget? action;
-  final isShowLogo;
 
-  const HeaderView(
-      {Key? key,
-      required this.paddingTop,
-      this.isWhite = false,
-      this.action,
-      this.isShowLogo = true})
-      : super(key: key);
+  const HeaderView({
+    Key? key,
+    required this.paddingTop,
+    this.isWhite = false,
+    this.action,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
+        padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 0),
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
                 children: [
-                  if (isShowLogo)
-                    AutonomyLogo(
+                  Expanded(
+                    child: AutonomyLogo(
                       isWhite: isWhite,
                     ),
-                  Expanded(child: action ?? const SizedBox())
+                  ),
+                  action ?? const SizedBox()
                 ],
               ),
             ),

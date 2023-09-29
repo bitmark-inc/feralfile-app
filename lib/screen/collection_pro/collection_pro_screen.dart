@@ -25,6 +25,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -121,93 +122,124 @@ class CollectionProState extends State<CollectionPro>
                 builder: (context, state) {
                   final identityMap = state.identityMap
                     ..removeWhere((key, value) => value.isEmpty);
-                  return CustomScrollView(
-                    controller: controller,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Column(
-                          children: [
-                            headDivider(),
-                            const SizedBox(height: 7),
+                  return Scaffold(
+                    body: Stack(
+                      children: [
+                        CustomScrollView(
+                          controller: controller,
+                          slivers: [
+                            SliverAppBar(
+                              pinned: isSearching,
+                              centerTitle: true,
+                              backgroundColor: Colors.white,
+                              expandedHeight: 126,
+                              collapsedHeight: 126,
+                              shadowColor: Colors.transparent,
+                              flexibleSpace: Column(
+                                children: [
+                                  headDivider(),
+                                  const SizedBox(height: 22),
+                                  SizedBox(
+                                    height: 50,
+                                    child: !isSearching
+                                        ? HeaderView(
+                                            paddingTop: paddingTop,
+                                            action: GestureDetector(
+                                              child: SvgPicture.asset(
+                                                "assets/images/search.svg",
+                                                width: 24,
+                                                height: 24,
+                                                colorFilter:
+                                                    const ColorFilter.mode(
+                                                        AppColor.primaryBlack,
+                                                        BlendMode.srcIn),
+                                              ),
+                                              onTap: () {
+                                                setState(() {
+                                                  isSearching = true;
+                                                });
+                                              },
+                                            ),
+                                          )
+                                        : Align(
+                                            alignment: Alignment.bottomLeft,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 15),
+                                              child: ActionBar(
+                                                searchBar: AuSearchBar(
+                                                  onChanged: (text) {
+                                                    setState(() {
+                                                      searchStr.value = text;
+                                                    });
+                                                  },
+                                                ),
+                                                onSearch: () {
+                                                  setState(() {
+                                                    isSearching = true;
+                                                  });
+                                                },
+                                                onCancel: () {
+                                                  setState(() {
+                                                    searchStr.value = '';
+                                                    isSearching = false;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                  ),
+                                  const SizedBox(height: 23),
+                                  addOnlyDivider(
+                                      color: AppColor.auQuickSilver,
+                                      border: 0.25)
+                                ],
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 60),
+                            ),
+                            SliverToBoxAdapter(
+                              child: ValueListenableBuilder(
+                                valueListenable: searchStr,
+                                builder: (BuildContext context, String value,
+                                    Widget? child) {
+                                  return CollectionSection(
+                                    filterString: value,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 60),
+                            ),
+                            SliverToBoxAdapter(
+                              child: AlbumSection(
+                                listAlbum: listAlbumByMedium,
+                                albumType: AlbumType.medium,
+                                identityMap: identityMap,
+                                searchStr: searchStr.value,
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 60),
+                            ),
+                            SliverToBoxAdapter(
+                              child: AlbumSection(
+                                listAlbum: listAlbumByArtist,
+                                albumType: AlbumType.artist,
+                                identityMap: identityMap,
+                                searchStr: searchStr.value,
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 40),
+                            )
                           ],
                         ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 15),
-                      ),
-                      SliverToBoxAdapter(
-                        child: HeaderView(
-                          paddingTop: paddingTop,
-                          isShowLogo: !isSearching,
-                          action: ActionBar(
-                            searchBar: AuSearchBar(
-                              onChanged: (text) {
-                                setState(() {
-                                  searchStr.value = text;
-                                });
-                              },
-                            ),
-                            onSearch: () {
-                              setState(() {
-                                isSearching = true;
-                              });
-                            },
-                            onCancel: () {
-                              setState(() {
-                                searchStr.value = '';
-                                isSearching = false;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 23),
-                      ),
-                      SliverToBoxAdapter(
-                        child: addOnlyDivider(
-                            color: AppColor.auQuickSilver, border: 0.25),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 60),
-                      ),
-                      SliverToBoxAdapter(
-                        child: ValueListenableBuilder(
-                          valueListenable: searchStr,
-                          builder: (BuildContext context, String value,
-                              Widget? child) {
-                            return CollectionSection(
-                              filterString: value,
-                            );
-                          },
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 60),
-                      ),
-                      SliverToBoxAdapter(
-                        child: AlbumSection(
-                          listAlbum: listAlbumByMedium,
-                          albumType: AlbumType.medium,
-                          identityMap: identityMap,
-                          searchStr: searchStr.value,
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 60),
-                      ),
-                      SliverToBoxAdapter(
-                        child: AlbumSection(
-                          listAlbum: listAlbumByArtist,
-                          albumType: AlbumType.artist,
-                          identityMap: identityMap,
-                          searchStr: searchStr.value,
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 40),
-                      )
-                    ],
+                      ],
+                    ),
                   );
                 },
                 bloc: _identityBloc);
@@ -276,17 +308,28 @@ class AlbumSection extends StatefulWidget {
 
 class _AlbumSectionState extends State<AlbumSection> {
   Widget _header(BuildContext context, int total) {
-    final title = widget.albumType == AlbumType.medium ? 'Medium' : 'Artist';
+    final title =
+        widget.albumType == AlbumType.medium ? 'medium'.tr() : 'artists'.tr();
     return Header(title: title, subTitle: "$total");
   }
 
   Widget _icon(AlbumModel album) {
     switch (widget.albumType) {
       case AlbumType.medium:
-        return SvgPicture.asset(
-          MediumCategoryExt.icon(album.id),
-          width: 42,
-          height: 42,
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: AppColor.auLightGrey,
+          ),
+          child: SvgPicture.asset(
+            MediumCategoryExt.icon(album.id),
+            width: 22,
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+          ),
         );
       case AlbumType.artist:
         return SvgPicture.asset(
@@ -414,7 +457,7 @@ class _CollectionSectionState extends State<CollectionSection>
     List<PlayListModel> playlists = await _playlistService.getPlayList();
 
     final defaultPlaylists = await _getDefaultPlaylists();
-    playlists.addAll(defaultPlaylists);
+    playlists = defaultPlaylists..addAll(playlists);
     return playlists.filter(widget.filterString);
   }
 
@@ -522,89 +565,6 @@ class _CollectionSectionState extends State<CollectionSection>
           ],
         );
       },
-    );
-  }
-}
-
-class ActionBar extends StatefulWidget {
-  final Widget? searchIcon;
-  final AuSearchBar searchBar;
-  final Function()? onSearch;
-  final Function()? onCancel;
-  final bool isShowFull;
-
-  const ActionBar(
-      {super.key,
-      this.searchIcon,
-      required this.searchBar,
-      this.onSearch,
-      this.onCancel,
-      this.isShowFull = false});
-
-  @override
-  State<ActionBar> createState() => _ActionBarState();
-}
-
-class _ActionBarState extends State<ActionBar> {
-  late bool _isShowFull;
-
-  @override
-  void initState() {
-    _isShowFull = widget.isShowFull;
-    super.initState();
-  }
-
-  Widget _searchIcon(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isShowFull = !_isShowFull;
-        });
-        widget.onSearch?.call();
-      },
-      child: widget.searchIcon ??
-          SvgPicture.asset(
-            "assets/images/search.svg",
-            width: 24,
-            height: 24,
-            colorFilter: const ColorFilter.mode(
-                AppColor.secondarySpanishGrey, BlendMode.srcIn),
-          ),
-    );
-  }
-
-  Widget _searchingBar(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          child: widget.searchBar,
-        ),
-        const SizedBox(width: 14),
-        GestureDetector(
-          onTap: () {
-            widget.onCancel?.call();
-            setState(() {
-              _isShowFull = !_isShowFull;
-            });
-          },
-          child: Text(
-            "Cancel",
-            style: theme.textTheme.ppMori400Grey14,
-          ),
-        )
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isShowFull) {
-      return _searchingBar(context);
-    }
-    return Row(
-      children: [const Spacer(), _searchIcon(context)],
     );
   }
 }

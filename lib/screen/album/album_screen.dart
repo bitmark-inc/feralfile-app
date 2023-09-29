@@ -2,9 +2,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/album/album_state.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/collection_pro/album.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_theme/style/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/nft_collection.dart';
 
@@ -64,10 +67,18 @@ class _AlbumScreenState extends State<AlbumScreen> {
               name: name,
               tokenIDs: tokenIDs,
             );
+            final albumType = widget.payload.type;
+            final icon = albumType == AlbumType.medium
+                ? SvgPicture.asset(MediumCategoryExt.icon(id),
+                    width: 22,
+                    height: 22,
+                    colorFilter: const ColorFilter.mode(
+                        AppColor.primaryBlack, BlendMode.srcIn))
+                : null;
             Navigator.of(context).pushReplacementNamed(
                 AppRouter.viewPlayListPage,
                 arguments: ViewPlaylistScreenPayload(
-                    playListModel: playlist, editable: false));
+                    playListModel: playlist, editable: false, titleIcon: icon));
           }
         },
       ),

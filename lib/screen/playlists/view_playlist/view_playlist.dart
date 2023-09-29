@@ -43,10 +43,12 @@ class ViewPlaylistScreenPayload {
   final PlayListModel? playListModel;
   final bool editable;
   final CollectionType collectionType;
+  final Widget? titleIcon;
 
   const ViewPlaylistScreenPayload(
       {this.playListModel,
       this.editable = true,
+      this.titleIcon,
       this.collectionType = CollectionType.manual});
 }
 
@@ -321,11 +323,22 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         return Scaffold(
           appBar: AppBar(
             systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
-            elevation: 1,
+            elevation: 0,
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
-              child: const Icon(AuIcon.chevron),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  const Icon(
+                    AuIcon.chevron,
+                    size: 18,
+                  ),
+                ],
+              ),
             ),
+            titleSpacing: 0,
             backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
             centerTitle: true,
@@ -338,11 +351,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           name: value.trim().isNotEmpty ? value.trim() : null));
                     },
                   )
-                : Text(
-                    (playList?.name?.isNotEmpty ?? false)
-                        ? playList!.name!
-                        : tr('untitled'),
-                    style: theme.textTheme.ppMori400Black14,
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.payload.titleIcon != null)
+                        SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: widget.payload.titleIcon!),
+                      const SizedBox(width: 10),
+                      Text(
+                        (playList?.name?.isNotEmpty ?? false)
+                            ? playList!.name!
+                            : tr('untitled'),
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.ppMori400Black16,
+                      ),
+                    ],
                   ),
             actions: [
               GestureDetector(
@@ -353,7 +378,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   "assets/images/sort.svg",
                   colorFilter:
                       ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
-                  width: 24,
+                  width: 22,
+                  height: 22,
                 ),
               ),
               if (editable) ...[

@@ -170,7 +170,6 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                           });
                         },
                       ),
-                      isShowFull: true,
                       onCancel: () {
                         setState(() {
                           _searchText = '';
