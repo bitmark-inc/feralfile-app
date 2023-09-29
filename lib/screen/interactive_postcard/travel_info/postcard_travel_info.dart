@@ -48,7 +48,7 @@ class _PostcardTravelInfoState extends State<PostcardTravelInfo> {
         Text(
             distanceFormatter.format(
                 distance: travelInfoWithoutInternetUser.totalDistance),
-            style: theme.textTheme.moMASans400Black12
+            style: theme.textTheme.moMASans400Black18
                 .copyWith(color: MoMAColors.moMA12)),
         const SizedBox(height: 15),
         Row(
