@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart'
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -27,6 +28,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -383,8 +385,25 @@ class _CollectionSectionState extends State<CollectionSection>
   final _playlistService = injector.get<PlaylistService>();
   final _versionService = injector.get<VersionService>();
   final _settingDataService = injector.get<SettingsDataService>();
+  final _assetTokenDao = injector.get<AssetTokenDao>();
+  final _accountService = injector.get<AccountService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
   late bool isDemo;
+
+  Future<List<PlayListModel>> _getDefaultPlaylists() async {
+    final activeAddress = await _accountService.getShowedAddresses();
+    List<String> allTokenIds = [];
+    for (var address in activeAddress) {
+      final tokenIds =
+          await _assetTokenDao.findAllAssetTokenIDsByOwner(address);
+      allTokenIds.addAll(tokenIds);
+    }
+    final hiddenTokenIds = _configurationService.getHiddenOrSentTokenIDs();
+    allTokenIds.removeWhere((element) => hiddenTokenIds.contains(element));
+    final allNftsPlaylist =
+        PlayListModel(id: "all_nfts", name: "All", tokenIDs: allTokenIds);
+    return [allNftsPlaylist];
+  }
 
   Future<List<PlayListModel>?> getPlaylist() async {
     final isSubscribed = _configurationService.isPremium();
@@ -392,8 +411,10 @@ class _CollectionSectionState extends State<CollectionSection>
     if (isDemo) {
       return _versionService.getDemoAccountFromGithub();
     }
-    final playlists = await _playlistService.getPlayList();
-    // final allNftsPlaylist = Pla
+    List<PlayListModel> playlists = await _playlistService.getPlayList();
+
+    final defaultPlaylists = await _getDefaultPlaylists();
+    playlists.addAll(defaultPlaylists);
     return playlists.filter(widget.filterString);
   }
 

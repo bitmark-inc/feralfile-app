@@ -8,7 +8,11 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vibrate/flutter_vibratfinal ValueNotifier<List<PlayListModel>?> playlists;
+import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart';
+
+class ListPlaylistsScreen extends StatefulWidget {
+  final ValueNotifier<List<PlayListModel>?> playlists;
   final Function(int oldIndex, int newIndex) onReorder;
   final String filter;
 
@@ -63,7 +67,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                   mainAxisSpacing: cellSpacing,
                 ),
                 itemBuilder: (context, index) {
-                  final playlist = value[index - 1];
+                  final playlist = value[index];
                   return PlaylistItem(
                       key: ValueKey(playlist),
                       playlist: playlist,
@@ -77,7 +81,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 onDragStart: (index) {
                   Vibrate.feedback(FeedbackType.light);
                 },
-                itemCount: value.length + 1,
+                itemCount: value.length,
               );
       },
     );

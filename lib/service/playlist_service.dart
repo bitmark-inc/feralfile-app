@@ -11,8 +11,6 @@ abstract class PlaylistService {
       {bool override = false});
 
   Future<void> refreshPlayLists();
-
-  Future<PlayListModel> getAllNftPlaylist();
 }
 
 class PlayListServiceImp implements PlaylistService {
@@ -31,12 +29,7 @@ class PlayListServiceImp implements PlaylistService {
       return [];
     }
 
-    final hiddenTokens = _configurationService.getTempStorageHiddenTokenIDs();
-    final recentlySent = _configurationService.getRecentlySentToken();
-    hiddenTokens.addAll(recentlySent
-        .where((element) => element.isSentAll)
-        .map((e) => e.tokenID)
-        .toList());
+    final hiddenTokens = _configurationService.getHiddenOrSentTokenIDs();
     final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
     final tokens = await _tokenDao
         .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
@@ -75,11 +68,5 @@ class PlayListServiceImp implements PlaylistService {
       }
     }
     setPlayList(playlists, override: true);
-  }
-
-  @override
-  Future<PlayListModel> getAllNftPlaylist() {
-    // TODO: implement getAllNftPlaylist
-    throw UnimplementedError();
   }
 }

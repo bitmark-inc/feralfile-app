@@ -296,6 +296,8 @@ abstract class ConfigurationService {
   Future<void> setDidSyncArtists(bool value);
 
   bool getDidSyncArtists();
+
+  List<String> getHiddenOrSentTokenIDs();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -1340,5 +1342,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
             .toList()
             .toSet()
             .toList());
+  }
+
+  @override
+  List<String> getHiddenOrSentTokenIDs() {
+    final hiddenTokens = getTempStorageHiddenTokenIDs();
+    final recentlySent = getRecentlySentToken();
+    hiddenTokens.addAll(recentlySent
+        .where((element) => element.isSentAll)
+        .map((e) => e.tokenID)
+        .toList());
+    return hiddenTokens;
   }
 }

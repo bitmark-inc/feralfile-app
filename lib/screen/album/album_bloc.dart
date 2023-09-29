@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/album/album_state.dart';
 import 'package:autonomy_flutter/screen/collection_pro/album.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/database/dao/album_dao.dart';
 import 'package:nft_collection/database/dao/dao.dart';
@@ -10,6 +11,7 @@ import 'package:nft_collection/nft_collection.dart';
 
 class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
   final _assetTokenDao = injector.get<AssetTokenDao>();
+  final _configurationService = injector.get<ConfigurationService>();
 
   AlbumBloc() : super(AlbumInitState()) {
     on<LoadAlbumEvent>((event, emit) async {
@@ -19,47 +21,40 @@ class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
           nftLoadingState: NftLoadingState.loading,
         ),
       );
+      List<AssetToken> assetTokens = [];
       if (event.type == AlbumType.artist) {
-        final assetTokens = await _assetTokenDao.findAllAssetTokensByArtistID(
-          event.id ?? '',
+        assetTokens = await _assetTokenDao.findAllAssetTokensByArtistID(
+          artistID: event.id ?? '',
         );
-        final tokens = assetTokens
-            .map((e) => CompactedAssetToken.fromAssetToken(e))
-            .toList();
-        emit(
-          AlbumLoadedState(
-            assetTokens: tokens,
-            nftLoadingState: NftLoadingState.done,
-          ),
-        );
-        return;
       }
       if (event.type == AlbumType.medium) {
         final isOther = event.id == MediumCategory.other;
         final mimeTypes = isOther
             ? MediumCategoryExt.getAllMimeType()
             : MediumCategory.mineTypes(event.id ?? '');
-        final assetTokens = await _assetTokenDao.findAllAssetTokensByMimeTypes(
+        assetTokens = await _assetTokenDao.findAllAssetTokensByMimeTypes(
           mimeTypes: mimeTypes,
           isInMimeTypes: !isOther,
         );
-        final tokens = assetTokens
-            .map((e) => CompactedAssetToken.fromAssetToken(e))
-            .toList()
-            .where((element) =>
-                element.title
-                    ?.toLowerCase()
-                    .contains(event.filterStr.toLowerCase()) ??
-                false)
-            .toList();
-        emit(
-          AlbumLoadedState(
-            assetTokens: tokens,
-            nftLoadingState: NftLoadingState.done,
-          ),
-        );
-        return;
       }
+      final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
+      assetTokens.removeWhere((element) => hiddenTokenIDs.contains(element));
+      final tokens = assetTokens
+          .map((e) => CompactedAssetToken.fromAssetToken(e))
+          .toList()
+          .where((element) =>
+              element.title
+                  ?.toLowerCase()
+                  .contains(event.filterStr.toLowerCase()) ??
+              false)
+          .toList();
+      emit(
+        AlbumLoadedState(
+          assetTokens: tokens,
+          nftLoadingState: NftLoadingState.done,
+        ),
+      );
+      return;
     });
   }
 }
