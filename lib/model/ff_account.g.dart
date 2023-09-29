@@ -43,7 +43,9 @@ Exhibition _$ExhibitionFromJson(Map<String, dynamic> json) => Exhibition(
       json['title'] as String,
       json['slug'] as String,
       DateTime.parse(json['exhibitionStartAt'] as String),
-      DateTime.parse(json['exhibitionEndAt'] as String),
+      json['exhibitionEndAt'] == null
+          ? null
+          : DateTime.parse(json['exhibitionEndAt'] as String),
       json['coverURI'] as String?,
       json['thumbnailCoverURI'] as String?,
       (json['artists'] as List<dynamic>?)
