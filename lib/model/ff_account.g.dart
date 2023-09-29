@@ -69,7 +69,7 @@ Map<String, dynamic> _$ExhibitionToJson(Exhibition instance) =>
       'title': instance.title,
       'slug': instance.slug,
       'exhibitionStartAt': instance.exhibitionStartAt.toIso8601String(),
-      'exhibitionEndAt': instance.exhibitionEndAt.toIso8601String(),
+      'exhibitionEndAt': instance.exhibitionEndAt?.toIso8601String(),
       'coverURI': instance.coverURI,
       'thumbnailCoverURI': instance.thumbnailCoverURI,
       'mintBlockchain': instance.mintBlockchain,
