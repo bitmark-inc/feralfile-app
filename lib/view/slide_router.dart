@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class SlideRoute extends PageRoute<void> {
+class SlidableRoute extends PageRoute<void> {
   final Color color;
 
-  SlideRoute({
+  SlidableRoute({
     required this.builder,
     this.color = Colors.transparent,
     RouteSettings? settings,

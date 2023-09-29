@@ -266,7 +266,7 @@ class UIHelper {
 
     await Navigator.push(
       context,
-      SlideRoute(
+      SlidableRoute(
         color: AppColor.primaryBlack.withOpacity(0.4),
         builder: (context) {
           return Scaffold(
