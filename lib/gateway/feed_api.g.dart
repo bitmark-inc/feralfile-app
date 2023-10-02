@@ -95,7 +95,7 @@ class _FeedApi implements FeedApi {
     )
             .compose(
               _dio.options,
-              '/v2/follows',
+              '/v1/follows',
               queryParameters: queryParameters,
               data: _data,
             )
