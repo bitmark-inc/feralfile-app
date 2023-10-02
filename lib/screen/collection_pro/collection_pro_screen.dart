@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -338,11 +337,11 @@ class _AlbumSectionState extends State<AlbumSection> {
           width: 42,
           height: 42,
         );
-        return CachedNetworkImage(
-          imageUrl: album.thumbnailURL ?? "",
-          width: 42,
-          height: 42,
-        );
+      // return CachedNetworkImage(
+      //   imageUrl: album.thumbnailURL ?? "",
+      //   width: 42,
+      //   height: 42,
+      // );
     }
   }
 
@@ -393,24 +392,28 @@ class _AlbumSectionState extends State<AlbumSection> {
         children: [
           _header(context, listAlbum.length),
           addDivider(color: AppColor.primaryBlack),
-          ListView.separated(
+          CustomScrollView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: listAlbum.length,
-            itemBuilder: (context, index) {
-              final album = listAlbum[index];
-              final albumName = album.name ?? album.id;
-              if (widget.identityMap?[albumName] != null) {
-                album.name = widget.identityMap?[albumName];
-              }
-              if (album.name == album.id) {
-                album.name = album.name?.maskOnly(5);
-              }
-              return _item(context, album);
-            },
-            separatorBuilder: (BuildContext context, int index) {
-              return addDivider();
-            },
+            slivers: [
+              SliverList.separated(
+                separatorBuilder: (BuildContext context, int index) {
+                  return addDivider();
+                },
+                itemBuilder: (BuildContext context, int index) {
+                  final album = listAlbum[index];
+                  final albumName = album.name ?? album.id;
+                  if (widget.identityMap?[albumName] != null) {
+                    album.name = widget.identityMap?[albumName];
+                  }
+                  if (album.name == album.id) {
+                    album.name = album.name?.maskOnly(5);
+                  }
+                  return _item(context, album);
+                },
+                itemCount: listAlbum.length,
+              )
+            ],
           ),
         ],
       ),
