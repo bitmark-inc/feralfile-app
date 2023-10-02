@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/text_field.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -38,18 +39,21 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   final bloc = injector.get<AddNewPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>();
   final _playlistNameC = TextEditingController();
+  final _focusNode = FocusNode();
 
   final _formKey = GlobalKey<FormState>();
   List<AssetToken> tokensPlaylist = [];
   final _controller = ScrollController();
   late String _searchText;
+  late String _playlistName;
 
   @override
   void initState() {
     _searchText = '';
+    _playlistName = 'new_collection'.tr();
     super.initState();
 
-    _playlistNameC.text = widget.playListModel?.name ?? '';
+    _playlistNameC.text = _playlistName;
     _controller.addListener(_scrollListenerToLoadMore);
     refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
@@ -138,9 +142,28 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
             playlistName.isNotEmpty && selectedIDs?.isNotEmpty == true;
         return Scaffold(
           backgroundColor: theme.colorScheme.background, //theme.primaryColor,
-          appBar: getDoneAppBar(
+          appBar: getCustomDoneAppBar(
             context,
-            title: "new_collection".tr(),
+            title: TextFieldWidget(
+              focusNode: _focusNode,
+              hintText: tr('untitled'),
+              controller: _playlistNameC,
+              cursorColor: theme.colorScheme.primary,
+              style: theme.textTheme.ppMori400Black14,
+              hintStyle: theme.textTheme.ppMori400Grey14,
+              textAlign: TextAlign.center,
+              border: InputBorder.none,
+              onFieldSubmitted: (value) {
+                setState(() {
+                  _playlistName = value;
+                });
+              },
+              onChanged: (value) {
+                setState(() {
+                  _playlistName = value;
+                });
+              },
+            ),
             onDone: !isDone
                 ? null
                 : () {
@@ -171,12 +194,6 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                 bloc: nftBloc,
                 builder: (context, nftState) {
-                  final selectedCount = nftState.tokens.items
-                      .where((element) =>
-                          state.selectedIDs?.contains(element.id) ?? false)
-                      .length;
-                  final isSelectedAll = selectedCount == state.tokens?.length;
-                  const underLine = UnderlineInputBorder();
                   return SafeArea(
                     top: false,
                     bottom: false,
@@ -186,83 +203,6 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                           key: _formKey,
                           child: Column(
                             children: [
-                              const SizedBox(
-                                height: 40,
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextFormField(
-                                            controller: _playlistNameC,
-                                            cursorColor: AppColor.primaryBlack,
-                                            style: theme
-                                                .textTheme.ppMori400Black14,
-                                            decoration: InputDecoration(
-                                              hintText: tr('collection_title'),
-                                              hintStyle: theme
-                                                  .textTheme.ppMori400Grey14,
-                                              border: underLine,
-                                              focusedBorder: underLine,
-                                              enabledBorder: underLine,
-                                            ),
-                                            onChanged: (text) {
-                                              if (text.length <= 1) {
-                                                setState(() {});
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 122,
-                                          child: Row(
-                                            children: [
-                                              const Spacer(),
-                                              GestureDetector(
-                                                onTap: () => bloc.add(
-                                                    SelectItemPlaylist(
-                                                        isSelectAll:
-                                                            !isSelectedAll)),
-                                                child: Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                      border: Border.all(),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              64),
-                                                      color: isSelectedAll
-                                                          ? AppColor
-                                                              .primaryBlack
-                                                          : AppColor.white),
-                                                  child: isSelectedAll
-                                                      ? Text(
-                                                          tr('unselect_all'),
-                                                          style: theme.textTheme
-                                                              .ppMori400White12,
-                                                        )
-                                                      : Text(
-                                                          tr('select_all'),
-                                                          style: theme.textTheme
-                                                              .ppMori400Black12,
-                                                        ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
                               const SizedBox(
                                 height: 40,
                               ),

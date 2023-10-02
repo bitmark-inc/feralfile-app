@@ -312,5 +312,59 @@ AppBar getDoneAppBar(
   );
 }
 
+AppBar getCustomDoneAppBar(
+  BuildContext context, {
+  required Widget title,
+  Function()? onDone,
+  Function()? onCancel,
+  PreferredSize? bottom,
+  bool isWhite = true,
+}) {
+  final theme = Theme.of(context);
+  return AppBar(
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: isWhite ? AppColor.white : AppColor.primaryBlack,
+      statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
+      statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
+    ),
+    elevation: 1,
+    leadingWidth: 80,
+    leading: GestureDetector(
+      onTap: onCancel,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 14),
+        child: Center(
+          child: Text(
+            tr('cancel'),
+            style: theme.textTheme.ppMori400Black14,
+          ),
+        ),
+      ),
+    ),
+    actions: [
+      Padding(
+        padding: const EdgeInsets.only(right: 14),
+        child: GestureDetector(
+          onTap: onDone,
+          child: Center(
+            child: Text(
+              tr('done'),
+              style: (onDone != null)
+                  ? theme.textTheme.ppMori700Black14
+                  : theme.textTheme.ppMori700Black14
+                      .copyWith(color: AppColor.disabledColor),
+            ),
+          ),
+        ),
+      ),
+    ],
+    backgroundColor: theme.colorScheme.background,
+    automaticallyImplyLeading: false,
+    centerTitle: true,
+    title: title,
+    bottom: bottom,
+  );
+}
+
 // class MomaPallet to save colors
 // Path: lib/util/style.dart

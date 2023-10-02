@@ -195,16 +195,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 focusNode: _focusNode,
                 playList: playList,
                 onEditPlaylistName: (value) {
-                  bloc.add(SavePlaylist());
+                  bloc.add(UpdateNamePlaylist(name: value));
                 },
-              )
-              //   Text(
-              //   (playList?.name?.isNotEmpty ?? false)
-              //       ? playList!.name!
-              //       : tr('untitled'),
-              //   style: theme.textTheme.ppMori400Black14,
-              // ),
-              ),
+              )),
           body: SafeArea(
             bottom: false,
             child: Stack(
