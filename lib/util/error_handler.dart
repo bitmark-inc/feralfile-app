@@ -39,6 +39,13 @@ enum ErrorItemState {
   seeAccount,
 }
 
+const onlySentryExceptionIdentifier = [
+  "Future already completed",
+  "Out of Memory"
+];
+
+const connect_timeout = "Connect timeout";
+
 class ErrorEvent {
   Object? err;
   String title;
@@ -57,7 +64,7 @@ extension DioErrorEvent on DioException {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return ErrorEvent(null, "Connect timeout",
+        return ErrorEvent(null, connect_timeout,
             "Check your connection and try again.", ErrorItemState.tryAgain);
       case DioExceptionType.badResponse:
         if ((response?.statusCode ?? 0) / 100 == 5) {
@@ -113,8 +120,8 @@ ErrorEvent? translateError(Object exception) {
 }
 
 bool onlySentryException(Object exception) {
-  if (exception.toString().contains("Future already completed") ||
-      exception.toString().contains("Out of Memory")) {
+  if (onlySentryExceptionIdentifier
+      .any((element) => exception.toString().contains(element))) {
     return true;
   }
 
@@ -321,6 +328,9 @@ Future<bool> showErrorDialogFromException(Object exception,
         ),
       );
       return true;
+    } else if (event.title == connect_timeout) {
+      Sentry.captureException(exception, stackTrace: stackTrace);
+      return false;
     } else {
       navigationService.showErrorDialog(event);
       return true;
