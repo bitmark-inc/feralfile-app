@@ -196,6 +196,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                       onTap: () {
                                         setState(() {
                                           fillRandomColor();
+                                          _didPaint = true;
                                         });
                                       },
                                       text: "randomize".tr(),
