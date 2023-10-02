@@ -34,20 +34,15 @@ import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
-enum CollectionType {
-  manual,
-  auto,
-}
+enum CollectionType { manual, medium, artist }
 
 class ViewPlaylistScreenPayload {
   final PlayListModel? playListModel;
-  final bool editable;
   final CollectionType collectionType;
   final Widget? titleIcon;
 
   const ViewPlaylistScreenPayload(
       {this.playListModel,
-      this.editable = true,
       this.titleIcon,
       this.collectionType = CollectionType.manual});
 }
@@ -71,10 +66,33 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
   late SortOrder _sortOrder;
+  late bool editable;
+
+  List<SortOrder> _getAvailableOrders() {
+    if (widget.payload.collectionType == CollectionType.artist) {
+      return [
+        SortOrder.title,
+        SortOrder.newest,
+      ];
+    }
+    if (widget.payload.collectionType == CollectionType.medium) {
+      return [
+        SortOrder.title,
+        SortOrder.artist,
+        SortOrder.newest,
+      ];
+    }
+    return [
+      SortOrder.manual,
+      SortOrder.title,
+      SortOrder.artist,
+    ];
+  }
 
   @override
   void initState() {
-    _sortOrder = SortOrder.title;
+    _sortOrder = _getAvailableOrders().first;
+    editable = widget.payload.collectionType == CollectionType.manual;
     super.initState();
 
     nftBloc.add(RefreshNftCollectionByIDs(
@@ -161,9 +179,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     children: [
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 3),
+                          padding: const EdgeInsets.only(top: 3, left: 37),
                           child: Text(
-                            "Sort by:",
+                            "sort_by".tr(),
                             style: theme.textTheme.ppMori400Black14,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -298,19 +316,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         UpdatePlayControl(playControlModel: playControlModel.onChangeTime()));
   }
 
-  List<SortOrder> _getAvailableOrders() {
-    return [
-      SortOrder.title,
-      SortOrder.artist,
-      SortOrder.newest,
-      SortOrder.oldest
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final editable = widget.payload.editable;
     return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
       bloc: bloc,
       listener: (context, state) {},
@@ -326,12 +334,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             elevation: 0,
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
-              child: Row(
+              child: const Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 15,
                   ),
-                  const Icon(
+                  Icon(
                     AuIcon.chevron,
                     size: 18,
                   ),
@@ -521,7 +529,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           right: 0,
           child: Column(
             children: [
-              if (widget.payload.editable)
+              if (editable)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: Center(
@@ -624,7 +632,7 @@ enum SortOrder {
   title,
   artist,
   newest,
-  oldest;
+  manual;
 
   String get text {
     switch (this) {
@@ -634,8 +642,8 @@ enum SortOrder {
         return tr('sort_by_artist');
       case SortOrder.newest:
         return tr('sort_by_newest');
-      case SortOrder.oldest:
-        return tr('sort_by_oldest');
+      case SortOrder.manual:
+        return tr('sort_by_manual');
     }
   }
 
@@ -647,8 +655,8 @@ enum SortOrder {
         return a.artistID?.compareTo(b.artistID ?? "") ?? 1;
       case SortOrder.newest:
         return b.lastActivityTime.compareTo(a.lastActivityTime);
-      case SortOrder.oldest:
-        return a.lastActivityTime.compareTo(b.lastActivityTime);
+      case SortOrder.manual:
+        return 1;
     }
   }
 }

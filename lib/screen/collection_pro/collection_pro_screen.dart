@@ -48,14 +48,10 @@ class CollectionProState extends State<CollectionPro>
     with RouteAware, WidgetsBindingObserver {
   final _bloc = injector.get<CollectionProBloc>();
   final _identityBloc = injector.get<IdentityBloc>();
-  final controller = ScrollController();
+  late ScrollController _scrollController;
   late ValueNotifier<String> searchStr;
   late bool isSearching;
-  final SectionInfo sectionInfo = SectionInfo(state: {
-    CollectionProSection.collection: true,
-    CollectionProSection.medium: true,
-    CollectionProSection.artist: true,
-  });
+  late bool isShowFullHeader;
 
   @override
   void initState() {
@@ -65,6 +61,9 @@ class CollectionProState extends State<CollectionPro>
       loadCollection();
     });
     isSearching = false;
+    isShowFullHeader = true;
+    _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListenerShowfullHeader);
     loadCollection();
     super.initState();
   }
@@ -77,7 +76,7 @@ class CollectionProState extends State<CollectionPro>
 
   @override
   dispose() {
-    controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -85,6 +84,22 @@ class CollectionProState extends State<CollectionPro>
   void didPopNext() {
     loadCollection();
     super.didPopNext();
+  }
+
+  _scrollListenerShowfullHeader() {
+    if (_scrollController.offset > 50) {
+      if (isShowFullHeader) {
+        setState(() {
+          isShowFullHeader = false;
+        });
+      }
+    } else {
+      if (!isShowFullHeader) {
+        setState(() {
+          isShowFullHeader = true;
+        });
+      }
+    }
   }
 
   loadCollection() {
@@ -126,7 +141,8 @@ class CollectionProState extends State<CollectionPro>
                     body: Stack(
                       children: [
                         CustomScrollView(
-                          controller: controller,
+                          shrinkWrap: true,
+                          controller: _scrollController,
                           slivers: [
                             SliverAppBar(
                               pinned: isSearching,
@@ -137,8 +153,10 @@ class CollectionProState extends State<CollectionPro>
                               shadowColor: Colors.transparent,
                               flexibleSpace: Column(
                                 children: [
-                                  headDivider(),
-                                  const SizedBox(height: 22),
+                                  if (isShowFullHeader) ...[
+                                    headDivider(),
+                                    const SizedBox(height: 22),
+                                  ],
                                   SizedBox(
                                     height: 50,
                                     child: !isSearching

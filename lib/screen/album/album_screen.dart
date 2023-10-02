@@ -75,10 +75,15 @@ class _AlbumScreenState extends State<AlbumScreen> {
                     colorFilter: const ColorFilter.mode(
                         AppColor.primaryBlack, BlendMode.srcIn))
                 : null;
+            final collectionType = albumType == AlbumType.medium
+                ? CollectionType.medium
+                : CollectionType.artist;
             Navigator.of(context).pushReplacementNamed(
                 AppRouter.viewPlayListPage,
                 arguments: ViewPlaylistScreenPayload(
-                    playListModel: playlist, editable: false, titleIcon: icon));
+                    playListModel: playlist,
+                    titleIcon: icon,
+                    collectionType: collectionType));
           }
         },
       ),
