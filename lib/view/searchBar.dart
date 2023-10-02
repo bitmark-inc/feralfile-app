@@ -6,8 +6,10 @@ import 'package:flutter_svg/svg.dart';
 
 class AuSearchBar extends StatefulWidget {
   final Function(String)? onChanged;
+  final Function(String)? onSearch;
+  final Function(String)? onClear;
 
-  const AuSearchBar({super.key, this.onChanged});
+  const AuSearchBar({super.key, this.onChanged, this.onSearch, this.onClear});
 
   @override
   State<AuSearchBar> createState() => _SearchBarState();
@@ -68,6 +70,9 @@ class _SearchBarState extends State<AuSearchBar> {
                     });
                   }
                 },
+                onSubmitted: (value) {
+                  widget.onSearch?.call(value);
+                },
               ),
             ),
           ),
@@ -76,6 +81,7 @@ class _SearchBarState extends State<AuSearchBar> {
             GestureDetector(
               onTap: () {
                 _controller.clear();
+                widget.onClear?.call("");
                 widget.onChanged?.call("");
               },
               child: const Icon(
@@ -92,11 +98,9 @@ class _SearchBarState extends State<AuSearchBar> {
 
 class ActionBar extends StatefulWidget {
   final AuSearchBar searchBar;
-  final Function()? onSearch;
   final Function()? onCancel;
 
-  const ActionBar(
-      {super.key, required this.searchBar, this.onSearch, this.onCancel});
+  const ActionBar({super.key, required this.searchBar, this.onCancel});
 
   @override
   State<ActionBar> createState() => _ActionBarState();

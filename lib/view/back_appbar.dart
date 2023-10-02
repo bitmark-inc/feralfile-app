@@ -271,6 +271,7 @@ AppBar getDoneAppBar(
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
     elevation: 1,
+    shadowColor: Colors.transparent,
     leadingWidth: 80,
     leading: GestureDetector(
       onTap: onCancel,
@@ -327,6 +328,7 @@ AppBar getCustomDoneAppBar(
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
+    shadowColor: Colors.transparent,
     elevation: 1,
     leadingWidth: 80,
     leading: GestureDetector(

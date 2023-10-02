@@ -2,17 +2,24 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/edit_playlist_gridview.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -22,7 +29,6 @@ import '../../../util/string_ext.dart';
 import '../../../util/token_ext.dart';
 import 'edit_playlist_bloc.dart';
 import 'edit_playlist_state.dart';
-import 'widgets/edit_playlist_gridview.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlayListModel? playListModel;
@@ -38,11 +44,17 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final nftBloc = injector.get<NftCollectionBloc>(param1: false);
   List<CompactedAssetToken> tokensPlaylist = [];
   final _focusNode = FocusNode();
+  late bool _showSearchBar;
+  late String _searchText;
+  late ScrollController _controller;
 
   @override
   void initState() {
     super.initState();
-
+    _showSearchBar = false;
+    _searchText = '';
+    _controller = ScrollController();
+    _controller.addListener(_scrollListenerToShowSearchBar);
     nftBloc.add(RefreshNftCollectionByIDs(ids: widget.playListModel?.tokenIDs));
     bloc.add(InitPlayList(
       playListModel: widget.playListModel?.copyWith(
@@ -78,6 +90,23 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     tokensPlaylist = List.from(temp);
 
     return tokensPlaylist;
+  }
+
+  _scrollListenerToShowSearchBar() {
+    if (_controller.position.pixels <= 10 &&
+        _controller.position.userScrollDirection == ScrollDirection.forward) {
+      setState(() {
+        _showSearchBar = true;
+      });
+    }
+  }
+
+  _scrollToTop() {
+    _controller.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void onSave(PlayListModel? playList) {
@@ -136,6 +165,41 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             );
   }
 
+  Widget _assetsWidget(
+    BuildContext context,
+    List<CompactedAssetToken> tokens, {
+    Function(String tokenID, bool value)? onChanged,
+    List<String>? selectedTokens,
+  }) {
+    int cellPerRow =
+        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
+
+    final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
+        cellSpacing * (cellPerRow - 1);
+    final cachedImageSize = (estimatedCellWidth * 3).ceil();
+
+    return GridView.builder(
+      controller: _controller,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: cellPerRow,
+        crossAxisSpacing: cellSpacing,
+        mainAxisSpacing: cellSpacing,
+      ),
+      itemBuilder: (context, index) {
+        return ThumbnailPlaylistItem(
+          token: tokens[index],
+          cachedImageSize: cachedImageSize,
+          isSelected: selectedTokens?.contains(tokens[index].id) ?? false,
+          onChanged: (value) {
+            onChanged?.call(tokens[index].id, value ?? false);
+          },
+          usingThumbnailID: index > 50,
+        );
+      },
+      itemCount: tokens.length,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -157,47 +221,22 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
         final selectedItem = state.selectedItem ?? [];
 
         return Scaffold(
-          appBar: AppBar(
-              elevation: 1,
-              leadingWidth: 80,
-              leading: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 14),
-                  child: Center(
-                    child: Text(
-                      tr('cancel'),
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                  ),
-                ),
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 14),
-                  child: GestureDetector(
-                    onTap: () {
-                      onSave(playList);
-                    },
-                    child: Center(
-                      child: Text(
-                        tr('done'),
-                        style: theme.textTheme.ppMori700Black14,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              backgroundColor: theme.colorScheme.background,
-              automaticallyImplyLeading: false,
-              centerTitle: true,
-              title: TextNamePlaylist(
-                focusNode: _focusNode,
-                playList: playList,
-                onEditPlaylistName: (value) {
-                  bloc.add(UpdateNamePlaylist(name: value));
-                },
-              )),
+          appBar: getCustomDoneAppBar(
+            context,
+            title: TextNamePlaylist(
+              focusNode: _focusNode,
+              playList: playList,
+              onEditPlaylistName: (value) {
+                bloc.add(UpdateNamePlaylist(name: value));
+              },
+            ),
+            onDone: () {
+              onSave(playList);
+            },
+            onCancel: () {
+              Navigator.of(context).pop();
+            },
+          ),
           body: SafeArea(
             bottom: false,
             child: Stack(
@@ -221,42 +260,85 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                   padding: const EdgeInsets.only(
                                       left: 14, right: 14, top: 24, bottom: 15),
                                   child: tokenEmptyAction(theme, playList)),
-                            Expanded(
-                              child: EditPlaylistGridView(
-                                onAddTap: () => Navigator.pushNamed(
-                                  context,
-                                  AppRouter.createPlayListPage,
-                                  arguments: playList,
-                                ).then((value) {
-                                  if (value != null && value is PlayListModel) {
-                                    bloc.add(SavePlaylist());
-                                  }
-                                }),
-                                tokens: listToken,
-                                onReorder: (tokens) {
-                                  final tokenIDs =
-                                      tokens.map((e) => e?.id ?? '').toList();
-                                  bloc.add(
-                                    UpdateOrderPlaylist(
-                                      tokenIDs: tokenIDs,
-                                      thumbnailURL: tokens
-                                          .where((element) =>
-                                              element?.id ==
-                                              tokenIDs.firstOrDefault())
-                                          .firstOrDefault()
-                                          ?.getGalleryThumbnailUrl(),
+                            if (_showSearchBar)
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        15, 20, 15, 18),
+                                    child: ActionBar(
+                                      searchBar: AuSearchBar(
+                                        onChanged: (text) {
+                                          setState(() {
+                                            _searchText = text;
+                                          });
+                                        },
+                                      ),
+                                      onCancel: () {
+                                        setState(() {
+                                          _searchText = '';
+                                          _showSearchBar = false;
+                                        });
+                                        _scrollToTop();
+                                      },
                                     ),
-                                  );
-                                },
-                                selectedTokens: selectedItem,
-                                onChangedSelect: (tokenID, value) => bloc.add(
-                                  UpdateSelectedPlaylist(
-                                    tokenID: tokenID,
-                                    value: value,
+                                  ),
+                                  addOnlyDivider(),
+                                ],
+                              ),
+                            if (_showSearchBar)
+                              Expanded(
+                                child: _assetsWidget(
+                                  context,
+                                  listToken,
+                                  onChanged: (tokenID, value) => bloc.add(
+                                    UpdateSelectedPlaylist(
+                                      tokenID: tokenID,
+                                      value: value,
+                                    ),
+                                  ),
+                                  selectedTokens: selectedItem,
+                                ),
+                              )
+                            else
+                              Expanded(
+                                child: EditPlaylistGridView(
+                                  controller: _controller,
+                                  onAddTap: () => Navigator.pushNamed(
+                                    context,
+                                    AppRouter.createPlayListPage,
+                                    arguments: playList,
+                                  ).then((value) {
+                                    if (value != null &&
+                                        value is PlayListModel) {
+                                      bloc.add(SavePlaylist());
+                                    }
+                                  }),
+                                  tokens: listToken,
+                                  onReorder: (tokens) {
+                                    final tokenIDs =
+                                        tokens.map((e) => e?.id ?? '').toList();
+                                    bloc.add(
+                                      UpdateOrderPlaylist(
+                                        tokenIDs: tokenIDs,
+                                        thumbnailURL: tokens
+                                            .where((element) =>
+                                                element?.id ==
+                                                tokenIDs.firstOrDefault())
+                                            .firstOrDefault()
+                                            ?.getGalleryThumbnailUrl(),
+                                      ),
+                                    );
+                                  },
+                                  selectedTokens: selectedItem,
+                                  onChangedSelect: (tokenID, value) => bloc.add(
+                                    UpdateSelectedPlaylist(
+                                      tokenID: tokenID,
+                                      value: value,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
                           ],
                         );
                       },

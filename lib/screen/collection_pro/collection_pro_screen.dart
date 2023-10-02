@@ -169,17 +169,16 @@ class CollectionProState extends State<CollectionPro>
                                                       horizontal: 15),
                                               child: ActionBar(
                                                 searchBar: AuSearchBar(
-                                                  onChanged: (text) {
+                                                  onChanged: (text) {},
+                                                  onSearch: (text) {
                                                     setState(() {
                                                       searchStr.value = text;
                                                     });
+                                                    setState(() {
+                                                      isSearching = true;
+                                                    });
                                                   },
                                                 ),
-                                                onSearch: () {
-                                                  setState(() {
-                                                    isSearching = true;
-                                                  });
-                                                },
                                                 onCancel: () {
                                                   setState(() {
                                                     searchStr.value = '';

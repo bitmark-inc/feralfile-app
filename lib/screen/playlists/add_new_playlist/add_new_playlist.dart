@@ -9,14 +9,17 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_flutter/view/text_field.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/address_index.dart';
@@ -40,6 +43,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   final nftBloc = injector.get<NftCollectionBloc>();
   final _playlistNameC = TextEditingController();
   final _focusNode = FocusNode();
+  late bool _isShowSearchBar;
 
   final _formKey = GlobalKey<FormState>();
   List<AssetToken> tokensPlaylist = [];
@@ -51,10 +55,12 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
   void initState() {
     _searchText = '';
     _playlistName = 'new_collection'.tr();
+    _isShowSearchBar = false;
     super.initState();
 
     _playlistNameC.text = _playlistName;
     _controller.addListener(_scrollListenerToLoadMore);
+    _controller.addListener(_scrollListenerToShowSearchBar);
     refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     });
@@ -72,6 +78,20 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
         _controller.position.maxScrollExtent) {
       _loadMore();
     }
+  }
+
+  _scrollListenerToShowSearchBar() {
+    if (_controller.position.pixels <= 10 &&
+        _controller.position.userScrollDirection == ScrollDirection.forward) {
+      setState(() {
+        _isShowSearchBar = true;
+      });
+    }
+  }
+
+  _scrollToTop() {
+    _controller.animateTo(0,
+        duration: Duration(milliseconds: 500), curve: Curves.ease);
   }
 
   _loadMore() {
@@ -203,9 +223,34 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                           key: _formKey,
                           child: Column(
                             children: [
-                              const SizedBox(
-                                height: 40,
-                              ),
+                              if (_isShowSearchBar)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(15, 20, 15, 18),
+                                  child: ActionBar(
+                                    searchBar: AuSearchBar(
+                                      onChanged: (value) {},
+                                      onSearch: (value) {
+                                        setState(() {
+                                          _searchText = value;
+                                        });
+                                      },
+                                      onClear: (value) {
+                                        setState(() {
+                                          _searchText = '';
+                                        });
+                                      },
+                                    ),
+                                    onCancel: () {
+                                      setState(() {
+                                        _searchText = '';
+                                        _isShowSearchBar = false;
+                                      });
+                                      _scrollToTop();
+                                    },
+                                  ),
+                                ),
+                              addOnlyDivider(),
                               Expanded(
                                 child: NftCollectionGrid(
                                   state: nftState.state,
@@ -222,7 +267,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                                     selectedTokens: state.selectedIDs,
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
