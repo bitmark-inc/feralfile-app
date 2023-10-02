@@ -12,9 +12,11 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
@@ -57,6 +59,7 @@ class _StampPreviewState extends State<StampPreview> {
   final _postcardService = injector<PostcardService>();
   final _tokenService = injector<TokensService>();
   final _navigationService = injector<NavigationService>();
+  final _metricClientService = injector<MetricClientService>();
 
   @override
   void initState() {
@@ -168,6 +171,39 @@ class _StampPreviewState extends State<StampPreview> {
           }
         },
       ),
+        OptionItem(
+          title: 'download_postcard'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/download.svg',
+            width: 24,
+            height: 24,
+          ),
+          iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                  AppColor.disabledColor, BlendMode.srcIn)),
+          onTap: () async {
+            try {
+              await _postcardService.downloadPostcard(assetToken.tokenId!);
+              if (!mounted) return;
+              Navigator.of(context).pop();
+              await UIHelper.showPostcardSaved(context);
+            } catch (e) {
+              log.info("Download postcard failed: error ${e.toString()}");
+              if (!mounted) return;
+              Navigator.of(context).pop();
+              switch (e.runtimeType) {
+                case MediaPermissionException:
+                  await UIHelper.showPostcardPhotoAccessFailed(context);
+                  break;
+                default:
+                  if (!mounted) return;
+                  await UIHelper.showPostcardSavedFailed(context);
+              }
+            }
+          },
+        ),
     ];
     await UIHelper.showPostcardDrawerAction(context, options: options);
   }
@@ -340,6 +376,10 @@ class _StampPreviewState extends State<StampPreview> {
       return false;
     } else {
       log.info("[POSTCARD] Stamp success");
+      _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
+        'postcardId': asset.tokenId,
+        'index': counter,
+      });
       await _postcardService.updateStampingPostcard([
         StampingPostcard(
           indexId: asset.id,

@@ -31,7 +31,6 @@ class MessagePreview extends StatefulWidget {
 
 class _MessagePreviewState extends State<MessagePreview> {
   final ChatService _postcardChatService = injector<ChatService>();
-  Pair<WalletStorage, int>? _wallet;
   app.Message? _lastMessage;
   late AssetToken _assetToken;
   int _newMessageCount = 0;
@@ -48,15 +47,10 @@ class _MessagePreviewState extends State<MessagePreview> {
 
   Future<void> _websocketInit() async {
     _newMessageCount = 0;
-    final wallet = await widget.payload.asset.getOwnerWallet();
-    if (wallet == null) {
-      return;
-    }
-    _wallet = wallet;
     final address = widget.payload.asset.owner;
     final id = widget.payload.asset.id;
     await _postcardChatService.connect(
-        address: address, id: id, wallet: wallet);
+        address: address, id: id, wallet: widget.payload.wallet);
     _chatListener = ChatListener(
       onNewMessages: (newMessages) {
         if (newMessages.isNotEmpty) {
@@ -115,69 +109,61 @@ class _MessagePreviewState extends State<MessagePreview> {
         color: AppColor.white,
       ),
       padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          _wallet == null
-              ? const Row(
-                  children: [Spacer()],
-                )
-              : TappableForwardRowWithContent(
-                  padding: const EdgeInsets.all(0),
-                  leftWidget: Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        "messages".tr(),
-                        style: theme.textTheme.moMASans700Black18,
-                      ),
-                      const SizedBox(width: 30),
-                      Text(_getNewMessageString(_newMessageCount),
-                          style: theme.textTheme.moMASans400Black14.copyWith(
-                              color: const Color.fromRGBO(236, 100, 99, 1),
-                              fontSize: 10)),
-                    ],
-                  ),
-                  onTap: () async {
-                    if (!mounted) return;
-                    await Navigator.of(context).pushNamed(
-                      ChatThreadPage.tag,
-                      arguments: ChatThreadPagePayload(
-                          token: _assetToken,
-                          wallet: _wallet!,
-                          address: _assetToken.owner,
-                          cryptoType: _assetToken.blockchain == "ethereum"
-                              ? CryptoType.ETH
-                              : CryptoType.XTZ,
-                          name: _assetToken.title ?? ''),
-                    );
-                    setState(() {
-                      _newMessageCount = 0;
-                    });
-                  },
-                  bottomWidget: _lastMessage == null
-                      ? _didFetch
-                          ? Text(
-                              "no_message_start".tr(),
-                              style: theme.textTheme.moMASans400Black12
-                                  .copyWith(color: AppColor.auQuickSilver),
-                            )
-                          : const SizedBox()
-                      : Row(
-                          children: [
-                            Expanded(
-                              child: MessageView(
-                                message: _lastMessage!.toTypesMessage(),
-                                assetToken: _assetToken,
-                                text: _lastMessage!.message,
-                                expandAll: false,
-                                showFullTime: true,
-                              ),
-                            )
-                          ],
-                        ),
-                ),
-        ],
+      child: TappableForwardRowWithContent(
+        padding: const EdgeInsets.all(0),
+        leftWidget: Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              "messages".tr(),
+              style: theme.textTheme.moMASans700Black18,
+            ),
+            const SizedBox(width: 30),
+            Text(_getNewMessageString(_newMessageCount),
+                style: theme.textTheme.moMASans400Black14.copyWith(
+                    color: const Color.fromRGBO(236, 100, 99, 1),
+                    fontSize: 10)),
+          ],
+        ),
+        onTap: () async {
+          await Navigator.of(context).pushNamed(
+            ChatThreadPage.tag,
+            arguments: ChatThreadPagePayload(
+                token: _assetToken,
+                wallet: widget.payload.wallet,
+                address: _assetToken.owner,
+                cryptoType: _assetToken.blockchain == "ethereum"
+                    ? CryptoType.ETH
+                    : CryptoType.XTZ,
+                name: _assetToken.title ?? ''),
+          );
+          setState(() {
+            _newMessageCount = 0;
+            _assetToken = widget.payload.getAssetToken() ?? _assetToken;
+          });
+        },
+        bottomWidget: _lastMessage == null
+            ? _didFetch
+                ? Text(
+                    "no_message_start".tr(),
+                    style: theme.textTheme.moMASans400Black12
+                        .copyWith(color: AppColor.auQuickSilver),
+                  )
+                : const SizedBox()
+            : Row(
+                children: [
+                  Expanded(
+                    child: MessageView(
+                      message: _lastMessage!.toTypesMessage(),
+                      assetToken: _assetToken,
+                      text: _lastMessage!.message,
+                      expandAll: false,
+                      showFullTime: true,
+                    ),
+                  )
+                ],
+              ),
       ),
     );
   }
@@ -191,20 +177,15 @@ class _MessagePreviewState extends State<MessagePreview> {
     }
     return "_new".tr(args: [num.toString()]);
   }
-
-  @override
-  void dispose() {
-    if (_chatListener != null) {
-      _postcardChatService.removeListener(_chatListener!);
-    }
-    super.dispose();
-  }
 }
 
 class MessagePreviewPayload {
   final AssetToken asset;
+  final Pair<WalletStorage, int> wallet;
+  final AssetToken? Function() getAssetToken;
 
-  const MessagePreviewPayload({required this.asset});
+  const MessagePreviewPayload(
+      {required this.asset, required this.wallet, required this.getAssetToken});
 }
 
 class MessageView extends StatelessWidget {

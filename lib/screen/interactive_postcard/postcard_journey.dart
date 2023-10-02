@@ -1,8 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -49,45 +47,28 @@ class _PostcardJourneyState extends State<PostcardJourney> {
   }
 
   Widget _locationAddress(BuildContext context,
-      {required int index,
-      required String address,
-      Color? overrideColor,
-      Function()? onTap}) {
+      {required int index, required String address, Color? overrideColor}) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            numberFormatter.format(index),
-            style: theme.textTheme.moMASans400Black12.copyWith(
-              color: overrideColor ?? AppColor.auQuickSilver,
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          numberFormatter.format(index),
+          style: theme.textTheme.moMASans400Black12.copyWith(
+            color: overrideColor ?? AppColor.auQuickSilver,
           ),
-          const SizedBox(width: 7),
-          Text(
-            address,
-            style: theme.textTheme.moMASans400Black12
-                .copyWith(color: overrideColor),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 7),
+        Text(
+          address,
+          style:
+              theme.textTheme.moMASans400Black12.copyWith(color: overrideColor),
+        ),
+      ],
     );
   }
 
-  void _gotoTripDetail(
-      BuildContext context, List<TravelInfo> listTravelInfo, int index) {
-    final assetToken = widget.assetToken;
-    Navigator.of(context).pushNamed(AppRouter.tripDetailPage,
-        arguments: TripDetailPayload(
-          stampIndex: index,
-          assetToken: assetToken,
-        ));
-  }
-
-  Widget _travelWidget(TravelInfo travelInfo,
-      {Function()? onTap, Color? overrideColor}) {
+  Widget _travelWidget(TravelInfo travelInfo, {Color? overrideColor}) {
     final theme = Theme.of(context);
     return Column(
       children: [
@@ -107,8 +88,7 @@ class _PostcardJourneyState extends State<PostcardJourney> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: _locationAddress(context,
               address: travelInfo.to.address ?? "",
-              index: travelInfo.index + 1,
-              onTap: onTap),
+              index: travelInfo.index + 1),
         ),
       ],
     );
@@ -253,11 +233,6 @@ class _PostcardJourneyState extends State<PostcardJourney> {
             address: 'postcard_starting_location'
                 .tr(namedArgs: {'location': moMAGeoLocation.address!}),
             index: 1,
-            onTap: () {
-              if (travelInfo.isNotEmpty) {
-                _gotoTripDetail(context, travelInfo, 0);
-              }
-            },
           ),
         ),
         ...travelInfo
@@ -276,18 +251,11 @@ class _PostcardJourneyState extends State<PostcardJourney> {
                     ? _postcardWebUserArrowWithHead(context)
                     : _postcardWebUserArrow(context);
                 return [
-                  _webTravelWidget(e, onTap: () {
-                    _gotoTripDetail(context, travelInfoOnTripDetail, index + 1);
-                  }, arrow: arrow),
+                  _webTravelWidget(e, arrow: arrow),
                 ];
               }
               return [
-                _travelWidget(
-                  e,
-                  onTap: () {
-                    _gotoTripDetail(context, travelInfoOnTripDetail, index + 1);
-                  },
-                ),
+                _travelWidget(e),
               ];
             })
             .flattened

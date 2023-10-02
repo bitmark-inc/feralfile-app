@@ -79,7 +79,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.da
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/trip_detail/trip_detail_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
@@ -209,7 +208,6 @@ class AppRouter {
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
   static const postcardConfirmingPage = 'postcard_confirming_page';
-  static const tripDetailPage = 'trip_detail_page';
   static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = "keyboard_control_page";
   static const touchPadPage = "touch_pad_page";
@@ -1117,14 +1115,6 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               return IRLSignMessageScreen(payload: payload);
-            });
-
-      case tripDetailPage:
-        final payload = settings.arguments as TripDetailPayload;
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return TripDetailPage(payload: payload);
             });
 
       case canvasHelpPage:

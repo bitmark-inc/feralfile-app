@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
@@ -29,6 +30,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -59,12 +61,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:share/share.dart';
-import 'package:uuid/uuid.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -113,13 +115,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  Key _messageKey = Key(const Uuid().v4());
-
-  void _changeMessageViewKey() {
-    setState(() {
-      _messageKey = Key(const Uuid().v4());
-    });
-  }
 
   @override
   void initState() {
@@ -223,39 +218,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final listTravelInfo =
         asset.postcardMetadata.listTravelInfoWithoutLocationName;
     final totalDistance = listTravelInfo.totalDistance;
-    final theme = Theme.of(context);
-    Widget content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-            text: TextSpan(children: [
-          TextSpan(text: "your_postcard_has_traveled".tr()),
-          TextSpan(
-              text: distanceFormatter.format(
-                  distance: totalDistance, withFullName: true),
-              style: const TextStyle(fontWeight: FontWeight.w700)),
-          TextSpan(text: "tag_your_postcard_collaborators".tr()),
-        ], style: theme.textTheme.moMASans400White14)),
-        const SizedBox(height: 24),
-        PrimaryButton(
-          text: "share_on_".tr(),
-          onTap: () {
-            _shareTwitter(asset);
-            Navigator.of(context).pop();
-          },
-        ),
-        const SizedBox(height: 8),
-        OutlineButton(
-          text: "close".tr(),
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
     _configurationService.setListPostcardAlreadyShowYouDidIt(
         [PostcardIdentity(id: asset.id, owner: asset.owner)]);
-    return UIHelper.showDialogWithConfetti(context, "you_did_it".tr(), content);
+    return UIHelper.showPostcardFinish15Stamps(context,
+        distanceFormatter.format(distance: totalDistance, withFullName: true),
+        onShareTap: () {
+      _shareTwitter(asset);
+      Navigator.pop(context);
+    });
   }
 
   Future<void> _postcardUpdated(BuildContext context) async {
@@ -311,6 +281,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
     _scrollController.dispose();
     timer?.cancel();
+    injector<ChatService>().dispose();
     super.dispose();
   }
 
@@ -321,19 +292,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final wallet = await asset.getOwnerWallet();
     if (wallet == null) return;
     if (!mounted) return;
-    Navigator.of(context)
-        .pushNamed(
-          ChatThreadPage.tag,
-          arguments: ChatThreadPagePayload(
-              token: asset,
-              wallet: wallet,
-              address: asset.owner,
-              cryptoType: asset.blockchain == "ethereum"
-                  ? CryptoType.ETH
-                  : CryptoType.XTZ,
-              name: asset.title ?? ''),
-        )
-        .then((value) => _changeMessageViewKey());
+    Navigator.of(context).pushNamed(
+      ChatThreadPage.tag,
+      arguments: ChatThreadPagePayload(
+          token: asset,
+          wallet: wallet,
+          address: asset.owner,
+          cryptoType:
+              asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ,
+          name: asset.title ?? ''),
+    );
   }
 
   @override
@@ -516,13 +484,27 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             state.assetToken == null ||
                                     state.assetToken?.pending == true
                                 ? const SizedBox()
-                                : Padding(
-                                    padding: const EdgeInsets.only(top: 15),
-                                    child: MessagePreview(
-                                        key: _messageKey,
-                                        payload: MessagePreviewPayload(
-                                            asset: state.assetToken!)),
-                                  ),
+                                : FutureBuilder<Pair<WalletStorage, int>?>(
+                                    future: state.assetToken!.getOwnerWallet(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        final wallet = snapshot.data;
+                                        if (wallet == null) {
+                                          return const SizedBox();
+                                        }
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 15),
+                                          child: MessagePreview(
+                                              payload: MessagePreviewPayload(
+                                            asset: state.assetToken!,
+                                            wallet: wallet,
+                                            getAssetToken: getCurrentAssetToken,
+                                          )),
+                                        );
+                                      }
+                                      return const SizedBox();
+                                    }),
                             const SizedBox(
                               height: 30,
                             ),
@@ -593,6 +575,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return const SizedBox();
       }
     });
+  }
+
+  AssetToken? getCurrentAssetToken() {
+    return context.read<PostcardDetailBloc>().state.assetToken;
   }
 
   void _refreshPostcard() {
@@ -863,6 +849,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Future _showArtworkOptionsDialog(
       BuildContext context, AssetToken asset) async {
     final theme = Theme.of(context);
+    final isViewOnly = await asset.isViewOnly();
     if (!mounted) return;
     const isHidden = false;
     UIHelper.showPostcardDrawerAction(
@@ -889,7 +876,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (asset.stampIndex >= 0)
+        if (asset.stampIndex >= 0 && !isViewOnly)
           OptionItem(
             title: 'download_stamp'.tr(),
             icon: SvgPicture.asset(
@@ -920,6 +907,40 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   default:
                     if (!mounted) return;
                     await UIHelper.showPostcardStampSavedFailed(context);
+                }
+              }
+            },
+          ),
+        if (!isViewOnly)
+          OptionItem(
+            title: 'download_postcard'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/download.svg',
+              width: 24,
+              height: 24,
+            ),
+            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn)),
+            onTap: () async {
+              try {
+                await _postcardService.downloadPostcard(asset.tokenId!);
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                await UIHelper.showPostcardSaved(context);
+              } catch (e) {
+                log.info("Download postcard failed: error ${e.toString()}");
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                switch (e.runtimeType) {
+                  case MediaPermissionException:
+                    await UIHelper.showPostcardPhotoAccessFailed(context);
+                    break;
+                  default:
+                    if (!mounted) return;
+                    await UIHelper.showPostcardSavedFailed(context);
                 }
               }
             },

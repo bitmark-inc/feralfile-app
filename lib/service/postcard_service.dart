@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -95,10 +96,12 @@ abstract class PostcardService {
   Future<PostcardLeaderboard> fetchPostcardLeaderboard(
       {required String unit, required int size, required int offset});
 
-  Future<File> downloadStamp({
+  Future<void> downloadStamp({
     required String tokenId,
     required int stampIndex,
   });
+
+  Future<void> downloadPostcard(String tokenId);
 
   Future<void> shareStampToTwitter({
     required String tokenId,
@@ -128,6 +131,7 @@ class PostcardServiceImpl extends PostcardService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final TokensService _tokensService;
+  final MetricClientService _metricClientService;
 
   PostcardServiceImpl(
       this._postcardApi,
@@ -136,7 +140,8 @@ class PostcardServiceImpl extends PostcardService {
       this._tzktApi,
       this._configurationService,
       this._accountService,
-      this._tokensService);
+      this._tokensService,
+      this._metricClientService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -425,8 +430,31 @@ class PostcardServiceImpl extends PostcardService {
     return tempFile;
   }
 
+  Future<File> _downloadPostcard(String tokenId) async {
+    final tempFilePath =
+        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/postcard.png";
+    final tempFile = File(tempFilePath);
+    final isFileExist = await tempFile.exists();
+    final path = "/v1/postcard/$tokenId/printing";
+    final secretKey = Environment.auClaimSecretKey;
+    final response = await HttpHelper.hmacAuthenticationPost(
+        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+    if (response.statusCode != StatusCode.success.value) {
+      throw Exception(response.reasonPhrase);
+    }
+    final bodyByte = response.bodyBytes;
+    if (!isFileExist) {
+      await tempFile.create(recursive: true);
+    }
+    log.info("Created file $tempFilePath");
+    await tempFile.writeAsBytes(bodyByte);
+    log.info("Write file $tempFilePath");
+
+    return tempFile;
+  }
+
   @override
-  Future<File> downloadStamp({
+  Future<void> downloadStamp({
     required String tokenId,
     required int stampIndex,
     bool isOverride = false,
@@ -442,7 +470,21 @@ class PostcardServiceImpl extends PostcardService {
     if (!isSuccess) {
       throw MediaPermissionException("Permission is not granted");
     }
-    return imageFile;
+  }
+
+  @override
+  Future<void> downloadPostcard(String tokenId) async {
+    log.info("[Postcard Service] download postcard $tokenId");
+    final imageFile = await _downloadPostcard(tokenId);
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final imageByte = await imageFile.readAsBytes();
+    final imageName = "postcard-$tokenId-$timestamp";
+    final isSuccess = await FileHelper.saveImageToGallery(imageByte, imageName);
+    if (!isSuccess) {
+      throw MediaPermissionException("Permission is not granted");
+    }
+    await imageFile.delete();
   }
 
   @override
@@ -488,6 +530,9 @@ class PostcardServiceImpl extends PostcardService {
       location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
+    _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
+      'postcardId': result.tokenID,
+    });
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
       locationInformation: [

@@ -66,7 +66,7 @@ class Exhibition {
   final String title;
   final String slug;
   final DateTime exhibitionStartAt;
-  final DateTime exhibitionEndAt;
+  final DateTime? exhibitionEndAt;
   final String? coverURI;
   final String? thumbnailCoverURI;
   final String mintBlockchain;

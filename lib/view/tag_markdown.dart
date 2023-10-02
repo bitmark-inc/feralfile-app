@@ -22,7 +22,9 @@ class TagBlockSyntax extends md.BlockSyntax {
   md.Node parse(md.BlockParser parser) {
     var childLines = parseChildLines(parser);
 
-    var content = childLines.join('\n');
+    final contents = childLines.map((e) => e?.content).toList();
+    contents.removeWhere((element) => element == null);
+    var content = contents.join('\n');
 
     final md.Element el = md.Element('p', [
       md.Element('#', [md.Text(content)]),
@@ -35,7 +37,8 @@ class TagBlockSyntax extends md.BlockSyntax {
 class TagBuilder extends MarkdownElementBuilder {
   @override
   Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    final parts = element.textContent.split(" - ");
+    final parts =
+        element.textContent.replaceFirst("[#]", "").trim().split(" - ");
     return Builder(builder: (context) {
       return parts.length == 2
           ? Row(

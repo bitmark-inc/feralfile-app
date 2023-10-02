@@ -26,17 +26,18 @@ class DesignStampPage extends StatefulWidget {
 }
 
 class _DesignStampPageState extends State<DesignStampPage> {
-  List<Color?> _rectColors = List<Color?>.filled(100, null);
+  List<Color> _rectColors = List<Color>.filled(100, MomaPallet.white);
   Color _selectedColor = AppColor.primaryBlack;
   final WidgetsToImageController _controller = WidgetsToImageController();
   bool _line = true;
   late SimpleStack _undoController;
+  bool _didPaint = false;
 
   @override
   void initState() {
     super.initState();
-    _undoController = SimpleStack<List<Color?>>(
-      List<Color?>.filled(100, null),
+    _undoController = SimpleStack<List<Color>>(
+      List<Color>.filled(100, MomaPallet.white),
       onUpdate: (val) {
         setState(
           () {
@@ -209,8 +210,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                       onTap: () {
                                         setState(() {
                                           _line = true;
-                                          _rectColors =
-                                              List<Color?>.filled(100, null);
+                                          _rectColors = List<Color>.filled(
+                                              100, MomaPallet.white);
                                         });
                                         _modifyStackUndo();
                                       },
@@ -232,27 +233,29 @@ class _DesignStampPageState extends State<DesignStampPage> {
                         text: "stamp_postcard".tr(),
                         fontSize: 18,
                         disabledTextColor: Colors.white,
-                        enabled: !_rectColors.any((element) => element == null),
-                        onTap: _rectColors.any((element) => element == null)
-                            ? null
-                            : () async {
-                                setState(() {
-                                  _line = false;
-                                });
-                                Future.delayed(
-                                  const Duration(milliseconds: 200),
-                                  () async {
-                                    final bytes = await _controller.capture();
-                                    if (!mounted) return;
-                                    Navigator.of(context).pushNamed(
-                                        HandSignaturePage.handSignaturePage,
-                                        arguments: HandSignaturePayload(
-                                          bytes!,
-                                          widget.payload.asset,
-                                        ));
-                                  },
-                                );
-                              },
+                        enabled: _didPaint,
+                        onTap: () async {
+                          setState(() {
+                            _line = false;
+                          });
+                          Future.delayed(
+                            const Duration(milliseconds: 200),
+                            () async {
+                              final bytes = await _controller.capture();
+                              if (!mounted) return;
+                              await Navigator.of(context).pushNamed(
+                                  HandSignaturePage.handSignaturePage,
+                                  arguments: HandSignaturePayload(
+                                    bytes!,
+                                    widget.payload.asset,
+                                  ));
+
+                              setState(() {
+                                _line = true;
+                              });
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -274,6 +277,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     if (index >= 0 && index < 100) {
       setState(() {
         _rectColors[index] = _selectedColor;
+        _didPaint = true;
       });
     }
   }
@@ -394,7 +398,7 @@ class StampPainter extends CustomPainter {
         final color = rectColors[i * 10 + j];
         final borderWidth = i == 9 ? 0 : 0.3;
         final borderHeight = j == 9 ? 0 : 0.3;
-        if (color != null) {
+        if (color != null && color != MomaPallet.white) {
           final rect = Rect.fromLTWH(i * cellSize, j * cellSize,
               cellSize + borderWidth, cellSize + borderHeight);
           canvas.drawRect(rect, Paint()..color = color);

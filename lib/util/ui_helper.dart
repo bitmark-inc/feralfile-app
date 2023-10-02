@@ -35,7 +35,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/transparent_router.dart';
+import 'package:autonomy_flutter/view/slide_router.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -234,21 +234,22 @@ class UIHelper {
     );
   }
 
-  static Future<void> showDialogWithConfetti(
+  static Future<void> showPostcardDialogWithConfetti(
     BuildContext context,
-    String title,
-    Widget content, {
-    bool isDismissible = false,
-    isRoundCorner = true,
-    Color? backgroundColor,
+    List<Widget> contents, {
+    bool isDismissible = true,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
-    EdgeInsets? padding,
-    EdgeInsets? paddingTitle,
   }) async {
-    log.info("[UIHelper] showInfoDialog: $title");
-    currentDialogTitle = title;
-    final theme = Theme.of(context);
+    log.info("[UIHelper] showPostcardDialogWithConfetti");
+    currentDialogTitle = "showPostcardDialogWithConfetti";
+
+    const backgroundColor = AppColor.white;
+    const defaultSeparator = Divider(
+      height: 1,
+      thickness: 1.0,
+      color: Color.fromRGBO(227, 227, 227, 1),
+    );
     final confettiController =
         ConfettiController(duration: const Duration(seconds: 15));
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -265,53 +266,62 @@ class UIHelper {
 
     await Navigator.push(
       context,
-      TransparentRoute(
+      SlidableRoute(
         color: AppColor.primaryBlack.withOpacity(0.4),
         builder: (context) {
           return Scaffold(
             backgroundColor: Colors.transparent,
             body: Stack(
               children: [
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    color: Colors.transparent,
-                    child: ClipPath(
-                      clipper: isRoundCorner
-                          ? null
-                          : AutonomyTopRightRectangleClipper(),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: backgroundColor ?? theme.auGreyBackground,
-                          borderRadius: isRoundCorner
-                              ? const BorderRadius.only(
-                                  topRight: Radius.circular(20),
-                                )
-                              : null,
+                Column(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          hideInfoDialog(context);
+                        },
+                        child: Container(
+                          color: Colors.transparent,
                         ),
-                        padding: padding ??
-                            const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 32),
-                        child: SingleChildScrollView(
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                          ),
+                          color: backgroundColor,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 15, right: 15, bottom: 50),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Padding(
-                                padding:
-                                    paddingTitle ?? const EdgeInsets.all(0),
-                                child: Text(title,
-                                    style: theme
-                                        .primaryTextTheme.ppMori700White24),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemBuilder: (BuildContext context, int index) {
+                                  final item = contents[index];
+
+                                  return Column(
+                                    children: [
+                                      item,
+                                      defaultSeparator,
+                                    ],
+                                  );
+                                },
+                                itemCount: contents.length,
                               ),
-                              const SizedBox(height: 40),
-                              content,
                             ],
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                 AllConfettiWidget(controller: confettiController),
               ],
@@ -320,6 +330,52 @@ class UIHelper {
         },
       ),
     );
+  }
+
+  static Future<void> showPostcardFinish15Stamps(
+      BuildContext context, String distance,
+      {dynamic Function()? onShareTap}) async {
+    final theme = Theme.of(context);
+    final contents = [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "congratulations".tr(),
+              style: theme.primaryTextTheme.moMASans700Black18,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "your_group_stamped_15".tr(args: [distance]),
+              style: theme.primaryTextTheme.moMASans400Black12,
+            ),
+          ],
+        ),
+      ),
+      PostcardDrawerItem(
+        item: OptionItem(
+          title: 'share_on_'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            'assets/images/globe.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+              AppColor.disabledColor,
+              BlendMode.srcIn,
+            ),
+          ),
+          onTap: onShareTap,
+        ),
+      ),
+    ];
+    await showPostcardDialogWithConfetti(context, contents);
   }
 
   static Future<void> showScrollableDialog(
@@ -1305,9 +1361,8 @@ class UIHelper {
   }
 
   static Future showWeakGPSSignal(BuildContext context) async {
-    final title = "unable_to_stamp_postcard".tr();
-    final description = "we_are_unable_to_stamp".tr();
-    return showErrorDialog(context, title, description, "close".tr());
+    final message = "gps_too_weak".tr();
+    return await _showPostcardError(context, message: message);
   }
 
   static Future showMockedLocation(BuildContext context) async {
@@ -1584,9 +1639,18 @@ class UIHelper {
   }
 
   static Future<void> showPostcardStampSaved(BuildContext context) async {
+    return await _showFileSaved(context, title: "stamp".tr());
+  }
+
+  static Future<void> showPostcardSaved(BuildContext context) async {
+    return await _showFileSaved(context, title: "postcard".tr());
+  }
+
+  static Future<void> _showFileSaved(BuildContext context,
+      {required String title}) async {
     final options = [
       OptionItem(
-        title: "stamp_saved".tr(),
+        title: "_saved".tr(args: [title]),
         icon: SvgPicture.asset("assets/images/download.svg"),
         onTap: () {},
       ),
@@ -1596,19 +1660,16 @@ class UIHelper {
     }, autoDismissAfter: const Duration(seconds: 2));
   }
 
-  static Future<void> showPostcardStampPhotoAccessFailed(
-      BuildContext context) async {
+  static Future<void> _showPostcardError(BuildContext context,
+      {String message = "", Widget? icon}) async {
     final options = [
       OptionItem(
-        title: "stamp_could_not_be_saved".tr(),
+        title: message,
+        icon: icon,
         titleStyle: Theme.of(context)
             .textTheme
             .moMASans700Black16
             .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-        icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
-        onTap: () {
-          Navigator.pop(context);
-        },
       ),
     ];
     await showAutoDismissDialog(context, showDialog: () async {
@@ -1616,20 +1677,38 @@ class UIHelper {
     }, autoDismissAfter: const Duration(seconds: 2));
   }
 
+  static Future<void> showPostcardStampPhotoAccessFailed(
+      BuildContext context) async {
+    return await _showPhotoAccessFailed(context, title: "stamp".tr());
+  }
+
+  static Future<void> showPostcardPhotoAccessFailed(
+      BuildContext context) async {
+    return await _showPhotoAccessFailed(context, title: "postcard".tr());
+  }
+
+  static Future<void> _showPhotoAccessFailed(BuildContext context,
+      {required String title}) async {
+    return await _showPostcardError(
+      context,
+      message: "_could_not_be_saved".tr(args: [title]),
+      icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
+    );
+  }
+
   static Future<void> showPostcardStampSavedFailed(BuildContext context) async {
-    final theme = Theme.of(context);
-    final options = [
-      OptionItem(
-        title: "stamp_save_failed".tr(),
-        titleStyle: theme.textTheme.moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-        icon: SvgPicture.asset("assets/images/exit.svg"),
-        onTap: () {},
-      ),
-    ];
-    await showAutoDismissDialog(context, showDialog: () async {
-      return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    return await _showFileSaveFailed(context, title: "stamp".tr());
+  }
+
+  static Future<void> showPostcardSavedFailed(BuildContext context) async {
+    return await _showFileSaveFailed(context, title: "postcard".tr());
+  }
+
+  static Future<void> _showFileSaveFailed(BuildContext context,
+      {required String title}) async {
+    return await _showPostcardError(context,
+        message: "_save_failed".tr(args: [title]),
+        icon: SvgPicture.asset("assets/images/exit.svg"));
   }
 
   static Future<void> showPostcardCancelInvitation(BuildContext context,
