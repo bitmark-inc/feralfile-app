@@ -31,6 +31,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   final WidgetsToImageController _controller = WidgetsToImageController();
   bool _line = true;
   late SimpleStack _undoController;
+  bool _didPaint = false;
 
   @override
   void initState() {
@@ -232,6 +233,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                         text: "stamp_postcard".tr(),
                         fontSize: 18,
                         disabledTextColor: Colors.white,
+                        enabled: _didPaint,
                         onTap: () async {
                           setState(() {
                             _line = false;
@@ -241,12 +243,16 @@ class _DesignStampPageState extends State<DesignStampPage> {
                             () async {
                               final bytes = await _controller.capture();
                               if (!mounted) return;
-                              Navigator.of(context).pushNamed(
+                              await Navigator.of(context).pushNamed(
                                   HandSignaturePage.handSignaturePage,
                                   arguments: HandSignaturePayload(
                                     bytes!,
                                     widget.payload.asset,
                                   ));
+
+                              setState(() {
+                                _line = true;
+                              });
                             },
                           );
                         },
@@ -271,6 +277,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     if (index >= 0 && index < 100) {
       setState(() {
         _rectColors[index] = _selectedColor;
+        _didPaint = true;
       });
     }
   }
