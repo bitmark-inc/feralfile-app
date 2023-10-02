@@ -44,8 +44,6 @@ const onlySentryExceptionIdentifier = [
   "Out of Memory"
 ];
 
-const connect_timeout = "Connect timeout";
-
 class ErrorEvent {
   Object? err;
   String title;
@@ -61,11 +59,6 @@ extension DioErrorEvent on DioException {
   ErrorEvent? get errorEvent {
     log.info("Dio Error: $this");
     switch (type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return ErrorEvent(null, connect_timeout,
-            "Check your connection and try again.", ErrorItemState.tryAgain);
       case DioExceptionType.badResponse:
         if ((response?.statusCode ?? 0) / 100 == 5) {
           return ErrorEvent(
@@ -328,9 +321,6 @@ Future<bool> showErrorDialogFromException(Object exception,
         ),
       );
       return true;
-    } else if (event.title == connect_timeout) {
-      Sentry.captureException(exception, stackTrace: stackTrace);
-      return false;
     } else {
       navigationService.showErrorDialog(event);
       return true;
