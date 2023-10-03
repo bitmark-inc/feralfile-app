@@ -111,10 +111,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
               },
               icon: closeIcon(),
             )
-          ] else ...[
-            _skipButton(context, () async {
-              await _swiperController.move(swiperSize - 1);
-            })
           ],
         ],
         backgroundColor: Colors.transparent,
@@ -137,6 +133,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   }
                 });
               },
+              transformer: ScaleAndFadeTransformer(),
               itemBuilder: (context, index) {
                 return Padding(
                   padding: padding,
@@ -169,16 +166,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
             )
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _skipButton(BuildContext context, Function()? onSkip) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 11),
-      child: GestureDetector(
-        onTap: onSkip,
-        child: SvgPicture.asset("assets/images/skip.svg"),
       ),
     );
   }
