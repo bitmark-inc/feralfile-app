@@ -196,7 +196,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       _feedService.checkNewFeeds();
     });
 
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       _clientTokenService.refreshTokens();
     });
 
