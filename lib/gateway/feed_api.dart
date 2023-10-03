@@ -25,7 +25,7 @@ abstract class FeedApi {
     @Body() Map<String, Object> body,
   );
 
-  @GET("/v2/follows")
+  @GET("/v1/follows")
   Future<FollowingData> getFollows(
     @Query("count") int? count,
     @Query("serial") String? serial,
