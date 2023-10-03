@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class HorizontalReorderableGridview<T> extends StatelessWidget {
@@ -34,12 +34,13 @@ class HorizontalReorderableGridview<T> extends StatelessWidget {
     final numberColumn =
         itemCount ~/ cellPerColumn + (itemCount % cellPerColumn == 0 ? 0 : 1);
     final mapperItems = _mapper(items, numberColumn, cellPerColumn);
+    final controller = ScrollController();
     return Transform.flip(
       flipY: true,
       child: RotatedBox(
         quarterTurns: -1,
         child: ReorderableGridView.builder(
-          controller: ScrollController(),
+          controller: controller,
           padding: const EdgeInsets.symmetric(vertical: 15),
           onReorder: onReorder,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -48,6 +49,15 @@ class HorizontalReorderableGridview<T> extends StatelessWidget {
             mainAxisSpacing: cellSpacing,
             childAspectRatio: childAspectRatio,
           ),
+          dragWidgetBuilder: (context, item) {
+            return Transform.flip(
+              flipX: true,
+              key: ValueKey(item),
+              child: RotatedBox(
+                  quarterTurns: 1,
+                  child: Container(color: Colors.red, width: 100, height: 100)),
+            );
+          },
           itemBuilder: (context, index) {
             final item = mapperItems[index];
             return Transform.flip(
@@ -59,7 +69,9 @@ class HorizontalReorderableGridview<T> extends StatelessWidget {
               ),
             );
           },
-          onDragStart: onDragStart,
+          onDragStart: (index) {
+            return onDragStart(index);
+          },
           itemCount: itemCount,
         ),
       ),

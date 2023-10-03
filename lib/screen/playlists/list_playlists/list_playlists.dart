@@ -4,12 +4,12 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/view/horizontal_grid_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   final ValueNotifier<List<PlayListModel>?> playlists;
@@ -75,7 +75,9 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
         if (value == null) {
           return const SizedBox.shrink();
         }
-        List<PlayListModel> playlists = _mapperPlaylist(value);
+        List<PlayListModel> playlists =
+            _mapperPlaylist(value.filter(widget.filter));
+        if (playlists.isEmpty) return const SizedBox();
         final cellPerColumn = playlists.length > 3 ? 2 : 1;
         const cellSpacing = 15.0;
         final height = cellPerColumn * 165 + (cellPerColumn - 1) * cellSpacing;
@@ -89,19 +91,12 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
               cellSpacing: cellSpacing,
               childAspectRatio: 165 / 140,
               onDragStart: (index) {
-                Vibrate.feedback(FeedbackType.light);
+                // Vibrate.feedback(FeedbackType.light);
               },
               itemCount: playlists.length,
               itemBuilder: (item) {
                 if (item is FakePlaylistModel) {
-                  return Container(
-                    width: 140,
-                    height: 165,
-                    decoration: BoxDecoration(
-                      color: Colors.amber,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  );
+                  return const FakePlaylistItem();
                 }
                 return PlaylistItem(
                   playlist: item,
@@ -164,12 +159,16 @@ class _PlaylistItemState extends State<PlaylistItem> {
             children: [
               Row(
                 children: [
-                  Text(
-                    (name?.isNotEmpty ?? false) ? name! : 'Untitled',
-                    style: theme.textTheme.ppMori400White14,
-                    overflow: TextOverflow.ellipsis,
+                  Expanded(
+                    child: Text(
+                      (name?.isNotEmpty ?? false) ? name! : 'Untitled',
+                      style: theme.textTheme.ppMori400White14,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(
+                    width: 6,
+                  ),
                   Text(
                     numberFormater
                         .format(widget.playlist.tokenIDs?.length ?? 0),
@@ -218,4 +217,17 @@ class FakePlaylistModel extends PlayListModel {
           thumbnailURL: thumbnailURL,
           tokenIDs: tokenIDs,
         );
+}
+
+class FakePlaylistItem extends StatelessWidget {
+  const FakePlaylistItem({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 140,
+      height: 165,
+      color: Colors.transparent,
+    );
+  }
 }

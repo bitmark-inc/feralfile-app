@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/database/dao/album_dao.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/models/album_model.dart';
+import 'package:nft_collection/models/asset_token.dart';
 
 class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
   final _ablumDao = injector.get<AlbumDao>();
@@ -66,10 +67,21 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
       }
       listAlbumByArtist.removeWhere((element) => element.total <= 0);
       listAlbumByMedium.removeWhere((element) => element.total <= 0);
+      List<CompactedAssetToken> works = [];
+      if (event.filterStr.isNotEmpty) {
+        final assetTokens = await _assetTokenDao.findAllAssetTokensByFilter(
+            filter: event.filterStr);
+        assetTokens
+            .removeWhere((element) => hiddenTokenIDs.contains(element.id));
+        works = assetTokens
+            .map((e) => CompactedAssetToken.fromAssetToken(e))
+            .toList();
+      }
       emit(
         CollectionLoadedState(
           listAlbumByMedium: listAlbumByMedium,
           listAlbumByArtist: listAlbumByArtist,
+          works: works,
         ),
       );
     });

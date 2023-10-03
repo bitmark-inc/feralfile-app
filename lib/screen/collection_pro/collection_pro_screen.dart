@@ -9,27 +9,26 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -50,7 +49,7 @@ class CollectionProState extends State<CollectionPro>
   final _identityBloc = injector.get<IdentityBloc>();
   late ScrollController _scrollController;
   late ValueNotifier<String> searchStr;
-  late bool isSearching;
+  late bool isShowSearchBar;
   late bool isShowFullHeader;
 
   @override
@@ -60,7 +59,7 @@ class CollectionProState extends State<CollectionPro>
     searchStr.addListener(() {
       loadCollection();
     });
-    isSearching = false;
+    isShowSearchBar = false;
     isShowFullHeader = true;
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListenerShowfullHeader);
@@ -132,6 +131,7 @@ class CollectionProState extends State<CollectionPro>
           if (state is CollectionLoadedState) {
             final listAlbumByMedium = state.listAlbumByMedium;
             final listAlbumByArtist = state.listAlbumByArtist;
+            final works = state.works;
             final paddingTop = MediaQuery.of(context).viewPadding.top;
             return BlocBuilder<IdentityBloc, IdentityState>(
                 builder: (context, state) {
@@ -145,7 +145,7 @@ class CollectionProState extends State<CollectionPro>
                           controller: _scrollController,
                           slivers: [
                             SliverAppBar(
-                              pinned: isSearching,
+                              pinned: isShowSearchBar,
                               centerTitle: true,
                               backgroundColor: Colors.white,
                               expandedHeight: 126,
@@ -159,7 +159,7 @@ class CollectionProState extends State<CollectionPro>
                                   ],
                                   SizedBox(
                                     height: 50,
-                                    child: !isSearching
+                                    child: !isShowSearchBar
                                         ? HeaderView(
                                             paddingTop: paddingTop,
                                             action: GestureDetector(
@@ -174,7 +174,7 @@ class CollectionProState extends State<CollectionPro>
                                               ),
                                               onTap: () {
                                                 setState(() {
-                                                  isSearching = true;
+                                                  isShowSearchBar = true;
                                                 });
                                               },
                                             ),
@@ -192,15 +192,17 @@ class CollectionProState extends State<CollectionPro>
                                                     setState(() {
                                                       searchStr.value = text;
                                                     });
+                                                  },
+                                                  onClear: (text) {
                                                     setState(() {
-                                                      isSearching = true;
+                                                      searchStr.value = text;
                                                     });
                                                   },
                                                 ),
                                                 onCancel: () {
                                                   setState(() {
                                                     searchStr.value = '';
-                                                    isSearching = false;
+                                                    isShowSearchBar = false;
                                                   });
                                                 },
                                               ),
@@ -231,17 +233,29 @@ class CollectionProState extends State<CollectionPro>
                             const SliverToBoxAdapter(
                               child: SizedBox(height: 60),
                             ),
-                            SliverToBoxAdapter(
-                              child: AlbumSection(
-                                listAlbum: listAlbumByMedium,
-                                albumType: AlbumType.medium,
-                                identityMap: identityMap,
-                                searchStr: searchStr.value,
+                            if (searchStr.value.isEmpty) ...[
+                              SliverToBoxAdapter(
+                                child: AlbumSection(
+                                  listAlbum: listAlbumByMedium,
+                                  albumType: AlbumType.medium,
+                                  identityMap: identityMap,
+                                  searchStr: searchStr.value,
+                                ),
                               ),
-                            ),
-                            const SliverToBoxAdapter(
-                              child: SizedBox(height: 60),
-                            ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: 60),
+                              ),
+                            ],
+                            if (searchStr.value.isNotEmpty) ...[
+                              SliverToBoxAdapter(
+                                child: WorksSection(
+                                  works: works,
+                                ),
+                              ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: 60),
+                              ),
+                            ],
                             SliverToBoxAdapter(
                               child: AlbumSection(
                                 listAlbum: listAlbumByArtist,
@@ -268,13 +282,13 @@ class CollectionProState extends State<CollectionPro>
   }
 }
 
-class Header extends StatelessWidget {
+class SectionHeader extends StatelessWidget {
   final String title;
   final String? subTitle;
   final Widget? icon;
   final Function()? onTap;
 
-  const Header({
+  const SectionHeader({
     super.key,
     required this.title,
     this.subTitle,
@@ -327,7 +341,7 @@ class _AlbumSectionState extends State<AlbumSection> {
   Widget _header(BuildContext context, int total) {
     final title =
         widget.albumType == AlbumType.medium ? 'medium'.tr() : 'artists'.tr();
-    return Header(title: title, subTitle: "$total");
+    return SectionHeader(title: title, subTitle: "$total");
   }
 
   Widget _icon(AlbumModel album) {
@@ -349,16 +363,16 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
-        return SvgPicture.asset(
-          "assets/images/medium_image.svg",
+        // return SvgPicture.asset(
+        //   "assets/images/medium_image.svg",
+        //   width: 42,
+        //   height: 42,
+        // );
+        return CachedNetworkImage(
+          imageUrl: album.thumbnailURL ?? "",
           width: 42,
           height: 42,
         );
-      // return CachedNetworkImage(
-      //   imageUrl: album.thumbnailURL ?? "",
-      //   width: 42,
-      //   height: 42,
-      // );
     }
   }
 
@@ -438,6 +452,116 @@ class _AlbumSectionState extends State<AlbumSection> {
   }
 }
 
+class WorksSection extends StatefulWidget {
+  final List<CompactedAssetToken> works;
+
+  const WorksSection({super.key, required this.works});
+
+  @override
+  State<WorksSection> createState() => _WorksSectionState();
+}
+
+class _WorksSectionState extends State<WorksSection> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
+    final theme = Theme.of(context);
+    final title = token.title ?? "";
+    final artistName = token.artistID ?? "";
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          AppRouter.artworkDetailsPage,
+          arguments: ArtworkDetailPayload(
+            [
+              ArtworkIdentity(token.id, token.owner),
+            ],
+            0,
+          ),
+        );
+      },
+      child: Row(
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: GaleryThumbnailItem(
+              assetToken: token,
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.artworkDetailsPage,
+                  arguments: ArtworkDetailPayload(
+                    [
+                      ArtworkIdentity(token.id, token.owner),
+                    ],
+                    0,
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 19),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.ppMori400Black14,
+                  // overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  artistName,
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: AppColor.auLightGrey),
+                  // overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const padding = 15.0;
+    final compactedAssetTokens = widget.works;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: padding, right: padding),
+      child: Column(
+        children: [
+          SectionHeader(
+              title: "Works", subTitle: "${compactedAssetTokens.length}"),
+          addDivider(color: AppColor.primaryBlack),
+          CustomScrollView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            slivers: [
+              SliverList.separated(
+                  itemBuilder: (BuildContext context, int index) {
+                    final token = compactedAssetTokens[index];
+                    return SizedBox(
+                        height: 164, child: _artworkItem(context, token));
+                  },
+                  itemCount: compactedAssetTokens.length,
+                  separatorBuilder: (BuildContext context, int index) {
+                    return addDivider(color: AppColor.auLightGrey);
+                  }),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class CollectionSection extends StatefulWidget {
   final String filterString;
 
@@ -453,8 +577,6 @@ class _CollectionSectionState extends State<CollectionSection>
   final _playlistService = injector.get<PlaylistService>();
   final _versionService = injector.get<VersionService>();
   final _settingDataService = injector.get<SettingsDataService>();
-  final _assetTokenDao = injector.get<AssetTokenDao>();
-  final _accountService = injector.get<AccountService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
   late bool isDemo;
 
@@ -468,7 +590,7 @@ class _CollectionSectionState extends State<CollectionSection>
 
     final defaultPlaylists = await _playlistService.defaultPlaylists();
     playlists = defaultPlaylists..addAll(playlists);
-    return playlists.filter(widget.filterString);
+    return playlists;
   }
 
   _initPlayList() async {
@@ -503,13 +625,13 @@ class _CollectionSectionState extends State<CollectionSection>
   }
 
   Widget _header(BuildContext context, int total) {
-    return Header(
+    return SectionHeader(
       title: "Collections",
       subTitle: "$total",
-      icon: const Icon(
-        AuIcon.add,
-        size: 22,
-        color: AppColor.primaryBlack,
+      icon: SvgPicture.asset(
+        "assets/images/Add.svg",
+        width: 22,
+        height: 22,
       ),
       onTap: () {
         _gotoCreatePlaylist(context);
@@ -551,22 +673,20 @@ class _CollectionSectionState extends State<CollectionSection>
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 15),
-              child: ListPlaylistsScreen(
-                key: Key(playlistKey),
-                playlists: _playlists,
-                onReorder: (oldIndex, newIndex) async {
-                  final item = value!.removeAt(oldIndex);
-                  value.insert(newIndex, item);
-                  if (isDemo) return;
-                  await injector
-                      .get<PlaylistService>()
-                      .setPlayList(value, override: true);
-                  _initPlayList();
-                  _settingDataService.backup();
-                },
-              ),
+            ListPlaylistsScreen(
+              key: Key(playlistKey),
+              playlists: _playlists,
+              filter: widget.filterString,
+              onReorder: (oldIndex, newIndex) async {
+                final item = value!.removeAt(oldIndex);
+                value.insert(newIndex, item);
+                if (isDemo) return;
+                // await injector
+                //     .get<PlaylistService>()
+                //     .setPlayList(value, override: true);
+                _initPlayList();
+                _settingDataService.backup();
+              },
             )
           ],
         );
