@@ -248,7 +248,9 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                               Expanded(
                                 child: NftCollectionGrid(
                                   state: nftState.state,
-                                  tokens: nftState.tokens.items,
+                                  tokens: nftState.tokens
+                                      .unique((token) => token.id)
+                                      .items,
                                   loadingIndicatorBuilder: loadingView,
                                   customGalleryViewBuilder: (context, tokens) =>
                                       _assetsWidget(
