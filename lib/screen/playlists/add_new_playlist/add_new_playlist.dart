@@ -208,6 +208,11 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
               final metricClient = injector<MetricClientService>();
               metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
             },
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(0.25),
+              child:
+                  addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+            ),
           ),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,

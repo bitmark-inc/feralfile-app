@@ -4,12 +4,12 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/view/horizontal_grid_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   final ValueNotifier<List<PlayListModel>?> playlists;
@@ -49,40 +49,70 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     super.dispose();
   }
 
+  List<PlayListModel> _mapperPlaylist(List<PlayListModel> list) {
+    List<PlayListModel> newList = [];
+
+    if (list.length <= 3) return list;
+    newList = list;
+    if (newList.length < 6) {
+      final fakePlaylistList = List.generate(
+          6 - newList.length,
+          (index) => FakePlaylistModel(
+                name: "",
+                thumbnailURL: "",
+                tokenIDs: [],
+              ));
+      newList.addAll(fakePlaylistList);
+    }
+    return newList;
+  }
+
   @override
   Widget build(BuildContext context) {
-    const cellPerRow = 2;
-    const cellSpacing = 16.0;
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: widget.playlists,
       builder: (context, value, child) {
-        return value == null
-            ? const SizedBox.shrink()
-            : ReorderableGridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                onReorder: widget.onReorder,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: cellPerRow,
-                  crossAxisSpacing: cellSpacing,
-                  mainAxisSpacing: cellSpacing,
-                ),
-                itemBuilder: (context, index) {
-                  final playlist = value[index];
-                  return PlaylistItem(
-                      key: ValueKey(playlist),
-                      playlist: playlist,
-                      onSelected: () => Navigator.pushNamed(
-                            context,
-                            AppRouter.viewPlayListPage,
-                            arguments: ViewPlaylistScreenPayload(
-                                playListModel: playlist),
-                          ));
-                },
-                onDragStart: (index) {
-                  Vibrate.feedback(FeedbackType.light);
-                },
-                itemCount: value.length,
-              );
+        if (value == null) {
+          return const SizedBox.shrink();
+        }
+        List<PlayListModel> playlists = _mapperPlaylist(value);
+        final cellPerColumn = playlists.length > 3 ? 2 : 1;
+        const cellSpacing = 15.0;
+        final height = cellPerColumn * 165 + (cellPerColumn - 1) * cellSpacing;
+        return SizedBox(
+          height: height,
+          width: 400,
+          child: HorizontalReorderableGridview<PlayListModel>(
+              items: playlists,
+              onReorder: widget.onReorder,
+              cellPerColumn: cellPerColumn,
+              cellSpacing: cellSpacing,
+              childAspectRatio: 165 / 140,
+              onDragStart: (index) {
+                Vibrate.feedback(FeedbackType.light);
+              },
+              itemCount: playlists.length,
+              itemBuilder: (item) {
+                if (item is FakePlaylistModel) {
+                  return Container(
+                    width: 140,
+                    height: 165,
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  );
+                }
+                return PlaylistItem(
+                  playlist: item,
+                  onSelected: () => Navigator.pushNamed(
+                    context,
+                    AppRouter.viewPlayListPage,
+                    arguments: ViewPlaylistScreenPayload(playListModel: item),
+                  ),
+                );
+              }),
+        );
       },
     );
   }
@@ -176,4 +206,16 @@ class _PlaylistItemState extends State<PlaylistItem> {
       ),
     );
   }
+}
+
+class FakePlaylistModel extends PlayListModel {
+  FakePlaylistModel({
+    String? name,
+    String? thumbnailURL,
+    List<String>? tokenIDs,
+  }) : super(
+          name: name,
+          thumbnailURL: thumbnailURL,
+          tokenIDs: tokenIDs,
+        );
 }

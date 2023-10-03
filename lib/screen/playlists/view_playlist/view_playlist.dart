@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -324,14 +323,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       listener: (context, state) {},
       builder: (context, state) {
         final playList = state.playListModel;
-        final isRename = state.isRename;
-        if (isRename == true) {
-          _focusNode.requestFocus();
-        }
+        if (playList == null) return const SizedBox();
         return Scaffold(
           appBar: AppBar(
             systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
             elevation: 0,
+            shadowColor: Colors.transparent,
             leading: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: const Row(
@@ -350,33 +347,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: isRename ?? false
-                ? TextNamePlaylist(
-                    focusNode: _focusNode,
-                    playList: playList,
-                    onEditPlaylistName: (value) {
-                      bloc.add(SavePlaylist(
-                          name: value.trim().isNotEmpty ? value.trim() : null));
-                    },
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (widget.payload.titleIcon != null)
-                        SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: widget.payload.titleIcon!),
-                      const SizedBox(width: 10),
-                      Text(
-                        (playList?.name?.isNotEmpty ?? false)
-                            ? playList!.name!
-                            : tr('untitled'),
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.ppMori400Black16,
-                      ),
-                    ],
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.payload.titleIcon != null)
+                  SizedBox(
+                      width: 22, height: 22, child: widget.payload.titleIcon!),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    playList.getName(),
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.ppMori400Black16,
+                    textAlign: TextAlign.center,
                   ),
+                ),
+              ],
+            ),
             actions: [
               const SizedBox(width: 15),
               GestureDetector(
@@ -404,6 +391,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ],
               const SizedBox(width: 15),
             ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(0.25),
+              child:
+                  addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+            ),
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
             bloc: nftBloc,
@@ -412,14 +404,14 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 state: nftState.state,
                 tokens: setupPlayList(
                   tokens: nftState.tokens.items,
-                  selectedTokens: playList?.tokenIDs,
+                  selectedTokens: playList.tokenIDs,
                 ),
                 customGalleryViewBuilder: (context, tokens) => _assetsWidget(
                   context,
                   tokens,
                   accountIdentities: accountIdentities,
                   playControlModel:
-                      playList?.playControlModel ?? PlayControlModel(),
+                      playList.playControlModel ?? PlayControlModel(),
                   onShuffleTap: () => _onShufferTap(playList),
                   onTimerTap: () => _onTimerTap(playList),
                 ),

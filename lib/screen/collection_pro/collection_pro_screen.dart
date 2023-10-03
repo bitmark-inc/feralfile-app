@@ -458,27 +458,6 @@ class _CollectionSectionState extends State<CollectionSection>
   late ValueNotifier<List<PlayListModel>?> _playlists;
   late bool isDemo;
 
-  Future<List<PlayListModel>> _getDefaultPlaylists() async {
-    final activeAddress = await _accountService.getShowedAddresses();
-    List<String> allTokenIds = [];
-    for (var address in activeAddress) {
-      final tokenIds =
-          await _assetTokenDao.findAllAssetTokenIDsByOwner(address);
-      allTokenIds.addAll(tokenIds);
-    }
-    final hiddenTokenIds = _configurationService.getHiddenOrSentTokenIDs();
-    allTokenIds.removeWhere((element) => hiddenTokenIds.contains(element));
-    final token =
-        await _assetTokenDao.findAllAssetTokensByTokenIDs([allTokenIds.first]);
-
-    final allNftsPlaylist = PlayListModel(
-        id: "all_nfts",
-        name: "All",
-        tokenIDs: allTokenIds,
-        thumbnailURL: token.first.thumbnailURL);
-    return [allNftsPlaylist];
-  }
-
   Future<List<PlayListModel>?> getPlaylist() async {
     final isSubscribed = _configurationService.isPremium();
     if (!isSubscribed && !isDemo) return null;
@@ -487,7 +466,7 @@ class _CollectionSectionState extends State<CollectionSection>
     }
     List<PlayListModel> playlists = await _playlistService.getPlayList();
 
-    final defaultPlaylists = await _getDefaultPlaylists();
+    final defaultPlaylists = await _playlistService.defaultPlaylists();
     playlists = defaultPlaylists..addAll(playlists);
     return playlists.filter(widget.filterString);
   }
@@ -574,23 +553,19 @@ class _CollectionSectionState extends State<CollectionSection>
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 15),
-              child: SizedBox(
-                height: 200,
-                width: 400,
-                child: ListPlaylistsScreen(
-                  key: Key(playlistKey),
-                  playlists: _playlists,
-                  onReorder: (oldIndex, newIndex) async {
-                    final item = value!.removeAt(oldIndex);
-                    value.insert(newIndex, item);
-                    if (isDemo) return;
-                    await injector
-                        .get<PlaylistService>()
-                        .setPlayList(value, override: true);
-                    _initPlayList();
-                    _settingDataService.backup();
-                  },
-                ),
+              child: ListPlaylistsScreen(
+                key: Key(playlistKey),
+                playlists: _playlists,
+                onReorder: (oldIndex, newIndex) async {
+                  final item = value!.removeAt(oldIndex);
+                  value.insert(newIndex, item);
+                  if (isDemo) return;
+                  await injector
+                      .get<PlaylistService>()
+                      .setPlayList(value, override: true);
+                  _initPlayList();
+                  _settingDataService.backup();
+                },
               ),
             )
           ],

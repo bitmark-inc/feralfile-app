@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -177,6 +178,11 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
               final metricClient = injector<MetricClientService>();
               metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
             },
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(0.25),
+              child:
+                  addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+            ),
           ),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,

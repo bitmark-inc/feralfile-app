@@ -323,7 +323,7 @@ Future<void> setup() async {
   injector
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
   injector.registerLazySingleton<PlaylistService>(
-      () => PlayListServiceImp(injector(), injector(), injector()));
+      () => PlayListServiceImp(injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));

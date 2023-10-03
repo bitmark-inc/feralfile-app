@@ -236,6 +236,11 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             onCancel: () {
               Navigator.of(context).pop();
             },
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(0.25),
+              child:
+                  addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+            ),
           ),
           body: SafeArea(
             bottom: false,
