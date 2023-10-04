@@ -1409,7 +1409,7 @@ class UIHelper {
   }
 
   static Future<void> showPostcardUpdates(BuildContext context) async {
-    await UIHelper.showPostCardDialog(
+    final result = await showPostCardDialog(
         context,
         "postcard_notifications".tr(),
         Column(
@@ -1426,19 +1426,24 @@ class UIHelper {
               text: "enable".tr(),
               color: AppColor.momaGreen,
               onTap: () async {
+                bool result = false;
                 try {
-                  await registerPushNotifications(askPermission: true);
+                  result = await registerPushNotifications(askPermission: true);
                   injector<ConfigurationService>().setPendingSettings(false);
                 } catch (error) {
                   log.warning("Error when setting notification: $error");
                 }
                 if (!context.mounted) return;
-                Navigator.pop(context);
+                Navigator.pop(context, result);
               },
             ),
           ],
         ),
         isDismissible: true);
+    if (result) {
+      if (!context.mounted) return;
+      await _showPostcardInfo(context, message: "postcard_noti_enabled".tr());
+    }
   }
 
   static showAirdropClaimFailed(BuildContext context) async {
@@ -1670,6 +1675,19 @@ class UIHelper {
             .textTheme
             .moMASans700Black16
             .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+      ),
+    ];
+    await showAutoDismissDialog(context, showDialog: () async {
+      return showPostcardDrawerAction(context, options: options);
+    }, autoDismissAfter: const Duration(seconds: 2));
+  }
+
+  static Future<void> _showPostcardInfo(BuildContext context,
+      {String message = "", Widget? icon}) async {
+    final options = [
+      OptionItem(
+        title: message,
+        icon: icon,
       ),
     ];
     await showAutoDismissDialog(context, showDialog: () async {
