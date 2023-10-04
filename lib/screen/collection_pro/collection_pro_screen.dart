@@ -406,7 +406,7 @@ class _AlbumSectionState extends State<AlbumSection> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text('${album.total}', style: theme.textTheme.ppMori400Grey12),
+            Text('${album.total}', style: theme.textTheme.ppMori400Grey14),
           ],
         ),
       ),
@@ -514,13 +514,15 @@ class _WorksSectionState extends State<WorksSection> {
                 Text(
                   title,
                   style: theme.textTheme.ppMori400Black14,
-                  // overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   artistName,
                   style: theme.textTheme.ppMori400Black14
                       .copyWith(color: AppColor.auLightGrey),
-                  // overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -627,14 +629,17 @@ class _CollectionSectionState extends State<CollectionSection>
   }
 
   Widget _header(BuildContext context, int total) {
+    final isShowAddIcon = widget.filterString.isEmpty;
     return SectionHeader(
       title: "Collections",
       subTitle: "$total",
-      icon: SvgPicture.asset(
-        "assets/images/Add.svg",
-        width: 22,
-        height: 22,
-      ),
+      icon: isShowAddIcon
+          ? SvgPicture.asset(
+              "assets/images/Add.svg",
+              width: 22,
+              height: 22,
+            )
+          : null,
       onTap: () {
         _gotoCreatePlaylist(context);
       },
