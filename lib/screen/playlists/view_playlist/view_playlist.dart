@@ -347,22 +347,24 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.payload.titleIcon != null)
-                  SizedBox(
-                      width: 22, height: 22, child: widget.payload.titleIcon!),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
+            title: Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.payload.titleIcon != null)
+                    SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: widget.payload.titleIcon!),
+                  const SizedBox(width: 10),
+                  Text(
                     playList.getName(),
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.ppMori400Black16,
                     textAlign: TextAlign.center,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               const SizedBox(width: 15),
