@@ -69,9 +69,6 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
               itemCount: playlists.length,
               itemBuilder: (context, index) {
                 final item = playlists[index];
-                if (item is FakePlaylistModel) {
-                  return const FakePlaylistItem();
-                }
                 return PlaylistItem(
                   playlist: item,
                   onSelected: () => Navigator.pushNamed(
@@ -182,31 +179,6 @@ class _PlaylistItemState extends State<PlaylistItem> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class FakePlaylistModel extends PlayListModel {
-  FakePlaylistModel({
-    String? name,
-    String? thumbnailURL,
-    List<String>? tokenIDs,
-  }) : super(
-          name: name,
-          thumbnailURL: thumbnailURL,
-          tokenIDs: tokenIDs,
-        );
-}
-
-class FakePlaylistItem extends StatelessWidget {
-  const FakePlaylistItem({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 140,
-      height: 165,
-      color: Colors.transparent,
     );
   }
 }

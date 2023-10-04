@@ -71,8 +71,8 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
       if (event.filterStr.isNotEmpty) {
         final assetTokens = await _assetTokenDao.findAllAssetTokensByFilter(
             filter: event.filterStr);
-        assetTokens
-            .removeWhere((element) => hiddenTokenIDs.contains(element.id));
+        assetTokens.removeWhere((element) =>
+            hiddenTokenIDs.contains(element.id) || (element.balance ?? 0) <= 0);
         works = assetTokens
             .map((e) => CompactedAssetToken.fromAssetToken(e))
             .toList();
