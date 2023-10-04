@@ -39,8 +39,8 @@ class _SearchBarState extends State<AuSearchBar> {
         children: [
           SvgPicture.asset(
             "assets/images/search.svg",
-            width: 20,
-            height: 20,
+            width: 14,
+            height: 14,
             colorFilter: const ColorFilter.mode(
                 AppColor.secondarySpanishGrey, BlendMode.srcIn),
           ),
@@ -51,6 +51,9 @@ class _SearchBarState extends State<AuSearchBar> {
                 controller: _controller,
                 focusNode: _focusNode,
                 style: theme.textTheme.ppMori400Black14,
+                cursorColor: AppColor.primaryBlack,
+                cursorWidth: 0.5,
+                cursorHeight: 17,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.only(bottom: 10),
                   hintText: "search".tr(),
@@ -86,7 +89,7 @@ class _SearchBarState extends State<AuSearchBar> {
               },
               child: const Icon(
                 AuIcon.close,
-                size: 20,
+                size: 12,
                 color: AppColor.primaryBlack,
               ),
             ),

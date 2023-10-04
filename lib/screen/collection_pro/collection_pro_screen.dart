@@ -341,7 +341,8 @@ class _AlbumSectionState extends State<AlbumSection> {
   Widget _header(BuildContext context, int total) {
     final title =
         widget.albumType == AlbumType.medium ? 'medium'.tr() : 'artists'.tr();
-    return SectionHeader(title: title, subTitle: "$total");
+    final subTitle = widget.albumType == AlbumType.medium ? "" : "$total";
+    return SectionHeader(title: title, subTitle: subTitle);
   }
 
   Widget _icon(AlbumModel album) {
