@@ -53,9 +53,11 @@ class PlayListServiceImp implements PlaylistService {
   }
 
   @override
-  Future<void> setPlayList(List<PlayListModel> playlists,
-      {bool override = false,
-      ConflictAction onConflict = ConflictAction.abort}) async {
+  Future<void> setPlayList(
+    List<PlayListModel> playlists, {
+    bool override = false,
+    ConflictAction onConflict = ConflictAction.abort,
+  }) async {
     _configurationService.setPlayList(playlists,
         override: override, onConflict: onConflict);
     return;
@@ -78,23 +80,23 @@ class PlayListServiceImp implements PlaylistService {
 
   @override
   Future<List<PlayListModel>> defaultPlaylists() async {
+    List<PlayListModel> defaultPlaylists = [];
     final activeAddress = await _accountService.getShowedAddresses();
-    List<String> allTokenIds = [];
-    for (var address in activeAddress) {
-      final tokenIds =
-          await _assetTokenDao.findAllAssetTokenIDsByOwner(address);
-      allTokenIds.addAll(tokenIds);
-    }
+    List<String> allTokenIds =
+        await _tokenDao.findTokenIDsOwnersOwn(activeAddress);
     final hiddenTokenIds = _configurationService.getHiddenOrSentTokenIDs();
     allTokenIds.removeWhere((element) => hiddenTokenIds.contains(element));
-    final token =
-        await _assetTokenDao.findAllAssetTokensByTokenIDs([allTokenIds.first]);
+    if (allTokenIds.isNotEmpty) {
+      final token = await _assetTokenDao
+          .findAllAssetTokensByTokenIDs([allTokenIds.first]);
 
-    final allNftsPlaylist = PlayListModel(
-        id: "all_nfts",
-        name: "All",
-        tokenIDs: allTokenIds,
-        thumbnailURL: token.first.thumbnailURL);
-    return [allNftsPlaylist];
+      final allNftsPlaylist = PlayListModel(
+          id: "all_nfts",
+          name: "All",
+          tokenIDs: allTokenIds,
+          thumbnailURL: token.first.thumbnailURL);
+      defaultPlaylists.add(allNftsPlaylist);
+    }
+    return defaultPlaylists;
   }
 }

@@ -53,6 +53,7 @@ class CollectionProState extends State<CollectionPro>
   late ValueNotifier<String> searchStr;
   late bool isShowSearchBar;
   late bool isShowFullHeader;
+  final GlobalKey<CollectionSectionState> _collectionSectionKey = GlobalKey();
 
   @override
   void initState() {
@@ -116,6 +117,13 @@ class CollectionProState extends State<CollectionPro>
 
     if (neededIdentities.isNotEmpty) {
       _identityBloc.add(GetIdentityEvent(neededIdentities));
+    }
+  }
+
+  void refreshCollectionSection() {
+    final collectionSectionState = _collectionSectionKey.currentState;
+    if (collectionSectionState != null) {
+      collectionSectionState.refreshPlaylist();
     }
   }
 
@@ -237,6 +245,7 @@ class CollectionProState extends State<CollectionPro>
                                 builder: (BuildContext context, String value,
                                     Widget? child) {
                                   return CollectionSection(
+                                    key: _collectionSectionKey,
                                     filterString: value,
                                   );
                                 },
@@ -580,10 +589,10 @@ class CollectionSection extends StatefulWidget {
   const CollectionSection({super.key, this.filterString = ""});
 
   @override
-  State<CollectionSection> createState() => _CollectionSectionState();
+  State<CollectionSection> createState() => CollectionSectionState();
 }
 
-class _CollectionSectionState extends State<CollectionSection>
+class CollectionSectionState extends State<CollectionSection>
     with RouteAware, WidgetsBindingObserver {
   final _configurationService = injector.get<ConfigurationService>();
   final _playlistService = injector.get<PlaylistService>();
@@ -665,13 +674,12 @@ class _CollectionSectionState extends State<CollectionSection>
     });
   }
 
-  void onBuild() {
+  void refreshPlaylist() {
     _initPlayList();
   }
 
   @override
   Widget build(BuildContext context) {
-    // onBuild();
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: _playlists,
       builder: (context, value, child) {

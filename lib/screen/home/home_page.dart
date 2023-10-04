@@ -84,7 +84,7 @@ class HomePageState extends State<HomePage>
   late MetricClientService _metricClient;
   int _cachedImageSize = 0;
 
-  final _collectionProKey = GlobalKey<CollectionProState>();
+  final collectionProKey = GlobalKey<CollectionProState>();
 
   Future<List<AddressIndex>> getAddressIndexes() async {
     final accountService = injector<AccountService>();
@@ -256,6 +256,10 @@ class HomePageState extends State<HomePage>
     return tokens;
   }
 
+  void refreshPlaylists() {
+    collectionProKey.currentState?.refreshCollectionSection();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -288,7 +292,7 @@ class HomePageState extends State<HomePage>
         final isPremium = _configurationService.isPremium();
         if (isPremium) {
           return CollectionPro(
-            key: _collectionProKey,
+            key: collectionProKey,
             tokens: _updateTokens(state.tokens.items),
           );
         }
@@ -303,7 +307,8 @@ class HomePageState extends State<HomePage>
       },
       listener: (context, state) async {
         log.info("[NftCollectionBloc] State update $state");
-        _collectionProKey.currentState?.loadCollection();
+        collectionProKey.currentState?.loadCollection();
+        collectionProKey.currentState?.refreshCollectionSection();
         if (state.state == NftLoadingState.done) {
           _onTokensUpdate(state.tokens.items);
         }

@@ -116,6 +116,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           _feedService.checkNewFeeds();
         });
         _playListService.refreshPlayLists();
+        _homePageKey.currentState?.refreshPlaylists();
       } else if (index == 0) {
         _clientTokenService.refreshTokens().then((value) {
           _feedService.checkNewFeeds();
