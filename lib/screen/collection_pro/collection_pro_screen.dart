@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -364,16 +363,18 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
-        // return SvgPicture.asset(
-        //   "assets/images/medium_image.svg",
-        //   width: 42,
-        //   height: 42,
-        // );
-        return CachedNetworkImage(
-          imageUrl: album.thumbnailURL ?? "",
+        return SvgPicture.asset(
+          "assets/images/medium_image.svg",
           width: 42,
           height: 42,
         );
+      // return CachedNetworkImage(
+      //   imageUrl: album.thumbnailURL ?? "",
+      //   width: 42,
+      //   height: 42,
+      //   errorWidget: (context, url, error) =>
+      //       const GalleryThumbnailErrorWidget(),
+      // );
     }
   }
 
@@ -471,7 +472,7 @@ class _WorksSectionState extends State<WorksSection> {
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
     final theme = Theme.of(context);
     final title = token.title ?? "";
-    final artistName = token.artistID ?? "";
+    final artistName = token.artistTitle ?? token.artistID ?? "";
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
@@ -658,7 +659,7 @@ class _CollectionSectionState extends State<CollectionSection>
 
   @override
   Widget build(BuildContext context) {
-    onBuild();
+    // onBuild();
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: _playlists,
       builder: (context, value, child) {
