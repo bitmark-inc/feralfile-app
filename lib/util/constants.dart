@@ -171,7 +171,8 @@ const publicTezosNodes = [
 const TV_APP_STORE_URL =
     "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
 
-const MOMA_TERMS_CONDITIONS_URL = "";
+const MOMA_TERMS_CONDITIONS_URL =
+    "https://github.com/bitmark-inc/autonomy-apps/blob/main/docs/postcard_terms.md";
 
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 

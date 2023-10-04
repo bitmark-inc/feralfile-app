@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -8,10 +9,12 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 class PostcardExplain extends StatefulWidget {
@@ -185,6 +188,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   Widget _page1(VideoPlayerController controller) {
     final theme = Theme.of(context);
+    final termsConditionsStyle = theme.textTheme.moMASans400Grey12
+        .copyWith(color: AppColor.auQuickSilver);
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -209,6 +214,29 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 "with_15_blank_stamps".tr(),
                 style:
                     theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
+              ),
+              const SizedBox(height: 40),
+              Text.rich(
+                TextSpan(
+                  style: termsConditionsStyle,
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: "by_continuing".tr(),
+                    ),
+                    TextSpan(
+                      text: "terms_and_conditions".tr(),
+                      style: termsConditionsStyle.copyWith(
+                          decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(
+                            Uri.parse(MOMA_TERMS_CONDITIONS_URL),
+                            mode: LaunchMode.externalApplication),
+                    ),
+                    const TextSpan(
+                      text: ".",
+                    ),
+                  ],
+                ),
               )
             ],
           )
