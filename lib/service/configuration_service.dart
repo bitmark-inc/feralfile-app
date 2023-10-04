@@ -899,7 +899,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
         case ConflictAction.replace:
           playlists.removeWhere((playlist) =>
               value?.any((element) => playlist.id == element.id) ?? false);
-          newPlaylists = playlists.map((e) => jsonEncode(e)).toList();
+          playlistsSave = playlists.map((e) => jsonEncode(e)).toList();
           break;
         case ConflictAction.abort:
           value?.removeWhere((playlist) =>

@@ -91,7 +91,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
 
   _scrollToTop() {
     _controller.animateTo(0,
-        duration: Duration(milliseconds: 500), curve: Curves.ease);
+        duration: const Duration(milliseconds: 500), curve: Curves.ease);
   }
 
   _loadMore() {
