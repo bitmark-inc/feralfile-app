@@ -14,16 +14,17 @@ import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/album_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -375,18 +376,13 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
-        return SvgPicture.asset(
-          "assets/images/medium_image.svg",
+        return CachedNetworkImage(
+          imageUrl: album.thumbnailURL ?? "",
           width: 42,
           height: 42,
+          errorWidget: (context, url, error) =>
+              const GalleryThumbnailErrorWidget(),
         );
-      // return CachedNetworkImage(
-      //   imageUrl: album.thumbnailURL ?? "",
-      //   width: 42,
-      //   height: 42,
-      //   errorWidget: (context, url, error) =>
-      //       const GalleryThumbnailErrorWidget(),
-      // );
     }
   }
 
@@ -592,7 +588,6 @@ class _CollectionSectionState extends State<CollectionSection>
   final _configurationService = injector.get<ConfigurationService>();
   final _playlistService = injector.get<PlaylistService>();
   final _versionService = injector.get<VersionService>();
-  final _settingDataService = injector.get<SettingsDataService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
   late bool isDemo;
 
@@ -702,16 +697,7 @@ class _CollectionSectionState extends State<CollectionSection>
               key: Key(playlistKey),
               playlists: _playlists,
               filter: widget.filterString,
-              onReorder: (oldIndex, newIndex) async {
-                final item = value.removeAt(oldIndex);
-                value.insert(newIndex, item);
-                if (isDemo) return;
-                // await injector
-                //     .get<PlaylistService>()
-                //     .setPlayList(value, override: true);
-                _initPlayList();
-                _settingDataService.backup();
-              },
+              onReorder: (oldIndex, newIndex) {},
             )
           ],
         );
