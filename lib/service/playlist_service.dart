@@ -8,7 +8,8 @@ abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();
 
   Future<void> setPlayList(List<PlayListModel> playlists,
-      {bool override = false});
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort});
 
   Future<void> refreshPlayLists();
 
@@ -53,8 +54,10 @@ class PlayListServiceImp implements PlaylistService {
 
   @override
   Future<void> setPlayList(List<PlayListModel> playlists,
-      {bool override = false}) async {
-    _configurationService.setPlayList(playlists, override: override);
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort}) async {
+    _configurationService.setPlayList(playlists,
+        override: override, onConflict: onConflict);
     return;
   }
 

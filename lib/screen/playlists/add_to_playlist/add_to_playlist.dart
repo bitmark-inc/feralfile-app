@@ -42,10 +42,10 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
   final bloc = injector.get<AddNewPlaylistBloc>();
   final nftBloc = injector.get<NftCollectionBloc>();
 
-  List<AssetToken> tokensPlaylist = [];
   final _controller = ScrollController();
   late String _searchText;
   late bool _showSearchBar;
+  List<String>? _initSelectedTokenIds;
 
   @override
   void initState() {
@@ -131,7 +131,7 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
 
   List<CompactedAssetToken> setupPlayList({
     required List<CompactedAssetToken> tokens,
-    List<String>? selectedTokens,
+    List<String>? selectedTokenIds,
   }) {
     tokens = tokens.filterAssetToken().filterByTitleContain(_searchText);
     bloc.state.tokens = tokens;
@@ -139,6 +139,19 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
       _loadMore();
     }
     return tokens;
+  }
+
+  List<CompactedAssetToken> reoderPlaylist({
+    required List<CompactedAssetToken> tokens,
+    List<String>? selectedTokenIds,
+  }) {
+    final filterSellectedTokens = tokens
+        .where((element) => selectedTokenIds?.contains(element.id) ?? false)
+        .toList();
+    final unselectedTokens = tokens
+        .where((element) => !(selectedTokenIds?.contains(element.id) ?? false))
+        .toList();
+    return filterSellectedTokens..addAll(unselectedTokens);
   }
 
   @override
@@ -149,6 +162,11 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
       listener: (context, state) {
         if (state.isAddSuccess == true) {
           Navigator.pop(context, state.playListModel);
+        }
+        if (state.selectedIDs != null && _initSelectedTokenIds == null) {
+          setState(() {
+            _initSelectedTokenIds = state.selectedIDs!.toList();
+          });
         }
       },
       builder: (context, state) {
@@ -228,7 +246,9 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                             customGalleryViewBuilder: (context, tokens) =>
                                 _assetsWidget(
                               context,
-                              setupPlayList(tokens: tokens),
+                              reoderPlaylist(
+                                  tokens: setupPlayList(tokens: tokens),
+                                  selectedTokenIds: _initSelectedTokenIds),
                               onChanged: (tokenID, value) => bloc.add(
                                 UpdateItemPlaylist(
                                     tokenID: tokenID, value: value),

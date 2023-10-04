@@ -140,7 +140,9 @@ abstract class ConfigurationService {
 
   List<PlayListModel> getPlayList();
 
-  Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
+  Future<void> setPlayList(List<PlayListModel>? value,
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort});
 
   Future<void> removePlayList(String id);
 
@@ -882,15 +884,31 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false}) async {
-    final playlists = value?.map((e) => jsonEncode(e)).toList() ?? [];
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort}) async {
+    var newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
 
     if (override) {
-      await _preferences.setStringList(PLAYLISTS, playlists);
+      await _preferences.setStringList(PLAYLISTS, newPlaylists);
     } else {
       var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
+      final playlists = playlistsSave
+          .map((e) => PlayListModel.fromJson(jsonDecode(e)))
+          .toList();
+      switch (onConflict) {
+        case ConflictAction.replace:
+          playlists.removeWhere((playlist) =>
+              value?.any((element) => playlist.id == element.id) ?? false);
+          newPlaylists = playlists.map((e) => jsonEncode(e)).toList();
+          break;
+        case ConflictAction.abort:
+          value?.removeWhere((playlist) =>
+              playlists.any((element) => element.id == playlist.id));
+          newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
+          break;
+      }
 
-      playlistsSave.addAll(playlists);
+      playlistsSave.addAll(newPlaylists);
       await _preferences.setStringList(
           PLAYLISTS, playlistsSave.toSet().toList());
     }
@@ -1354,4 +1372,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
         .toList());
     return hiddenTokens;
   }
+}
+
+enum ConflictAction {
+  abort,
+  replace,
 }
