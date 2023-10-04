@@ -363,6 +363,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     child: Text(
                       playList.getName(),
                       style: theme.textTheme.ppMori400Black16,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ]

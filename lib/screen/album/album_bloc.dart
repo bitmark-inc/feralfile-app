@@ -38,15 +38,19 @@ class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
         );
       }
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
-      assetTokens.removeWhere((element) => hiddenTokenIDs.contains(element));
+      assetTokens.removeWhere((element) => hiddenTokenIDs.contains(element.id));
+      final isFilterByTokenTitle = event.type == AlbumType.medium;
       final tokens = assetTokens
           .map((e) => CompactedAssetToken.fromAssetToken(e))
           .toList()
-          .where((element) =>
-              element.title
-                  ?.toLowerCase()
-                  .contains(event.filterStr.toLowerCase()) ??
-              false)
+          .where(
+            (element) =>
+                !isFilterByTokenTitle ||
+                (element.title
+                        ?.toLowerCase()
+                        .contains(event.filterStr.toLowerCase()) ??
+                    false),
+          )
           .toList();
       emit(
         AlbumLoadedState(

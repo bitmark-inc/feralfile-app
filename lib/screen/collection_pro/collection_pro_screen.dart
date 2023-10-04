@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/album_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -127,16 +128,26 @@ class CollectionProState extends State<CollectionPro>
             fetchIdentities(state);
           }
         },
-        builder: (context, state) {
-          if (state is CollectionLoadedState) {
-            final listAlbumByMedium = state.listAlbumByMedium;
-            final listAlbumByArtist = state.listAlbumByArtist;
-            final works = state.works;
+        builder: (context, collectionProState) {
+          if (collectionProState is CollectionLoadedState) {
+            final listAlbumByMedium = collectionProState.listAlbumByMedium;
+
+            final works = collectionProState.works;
             final paddingTop = MediaQuery.of(context).viewPadding.top;
             return BlocBuilder<IdentityBloc, IdentityState>(
-                builder: (context, state) {
-                  final identityMap = state.identityMap
+                builder: (context, identityState) {
+                  final identityMap = identityState.identityMap
                     ..removeWhere((key, value) => value.isEmpty);
+                  final listAlbumByArtist = collectionProState.listAlbumByArtist
+                      ?.map(
+                        (e) {
+                          final name = identityMap[e.id] ?? e.name ?? e.id;
+                          e.name = name;
+                          return e;
+                        },
+                      )
+                      .toList()
+                      .filterByName(searchStr.value);
                   return Scaffold(
                     body: Stack(
                       children: [
@@ -381,7 +392,10 @@ class _AlbumSectionState extends State<AlbumSection> {
 
   Widget _item(BuildContext context, AlbumModel album) {
     final theme = Theme.of(context);
-    final title = album.name ?? album.id;
+    var title = album.name ?? album.id;
+    if (album.name == album.id) {
+      title = title.maskOnly(5);
+    }
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
@@ -439,9 +453,6 @@ class _AlbumSectionState extends State<AlbumSection> {
                   final albumName = album.name ?? album.id;
                   if (widget.identityMap?[albumName] != null) {
                     album.name = widget.identityMap?[albumName];
-                  }
-                  if (album.name == album.id) {
-                    album.name = album.name?.maskOnly(5);
                   }
                   return _item(context, album);
                 },

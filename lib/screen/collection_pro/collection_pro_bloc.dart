@@ -44,8 +44,7 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
         album.id = MediumCategory.other;
         listAlbumByMedium.add(album);
       }
-      final listAlbumByArtist =
-          await _ablumDao.getAlbumsByArtist(name: event.filterStr);
+      final listAlbumByArtist = await _ablumDao.getAlbumsByArtist();
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
       final hiddenTokens =
           await _assetTokenDao.findAllAssetTokensByTokenIDs(hiddenTokenIDs);
