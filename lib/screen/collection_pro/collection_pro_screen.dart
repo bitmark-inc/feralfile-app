@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
@@ -651,13 +652,19 @@ class _CollectionSectionState extends State<CollectionSection>
     });
   }
 
+  void onBuild() {
+    _initPlayList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    onBuild();
     return ValueListenableBuilder<List<PlayListModel>?>(
       valueListenable: _playlists,
       builder: (context, value, child) {
-        final playlists = value;
-        if (playlists == null) return const SizedBox.shrink();
+        if (value == null) return const SizedBox.shrink();
+
+        final playlists = value.filter(widget.filterString);
         final playlistIDsString = playlists.map((e) => e.id).toList().join();
         final playlistKeyBytes = utf8.encode(playlistIDsString);
         final playlistKey = sha256.convert(playlistKeyBytes).toString();
@@ -678,7 +685,7 @@ class _CollectionSectionState extends State<CollectionSection>
               playlists: _playlists,
               filter: widget.filterString,
               onReorder: (oldIndex, newIndex) async {
-                final item = value!.removeAt(oldIndex);
+                final item = value.removeAt(oldIndex);
                 value.insert(newIndex, item);
                 if (isDemo) return;
                 // await injector

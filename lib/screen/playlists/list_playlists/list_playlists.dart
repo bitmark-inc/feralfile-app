@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
-import 'package:autonomy_flutter/view/horizontal_grid_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -49,24 +48,6 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     super.dispose();
   }
 
-  List<PlayListModel> _mapperPlaylist(List<PlayListModel> list) {
-    List<PlayListModel> newList = [];
-
-    if (list.length <= 3) return list;
-    newList = list;
-    if (newList.length < 6) {
-      final fakePlaylistList = List.generate(
-          6 - newList.length,
-          (index) => FakePlaylistModel(
-                name: "",
-                thumbnailURL: "",
-                tokenIDs: [],
-              ));
-      newList.addAll(fakePlaylistList);
-    }
-    return newList;
-  }
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<PlayListModel>?>(
@@ -75,26 +56,19 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
         if (value == null) {
           return const SizedBox.shrink();
         }
-        List<PlayListModel> playlists =
-            _mapperPlaylist(value.filter(widget.filter));
+        List<PlayListModel> playlists = value.filter(widget.filter);
         if (playlists.isEmpty) return const SizedBox();
-        final cellPerColumn = playlists.length > 3 ? 2 : 1;
-        const cellSpacing = 15.0;
-        final height = cellPerColumn * 165 + (cellPerColumn - 1) * cellSpacing;
+        const height = 165.0;
         return SizedBox(
           height: height,
           width: 400,
-          child: HorizontalReorderableGridview<PlayListModel>(
-              items: playlists,
-              onReorder: widget.onReorder,
-              cellPerColumn: cellPerColumn,
-              cellSpacing: cellSpacing,
-              childAspectRatio: 165 / 140,
-              onDragStart: (index) {
-                // Vibrate.feedback(FeedbackType.light);
-              },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
               itemCount: playlists.length,
-              itemBuilder: (item) {
+              itemBuilder: (context, index) {
+                final item = playlists[index];
                 if (item is FakePlaylistModel) {
                   return const FakePlaylistItem();
                 }
@@ -106,7 +80,12 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                     arguments: ViewPlaylistScreenPayload(playListModel: item),
                   ),
                 );
-              }),
+              },
+              separatorBuilder: (context, index) {
+                return const SizedBox(width: 10);
+              },
+            ),
+          ),
         );
       },
     );
