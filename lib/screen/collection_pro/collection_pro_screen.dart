@@ -89,7 +89,7 @@ class CollectionProState extends State<CollectionPro>
   }
 
   _scrollListenerShowfullHeader() {
-    if (_scrollController.offset > 50) {
+    if (_scrollController.offset > 50 && isShowSearchBar) {
       if (isShowFullHeader) {
         setState(() {
           isShowFullHeader = false;
@@ -385,6 +385,7 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
+        return SvgPicture.asset("assets/images/medium_image.svg");
         return CachedNetworkImage(
           imageUrl: album.thumbnailURL ?? "",
           width: 42,
