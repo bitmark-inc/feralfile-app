@@ -83,10 +83,14 @@ abstract class ConnectionDao {
         case 'ledger':
           final jsonData = json.decode(oldConnection.data);
           // there is a typo in creating connections for ledger code: etheremAddress
-          final etheremAddress = (jsonData['etheremAddress'] as List<dynamic>)
+          final etheremAddress = (jsonData['etheremAddress'] == null
+                  ? []
+                  : (jsonData['etheremAddress'] as List<dynamic>))
               .map((e) => e as String)
               .toList();
-          final tezosAddress = (jsonData['tezosAddress'] as List<dynamic>)
+          final tezosAddress = (jsonData['tezosAddress'] == null
+                  ? []
+                  : (jsonData['tezosAddress'] as List<dynamic>))
               .map((e) => e as String)
               .toList();
           address.addAll(etheremAddress);
