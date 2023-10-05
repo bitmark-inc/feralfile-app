@@ -24,8 +24,10 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
       ];
       for (final medium in listMedium) {
         final albums = await _ablumDao.getAlbumsByMedium(
-            title: event.filterStr,
-            mimeTypes: MediumCategory.mineTypes(medium));
+          title: event.filterStr,
+          mimeTypes: MediumCategory.mineTypes(medium),
+          mediums: MediumCategoryExt.mediums(medium),
+        );
         if (albums.isNotEmpty && albums.first.total > 0) {
           final album = albums.first;
           album.name = MediumCategoryExt.getName(medium);
@@ -36,6 +38,7 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
       final albums = await _ablumDao.getAlbumsByMedium(
           title: event.filterStr,
           mimeTypes: MediumCategoryExt.getAllMimeType(),
+          mediums: MediumCategoryExt.getAllMediums(),
           isInMimeTypes: false);
 
       if (albums.isNotEmpty && albums.first.total > 0) {

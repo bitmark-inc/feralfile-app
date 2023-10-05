@@ -47,4 +47,32 @@ extension MediumCategoryExt on MediumCategory {
         .flattened
         .toList();
   }
+
+  static List<String> getAllMediums() {
+    return getAllCategories().map((e) => mediums(e)).flattened.toList();
+  }
+
+  static List<String> mediums(String category) {
+    switch (category) {
+      case MediumCategory.image:
+        return [
+          "image",
+          "gif",
+        ];
+      case MediumCategory.video:
+        return [
+          "video",
+        ];
+      case MediumCategory.model:
+        return [
+          "model",
+        ];
+      case MediumCategory.webView:
+        return [
+          "pdf",
+          "software",
+        ];
+    }
+    return [];
+  }
 }

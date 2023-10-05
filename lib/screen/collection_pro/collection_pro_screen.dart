@@ -168,8 +168,8 @@ class CollectionProState extends State<CollectionPro>
                               pinned: isShowSearchBar,
                               centerTitle: true,
                               backgroundColor: Colors.white,
-                              expandedHeight: 126,
-                              collapsedHeight: 126,
+                              expandedHeight: isShowFullHeader ? 126 : 75,
+                              collapsedHeight: isShowFullHeader ? 126 : 75,
                               shadowColor: Colors.transparent,
                               flexibleSpace: Column(
                                 children: [

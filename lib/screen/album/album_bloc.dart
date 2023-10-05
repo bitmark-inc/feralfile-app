@@ -32,9 +32,14 @@ class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
         final mimeTypes = isOther
             ? MediumCategoryExt.getAllMimeType()
             : MediumCategory.mineTypes(event.id ?? '');
-        assetTokens = await _assetTokenDao.findAllAssetTokensByMimeTypes(
+        final mediums = isOther
+            ? MediumCategoryExt.getAllMediums()
+            : MediumCategoryExt.mediums(event.id ?? '');
+        assetTokens =
+            await _assetTokenDao.findAllAssetTokensByMimeTypesOrMediums(
           mimeTypes: mimeTypes,
           isInMimeTypes: !isOther,
+          mediums: mediums,
         );
       }
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
