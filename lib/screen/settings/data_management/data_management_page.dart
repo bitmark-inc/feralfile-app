@@ -14,10 +14,7 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_toggle.dart';
-import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/util/ui_helperive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -59,42 +56,6 @@ class _DataManagementPageState extends State<DataManagementPage> {
               children: [
                 Column(
                   children: [
-                    Padding(
-                      padding: padding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text('nft_metadata_contribution'.tr(),
-                                      style: theme.textTheme.ppMori400Black16),
-                                ],
-                              ),
-                              AuToggle(
-                                value: _allowContribution,
-                                onToggle: (value) {
-                                  injector<ConfigurationService>()
-                                      .setAllowContribution(value);
-                                  setState(() {
-                                    _allowContribution = value;
-                                  });
-                                },
-                              )
-                            ],
-                          ),
-                          const SizedBox(height: 7),
-                          Text(
-                            'allow_automatically_contributing_data'.tr(),
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                    addDivider(height: 16),
                     Padding(
                       padding: padding,
                       child: TappableForwardRowWithContent(
