@@ -12,7 +12,6 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/background_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -27,7 +26,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:background_fetch/background_fetch.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
@@ -131,11 +129,6 @@ _setupApp() async {
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {
     injector<DeeplinkService>().setup();
-
-    // Register to receive BackgroundFetch events after app is terminated.
-    BackgroundFetch.registerHeadlessTask(
-        injector<BackgroundService>().backgroundFetchHeadlessTask);
-    injector<BackgroundService>().configureBackgroundTask();
   });
 }
 
