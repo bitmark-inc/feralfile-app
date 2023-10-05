@@ -224,10 +224,6 @@ abstract class ConfigurationService {
 
   Future setSentTezosArtworkMetric(int hashedAddresses);
 
-  bool allowContribution();
-
-  Future<void> setAllowContribution(bool value);
-
   // Reload
   Future<void> reload();
 
@@ -919,16 +915,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool isLastestVersion() {
     return _preferences.getBool(KEY_LASTEST_VERSION) ?? false;
-  }
-
-  @override
-  bool allowContribution() {
-    return _preferences.getBool(ALLOW_CONTRIBUTION) ?? true;
-  }
-
-  @override
-  Future<void> setAllowContribution(bool value) async {
-    await _preferences.setBool(ALLOW_CONTRIBUTION, value);
   }
 
   @override
