@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -213,23 +212,17 @@ class MessageView extends StatelessWidget {
       children: [
         Row(
           children: [
-            message.status == types.Status.sending
-                ? Row(
-                    children: [
-                      redDotIcon(color: AppColor.auSuperTeal),
-                      const SizedBox(width: 8),
-                    ],
-                  )
-                : const SizedBox(),
             Text(
               assetToken.getStamperName(message.author.id),
               style: theme.textTheme.moMASans700Black12,
             ),
             const SizedBox(width: 15),
             Text(
-              showFullTime
-                  ? getChatDateTimeRepresentation(time)
-                  : getLocalTimeOnly(time),
+              message.status == types.Status.sending
+                  ? "sending".tr()
+                  : showFullTime
+                      ? getChatDateTimeRepresentation(time)
+                      : getLocalTimeOnly(time),
               style: theme.textTheme.moMASans400Black12
                   .copyWith(color: AppColor.auQuickSilver, fontSize: 10),
             ),

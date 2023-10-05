@@ -43,10 +43,10 @@ Dio feedDio(BaseOptions options) {
 }
 
 Dio baseDio(BaseOptions options) {
-  final BaseOptions dioOptions = BaseOptions(
+  final BaseOptions dioOptions = options.copyWith(
     followRedirects: true,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    connectTimeout: options.connectTimeout ?? const Duration(seconds: 10),
+    receiveTimeout: options.receiveTimeout ?? const Duration(seconds: 10),
   );
   final dio = Dio(); // Default a dio instance
   dio.interceptors.add(RetryInterceptor(
