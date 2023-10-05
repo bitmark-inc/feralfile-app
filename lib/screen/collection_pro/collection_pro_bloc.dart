@@ -15,39 +15,10 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
 
   CollectionProBloc() : super(CollectionInitState()) {
     on<LoadCollectionEvent>((event, emit) async {
-      final List<AlbumModel> listAlbumByMedium = [];
-      final listMedium = [
-        MediumCategory.image,
-        MediumCategory.video,
-        MediumCategory.model,
-        MediumCategory.webView,
-      ];
-      for (final medium in listMedium) {
-        final albums = await _ablumDao.getAlbumsByMedium(
-          title: event.filterStr,
-          mimeTypes: MediumCategory.mineTypes(medium),
-          mediums: MediumCategoryExt.mediums(medium),
-        );
-        if (albums.isNotEmpty && albums.first.total > 0) {
-          final album = albums.first;
-          album.name = MediumCategoryExt.getName(medium);
-          album.id = medium;
-          listAlbumByMedium.add(album);
-        }
-      }
-      final albums = await _ablumDao.getAlbumsByMedium(
-          title: event.filterStr,
-          mimeTypes: MediumCategoryExt.getAllMimeType(),
-          mediums: MediumCategoryExt.getAllMediums(),
-          isInMimeTypes: false);
-
-      if (albums.isNotEmpty && albums.first.total > 0) {
-        final album = albums.first;
-        album.name = MediumCategoryExt.getName(MediumCategory.other);
-        album.id = MediumCategory.other;
-        listAlbumByMedium.add(album);
-      }
+      final List<AlbumModel> listAlbumByMedium =
+          await _getAllAlbumByMedium(filterStr: event.filterStr);
       final listAlbumByArtist = await _ablumDao.getAlbumsByArtist();
+
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
       final hiddenTokens =
           await _assetTokenDao.findAllAssetTokensByTokenIDs(hiddenTokenIDs);
@@ -69,16 +40,8 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
       }
       listAlbumByArtist.removeWhere((element) => element.total <= 0);
       listAlbumByMedium.removeWhere((element) => element.total <= 0);
-      List<CompactedAssetToken> works = [];
-      if (event.filterStr.isNotEmpty) {
-        final assetTokens = await _assetTokenDao.findAllAssetTokensByFilter(
-            filter: event.filterStr);
-        assetTokens.removeWhere((element) =>
-            hiddenTokenIDs.contains(element.id) || (element.balance ?? 0) <= 0);
-        works = assetTokens
-            .map((e) => CompactedAssetToken.fromAssetToken(e))
-            .toList();
-      }
+      List<CompactedAssetToken> works =
+          await _getAllTokenFilterByTitleOrArtist(filterStr: event.filterStr);
       emit(
         CollectionLoadedState(
           listAlbumByMedium: listAlbumByMedium,
@@ -87,5 +50,52 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
         ),
       );
     });
+  }
+
+  Future<List<AlbumModel>> _getAllAlbumByMedium({String filterStr = ""}) async {
+    final List<AlbumModel> listAlbumByMedium = [];
+    final listMedium = MediumCategoryExt.getAllCategories();
+    for (final mediumCatelog in listMedium) {
+      final albums = await _ablumDao.getAlbumsByMedium(
+        title: filterStr,
+        mimeTypes: MediumCategory.mineTypes(mediumCatelog),
+        mediums: MediumCategoryExt.mediums(mediumCatelog),
+      );
+      if (albums.isNotEmpty && albums.first.total > 0) {
+        final album = albums.first;
+        album.name = MediumCategoryExt.getName(mediumCatelog);
+        album.id = mediumCatelog;
+        listAlbumByMedium.add(album);
+      }
+    }
+    final albums = await _ablumDao.getAlbumsByMedium(
+        title: filterStr,
+        mimeTypes: MediumCategoryExt.getAllMimeType(),
+        mediums: MediumCategoryExt.getAllMediums(),
+        isInMimeTypes: false);
+
+    if (albums.isNotEmpty && albums.first.total > 0) {
+      final album = albums.first;
+      album.name = MediumCategoryExt.getName(MediumCategory.other);
+      album.id = MediumCategory.other;
+      listAlbumByMedium.add(album);
+    }
+    return listAlbumByMedium;
+  }
+
+  Future<List<CompactedAssetToken>> _getAllTokenFilterByTitleOrArtist(
+      {String filterStr = ""}) async {
+    List<CompactedAssetToken> works = [];
+    final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
+    if (filterStr.isNotEmpty) {
+      final assetTokens =
+          await _assetTokenDao.findAllAssetTokensByFilter(filter: filterStr);
+      assetTokens.removeWhere((element) =>
+          hiddenTokenIDs.contains(element.id) || (element.balance ?? 0) <= 0);
+      works = assetTokens
+          .map((e) => CompactedAssetToken.fromAssetToken(e))
+          .toList();
+    }
+    return works;
   }
 }

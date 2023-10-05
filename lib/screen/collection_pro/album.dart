@@ -1,19 +1,20 @@
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:nft_collection/database/dao/album_dao.dart';
 
 extension MediumCategoryExt on MediumCategory {
   static String getName(String medium) {
     switch (medium) {
       case MediumCategory.image:
-        return 'Still';
+        return 'still'.tr();
       case MediumCategory.video:
-        return 'Video';
+        return 'video'.tr();
       case MediumCategory.model:
-        return '3D';
+        return '3d'.tr();
       case MediumCategory.webView:
-        return 'Interactive';
+        return 'interactive'.tr();
       default:
-        return 'Other';
+        return 'other'.tr();
     }
   }
 
@@ -69,7 +70,6 @@ extension MediumCategoryExt on MediumCategory {
         ];
       case MediumCategory.webView:
         return [
-          "pdf",
           "software",
         ];
     }

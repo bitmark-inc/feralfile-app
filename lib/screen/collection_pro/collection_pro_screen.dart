@@ -259,7 +259,6 @@ class CollectionProState extends State<CollectionPro>
                                 child: AlbumSection(
                                   listAlbum: listAlbumByMedium,
                                   albumType: AlbumType.medium,
-                                  identityMap: identityMap,
                                   searchStr: searchStr.value,
                                 ),
                               ),
@@ -281,7 +280,6 @@ class CollectionProState extends State<CollectionPro>
                               child: AlbumSection(
                                 listAlbum: listAlbumByArtist,
                                 albumType: AlbumType.artist,
-                                identityMap: identityMap,
                                 searchStr: searchStr.value,
                               ),
                             ),
@@ -344,14 +342,12 @@ class SectionHeader extends StatelessWidget {
 class AlbumSection extends StatefulWidget {
   final List<AlbumModel>? listAlbum;
   final AlbumType albumType;
-  final Map<String, String>? identityMap;
   final String searchStr;
 
   const AlbumSection(
       {super.key,
       required this.listAlbum,
       required this.albumType,
-      this.identityMap,
       required this.searchStr});
 
   @override
@@ -385,7 +381,6 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
-        return SvgPicture.asset("assets/images/medium_image.svg");
         return CachedNetworkImage(
           imageUrl: album.thumbnailURL ?? "",
           width: 42,
@@ -456,10 +451,6 @@ class _AlbumSectionState extends State<AlbumSection> {
                 },
                 itemBuilder: (BuildContext context, int index) {
                   final album = listAlbum[index];
-                  final albumName = album.name ?? album.id;
-                  if (widget.identityMap?[albumName] != null) {
-                    album.name = widget.identityMap?[albumName];
-                  }
                   return _item(context, album);
                 },
                 itemCount: listAlbum.length,
@@ -560,7 +551,7 @@ class _WorksSectionState extends State<WorksSection> {
       child: Column(
         children: [
           SectionHeader(
-              title: "Works", subTitle: "${compactedAssetTokens.length}"),
+              title: "works".tr(), subTitle: "${compactedAssetTokens.length}"),
           addDivider(color: AppColor.primaryBlack),
           CustomScrollView(
             shrinkWrap: true,
@@ -648,7 +639,7 @@ class CollectionSectionState extends State<CollectionSection>
   Widget _header(BuildContext context, int total) {
     final isShowAddIcon = widget.filterString.isEmpty;
     return SectionHeader(
-      title: "Collections",
+      title: "collections".tr(),
       subTitle: "$total",
       icon: isShowAddIcon
           ? SvgPicture.asset(
