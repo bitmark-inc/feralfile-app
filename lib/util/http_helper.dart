@@ -29,9 +29,11 @@ class HttpHelper {
     headers.addAll({
       "X-Api-Signature": sig,
       "X-Api-Timestamp": timestamp,
+      "Content-Type": "application/json",
     });
 
-    final response = await http.post(url, headers: headers);
+    final response =
+        await http.post(url, headers: headers, body: jsonEncode(body));
     return response;
   }
 }
