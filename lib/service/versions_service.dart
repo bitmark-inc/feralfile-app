@@ -41,12 +41,10 @@ class VersionService {
     String currentVersion = packageInfo.version;
 
     if (compareVersion(versionInfo.requiredVersion, currentVersion) > 0) {
-      await _configurationService.setLastestVersion(false);
       await showForceUpdateDialog(versionInfo.link);
     } else {
       // check to show Release Notes
       await showReleaseNotes(currentVersion: currentVersion);
-      await _configurationService.setLastestVersion(true);
     }
   }
 
