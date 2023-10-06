@@ -8,4 +8,9 @@ class FileHelper {
         name: name, isReturnImagePathOfIOS: true);
     return response['isSuccess'];
   }
+
+  static Future<bool> saveFileToGallery(String path, String name) async {
+    final response = await ImageGallerySaver.saveFile(path, name: name);
+    return response['isSuccess'];
+  }
 }
