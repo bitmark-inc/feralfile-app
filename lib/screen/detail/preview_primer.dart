@@ -84,33 +84,31 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     Navigator.of(context).pop();
   }
 
-  void onClickFullScreen() {
+  void onClickFullScreen(BuildContext context) {
     setState(() {
       isFullScreen = true;
     });
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     final theme = Theme.of(context);
 
-    if (injector<ConfigurationService>().isFullscreenIntroEnabled()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-            decoration: BoxDecoration(
-              color: theme.auSuperTeal.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(64),
-            ),
-            child: Text(
-              'shake_exit'.tr(),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.ppMori600Black12,
-            ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: theme.auSuperTeal.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
           ),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori600Black12,
+          ),
         ),
-      );
-    }
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+    );
   }
 
   @override
@@ -229,7 +227,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         GestureDetector(
-                          onTap: () => onClickFullScreen(),
+                          onTap: () => onClickFullScreen(context),
                           child: Semantics(
                             label: "fullscreen_icon",
                             child: SvgPicture.asset(

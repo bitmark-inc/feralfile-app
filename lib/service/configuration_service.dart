@@ -92,10 +92,6 @@ abstract class ConfigurationService {
 
   bool isDoneOnboardingOnce();
 
-  Future<void> setFullscreenIntroEnable(bool value);
-
-  bool isFullscreenIntroEnabled();
-
   Future<void> readRemoveSupport(bool value);
 
   bool isReadRemoveSupport();
@@ -118,18 +114,6 @@ abstract class ConfigurationService {
   Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
       {bool override = false});
 
-  Future<void> setWCDappSession(String? value);
-
-  String? getWCDappSession();
-
-  Future<void> setWCDappAccounts(List<String>? value);
-
-  List<String>? getWCDappAccounts();
-
-  DateTime? getLatestRefreshTokens();
-
-  Future<bool> setLatestRefreshTokens(DateTime? value);
-
   Future<void> setReadReleaseNotesInVersion(String version);
 
   String? getReadReleaseNotesVersion();
@@ -145,10 +129,6 @@ abstract class ConfigurationService {
   Future<void> removePlayList(String id);
 
   Future<String> getAccountHMACSecret();
-
-  bool isFinishedFeedOnBoarding();
-
-  Future<void> setFinishedFeedOnBoarding(bool value);
 
   String? lastRemindReviewDate();
 
@@ -176,10 +156,6 @@ abstract class ConfigurationService {
 
   Future setShowTokenDebugInfo(bool show);
 
-  bool isLastestVersion();
-
-  Future setLastestVersion(bool value);
-
   Future setDoneOnboardingTime(DateTime time);
 
   DateTime? getDoneOnboardingTime();
@@ -188,8 +164,6 @@ abstract class ConfigurationService {
 
   DateTime? getSubscriptionTime();
 
-  Future setAlreadyShowNotifTip(bool show);
-
   Future setAlreadyShowProTip(bool show);
 
   Future setAlreadyShowTvAppTip(bool show);
@@ -197,8 +171,6 @@ abstract class ConfigurationService {
   Future setAlreadyShowCreatePlaylistTip(bool show);
 
   Future setAlreadyShowLinkOrImportTip(bool show);
-
-  bool getAlreadyShowNotifTip();
 
   bool getAlreadyShowProTip();
 
@@ -305,7 +277,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_DEVICE_PASSCODE = "device_passcode";
   static const String KEY_NOTIFICATION = "notifications";
   static const String KEY_ANALYTICS = "analytics";
-  static const String KEY_FULLSCREEN_INTRO = "fullscreen_intro";
   static const String KEY_DONE_ONBOARING = "done_onboarding";
   static const String KEY_PENDING_SETTINGS = "has_pending_settings";
   static const String READ_REMOVE_SUPPORT = "read_remove_support";
@@ -322,22 +293,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
   static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
-  static const String KEY_FINISHED_FEED_ONBOARDING = "finished_feed_onboarding";
   static const String KEY_SHARED_POSTCARD = "shared_postcard";
 
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
       "announcement_last_pull_time";
   static const String OLD_USER = "old_user";
 
-  // keys for WalletConnect dapp side
-  static const String KEY_WC_DAPP_SESSION = "wc_dapp_store";
-  static const String KEY_WC_DAPP_ACCOUNTS = "wc_dapp_accounts";
-
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
       "show_demo_artworks_preference";
-  static const String KEY_LASTEST_REFRESH_TOKENS =
-      "latest_refresh_tokens_mainnet_1";
   static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
   static const String LAST_REMIND_REVIEW = "last_remind_review";
@@ -346,7 +310,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String PLAYLISTS = "playlists";
   static const String HAVE_FEED = "have_feed";
-  static const String KEY_LASTEST_VERSION = "lastest_version";
 
   static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
@@ -355,8 +318,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_DONE_ON_BOARDING_TIME = "done_on_boarding_time";
 
   static const String KEY_SUBSCRIPTION_TIME = "subscription_time";
-
-  static const String KEY_CAN_SHOW_NOTIF_TIP = "show_notif_tip";
 
   static const String KEY_CAN_SHOW_PRO_TIP = "show_pro_tip";
 
@@ -396,11 +357,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
 
   @override
-  Future setAlreadyShowNotifTip(bool show) async {
-    await _preferences.setBool(KEY_CAN_SHOW_NOTIF_TIP, show);
-  }
-
-  @override
   Future setAlreadyShowProTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_PRO_TIP, show);
   }
@@ -418,11 +374,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future setAlreadyShowLinkOrImportTip(bool show) async {
     await _preferences.setBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP, show);
-  }
-
-  @override
-  bool getAlreadyShowNotifTip() {
-    return _preferences.getBool(KEY_CAN_SHOW_NOTIF_TIP) ?? false;
   }
 
   @override
@@ -566,17 +517,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isFullscreenIntroEnabled() {
-    return _preferences.getBool(KEY_FULLSCREEN_INTRO) ?? true;
-  }
-
-  @override
-  Future<void> setFullscreenIntroEnable(bool value) async {
-    log.info("setFullscreenIntroEnable: $value");
-    await _preferences.setBool(KEY_FULLSCREEN_INTRO, value);
-  }
-
-  @override
   Future<void> setHideLinkedAccountInGallery(
       List<String> addresses, bool isEnabled,
       {bool override = false}) async {
@@ -668,36 +608,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setWCDappSession(String? value) async {
-    log.info("setWCDappSession: $value");
-    if (value != null) {
-      await _preferences.setString(KEY_WC_DAPP_SESSION, value);
-    } else {
-      await _preferences.remove(KEY_WC_DAPP_SESSION);
-    }
-  }
-
-  @override
-  String? getWCDappSession() {
-    return _preferences.getString(KEY_WC_DAPP_SESSION);
-  }
-
-  @override
-  Future<void> setWCDappAccounts(List<String>? value) async {
-    log.info("setWCDappAccounts: $value");
-    if (value != null) {
-      await _preferences.setStringList(KEY_WC_DAPP_ACCOUNTS, value);
-    } else {
-      await _preferences.remove(KEY_WC_DAPP_ACCOUNTS);
-    }
-  }
-
-  @override
-  List<String>? getWCDappAccounts() {
-    return _preferences.getStringList(KEY_WC_DAPP_ACCOUNTS);
-  }
-
-  @override
   Future<void> setReadReleaseNotesInVersion(String version) async {
     await _preferences.setString(KEY_READ_RELEASE_NOTES_VERSION, version);
   }
@@ -759,26 +669,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  DateTime? getLatestRefreshTokens() {
-    const key = KEY_LASTEST_REFRESH_TOKENS;
-    final time = _preferences.getInt(key);
-
-    if (time == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(time);
-  }
-
-  @override
-  Future<bool> setLatestRefreshTokens(DateTime? value) {
-    const key = KEY_LASTEST_REFRESH_TOKENS;
-
-    if (value == null) {
-      return _preferences.remove(key);
-    }
-
-    return _preferences.setInt(key, value.millisecondsSinceEpoch);
-  }
-
-  @override
   Future<void> setPreviousBuildNumber(String value) async {
     await _preferences.setString(KEY_PREVIOUS_BUILD_NUMBER, value);
   }
@@ -786,16 +676,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   String? getPreviousBuildNumber() {
     return _preferences.getString(KEY_PREVIOUS_BUILD_NUMBER);
-  }
-
-  @override
-  bool isFinishedFeedOnBoarding() {
-    return _preferences.getBool(KEY_FINISHED_FEED_ONBOARDING) ?? false;
-  }
-
-  @override
-  Future<void> setFinishedFeedOnBoarding(bool value) async {
-    await _preferences.setBool(KEY_FINISHED_FEED_ONBOARDING, value);
   }
 
   @override
@@ -905,16 +785,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool hasFeed() {
     return _preferences.getBool(HAVE_FEED) ?? false;
-  }
-
-  @override
-  Future<void> setLastestVersion(bool value) async {
-    await _preferences.setBool(KEY_LASTEST_VERSION, value);
-  }
-
-  @override
-  bool isLastestVersion() {
-    return _preferences.getBool(KEY_LASTEST_VERSION) ?? false;
   }
 
   @override
