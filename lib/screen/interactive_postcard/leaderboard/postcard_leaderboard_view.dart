@@ -185,8 +185,10 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                 SizedBox(
                   height: 65,
                   width: 85,
-                  child:
-                      CachedNetworkImage(imageUrl: leaderBoardItem.previewUrl),
+                  child: CachedNetworkImage(
+                    imageUrl: leaderBoardItem.previewUrl,
+                    fit: BoxFit.fitWidth,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
