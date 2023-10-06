@@ -397,7 +397,6 @@ class PostcardServiceImpl extends PostcardService {
       e.title = token.title ?? "unknown".tr();
       e.creators =
           token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
-      e.previewUrl = token.galleryThumbnailURL ?? "";
       e.rank = e.rank + offset;
       return e;
     }).toList();
