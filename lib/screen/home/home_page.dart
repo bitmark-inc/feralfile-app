@@ -252,27 +252,6 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      listenWhen: (previousState, currentState) {
-        final currentNumber = currentState.tokens.items
-            .filterAssetToken(isShowHidden: true)
-            .length;
-        final previousNumber = previousState.tokens.items
-            .filterAssetToken(isShowHidden: true)
-            .length;
-        final diffLength = currentNumber - previousNumber;
-        if (diffLength != 0) {
-          _metricClient.addEvent(MixpanelEvent.addNFT, data: {
-            'number': diffLength,
-          });
-        }
-        if (diffLength != 0) {
-          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
-            'number': currentNumber,
-          });
-          _metricClient.setLabel(MixpanelProp.numberNft, currentNumber);
-        }
-        return true;
-      },
       builder: (context, state) {
         return NftCollectionGrid(
           state: state.state,
