@@ -397,7 +397,6 @@ class PostcardServiceImpl extends PostcardService {
       e.title = token.title ?? "unknown".tr();
       e.creators =
           token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
-      e.previewUrl = token.galleryThumbnailURL ?? "";
       e.rank = e.rank + offset;
       return e;
     }).toList();
@@ -437,8 +436,16 @@ class PostcardServiceImpl extends PostcardService {
     final isFileExist = await tempFile.exists();
     final path = "/v1/postcard/$tokenId/printing";
     final secretKey = Environment.auClaimSecretKey;
+    final body = {
+      "width": 1080,
+      "height": 814,
+      "designClass": "print-no-border",
+    };
     final response = await HttpHelper.hmacAuthenticationPost(
-        host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+        host: Environment.auClaimAPIURL,
+        path: path,
+        secretKey: secretKey,
+        body: body);
     if (response.statusCode != StatusCode.success.value) {
       throw Exception(response.reasonPhrase);
     }

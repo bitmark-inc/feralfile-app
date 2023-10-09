@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard_view.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -115,7 +116,7 @@ class PostcardLeaderboardItem {
   String title;
   double totalDistance;
   List<String> creators;
-  String previewUrl;
+  String imageURL;
 
   PostcardLeaderboardItem({
     required this.id,
@@ -123,7 +124,7 @@ class PostcardLeaderboardItem {
     required this.title,
     required this.totalDistance,
     required this.creators,
-    required this.previewUrl,
+    required this.imageURL,
   });
 
   static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) {
@@ -134,7 +135,7 @@ class PostcardLeaderboardItem {
       totalDistance: json['mileage'].toDouble(),
       creators:
           json['creators'] == null ? [] : json['creators'] as List<String>,
-      previewUrl: json['preview_url'] ?? "",
+      imageURL: json['imageURL'] ?? "",
     );
   }
 
@@ -146,6 +147,10 @@ class PostcardLeaderboardItem {
       "totalDistance": totalDistance,
       "creators": creators,
     };
+  }
+
+  String get previewUrl {
+    return replaceIPFS(imageURL);
   }
 }
 
