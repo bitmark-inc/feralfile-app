@@ -354,9 +354,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
       case "Postcard":
         final String? type = data["type"];
         final String? id = data["id"];
-        final DateTime expiredAt = data['expired'] != null
+        final expiredAtData = data["expired_at"];
+        final DateTime expiredAt = expiredAtData != null
             ? DateTime.fromMillisecondsSinceEpoch(
-                (int.tryParse(data['expired_at']) ?? 0) * 1000)
+                (int.tryParse(expiredAtData) ?? 0) * 1000)
             : DateTime.now().add(const Duration(days: 1));
         if (expiredAt.isBefore(DateTime.now())) {
           _navigationService.showPostcardShareLinkExpired();
