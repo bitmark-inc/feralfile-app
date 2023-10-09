@@ -78,7 +78,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     required List<CompactedAssetToken> tokens,
     List<String>? tokenIDs,
   }) {
-    tokens = tokens.filterAssetToken();
+    tokens = tokens.filterAssetToken().filterByTitleContain(_searchText);
 
     final temp = tokenIDs
             ?.map((e) =>
