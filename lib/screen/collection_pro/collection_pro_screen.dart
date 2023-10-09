@@ -105,6 +105,7 @@ class CollectionProState extends State<CollectionPro>
   }
 
   loadCollection() {
+    refreshCollectionSection();
     _bloc.add(LoadCollectionEvent(filterStr: searchStr.value));
   }
 
@@ -120,10 +121,10 @@ class CollectionProState extends State<CollectionPro>
     }
   }
 
-  void refreshCollectionSection() {
+  Future<void> refreshCollectionSection() async {
     final collectionSectionState = _collectionSectionKey.currentState;
     if (collectionSectionState != null) {
-      collectionSectionState.refreshPlaylist();
+      await collectionSectionState.refreshPlaylist();
     }
   }
 
@@ -382,12 +383,19 @@ class _AlbumSectionState extends State<AlbumSection> {
         );
       case AlbumType.artist:
         return CachedNetworkImage(
-          imageUrl: album.thumbnailURL ?? "",
-          width: 42,
-          height: 42,
-          errorWidget: (context, url, error) =>
-              const GalleryThumbnailErrorWidget(),
-        );
+            imageUrl: album.thumbnailURL ?? "",
+            width: 42,
+            height: 42,
+            fit: BoxFit.cover,
+            memCacheHeight: 42,
+            memCacheWidth: 42,
+            errorWidget: (context, url, error) =>
+                const GalleryThumbnailErrorWidget(),
+            placeholder: (context, url) => Container(
+                  width: 42,
+                  height: 42,
+                  color: AppColor.disabledColor,
+                ));
     }
   }
 
@@ -413,7 +421,9 @@ class _AlbumSectionState extends State<AlbumSection> {
         color: Colors.transparent,
         child: Row(
           children: [
-            _icon(album),
+            _icon(
+              album,
+            ),
             const SizedBox(width: 33),
             Expanded(
               child: Text(
@@ -605,7 +615,7 @@ class CollectionSectionState extends State<CollectionSection>
     return playlists;
   }
 
-  _initPlayList() async {
+  Future<void> _initPlayList() async {
     _playlists.value = await getPlaylist() ?? [];
   }
 
@@ -666,8 +676,8 @@ class CollectionSectionState extends State<CollectionSection>
     });
   }
 
-  void refreshPlaylist() {
-    _initPlayList();
+  Future<void> refreshPlaylist() async {
+    await _initPlayList();
   }
 
   @override

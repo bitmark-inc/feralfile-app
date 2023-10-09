@@ -149,6 +149,8 @@ class HomePageState extends State<HomePage>
   }
 
   _scrollListenerToLoadMore() {
+    final isPremium = _configurationService.isPremium();
+    if (isPremium) return;
     if (_controller.position.pixels + 100 >=
         _controller.position.maxScrollExtent) {
       final nextKey = nftBloc.state.nextKey;
@@ -308,7 +310,6 @@ class HomePageState extends State<HomePage>
       listener: (context, state) async {
         log.info("[NftCollectionBloc] State update $state");
         collectionProKey.currentState?.loadCollection();
-        collectionProKey.currentState?.refreshCollectionSection();
         if (state.state == NftLoadingState.done) {
           _onTokensUpdate(state.tokens.items);
         }

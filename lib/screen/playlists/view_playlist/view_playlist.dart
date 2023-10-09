@@ -542,22 +542,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     ),
                   ),
                 ),
-              // AddButton(
-              //   onTap: () => Navigator.pushNamed(
-              //     context,
-              //     AppRouter.createPlayListPage,
-              //     arguments: widget.payload.playListModel,
-              //   ).then((value) {
-              //     if (value != null && value is PlayListModel) {
-              //       bloc.add(SavePlaylist(name: value.name));
-              //       nftBloc.add(RefreshNftCollectionByIDs(
-              //         ids: isDemo ? [] : value.tokenIDs,
-              //         debugTokenIds: isDemo ? value.tokenIDs : [],
-              //       ));
-              //     }
-              //   }),
-              //   icon: null,
-              // ),
               const SizedBox(height: 22),
               BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                   bloc: _canvasDeviceBloc,
