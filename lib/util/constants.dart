@@ -522,6 +522,7 @@ class MixpanelProp {
 class MixpanelConfig {
   static const countUseAutonomyInWeek = "countUseAutonomyInWeek";
   static const weekStartAt = 'weekStartAt';
+  static const numberNfts = 'numberNfts';
 }
 
 class SubscriptionStatus {

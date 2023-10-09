@@ -279,8 +279,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));
 
-  injector.registerLazySingleton<ClientTokenService>(
-      () => ClientTokenService(injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<ClientTokenService>(() => ClientTokenService(
+      injector(), injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton(() => FolloweeService(injector(), injector()));
   final tezosNodeClientURL = Environment.appTestnetConfig

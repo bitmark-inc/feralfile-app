@@ -3,12 +3,14 @@ import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:flutter/foundation.dart';
+import 'package:nft_collection/database/dao/token_dao.dart';
 
 class MetricClientService {
   late Timer? useAppTimer;
@@ -16,6 +18,8 @@ class MetricClientService {
   MetricClientService();
 
   final mixPanelClient = injector<MixPanelClientService>();
+  final _tokenDao = injector<TokenDao>();
+  final _accountService = injector<AccountService>();
   bool isFinishInit = false;
 
   Future<void> initService() async {
@@ -29,6 +33,36 @@ class MetricClientService {
     useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
       await onUseAppInForeground();
     });
+  }
+
+  Future<void> refreshNumberNfts() async {
+    final previousNumberNfts = getConfig(MixpanelConfig.numberNfts) as int?;
+    final activeAddresses = await _accountService.getShowedAddresses();
+    final tokens = await _tokenDao.findTokenIDsOwnersOwn(activeAddresses);
+    final numberNft = tokens.length;
+    var differece =
+        previousNumberNfts == null ? null : numberNft - previousNumberNfts;
+    if (differece != 0) {
+      setLabel(MixpanelProp.numberNft, numberNft);
+      addEvent(
+        MixpanelEvent.numberNft,
+        data: {
+          'number': numberNft,
+        },
+      );
+      if (differece != null) {
+        addEvent(
+          MixpanelEvent.addNFT,
+          data: {
+            'number': differece,
+          },
+        );
+      }
+      await setConfig(
+        MixpanelConfig.numberNfts,
+        numberNft,
+      );
+    }
   }
 
   Future<void> addEvent(
