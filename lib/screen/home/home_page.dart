@@ -22,14 +22,11 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -100,24 +97,6 @@ class HomePageState extends State<HomePage>
         case UpdateTokensEvent:
         case GetTokensBeforeByOwnerEvent:
           nftBloc.add(event);
-          break;
-        case AddArtistsEvent:
-
-          /// add following
-          final addEvent = event as AddArtistsEvent;
-          log.info("AddArtistsEvent ${addEvent.artists}");
-          final artists = event.artists;
-          artists.removeWhere((element) =>
-              invalidAddress.contains(element) || element.length < 36);
-          injector<FolloweeService>().addArtistsCollection(artists);
-          break;
-        case RemoveArtistsEvent:
-
-          /// remove following
-          final removeEvent = event as RemoveArtistsEvent;
-          log.info("RemoveArtistsEvent ${removeEvent.artists}");
-          injector<FolloweeService>()
-              .deleteArtistsCollection(removeEvent.artists);
           break;
         default:
       }
@@ -609,12 +588,6 @@ class HomePageState extends State<HomePage>
     _metricClient.addEvent("device_foreground");
     injector<VersionService>().checkForUpdate();
     // Reload token in Isolate
-    final jwtToken =
-        (await injector<AuthService>().getAuthToken(forceRefresh: true))
-            .jwtToken;
-
-    final feedService = injector<FeedService>();
-    feedService.refreshJWTToken(jwtToken);
 
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();

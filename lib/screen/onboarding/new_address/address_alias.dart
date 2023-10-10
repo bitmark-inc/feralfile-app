@@ -144,8 +144,7 @@ class _AddressAliasState extends State<AddressAlias> {
 
       if (!mounted) return;
       final payload = CloudAndroidPagePayload(
-          isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable,
-          goToDiscoverPage: !isDoneOnboarding);
+          isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable);
       if (isDoneOnboarding) {
         Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
             arguments: payload);
@@ -155,8 +154,7 @@ class _AddressAliasState extends State<AddressAlias> {
             arguments: payload);
       }
     } else {
-      final payload = CloudPagePayload(
-          section: "nameAlias", goToDiscoverPage: !isDoneOnboarding);
+      final payload = CloudPagePayload(section: "nameAlias");
       if (isDoneOnboarding) {
         Navigator.of(context)
             .pushReplacementNamed(AppRouter.cloudPage, arguments: payload);

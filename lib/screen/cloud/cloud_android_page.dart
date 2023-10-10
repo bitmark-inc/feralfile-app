@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -189,8 +188,6 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           route.settings.name == AppRouter.wcConnectPage ||
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition);
-    } else if (widget.payload.goToDiscoverPage) {
-      Navigator.of(context).pushNamed(DiscoverArtPage.tag);
     } else {
       doneOnboarding(context);
     }
@@ -200,8 +197,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
 // payload class
 class CloudAndroidPagePayload {
   final bool? isEncryptionAvailable;
-  final bool goToDiscoverPage;
 
   CloudAndroidPagePayload(
-      {this.isEncryptionAvailable, this.goToDiscoverPage = false});
+      {this.isEncryptionAvailable});
 }
