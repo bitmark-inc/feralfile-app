@@ -91,8 +91,8 @@ class PlayListServiceImp implements PlaylistService {
           .findAllAssetTokensByTokenIDs([allTokenIds.first]);
 
       final allNftsPlaylist = PlayListModel(
-          id: "all_nfts",
-          name: "All",
+          id: DefaultPlaylistModel.allNfts.id,
+          name: DefaultPlaylistModel.allNfts.name,
           tokenIDs: allTokenIds,
           thumbnailURL: token.first.thumbnailURL);
       defaultPlaylists.add(allNftsPlaylist);

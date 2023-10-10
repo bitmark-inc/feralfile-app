@@ -91,7 +91,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   @override
   void initState() {
     _sortOrder = _getAvailableOrders().first;
-    editable = widget.payload.collectionType == CollectionType.manual;
+    editable = widget.payload.collectionType == CollectionType.manual &&
+        !(widget.payload.playListModel?.isDefault ?? true);
     super.initState();
 
     nftBloc.add(RefreshNftCollectionByIDs(

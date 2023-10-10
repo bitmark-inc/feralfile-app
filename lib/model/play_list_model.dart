@@ -88,3 +88,34 @@ class PlayListModel {
     return name ?? tr('untitled');
   }
 }
+
+extension PlayListModelExtension on PlayListModel {
+  bool get isDefault {
+    final defaultPlaylists = DefaultPlaylistModel.getAll();
+    return defaultPlaylists.any((element) => element.id == id);
+  }
+}
+
+enum DefaultPlaylistModel {
+  allNfts;
+
+  String get id {
+    switch (this) {
+      case DefaultPlaylistModel.allNfts:
+        return "all_nfts";
+    }
+  }
+
+  String get name {
+    switch (this) {
+      case DefaultPlaylistModel.allNfts:
+        return "all".tr();
+    }
+  }
+
+  static List<DefaultPlaylistModel> getAll() {
+    return [
+      DefaultPlaylistModel.allNfts,
+    ];
+  }
+}
