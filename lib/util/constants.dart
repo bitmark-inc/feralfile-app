@@ -64,9 +64,18 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
 
 const TEIA_ART_CONTRACT_ADDRESSES = ["KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"];
 const OPENSEA_ASSET_PREFIX = "https://opensea.io/assets/";
-const OBJKT_ASSET_PREFIX = "https://objkt.com/asset/";
+const OBJKT_ASSET_PREFIX_MAINNET = "https://objkt.com/asset/";
+const OBJKT_ASSET_PREFIX_TESTNET = "https://ghostnet.objkt.com/asset/";
 const TEIA_ART_ASSET_PREFIX = "https://teia.art/objkt/";
 const FXHASH_IDENTIFIER = "fxhash.xyz";
+
+String get objktAssetPrefix {
+  if (Environment.appTestnetConfig) {
+    return OBJKT_ASSET_PREFIX_TESTNET;
+  } else {
+    return OBJKT_ASSET_PREFIX_MAINNET;
+  }
+}
 
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
     "0x7a15b36cB834AeA88553De69077D3777460d73Ac";

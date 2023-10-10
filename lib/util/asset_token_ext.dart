@@ -54,7 +54,7 @@ extension AssetTokenExtension on AssetToken {
         } else if (sourceURL?.contains(FXHASH_IDENTIFIER) == true) {
           return assetURL ?? "";
         } else {
-          return "$OBJKT_ASSET_PREFIX$contractAddress/$tokenId";
+          return "$objktAssetPrefix$contractAddress/$tokenId";
         }
       default:
         return "";
