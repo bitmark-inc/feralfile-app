@@ -15,8 +15,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/discover/discover_page.dart';
-import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -31,7 +29,6 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -54,7 +51,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -81,9 +77,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
-  final GlobalKey<DiscoverPageState> _discoverPageStateKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
-  final _feedService = injector<FeedService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _metricClientService = injector<MetricClientService>();
@@ -100,54 +94,29 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _onItemTapped(int index) {
-    if (index != _pages.length) {
+    if (index < _pages.length) {
       if (_selectedIndex == index) {
-        if (index == 1) {
-          _homePageKey.currentState?.scrollToTop();
-        }
         if (index == 0) {
-          _discoverPageStateKey.currentState?.scrollToTop();
+          _homePageKey.currentState?.scrollToTop();
         }
       }
       setState(() {
         _selectedIndex = index;
       });
       _pageController.jumpToPage(_selectedIndex);
-      if (index == 1) {
-        _clientTokenService.refreshTokens().then((value) {
-          _feedService.checkNewFeeds();
-        });
+      if (index == 0) {
+        _clientTokenService.refreshTokens();
         _playListService.refreshPlayLists();
-      } else if (index == 0) {
-        _clientTokenService.refreshTokens().then((value) {
-          _feedService.checkNewFeeds();
-        });
-        final metricClient = injector<MetricClientService>();
-        if (_configurationService.hasFeed()) {
-          final feedBloc = context.read<FeedBloc>();
-          feedBloc.add(OpenFeedEvent());
-          feedBloc.add(GetFeedsEvent());
-          metricClient.addEvent(MixpanelEvent.viewDiscovery);
-          metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
-        }
       }
+    } else if (index == _pages.length) {
+      Navigator.of(context).pushNamed(
+        AppRouter.scanQRPage,
+        arguments: ScannerItem.GLOBAL,
+      );
     } else {
       UIHelper.showDrawerAction(
         context,
         options: [
-          OptionItem(
-            title: 'Scan',
-            icon: const Icon(
-              AuIcon.scan,
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.of(context).pushNamed(
-                AppRouter.scanQRPage,
-                arguments: ScannerItem.GLOBAL,
-              );
-            },
-          ),
           OptionItem(
               title: 'Settings',
               icon: const Icon(
@@ -187,27 +156,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void initState() {
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     super.initState();
-    if (memoryValues.homePageInitialTab != HomePageTab.DISCOVER) {
-      _selectedIndex = HomeNavigatorTab.COLLECTION.index;
-    } else {
-      _selectedIndex = HomeNavigatorTab.DISCOVER.index;
-    }
+    _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     _pageController = PageController(initialPage: _selectedIndex);
 
-    _clientTokenService.refreshTokens().then((value) {
-      _feedService.checkNewFeeds();
-    });
+    _clientTokenService.refreshTokens();
 
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _clientTokenService.refreshTokens();
     });
 
     _pages = <Widget>[
-      ValueListenableBuilder<bool>(
-          valueListenable: _feedService.hasFeed,
-          builder: (BuildContext context, bool isShowDiscover, Widget? child) {
-            return DiscoverPage(key: _discoverPageStateKey);
-          }),
       HomePage(key: _homePageKey),
       MultiBlocProvider(
         providers: [
@@ -217,62 +175,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
     ];
     _bottomItems = [
-      BottomNavigationBarItem(
-        icon: MultiValueListenableBuilder(
-            valueListenables: [
-              _feedService.unviewedCount,
-            ],
-            builder:
-                (BuildContext context, List<dynamic> values, Widget? child) {
-              final unviewCount = values[0] as int;
-              if (unviewCount > 0) {
-                context.read<FeedBloc>().add(GetFeedsEvent());
-              }
-              return Stack(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Icon(
-                      AuIcon.discover,
-                      size: 25,
-                    ),
-                  ),
-                  if (unviewCount > 0) ...[
-                    Positioned(
-                      left: 28,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.only(
-                          left: 3,
-                          right: 3,
-                        ),
-                        height: 11,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        constraints: const BoxConstraints(minWidth: 11),
-                        child: Center(
-                          child: Text(
-                            "$unviewCount",
-                            style: Theme.of(context)
-                                .textTheme
-                                .ppMori700White12
-                                .copyWith(
-                                  fontSize: 8,
-                                ),
-                            overflow: TextOverflow.visible,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]
-                ],
-              );
-            }),
-        label: '',
-      ),
       const BottomNavigationBarItem(
         icon: Icon(
           AuIcon.playlists,
@@ -283,6 +185,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       const BottomNavigationBarItem(
         icon: Icon(
           AuIcon.wallet,
+          size: 25,
+        ),
+        label: '',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.scan,
           size: 25,
         ),
         label: '',
@@ -444,8 +353,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         break;
       case "artwork_created":
       case "artwork_received":
-        _feedService.checkNewFeeds();
-        context.read<FeedBloc>().add(GetFeedsEvent());
         break;
     }
     switch (data['notification_type']) {
@@ -528,8 +435,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
-        _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
+        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
         break;
       case "new_message":
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
@@ -684,9 +590,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
-    }
-    if (_selectedIndex == HomeNavigatorTab.DISCOVER.index) {
-      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
   }
 

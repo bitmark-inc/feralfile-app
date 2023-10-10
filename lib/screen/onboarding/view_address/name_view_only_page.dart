@@ -7,8 +7,8 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -121,7 +121,8 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       injector<NavigationService>().popUntilHomeOrSettings();
     } else {
-      Navigator.of(context).pushNamed(DiscoverArtPage.tag);
+      injector<ConfigurationService>().setDoneOnboarding(true);
+      Navigator.of(context).pushNamed(AppRouter.homePage);
     }
   }
 }

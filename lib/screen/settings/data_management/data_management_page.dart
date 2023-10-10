@@ -113,7 +113,6 @@ class _DataManagementPageState extends State<DataManagementPage> {
             injector(),
             injector(),
             injector<NftCollectionBloc>().database,
-            injector(),
             injector()),
         child: const ForgetExistView(),
       ),
