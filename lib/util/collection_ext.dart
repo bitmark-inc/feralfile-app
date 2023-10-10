@@ -6,7 +6,8 @@ extension ListCollectionExt on List<PlayListModel> {
       return this;
     }
     final lowerFilter = filter.toLowerCase();
-    return where((element) => element.name!.toLowerCase().contains(lowerFilter))
+    return where(
+            (element) => element.getName().toLowerCase().contains(lowerFilter))
         .toList();
   }
 }

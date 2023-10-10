@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/searchBar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -382,28 +381,19 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
-        return Container(
+        final compactedAssetTokens = album.compactedAssetToken;
+
+        return SizedBox(
           width: 42,
           height: 42,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: AppColor.auLightGrey,
-          ),
+          child: tokenGalleryThumbnailWidget(context, compactedAssetTokens, 100,
+              usingThumbnailID: false,
+              galleryThumbnailPlaceholder: Container(
+                width: 42,
+                height: 42,
+                color: AppColor.auLightGrey,
+              )),
         );
-        return CachedNetworkImage(
-            imageUrl: album.thumbnailURL ?? "",
-            width: 42,
-            height: 42,
-            fit: BoxFit.cover,
-            memCacheHeight: 42,
-            memCacheWidth: 42,
-            errorWidget: (context, url, error) =>
-                const GalleryThumbnailErrorWidget(),
-            placeholder: (context, url) => Container(
-                  width: 42,
-                  height: 42,
-                  color: AppColor.disabledColor,
-                ));
     }
   }
 
