@@ -172,7 +172,7 @@ Widget tokenGalleryThumbnailWidget(
       });
 
   return Semantics(
-    label: "gallery_artwork_${token.title}",
+    label: "gallery_artwork_${token.id}",
     child: Hero(
       tag: useHero
           ? "gallery_thumbnail_${token.id}_${token.owner}"
