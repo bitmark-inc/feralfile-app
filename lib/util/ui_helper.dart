@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -56,7 +55,6 @@ const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
 void doneOnboarding(BuildContext context) async {
-  injector<IAPService>().restore();
   await injector<ConfigurationService>().setPendingSettings(true);
   await injector<ConfigurationService>().setDoneOnboarding(true);
   injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();

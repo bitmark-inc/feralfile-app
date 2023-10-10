@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -25,7 +24,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final BackupService _backupService;
   final AccountService _accountService;
   final CloudDatabase _cloudDB;
-  final IAPService _iapService;
   final AuditService _auditService;
 
   Future<bool> hasAccounts() async {
@@ -35,10 +33,10 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   }
 
   RouterBloc(this._configurationService, this._backupService,
-      this._accountService, this._cloudDB, this._iapService, this._auditService)
+      this._accountService, this._cloudDB, this._auditService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     final migrationUtil = MigrationUtil(_configurationService, _cloudDB,
-        _accountService, _iapService, _auditService, _backupService);
+        _accountService, _auditService, _backupService);
 
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) return;

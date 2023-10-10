@@ -263,7 +263,6 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector<CloudDatabase>(),
-                injector(),
                 injector<AuditService>(),
               ),
             ),

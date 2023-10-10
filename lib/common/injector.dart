@@ -37,7 +37,6 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -50,7 +49,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/followee_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -242,8 +240,6 @@ Future<void> setup() async {
             injector(),
             injector(),
           ));
-  injector.registerLazySingleton<IAPService>(
-      () => IAPServiceImpl(injector(), injector()));
 
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
@@ -313,9 +309,6 @@ Future<void> setup() async {
       .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector()));
-
-  injector.registerLazySingleton<CanvasClientService>(
-      () => CanvasClientService(injector()));
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(

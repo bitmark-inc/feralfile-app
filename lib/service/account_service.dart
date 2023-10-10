@@ -41,8 +41,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
-import 'iap_service.dart';
-
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
 
@@ -189,8 +187,8 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
+      await MigrationUtil(_configurationService, _cloudDB, this, _auditService,
+              _backupService)
           .migrationFromKeychain();
       await androidRestoreKeys();
 
@@ -247,8 +245,8 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
+      await MigrationUtil(_configurationService, _cloudDB, this, _auditService,
+              _backupService)
           .migrationFromKeychain();
       await androidRestoreKeys();
 
@@ -698,10 +696,9 @@ class AccountServiceImpl extends AccountService {
   Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
     if (_configurationService.isDoneOnboarding()) return;
 
-    final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
-        iapService, auditService, _backupService);
+    final migrationUtil = MigrationUtil(
+        _configurationService, _cloudDB, this, auditService, _backupService);
     await androidBackupKeys();
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudDB.personaDao.getPersonas();

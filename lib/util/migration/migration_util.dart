@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -32,23 +31,18 @@ class MigrationUtil {
   final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
   final AccountService _accountService;
-  final IAPService _iapService;
   final AuditService _auditService;
   final BackupService _backupService;
   final int requiredAndroidMigrationVersion = 95;
 
   MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
-      this._iapService, this._auditService, this._backupService);
+      this._auditService, this._backupService);
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
       await _migrationiOS();
     } else {
       await _migrationAndroid();
-    }
-
-    if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
-      _iapService.restore();
     }
     await _migrateViewOnlyAddresses();
     log.info("[migration] finished");

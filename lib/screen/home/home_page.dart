@@ -30,7 +30,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/followee_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -128,8 +127,6 @@ class HomePageState extends State<HomePage>
     });
 
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-
-    injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
   }
 
