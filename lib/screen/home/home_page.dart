@@ -21,9 +21,6 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -40,7 +37,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -559,26 +555,8 @@ class HomePageState extends State<HomePage>
     final configurationService = injector<ConfigurationService>();
 
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
-    final subscriptionTime = configurationService.getSubscriptionTime();
 
     final now = DateTime.now();
-    if (subscriptionTime != null) {
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowTvAppTip()) {
-        configurationService.showTvAppTip.value = true;
-        await configurationService.setAlreadyShowTvAppTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "enjoy_your_collection".tr()});
-      }
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowCreatePlaylistTip() &&
-          injector<ConfigurationService>().getPlayList().isEmpty != false) {
-        configurationService.showCreatePlaylistTip.value = true;
-        configurationService.setAlreadyShowCreatePlaylistTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "create_your_first_playlist".tr()});
-      }
-    }
 
     final remindTime = configurationService.getShowBackupSettingTip();
     final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
@@ -609,15 +587,6 @@ class HomePageState extends State<HomePage>
         metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
       }
-      final premium = await isPremium();
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
-          !premium &&
-          !configurationService.getAlreadyShowProTip()) {
-        configurationService.showProTip.value = true;
-        configurationService.setAlreadyShowProTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "try_autonomy_pro_free".tr()});
-      }
     }
   }
 
@@ -641,7 +610,6 @@ class HomePageState extends State<HomePage>
     _clientTokenService.refreshTokens(checkPendingToken: true);
     refreshNotification();
     _metricClient.addEvent("device_foreground");
-    _subscriptionNotify();
     injector<VersionService>().checkForUpdate();
     // Reload token in Isolate
     final jwtToken =
@@ -653,38 +621,6 @@ class HomePageState extends State<HomePage>
 
     injector<CustomerSupportService>().getIssuesAndAnnouncement();
     injector<CustomerSupportService>().processMessages();
-  }
-
-  Future _subscriptionNotify() async {
-    final configService = injector<ConfigurationService>();
-    final iapService = injector<IAPService>();
-
-    if (configService.isNotificationEnabled() != true ||
-        await iapService.isSubscribed() ||
-        !configService.shouldShowSubscriptionHint() ||
-        configService
-                .getLastTimeAskForSubscription()
-                ?.isAfter(DateTime.now().subtract(const Duration(days: 2))) ==
-            true) {
-      return;
-    }
-
-    log.info("[HomePage] Show subscription notification");
-    await configService.setLastTimeAskForSubscription(DateTime.now());
-    const key = Key("subscription");
-    if (!mounted) return;
-    showInfoNotification(key, "subscription_hint".tr(),
-        duration: const Duration(seconds: 5), openHandler: () {
-      UpgradesView.showSubscriptionDialog(context, null, null, () {
-        hideOverlay(key);
-        context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-      });
-    }, addOnTextSpan: [
-      TextSpan(
-        text: 'trial_today'.tr(),
-        style: Theme.of(context).textTheme.ppMori400Green14,
-      )
-    ]);
   }
 
   void _handleBackground() {
