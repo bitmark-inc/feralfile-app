@@ -382,6 +382,14 @@ class _AlbumSectionState extends State<AlbumSection> {
           ),
         );
       case AlbumType.artist:
+        return Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: AppColor.auLightGrey,
+          ),
+        );
         return CachedNetworkImage(
             imageUrl: album.thumbnailURL ?? "",
             width: 42,
