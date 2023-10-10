@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +118,6 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: getCloseAppBar(
         context,
@@ -132,20 +130,6 @@ class _SettingsPageState extends State<SettingsPage>
         child: NotificationListener(
           child: Column(
             children: [
-              const SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Tipcard(
-                    titleText: "try_autonomy_pro_free".tr(),
-                    onPressed: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.subscriptionPage);
-                    },
-                    buttonText: "start_free_trial".tr(),
-                    content: Text("experience_premium_features".tr(),
-                        style: theme.textTheme.ppMori400Black14),
-                    listener: injector<ConfigurationService>().showProTip),
-              ),
               const SizedBox(height: 30),
               Column(
                 children: [
@@ -186,15 +170,6 @@ class _SettingsPageState extends State<SettingsPage>
                     onTap: () {
                       Navigator.of(context)
                           .pushNamed(AppRouter.hiddenArtworksPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: "autonomy_pro".tr(),
-                    icon: const Icon(AuIcon.subscription),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.subscriptionPage);
                     },
                   ),
                   addOnlyDivider(),
