@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/widgets/text_name_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
@@ -16,13 +15,11 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/add_button.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -49,7 +46,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<CompactedAssetToken> tokensPlaylist = [];
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
-  late CanvasDeviceBloc _canvasDeviceBloc;
 
   @override
   void initState() {
@@ -60,11 +56,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       debugTokenIds: isDemo ? widget.playListModel?.tokenIDs : [],
     ));
 
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    _fetchDevice();
-
     bloc.add(GetPlayList(playListModel: widget.playListModel));
-    _fetchDevice();
   }
 
   Future<void> deletePlayList() async {
@@ -359,68 +351,27 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         }
                       })),
               const SizedBox(height: 22),
-              BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                  bloc: _canvasDeviceBloc,
-                  builder: (context, state) {
-                    return PlaylistControl(
-                      playControl: playControlModel,
-                      showPlay: accountIdentities.isNotEmpty,
-                      onShuffleTap: onShuffleTap,
-                      onTimerTap: onTimerTap,
-                      isCasting: state.isCasting,
-                      onPlayTap: () {
-                        final payload = ArtworkDetailPayload(
-                          accountIdentities,
-                          0,
-                          playControl: playControlModel,
-                        );
-                        Navigator.of(context).pushNamed(
-                          AppRouter.artworkPreviewPage,
-                          arguments: payload,
-                        );
-                      },
-                      onCastTap: () async {
-                        final playlist = widget.playListModel;
-                        if (playlist?.tokenIDs == null ||
-                            playlist!.tokenIDs!.isEmpty) {
-                          log.info("Cast collection failed: playlist empty");
-                          return;
-                        }
-                        playlist.playControlModel = playControlModel;
-                        await _openCanvasDeviceDialog(context, playlist);
-                        _fetchDevice();
-                      },
-                    );
-                  })
+              PlaylistControl(
+                playControl: playControlModel,
+                showPlay: accountIdentities.isNotEmpty,
+                onShuffleTap: onShuffleTap,
+                onTimerTap: onTimerTap,
+                onPlayTap: () {
+                  final payload = ArtworkDetailPayload(
+                    accountIdentities,
+                    0,
+                    playControl: playControlModel,
+                  );
+                  Navigator.of(context).pushNamed(
+                    AppRouter.artworkPreviewPage,
+                    arguments: payload,
+                  );
+                },
+              )
             ],
           ),
         )
       ],
-    );
-  }
-
-  Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(
-        widget.playListModel?.id ?? "",
-        syncAll: false));
-  }
-
-  Future<void> _openCanvasDeviceDialog(
-      BuildContext context, PlayListModel playlist) async {
-    await UIHelper.showFlexibleDialog(
-      context,
-      BlocProvider.value(
-        value: _canvasDeviceBloc,
-        child: CanvasDeviceView(
-          sceneId: widget.playListModel?.id ?? "",
-          isCollection: true,
-          playlist: playlist,
-          onClose: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      isDismissible: true,
     );
   }
 }

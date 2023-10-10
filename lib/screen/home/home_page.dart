@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -19,7 +18,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -43,7 +41,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -297,13 +294,6 @@ class HomePageState extends State<HomePage>
     const double cellSpacing = 3.0;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-    final playlistIDsString = injector<ConfigurationService>()
-        .getPlayList()
-        .map((e) => e.id)
-        .toList()
-        .join();
-    final playlistKeyBytes = utf8.encode(playlistIDsString);
-    final playlistKey = sha256.convert(playlistKeyBytes).toString();
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
           MediaQuery.of(context).size.width / cellPerRow -
@@ -318,14 +308,6 @@ class HomePageState extends State<HomePage>
       ),
       SliverToBoxAdapter(
         child: _carouselTipcard(context),
-      ),
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 15),
-          child: ListPlaylistsScreen(
-            key: Key(playlistKey),
-          ),
-        ),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -396,7 +378,6 @@ class HomePageState extends State<HomePage>
     return MultiValueListenableBuilder(
       valueListenables: [
         _configurationService.showTvAppTip,
-        _configurationService.showCreatePlaylistTip,
         _configurationService.showLinkOrImportTip,
         _configurationService.showBackupSettingTip,
       ],
@@ -411,9 +392,8 @@ class HomePageState extends State<HomePage>
   List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
     final theme = Theme.of(context);
     final isShowTvAppTip = values[0] as bool;
-    final isShowCreatePlaylistTip = values[1] as bool;
-    final isShowLinkOrImportTip = values[2] as bool;
-    final isShowBackupSettingTip = values[3] as bool;
+    final isShowLinkOrImportTip = values[1] as bool;
+    final isShowBackupSettingTip = values[2] as bool;
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
@@ -423,16 +403,6 @@ class HomePageState extends State<HomePage>
             content: Text("you_can_link_or_import".tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: _configurationService.showLinkOrImportTip),
-      if (isShowCreatePlaylistTip)
-        Tipcard(
-            titleText: "create_your_first_playlist".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
-            },
-            buttonText: "create_new_playlist".tr(),
-            content: Text("as_a_pro_sub_playlist".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showCreatePlaylistTip),
       if (isShowTvAppTip)
         Tipcard(
             titleText: "enjoy_your_collection".tr(),

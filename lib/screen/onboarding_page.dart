@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -221,14 +220,8 @@ class _OnboardingPageState extends State<OnboardingPage>
               const SizedBox(height: 40),
               _logo(maxWidthLogo: 50),
               SizedBox(height: paddingTop),
-              addBoldDivider(),
-              Text("collect".tr(), style: theme.textTheme.ppMori700Black36),
-              const SizedBox(height: 20),
-              addBoldDivider(),
-              Text("view".tr(), style: theme.textTheme.ppMori700Black36),
-              const SizedBox(height: 20),
-              addBoldDivider(),
-              Text("discover".tr(), style: theme.textTheme.ppMori700Black36),
+              Text("the_way_collect".tr(),
+                  style: theme.textTheme.ppMori700Black36),
               const Spacer(),
               if ((fromBranchLink ||
                       fromDeeplink ||
