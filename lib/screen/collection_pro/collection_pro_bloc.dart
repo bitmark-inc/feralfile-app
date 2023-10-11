@@ -1,15 +1,16 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/collection_pro/album.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/database/dao/album_dao.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
+import 'package:nft_collection/database/dao/predefined_collection_dao.dart';
 import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/utils/medium_category.dart';
 
 class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
-  final _ablumDao = injector.get<AlbumDao>();
+  final _predefinedCollectionDao = injector.get<PredefinedCollectionDao>();
   final _configurationService = injector.get<ConfigurationService>();
   final _assetTokenDao = injector.get<AssetTokenDao>();
 
@@ -17,7 +18,8 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
     on<LoadCollectionEvent>((event, emit) async {
       final List<AlbumModel> listAlbumByMedium =
           await _getAllAlbumByMedium(filterStr: event.filterStr);
-      final listAlbumByArtist = await _ablumDao.getAlbumsByArtist();
+      final listAlbumByArtist =
+          await _predefinedCollectionDao.getAlbumsByArtist();
 
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
       final hiddenTokens =
@@ -56,7 +58,7 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
     final List<AlbumModel> listAlbumByMedium = [];
     final listMedium = MediumCategoryExt.getAllCategories();
     for (final mediumCatelog in listMedium) {
-      final albums = await _ablumDao.getAlbumsByMedium(
+      final albums = await _predefinedCollectionDao.getAlbumsByMedium(
         title: filterStr,
         mimeTypes: MediumCategory.mineTypes(mediumCatelog),
         mediums: MediumCategoryExt.mediums(mediumCatelog),
@@ -68,7 +70,7 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
         listAlbumByMedium.add(album);
       }
     }
-    final albums = await _ablumDao.getAlbumsByMedium(
+    final albums = await _predefinedCollectionDao.getAlbumsByMedium(
         title: filterStr,
         mimeTypes: MediumCategoryExt.getAllMimeType(),
         mediums: MediumCategoryExt.getAllMediums(),

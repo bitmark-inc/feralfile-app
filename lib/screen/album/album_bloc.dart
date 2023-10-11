@@ -1,13 +1,13 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/album/album_state.dart';
-import 'package:autonomy_flutter/screen/collection_pro/album.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/database/dao/album_dao.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/utils/medium_category.dart';
 
 class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
   final _assetTokenDao = injector.get<AssetTokenDao>();

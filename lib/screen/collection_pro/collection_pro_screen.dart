@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart'
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/util/album_ext.dart';
+import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -22,8 +23,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
-
-import 'album.dart';
 
 class CollectionPro extends StatefulWidget {
   final List<CompactedAssetToken> tokens;
