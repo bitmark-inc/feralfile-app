@@ -15,11 +15,9 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
@@ -41,28 +39,17 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/carousel.dart';
-import 'package:autonomy_flutter/view/header.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:open_settings/open_settings.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../util/token_ext.dart';
 
@@ -82,7 +69,6 @@ class HomePageState extends State<HomePage>
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
   late MetricClientService _metricClient;
-  int _cachedImageSize = 0;
 
   final collectionProKey = GlobalKey<CollectionProState>();
 
@@ -107,7 +93,7 @@ class HomePageState extends State<HomePage>
     _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
-    _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
+    _controller = ScrollController();
     _configurationService.setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
@@ -146,17 +132,6 @@ class HomePageState extends State<HomePage>
 
     injector<IAPService>().setup();
     memoryValues.inGalleryView = true;
-  }
-
-  _scrollListenerToLoadMore() {
-    final isPremium = _configurationService.isPremium();
-    if (isPremium) return;
-    if (_controller.position.pixels + 100 >=
-        _controller.position.maxScrollExtent) {
-      final nextKey = nftBloc.state.nextKey;
-      if (nextKey == null || nextKey.isLoaded) return;
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
-    }
   }
 
   @override
@@ -287,21 +262,10 @@ class HomePageState extends State<HomePage>
         return true;
       },
       builder: (context, state) {
-        final isPremium = _configurationService.isPremium();
-        if (isPremium) {
-          return CollectionPro(
-            key: collectionProKey,
-            tokens: _updateTokens(state.tokens.items),
-            scrollController: _controller,
-          );
-        }
-        return NftCollectionGrid(
-          state: state.state,
+        return CollectionPro(
+          key: collectionProKey,
           tokens: _updateTokens(state.tokens.items),
-          loadingIndicatorBuilder: _loadingView,
-          emptyGalleryViewBuilder: _emptyGallery,
-          customGalleryViewBuilder: (context, tokens) =>
-              _assetsWidget(context, tokens),
+          scrollController: _controller,
         );
       },
       listener: (context, state) async {
@@ -321,233 +285,6 @@ class HomePageState extends State<HomePage>
         body: contentWidget,
       ),
     );
-  }
-
-  Widget _loadingView(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-
-    return Center(
-        child: Column(
-      children: [
-        HeaderView(
-          paddingTop: paddingTop,
-        ),
-        loadingIndicator(),
-      ],
-    ));
-  }
-
-  Widget _emptyGallery(BuildContext context) {
-    final theme = Theme.of(context);
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    return ListView(
-      padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
-      children: [
-        HeaderView(paddingTop: paddingTop),
-        _carouselTipcard(context),
-        Padding(
-          padding: const EdgeInsets.only(left: 15),
-          child: Text(
-            "collection_empty_now".tr(),
-            //"Your collection is empty for now.",
-            style: theme.textTheme.ppMori400Black14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _assetsWidget(BuildContext context, List<CompactedAssetToken> tokens) {
-    final accountIdentities = tokens
-        .where((e) => e.pending != true || e.hasMetadata)
-        .map((element) => element.identity)
-        .toList();
-
-    const int cellPerRowPhone = 3;
-    const int cellPerRowTablet = 6;
-    const double cellSpacing = 3.0;
-    int cellPerRow =
-        ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-    if (_cachedImageSize == 0) {
-      final estimatedCellWidth =
-          MediaQuery.of(context).size.width / cellPerRow -
-              cellSpacing * (cellPerRow - 1);
-      _cachedImageSize = (estimatedCellWidth * 3).ceil();
-    }
-    List<Widget> sources;
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    sources = [
-      SliverToBoxAdapter(
-        child: HeaderView(paddingTop: paddingTop),
-      ),
-      SliverToBoxAdapter(
-        child: _carouselTipcard(context),
-      ),
-      SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: cellPerRow,
-          crossAxisSpacing: cellSpacing,
-          mainAxisSpacing: cellSpacing,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            final asset = tokens[index];
-
-            if (asset.pending == true && asset.isPostcard) {
-              return MintTokenWidget(
-                thumbnail: asset.galleryThumbnailURL,
-                tokenId: asset.tokenId,
-              );
-            }
-
-            return GestureDetector(
-              child: asset.pending == true && !asset.hasMetadata
-                  ? PendingTokenWidget(
-                      thumbnail: asset.galleryThumbnailURL,
-                      tokenId: asset.tokenId,
-                    )
-                  : tokenGalleryThumbnailWidget(
-                      context,
-                      asset,
-                      _cachedImageSize,
-                      usingThumbnailID: index > 50,
-                    ),
-              onTap: () {
-                if (asset.pending == true && !asset.hasMetadata) return;
-
-                final index = tokens
-                    .where((e) => e.pending != true || e.hasMetadata)
-                    .toList()
-                    .indexOf(asset);
-                final payload = asset.isPostcard
-                    ? PostcardDetailPagePayload(accountIdentities, index)
-                    : ArtworkDetailPayload(accountIdentities, index);
-
-                final pageName = asset.isPostcard
-                    ? AppRouter.claimedPostcardDetailsPage
-                    : AppRouter.artworkDetailsPage;
-                Navigator.of(context)
-                    .pushNamed(pageName, ////need change to pageName
-                        arguments: payload);
-
-                _metricClient.addEvent(MixpanelEvent.viewArtwork,
-                    data: {"id": asset.id});
-              },
-            );
-          },
-          childCount: tokens.length,
-        ),
-      ),
-      const SliverToBoxAdapter(child: SizedBox(height: 30)),
-    ];
-
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: sources,
-      controller: _controller,
-    );
-  }
-
-  Widget _carouselTipcard(BuildContext context) {
-    return MultiValueListenableBuilder(
-      valueListenables: [
-        _configurationService.showTvAppTip,
-        _configurationService.showCreatePlaylistTip,
-        _configurationService.showLinkOrImportTip,
-        _configurationService.showBackupSettingTip,
-      ],
-      builder: (BuildContext context, List<dynamic> values, Widget? child) {
-        return CarouselWithIndicator(
-          items: _listTipcards(context, values),
-        );
-      },
-    );
-  }
-
-  List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
-    final theme = Theme.of(context);
-    final isShowTvAppTip = values[0] as bool;
-    final isShowCreatePlaylistTip = values[1] as bool;
-    final isShowLinkOrImportTip = values[2] as bool;
-    final isShowBackupSettingTip = values[3] as bool;
-    return [
-      if (isShowLinkOrImportTip)
-        Tipcard(
-            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
-            onPressed: () {},
-            buttonText: "add_wallet".tr(),
-            content: Text("you_can_link_or_import".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showLinkOrImportTip),
-      if (isShowCreatePlaylistTip)
-        Tipcard(
-            titleText: "create_your_first_playlist".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
-            },
-            buttonText: "create_new_playlist".tr(),
-            content: Text("as_a_pro_sub_playlist".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showCreatePlaylistTip),
-      if (isShowTvAppTip)
-        Tipcard(
-            titleText: "enjoy_your_collection".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(
-                AppRouter.scanQRPage,
-                arguments: ScannerItem.GLOBAL,
-              );
-            },
-            buttonText: "sync_up_with_autonomy_tv".tr(),
-            content: RichText(
-              text: TextSpan(
-                text: "as_a_pro_sub_TV_app".tr(),
-                style: theme.textTheme.ppMori400Black14,
-                children: [
-                  TextSpan(
-                    text: "google_TV_app".tr(),
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                        color: theme.colorScheme.primary,
-                        decoration: TextDecoration.underline),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        final metricClient = injector<MetricClientService>();
-                        metricClient.addEvent(MixpanelEvent.tapLinkInTipCard,
-                            data: {
-                              "link": TV_APP_STORE_URL,
-                              "title": "enjoy_your_collection".tr()
-                            });
-                        launchUrl(Uri.parse(TV_APP_STORE_URL),
-                            mode: LaunchMode.externalApplication);
-                      },
-                  ),
-                  TextSpan(
-                    text: "currently_available_on".tr(),
-                  )
-                ],
-              ),
-            ),
-            listener: _configurationService.showTvAppTip),
-      if (isShowBackupSettingTip)
-        Tipcard(
-            titleText: "backup_failed".tr(),
-            onPressed: Platform.isAndroid
-                ? () {
-                    OpenSettings.openAddAccountSetting();
-                  }
-                : () async {
-                    openAppSettings();
-                  },
-            buttonText: Platform.isAndroid
-                ? "open_device_setting".tr()
-                : "open_icloud_setting".tr(),
-            content: Text(
-                Platform.isAndroid
-                    ? "backup_tip_card_content_android".tr()
-                    : "backup_tip_card_content_ios".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showBackupSettingTip),
-    ];
   }
 
   Future<void> _checkForKeySync(BuildContext context) async {
