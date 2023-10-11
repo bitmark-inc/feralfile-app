@@ -258,10 +258,6 @@ class HomePageState extends State<HomePage>
     return tokens;
   }
 
-  void refreshPlaylists() {
-    collectionProKey.currentState?.refreshCollectionSection();
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
