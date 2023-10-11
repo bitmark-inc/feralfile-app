@@ -518,8 +518,8 @@ class PostcardServiceImpl extends PostcardService {
       {required String address,
       required RequestPostcardResponse requestPostcardResponse}) async {
     final tezosService = injector.get<TezosService>();
-    final timestamp = "1695968835";
-    // (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final account = await _accountService.getAccountByAddress(
       chain: 'tezos',
       address: address,

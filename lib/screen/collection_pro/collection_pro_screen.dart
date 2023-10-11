@@ -21,7 +21,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
-import 'package:autonomy_flutter/view/searchBar.dart';
+import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
