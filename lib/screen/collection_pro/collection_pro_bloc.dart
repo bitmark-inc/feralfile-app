@@ -9,35 +9,53 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/predefined_collection_model.dart';
 import 'package:nft_collection/utils/medium_category.dart';
 
-class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
+class CollectionProBloc
+    extends Bloc<CollectionProEvent, CollectionLoadedState> {
   final _predefinedCollectionDao = injector.get<PredefinedCollectionDao>();
   final _configurationService = injector.get<ConfigurationService>();
   final _assetTokenDao = injector.get<AssetTokenDao>();
 
-  CollectionProBloc() : super(CollectionInitState()) {
+  CollectionProBloc() : super(CollectionLoadedState()) {
     on<LoadCollectionEvent>((event, emit) async {
-      final List<PredefinedCollectionModel>
-          listPredefinedCollectionModelByMedium =
-          await _getAllPredefinedCollectionByMedium(filterStr: event.filterStr);
-      final listPredefinedCollectionModelByArtist =
-          await _predefinedCollectionDao.getPredefinedCollectionsByArtist();
-
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
       final hiddenTokens =
           await _assetTokenDao.findAllAssetTokensByTokenIDs(hiddenTokenIDs);
-      for (final predefinedCollection
-          in listPredefinedCollectionModelByMedium) {
-        final ignoreTokens = hiddenTokens.where((element) {
-          if (predefinedCollection.id == MediumCategory.other) {
-            return !MediumCategoryExt.getAllMimeType()
+
+      if (event.filterStr.isEmpty) {
+        List<PredefinedCollectionModel> listPredefinedCollectionModelByMedium =
+            await _getAllPredefinedCollectionByMedium(
+                filterStr: event.filterStr);
+        for (final predefinedCollection
+            in listPredefinedCollectionModelByMedium) {
+          final ignoreTokens = hiddenTokens.where((element) {
+            if (predefinedCollection.id == MediumCategory.other) {
+              return !MediumCategoryExt.getAllMimeType()
+                  .contains(element.mimeType);
+            }
+            return MediumCategory.mineTypes(predefinedCollection.id)
                 .contains(element.mimeType);
-          }
-          return MediumCategory.mineTypes(predefinedCollection.id)
-              .contains(element.mimeType);
-        }).toList();
-        predefinedCollection.total =
-            predefinedCollection.total - ignoreTokens.length;
+          }).toList();
+          predefinedCollection.total =
+              predefinedCollection.total - ignoreTokens.length;
+        }
+        listPredefinedCollectionModelByMedium
+            .removeWhere((element) => element.total <= 0);
+        emit(state.copyWith(
+          listPredefinedCollectionByMedium:
+              listPredefinedCollectionModelByMedium,
+        ));
+      } else {
+        List<CompactedAssetToken> works =
+            await _getAllTokenFilterByTitleOrArtist(filterStr: event.filterStr);
+        emit(
+          state.copyWith(
+            works: works,
+          ),
+        );
       }
+      final listPredefinedCollectionModelByArtist =
+          await _predefinedCollectionDao.getPredefinedCollectionsByArtist();
+
       for (final predefinedCollection
           in listPredefinedCollectionModelByArtist) {
         final ignoreTokens = hiddenTokens
@@ -48,17 +66,11 @@ class CollectionProBloc extends Bloc<CollectionProEvent, CollectionProState> {
       }
       listPredefinedCollectionModelByArtist
           .removeWhere((element) => element.total <= 0);
-      listPredefinedCollectionModelByMedium
-          .removeWhere((element) => element.total <= 0);
-      List<CompactedAssetToken> works =
-          await _getAllTokenFilterByTitleOrArtist(filterStr: event.filterStr);
+
       emit(
-        CollectionLoadedState(
-          listPredefinedCollectionByMedium:
-              listPredefinedCollectionModelByMedium,
+        state.copyWith(
           listPredefinedCollectionByArtist:
               listPredefinedCollectionModelByArtist,
-          works: works,
         ),
       );
     });

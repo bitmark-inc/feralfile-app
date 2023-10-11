@@ -2,13 +2,9 @@
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/predefined_collection_model.dart';
 
-abstract class CollectionProState {}
-
 abstract class CollectionProEvent {}
 
-class CollectionInitState extends CollectionProState {}
-
-class CollectionLoadedState extends CollectionProState {
+class CollectionLoadedState {
   final List<PredefinedCollectionModel>? listPredefinedCollectionByMedium;
   final List<PredefinedCollectionModel>? listPredefinedCollectionByArtist;
   final List<CompactedAssetToken> works;
@@ -24,17 +20,16 @@ class CollectionLoadedState extends CollectionProState {
     List<PredefinedCollectionModel>? listPredefinedCollectionByArtist,
     List<CompactedAssetToken>? works,
   }) {
-    return CollectionLoadedState(
-      listPredefinedCollectionByMedium:
-          listPredefinedCollectionByMedium ?? listPredefinedCollectionByMedium,
-      listPredefinedCollectionByArtist:
-          listPredefinedCollectionByArtist ?? listPredefinedCollectionByArtist,
+    final newState = CollectionLoadedState(
+      listPredefinedCollectionByMedium: listPredefinedCollectionByMedium ??
+          this.listPredefinedCollectionByMedium,
+      listPredefinedCollectionByArtist: listPredefinedCollectionByArtist ??
+          this.listPredefinedCollectionByArtist,
       works: works ?? this.works,
     );
+    return newState;
   }
 }
-
-class CollectionLoadingState extends CollectionProState {}
 
 class LoadCollectionEvent extends CollectionProEvent {
   String filterStr;
