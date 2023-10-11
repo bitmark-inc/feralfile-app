@@ -1,14 +1,14 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
-import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/util/album_ext.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
+import 'package:autonomy_flutter/util/predefined_collectionext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -21,8 +21,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/predefined_collection_model.dart';
 
 class CollectionPro extends StatefulWidget {
   final List<CompactedAssetToken> tokens;
@@ -96,9 +96,10 @@ class CollectionProState extends State<CollectionPro>
   }
 
   fetchIdentities(CollectionLoadedState state) {
-    final listAlbumByArtist = state.listAlbumByArtist;
+    final listPredefinedCollectionByArtist =
+        state.listPredefinedCollectionByArtist;
     final neededIdentities = [
-      ...?listAlbumByArtist?.map((e) => e.id).toList(),
+      ...?listPredefinedCollectionByArtist?.map((e) => e.id).toList(),
     ].whereNotNull().toList().unique();
     neededIdentities.removeWhere((element) => element == '');
 
@@ -119,7 +120,8 @@ class CollectionProState extends State<CollectionPro>
         },
         builder: (context, collectionProState) {
           if (collectionProState is CollectionLoadedState) {
-            final listAlbumByMedium = collectionProState.listAlbumByMedium;
+            final listPredefinedCollectionByMedium =
+                collectionProState.listPredefinedCollectionByMedium;
 
             final works = collectionProState.works;
             final paddingTop = MediaQuery.of(context).viewPadding.top;
@@ -127,16 +129,17 @@ class CollectionProState extends State<CollectionPro>
                 builder: (context, identityState) {
                   final identityMap = identityState.identityMap
                     ..removeWhere((key, value) => value.isEmpty);
-                  final listAlbumByArtist = collectionProState.listAlbumByArtist
-                      ?.map(
-                        (e) {
-                          final name = identityMap[e.id] ?? e.name ?? e.id;
-                          e.name = name;
-                          return e;
-                        },
-                      )
-                      .toList()
-                      .filterByName(searchStr.value);
+                  final listPredefinedCollectionByArtist =
+                      collectionProState.listPredefinedCollectionByArtist
+                          ?.map(
+                            (e) {
+                              final name = identityMap[e.id] ?? e.name ?? e.id;
+                              e.name = name;
+                              return e;
+                            },
+                          )
+                          .toList()
+                          .filterByName(searchStr.value);
                   return Scaffold(
                     body: Stack(
                       children: [
@@ -221,9 +224,11 @@ class CollectionProState extends State<CollectionPro>
                             ),
                             if (searchStr.value.isEmpty) ...[
                               SliverToBoxAdapter(
-                                child: AlbumSection(
-                                  listAlbum: listAlbumByMedium,
-                                  albumType: AlbumType.medium,
+                                child: PredefinedCollectionSection(
+                                  listPredefinedCollection:
+                                      listPredefinedCollectionByMedium,
+                                  predefinedCollectionType:
+                                      PredefinedCollectionType.medium,
                                   searchStr: searchStr.value,
                                 ),
                               ),
@@ -242,9 +247,11 @@ class CollectionProState extends State<CollectionPro>
                               ),
                             ],
                             SliverToBoxAdapter(
-                              child: AlbumSection(
-                                listAlbum: listAlbumByArtist,
-                                albumType: AlbumType.artist,
+                              child: PredefinedCollectionSection(
+                                listPredefinedCollection:
+                                    listPredefinedCollectionByArtist,
+                                predefinedCollectionType:
+                                    PredefinedCollectionType.artist,
                                 searchStr: searchStr.value,
                               ),
                             ),
@@ -304,32 +311,39 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-class AlbumSection extends StatefulWidget {
-  final List<AlbumModel>? listAlbum;
-  final AlbumType albumType;
+class PredefinedCollectionSection extends StatefulWidget {
+  final List<PredefinedCollectionModel>? listPredefinedCollection;
+  final PredefinedCollectionType predefinedCollectionType;
   final String searchStr;
 
-  const AlbumSection(
+  const PredefinedCollectionSection(
       {super.key,
-      required this.listAlbum,
-      required this.albumType,
+      required this.listPredefinedCollection,
+      required this.predefinedCollectionType,
       required this.searchStr});
 
   @override
-  State<AlbumSection> createState() => _AlbumSectionState();
+  State<PredefinedCollectionSection> createState() =>
+      _PredefinedCollectionSectionState();
 }
 
-class _AlbumSectionState extends State<AlbumSection> {
+class _PredefinedCollectionSectionState
+    extends State<PredefinedCollectionSection> {
   Widget _header(BuildContext context, int total) {
     final title =
-        widget.albumType == AlbumType.medium ? 'medium'.tr() : 'artists'.tr();
-    final subTitle = widget.albumType == AlbumType.medium ? "" : "$total";
+        widget.predefinedCollectionType == PredefinedCollectionType.medium
+            ? 'medium'.tr()
+            : 'artists'.tr();
+    final subTitle =
+        widget.predefinedCollectionType == PredefinedCollectionType.medium
+            ? ""
+            : "$total";
     return SectionHeader(title: title, subTitle: subTitle);
   }
 
-  Widget _icon(AlbumModel album) {
-    switch (widget.albumType) {
-      case AlbumType.medium:
+  Widget _icon(PredefinedCollectionModel predefinedCollection) {
+    switch (widget.predefinedCollectionType) {
+      case PredefinedCollectionType.medium:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           width: 44,
@@ -339,14 +353,14 @@ class _AlbumSectionState extends State<AlbumSection> {
             color: AppColor.auLightGrey,
           ),
           child: SvgPicture.asset(
-            MediumCategoryExt.icon(album.id),
+            MediumCategoryExt.icon(predefinedCollection.id),
             width: 22,
             colorFilter:
                 const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           ),
         );
-      case AlbumType.artist:
-        final compactedAssetTokens = album.compactedAssetToken;
+      case PredefinedCollectionType.artist:
+        final compactedAssetTokens = predefinedCollection.compactedAssetToken;
 
         return SizedBox(
           width: 42,
@@ -362,20 +376,21 @@ class _AlbumSectionState extends State<AlbumSection> {
     }
   }
 
-  Widget _item(BuildContext context, AlbumModel album) {
+  Widget _item(
+      BuildContext context, PredefinedCollectionModel predefinedCollection) {
     final theme = Theme.of(context);
-    var title = album.name ?? album.id;
-    if (album.name == album.id) {
+    var title = predefinedCollection.name ?? predefinedCollection.id;
+    if (predefinedCollection.name == predefinedCollection.id) {
       title = title.maskOnly(5);
     }
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
-          AppRouter.albumPage,
-          arguments: AlbumScreenPayload(
-            type: widget.albumType,
-            album: album,
+          AppRouter.predefinedCollectionPage,
+          arguments: PredefinedCollectionScreenPayload(
+            type: widget.predefinedCollectionType,
+            predefinedCollection: predefinedCollection,
             filterStr: widget.searchStr,
           ),
         );
@@ -385,7 +400,7 @@ class _AlbumSectionState extends State<AlbumSection> {
         child: Row(
           children: [
             _icon(
-              album,
+              predefinedCollection,
             ),
             const SizedBox(width: 33),
             Expanded(
@@ -395,7 +410,8 @@ class _AlbumSectionState extends State<AlbumSection> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text('${album.total}', style: theme.textTheme.ppMori400Grey14),
+            Text('${predefinedCollection.total}',
+                style: theme.textTheme.ppMori400Grey14),
           ],
         ),
       ),
@@ -404,15 +420,15 @@ class _AlbumSectionState extends State<AlbumSection> {
 
   @override
   Widget build(BuildContext context) {
-    final listAlbum = widget.listAlbum;
+    final listPredefinedCollection = widget.listPredefinedCollection;
     const padding = 15.0;
-    if (listAlbum == null) return const SizedBox();
+    if (listPredefinedCollection == null) return const SizedBox();
     return Padding(
       padding: const EdgeInsets.only(left: padding, right: padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _header(context, listAlbum.length),
+          _header(context, listPredefinedCollection.length),
           addDivider(color: AppColor.primaryBlack),
           CustomScrollView(
             shrinkWrap: true,
@@ -423,10 +439,10 @@ class _AlbumSectionState extends State<AlbumSection> {
                   return addDivider();
                 },
                 itemBuilder: (BuildContext context, int index) {
-                  final album = listAlbum[index];
-                  return _item(context, album);
+                  final predefinedCollection = listPredefinedCollection[index];
+                  return _item(context, predefinedCollection);
                 },
-                itemCount: listAlbum.length,
+                itemCount: listPredefinedCollection.length,
               )
             ],
           ),

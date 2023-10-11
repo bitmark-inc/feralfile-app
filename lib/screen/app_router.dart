@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
-import 'package:autonomy_flutter/screen/album/album_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -96,6 +95,7 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -217,7 +217,7 @@ class AppRouter {
   static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
-  static const albumPage = 'album_page';
+  static const predefinedCollectionPage = 'predefined_collection_page';
   static const addToCollectionPage = 'add_to_collection_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -1227,12 +1227,13 @@ class AppRouter {
           },
         );
 
-      case albumPage:
+      case predefinedCollectionPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
-              final payload = settings.arguments as AlbumScreenPayload;
-              return AlbumScreen(
+              final payload =
+                  settings.arguments as PredefinedCollectionScreenPayload;
+              return PredefinedCollectionScreen(
                 payload: payload,
               );
             });

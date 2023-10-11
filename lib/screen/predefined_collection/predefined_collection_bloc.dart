@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/album/album_screen.dart';
-import 'package:autonomy_flutter/screen/album/album_state.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,25 +9,26 @@ import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/utils/medium_category.dart';
 
-class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
+class PredefinedCollectionBloc
+    extends Bloc<PredefinedCollectionEvent, PredefinedCollectionState> {
   final _assetTokenDao = injector.get<AssetTokenDao>();
   final _configurationService = injector.get<ConfigurationService>();
 
-  AlbumBloc() : super(AlbumInitState()) {
-    on<LoadAlbumEvent>((event, emit) async {
+  PredefinedCollectionBloc() : super(PredefinedCollectionInitState()) {
+    on<LoadPredefinedCollectionEvent>((event, emit) async {
       emit(
-        AlbumLoadedState(
+        PredefinedCollectionLoadedState(
           assetTokens: [],
           nftLoadingState: NftLoadingState.loading,
         ),
       );
       List<AssetToken> assetTokens = [];
-      if (event.type == AlbumType.artist) {
+      if (event.type == PredefinedCollectionType.artist) {
         assetTokens = await _assetTokenDao.findAllAssetTokensByArtistID(
           artistID: event.id ?? '',
         );
       }
-      if (event.type == AlbumType.medium) {
+      if (event.type == PredefinedCollectionType.medium) {
         final isOther = event.id == MediumCategory.other;
         final mimeTypes = isOther
             ? MediumCategoryExt.getAllMimeType()
@@ -45,7 +46,8 @@ class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
       assetTokens.removeWhere((element) =>
           hiddenTokenIDs.contains(element.id) || (element.balance ?? 0) <= 0);
-      final isFilterByTokenTitle = event.type == AlbumType.medium;
+      final isFilterByTokenTitle =
+          event.type == PredefinedCollectionType.medium;
       final tokens = assetTokens
           .map((e) => CompactedAssetToken.fromAssetToken(e))
           .toList()
@@ -59,7 +61,7 @@ class AlbumBloc extends Bloc<AlbumEvent, AlbumState> {
           )
           .toList();
       emit(
-        AlbumLoadedState(
+        PredefinedCollectionLoadedState(
           assetTokens: tokens,
           nftLoadingState: NftLoadingState.done,
         ),

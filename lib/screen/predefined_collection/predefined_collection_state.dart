@@ -1,40 +1,40 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:autonomy_flutter/screen/album/album_screen.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
-abstract class AlbumState {}
+abstract class PredefinedCollectionState {}
 
-abstract class AlbumEvent {}
+abstract class PredefinedCollectionEvent {}
 
-class AlbumInitState extends AlbumState {}
+class PredefinedCollectionInitState extends PredefinedCollectionState {}
 
-class AlbumLoadedState extends AlbumState {
+class PredefinedCollectionLoadedState extends PredefinedCollectionState {
   final List<CompactedAssetToken>? assetTokens;
   final NftLoadingState nftLoadingState;
 
-  AlbumLoadedState({
+  PredefinedCollectionLoadedState({
     this.assetTokens,
     required this.nftLoadingState,
   });
 
-  AlbumLoadedState copyWith({
+  PredefinedCollectionLoadedState copyWith({
     List<CompactedAssetToken>? assetTokens,
     NftLoadingState? nftLoadingState,
   }) {
-    return AlbumLoadedState(
+    return PredefinedCollectionLoadedState(
       assetTokens: assetTokens ?? this.assetTokens,
       nftLoadingState: nftLoadingState ?? this.nftLoadingState,
     );
   }
 }
 
-class LoadAlbumEvent extends AlbumEvent {
+class LoadPredefinedCollectionEvent extends PredefinedCollectionEvent {
   final String? id;
-  final AlbumType type;
+  final PredefinedCollectionType type;
   final String filterStr;
 
-  LoadAlbumEvent({
+  LoadPredefinedCollectionEvent({
     this.id,
     required this.type,
     required this.filterStr,

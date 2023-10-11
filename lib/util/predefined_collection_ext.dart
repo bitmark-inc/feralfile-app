@@ -1,21 +1,21 @@
-import 'package:nft_collection/models/album_model.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/models/predefined_collection_model.dart';
 
-extension AlbumModelListExt on List<AlbumModel> {
-  List<AlbumModel> filterByName(String name) {
+extension PredefinedCollectionModelListExt on List<PredefinedCollectionModel> {
+  List<PredefinedCollectionModel> filterByName(String name) {
     return where((element) => element.name?.contains(name) ?? false).toList();
   }
 }
 
-extension AlbumModelExt on AlbumModel {
+extension PredefinedCollectionModelExt on PredefinedCollectionModel {
   CompactedAssetToken get compactedAssetToken {
     return CompactedAssetToken(
-      id: this.id,
+      id: id,
       balance: 1,
       owner: "",
       lastActivityTime: DateTime.now(),
       lastRefreshedTime: DateTime.now(),
-      galleryThumbnailURL: this.thumbnailURL,
+      galleryThumbnailURL: thumbnailURL,
     );
   }
 }
