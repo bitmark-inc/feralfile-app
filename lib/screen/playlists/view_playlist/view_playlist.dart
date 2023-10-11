@@ -15,15 +15,12 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
-import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/play_control.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -544,39 +541,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   ),
                 ),
               const SizedBox(height: 22),
-              BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                  bloc: _canvasDeviceBloc,
-                  builder: (context, state) {
-                    return PlaylistControl(
-                      playControl: playControlModel,
-                      showPlay: accountIdentities.isNotEmpty,
-                      onShuffleTap: onShuffleTap,
-                      onTimerTap: onTimerTap,
-                      isCasting: state.isCasting,
-                      onPlayTap: () {
-                        final payload = ArtworkDetailPayload(
-                          accountIdentities,
-                          0,
-                          playControl: playControlModel,
-                        );
-                        Navigator.of(context).pushNamed(
-                          AppRouter.artworkPreviewPage,
-                          arguments: payload,
-                        );
-                      },
-                      onCastTap: () async {
-                        final playlist = widget.payload.playListModel;
-                        if (playlist?.tokenIDs == null ||
-                            playlist!.tokenIDs!.isEmpty) {
-                          log.info("Cast collection failed: playlist empty");
-                          return;
-                        }
-                        playlist.playControlModel = playControlModel;
-                        await _openCanvasDeviceDialog(context, playlist);
-                        _fetchDevice();
-                      },
-                    );
-                  })
             ],
           ),
         )
@@ -588,25 +552,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(
         widget.payload.playListModel?.id ?? "",
         syncAll: false));
-  }
-
-  Future<void> _openCanvasDeviceDialog(
-      BuildContext context, PlayListModel playlist) async {
-    await UIHelper.showFlexibleDialog(
-      context,
-      BlocProvider.value(
-        value: _canvasDeviceBloc,
-        child: CanvasDeviceView(
-          sceneId: widget.payload.playListModel?.id ?? "",
-          isCollection: true,
-          playlist: playlist,
-          onClose: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      isDismissible: true,
-    );
   }
 }
 
