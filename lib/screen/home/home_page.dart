@@ -292,6 +292,7 @@ class HomePageState extends State<HomePage>
           return CollectionPro(
             key: collectionProKey,
             tokens: _updateTokens(state.tokens.items),
+            scrollController: _controller,
           );
         }
         return NftCollectionGrid(
@@ -443,7 +444,7 @@ class HomePageState extends State<HomePage>
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: sources,
-      // controller: _controller,
+      controller: _controller,
     );
   }
 

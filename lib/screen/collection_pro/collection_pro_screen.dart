@@ -8,7 +8,7 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
-import 'package:autonomy_flutter/util/predefined_collectionext.dart';
+import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -26,8 +26,10 @@ import 'package:nft_collection/models/predefined_collection_model.dart';
 
 class CollectionPro extends StatefulWidget {
   final List<CompactedAssetToken> tokens;
+  final ScrollController scrollController;
 
-  const CollectionPro({super.key, required this.tokens});
+  const CollectionPro(
+      {super.key, required this.tokens, required this.scrollController});
 
   @override
   State<CollectionPro> createState() => CollectionProState();
@@ -51,7 +53,7 @@ class CollectionProState extends State<CollectionPro>
     });
     isShowSearchBar = false;
     isShowFullHeader = true;
-    _scrollController = ScrollController();
+    _scrollController = widget.scrollController;
     _scrollController.addListener(_scrollListenerShowfullHeader);
     loadCollection();
     super.initState();
@@ -65,7 +67,7 @@ class CollectionProState extends State<CollectionPro>
 
   @override
   dispose() {
-    _scrollController.dispose();
+    _scrollController.removeListener(_scrollListenerShowfullHeader);
     super.dispose();
   }
 
