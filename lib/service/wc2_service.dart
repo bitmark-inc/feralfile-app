@@ -341,6 +341,11 @@ class Wc2Service {
   void _onSessionProposal(SessionProposalEvent? proposal) async {
     if (proposal == null) return;
     log.info("[WC2Service] onSessionProposal: id = ${proposal.id}");
+
+    log.info(
+        "[WC2Service] onSessionProposal: topic = ${proposal.params.pairingTopic}");
+    log.info(
+        "[WC2Service] onSessionProposal: sessionProperties = ${proposal.params.sessionProperties}");
     _timer?.cancel();
     final unsupportedChains = proposal.params.requiredNamespaces.keys
         .toSet()

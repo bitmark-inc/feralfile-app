@@ -157,7 +157,7 @@ dependencies:
   flutter_inappwebview: ^5.7.2+3
   html: ^0.15.1
   video_player: ^2.4.8
-  walletconnect_flutter_v2: ^2.0.12
+  walletconnect_flutter_v2: ^2.1.4
   youtube_player_iframe: ^4.0.4
   awesome_notifications: ^0.7.5-dev.3
   shimmer: ^3.0.0
