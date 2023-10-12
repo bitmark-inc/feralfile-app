@@ -26,9 +26,9 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
 
 class IRLWebScreen extends StatefulWidget {
-  final String url;
+  final IRLWebScreenPayload payload;
 
-  const IRLWebScreen({Key? key, required this.url}) : super(key: key);
+  const IRLWebScreen({Key? key, required this.payload}) : super(key: key);
 
   @override
   State<IRLWebScreen> createState() => _IRLWebScreenState();
@@ -57,7 +57,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       'function': func,
       'error': result.errorMessage,
       'result': result.result.toString(),
-      'url': widget.url,
+      'url': widget.payload.url,
     });
     return result;
   }
@@ -332,7 +332,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         injector.get<NavigationService>().popUntilHomeOrSettings();
         _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
           'function': IrlWebviewFunction.closeWebview,
-          'url': widget.url,
+          'url': widget.payload.url,
         });
       },
     );
@@ -358,7 +358,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           children: [
             Expanded(
               child: InAppWebViewPage(
-                payload: InAppWebViewPayload(widget.url,
+                payload: InAppWebViewPayload(widget.payload.url,
+                    isPlainUI: widget.payload.isPlainUI,
                     onWebViewCreated: (controller) {
                   _controller = controller;
                   _addJavaScriptHandler();
@@ -419,4 +420,11 @@ class JSResult {
       result: result,
     );
   }
+}
+
+class IRLWebScreenPayload {
+  final String url;
+  final bool isPlainUI;
+
+  IRLWebScreenPayload(this.url, {this.isPlainUI = false});
 }

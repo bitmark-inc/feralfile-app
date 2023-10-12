@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
@@ -295,7 +296,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (!validUrl) return false;
       }
       await _navigationService.navigateTo(AppRouter.irlWebView,
-          arguments: urlDecode);
+          arguments: IRLWebScreenPayload(urlDecode));
       return true;
     }
 

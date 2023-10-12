@@ -47,8 +47,10 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
       backgroundColor: theme.primaryColor,
       body: Column(
         children: [
-          _header(context),
-          addOnlyDivider(color: AppColor.auGrey),
+          if (!widget.payload.isPlainUI) ...[
+            _header(context),
+            addOnlyDivider(color: AppColor.auGrey)
+          ],
           Expanded(
             child: Stack(
               children: [
@@ -89,8 +91,10 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
               ],
             ),
           ),
-          addOnlyDivider(color: AppColor.auGrey),
-          _bottomBar(context)
+          if (!widget.payload.isPlainUI) ...[
+            addOnlyDivider(color: AppColor.auGrey),
+            _bottomBar(context)
+          ],
         ],
       ),
     );
@@ -215,9 +219,11 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
 
 class InAppWebViewPayload {
   final String url;
+  final bool isPlainUI;
   Function(InAppWebViewController controler)? onWebViewCreated;
   Function(InAppWebViewController controler, ConsoleMessage consoleMessage)?
       onConsoleMessage;
 
-  InAppWebViewPayload(this.url, {this.onWebViewCreated, this.onConsoleMessage});
+  InAppWebViewPayload(this.url,
+      {this.isPlainUI = false, this.onWebViewCreated, this.onConsoleMessage});
 }
