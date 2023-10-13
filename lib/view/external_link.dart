@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' '';
@@ -24,8 +25,8 @@ class ExternalLink extends StatelessWidget {
     return GestureDetector(
         onTap: () {
           if (isValid) {
-            Navigator.of(context)
-                .pushNamed(AppRouter.irlWebView, arguments: link);
+            Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                arguments: IRLWebScreenPayload(link!));
           }
         },
         child: Padding(

@@ -1098,11 +1098,11 @@ class AppRouter {
         });
 
       case irlWebView:
-        final url = settings.arguments as String;
+        final payload = settings.arguments as IRLWebScreenPayload;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) {
-              return IRLWebScreen(url: url);
+              return IRLWebScreen(payload: payload);
             });
 
       case irlSignMessage:
