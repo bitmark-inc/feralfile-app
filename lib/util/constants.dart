@@ -177,6 +177,13 @@ const TV_APP_STORE_URL =
 const MOMA_TERMS_CONDITIONS_URL =
     "https://github.com/bitmark-inc/autonomy-apps/blob/main/docs/postcard_terms.md";
 
+const AUTONOMY_DOCUMENT_PREFIX = "https://github.com/bitmark-inc";
+
+const AUTONOMY_RAW_DOCUMENT_PREFIX =
+    "https://raw.githubusercontent.com/bitmark-inc";
+
+const MARKDOWN_EXT = ".md";
+
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 
 const CONNECT_FAILED_DURATION = Duration(seconds: 10);

@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -1864,6 +1865,10 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
                     styleSheet: markDownPostcardRightStyle(context),
                     onTapLink: (text, href, title) async {
                       if (href == null) return;
+                      if (href.isAutonomyDocumentLink) {
+                        injector<NavigationService>()
+                            .openAutonomyDocument(href, title);
+                      }
                       launchUrl(Uri.parse(href),
                           mode: LaunchMode.externalApplication);
                     },
