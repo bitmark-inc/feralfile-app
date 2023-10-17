@@ -34,7 +34,6 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final series = widget.series;
-    final contract = series.contract;
     final artist = series.artist;
     return Scaffold(
         appBar: _appBar(
@@ -88,14 +87,6 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                       data: theme.copyWith(textTheme: theme.primaryTextTheme),
                       child: FeralfileArtworkDetailsMetadataSection(
                         series: widget.series,
-                      ),
-                    ),
-                    const SizedBox(height: 40.0),
-                    Theme(
-                      data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: ArtworkRightWidget(
-                        contract: contract,
-                        exhibitionID: widget.series.exhibition?.id,
                       ),
                     ),
                     const SizedBox(height: 40.0),
