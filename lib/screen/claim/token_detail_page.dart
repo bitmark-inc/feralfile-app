@@ -34,7 +34,6 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final series = widget.series;
-    final contract = series.contract;
     final artist = series.artist;
     return Scaffold(
         appBar: _appBar(
