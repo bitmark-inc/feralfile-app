@@ -91,14 +91,6 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                       ),
                     ),
                     const SizedBox(height: 40.0),
-                    Theme(
-                      data: theme.copyWith(textTheme: theme.primaryTextTheme),
-                      child: ArtworkRightWidget(
-                        contract: contract,
-                        exhibitionID: widget.series.exhibition?.id,
-                      ),
-                    ),
-                    const SizedBox(height: 40.0),
                   ],
                 ),
               )
