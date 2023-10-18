@@ -48,7 +48,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 
 enum ActionState { notRequested, loading, error, done }
 

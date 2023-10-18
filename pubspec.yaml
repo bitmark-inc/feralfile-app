@@ -94,7 +94,7 @@ dependencies:
   sentry_dio: ^7.9.0
   sentry_flutter: ^7.9.0
   shake: ^2.0.0
-  share: ^2.0.4
+  share_plus: ^7.2.1
   shared_preferences: ^2.0.0
   synchronized: ^3.0.0+2
   social_share: ^2.3.1
