@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
@@ -14,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 class PostcardExplain extends StatefulWidget {
@@ -28,6 +28,7 @@ class PostcardExplain extends StatefulWidget {
 }
 
 class _PostcardExplainState extends State<PostcardExplain> {
+  final _navigationService = injector<NavigationService>();
   final VideoPlayerController _controller =
       VideoPlayerController.asset("assets/videos/postcard_explain.mp4");
   final VideoPlayerController _colouringController =
@@ -224,14 +225,15 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       text: "by_continuing".tr(),
                     ),
                     TextSpan(
-                      text: "terms_and_conditions".tr(),
-                      style: termsConditionsStyle.copyWith(
-                          decoration: TextDecoration.underline),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () => launchUrl(
-                            Uri.parse(MOMA_TERMS_CONDITIONS_URL),
-                            mode: LaunchMode.externalApplication),
-                    ),
+                        text: "terms_and_conditions".tr(),
+                        style: termsConditionsStyle.copyWith(
+                            decoration: TextDecoration.underline),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            _navigationService.openAutonomyDocument(
+                                MOMA_TERMS_CONDITIONS_URL,
+                                "terms_and_conditions".tr());
+                          }),
                     const TextSpan(
                       text: ".",
                     ),
