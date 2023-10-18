@@ -1867,10 +1867,11 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
                       if (href == null) return;
                       if (href.isAutonomyDocumentLink) {
                         injector<NavigationService>()
-                            .openAutonomyDocument(href, title);
+                            .openAutonomyDocument(href, text);
+                      } else {
+                        launchUrl(Uri.parse(href),
+                            mode: LaunchMode.externalApplication);
                       }
-                      launchUrl(Uri.parse(href),
-                          mode: LaunchMode.externalApplication);
                     },
                   ),
                   const SizedBox(height: 23.0),
