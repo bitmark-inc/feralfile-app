@@ -645,10 +645,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           PostcardAsyncButton(
             text: "invite_to_collaborate".tr(),
             onTap: () async {
-              await _sharePostcard(context, asset);
-              setState(() {
-                isSending = state.isSending();
-              });
+              final shareResult = await _sharePostcard(context, asset);
+              if (shareResult?.status == ShareResultStatus.success) {
+                setState(() {
+                  isSending = state.isSending();
+                });
+              }
             },
           ),
           ...sendPostcardExplain,
@@ -669,7 +671,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Future<void> _sharePostcard(BuildContext context, AssetToken asset) async {
+  Future<ShareResult?> _sharePostcard(
+      BuildContext context, AssetToken asset) async {
     try {
       final shareTime = DateTime.now();
       final sharePostcardResponse = await _postcardService.sharePostcard(asset);
@@ -677,10 +680,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         final shareMessage = "postcard_share_message".tr(namedArgs: {
           'deeplink': sharePostcardResponse.deeplink!,
         });
-        Share.share(shareMessage);
+        final result = await Share.shareWithResult(shareMessage);
+        if (result.status == ShareResultStatus.success) {
+          _configurationService.updateSharedPostcard(
+              [SharedPostcard(asset.id, asset.owner, shareTime)]);
+        }
+        return result;
       }
-      _configurationService.updateSharedPostcard(
-          [SharedPostcard(asset.id, asset.owner, shareTime)]);
     } catch (e) {
       if (e is DioException) {
         if (mounted) {
@@ -688,6 +694,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
       }
     }
+    return null;
   }
 
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
