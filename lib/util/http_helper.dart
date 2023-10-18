@@ -32,8 +32,11 @@ class HttpHelper {
       "Content-Type": "application/json",
     });
 
-    final response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: body != null ? jsonEncode(body) : null,
+    );
     return response;
   }
 }
