@@ -682,7 +682,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         });
         final result = await Share.shareWithResult(shareMessage);
         if (result.status == ShareResultStatus.success) {
-          _configurationService.updateSharedPostcard(
+          await _configurationService.updateSharedPostcard(
               [SharedPostcard(asset.id, asset.owner, shareTime)]);
         }
         return result;
