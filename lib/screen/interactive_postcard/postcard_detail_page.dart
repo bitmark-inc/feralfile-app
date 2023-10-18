@@ -46,7 +46,6 @@ import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
@@ -368,10 +367,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             .any((element) =>
                 element.id == assetToken.id &&
                 element.owner == assetToken.owner);
-        if (!state.isPostcardUpdating &&
-            !state.isPostcardUpdatingOnBlockchain &&
-            state.isStamped &&
-            !alreadyShowPostcardUpdate) {
+        if (!alreadyShowPostcardUpdate) {
           if (_configurationService.isNotificationEnabled() != true) {
             _postcardUpdated(context);
           }
@@ -599,24 +595,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         isViewOnly != false) {
       return const SizedBox();
     }
-    if (state.isPostcardUpdatingOnBlockchain || state.isPostcardUpdating) {
-      return PostcardCustomButton(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              "updating_token".tr(),
-              style: theme.textTheme.moMASans700Black14,
-            ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: DotsLoading(),
-            ),
-          ],
-        ),
-      );
-    }
-    if (!state.isStamped) {
+    if (!(asset.isStamping || asset.isStamped)) {
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {

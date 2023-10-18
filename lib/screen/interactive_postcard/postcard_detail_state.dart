@@ -126,10 +126,6 @@ extension PostcardDetailStateExtension on PostcardDetailState {
         (isStamping() && postcardValue!.stamped == false);
   }
 
-  bool get isStamped {
-    return postcardValue?.stamped ?? false;
-  }
-
   bool get isLastOwner {
     if (postcardValue == null) {
       return true;
