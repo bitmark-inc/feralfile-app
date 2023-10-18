@@ -177,14 +177,14 @@ class _PostcardApi implements PostcardApi {
     final _data = FormData();
     _data.files.add(MapEntry(
       'image',
-      MultipartFile.fromFileSync(
+      MultipartFileRecreatable.fromFileSync(
         data.path,
         filename: data.path.split(Platform.pathSeparator).last,
       ),
     ));
     _data.files.add(MapEntry(
       'metadata',
-      MultipartFile.fromFileSync(
+      MultipartFileRecreatable.fromFileSync(
         metadata.path,
         filename: metadata.path.split(Platform.pathSeparator).last,
       ),

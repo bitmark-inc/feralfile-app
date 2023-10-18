@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../model/postcard_claim.dart';
