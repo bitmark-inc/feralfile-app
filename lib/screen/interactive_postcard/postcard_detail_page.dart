@@ -682,6 +682,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         });
         final result = await Share.shareWithResult(shareMessage);
         if (result.status == ShareResultStatus.success) {
+          await Future.delayed(const Duration(milliseconds: 100));
           await _configurationService.updateSharedPostcard(
               [SharedPostcard(asset.id, asset.owner, shareTime)]);
         }
