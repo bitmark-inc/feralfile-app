@@ -48,12 +48,6 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
-const COLLECTOR_RIGHTS_DEFAULT_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
-const COLLECTOR_RIGHTS_MEMENTO_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
-const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 
 const POSTCARD_RIGHTS_DOCS =
     "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md";
@@ -182,6 +176,13 @@ const TV_APP_STORE_URL =
 
 const MOMA_TERMS_CONDITIONS_URL =
     "https://github.com/bitmark-inc/autonomy-apps/blob/main/docs/postcard_terms.md";
+
+const AUTONOMY_DOCUMENT_PREFIX = "https://github.com/bitmark-inc";
+
+const AUTONOMY_RAW_DOCUMENT_PREFIX =
+    "https://raw.githubusercontent.com/bitmark-inc";
+
+const MARKDOWN_EXT = ".md";
 
 const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
 

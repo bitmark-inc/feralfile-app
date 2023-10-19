@@ -20,14 +20,13 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/asset_token.dart';
-
-// ignore: implementation_imports
+import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
@@ -359,6 +358,22 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showPostcardQRExpired(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> openAutonomyDocument(String href, String title) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      final uri = Uri.parse(href.autonomyRawDocumentLink);
+      final document = uri.pathSegments.last;
+      final prefix =
+          uri.pathSegments.sublist(0, uri.pathSegments.length - 1).join("/");
+      await Navigator.of(navigatorKey.currentContext!)
+          .pushNamed(AppRouter.githubDocPage, arguments: {
+        "prefix": "/$prefix/",
+        "document": document,
+        "title": title,
+      });
     }
   }
 }

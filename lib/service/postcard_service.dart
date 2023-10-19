@@ -42,7 +42,6 @@ import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share/share.dart';
 
 import 'account_service.dart';
 
@@ -102,12 +101,6 @@ abstract class PostcardService {
   });
 
   Future<void> downloadPostcard(String tokenId);
-
-  Future<void> shareStampToTwitter({
-    required String tokenId,
-    required int stampIndex,
-    String caption = "",
-  });
 
   String getTokenId(String id);
 
@@ -492,20 +485,6 @@ class PostcardServiceImpl extends PostcardService {
       throw MediaPermissionException("Permission is not granted");
     }
     await imageFile.delete();
-  }
-
-  @override
-  Future<void> shareStampToTwitter({
-    required String tokenId,
-    required int stampIndex,
-    String caption = "",
-  }) async {
-    final imageFile =
-        await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
-    Share.shareFiles(
-      [imageFile.path],
-      text: caption,
-    );
   }
 
   @override
