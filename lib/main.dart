@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -34,6 +35,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -42,6 +44,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   runZonedGuarded(() async {
     await dotenv.load();
+
+    HomeWidget.setAppGroupId(homeWidgetGroupId);
 
     WidgetsFlutterBinding.ensureInitialized();
     // feature/text_localization

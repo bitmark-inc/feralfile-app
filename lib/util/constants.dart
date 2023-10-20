@@ -194,6 +194,10 @@ const int LEADERBOARD_PAGE_SIZE = 50;
 
 const String POSTCARD_ONSITE_REQUEST_ID = "moma-postcard-onsite";
 
+const String homeWidgetGroupId =
+    "group.com.bitmark.autonomy-wallet.inhouse.Home-Widget-Inhouse";
+const String iOSHomeWidgetName = "Home_Widget_Inhouse";
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains("inhouse");
