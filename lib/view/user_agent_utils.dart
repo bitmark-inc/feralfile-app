@@ -32,6 +32,8 @@ abstract class IDeviceInfo {
   Future<String?> getMachineName();
 
   Future<bool> isSupportOS();
+
+  Future<UserDeviceInfo> getUserDeviceInfo();
 }
 
 class _MobileInfo extends IDeviceInfo {
@@ -108,4 +110,26 @@ class _MobileInfo extends IDeviceInfo {
       return version.isEmpty || int.parse(version.split(".")[0]) > 14;
     }
   }
+
+  @override
+  Future<UserDeviceInfo> getUserDeviceInfo() async {
+    if (isAndroid) {
+      final androidInfo = await _deviceInfo.androidInfo;
+      final machineName = androidInfo.model;
+      final version = androidInfo.version.release;
+      return UserDeviceInfo(machineName, version);
+    } else {
+      final iOSInfo = await _deviceInfo.iosInfo;
+      final machineName = iOSInfo.utsname.machine;
+      final version = iOSInfo.systemVersion;
+      return UserDeviceInfo(machineName, version);
+    }
+  }
+}
+
+class UserDeviceInfo {
+  final String machineName;
+  final String oSVersion;
+
+  UserDeviceInfo(this.machineName, this.oSVersion);
 }
