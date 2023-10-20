@@ -28,11 +28,6 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
   bool _isSubmissionEnabled = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getBackAppBar(
