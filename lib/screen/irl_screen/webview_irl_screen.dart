@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
@@ -9,6 +12,8 @@ import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -24,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
+import 'package:uuid/uuid.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final IRLWebScreenPayload payload;
@@ -128,6 +134,46 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         '_getAddress',
         JSResult.error(e.toString()),
       );
+    }
+  }
+
+  Future<void> _receiveData(List<dynamic> args) async {
+    final argument = args.firstOrNull;
+    log.info('[IRLWebScreen] passData: $argument');
+    if (argument == null) {
+      return;
+    }
+    final type = argument['type'];
+    switch (type) {
+      case "customer_support":
+        final customerSupportService = injector<CustomerSupportService>();
+        final messageType = CSMessageType.CreateIssue.rawValue;
+        final issueID = "TEMP-${const Uuid().v4()}";
+        final data = argument['data'] as Map<String, dynamic>;
+        final title = data['title'];
+        final text = data['text'];
+        final orderId = data['orderId'];
+        final indexId = data['indexId'];
+        final draft = DraftCustomerSupport(
+          uuid: const Uuid().v4(),
+          issueID: issueID,
+          type: messageType,
+          data: json.encode(DraftCustomerSupportData(text: text, title: title)),
+          createdAt: DateTime.now(),
+          reportIssueType: ReportIssueType.MerchandiseIssue,
+          mutedMessages: [orderId, indexId].join("[SEPARATOR]"),
+        );
+
+        await customerSupportService.draftMessage(draft);
+        await injector<ConfigurationService>()
+            .setHasMerchandiseSupport(data['indexId']);
+        return;
+      case "open_customer_support":
+        if (!mounted) return;
+        Navigator.of(context).pushNamed(AppRouter.supportListPage);
+        return;
+      default:
+        return;
     }
   }
 
@@ -315,6 +361,11 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _controller?.addJavaScriptHandler(
       handlerName: 'getAddress',
       callback: _getAddress,
+    );
+
+    _controller?.addJavaScriptHandler(
+      handlerName: 'passData',
+      callback: _receiveData,
     );
 
     _controller?.addJavaScriptHandler(
