@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
@@ -687,7 +688,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             log.info("?indexId=$indexId&hasCS=$hasCustomerSupport");
             if (!context.mounted) return;
             final url =
-                "$AUTONOMY_MERCHANDISE_BASE_URL/?indexId=$indexId&hasCS=${hasCustomerSupport.toString()}&token=$jwtToken";
+                "${Environment.merchandiseBaseUrl}?indexId=$indexId&hasCS=$hasCustomerSupport&token=$jwtToken";
             Navigator.of(context).pushNamed(AppRouter.irlWebView,
                 arguments: IRLWebScreenPayload(url, isPlainUI: true));
           },
