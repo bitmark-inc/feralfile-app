@@ -27,6 +27,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ConfigurationService {
+  Future<void> setHasMerchandiseSupport(String indexId,
+      {bool value = true, bool isOverride = false});
+
+  bool hasMerchandiseSupport(String indexId);
+
   Future<void> setPostcardChatConfig(PostcardChatConfig config);
 
   PostcardChatConfig getPostcardChatConfig(
@@ -267,6 +272,8 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
+      "has_merchandise_support";
   static const String KEY_POSTCARD_CHAT_CONFIG = "postcard_chat_config";
   static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
   static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
@@ -1196,5 +1203,33 @@ class ConfigurationServiceImpl implements ConfigurationService {
             .toList()
             .toSet()
             .toList());
+  }
+
+  @override
+  bool hasMerchandiseSupport(String indexId) {
+    final merchandiseSupportIndexIds =
+        _preferences.getStringList(KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID) ?? [];
+    return merchandiseSupportIndexIds.contains(indexId);
+  }
+
+  @override
+  Future<void> setHasMerchandiseSupport(String indexId,
+      {bool value = true, bool isOverride = false}) async {
+    if (isOverride) {
+      await _preferences
+          .setStringList(KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID, [indexId]);
+    } else {
+      final merchandiseSupportIndexIds =
+          _preferences.getStringList(KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID) ??
+              [];
+      if (value) {
+        merchandiseSupportIndexIds.add(indexId);
+        merchandiseSupportIndexIds.toSet().toList();
+      } else {
+        merchandiseSupportIndexIds.remove(indexId);
+      }
+      await _preferences.setStringList(
+          KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID, merchandiseSupportIndexIds);
+    }
   }
 }

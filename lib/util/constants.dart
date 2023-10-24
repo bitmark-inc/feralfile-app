@@ -48,6 +48,8 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
+const AUTONOMY_MERCHANDISE_BASE_URL =
+    "http://192.168.31.162:3000"; //'https://autonomy.io/merchandise/';
 
 const POSTCARD_RIGHTS_DOCS =
     "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md";
@@ -120,6 +122,7 @@ const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
 const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
+const Color POSTCARD_PINK_BUTTON_COLOR = Color.fromRGBO(231, 75, 168, 1);
 
 const POSTCARD_ABOUT_THE_PROJECT =
     "https://www.moma.org/calendar/exhibitions/5618?preview=true";
@@ -265,9 +268,18 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
+  static const MerchandiseIssue = 'merchandise issue';
 
-  static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
+  static List<String> get getList => [
+        Feature,
+        Bug,
+        Feedback,
+        Other,
+        Exception,
+        ReportNFTIssue,
+        Announcement,
+        MerchandiseIssue
+      ];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -285,6 +297,8 @@ class ReportIssueType {
         return 'Report NFT issue';
       case Announcement:
         return "Announcement";
+      case MerchandiseIssue:
+        return "Merchandise issue";
       default:
         return 'Something else?';
     }

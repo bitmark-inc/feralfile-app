@@ -29,7 +29,9 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widge
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcard_travel_info.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -538,9 +540,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             ),
                             if (!isViewOnly) ...[
                               _postcardAction(context, state),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             _postcardInfo(context, state),
                             const SizedBox(
@@ -595,8 +595,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final asset = state.assetToken!;
     final theme = Theme.of(context);
-    if (asset.isCompleted ||
-        !state.isLastOwner ||
+    if (asset.isCompleted && !isViewOnly) {
+      return _postcardPhysical(context, state);
+    }
+    if (!state.isLastOwner ||
         !state.postcardValueLoaded ||
         isViewOnly != false) {
       return const SizedBox();
@@ -654,6 +656,35 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ],
       );
     }
+  }
+
+  Widget _postcardPhysical(BuildContext context, PostcardDetailState state) {
+    return Column(
+      children: [
+        PostcardButton(
+          text: "unlock_physical_objects".tr(),
+          color: POSTCARD_PINK_BUTTON_COLOR,
+          onTap: () async {
+            final indexId = state.assetToken!.id;
+            final jwtToken =
+                (await injector<AuthService>().getAuthToken()).jwtToken;
+            final hasCustomerSupport =
+                _configurationService.hasMerchandiseSupport(indexId);
+            log.info("?indexId=$indexId&hasCS=$hasCustomerSupport");
+            if (!context.mounted) return;
+            final url =
+                "$AUTONOMY_MERCHANDISE_BASE_URL/?indexId=$indexId&hasCS=${hasCustomerSupport.toString()}&token=$jwtToken";
+            Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                arguments: IRLWebScreenPayload(url, isPlainUI: true));
+          },
+        ),
+        const SizedBox(height: 15),
+        Text(
+          "unlock_physical_objects_desc".tr(),
+          style: Theme.of(context).textTheme.moMASans400Black12,
+        ),
+      ],
+    );
   }
 
   Future<ShareResult?> _sharePostcard(
