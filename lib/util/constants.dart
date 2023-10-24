@@ -48,8 +48,6 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
-const AUTONOMY_MERCHANDISE_BASE_URL =
-    "http://192.168.31.162:3000"; //'https://autonomy.io/merchandise/';
 
 const POSTCARD_RIGHTS_DOCS =
     "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md";

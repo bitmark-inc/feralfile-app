@@ -157,6 +157,9 @@ class Environment {
   static String get postcardContractAddress =>
       dotenv.env['POSTCARD_CONTRACT_ADDRESS'] ?? '';
 
+  static String get merchandiseBaseUrl =>
+      dotenv.env['AUTONOMY_MERCHANDISE_BASE_URL'] ?? '';
+
   static String get chatServerHmacKey =>
       dotenv.env['CHAT_SERVER_HMAC_KEY'] ?? '';
 
