@@ -1294,6 +1294,10 @@ Widget postcardOwnership(
           ),
         ),
         const SizedBox(height: 32.0),
+        Divider(
+          height: 40.0,
+          color: theme.auLightGrey,
+        ),
         Padding(
           padding: padding,
           child: MetaDataItem(
@@ -1306,8 +1310,11 @@ Widget postcardOwnership(
             linkStyle: linkStyle,
           ),
         ),
+        const SizedBox(
+          height: 20,
+        ),
         Divider(
-          height: 32.0,
+          height: 40.0,
           color: theme.auLightGrey,
         ),
         Padding(
