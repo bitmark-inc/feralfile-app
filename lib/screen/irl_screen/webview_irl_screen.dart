@@ -380,7 +380,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _controller?.addJavaScriptHandler(
       handlerName: 'closeWebview',
       callback: (args) async {
-        injector.get<NavigationService>().popUntilHomeOrSettings();
+        injector.get<NavigationService>().goBack();
         _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
           'function': IrlWebviewFunction.closeWebview,
           'url': widget.payload.url,
