@@ -48,12 +48,17 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   final metricClient = injector.get<MetricClientService>();
   final tokenService = injector.get<TokensService>();
   late bool _isProcessing;
+  late bool _isConfirming;
+  late AssetToken assetToken;
 
   @override
   void initState() {
     _fetchIdentities();
     super.initState();
     _isProcessing = false;
+    _isConfirming = !widget.asset.isStamped;
+    assetToken = widget.asset;
+    _waitUntilPostcardConfirm();
   }
 
   void _fetchIdentities() {
@@ -69,23 +74,21 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final asset = widget.asset;
     return PostcardExplain(
       payload: PostcardExplainPayload(
-        asset,
+        assetToken,
         PostcardButton(
-          text: "continue".tr(),
+          text: (_isConfirming)
+              ? "confirming_on_blockchain_".tr()
+              : "continue".tr(),
           fontSize: 18,
-          enabled: !(_isProcessing),
+          enabled: !(_isProcessing || _isConfirming),
           isProcessing: _isProcessing,
           onTap: () async {
             setState(() {
               _isProcessing = true;
             });
-            final assetToken = await _waitUntilPostcardConfirm();
-            if (assetToken != null && mounted) {
-              await _receivePostcard(context, assetToken);
-            }
+            await _receivePostcard(context, assetToken);
           },
           color: const Color.fromRGBO(79, 174, 79, 1),
         ),
@@ -93,12 +96,16 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     );
   }
 
-  Future<AssetToken?> _waitUntilPostcardConfirm() async {
+  Future<AssetToken> _waitUntilPostcardConfirm() async {
     final tokenId = widget.asset.id;
     bool isExit = false;
     while (!isExit) {
       final postcard = await injector<PostcardService>().getPostcard(tokenId);
       if (postcard.isStamped) {
+        setState(() {
+          _isConfirming = false;
+          assetToken = postcard;
+        });
         return postcard;
       }
     }
