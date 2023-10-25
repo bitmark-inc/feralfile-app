@@ -407,10 +407,13 @@ class PostcardServiceImpl extends PostcardService {
     final tempFile = File(tempFilePath);
     final isFileExist = await tempFile.exists();
     if (!isFileExist) {
-      final path = "/v1/postcard/$tokenId/stamp/$stampIndex";
+      final path = "/v1/postcard/$tokenId/stamp/$stampIndex/download";
       final secretKey = Environment.auClaimSecretKey;
-      final response = await HttpHelper.hmacAuthenticationPost(
-          host: Environment.auClaimAPIURL, path: path, secretKey: secretKey);
+      final response = await HttpHelper.hmacAuthenticationGet(
+        host: Environment.auClaimAPIURL,
+        path: path,
+        secretKey: secretKey,
+      );
       if (response.statusCode != StatusCode.success.value) {
         throw Exception(response.reasonPhrase);
       }
@@ -427,18 +430,14 @@ class PostcardServiceImpl extends PostcardService {
         "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/postcard.png";
     final tempFile = File(tempFilePath);
     final isFileExist = await tempFile.exists();
-    final path = "/v1/postcard/$tokenId/printing";
+
+    final path = "/v1/postcard/$tokenId/download";
     final secretKey = Environment.auClaimSecretKey;
-    final body = {
-      "width": 1080,
-      "height": 814,
-      "designClass": "print-no-border",
-    };
-    final response = await HttpHelper.hmacAuthenticationPost(
-        host: Environment.auClaimAPIURL,
-        path: path,
-        secretKey: secretKey,
-        body: body);
+    final response = await HttpHelper.hmacAuthenticationGet(
+      host: Environment.auClaimAPIURL,
+      path: path,
+      secretKey: secretKey,
+    );
     if (response.statusCode != StatusCode.success.value) {
       throw Exception(response.reasonPhrase);
     }
