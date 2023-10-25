@@ -688,9 +688,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             log.info("?indexId=$indexId&hasCS=$hasCustomerSupport");
             if (!context.mounted) return;
             final url =
-                "${Environment.merchandiseBaseUrl}?indexId=$indexId&hasCS=$hasCustomerSupport&token=$jwtToken";
+                "${Environment.merchandiseBaseUrl}?indexId=$indexId&hasCS=$hasCustomerSupport";
             Navigator.of(context).pushNamed(AppRouter.irlWebView,
-                arguments: IRLWebScreenPayload(url, isPlainUI: true));
+                arguments: IRLWebScreenPayload(url,
+                    isPlainUI: true, localStorageItems: {'token': jwtToken}));
           },
         ),
         const SizedBox(height: 15),

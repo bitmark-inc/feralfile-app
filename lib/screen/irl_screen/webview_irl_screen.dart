@@ -389,6 +389,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     );
   }
 
+  void _addLocalStorageItems(Map<String, dynamic> items) {
+    items.forEach((key, value) {
+      _controller?.webStorage.localStorage.setItem(key: key, value: value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -414,6 +420,9 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
                     onWebViewCreated: (controller) {
                   _controller = controller;
                   _addJavaScriptHandler();
+                  if (widget.payload.localStorageItems != null) {
+                    _addLocalStorageItems(widget.payload.localStorageItems!);
+                  }
                 }),
               ),
             )
@@ -476,6 +485,8 @@ class JSResult {
 class IRLWebScreenPayload {
   final String url;
   final bool isPlainUI;
+  final Map<String, dynamic>? localStorageItems;
 
-  IRLWebScreenPayload(this.url, {this.isPlainUI = false});
+  IRLWebScreenPayload(this.url,
+      {this.isPlainUI = false, this.localStorageItems});
 }
