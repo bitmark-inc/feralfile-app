@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/followee_service.dart';
+import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -186,6 +187,7 @@ Future<void> setup() async {
       () => AutonomyServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
+  injector.registerLazySingleton<HomeWidgetService>(() => HomeWidgetService());
   injector.registerLazySingleton<MixPanelClientService>(
       () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
@@ -242,6 +244,7 @@ Future<void> setup() async {
             injector(),
             injector(),
           ));
+
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
