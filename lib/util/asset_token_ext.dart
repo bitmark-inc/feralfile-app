@@ -664,9 +664,8 @@ extension PostcardExtension on AssetToken {
   }
 
   bool get isLastOwner {
-    final artists = getArtists;
     final index = stampIndex;
-    return index == -1 || index == artists.length - 1;
+    return index == -1 || index == numberOwners - 1;
   }
 
   String getStamperName(String address) {
