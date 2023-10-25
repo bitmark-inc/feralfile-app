@@ -5,10 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -32,6 +34,7 @@ class GithubDocPage extends StatefulWidget {
 class _GithubDocPageState extends State<GithubDocPage> {
   late String document;
   late String title;
+  final _navigationService = injector<NavigationService>();
 
   final dio = baseDio(BaseOptions(
     baseUrl: "https://raw.githubusercontent.com",
@@ -83,14 +86,8 @@ class _GithubDocPageState extends State<GithubDocPage> {
               styleSheet: markDownLightStyle(context),
               onTapLink: (text, href, title) async {
                 if (href == null) return;
-                if (!(await canLaunchUrlString(href))) {
-                  if (!mounted) return;
-                  Navigator.of(context).pushNamed(AppRouter.githubDocPage,
-                      arguments: {
-                        "prefix": widget.payload["prefix"] ?? '',
-                        "document": href,
-                        "title": ""
-                      });
+                if (href.isAutonomyDocumentLink) {
+                  _navigationService.openAutonomyDocument(href, title);
                 } else {
                   launchUrlString(href);
                 }

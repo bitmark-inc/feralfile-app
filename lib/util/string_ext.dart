@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -81,5 +82,16 @@ extension StringExtension on String {
     final splitted = split('-');
     return splitted.length > 1 &&
         splitted[1] == Environment.postcardContractAddress;
+  }
+
+  bool get isAutonomyDocumentLink {
+    return (startsWith(AUTONOMY_DOCUMENT_PREFIX) ||
+            startsWith(AUTONOMY_RAW_DOCUMENT_PREFIX)) &&
+        endsWith(MARKDOWN_EXT);
+  }
+
+  String get autonomyRawDocumentLink {
+    return replaceFirst(AUTONOMY_DOCUMENT_PREFIX, AUTONOMY_RAW_DOCUMENT_PREFIX)
+        .replaceFirst("/blob/", "/");
   }
 }
