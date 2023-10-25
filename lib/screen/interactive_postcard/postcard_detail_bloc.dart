@@ -71,7 +71,7 @@ class PostcardDetailBloc
             .where((element) => element.id == event.identity.id)
             .toList();
         if (assetToken.isNotEmpty) {
-          final paths = getUpdatingPath(state, assetToken.first);
+          final paths = getUpdatingPath(assetToken.first);
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
@@ -88,7 +88,7 @@ class PostcardDetailBloc
         await tokenService.reindexAddresses([event.identity.owner]);
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
-        final paths = getUpdatingPath(state, assetToken);
+        final paths = getUpdatingPath(assetToken);
         emit(state.copyWith(
             assetToken: assetToken,
             imagePath: paths.first,
@@ -179,8 +179,7 @@ class PostcardDetailBloc
     }
   }
 
-  Pair<String?, String?> getUpdatingPath(
-      PostcardDetailState state, AssetToken? asset) {
+  Pair<String?, String?> getUpdatingPath(AssetToken? asset) {
     String? imagePath;
     String? metadataPath;
     if (asset != null) {

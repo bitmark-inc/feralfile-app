@@ -36,7 +36,8 @@ class _PostcardTravelInfoState extends State<PostcardTravelInfo> {
     final theme = Theme.of(context);
     final travelInfoWithoutInternetUser =
         asset.postcardMetadata.listTravelInfoWithoutLocationName;
-    final currentStampNumber = asset.getArtists.length;
+    final stampingPostcard = asset.isStamping ? 1 : 0;
+    final currentStampNumber = asset.getArtists.length + stampingPostcard;
     final numberFormatter = NumberFormat();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
