@@ -674,7 +674,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             log.info("?indexId=$indexId&hasCS=$hasCustomerSupport");
             if (!context.mounted) return;
             final url =
-                "${Environment.merchandiseBaseUrl}?indexId=$indexId&hasCS=$hasCustomerSupport";
+                "${Environment.merchandiseBaseUrl}?indexId=$indexId&hasCS=$hasCustomerSupport&token=$jwtToken";
             Navigator.of(context).pushNamed(AppRouter.irlWebView,
                 arguments: IRLWebScreenPayload(url,
                     isPlainUI: true, localStorageItems: {'token': jwtToken}));
