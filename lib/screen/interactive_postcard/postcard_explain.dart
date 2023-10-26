@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -65,14 +66,16 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      _page1(_controller),
-      _page3(1, _colouringController),
-      _page2(2, totalDistance: 0),
-      _page2(3, totalDistance: 7926),
-      _page2(4, totalDistance: 91103),
-      _page4(5),
-    ];
+    final pages = widget.payload.pages ??
+        [
+          _page1(_controller),
+          _page3(1, _colouringController),
+          _page2(2, totalDistance: 0),
+          _page2(3, totalDistance: 7926),
+          _page2(4, totalDistance: 91103),
+          _page4(5),
+          _postcardPreview(context, widget.payload.asset),
+        ];
     final swiperSize = pages.length;
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
@@ -404,11 +407,46 @@ class _PostcardExplainState extends State<PostcardExplain> {
       ),
     );
   }
+
+  Widget _postcardPreview(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 265,
+            child: Stack(
+              children: [
+                PostcardViewWidget(
+                  assetToken: asset,
+                  withPreviewStamp: true,
+                ),
+                Positioned.fill(child: Container(color: Colors.transparent)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 60),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "this_is_your_group_postcard".tr(),
+                style:
+                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
 }
 
 class PostcardExplainPayload {
   final AssetToken asset;
   final Widget startButton;
+  final List<Widget>? pages;
 
-  PostcardExplainPayload(this.asset, this.startButton);
+  PostcardExplainPayload(this.asset, this.startButton, {this.pages});
 }

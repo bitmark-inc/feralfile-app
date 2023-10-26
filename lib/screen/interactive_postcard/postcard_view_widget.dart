@@ -19,6 +19,7 @@ class PostcardViewWidget extends StatefulWidget {
   final String? jsonPath;
   final int? zoomIndex;
   final Color backgroundColor;
+  final bool withPreviewStamp;
 
   const PostcardViewWidget({
     super.key,
@@ -27,6 +28,7 @@ class PostcardViewWidget extends StatefulWidget {
     this.jsonPath,
     this.zoomIndex,
     this.backgroundColor = Colors.black,
+    this.withPreviewStamp = false,
   });
 
   @override
@@ -54,23 +56,44 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     );
   }
 
+  void _getNewStamp(String base64Image, String base64Json, int index) {
+    log.info("[Postcard] getNewStamp");
+    _controller?.evaluateJavascript(
+      source: "getNewStamp('$base64Image', '$base64Json')",
+    );
+    log.info("[Postcard] getNewStamp");
+    log.info("[Postcard] $index");
+    log.info(base64Json);
+    log.info("[Postcard] base64Image ${base64Image.runtimeType}");
+    _controller?.evaluateJavascript(
+      source: "getNewStamp($index, '$base64Image', '$base64Json')",
+    );
+  }
+
   _convertFileToBase64() async {
     log.info("[Postcard] add stamp ${widget.imagePath}, ${widget.jsonPath}");
     if (widget.imagePath == null || widget.jsonPath == null) return;
     final image = await File(widget.imagePath!).readAsBytes();
     final json = await File(widget.jsonPath!).readAsBytes();
+
     base64Json = base64Encode(json);
     base64Image = base64Encode(image);
     final index = widget.assetToken.getArtists.length;
     if (base64Image != null && base64Json != null) {
-      log.info("[Postcard] getNewStamp");
-      log.info("[Postcard] $index");
-      log.info(base64Json);
-      log.info("[Postcard] base64Image ${base64Image.runtimeType}");
-      _controller?.evaluateJavascript(
-        source: "getNewStamp($index, '$base64Image', '$base64Json')",
-      );
+      _getNewStamp(base64Image!, base64Json!, index);
     }
+  }
+
+  _addPreviewStamp() async {
+    final Map<String, dynamic> metadata = {
+      "address": "", // stamp address
+      "claimAddress": "",
+      "stampedAt": "",
+    };
+    final base64Json = base64Encode(utf8.encode(jsonEncode(metadata)));
+    const base64Image = PINK_STAMP_BASE64_IMAGE;
+    final index = widget.assetToken.getArtists.length;
+    _getNewStamp(base64Image, base64Json, index);
   }
 
   @override
@@ -93,6 +116,9 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
                 "[Postcard] Software artwork console log: ${consoleMessage.message}");
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
               await _convertFileToBase64();
+              if (widget.withPreviewStamp) {
+                await _addPreviewStamp();
+              }
               if (widget.zoomIndex != null) {
                 _zoomIntoStamp(
                     index: widget.zoomIndex!, color: widget.backgroundColor);

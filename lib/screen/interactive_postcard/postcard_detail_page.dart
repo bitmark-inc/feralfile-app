@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcard_travel_info.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
@@ -33,6 +34,7 @@ import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -623,11 +625,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       );
     }
     if (!state.isStamped) {
+      final button = PostcardAsyncButton(
+        text: "continue".tr(),
+        fontSize: 18,
+        onTap: () async {
+          injector<NavigationService>().popAndPushNamed(AppRouter.designStamp,
+              arguments: DesignStampPayload(asset));
+        },
+        color: AppColor.momaGreen,
+      );
+      final page = _postcardPreview(context, asset);
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context).pushNamed(AppRouter.designStamp,
-              arguments: DesignStampPayload(asset));
+          Navigator.of(context).pushNamed(
+            AppRouter.postcardExplain,
+            arguments: PostcardExplainPayload(asset, button, pages: [page]),
+          );
         },
       );
     }
@@ -1014,6 +1028,42 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           },
         );
       },
+    );
+  }
+
+  Widget _postcardPreview(BuildContext context, AssetToken asset) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 265,
+            child: Stack(
+              children: [
+                PostcardViewWidget(
+                  assetToken: asset,
+                  withPreviewStamp: true,
+                ),
+                Positioned.fill(child: Container(color: Colors.transparent)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const SizedBox(height: 24),
+          const SizedBox(height: 24),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "this_is_your_group_postcard".tr(),
+                style:
+                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 }
