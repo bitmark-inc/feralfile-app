@@ -266,7 +266,7 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
-  static const MerchandiseIssue = 'merchandise issue';
+  static const MerchandiseIssue = 'merchandise postcard';
 
   static List<String> get getList => [
         Feature,
