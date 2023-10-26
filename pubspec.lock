@@ -771,10 +771,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_inappwebview
-      sha256: f73505c792cf083d5566e1a94002311be497d984b5607f25be36d685cf6361cf
+      sha256: d198297060d116b94048301ee6749cd2e7d03c1f2689783f52d210a6b7aba350
       url: "https://pub.dev"
     source: hosted
-    version: "5.7.2+3"
+    version: "5.8.0"
   flutter_inline_webview_macos:
     dependency: transitive
     description:
@@ -1743,8 +1743,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
-      resolved-ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
+      ref: fa351d6edc7a3964a780115b9fb38ef68440198d
+      resolved-ref: fa351d6edc7a3964a780115b9fb38ef68440198d
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
