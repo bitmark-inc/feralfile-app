@@ -171,10 +171,7 @@ class RequestPostcardRequest {
   final String id;
   final String? otp;
 
-  RequestPostcardRequest({
-    required this.id,
-    this.otp
-  });
+  RequestPostcardRequest({required this.id, this.otp});
 
   // fromJson method
   factory RequestPostcardRequest.fromJson(Map<String, dynamic> json) {
@@ -221,5 +218,45 @@ class RequestPostcardResponse {
       'name': name,
       'previewURL': previewURL,
     };
+  }
+}
+
+class PayToMintRequest extends RequestPostcardResponse {
+  final String address;
+  final String tokenId;
+
+  //constructor
+  PayToMintRequest({
+    required this.address,
+    required this.tokenId,
+    required String claimID,
+    required String name,
+    required String previewURL,
+  }) : super(
+          claimID: claimID,
+          name: name,
+          previewURL: previewURL,
+        );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'claimID': claimID,
+      'name': name,
+      'previewURL': previewURL,
+      'address': address,
+      'tokenId': tokenId,
+    };
+  }
+
+  // fromJson method
+  factory PayToMintRequest.fromJson(Map<String, dynamic> json) {
+    return PayToMintRequest(
+      claimID: json['claimID'] as String,
+      name: json['name'] as String,
+      previewURL: json['previewURL'] as String,
+      address: json['address'] as String,
+      tokenId: json['tokenId'] as String,
+    );
   }
 }

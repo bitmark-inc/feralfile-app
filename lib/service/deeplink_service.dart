@@ -219,6 +219,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
       "tezos://",
       "autonomy-tezos://",
     ];
+
+    final postcardPayToMintPrefixes = [
+      "https://autonomy.io/apps/moma-postcards/purchase",
+    ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
       await injector<AccountService>().restoreIfNeeded();
@@ -272,8 +276,45 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       return true;
     }
+
+    final callingPostcardPayToMintPrefix = postcardPayToMintPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingPostcardPayToMintPrefix != null) {
+      _addScanQREvent(
+          link: link,
+          linkType: LinkType.postcardPayToMint,
+          prefix: callingPostcardPayToMintPrefix);
+      await _handlePayToMint(link);
+      return true;
+    }
     memoryValues.deepLink.value = null;
     return false;
+  }
+
+  Future<void> _handlePayToMint(String link) async {
+    log.info("[DeeplinkService] _handlePayToMint");
+    _deepLinkHandlingMap.remove(link);
+    final url = "${Environment.merchandiseBaseUrl}/payToMint";
+    final response =
+        (await _navigationService.goToIRLWebview(url)) as Map<String, dynamic>;
+
+    if (response['result'] == true) {
+      final previewURL = response['previewURL'];
+      final title = response['title'];
+      final address = response['address'];
+      final tokenId = response['tokenId'];
+
+       _navigationService.navigateTo(
+        AppRouter.payToMintPostcard,
+        arguments: PayToMintRequest(
+          claimID: "",
+          previewURL: previewURL,
+          name: title,
+          address: address,
+          tokenId: tokenId,
+        )
+      );
+    }
   }
 
   Future<bool> _handleIRL(String link) async {
@@ -295,7 +336,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         );
         if (!validUrl) return false;
       }
-      await _navigationService.navigateTo(AppRouter.irlWebView,
+      _navigationService.navigateTo(AppRouter.irlWebView,
           arguments: IRLWebScreenPayload(urlDecode));
       return true;
     }
