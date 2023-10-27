@@ -446,7 +446,9 @@ class _PostcardExplainState extends State<PostcardExplain> {
 class PostcardExplainPayload {
   final AssetToken asset;
   final Widget startButton;
+  final bool isPayToMint;
   final List<Widget>? pages;
 
-  PostcardExplainPayload(this.asset, this.startButton, {this.pages});
+  PostcardExplainPayload(this.asset, this.startButton,
+      {this.isPayToMint = false, this.pages});
 }

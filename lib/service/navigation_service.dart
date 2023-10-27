@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -313,6 +314,20 @@ class NavigationService {
       );
     } else {
       Future.value(0);
+    }
+  }
+
+  Future<dynamic> goToIRLWebview(String url) async {
+
+    if (navigatorKey.currentState?.mounted == true &&
+        navigatorKey.currentContext != null) {
+      return await navigatorKey.currentState?.pushNamed(
+        AppRouter.irlWebView,
+          arguments: IRLWebScreenPayload(url,
+          isPlainUI: true)
+      );
+    } else {
+      return {'result': false};
     }
   }
 

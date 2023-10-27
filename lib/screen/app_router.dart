@@ -67,6 +67,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
@@ -198,6 +199,7 @@ class AppRouter {
   static const handSignaturePage = "hand_signature_page";
   static const stampPreview = "stamp_preview";
   static const claimEmptyPostCard = "claim_empty_postcard";
+  static const payToMintPostcard = "pay_to_mint_postcard";
   static const selectAddressScreen = "select_address_screen";
   static const receivePostcardPage = 'receive_postcard_page';
   static const receivePostcardSelectAccountPage =
@@ -1039,6 +1041,15 @@ class AppRouter {
           settings: settings,
           builder: (context) {
             return ClaimEmptyPostCardScreen(claimRequest: claimRequest);
+          },
+        );
+
+      case payToMintPostcard:
+        final claimRequest = settings.arguments as PayToMintRequest;
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) {
+            return PayToMintPostcardScreen(claimRequest: claimRequest);
           },
         );
 

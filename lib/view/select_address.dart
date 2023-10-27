@@ -11,8 +11,10 @@ import 'package:flutter/material.dart';
 
 class SelectAddressView extends StatefulWidget {
   final List<WalletAddress> addresses;
+  final String? selectButton;
 
-  const SelectAddressView({Key? key, required this.addresses})
+  const SelectAddressView(
+      {Key? key, required this.addresses, this.selectButton})
       : super(key: key);
 
   @override
@@ -51,7 +53,7 @@ class _SelectAddressViewState extends State<SelectAddressView> {
                     child: Column(
                   children: [
                     PrimaryButton(
-                        text: "connect".tr(),
+                        text: widget.selectButton ?? "connect".tr(),
                         enabled: _selectedAddress != null,
                         onTap: () {
                           Navigator.pop(context, _selectedAddress);

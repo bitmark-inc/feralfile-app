@@ -563,6 +563,7 @@ class LinkType {
   static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';
+  static const postcardPayToMint = 'Postcard Pay To Mint';
 }
 
 class SocialApp {

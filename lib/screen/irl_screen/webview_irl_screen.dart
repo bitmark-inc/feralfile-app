@@ -111,9 +111,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         address = addresses.first.address;
       } else {
         if (!mounted) return null;
+        final title = arguments['title'] ?? 'select_address_to_connect'.tr();
         address = await UIHelper.showDialog(
           context,
-          "select_address_to_connect".tr(),
+          title,
           SelectAddressView(
             addresses: addresses,
           ),
@@ -171,6 +172,16 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       case "open_customer_support":
         if (!mounted) return;
         Navigator.of(context).pushNamed(AppRouter.supportListPage);
+        return;
+      case "pay_to_mint_success":
+        final data = argument['data'] as Map<String, dynamic>;
+        Map<String, dynamic> response = {
+          'result': true,
+        };
+        response.addAll(data);
+        if (!mounted) return;
+        Navigator.of(context).pop(response);
+
         return;
       default:
         return;
