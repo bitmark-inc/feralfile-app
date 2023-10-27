@@ -9,11 +9,13 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
@@ -39,6 +41,7 @@ class HandSignaturePage extends StatefulWidget {
 
 class _HandSignaturePageState extends State<HandSignaturePage> {
   final GlobalKey<SfSignaturePadState> signatureGlobalKey = GlobalKey();
+  final _postcardService = injector.get<PostcardService>();
   bool didDraw = false;
   bool loading = false;
   Uint8List? resizedStamp;
@@ -142,7 +145,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         isProcessing: loading,
                         enabled: !loading && didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
-                        text: "sign_and_stamp".tr(),
+                        color: MoMAColors.moMA8,
+                        text: "continue".tr(),
                       ),
                     ),
                   ],

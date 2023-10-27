@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_p
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -114,6 +115,9 @@ abstract class PostcardService {
     required String shareCode,
     required Location location,
   });
+
+  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
+      String metadataPath, Location location);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -125,6 +129,7 @@ class PostcardServiceImpl extends PostcardService {
   final AccountService _accountService;
   final TokensService _tokensService;
   final MetricClientService _metricClientService;
+  final NavigationService _navigationService;
 
   PostcardServiceImpl(
       this._postcardApi,
@@ -134,7 +139,8 @@ class PostcardServiceImpl extends PostcardService {
       this._configurationService,
       this._accountService,
       this._tokensService,
-      this._metricClientService);
+      this._metricClientService,
+      this._navigationService);
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -595,6 +601,65 @@ class PostcardServiceImpl extends PostcardService {
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
     return pendingToken;
+  }
+
+  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
+      String metadataPath, Location location) async {
+    File imageFile = File(imagePath);
+    File metadataFile = File(metadataPath);
+
+    final tokenId = asset.tokenId ?? "";
+    final address = asset.owner;
+    final counter = asset.numberOwners;
+    final contractAddress = Environment.postcardContractAddress;
+
+    final walletIndex = await asset.getOwnerWallet();
+    if (walletIndex == null) {
+      log.info("[POSTCARD] Wallet index not found");
+      return false;
+    }
+
+    final isStampSuccess = await stampPostcard(
+        tokenId,
+        walletIndex.first,
+        walletIndex.second,
+        imageFile,
+        metadataFile,
+        location,
+        counter,
+        contractAddress);
+    if (!isStampSuccess) {
+      log.info("[POSTCARD] Stamp failed");
+      injector<NavigationService>().popUntilHomeOrSettings();
+      return false;
+    } else {
+      log.info("[POSTCARD] Stamp success");
+      _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
+        'postcardId': asset.tokenId,
+        'index': counter,
+      });
+      await updateStampingPostcard([
+        StampingPostcard(
+          indexId: asset.id,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+        )
+      ]);
+      var postcardMetadata = asset.postcardMetadata;
+      final stampedLocation = location!;
+      postcardMetadata.locationInformation.add(stampedLocation);
+      var newAsset = asset.asset;
+      newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+      final pendingToken = asset.copyWith(asset: newAsset);
+      await _tokensService.setCustomTokens([pendingToken]);
+      _tokensService.reindexAddresses([address]);
+      NftCollectionBloc.eventController.add(
+        GetTokensByOwnerEvent(pageKey: PageKey.init()),
+      );
+    }
+    return true;
   }
 }
 
