@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/home_widget_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -671,13 +670,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
-    injector<HomeWidgetService>().update(
-        context,
-        Container(
-          color: Colors.amber,
-          width: 200,
-          height: 200,
-        ));
     _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
