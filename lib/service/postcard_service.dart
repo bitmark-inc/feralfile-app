@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset.dart';
@@ -526,9 +527,7 @@ class PostcardServiceImpl extends PostcardService {
     });
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
-      locationInformation: [
-        moMAGeoLocation.position,
-      ],
+      locationInformation: [],
     );
     final token = AssetToken(
       asset: Asset.init(
