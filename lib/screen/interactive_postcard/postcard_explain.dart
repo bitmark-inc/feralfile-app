@@ -262,13 +262,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            child: Center(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.fitWidth,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Image.asset(
+                    imagePath,
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 12),
           (totalDistance != null)
