@@ -401,6 +401,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             .map((e) => e.name)
             .map((e) => e.toIdentityOrMask(identityState.identityMap))
             .toList();
+        final owners = asset.owners.map((key, value) => MapEntry(
+            key.toIdentityOrMask(identityState.identityMap) ?? key, value));
         return Stack(
           children: [
             Scaffold(
@@ -556,8 +558,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _artworkInfo(context, asset,
-                                state.toArtworkDetailState(), artistNames),
+                            _artworkInfo(
+                                context,
+                                asset,
+                                state.toArtworkDetailState(),
+                                artistNames,
+                                owners),
                           ],
                         ),
                       ),
@@ -774,8 +780,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _artworkInfo(BuildContext context, AssetToken asset,
-      ArtworkDetailState state, List<String?> artistNames) {
+  Widget _artworkInfo(
+      BuildContext context,
+      AssetToken asset,
+      ArtworkDetailState state,
+      List<String?> artistNames,
+      Map<String, int> owners) {
     return Column(
       children: [
         debugInfoWidget(context, currentAsset),
@@ -791,13 +801,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             if (asset.fungible == true) ...[
               BlocBuilder<AccountsBloc, AccountsState>(
                 builder: (context, state) {
-                  final addresses = state.addresses;
                   return PostcardContainer(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    child: widget.payload.isFromLeaderboard
-                        ? leaderboardPostcardOwnership(
-                            context, asset, addresses, artistNames)
-                        : postcardOwnership(context, asset, addresses),
+                    child: postcardOwnership(context, asset, owners),
                   );
                 },
               ),

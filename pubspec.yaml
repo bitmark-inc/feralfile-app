@@ -123,7 +123,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: ad7b16728f43de437b0e9102b5b0bf6f3ec35022
+      ref: e346141fd9ad4f0667b4c5a403fd8112f76ae5f3
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -154,7 +154,7 @@ dependencies:
   image: ^4.0.15
   widgets_to_image: ^0.0.2
   geocoding: ^2.1.0
-  flutter_inappwebview: ^5.7.2+3
+  flutter_inappwebview: ^5.8.0
   html: ^0.15.1
   video_player: ^2.4.8
   youtube_player_iframe: ^4.0.4
