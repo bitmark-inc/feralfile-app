@@ -598,13 +598,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final asset = state.assetToken!;
     final theme = Theme.of(context);
-    if (asset.isCompleted && !isViewOnly) {
+    final place15StampsText = Text(
+      "place_15_stamps".tr(),
+      style: theme.textTheme.moMASans400Black12,
+    );
+    if (isViewOnly) {
+      return const SizedBox();
+    }
+    if (asset.isCompleted) {
       return _postcardPhysical(context, state);
     }
-    if (!state.isLastOwner ||
-        !state.postcardValueLoaded ||
-        isViewOnly != false) {
-      return const SizedBox();
+    if (!state.isLastOwner || !state.postcardValueLoaded) {
+      return place15StampsText;
     }
     if (!(asset.isStamping || asset.isStamped)) {
       final button = PostcardAsyncButton(
@@ -627,6 +632,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         },
       );
     }
+
     final sendPostcardExplain = [
       const SizedBox(
         height: 20,
@@ -637,6 +643,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           "send_postcard_to_someone_else".tr(),
           style: theme.textTheme.moMASans400Black12,
         ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 16, right: 15, top: 10),
+        child: place15StampsText,
       ),
     ];
     if (!isSending) {
@@ -693,11 +703,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 arguments: IRLWebScreenPayload(url,
                     isPlainUI: true, localStorageItems: {'token': jwtToken}));
           },
-        ),
-        const SizedBox(height: 15),
-        Text(
-          "unlock_physical_objects_desc".tr(),
-          style: Theme.of(context).textTheme.moMASans400Black12,
         ),
       ],
     );
