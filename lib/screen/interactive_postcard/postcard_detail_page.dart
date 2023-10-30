@@ -13,7 +13,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -29,10 +28,12 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widge
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcard_travel_info.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -46,7 +47,6 @@ import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -65,7 +65,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
-import 'package:share_plus/share_plus.dart';
 
 class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
@@ -105,6 +104,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool withSharing;
   late bool isViewOnly;
   late bool isSending;
+  late bool alreadyShowPopup;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -114,12 +114,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  final _navigationService = injector<NavigationService>();
 
   @override
   void initState() {
     _scrollController = ScrollController();
     isViewOnly = widget.payload.isFromLeaderboard;
     isSending = false;
+    alreadyShowPopup = false;
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -424,14 +426,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
-                  Semantics(
-                    label: 'externalLink',
-                    child: ExternalLink(
-                      link: asset.secondaryMarketURL,
-                      color: AppColor.primaryBlack,
-                      disableColor: AppColor.disabledColor,
-                    ),
-                  ),
                   Visibility(
                     visible: !widget.payload.isFromLeaderboard,
                     child: Semantics(
@@ -584,6 +578,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return context.read<PostcardDetailBloc>().state.assetToken;
   }
 
+  Future<void> onConfirmed(AssetToken assetToken) async {
+    if (alreadyShowPopup) {
+      return;
+    }
+    alreadyShowPopup = true;
+    _navigationService.showOptionsAfterSharePostcard(
+      assetToken: assetToken,
+      callBack: () {},
+    );
+  }
+
   void _refreshPostcard() {
     log.info("Refresh postcard");
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
@@ -629,13 +634,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         children: [
           PostcardAsyncButton(
             text: "invite_to_collaborate".tr(),
+            color: MoMAColors.moMA8,
             onTap: () async {
-              final shareResult = await _sharePostcard(context, asset);
-              if (shareResult?.status == ShareResultStatus.success) {
+              await asset.sharePostcard(onSuccess: () {
                 setState(() {
                   isSending = state.isSending();
                 });
-              }
+                onConfirmed(asset);
+              }, onFailed: (e) {
+                if (e is DioException) {
+                  if (mounted) {
+                    UIHelper.showSharePostcardFailed(context, e);
+                  }
+                }
+              });
             },
           ),
           ...sendPostcardExplain,
@@ -654,33 +666,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ],
       );
     }
-  }
-
-  Future<ShareResult?> _sharePostcard(
-      BuildContext context, AssetToken asset) async {
-    try {
-      final shareTime = DateTime.now();
-      final sharePostcardResponse = await _postcardService.sharePostcard(asset);
-      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
-        final shareMessage = "postcard_share_message".tr(namedArgs: {
-          'deeplink': sharePostcardResponse.deeplink!,
-        });
-        final result = await Share.shareWithResult(shareMessage);
-        if (result.status == ShareResultStatus.success) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          await _configurationService.updateSharedPostcard(
-              [SharedPostcard(asset.id, asset.owner, shareTime)]);
-        }
-        return result;
-      }
-    } catch (e) {
-      if (e is DioException) {
-        if (mounted) {
-          UIHelper.showSharePostcardFailed(context, e);
-        }
-      }
-    }
-    return null;
   }
 
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
@@ -846,9 +831,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     final isViewOnly = await asset.isViewOnly();
     if (!mounted) return;
     const isHidden = false;
+    final isStamped = asset.isStamped;
     UIHelper.showPostcardDrawerAction(
       context,
       options: [
+        OptionItem(
+          title: "view_on_secondary_market".tr(),
+          icon: SvgPicture.asset(
+            'assets/images/search_bold.svg',
+            width: 24,
+            height: 24,
+          ),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                arguments: IRLWebScreenPayload(asset.secondaryMarketURL));
+          },
+        ),
         OptionItem(
           title: 'share_on_'.tr(),
           icon: SvgPicture.asset(
@@ -870,9 +869,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (asset.stampIndex >= 0 && !isViewOnly)
+        if (!isViewOnly)
           OptionItem(
             title: 'download_stamp'.tr(),
+            isEnable: isStamped,
             icon: SvgPicture.asset(
               'assets/images/download.svg',
               width: 24,
@@ -883,10 +883,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 height: 24,
                 colorFilter: const ColorFilter.mode(
                     AppColor.disabledColor, BlendMode.srcIn)),
+            iconOnDisable: SvgPicture.asset('assets/images/download.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                    AppColor.disabledColor, BlendMode.srcIn)),
             onTap: () async {
               try {
                 await _postcardService.downloadStamp(
-                    tokenId: asset.tokenId!, stampIndex: asset.stampIndex);
+                    tokenId: asset.tokenId!,
+                    stampIndex: asset.stampIndexWithStamping);
                 if (!mounted) return;
                 Navigator.of(context).pop();
                 await UIHelper.showPostcardStampSaved(context);
@@ -908,6 +914,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!isViewOnly)
           OptionItem(
             title: 'download_postcard'.tr(),
+            isEnable: isStamped,
             icon: SvgPicture.asset(
               'assets/images/download.svg',
               width: 24,

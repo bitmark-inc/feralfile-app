@@ -179,9 +179,11 @@ AppBar getCloseAppBar(
   TextStyle? titleStyle,
   required Function()? onClose,
   Widget? icon,
+  Widget? disableIcon,
   bool withBottomDivider = true,
   bool isWhite = true,
   Color? statusBarColor,
+  bool isTitleCenter = true,
 }) {
   final theme = Theme.of(context);
   final primaryColor = isWhite ? AppColor.primaryBlack : AppColor.white;
@@ -192,7 +194,7 @@ AppBar getCloseAppBar(
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
-    centerTitle: true,
+    centerTitle: isTitleCenter,
     automaticallyImplyLeading: false,
     title: Text(
       title,
@@ -208,6 +210,8 @@ AppBar getCloseAppBar(
           onPressed: onClose,
           icon: icon ?? closeIcon(color: primaryColor),
         )
+      else
+        IconButton(onPressed: () {}, icon: disableIcon ?? const SizedBox()),
     ],
     backgroundColor: Colors.transparent,
     shadowColor: Colors.transparent,

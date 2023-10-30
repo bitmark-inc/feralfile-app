@@ -328,6 +328,7 @@ Future<void> setup() async {
       injector(),
       injector(),
       injector(),
+      injector(),
     ),
   );
 

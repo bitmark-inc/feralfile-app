@@ -215,7 +215,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
               Text(
                 "moma_project_invite".tr(),
                 style:
-                    theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
               ),
               const SizedBox(height: 8),
               Text(
