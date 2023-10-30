@@ -112,12 +112,16 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       } else {
         if (!mounted) return null;
         final title = arguments['title'] ?? 'select_address_to_connect'.tr();
+        final buttonText = arguments['buttonText'] ?? 'connect'.tr();
+        final mustSelect = arguments['mustSelect'] ?? false;
         address = await UIHelper.showDialog(
           context,
           title,
           SelectAddressView(
             addresses: addresses,
+            selectButton: buttonText,
           ),
+          isDismissible: !mustSelect,
         );
       }
       if (address != null) {
