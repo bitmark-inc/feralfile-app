@@ -1049,9 +1049,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          const SizedBox(height: 24),
-          const SizedBox(height: 24),
+          const SizedBox(height: 60),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
