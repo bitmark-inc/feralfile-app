@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -635,6 +636,15 @@ extension PostcardExtension on AssetToken {
 
   int get numberOwners {
     return maxEdition ?? 0;
+  }
+
+  bool get isStamping {
+    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    return stampingPostcard.any((element) {
+      final bool =
+          (element.indexId == id && element.address == owner && isLastOwner);
+      return bool;
+    });
   }
 
   bool get isStamped {

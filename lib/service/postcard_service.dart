@@ -520,9 +520,7 @@ class PostcardServiceImpl extends PostcardService {
     });
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
-      locationInformation: [
-        moMAGeoLocation.position,
-      ],
+      locationInformation: [],
     );
     final token = AssetToken(
       asset: Asset.init(
