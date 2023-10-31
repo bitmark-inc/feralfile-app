@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,7 @@ class _PayToMintPostcardScreenState extends State<PayToMintPostcardScreen> {
                           owner: widget.claimRequest.address,
                           tokenId: widget.claimRequest.tokenId)));
                 },
-                color: const Color.fromRGBO(79, 174, 79, 1),
+                color: POSTCARD_GREEN_BUTTON_COLOR,
               ),
               isPayToMint: true,
             ),
