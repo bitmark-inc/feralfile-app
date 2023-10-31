@@ -539,10 +539,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            if (!isViewOnly) ...[
-                              _postcardAction(context, state),
-                              const SizedBox(height: 20),
-                            ],
+                            _postcardAction(context, state),
+                            const SizedBox(height: 20),
                             _postcardInfo(context, state),
                             const SizedBox(
                               height: 20,
@@ -600,11 +598,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       "place_15_stamps".tr(),
       style: theme.textTheme.moMASans400Black12,
     );
-    if (isViewOnly) {
-      return const SizedBox();
-    }
     if (asset.isCompleted) {
       return _postcardPhysical(context, state);
+    }
+    if (isViewOnly) {
+      return const SizedBox();
     }
     if (!state.isLastOwner || !state.postcardValueLoaded) {
       return place15StampsText;
