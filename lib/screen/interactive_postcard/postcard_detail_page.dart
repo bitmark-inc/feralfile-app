@@ -664,6 +664,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           Navigator.of(context).pushNamed(AppRouter.designStamp,
               arguments: DesignStampPayload(asset));
         },
+        color: MoMAColors.moMA8,
       );
     }
 
