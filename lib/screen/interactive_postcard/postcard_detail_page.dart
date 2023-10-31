@@ -47,7 +47,6 @@ import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';

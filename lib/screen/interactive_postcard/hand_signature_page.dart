@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -41,7 +40,6 @@ class HandSignaturePage extends StatefulWidget {
 
 class _HandSignaturePageState extends State<HandSignaturePage> {
   final GlobalKey<SfSignaturePadState> signatureGlobalKey = GlobalKey();
-  final _postcardService = injector.get<PostcardService>();
   bool didDraw = false;
   bool loading = false;
   Uint8List? resizedStamp;
