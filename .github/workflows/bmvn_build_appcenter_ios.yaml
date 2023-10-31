@@ -103,6 +103,7 @@ jobs:
           echo TZKT_MAINNET_URL=${{ secrets.TZKT_MAINNET_URL }} >> .env
           ${{ inputs.testnet == true }} && echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_TESTNET }} >> .env || echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_MAINNET }} >> .env
           ${{ inputs.testnet == true }} && echo AUTONOMY_MERCHANDISE_BASE_URL=${{ secrets.AUTONOMY_MERCHANDISE_BASE_URL_TESTNET }} >> .env || echo AUTONOMY_MERCHANDISE_BASE_URL=${{ secrets.AUTONOMY_MERCHANDISE_BASE_URL_MAINNET }} >> .env
+          ${{ inputs.testnet == true }} && echo PAY_TO_MINT_BASE_URL=${{ secrets.PAY_TO_MINT_BASE_URL_TESTNET }} >> .env || echo PAY_TO_MINT_BASE_URL=${{ secrets.PAY_TO_MINT_BASE_URL_MAINNET }} >> .env
 
           echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
           echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
