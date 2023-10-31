@@ -154,7 +154,7 @@ dependencies:
   image: ^4.0.15
   widgets_to_image: ^0.0.2
   geocoding: ^2.1.0
-  flutter_inappwebview: ^5.7.2+3
+  flutter_inappwebview: ^5.8.0
   html: ^0.15.1
   video_player: ^2.4.8
   youtube_player_iframe: ^4.0.4
