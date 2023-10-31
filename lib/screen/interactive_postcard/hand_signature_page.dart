@@ -223,7 +223,12 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
             fontSize: 18,
             onTap: () async {
               final counter = asset.numberOwners;
-              GeoLocation? geoLocation = await getGeoLocationWithPermission();
+              GeoLocation? geoLocation;
+              if (counter <= 1) {
+                geoLocation = moMAGeoLocation;
+              } else {
+                geoLocation = await getGeoLocationWithPermission();
+              }
               if (geoLocation == null) return;
               final metadataFilename =
                   '$contractAddress-$tokenId-$counter-metadata.json';
