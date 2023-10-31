@@ -321,3 +321,49 @@ class StampingPostcard {
   @override
   int get hashCode => indexId.hashCode ^ address.hashCode ^ counter.hashCode;
 }
+
+class ProcessingStampPostcard extends StampingPostcard {
+  Location location;
+
+  ProcessingStampPostcard({
+    required String indexId,
+    required String address,
+    required String imagePath,
+    required String metadataPath,
+    required int counter,
+    required DateTime timestamp,
+    required this.location,
+  }) : super(
+          indexId: indexId,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+          timestamp: timestamp,
+        );
+
+  static ProcessingStampPostcard fromJson(Map<String, dynamic> json) {
+    return ProcessingStampPostcard(
+      indexId: json['indexId'],
+      address: json['address'],
+      timestamp: DateTime.parse(json['timestamp']),
+      imagePath: json['imagePath'],
+      metadataPath: json['metadataPath'],
+      counter: json['counter'],
+      location: Location.fromJson(json['location']),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'indexId': indexId,
+      'address': address,
+      'timestamp': timestamp.toIso8601String(),
+      'imagePath': imagePath,
+      'metadataPath': metadataPath,
+      'counter': counter,
+      'location': location.toJson(),
+    };
+  }
+}

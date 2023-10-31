@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:floor/floor.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset.dart';
@@ -74,6 +73,18 @@ abstract class PostcardService {
       Location? location,
       int counter,
       String contractAddress);
+
+  Future<bool> stampPostcardUntilSuccess(
+    String tokenId,
+    WalletStorage wallet,
+    int index,
+    File image,
+    File metadata,
+    Location? location,
+    int counter,
+    String contractAddress,
+    bool Function()? isContinue,
+  );
 
   Future<bool> isReceivedSuccess(
       {required contractAddress,
@@ -278,10 +289,46 @@ class PostcardServiceImpl extends PostcardService {
           counter: counter) as Map<String, dynamic>;
 
       final ok = result["metadataCID"] as String;
-      return ok.isNotEmpty;
+      final isStampSuccess = ok.isNotEmpty;
+      if (isStampSuccess) {
+        _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
+          'postcardId': tokenId,
+          'index': counter,
+        });
+      }
+      return isStampSuccess;
     } catch (e) {
       return false;
     }
+  }
+
+  @override
+  Future<bool> stampPostcardUntilSuccess(
+    String tokenId,
+    WalletStorage wallet,
+    int index,
+    File image,
+    File metadata,
+    Location? location,
+    int counter,
+    String contractAddress,
+    bool Function()? isContinue,
+  ) async {
+    bool isStampSuccess = false;
+    while (!isStampSuccess && (isContinue?.call() ?? true)) {
+      try {
+        isStampSuccess = await stampPostcard(tokenId, wallet, index, image,
+            metadata, location, counter, contractAddress);
+      } catch (e) {
+        log.info("[Postcard Service] stampPostcardUntilSuccess $e");
+      }
+      if (!isStampSuccess) {
+        log.info(
+            "[Postcard Service] Stamping postcard $tokenId failed, retrying...");
+      }
+    }
+    log.info("[Postcard Service] Stamping postcard $tokenId success");
+    return isStampSuccess;
   }
 
   @override
@@ -602,6 +649,7 @@ class PostcardServiceImpl extends PostcardService {
     return pendingToken;
   }
 
+  @override
   Future<bool> finalizeStamp(AssetToken asset, String imagePath,
       String metadataPath, Location location) async {
     File imageFile = File(imagePath);
@@ -617,47 +665,57 @@ class PostcardServiceImpl extends PostcardService {
       log.info("[POSTCARD] Wallet index not found");
       return false;
     }
+    final processingStampPostcard = ProcessingStampPostcard(
+      indexId: tokenId,
+      address: address,
+      imagePath: imagePath,
+      metadataPath: metadataPath,
+      counter: counter,
+      timestamp: DateTime.now(),
+      location: location,
+    );
+    _configurationService.setProcessingStampPostcard([
+      processingStampPostcard,
+    ]);
+    await stampPostcardUntilSuccess(
+      tokenId,
+      walletIndex.first,
+      walletIndex.second,
+      imageFile,
+      metadataFile,
+      location,
+      counter,
+      contractAddress,
+      () {
+        return true;
+      },
+    );
 
-    final isStampSuccess = await stampPostcard(
-        tokenId,
-        walletIndex.first,
-        walletIndex.second,
-        imageFile,
-        metadataFile,
-        location,
-        counter,
-        contractAddress);
-    if (!isStampSuccess) {
-      log.info("[POSTCARD] Stamp failed");
-      injector<NavigationService>().popUntilHomeOrSettings();
-      return false;
-    } else {
-      log.info("[POSTCARD] Stamp success");
-      _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
-        'postcardId': asset.tokenId,
-        'index': counter,
-      });
-      await updateStampingPostcard([
-        StampingPostcard(
-          indexId: asset.id,
-          address: address,
-          imagePath: imagePath,
-          metadataPath: metadataPath,
-          counter: counter,
-        )
-      ]);
-      var postcardMetadata = asset.postcardMetadata;
-      final stampedLocation = location!;
-      postcardMetadata.locationInformation.add(stampedLocation);
-      var newAsset = asset.asset;
-      newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-      final pendingToken = asset.copyWith(asset: newAsset);
-      await _tokensService.setCustomTokens([pendingToken]);
-      _tokensService.reindexAddresses([address]);
-      NftCollectionBloc.eventController.add(
-        GetTokensByOwnerEvent(pageKey: PageKey.init()),
-      );
-    }
+    await _configurationService.setProcessingStampPostcard(
+      [processingStampPostcard],
+      isRemove: true,
+    );
+
+    await updateStampingPostcard([
+      StampingPostcard(
+        indexId: asset.id,
+        address: address,
+        imagePath: imagePath,
+        metadataPath: metadataPath,
+        counter: counter,
+      )
+    ]);
+    var postcardMetadata = asset.postcardMetadata;
+    final stampedLocation = location;
+    postcardMetadata.locationInformation.add(stampedLocation);
+    var newAsset = asset.asset;
+    newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    final pendingToken = asset.copyWith(asset: newAsset);
+    await _tokensService.setCustomTokens([pendingToken]);
+    _tokensService.reindexAddresses([address]);
+    NftCollectionBloc.eventController.add(
+      GetTokensByOwnerEvent(pageKey: PageKey.init()),
+    );
     return true;
   }
 }

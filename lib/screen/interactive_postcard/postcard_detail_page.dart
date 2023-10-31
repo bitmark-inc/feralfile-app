@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -25,6 +26,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcard_travel_info.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
@@ -105,6 +107,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool isViewOnly;
   late bool isSending;
   late bool alreadyShowPopup;
+  late bool isProcessingStampPostcard;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -122,6 +125,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     isViewOnly = widget.payload.isFromLeaderboard;
     isSending = false;
     alreadyShowPopup = false;
+    isProcessingStampPostcard = false;
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -305,6 +309,48 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Future<void> retryStampPostcardIfNeed(
+      BuildContext context, AssetToken assetToken) async {
+    final processingStampPostcard = assetToken.processingStampPostcard;
+    if (processingStampPostcard != null) {
+      setState(() {
+        isProcessingStampPostcard = true;
+      });
+      final walletIndex = await assetToken.getOwnerWallet();
+      final imageFile = File(processingStampPostcard.imagePath);
+      final metadataFile = File(processingStampPostcard.metadataPath);
+      final location = processingStampPostcard.location;
+      final counter = processingStampPostcard.counter;
+      final contractAddress = assetToken.contractAddress ?? "";
+      await _postcardService.stampPostcardUntilSuccess(
+          assetToken.tokenId ?? "",
+          walletIndex!.first,
+          walletIndex.second,
+          imageFile,
+          metadataFile,
+          location,
+          counter,
+          contractAddress, () {
+        return Navigator.of(context).mounted;
+      });
+      await _configurationService.setProcessingStampPostcard(
+          [processingStampPostcard],
+          isRemove: true);
+      await _postcardService.updateStampingPostcard([
+        StampingPostcard(
+          indexId: assetToken.id,
+          address: processingStampPostcard.address,
+          imagePath: processingStampPostcard.imagePath,
+          metadataPath: processingStampPostcard.metadataPath,
+          counter: counter,
+        )
+      ]);
+      setState(() {
+        isProcessingStampPostcard = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -337,6 +383,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (assetToken != null) {
         final viewOnly = isViewOnly || (await assetToken.isViewOnly());
         if (!mounted) return;
+        if (!isProcessingStampPostcard) {
+          retryStampPostcardIfNeed(context, assetToken);
+        }
         setState(() {
           currentAsset = state.assetToken;
           isViewOnly = viewOnly;
@@ -606,6 +655,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         isViewOnly != false) {
       return const SizedBox();
     }
+    if (asset.isProcessingStamp) {
+      return PostcardButton(
+        text: "minting_stamp".tr(),
+        isProcessing: true,
+      );
+    }
     if (!(asset.isStamping || asset.isStamped)) {
       return PostcardButton(
         text: "stamp_postcard".tr(),
@@ -615,6 +670,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         },
       );
     }
+
     final sendPostcardExplain = [
       const SizedBox(
         height: 20,

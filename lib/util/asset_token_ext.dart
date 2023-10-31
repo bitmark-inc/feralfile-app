@@ -650,6 +650,21 @@ extension PostcardExtension on AssetToken {
     return maxEdition ?? 0;
   }
 
+  ProcessingStampPostcard? get processingStampPostcard {
+    final processingStamp =
+        injector<ConfigurationService>().getProcessingStampPostcard();
+    return processingStamp.firstWhereOrNull((element) {
+      final bool = (element.indexId == tokenId &&
+          element.address == owner &&
+          isLastOwner);
+      return bool;
+    });
+  }
+
+  bool get isProcessingStamp {
+    return processingStampPostcard != null;
+  }
+
   bool get isStamping {
     final stampingPostcard = injector<PostcardService>().getStampingPostcard();
     return stampingPostcard.any((element) {
