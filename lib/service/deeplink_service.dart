@@ -294,9 +294,22 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<void> _handlePayToMint(String link) async {
     log.info("[DeeplinkService] _handlePayToMint");
     _deepLinkHandlingMap.remove(link);
-    final url = "${Environment.merchandiseBaseUrl}/payToMint";
-    final response =
-        (await _navigationService.goToIRLWebview(url)) as Map<String, dynamic>;
+    final address = await _navigationService.navigateTo(
+      AppRouter.selectAddressScreen,
+      arguments: {
+        'blockchain': 'Tezos',
+        'onConfirm': (String address) async {
+          _navigationService.goBack(result: address);
+        },
+        'withLinked': true,
+      },
+    );
+    if (address == null) return;
+    final url = "${Environment.merchandiseBaseUrl}/payToMint?address=$address";
+    final response = (await _navigationService.goToIRLWebview(
+            IRLWebScreenPayload(url,
+                isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
+        as Map<String, dynamic>;
 
     if (response['result'] == true) {
       final previewURL = response['previewURL'];
@@ -304,16 +317,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final address = response['address'];
       final tokenId = response['tokenId'];
 
-       _navigationService.navigateTo(
-        AppRouter.payToMintPostcard,
-        arguments: PayToMintRequest(
-          claimID: "",
-          previewURL: previewURL,
-          name: title,
-          address: address,
-          tokenId: tokenId,
-        )
-      );
+      _navigationService.navigateTo(AppRouter.payToMintPostcard,
+          arguments: PayToMintRequest(
+            claimID: "",
+            previewURL: previewURL,
+            name: title,
+            address: address,
+            tokenId: tokenId,
+          ));
     }
   }
 
