@@ -90,7 +90,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
             });
             await _receivePostcard(context, assetToken);
           },
-          color: const Color.fromRGBO(79, 174, 79, 1),
+          color: POSTCARD_GREEN_BUTTON_COLOR,
         ),
       ),
     );

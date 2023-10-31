@@ -106,9 +106,10 @@ const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
 const MEMENTO_6_SERIES_ID_MAINNET = "2b75da9b-c605-4842-bf59-8e2e1fe04be6";
 const MEMENTO_6_SERIES_ID_TESTNET = "420f4f8e-f45f-4627-b36c-e9fa5bf6af43";
 
-String get memento6SeriesId => Environment.appTestnetConfig
-    ? MEMENTO_6_SERIES_ID_TESTNET
-    : MEMENTO_6_SERIES_ID_MAINNET;
+String get memento6SeriesId =>
+    Environment.appTestnetConfig
+        ? MEMENTO_6_SERIES_ID_TESTNET
+        : MEMENTO_6_SERIES_ID_MAINNET;
 
 const REMOVE_CUSTOMER_SUPPORT =
     "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
@@ -121,15 +122,16 @@ const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
 const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
 const Color POSTCARD_PINK_BUTTON_COLOR = Color.fromRGBO(231, 75, 168, 1);
+const Color POSTCARD_GREEN_BUTTON_COLOR = Color.fromRGBO(79, 174, 79, 1);
 
 const POSTCARD_ABOUT_THE_PROJECT =
     "https://www.moma.org/calendar/exhibitions/5618?preview=true";
 
 final moMAGeoLocation =
-    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
+GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
 
 final internetUserGeoLocation =
-    GeoLocation(position: Location(lat: null, lon: null), address: "Web");
+GeoLocation(position: Location(lat: null, lon: null), address: "Web");
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
@@ -149,9 +151,10 @@ const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
 const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
 const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
 
-double get postcardAspectRatio => Platform.isAndroid
-    ? POSTCARD_ASPECT_RATIO_ANDROID
-    : POSTCARD_ASPECT_RATIO_IOS;
+double get postcardAspectRatio =>
+    Platform.isAndroid
+        ? POSTCARD_ASPECT_RATIO_ANDROID
+        : POSTCARD_ASPECT_RATIO_IOS;
 
 const double STAMP_ASPECT_RATIO = 345.0 / 378;
 
@@ -162,9 +165,10 @@ const USDC_CONTRACT_ADDRESS_GOERLI =
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const DEFAULT_FEE_OPTION = FeeOption.MEDIUM;
 
-String get usdcContractAddress => Environment.appTestnetConfig
-    ? USDC_CONTRACT_ADDRESS_GOERLI
-    : USDC_CONTRACT_ADDRESS;
+String get usdcContractAddress =>
+    Environment.appTestnetConfig
+        ? USDC_CONTRACT_ADDRESS_GOERLI
+        : USDC_CONTRACT_ADDRESS;
 
 const publicTezosNodes = [
   "https://mainnet.api.tez.ie",
@@ -255,7 +259,10 @@ class GallerySortProperty {
 }
 
 extension RawValue on WalletApp {
-  String get rawValue => toString().split('.').last;
+  String get rawValue =>
+      toString()
+          .split('.')
+          .last;
 }
 
 class ReportIssueType {
@@ -268,7 +275,8 @@ class ReportIssueType {
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
 
-  static List<String> get getList => [
+  static List<String> get getList =>
+      [
         Feature,
         Bug,
         Feedback,
@@ -326,7 +334,10 @@ enum PremiumFeature {
 }
 
 extension PremiumFeatureExtension on PremiumFeature {
-  String get rawValue => toString().split('.').last;
+  String get rawValue =>
+      toString()
+          .split('.')
+          .last;
 
   String get description {
     switch (rawValue) {
@@ -351,10 +362,8 @@ class ContextedAddress {
   final CryptoType cryptoType;
   final String address;
 
-  ContextedAddress(
-    this.cryptoType,
-    this.address,
-  );
+  ContextedAddress(this.cryptoType,
+      this.address,);
 }
 
 enum CryptoType {

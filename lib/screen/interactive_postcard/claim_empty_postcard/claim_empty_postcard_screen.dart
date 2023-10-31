@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
                 onTap: () {
                   bloc.add(AcceptGiftEvent(widget.claimRequest));
                 },
-                color: const Color.fromRGBO(79, 174, 79, 1),
+                color: POSTCARD_GREEN_BUTTON_COLOR,
               ),
             ),
           );
