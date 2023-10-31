@@ -14,7 +14,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
-import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -44,7 +43,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
-import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -220,9 +218,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future<void> _youDidIt(BuildContext context, AssetToken asset) async {
-    final listTravelInfo =
-        asset.postcardMetadata.listTravelInfoWithoutLocationName;
-    final totalDistance = listTravelInfo.totalDistance;
+    final totalDistance = asset.totalDistance;
     _configurationService.setListPostcardAlreadyShowYouDidIt(
         [PostcardIdentity(id: asset.id, owner: asset.owner)]);
     return UIHelper.showPostcardFinish15Stamps(context,

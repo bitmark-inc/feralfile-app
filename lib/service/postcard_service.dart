@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -21,9 +22,9 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -141,18 +142,19 @@ class PostcardServiceImpl extends PostcardService {
   final AccountService _accountService;
   final TokensService _tokensService;
   final MetricClientService _metricClientService;
-  final NavigationService _navigationService;
+  final ChatService _chatService;
 
   PostcardServiceImpl(
-      this._postcardApi,
-      this._tezosService,
-      this._indexerService,
-      this._tzktApi,
-      this._configurationService,
-      this._accountService,
-      this._tokensService,
-      this._metricClientService,
-      this._navigationService);
+    this._postcardApi,
+    this._tezosService,
+    this._indexerService,
+    this._tzktApi,
+    this._configurationService,
+    this._accountService,
+    this._tokensService,
+    this._metricClientService,
+    this._chatService,
+  );
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -295,6 +297,17 @@ class PostcardServiceImpl extends PostcardService {
           'postcardId': tokenId,
           'index': counter,
         });
+        if (counter == MAX_STAMP_IN_POSTCARD) {
+          try {
+            _chatService.sendPostcardCompleteMessage(
+              address,
+              getTokenId(tokenId),
+              Pair(wallet, index),
+            );
+          } catch (e) {
+            log.info("[Postcard Service] sendPostcardCompleteMessage $e");
+          }
+        }
       }
       return isStampSuccess;
     } catch (e) {

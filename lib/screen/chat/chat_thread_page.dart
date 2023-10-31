@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
@@ -26,7 +29,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:ui' as ui;
 
 class ChatThreadPage extends StatefulWidget {
   static const String tag = "chat_thread_page";
@@ -301,9 +303,23 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     );
   }
 
+  Widget _postcardCompleteBuilder(
+      BuildContext context, types.SystemMessage message) {
+    final totalDistance = widget.payload.token.totalDistance;
+    final distanceFormater = DistanceFormatter();
+    return _chatPrivateBanner(context,
+        text: "postcard_complete_chat_message".tr(namedArgs: {
+          'distance': distanceFormater.format(
+              distance: totalDistance, withFullName: true),
+        }));
+  }
+
   Widget _systemMessageBuilder(types.SystemMessage message) {
     if (message.id == _chatPrivateBannerId) {
       return _chatPrivateBanner(context, text: message.text);
+    }
+    if (message.isCompletedPostcardMessage) {
+      return _postcardCompleteBuilder(context, message);
     }
     final isMe = message.author.id == _user.id;
     final avatarUrl = _getAvatarUrl(message.author.id);
@@ -325,7 +341,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                     MessageView(
                       message: message,
                       assetToken: _payload.token,
-                      text: message.text,
                     ),
                   ],
                 ),
