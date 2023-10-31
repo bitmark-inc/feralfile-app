@@ -111,17 +111,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         address = addresses.first.address;
       } else {
         if (!mounted) return null;
-        final title = arguments['title'] ?? 'select_address_to_connect'.tr();
-        final buttonText = arguments['buttonText'] ?? 'connect'.tr();
-        final mustSelect = arguments['mustSelect'] ?? false;
         address = await UIHelper.showDialog(
           context,
-          title,
+          'select_address_to_connect'.tr(),
           SelectAddressView(
             addresses: addresses,
-            selectButton: buttonText,
           ),
-          isDismissible: !mustSelect,
         );
       }
       if (address != null) {
@@ -414,8 +409,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: widget.payload.statusBarColor ?? Colors.white,
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
         ),
@@ -501,7 +496,8 @@ class IRLWebScreenPayload {
   final String url;
   final bool isPlainUI;
   final Map<String, dynamic>? localStorageItems;
+  final Color? statusBarColor;
 
   IRLWebScreenPayload(this.url,
-      {this.isPlainUI = false, this.localStorageItems});
+      {this.isPlainUI = false, this.localStorageItems, this.statusBarColor});
 }

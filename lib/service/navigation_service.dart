@@ -299,15 +299,11 @@ class NavigationService {
     }
   }
 
-  Future<dynamic> goToIRLWebview(String url) async {
-
+  Future<dynamic> goToIRLWebview(IRLWebScreenPayload payload) async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      return await navigatorKey.currentState?.pushNamed(
-        AppRouter.irlWebView,
-          arguments: IRLWebScreenPayload(url,
-          isPlainUI: true)
-      );
+      return await navigatorKey.currentState
+          ?.pushNamed(AppRouter.irlWebView, arguments: payload);
     } else {
       return {'result': false};
     }
