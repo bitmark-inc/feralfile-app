@@ -39,12 +39,12 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: widget.payload.backgroundColor ?? Colors.transparent,
           systemNavigationBarDividerColor: Colors.transparent,
         ),
       ),
-      backgroundColor: theme.primaryColor,
+      backgroundColor: widget.payload.backgroundColor ?? theme.primaryColor,
       body: Column(
         children: [
           if (!widget.payload.isPlainUI) ...[
@@ -220,10 +220,14 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
 class InAppWebViewPayload {
   final String url;
   final bool isPlainUI;
+  final Color? backgroundColor;
   Function(InAppWebViewController controler)? onWebViewCreated;
   Function(InAppWebViewController controler, ConsoleMessage consoleMessage)?
       onConsoleMessage;
 
   InAppWebViewPayload(this.url,
-      {this.isPlainUI = false, this.onWebViewCreated, this.onConsoleMessage});
+      {this.isPlainUI = false,
+      this.onWebViewCreated,
+      this.onConsoleMessage,
+      this.backgroundColor});
 }
