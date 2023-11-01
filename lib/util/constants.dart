@@ -491,10 +491,6 @@ class MixpanelEvent {
   static const showLoadingArtwork = 'show_loading_artwork';
   static const seeArtworkFullScreen = 'see_artwork_fullscreen';
   static const viewArtwork = 'view_artwork';
-  static const viewDiscovery = 'view_discovery';
-  static const viewDiscoveryArtwork = 'view_discovery_artwork';
-  static const timeViewDiscovery = 'time_view_discovery';
-  static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
   static const signIn = 'Sign In';
   static const sign = 'Sign';
