@@ -65,6 +65,24 @@ class NavigationService {
         ?.pushNamed(routeName, arguments: arguments);
   }
 
+  Future<dynamic>? popAndPushNamed(String routeName, {Object? arguments}) {
+    log.info("NavigationService.popAndPushNamed: $routeName");
+
+    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+      log.info(
+          "[NavigationService] skip popAndPushNamed because WCConnectPage is in showing");
+      return null;
+    }
+
+    if (navigatorKey.currentState?.mounted != true ||
+        navigatorKey.currentContext == null) {
+      return null;
+    }
+
+    return navigatorKey.currentState
+        ?.popAndPushNamed(routeName, arguments: arguments);
+  }
+
   Future<dynamic>? navigateUntil(
     String routeName,
     RoutePredicate predicate, {
