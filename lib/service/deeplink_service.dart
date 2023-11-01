@@ -305,7 +305,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       },
     );
     if (address == null) return;
-    final url = "${Environment.payToMintBaseUrl}/payToMint?address=$address";
+    final url = "${Environment.payToMintBaseUrl}/moma-postcard?address=$address";
     final response = (await _navigationService.goToIRLWebview(
             IRLWebScreenPayload(url,
                 isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
