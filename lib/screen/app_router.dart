@@ -144,7 +144,6 @@ class AppRouter {
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
   static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
-  static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
   static const settingsPage = 'settings';
   static const personaConnectionsPage = 'persona_connections';
@@ -170,7 +169,6 @@ class AppRouter {
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
-  static const tvConnectPage = 'tv_connect';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
