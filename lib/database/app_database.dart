@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
-import 'package:autonomy_flutter/database/entity/followee.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:floor/floor.dart';
@@ -30,7 +29,6 @@ part 'app_database.g.dart'; // the generated code will be there
   AnnouncementLocal,
   CanvasDevice,
   Scene,
-  Followee
 ])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
