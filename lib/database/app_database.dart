@@ -19,8 +19,6 @@ import 'package:floor/floor.dart';
 import 'package:nft_collection/models/token.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
-import 'dao/canvas_device_dao.dart';
-
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
@@ -39,16 +37,10 @@ abstract class AppDatabase extends FloorDatabase {
 
   AnnouncementLocalDao get announcementDao;
 
-  CanvasDeviceDao get canvasDeviceDao;
-
-  SceneDao get sceneDao;
-
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
     await announcementDao.removeAll();
-    await canvasDeviceDao.removeAll();
-    await sceneDao.removeAll();
   }
 }
 
@@ -146,4 +138,6 @@ final migrateV16ToV17 = Migration(16, 17, (database) async {
 
 final migrateV17ToV18 = Migration(17, 18, (database) async {
   await database.execute('DROP TABLE IF EXISTS Followee;');
+  await database.execute('DROP TABLE IF EXISTS CanvasDevice;');
+  await database.execute('DROP TABLE IF EXISTS Scene;');
 });
