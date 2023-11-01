@@ -36,14 +36,6 @@ Dio airdropDio(BaseOptions options) {
   return dio;
 }
 
-Dio feedDio(BaseOptions options) {
-  final dio = baseDio(options);
-  dio.interceptors.add(AutonomyAuthInterceptor());
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AirdropInterceptor());
-  return dio;
-}
-
 Dio baseDio(BaseOptions options) {
   final BaseOptions dioOptions = options.copyWith(
     followRedirects: true,
