@@ -36,10 +36,6 @@ abstract class ConfigurationService {
 
   bool getDidMigrateAddress();
 
-  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false});
-
-  List<String> getHiddenFeeds();
-
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
 
   int? getAnnouncementLastPullTime();
@@ -137,15 +133,6 @@ abstract class ConfigurationService {
   int? countOpenApp();
 
   Future<void> setCountOpenApp(int? value);
-
-  // Feed
-  Future<void> setLastTimeOpenFeed(int timestamp);
-
-  int getLastTimeOpenFeed();
-
-  Future<void> setHasFeed(bool value);
-
-  bool hasFeed();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -269,7 +256,6 @@ abstract class ConfigurationService {
 class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_POSTCARD_CHAT_CONFIG = "postcard_chat_config";
   static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
-  static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
   static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
   static const String KEY_IAP_RECEIPT = "key_iap_receipt";
   static const String KEY_IAP_JWT = "key_iap_jwt";
@@ -306,11 +292,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
   static const String LAST_REMIND_REVIEW = "last_remind_review";
   static const String COUNT_OPEN_APP = "count_open_app";
-  static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
-
   static const String PLAYLISTS = "playlists";
-  static const String HAVE_FEED = "have_feed";
-
   static const String ALLOW_CONTRIBUTION = "allow_contribution";
 
   static const String SHOW_AU_CHAIN_INFO = "show_au_chain_info";
@@ -618,16 +600,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> setLastTimeOpenFeed(int timestamp) async {
-    await _preferences.setInt(KEY_LAST_TIME_OPEN_FEED, timestamp);
-  }
-
-  @override
-  int getLastTimeOpenFeed() {
-    return _preferences.getInt(KEY_LAST_TIME_OPEN_FEED) ?? 0;
-  }
-
-  @override
   bool shouldShowSubscriptionHint() {
     return _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
   }
@@ -775,16 +747,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     final playlists = getPlayList();
     playlists.removeWhere((element) => element.id == id);
     await setPlayList(playlists, override: true);
-  }
-
-  @override
-  Future<void> setHasFeed(bool value) async {
-    await _preferences.setBool(HAVE_FEED, value);
-  }
-
-  @override
-  bool hasFeed() {
-    return _preferences.getBool(HAVE_FEED) ?? false;
   }
 
   @override
@@ -1140,24 +1102,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setDidSyncArtists(bool value) {
     // set did sync artists
     return _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
-  }
-
-  @override
-  List<String> getHiddenFeeds() {
-    return _preferences.getStringList(KEY_HIDDEN_FEEDS) ?? [];
-  }
-
-  @override
-  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false}) {
-    if (isOverride) {
-      return _preferences.setStringList(KEY_HIDDEN_FEEDS, tokenIds);
-    } else {
-      final currentHiddenFeeds = getHiddenFeeds();
-      currentHiddenFeeds.addAll(tokenIds);
-      currentHiddenFeeds.toSet().toList();
-      return _preferences.setStringList(
-          KEY_HIDDEN_FEEDS, currentHiddenFeeds.toSet().toList());
-    }
   }
 
   @override
