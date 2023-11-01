@@ -50,7 +50,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
@@ -139,7 +138,6 @@ class AppRouter {
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
   static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
-  static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
   static const settingsPage = "settings";
   static const personaConnectionsPage = "persona_connections";
@@ -165,7 +163,6 @@ class AppRouter {
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
-  static const tvConnectPage = 'tv_connect';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
@@ -190,10 +187,6 @@ class AppRouter {
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardConfirmingPage = 'postcard_confirming_page';
-  static const canvasHelpPage = 'canvas_help_page';
-  static const keyboardControlPage = "keyboard_control_page";
-  static const touchPadPage = "touch_pad_page";
   static const claimAirdropPage = 'claim_airdrop_page';
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
@@ -1011,12 +1004,6 @@ class AppRouter {
               return IRLSignMessageScreen(payload: payload);
             });
 
-      case canvasHelpPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return const CanvasHelpPage();
-            });
       case claimAirdropPage:
         return CupertinoPageRoute(
           settings: settings,
