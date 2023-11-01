@@ -124,10 +124,6 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/nft-collection
       ref: ba86a24e9a2ce63ed64e259e6807211075761d03
-  autonomy_tv_proto:
-    git:
-      url: https://github.com/autonomy-system/autonomy-tv-proto-communication
-      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2
