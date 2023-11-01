@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -115,7 +114,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  final _navigationService = injector<NavigationService>();
 
   @override
   void initState() {
@@ -623,17 +621,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return context.read<PostcardDetailBloc>().state.assetToken;
   }
 
-  Future<void> onConfirmed(AssetToken assetToken) async {
-    if (alreadyShowPopup) {
-      return;
-    }
-    alreadyShowPopup = true;
-    _navigationService.showOptionsAfterSharePostcard(
-      assetToken: assetToken,
-      callBack: () {},
-    );
-  }
-
   void _refreshPostcard() {
     log.info("Refresh postcard");
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
@@ -693,7 +680,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 setState(() {
                   isSending = state.isSending();
                 });
-                onConfirmed(asset);
               }, onFailed: (e) {
                 if (e is DioException) {
                   if (mounted) {
