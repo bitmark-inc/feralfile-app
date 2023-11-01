@@ -1,8 +1,10 @@
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:nft_rendering/nft_rendering.dart';
 
 class TestArtworkScreen extends StatefulWidget {
@@ -22,6 +24,7 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
     RenderingType.svg,
     RenderingType.video,
     RenderingType.webview,
+    RenderingTypeExtension.auto,
   ];
   final _urlController = TextEditingController();
   String _renderingType = RenderingType.webview;
@@ -56,15 +59,30 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
                         .toList(),
                     onChanged: (value) {
                       setState(() {
-                        _renderingType = value ?? RenderingType.webview;
+                        _renderingType = value ?? RenderingTypeExtension.auto;
                       });
                     }),
-                PrimaryButton(
-                  onTap: () {
+                PrimaryAsyncButton(
+                  onTap: () async {
                     if (_urlController.text.isNotEmpty &&
                         _renderingType.isNotEmpty) {
+                      String renderingType = _renderingType;
+                      final link = _urlController.text;
+                      if (_renderingType == RenderingTypeExtension.auto) {
+                        final uri = Uri.tryParse(link);
+                        if (uri != null) {
+                          final res = await http
+                              .head(uri)
+                              .timeout(const Duration(milliseconds: 10000));
+                          renderingType =
+                              res.headers["content-type"]?.toMimeType ??
+                                  RenderingType.webview;
+                        } else {
+                          renderingType = RenderingType.webview;
+                        }
+                      }
                       renderingWidget =
-                          typesOfNFTRenderingWidget(_renderingType);
+                          typesOfNFTRenderingWidget(renderingType);
 
                       renderingWidget?.setRenderWidgetBuilder(
                         RenderingWidgetBuilder(
@@ -123,4 +141,8 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
         );
     }
   }
+}
+
+extension RenderingTypeExtension on RenderingType {
+  static const String auto = "auto";
 }
