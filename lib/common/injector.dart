@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
-import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
@@ -46,7 +45,6 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -213,9 +211,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton(
-      () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
-  injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
@@ -302,9 +298,6 @@ Future<void> setup() async {
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-
-  injector
-      .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector()));
 
