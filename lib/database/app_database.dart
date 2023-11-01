@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
-import 'package:autonomy_flutter/database/dao/followee_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
@@ -44,15 +43,12 @@ abstract class AppDatabase extends FloorDatabase {
 
   SceneDao get sceneDao;
 
-  FolloweeDao get followeeDao;
-
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
     await announcementDao.removeAll();
     await canvasDeviceDao.removeAll();
     await sceneDao.removeAll();
-    await followeeDao.removeAll();
   }
 }
 
@@ -146,4 +142,8 @@ final migrateV15ToV16 = Migration(15, 16, (database) async {
 final migrateV16ToV17 = Migration(16, 17, (database) async {
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `Followee` (`address` TEXT NOT NULL, `type` INTEGER NOT NULL, `isFollowed` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`address`))');
+});
+
+final migrateV17ToV18 = Migration(17, 18, (database) async {
+  await database.execute('DROP TABLE IF EXISTS Followee;');
 });
