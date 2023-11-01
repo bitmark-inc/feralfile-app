@@ -41,10 +41,6 @@ abstract class ConfigurationService {
 
   bool getDidMigrateAddress();
 
-  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false});
-
-  List<String> getHiddenFeeds();
-
   Future<void> setAnnouncementLastPullTime(int lastPullTime);
 
   int? getAnnouncementLastPullTime();
@@ -142,15 +138,6 @@ abstract class ConfigurationService {
   int? countOpenApp();
 
   Future<void> setCountOpenApp(int? value);
-
-  // Feed
-  Future<void> setLastTimeOpenFeed(int timestamp);
-
-  int getLastTimeOpenFeed();
-
-  Future<void> setHasFeed(bool value);
-
-  bool hasFeed();
 
   // ----- App Setting -----
   bool isDemoArtworksMode();
@@ -318,11 +305,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
   static const String LAST_REMIND_REVIEW = 'last_remind_review';
   static const String COUNT_OPEN_APP = 'count_open_app';
-  static const String KEY_LAST_TIME_OPEN_FEED = 'last_time_open_feed';
-
   static const String PLAYLISTS = 'playlists';
-  static const String HAVE_FEED = 'have_feed';
-
   static const String ALLOW_CONTRIBUTION = 'allow_contribution';
 
   static const String SHOW_AU_CHAIN_INFO = 'show_au_chain_info';
@@ -613,15 +596,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
 
   @override
-  Future<void> setLastTimeOpenFeed(int timestamp) async {
-    await _preferences.setInt(KEY_LAST_TIME_OPEN_FEED, timestamp);
-  }
-
-  @override
-  int getLastTimeOpenFeed() =>
-      _preferences.getInt(KEY_LAST_TIME_OPEN_FEED) ?? 0;
-
-  @override
   bool shouldShowSubscriptionHint() =>
       _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
 
@@ -754,14 +728,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     final playlists = getPlayList()..removeWhere((element) => element.id == id);
     await setPlayList(playlists, override: true);
   }
-
-  @override
-  Future<void> setHasFeed(bool value) async {
-    await _preferences.setBool(HAVE_FEED, value);
-  }
-
-  @override
-  bool hasFeed() => _preferences.getBool(HAVE_FEED) ?? false;
 
   @override
   int? getAnnouncementLastPullTime() =>
@@ -1097,23 +1063,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setDidSyncArtists(bool value) =>
       _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
-
-  @override
-  List<String> getHiddenFeeds() =>
-      _preferences.getStringList(KEY_HIDDEN_FEEDS) ?? [];
-
-  @override
-  Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false}) {
-    if (isOverride) {
-      return _preferences.setStringList(KEY_HIDDEN_FEEDS, tokenIds);
-    } else {
-      final currentHiddenFeeds = getHiddenFeeds()
-        ..addAll(tokenIds)
-        ..toSet().toList();
-      return _preferences.setStringList(
-          KEY_HIDDEN_FEEDS, currentHiddenFeeds.toSet().toList());
-    }
-  }
 
   @override
   bool getDidMigrateAddress() =>
