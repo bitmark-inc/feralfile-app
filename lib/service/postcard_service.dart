@@ -340,7 +340,8 @@ class PostcardServiceImpl extends PostcardService {
             "[Postcard Service] Stamping postcard $tokenId failed, retrying...");
       }
     }
-    log.info("[Postcard Service] Stamping postcard $tokenId success");
+    log.info(
+        "[Postcard Service] Stamping postcard $tokenId success: $isStampSuccess");
     return isStampSuccess;
   }
 
@@ -687,7 +688,7 @@ class PostcardServiceImpl extends PostcardService {
       timestamp: DateTime.now(),
       location: location,
     );
-    _configurationService.setProcessingStampPostcard([
+    await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
     ]);
     await stampPostcardUntilSuccess(

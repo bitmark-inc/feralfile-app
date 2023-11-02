@@ -186,17 +186,24 @@ class PostcardDetailBloc
       final postcardService = injector<PostcardService>();
       final stampingPostcard =
           postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
-      if (stampingPostcard != null) {
-        if (state.isLastOwner &&
-            stampingPostcard.counter == asset.numberOwners) {
-          final isStamped = asset.isStamped;
-          if (!isStamped) {
+      final processingStampPostcard = asset.processingStampPostcard;
+      final isStamped = asset.isStamped;
+      if (!isStamped) {
+        if (stampingPostcard != null) {
+          if (state.isLastOwner &&
+              stampingPostcard.counter == asset.numberOwners) {
             log.info("[PostcardDetail] Stamping... ");
             imagePath = stampingPostcard.imagePath;
             metadataPath = stampingPostcard.metadataPath;
           } else {
             postcardService
                 .updateStampingPostcard([stampingPostcard], isRemove: true);
+          }
+        } else {
+          if (processingStampPostcard != null) {
+            log.info("[PostcardDetail] Processing stamp... ");
+            imagePath = processingStampPostcard.imagePath;
+            metadataPath = processingStampPostcard.metadataPath;
           }
         }
       }
