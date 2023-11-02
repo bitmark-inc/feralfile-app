@@ -426,17 +426,21 @@ class _PostcardExplainState extends State<PostcardExplain> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 265,
-            child: Stack(
-              children: [
-                PostcardViewWidget(
-                  assetToken: asset,
-                  withPreviewStamp: true,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 30,
+                  height: (MediaQuery.of(context).size.width - 30) /
+                      postcardAspectRatio,
+                  child: PostcardViewWidget(
+                    assetToken: asset,
+                    withPreviewStamp: true,
+                  ),
                 ),
-                Positioned.fill(child: Container(color: Colors.transparent)),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 60),
           Column(
