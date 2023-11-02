@@ -16,6 +16,7 @@ class TestArtworkScreen extends StatefulWidget {
 
 class _TestArtworkScreenState extends State<TestArtworkScreen> {
   final _renderingTypes = [
+    RenderingTypeExtension.auto,
     RenderingType.audio,
     RenderingType.gif,
     RenderingType.image,
@@ -24,10 +25,9 @@ class _TestArtworkScreenState extends State<TestArtworkScreen> {
     RenderingType.svg,
     RenderingType.video,
     RenderingType.webview,
-    RenderingTypeExtension.auto,
   ];
   final _urlController = TextEditingController();
-  String _renderingType = RenderingType.webview;
+  String _renderingType = RenderingTypeExtension.auto;
   INFTRenderingWidget? renderingWidget;
 
   @override
