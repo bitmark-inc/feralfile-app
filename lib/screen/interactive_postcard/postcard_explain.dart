@@ -123,7 +123,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                         "assets/images/close.svg",
                         width: 22,
                         height: 22,
-                        colorFilter: ColorFilter.mode(
+                        colorFilter: const ColorFilter.mode(
                             AppColor.primaryBlack, BlendMode.srcIn),
                       ),
                       padding: EdgeInsets.zero,
