@@ -973,11 +973,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               width: 24,
               height: 24,
             ),
-            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
-                width: 24,
-                height: 24,
-                colorFilter: const ColorFilter.mode(
-                    AppColor.disabledColor, BlendMode.srcIn)),
+            iconOnProcessing: SvgPicture.asset(
+              'assets/images/download.svg',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                  AppColor.disabledColor, BlendMode.srcIn),
+            ),
+            iconOnDisable: SvgPicture.asset(
+              'assets/images/download.svg',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                  AppColor.disabledColor, BlendMode.srcIn),
+            ),
             onTap: () async {
               try {
                 await _postcardService.downloadPostcard(asset.tokenId!);
