@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -43,7 +44,7 @@ class ClaimEmptyPostCardBloc
         fungible: true,
         contractType: 'fa2',
         tokenId: '1',
-        contractAddress: '',
+        contractAddress: Environment.postcardContractAddress,
         edition: 0,
         editionName: "",
         id: "tez-",
