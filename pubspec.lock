@@ -98,15 +98,6 @@ packages:
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
-  autonomy_tv_proto:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
-      resolved-ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
-      url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
-    source: git
-    version: "0.0.1"
   awesome_notifications:
     dependency: "direct main"
     description:
@@ -1140,14 +1131,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  googleapis_auth:
-    dependency: transitive
-    description:
-      name: googleapis_auth
-      sha256: af7c3a3edf9d0de2e1e0a77e994fae0a581c525fa7012af4fa0d4a52ed9484da
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.1"
   gql:
     dependency: transitive
     description:
@@ -1228,14 +1211,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
-  grpc:
-    dependency: transitive
-    description:
-      name: grpc
-      sha256: "220ffb2218288f4e7dea487242e08b9c6277596d9b6f3f10ba50be96771a032d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.3"
   hex:
     dependency: transitive
     description:
@@ -1284,14 +1259,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
-  http2:
-    dependency: transitive
-    description:
-      name: http2
-      sha256: "38db0c4aa9f1cd238a5d2e86aa0cc7cc91c77e0c6c94ba64bbe85e4ff732a952"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -2012,22 +1979,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.4"
-  protobuf:
-    dependency: transitive
-    description:
-      name: protobuf
-      sha256: "4034a02b7e231e7e60bff30a8ac13a7347abfdac0798595fae0b90a3f0afe759"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
-  protoc_plugin:
-    dependency: transitive
-    description:
-      name: protoc_plugin
-      sha256: "41f06692f6d46018a6547f088d5598282f6d00cf6c33c535647c075b9ee62dd7"
-      url: "https://pub.dev"
-    source: hosted
-    version: "21.0.2"
   provider:
     dependency: transitive
     description:

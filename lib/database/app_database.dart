@@ -9,18 +9,13 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
-import 'package:autonomy_flutter/database/dao/followee_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
-import 'package:autonomy_flutter/database/entity/followee.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
-import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/token.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
-
-import 'dao/canvas_device_dao.dart';
 
 part 'app_database.g.dart'; // the generated code will be there
 
@@ -29,9 +24,6 @@ part 'app_database.g.dart'; // the generated code will be there
   Identity,
   DraftCustomerSupport,
   AnnouncementLocal,
-  CanvasDevice,
-  Scene,
-  Followee
 ])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
@@ -40,19 +32,10 @@ abstract class AppDatabase extends FloorDatabase {
 
   AnnouncementLocalDao get announcementDao;
 
-  CanvasDeviceDao get canvasDeviceDao;
-
-  SceneDao get sceneDao;
-
-  FolloweeDao get followeeDao;
-
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
     await announcementDao.removeAll();
-    await canvasDeviceDao.removeAll();
-    await sceneDao.removeAll();
-    await followeeDao.removeAll();
   }
 }
 
@@ -146,4 +129,10 @@ final migrateV15ToV16 = Migration(15, 16, (database) async {
 final migrateV16ToV17 = Migration(16, 17, (database) async {
   await database.execute(
       'CREATE TABLE IF NOT EXISTS `Followee` (`address` TEXT NOT NULL, `type` INTEGER NOT NULL, `isFollowed` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`address`))');
+});
+
+final migrateV17ToV18 = Migration(17, 18, (database) async {
+  await database.execute('DROP TABLE IF EXISTS Followee;');
+  await database.execute('DROP TABLE IF EXISTS CanvasDevice;');
+  await database.execute('DROP TABLE IF EXISTS Scene;');
 });

@@ -11,20 +11,17 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 
 class AuthService {
   final IAPApi _authApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
-  final FeedService _feedService;
   JWT? _jwt;
 
   AuthService(
     this._authApi,
     this._accountService,
     this._configurationService,
-    this._feedService,
   );
 
   void reset() {
@@ -86,7 +83,6 @@ class AuthService {
       _configurationService.setIAPJWT(null);
     }
 
-    _feedService.refreshJWTToken(newJwt.jwtToken);
     return newJwt;
   }
 }

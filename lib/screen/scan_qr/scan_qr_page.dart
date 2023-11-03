@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -20,7 +19,6 @@ import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -29,11 +27,9 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +37,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:synchronized/synchronized.dart';
 
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
@@ -65,8 +60,6 @@ class _ScanQRPageState extends State<ScanQRPage>
   String? currentCode;
   late TabController _tabController;
   final metricClient = injector<MetricClientService>();
-  final _navigationService = injector<NavigationService>();
-  late Lock _lock;
   Timer? _timer;
 
   @override
@@ -78,7 +71,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     }
     _tabController = TabController(length: 2, vsync: this);
     checkPermission();
-    _lock = Lock();
   }
 
   @override
@@ -459,8 +451,6 @@ class _ScanQRPageState extends State<ScanQRPage>
             Text("scan_qr".tr(), style: theme.primaryTextTheme.labelLarge),
           ],
         );
-      case ScannerItem.CANVAS_DEVICE:
-        return const SizedBox();
     }
   }
 
@@ -534,59 +524,12 @@ class _ScanQRPageState extends State<ScanQRPage>
               log(err.toString());
             }
             */
-          } else if (_isCanvasQrCode(code)) {
-            _lock.synchronized(() async {
-              await _handleCanvasQrCode(code);
-            });
-          } else {
-            _handleError(code);
-          }
-          break;
-        case ScannerItem.CANVAS_DEVICE:
-          if (_isCanvasQrCode(code)) {
-            _lock.synchronized(() => _handleCanvasQrCode(code));
           } else {
             _handleError(code);
           }
           break;
       }
     });
-  }
-
-  bool _isCanvasQrCode(String code) {
-    try {
-      CanvasDevice.fromJson(jsonDecode(code));
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
-  Future<bool> _handleCanvasQrCode(String code) async {
-    log.info("Canvas device scanned: $code");
-    setState(() {
-      _isLoading = true;
-    });
-    controller.pauseCamera();
-    try {
-      final device = CanvasDevice.fromJson(jsonDecode(code));
-      final canvasClient = injector<CanvasClientService>();
-      final result = await canvasClient.connectToDevice(device);
-      if (result) {
-        device.isConnecting = true;
-      }
-      if (!mounted) return false;
-      Navigator.pop(context, device);
-      return result;
-    } catch (e) {
-      Navigator.pop(context);
-      if (e.toString().contains("DEADLINE_EXCEEDED") || true) {
-        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
-            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
-            closeButton: "close".tr());
-      }
-    }
-    return false;
   }
 
   Future _addScanQREvent(
@@ -681,6 +624,5 @@ enum ScannerItem {
   BEACON_CONNECT,
   ETH_ADDRESS,
   XTZ_ADDRESS,
-  CANVAS_DEVICE,
   GLOBAL
 }

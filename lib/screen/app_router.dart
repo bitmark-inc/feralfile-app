@@ -50,9 +50,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
@@ -118,13 +115,11 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
-import 'detail/preview/canvas_device_bloc.dart';
 import 'interactive_postcard/postcard_detail_page.dart';
 import 'onboarding/import_address/import_seeds.dart';
 import 'onboarding/new_address/choose_chain_page.dart';
@@ -143,7 +138,6 @@ class AppRouter {
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
   static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
-  static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
   static const settingsPage = "settings";
   static const personaConnectionsPage = "persona_connections";
@@ -169,7 +163,6 @@ class AppRouter {
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
-  static const tvConnectPage = 'tv_connect';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
@@ -194,10 +187,6 @@ class AppRouter {
       'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardConfirmingPage = 'postcard_confirming_page';
-  static const canvasHelpPage = 'canvas_help_page';
-  static const keyboardControlPage = "keyboard_control_page";
-  static const touchPadPage = "touch_pad_page";
   static const claimAirdropPage = 'claim_airdrop_page';
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
@@ -221,13 +210,8 @@ class AppRouter {
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => CanvasDeviceBloc(
-              injector(),
-            ),
-            child: ViewPlaylistScreen(
-              playListModel: settings.arguments as PlayListModel?,
-            ),
+          builder: (context) => ViewPlaylistScreen(
+            playListModel: settings.arguments as PlayListModel?,
           ),
         );
       case createPlayListPage:
@@ -549,11 +533,6 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (_) => identityBloc,
-                ),
-                BlocProvider(
-                  create: (_) => CanvasDeviceBloc(
-                    injector(),
-                  ),
                 ),
                 BlocProvider(
                     create: (_) => PostcardDetailBloc(injector(), injector(),
@@ -1025,31 +1004,6 @@ class AppRouter {
               return IRLSignMessageScreen(payload: payload);
             });
 
-      case canvasHelpPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return const CanvasHelpPage();
-            });
-
-      case keyboardControlPage:
-        return TransparentRoute(
-            settings: settings,
-            builder: (context) {
-              final payload = settings.arguments as KeyboardControlPagePayload;
-              return KeyboardControlPage(
-                payload: payload,
-              );
-            });
-      case touchPadPage:
-        return TransparentRoute(
-            settings: settings,
-            builder: (context) {
-              final payload = settings.arguments as TouchPadPagePayload;
-              return TouchPadPage(
-                payload: payload,
-              );
-            });
       case claimAirdropPage:
         return CupertinoPageRoute(
           settings: settings,
