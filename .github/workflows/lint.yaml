@@ -68,15 +68,14 @@ jobs:
           annotate: true
           working-directory: ./
 
-  detect-secrets:
+  gitleaks:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: detect-secrets
-      uses: reviewdog/action-detect-secrets@master
+    - name: gitleaks
+      uses: reviewdog/action-gitleaks@v1
       with:
         reporter: github-pr-review
-        detect_secrets_flags: --all-files --force-use-all-plugins --exclude-files pubspec.*
 
   dotenv-linter:
     name: runner / dotenv-linter
