@@ -62,11 +62,22 @@ jobs:
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub get
-      - name: Analyze Dart
-        uses: invertase/github-action-dart-analyzer@v1
+      - uses: reviewdog/action-setup@v1
         with:
-          annotate: true
-          working-directory: ./
+          reviewdog_version: lates
+      - name: Run reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          flutter analyze --no-preamble | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -reporter=github-pr-check
+      - name: dart fixes
+        run: |
+          dart format .
+          dart fix --apply
+      - name: suggester / dart fixes
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: dart fix
 
   gitleaks:
     runs-on: ubuntu-latest
