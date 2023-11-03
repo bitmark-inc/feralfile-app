@@ -97,6 +97,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         constraints: const BoxConstraints.expand(),
                         color: Colors.transparent,
                         child: HandSignature(
+                          width: 9,
+                          maxWidth: 9,
                           control: _controller,
                           onPointerDown: () {
                             setState(() {
