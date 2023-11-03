@@ -26,9 +26,7 @@ linter:
     always_declare_return_types: true
     always_put_control_body_on_new_line: true
     always_put_required_named_parameters_first: true
-    always_specify_types: true
     annotate_overrides: true
-    annotate_redeclares: true
     avoid_annotating_with_dynamic: true
     avoid_escaping_inner_quotes: true
     avoid_function_literals_in_foreach_calls: true
@@ -41,7 +39,6 @@ linter:
     avoid_return_types_on_setters: true
     avoid_returning_null_for_void: true
     avoid_single_cascade_in_expression_statements: true
-    avoid_types_on_closure_parameters: true
     avoid_unnecessary_containers: true
     avoid_unused_constructor_parameters: true
     avoid_void_async: true
@@ -76,7 +73,6 @@ linter:
     prefer_const_declarations: true
     prefer_const_literals_to_create_immutables: true
     prefer_contains: true
-    prefer_double_quotes: true
     prefer_expression_function_bodies: true
     prefer_final_fields: true
     prefer_final_in_for_each: true
@@ -113,7 +109,6 @@ linter:
     unnecessary_breaks: true
     unnecessary_const: true
     unnecessary_constructor_name: true
-    unnecessary_final: true
     unnecessary_getters_setters: true
     unnecessary_lambdas: true
     unnecessary_late: true
@@ -140,10 +135,7 @@ linter:
     use_string_in_part_of_directives: true
     use_super_parameters: true
     # formatting: true
-    # lines_longer_than_80_chars: true
-    curly_braces_in_flow_control_structures: true
-    # doc comments
-    slash_for_doc_comments: true
+    lines_longer_than_80_chars: true
     # has a quick fix
     avoid_print: true
     diagnostic_describe_all_properties: true
@@ -159,5 +151,5 @@ linter:
 analyzer:
   exclude:
     - '**/*.g.dart'
-    - 'auto-test/*'
-    - 'test/*'
+    - 'auto-test/**'
+    - 'test/**'
