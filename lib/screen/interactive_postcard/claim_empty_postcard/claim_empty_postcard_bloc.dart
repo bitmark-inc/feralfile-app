@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -21,6 +24,9 @@ class ClaimEmptyPostCardBloc
 
   ClaimEmptyPostCardBloc() : super(ClaimEmptyPostCardState()) {
     on<GetTokenEvent>((event, emit) async {
+      final postcardMetadata = PostcardMetadata(
+        locationInformation: [],
+      );
       final token = AssetToken(
         asset: Asset.init(
           artistName: 'MoMa',
@@ -29,6 +35,9 @@ class ClaimEmptyPostCardBloc
           title: event.claimRequest.name,
           medium: 'software',
           previewURL: event.claimRequest.previewURL,
+          artworkMetadata: event.createMetadata
+              ? jsonEncode(postcardMetadata.toJson())
+              : null,
         ),
         blockchain: "tezos",
         fungible: true,

@@ -34,9 +34,10 @@ class ClaimEmptyPostCardState {
 
 class GetTokenEvent extends ClaimEmptyPostCardEvent {
   final RequestPostcardResponse claimRequest;
+  final bool createMetadata;
 
   // constructor
-  GetTokenEvent(this.claimRequest);
+  GetTokenEvent(this.claimRequest, {this.createMetadata = false});
 }
 
 class AcceptGiftEvent extends ClaimEmptyPostCardEvent {
