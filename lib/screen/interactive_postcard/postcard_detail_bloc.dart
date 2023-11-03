@@ -71,7 +71,7 @@ class PostcardDetailBloc
             .where((element) => element.id == event.identity.id)
             .toList();
         if (assetToken.isNotEmpty) {
-          final paths = getUpdatingPath(state, assetToken.first);
+          final paths = getUpdatingPath(assetToken.first);
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
@@ -88,7 +88,7 @@ class PostcardDetailBloc
         await tokenService.reindexAddresses([event.identity.owner]);
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
-        final paths = getUpdatingPath(state, assetToken);
+        final paths = getUpdatingPath(assetToken);
         emit(state.copyWith(
             assetToken: assetToken,
             imagePath: paths.first,
@@ -179,25 +179,31 @@ class PostcardDetailBloc
     }
   }
 
-  Pair<String?, String?> getUpdatingPath(
-      PostcardDetailState state, AssetToken? asset) {
+  Pair<String?, String?> getUpdatingPath(AssetToken? asset) {
     String? imagePath;
     String? metadataPath;
     if (asset != null) {
       final postcardService = injector<PostcardService>();
       final stampingPostcard =
           postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
-      if (stampingPostcard != null) {
-        if (state.isLastOwner &&
-            stampingPostcard.counter == asset.numberOwners) {
-          final isStamped = asset.isStamped;
-          if (!isStamped) {
+      final processingStampPostcard = asset.processingStampPostcard;
+      final isStamped = asset.isStamped;
+      if (!isStamped) {
+        if (stampingPostcard != null) {
+          if (state.isLastOwner &&
+              stampingPostcard.counter == asset.numberOwners) {
             log.info("[PostcardDetail] Stamping... ");
             imagePath = stampingPostcard.imagePath;
             metadataPath = stampingPostcard.metadataPath;
           } else {
             postcardService
                 .updateStampingPostcard([stampingPostcard], isRemove: true);
+          }
+        } else {
+          if (processingStampPostcard != null) {
+            log.info("[PostcardDetail] Processing stamp... ");
+            imagePath = processingStampPostcard.imagePath;
+            metadataPath = processingStampPostcard.metadataPath;
           }
         }
       }

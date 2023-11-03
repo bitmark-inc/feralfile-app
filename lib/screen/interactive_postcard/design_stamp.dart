@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -96,7 +97,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 96),
+                      const SizedBox(height: 70),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
@@ -218,11 +219,12 @@ class _DesignStampPageState extends State<DesignStampPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 70),
                       PostcardButton(
-                        text: "stamp_postcard".tr(),
+                        text: "continue".tr(),
                         fontSize: 18,
                         disabledTextColor: Colors.white,
+                        color: MoMAColors.moMA8,
                         enabled: _didPaint,
                         onTap: () async {
                           setState(() {

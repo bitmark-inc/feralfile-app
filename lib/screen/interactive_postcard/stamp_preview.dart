@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:autonomy_flutter/common/environment.dart';
+import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -12,30 +10,24 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
-import 'package:autonomy_flutter/util/share_helper.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/dot_loading_indicator.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/services/tokens_service.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc.dart';
-import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
 class StampPreview extends StatefulWidget {
   static const String tag = "stamp_preview";
@@ -48,29 +40,50 @@ class StampPreview extends StatefulWidget {
   State<StampPreview> createState() => _StampPreviewState();
 }
 
-class _StampPreviewState extends State<StampPreview> {
+class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
   Uint8List? postcardData;
   Uint8List? stampedPostcardData;
   int index = 0;
-  bool confirming = false;
+  late bool confirming;
+  late bool isSending;
   Timer? timer;
+  Timer? confirmingTimer;
   bool alreadyShowPopup = false;
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
-  final _tokenService = injector<TokensService>();
   final _navigationService = injector<NavigationService>();
-  final _metricClientService = injector<MetricClientService>();
 
   @override
   void initState() {
     log.info('[POSTCARD][StampPreview] payload: ${widget.payload.toString()}');
+    confirming = false;
+    isSending = false;
     _configurationService.setAutoShowPostcard(false);
     super.initState();
   }
 
   @override
+  void afterFirstLayout(BuildContext context) {
+    setState(() {
+      confirming = true;
+    });
+    _postcardService
+        .finalizeStamp(widget.payload.asset, widget.payload.imagePath,
+            widget.payload.metadataPath, widget.payload.location)
+        .then((value) {
+      _setTimer();
+      if (mounted) {
+        setState(() {
+          confirming = false;
+        });
+      }
+    });
+  }
+
+  @override
   void dispose() {
     timer?.cancel();
+    confirmingTimer?.cancel();
     super.dispose();
   }
 
@@ -78,6 +91,7 @@ class _StampPreviewState extends State<StampPreview> {
     log.info("Refresh postcard");
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
           ArtworkIdentity(widget.payload.asset.id, widget.payload.asset.owner),
+          useIndexer: true,
         ));
   }
 
@@ -91,123 +105,6 @@ class _StampPreviewState extends State<StampPreview> {
     });
   }
 
-  Future<void> showOptions(BuildContext context,
-      {required AssetToken assetToken, Function()? callBack}) async {
-    final theme = Theme.of(context);
-    final options = [
-      OptionItem(
-        title: "stamp_minted".tr(),
-        titleStyle: theme.textTheme.moMASans700Black16
-            .copyWith(color: MoMAColors.moMA1, fontSize: 18),
-        icon: SvgPicture.asset("assets/images/moma_arrow_right.svg"),
-        onTap: () {},
-        separator: const Divider(
-          height: 1,
-          thickness: 1.0,
-          color: Color.fromRGBO(203, 203, 203, 1),
-        ),
-      ),
-      OptionItem(
-        title: 'share_on_'.tr(),
-        icon: SvgPicture.asset(
-          'assets/images/globe.svg',
-          width: 24,
-          height: 24,
-        ),
-        iconOnProcessing: SvgPicture.asset(
-          'assets/images/globe.svg',
-          width: 24,
-          height: 24,
-          colorFilter: const ColorFilter.mode(
-            AppColor.disabledColor,
-            BlendMode.srcIn,
-          ),
-        ),
-        onTap: () async {
-          shareToTwitter(token: assetToken);
-          Navigator.of(context).pop();
-          await callBack?.call();
-        },
-      ),
-      OptionItem(
-        title: 'download_stamp'.tr(),
-        icon: SvgPicture.asset(
-          'assets/images/download.svg',
-          width: 24,
-          height: 24,
-        ),
-        iconOnProcessing: SvgPicture.asset(
-          'assets/images/download.svg',
-          width: 24,
-          height: 24,
-          colorFilter: const ColorFilter.mode(
-            AppColor.disabledColor,
-            BlendMode.srcIn,
-          ),
-        ),
-        onTap: () async {
-          try {
-            await _postcardService.downloadStamp(
-                tokenId: assetToken.tokenId!,
-                stampIndex: assetToken.stampIndex);
-            if (!mounted) return;
-            Navigator.of(context).pop();
-            await UIHelper.showPostcardStampSaved(context);
-            await callBack?.call();
-          } catch (e) {
-            log.info("Download stamp failed: error ${e.toString()}");
-            if (!mounted) return;
-            Navigator.of(context).pop();
-
-            switch (e.runtimeType) {
-              case MediaPermissionException:
-                await UIHelper.showPostcardStampPhotoAccessFailed(context);
-                break;
-              default:
-                if (!mounted) return;
-                await UIHelper.showPostcardStampSavedFailed(context);
-            }
-            await callBack?.call();
-          }
-        },
-      ),
-        OptionItem(
-          title: 'download_postcard'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/download.svg',
-            width: 24,
-            height: 24,
-          ),
-          iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor, BlendMode.srcIn)),
-          onTap: () async {
-            try {
-              await _postcardService.downloadPostcard(assetToken.tokenId!);
-              if (!mounted) return;
-              Navigator.of(context).pop();
-              await UIHelper.showPostcardSaved(context);
-            } catch (e) {
-              log.info("Download postcard failed: error ${e.toString()}");
-              if (!mounted) return;
-              Navigator.of(context).pop();
-              switch (e.runtimeType) {
-                case MediaPermissionException:
-                  await UIHelper.showPostcardPhotoAccessFailed(context);
-                  break;
-                default:
-                  if (!mounted) return;
-                  await UIHelper.showPostcardSavedFailed(context);
-              }
-            }
-          },
-        ),
-    ];
-    await UIHelper.showPostcardDrawerAction(context, options: options);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -218,25 +115,16 @@ class _StampPreviewState extends State<StampPreview> {
       },
       child: Scaffold(
         backgroundColor: backgroundColor,
-        appBar: !confirming
-            ? getBackAppBar(context,
-                title: "preview_postcard".tr(),
-                titleStyle:
-                    theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
-                onBack: confirming
-                    ? null
-                    : () {
-                        Navigator.of(context).pop();
-                      },
-                withDivider: false,
-                statusBarColor: backgroundColor)
-            : getCloseAppBar(
-                context,
-                title: "preview_postcard".tr(),
-                titleStyle: theme.textTheme.moMASans700Black16.copyWith(
-                  fontSize: 18,
-                ),
-                onClose: () {
+        appBar: getCloseAppBar(
+          context,
+          title: widget.payload.asset.title ?? "",
+          titleStyle: theme.textTheme.moMASans700Black16.copyWith(
+            fontSize: 18,
+          ),
+          isTitleCenter: false,
+          onClose: confirming
+              ? null
+              : () {
                   _navigationService.popUntilHomeOrSettings();
                   if (!mounted) return;
                   Navigator.of(context).pushNamed(
@@ -246,33 +134,15 @@ class _StampPreviewState extends State<StampPreview> {
                   );
                   _configurationService.setAutoShowPostcard(true);
                 },
-                withBottomDivider: false,
-                statusBarColor: backgroundColor,
-              ),
+          withBottomDivider: false,
+          disableIcon: closeIcon(color: AppColor.disabledColor),
+          statusBarColor: backgroundColor,
+        ),
         body: BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
           listener: (context, state) {
             if (!(state.isPostcardUpdatingOnBlockchain ||
                 state.isPostcardUpdating)) {
-              final assetToken = state.assetToken;
-              if (assetToken == null) {
-                return;
-              }
               timer?.cancel();
-              if (alreadyShowPopup) {
-                return;
-              }
-              alreadyShowPopup = true;
-              showOptions(context, assetToken: assetToken, callBack: () {
-                log.info("Popup closed");
-                _navigationService.popUntilHomeOrSettings();
-                if (!mounted) return;
-                Navigator.of(context).pushNamed(
-                  AppRouter.claimedPostcardDetailsPage,
-                  arguments:
-                      PostcardDetailPagePayload([assetToken.identity], 0),
-                );
-                _configurationService.setAutoShowPostcard(true);
-              });
             }
           },
           builder: (context, state) {
@@ -295,7 +165,7 @@ class _StampPreviewState extends State<StampPreview> {
                   const SizedBox(
                     height: 20,
                   ),
-                  _postcardAction(state),
+                  _postcardAction(context, state),
                 ],
               ),
             );
@@ -305,107 +175,80 @@ class _StampPreviewState extends State<StampPreview> {
     );
   }
 
-  Widget _postcardAction(PostcardDetailState state) {
-    final theme = Theme.of(context);
-    if (!confirming) {
-      return PostcardAsyncButton(
-        text: widget.payload.asset.isCompleted
-            ? "complete_postcard_journey_".tr()
-            : "confirm_your_design".tr(),
-        fontSize: 18,
-        onTap: () async {
-          final isSuccess = await _onConfirm();
-          if (mounted && isSuccess) {
-            setState(() {
-              confirming = true;
-            });
-          }
-        },
-      );
+  Future<void> onConfirmed(BuildContext context, AssetToken assetToken) async {
+    if (alreadyShowPopup) {
+      return;
     }
-    if (state.isPostcardUpdatingOnBlockchain || state.isPostcardUpdating) {
-      return PostcardCustomButton(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              "updating_token".tr(),
-              style: theme.textTheme.moMASans700Black14.copyWith(fontSize: 18),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: DotsLoading(),
-            ),
-          ],
-        ),
-      );
-    }
-    return const SizedBox();
+    alreadyShowPopup = true;
+    _navigationService.showOptionsAfterSharePostcard(
+      assetToken: assetToken,
+      callBack: () {
+        log.info("Popup closed");
+        if (!_navigationService.mounted) return;
+        _navigationService.popUntilHomeOrSettings();
+        _navigationService.navigateTo(
+          AppRouter.claimedPostcardDetailsPage,
+          arguments: PostcardDetailPagePayload([assetToken.identity], 0),
+        );
+        _configurationService.setAutoShowPostcard(true);
+      },
+    );
   }
 
-  Future<bool> _onConfirm() async {
-    final imagePath = widget.payload.imagePath;
-    final metadataPath = widget.payload.metadataPath;
-    File imageFile = File(imagePath);
-    File metadataFile = File(metadataPath);
-
-    final asset = widget.payload.asset;
-    final tokenId = asset.tokenId ?? "";
-    final address = asset.owner;
-    final counter = asset.numberOwners;
-    final contractAddress = Environment.postcardContractAddress;
-
-    final walletIndex = await asset.getOwnerWallet();
-    if (walletIndex == null) {
-      log.info("[POSTCARD] Wallet index not found");
-      return false;
+  Widget _postcardAction(BuildContext context, PostcardDetailState state) {
+    final theme = Theme.of(context);
+    if (confirming) {
+      return PostcardButton(
+        enabled: !confirming,
+        text: "minting_stamp".tr(),
+        isProcessing: confirming,
+        fontSize: 18,
+      );
     }
-
-    final isStampSuccess = await _postcardService.stampPostcard(
-        tokenId,
-        walletIndex.first,
-        walletIndex.second,
-        imageFile,
-        metadataFile,
-        widget.payload.location,
-        counter,
-        contractAddress);
-    if (!isStampSuccess) {
-      log.info("[POSTCARD] Stamp failed");
-      injector<NavigationService>().popUntilHomeOrSettings();
-      return false;
+    final assetToken = widget.payload.asset;
+    if (!isSending) {
+      return Column(
+        children: [
+          PostcardAsyncButton(
+            text: "send_postcard".tr(),
+            fontSize: 18,
+            color: MoMAColors.moMA8,
+            onTap: () async {
+              await assetToken.sharePostcard(
+                onSuccess: () async {
+                  if (mounted) {
+                    setState(() {
+                      isSending = assetToken.isSending;
+                    });
+                    await onConfirmed(context, state.assetToken ?? assetToken);
+                  }
+                },
+                onFailed: (e) {
+                  if (e is DioException) {
+                    if (mounted) {
+                      UIHelper.showSharePostcardFailed(context, e);
+                    }
+                  }
+                },
+              );
+            },
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          Text(
+            "send_the_postcard_to_someone".tr(),
+            style: theme.textTheme.ppMori400Black12,
+          ),
+        ],
+      );
     } else {
-      log.info("[POSTCARD] Stamp success");
-      _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
-        'postcardId': asset.tokenId,
-        'index': counter,
-      });
-      await _postcardService.updateStampingPostcard([
-        StampingPostcard(
-          indexId: asset.id,
-          address: address,
-          imagePath: imagePath,
-          metadataPath: metadataPath,
-          counter: counter,
-        )
-      ]);
-
-      if (widget.payload.location != null) {
-        var postcardMetadata = asset.postcardMetadata;
-        final stampedLocation = widget.payload.location!;
-        postcardMetadata.locationInformation.add(stampedLocation);
-        var newAsset = asset.asset;
-        newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-        final pendingToken = asset.copyWith(asset: newAsset);
-        await _tokenService.setCustomTokens([pendingToken]);
-        _tokenService.reindexAddresses([address]);
-        NftCollectionBloc.eventController.add(
-          GetTokensByOwnerEvent(pageKey: PageKey.init()),
-        );
-        _setTimer();
-      }
+      return PostcardButton(
+        enabled: false,
+        text: "postcard_sent".tr(),
+        fontSize: 18,
+      );
     }
-    return true;
   }
 }
 
@@ -413,14 +256,14 @@ class StampPreviewPayload {
   final AssetToken asset;
   final String imagePath;
   final String metadataPath;
-  final Location? location;
+  final Location location;
 
   // constructor
   StampPreviewPayload({
     required this.asset,
     required this.imagePath,
     required this.metadataPath,
-    this.location,
+    required this.location,
   });
 }
 
@@ -477,4 +320,50 @@ class StampingPostcard {
 
   @override
   int get hashCode => indexId.hashCode ^ address.hashCode ^ counter.hashCode;
+}
+
+class ProcessingStampPostcard extends StampingPostcard {
+  Location location;
+
+  ProcessingStampPostcard({
+    required String indexId,
+    required String address,
+    required String imagePath,
+    required String metadataPath,
+    required int counter,
+    required DateTime timestamp,
+    required this.location,
+  }) : super(
+          indexId: indexId,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+          timestamp: timestamp,
+        );
+
+  static ProcessingStampPostcard fromJson(Map<String, dynamic> json) {
+    return ProcessingStampPostcard(
+      indexId: json['indexId'],
+      address: json['address'],
+      timestamp: DateTime.parse(json['timestamp']),
+      imagePath: json['imagePath'],
+      metadataPath: json['metadataPath'],
+      counter: json['counter'],
+      location: Location.fromJson(json['location']),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'indexId': indexId,
+      'address': address,
+      'timestamp': timestamp.toIso8601String(),
+      'imagePath': imagePath,
+      'metadataPath': metadataPath,
+      'counter': counter,
+      'location': location.toJson(),
+    };
+  }
 }

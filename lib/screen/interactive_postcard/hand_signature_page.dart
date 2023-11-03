@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
-import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -14,6 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
@@ -22,10 +21,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hand_signature/signature.dart';
 import 'package:image/image.dart' as img;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
 class HandSignaturePage extends StatefulWidget {
   static const String handSignaturePage = "hand_signature_page";
@@ -38,10 +37,10 @@ class HandSignaturePage extends StatefulWidget {
 }
 
 class _HandSignaturePageState extends State<HandSignaturePage> {
-  final GlobalKey<SfSignaturePadState> signatureGlobalKey = GlobalKey();
   bool didDraw = false;
   bool loading = false;
   Uint8List? resizedStamp;
+  final _controller = HandSignatureControl();
 
   @override
   void initState() {
@@ -94,17 +93,19 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                           ),
                         ),
                       ),
-                      SfSignaturePad(
-                        key: signatureGlobalKey,
-                        minimumStrokeWidth: 9,
-                        maximumStrokeWidth: 9,
-                        strokeColor: Colors.black,
-                        backgroundColor: Colors.transparent,
-                        onDrawEnd: () {
-                          setState(() {
-                            didDraw = true;
-                          });
-                        },
+                      Container(
+                        constraints: const BoxConstraints.expand(),
+                        color: Colors.transparent,
+                        child: HandSignature(
+                          width: 9,
+                          maxWidth: 9,
+                          control: _controller,
+                          onPointerDown: () {
+                            setState(() {
+                              didDraw = true;
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -142,7 +143,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         isProcessing: loading,
                         enabled: !loading && didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
-                        text: "sign_and_stamp".tr(),
+                        color: MoMAColors.moMA8,
+                        text: "continue".tr(),
                       ),
                     ),
                   ],
@@ -159,16 +161,16 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     setState(() {
       didDraw = false;
     });
-    signatureGlobalKey.currentState!.clear();
+    _controller.clear();
   }
 
   Future<File> _writeImageData(
-      {required ui.Image data, required String fileName}) async {
-    final data = await signatureGlobalKey.currentState!.toImage();
+      {required ByteData data, required String fileName}) async {
+    final data = await _controller.toImage(
+        color: Colors.black, background: Colors.transparent);
     log.info(
         ['[POSTCARD][_handleSaveButtonPressed] [data] [${data.toString()} ]']);
-    final bytes = await data.toByteData(format: ImageByteFormat.png);
-    final signature = img.decodePng(bytes!.buffer.asUint8List());
+    final signature = img.decodePng(data!.buffer.asUint8List());
     final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
     final resizedSignature =
         await resizeImage(ResizeImageParams(signature, STAMP_SIZE, newHeight));
@@ -207,9 +209,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       final contractAddress = Environment.postcardContractAddress;
 
       final imageDataFilename = '$contractAddress-$tokenId-$counter-image.png';
-      final imageData = await signatureGlobalKey.currentState!.toImage();
+      final imageData = await _controller.toImage();
       final imageDataFile =
-          await _writeImageData(data: imageData, fileName: imageDataFilename);
+          await _writeImageData(data: imageData!, fileName: imageDataFilename);
 
       setState(() {
         loading = false;

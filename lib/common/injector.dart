@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
-import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
@@ -242,6 +241,7 @@ Future<void> setup() async {
             injector(),
             injector(),
           ));
+
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
@@ -262,9 +262,6 @@ Future<void> setup() async {
             mainnetDB.draftCustomerSupportDao,
             CustomerSupportApi(authenticatedDio,
                 baseUrl: Environment.customerSupportURL),
-            RenderingReportApi(authenticatedDio,
-                baseUrl: Environment.renderingReportURL),
-            injector(),
             injector(),
             mainnetDB.announcementDao,
             AnnouncementApi(authenticatedDio,
@@ -319,6 +316,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(
+      injector(),
       injector(),
       injector(),
       injector(),

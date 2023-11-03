@@ -771,10 +771,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_inappwebview
-      sha256: f73505c792cf083d5566e1a94002311be497d984b5607f25be36d685cf6361cf
+      sha256: d198297060d116b94048301ee6749cd2e7d03c1f2689783f52d210a6b7aba350
       url: "https://pub.dev"
     source: hosted
-    version: "5.7.2+3"
+    version: "5.8.0"
   flutter_inline_webview_macos:
     dependency: transitive
     description:
@@ -1236,6 +1236,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.3"
+  hand_signature:
+    dependency: "direct main"
+    description:
+      name: hand_signature
+      sha256: "69cc5a978a5a15dfc1fabb01c097efcf91e9af2006475e48bb8f2560db368a97"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
   hex:
     dependency: transitive
     description:
@@ -1734,8 +1742,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ad7b16728f43de437b0e9102b5b0bf6f3ec35022
-      resolved-ref: ad7b16728f43de437b0e9102b5b0bf6f3ec35022
+      ref: e346141fd9ad4f0667b4c5a403fd8112f76ae5f3
+      resolved-ref: e346141fd9ad4f0667b4c5a403fd8112f76ae5f3
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1743,8 +1751,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
-      resolved-ref: "6e19b1a3d9610dfac3ba9a357d4192587079c3c7"
+      ref: dd4cc05389e0df0e7a7138349013ac94a302a63b
+      resolved-ref: dd4cc05389e0df0e7a7138349013ac94a302a63b
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2514,7 +2522,7 @@ packages:
     source: hosted
     version: "22.2.12"
   syncfusion_flutter_signaturepad:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: syncfusion_flutter_signaturepad
       sha256: "77321fef0d42b945e729f7cc3ee522ff55672c5d38870a993b466a190989305f"
