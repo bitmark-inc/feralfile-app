@@ -261,7 +261,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           location,
           counter,
           contractAddress, () {
-        return Navigator.of(context).mounted;
+        return Navigator.of(context).mounted &&
+            assetToken.processingStampPostcard != null;
       });
       await _configurationService.setProcessingStampPostcard(
           [processingStampPostcard],

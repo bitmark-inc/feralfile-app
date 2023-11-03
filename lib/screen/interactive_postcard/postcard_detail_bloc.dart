@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -43,6 +44,7 @@ class PostcardDetailBloc
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
   final PostcardService _postcardService;
+  final ConfigurationService _configurationService;
 
   PostcardDetailBloc(
     this._assetTokenDao,
@@ -50,6 +52,7 @@ class PostcardDetailBloc
     this._provenanceDao,
     this._indexerService,
     this._postcardService,
+    this._configurationService,
   ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
@@ -167,6 +170,11 @@ class PostcardDetailBloc
         if (stampingPostcard != null) {
           postcardService
               .updateStampingPostcard([stampingPostcard], isRemove: true);
+        }
+        if (processingStampPostcard != null) {
+          _configurationService.setProcessingStampPostcard(
+              [processingStampPostcard],
+              isRemove: true);
         }
       }
     }
