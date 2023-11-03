@@ -33,7 +33,8 @@ class Message {
     };
   }
 
-  types.Message toTypesMessage({types.Status status = types.Status.sent}) {
+  types.SystemMessage toTypesMessage(
+      {types.Status status = types.Status.sent}) {
     return types.SystemMessage(
       id: id,
       author: types.User(id: sender),

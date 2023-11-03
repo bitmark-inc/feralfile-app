@@ -1078,7 +1078,7 @@ Widget postcardDetailsMetadataSection(
             title: "date_minted".tr(),
             titleStyle: titleStyle,
             value: assetToken.mintedAt != null
-                ? localTimeString(assetToken.mintedAt!)
+                ? postcardTimeString(assetToken.mintedAt!)
                 : '',
             valueStyle: theme.textTheme.moMASans400Black12,
           ),

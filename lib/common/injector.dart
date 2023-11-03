@@ -241,6 +241,7 @@ Future<void> setup() async {
             injector(),
             injector(),
           ));
+
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
@@ -315,6 +316,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(
+      injector(),
       injector(),
       injector(),
       injector(),

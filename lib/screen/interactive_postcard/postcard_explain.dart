@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -13,7 +14,6 @@ import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:video_player/video_player.dart';
@@ -82,98 +82,110 @@ class _PostcardExplainState extends State<PostcardExplain> {
     final isLastPage = _currentIndex == pages.length - 1;
     return Scaffold(
       backgroundColor: AppColor.chatPrimaryColor,
-      appBar: AppBar(
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: AppColor.chatPrimaryColor,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              "MoMA",
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.moMASans700Black24,
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              "postcard_project".tr(),
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.moMASans400Black24.copyWith(height: 1),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        toolbarHeight: 160,
-        actions: [
-          if (_currentIndex == 0 || isLastPage) ...[
-            IconButton(
-              tooltip: "CLOSE",
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              icon: closeIcon(),
-            )
-          ] else ...[
-            _skipButton(context, () async {
-              await _swiperController.move(swiperSize - 1);
-            })
-          ],
-        ],
-        backgroundColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: getLightEmptyAppBar(AppColor.chatPrimaryColor),
       body: Padding(
-        padding: const EdgeInsets.only(bottom: 32),
-        child: Stack(
+        padding: const EdgeInsets.only(bottom: 32.0),
+        child: Column(
           children: [
-            Swiper(
-              onIndexChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                  if (index == 0) {
-                    _controller.play();
-                  }
-                  if (index == 1) {
-                    _colouringController.play();
-                  }
-                });
-              },
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: padding,
-                  child: pages[index],
-                );
-              },
-              itemCount: swiperSize,
-              pagination: const SwiperPagination(
-                  builder: DotSwiperPaginationBuilder(
-                      color: AppColor.auLightGrey,
-                      activeColor: MomaPallet.lightYellow)),
-              control: const SwiperControl(
-                  color: Colors.transparent,
-                  disableColor: Colors.transparent,
-                  size: 0),
-              loop: false,
-              controller: _swiperController,
-            ),
-            Visibility(
-              visible: isLastPage,
-              child: Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: padding,
-                  child: widget.payload.startButton,
-                ),
+            const SizedBox(height: 25.0),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "MoMA",
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.moMASans700Black24
+                            .copyWith(height: 1.0),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        "postcard_project".tr(),
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.moMASans400Black24
+                            .copyWith(height: 1),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  if (_currentIndex == 0 || isLastPage) ...[
+                    IconButton(
+                      tooltip: "CLOSE",
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                      icon: SvgPicture.asset(
+                        "assets/images/close.svg",
+                        width: 22,
+                        height: 22,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryBlack, BlendMode.srcIn),
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    )
+                  ] else ...[
+                    _skipButton(context, () async {
+                      await _swiperController.move(swiperSize - 1);
+                    })
+                  ],
+                ],
               ),
-            )
+            ),
+            const SizedBox(height: 80.0),
+            Expanded(
+              child: Stack(
+                children: [
+                  Swiper(
+                    onIndexChanged: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                        if (index == 0) {
+                          _controller.play();
+                        }
+                        if (index == 1) {
+                          _colouringController.play();
+                        }
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: padding,
+                        child: pages[index],
+                      );
+                    },
+                    itemCount: swiperSize,
+                    pagination: const SwiperPagination(
+                        builder: DotSwiperPaginationBuilder(
+                            color: AppColor.auLightGrey,
+                            activeColor: MomaPallet.lightYellow)),
+                    control: const SwiperControl(
+                        color: Colors.transparent,
+                        disableColor: Colors.transparent,
+                        size: 0),
+                    loop: false,
+                    controller: _swiperController,
+                  ),
+                  Visibility(
+                    visible: isLastPage,
+                    child: Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                        padding: padding,
+                        child: widget.payload.startButton,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -181,12 +193,9 @@ class _PostcardExplainState extends State<PostcardExplain> {
   }
 
   Widget _skipButton(BuildContext context, Function()? onSkip) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 11),
-      child: GestureDetector(
-        onTap: onSkip,
-        child: SvgPicture.asset("assets/images/skip.svg"),
-      ),
+    return GestureDetector(
+      onTap: onSkip,
+      child: SvgPicture.asset("assets/images/skip.svg"),
     );
   }
 
@@ -200,9 +209,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
           SizedBox(
               height: 265,
               child: controller.value.isInitialized
-                  ? AspectRatio(
-                      aspectRatio: controller.value.aspectRatio,
-                      child: VideoPlayer(controller))
+                  ? VideoPlayer(controller)
                   : Container()),
           const SizedBox(height: 60),
           Column(
@@ -211,7 +218,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
               Text(
                 "moma_project_invite".tr(),
                 style:
-                    theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
               ),
               const SizedBox(height: 8),
               Text(
@@ -258,14 +265,19 @@ class _PostcardExplainState extends State<PostcardExplain> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 265,
-            child: Center(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.fill,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Image.asset(
+                    imagePath,
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 12),
           (totalDistance != null)
@@ -414,17 +426,21 @@ class _PostcardExplainState extends State<PostcardExplain> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 265,
-            child: Stack(
-              children: [
-                PostcardViewWidget(
-                  assetToken: asset,
-                  withPreviewStamp: true,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 30,
+                  height: (MediaQuery.of(context).size.width - 30) /
+                      postcardAspectRatio,
+                  child: PostcardViewWidget(
+                    assetToken: asset,
+                    withPreviewStamp: true,
+                  ),
                 ),
-                Positioned.fill(child: Container(color: Colors.transparent)),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 60),
           Column(
