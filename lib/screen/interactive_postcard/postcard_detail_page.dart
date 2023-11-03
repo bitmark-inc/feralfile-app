@@ -755,33 +755,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Future<ShareResult?> _sharePostcard(
-      BuildContext context, AssetToken asset) async {
-    try {
-      final shareTime = DateTime.now();
-      final sharePostcardResponse = await _postcardService.sharePostcard(asset);
-      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
-        final shareMessage = "postcard_share_message".tr(namedArgs: {
-          'deeplink': sharePostcardResponse.deeplink!,
-        });
-        final result = await Share.shareWithResult(shareMessage);
-        if (result.status == ShareResultStatus.success) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          await _configurationService.updateSharedPostcard(
-              [SharedPostcard(asset.id, asset.owner, shareTime)]);
-        }
-        return result;
-      }
-    } catch (e) {
-      if (e is DioException) {
-        if (mounted) {
-          UIHelper.showSharePostcardFailed(context, e);
-        }
-      }
-    }
-    return null;
-  }
-
   Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
     return PostcardContainer(
       child: _travelInfoWidget(state),
