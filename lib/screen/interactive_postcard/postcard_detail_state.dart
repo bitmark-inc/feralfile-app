@@ -86,22 +86,8 @@ extension PostcardDetailStateExtension on PostcardDetailState {
         injector<ConfigurationService>().getSharedPostcard();
     final id = assetToken?.id;
     return sharedPostcards.any((element) {
-      return !element.isExpired &&
-          element.owner == assetToken?.owner &&
-          element.tokenID == id;
+      return element.owner == assetToken?.owner && element.tokenID == id;
     });
-  }
-
-  bool isShareExpired() {
-    if (assetToken == null) return false;
-    final sharedPostcards =
-        injector<ConfigurationService>().getSharedPostcard();
-    final sharedPostcard = sharedPostcards.firstWhereOrNull((element) {
-      return element.owner == assetToken?.owner &&
-          element.tokenID == assetToken?.id;
-    });
-    if (sharedPostcard == null) return false;
-    return sharedPostcard.isExpired;
   }
 
   bool isStamping() {
