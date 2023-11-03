@@ -13,9 +13,7 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
-import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
@@ -87,17 +85,6 @@ abstract class PostcardService {
     bool Function()? isContinue,
   );
 
-  Future<bool> isReceivedSuccess(
-      {required contractAddress,
-      required String address,
-      required String tokenId,
-      required int counter});
-
-  Future<PostcardValue?> getPostcardValue({
-    required contractAddress,
-    required String tokenId,
-  });
-
   List<StampingPostcard> getStampingPostcard();
 
   StampingPostcard? getStampingPostcardWithPath(
@@ -137,7 +124,6 @@ class PostcardServiceImpl extends PostcardService {
   final PostcardApi _postcardApi;
   final TezosService _tezosService;
   final IndexerService _indexerService;
-  final TZKTApi _tzktApi;
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final TokensService _tokensService;
@@ -148,7 +134,6 @@ class PostcardServiceImpl extends PostcardService {
     this._postcardApi,
     this._tezosService,
     this._indexerService,
-    this._tzktApi,
     this._configurationService,
     this._accountService,
     this._tokensService,
@@ -343,34 +328,6 @@ class PostcardServiceImpl extends PostcardService {
     log.info(
         "[Postcard Service] Stamping postcard $tokenId success: $isStampSuccess");
     return isStampSuccess;
-  }
-
-  @override
-  Future<bool> isReceivedSuccess(
-      {required contractAddress,
-      required String address,
-      required String tokenId,
-      required int counter}) async {
-    final postcardData = await getPostcardValue(
-        contractAddress: contractAddress, tokenId: tokenId);
-    if (postcardData == null) return false;
-    if (postcardData.counter == counter && postcardData.postman == address) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  Future<PostcardValue?> getPostcardValue({
-    required contractAddress,
-    required String tokenId,
-  }) async {
-    final ptr = await _tzktApi.getBigMapsId(contract: contractAddress);
-    if (ptr.isEmpty) return null;
-    final bigMapId = ptr.first;
-    final result = await _tzktApi.getBigMaps(bigMapId, key: tokenId);
-    if (result.isEmpty) return null;
-    return result.first;
   }
 
   @override
