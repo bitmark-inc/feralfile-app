@@ -38,6 +38,9 @@ abstract class ChatService {
   bool isConnecting({required String address, required String id});
 
   Future<void> reconnect();
+
+  Future<void> sendPostcardCompleteMessage(
+      String address, String id, Pair<WalletStorage, int> wallet);
 }
 
 class ChatServiceImpl implements ChatService {
@@ -252,6 +255,24 @@ class ChatServiceImpl implements ChatService {
   Future<void> reconnect() async {
     await _reconnectCallback?.call();
     _reconnectCallback = null;
+  }
+
+  @override
+  Future<void> sendPostcardCompleteMessage(
+      String address, String id, Pair<WalletStorage, int> wallet) async {
+    bool needDisconnect = false;
+    if (!isConnecting(address: address, id: id)) {
+      needDisconnect = true;
+    }
+    await connect(address: address, id: id, wallet: wallet);
+    sendMessage(json.encode({
+      "command": "SEND",
+      "id": "POSTCARD_COMPLETE",
+      "payload": {"message": "postcard_complete"}
+    }));
+    if (needDisconnect) {
+      await dispose();
+    }
   }
 }
 

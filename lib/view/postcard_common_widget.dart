@@ -32,8 +32,18 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
         theme.textTheme.moMASans700Black16.copyWith(fontSize: 18);
     final defaultProcessingTextStyle =
         defaultTextStyle.copyWith(color: AppColor.disabledColor);
-    final icon =
-        isProcessing ? (item.iconOnProcessing ?? item.icon) : item.icon;
+    final defaultDisabledTextStyle =
+        defaultTextStyle.copyWith(color: AppColor.disabledColor);
+    final icon = !item.isEnable
+        ? item.iconOnDisable
+        : isProcessing
+            ? (item.iconOnProcessing ?? item.icon)
+            : item.icon;
+    final titleStyle = !item.isEnable
+        ? (item.titleStyleOnDisable ?? defaultDisabledTextStyle)
+        : isProcessing
+            ? (item.titleStyleOnPrecessing ?? defaultProcessingTextStyle)
+            : (item.titleStyle ?? defaultTextStyle);
     final child = Container(
       color: Colors.transparent,
       width: MediaQuery.of(context).size.width,
@@ -62,10 +72,7 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
                   child: Text(
                     item.title ?? '',
                     maxLines: 3,
-                    style: isProcessing
-                        ? item.titleStyleOnPrecessing ??
-                            defaultProcessingTextStyle
-                        : item.titleStyle ?? defaultTextStyle,
+                    style: titleStyle,
                   ),
                 ),
               ],
@@ -76,6 +83,7 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
     );
     return GestureDetector(
       onTap: () async {
+        if (item.isEnable != true) return;
         if (isProcessing) return;
         setState(() {
           isProcessing = true;

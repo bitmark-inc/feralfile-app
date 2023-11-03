@@ -237,6 +237,11 @@ abstract class ConfigurationService {
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
       {bool override = false, bool isRemove = false});
 
+  Future<void> setProcessingStampPostcard(List<ProcessingStampPostcard> values,
+      {bool override = false, bool isRemove = false});
+
+  List<ProcessingStampPostcard> getProcessingStampPostcard();
+
   Future<void> setAutoShowPostcard(bool value);
 
   bool isAutoShowPostcard();
@@ -362,6 +367,9 @@ class ConfigurationServiceImpl implements ConfigurationService {
       "show_anouncement_notification_info";
 
   static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
+
+  static const String KEY_PROCESSING_STAMP_POSTCARD =
+      "processing_stamp_postcard";
 
   @override
   Future setAlreadyShowProTip(bool show) async {
@@ -1230,6 +1238,37 @@ class ConfigurationServiceImpl implements ConfigurationService {
       }
       await _preferences.setStringList(
           KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID, merchandiseSupportIndexIds);
+    }
+  }
+
+  @override
+  List<ProcessingStampPostcard> getProcessingStampPostcard() {
+    return _preferences
+            .getStringList(KEY_PROCESSING_STAMP_POSTCARD)
+            ?.map((e) => ProcessingStampPostcard.fromJson(jsonDecode(e)))
+            .toList() ??
+        [];
+  }
+
+  @override
+  Future<void> setProcessingStampPostcard(List<ProcessingStampPostcard> values,
+      {bool override = false, bool isRemove = false}) {
+    const key = KEY_PROCESSING_STAMP_POSTCARD;
+    final updatePostcards = values.map((e) => jsonEncode(e.toJson())).toList();
+
+    if (override) {
+      return _preferences.setStringList(key, updatePostcards);
+    } else {
+      var currentStampingPostcard = _preferences.getStringList(key) ?? [];
+
+      if (isRemove) {
+        currentStampingPostcard
+            .removeWhere((element) => updatePostcards.contains(element));
+      } else {
+        currentStampingPostcard.addAll(updatePostcards);
+      }
+      return _preferences.setStringList(
+          key, currentStampingPostcard.toSet().toList());
     }
   }
 }

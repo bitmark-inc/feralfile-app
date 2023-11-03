@@ -6,6 +6,8 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -13,6 +15,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
@@ -25,6 +28,7 @@ import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
@@ -626,16 +630,41 @@ extension AssetExt on Asset {
 
 extension PostcardExtension on AssetToken {
   int get stampIndex {
+    int index = -1;
     final listArtists = getArtists;
     if (listArtists.isEmpty) {
-      return -1;
+      index = -1;
     }
     final owner = this.owner;
-    return listArtists.indexWhere((element) => owner == element.id);
+    index = listArtists.indexWhere((element) => owner == element.id);
+    return index;
+  }
+
+  int get stampIndexWithStamping {
+    int index = stampIndex;
+    if (index == -1) {
+      index = numberOwners;
+    }
+    return index;
   }
 
   int get numberOwners {
     return maxEdition ?? 0;
+  }
+
+  ProcessingStampPostcard? get processingStampPostcard {
+    final processingStamp =
+        injector<ConfigurationService>().getProcessingStampPostcard();
+    return processingStamp.firstWhereOrNull((element) {
+      final bool = (element.indexId == tokenId &&
+          element.address == owner &&
+          isLastOwner);
+      return bool;
+    });
+  }
+
+  bool get isProcessingStamp {
+    return processingStampPostcard != null;
   }
 
   bool get isStamping {
@@ -688,5 +717,42 @@ extension PostcardExtension on AssetToken {
       final index = artists.indexOf(artist) + 1;
       return "stamper_".tr(args: [index.toString()]);
     }
+  }
+
+  Future<ShareResult?> sharePostcard({
+    Function? onSuccess,
+    Function? onDismissed,
+    Function(Object)? onFailed,
+  }) async {
+    try {
+      final postcardService = injector<PostcardService>();
+      final configurationService = injector<ConfigurationService>();
+      final shareTime = DateTime.now();
+      final sharePostcardResponse = await postcardService.sharePostcard(this);
+      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
+        final shareMessage = "postcard_share_message".tr(namedArgs: {
+          'deeplink': sharePostcardResponse.deeplink!,
+        });
+        final result = await Share.shareWithResult(shareMessage);
+        if (result.status == ShareResultStatus.success) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          await configurationService
+              .updateSharedPostcard([SharedPostcard(id, owner, shareTime)]);
+
+          onSuccess?.call();
+        } else {
+          onDismissed?.call();
+        }
+      }
+    } catch (e) {
+      onFailed?.call(e);
+    }
+    return null;
+  }
+
+  double get totalDistance {
+    final listTravelInfo = postcardMetadata.listTravelInfoWithoutLocationName;
+    final totalDistance = listTravelInfo.totalDistance;
+    return totalDistance;
   }
 }

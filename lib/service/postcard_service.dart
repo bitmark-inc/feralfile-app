@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
+import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -73,6 +75,18 @@ abstract class PostcardService {
       int counter,
       String contractAddress);
 
+  Future<bool> stampPostcardUntilSuccess(
+    String tokenId,
+    WalletStorage wallet,
+    int index,
+    File image,
+    File metadata,
+    Location? location,
+    int counter,
+    String contractAddress,
+    bool Function()? isContinue,
+  );
+
   Future<bool> isReceivedSuccess(
       {required contractAddress,
       required String address,
@@ -114,6 +128,9 @@ abstract class PostcardService {
     required String shareCode,
     required Location location,
   });
+
+  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
+      String metadataPath, Location location);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -125,16 +142,19 @@ class PostcardServiceImpl extends PostcardService {
   final AccountService _accountService;
   final TokensService _tokensService;
   final MetricClientService _metricClientService;
+  final ChatService _chatService;
 
   PostcardServiceImpl(
-      this._postcardApi,
-      this._tezosService,
-      this._indexerService,
-      this._tzktApi,
-      this._configurationService,
-      this._accountService,
-      this._tokensService,
-      this._metricClientService);
+    this._postcardApi,
+    this._tezosService,
+    this._indexerService,
+    this._tzktApi,
+    this._configurationService,
+    this._accountService,
+    this._tokensService,
+    this._metricClientService,
+    this._chatService,
+  );
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
@@ -271,10 +291,58 @@ class PostcardServiceImpl extends PostcardService {
           counter: counter) as Map<String, dynamic>;
 
       final ok = result["metadataCID"] as String;
-      return ok.isNotEmpty;
+      final isStampSuccess = ok.isNotEmpty;
+      if (isStampSuccess) {
+        _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
+          'postcardId': tokenId,
+          'index': counter,
+        });
+        if (counter == MAX_STAMP_IN_POSTCARD) {
+          try {
+            _chatService.sendPostcardCompleteMessage(
+              address,
+              getTokenId(tokenId),
+              Pair(wallet, index),
+            );
+          } catch (e) {
+            log.info("[Postcard Service] sendPostcardCompleteMessage $e");
+          }
+        }
+      }
+      return isStampSuccess;
     } catch (e) {
       return false;
     }
+  }
+
+  @override
+  Future<bool> stampPostcardUntilSuccess(
+    String tokenId,
+    WalletStorage wallet,
+    int index,
+    File image,
+    File metadata,
+    Location? location,
+    int counter,
+    String contractAddress,
+    bool Function()? isContinue,
+  ) async {
+    bool isStampSuccess = false;
+    while (!isStampSuccess && (isContinue?.call() ?? true)) {
+      try {
+        isStampSuccess = await stampPostcard(tokenId, wallet, index, image,
+            metadata, location, counter, contractAddress);
+      } catch (e) {
+        log.info("[Postcard Service] stampPostcardUntilSuccess $e");
+      }
+      if (!isStampSuccess) {
+        log.info(
+            "[Postcard Service] Stamping postcard $tokenId failed, retrying...");
+      }
+    }
+    log.info(
+        "[Postcard Service] Stamping postcard $tokenId success: $isStampSuccess");
+    return isStampSuccess;
   }
 
   @override
@@ -593,6 +661,76 @@ class PostcardServiceImpl extends PostcardService {
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
     return pendingToken;
+  }
+
+  @override
+  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
+      String metadataPath, Location location) async {
+    File imageFile = File(imagePath);
+    File metadataFile = File(metadataPath);
+
+    final tokenId = asset.tokenId ?? "";
+    final address = asset.owner;
+    final counter = asset.numberOwners;
+    final contractAddress = Environment.postcardContractAddress;
+
+    final walletIndex = await asset.getOwnerWallet();
+    if (walletIndex == null) {
+      log.info("[POSTCARD] Wallet index not found");
+      return false;
+    }
+    final processingStampPostcard = ProcessingStampPostcard(
+      indexId: tokenId,
+      address: address,
+      imagePath: imagePath,
+      metadataPath: metadataPath,
+      counter: counter,
+      timestamp: DateTime.now(),
+      location: location,
+    );
+    await _configurationService.setProcessingStampPostcard([
+      processingStampPostcard,
+    ]);
+    await stampPostcardUntilSuccess(
+      tokenId,
+      walletIndex.first,
+      walletIndex.second,
+      imageFile,
+      metadataFile,
+      location,
+      counter,
+      contractAddress,
+      () {
+        return true;
+      },
+    );
+
+    await _configurationService.setProcessingStampPostcard(
+      [processingStampPostcard],
+      isRemove: true,
+    );
+
+    await updateStampingPostcard([
+      StampingPostcard(
+        indexId: asset.id,
+        address: address,
+        imagePath: imagePath,
+        metadataPath: metadataPath,
+        counter: counter,
+      )
+    ]);
+    var postcardMetadata = asset.postcardMetadata;
+    final stampedLocation = location;
+    postcardMetadata.locationInformation.add(stampedLocation);
+    var newAsset = asset.asset;
+    newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    final pendingToken = asset.copyWith(asset: newAsset);
+    await _tokensService.setCustomTokens([pendingToken]);
+    _tokensService.reindexAddresses([address]);
+    NftCollectionBloc.eventController.add(
+      GetTokensByOwnerEvent(pageKey: PageKey.init()),
+    );
+    return true;
   }
 }
 

@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/isolate.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
@@ -141,7 +142,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         isProcessing: loading,
                         enabled: !loading && didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
-                        text: "sign_and_stamp".tr(),
+                        color: MoMAColors.moMA8,
+                        text: "continue".tr(),
                       ),
                     ),
                   ],

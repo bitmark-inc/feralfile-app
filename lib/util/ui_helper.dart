@@ -1809,9 +1809,12 @@ class OptionItem {
   String? title;
   TextStyle? titleStyle;
   TextStyle? titleStyleOnPrecessing;
+  TextStyle? titleStyleOnDisable;
   Function()? onTap;
+  bool isEnable;
   Widget? icon;
   Widget? iconOnProcessing;
+  Widget? iconOnDisable;
   Widget Function(BuildContext context, OptionItem item)? builder;
   Widget? separator;
 
@@ -1819,9 +1822,12 @@ class OptionItem {
     this.title,
     this.titleStyle,
     this.titleStyleOnPrecessing,
+    this.titleStyleOnDisable,
     this.onTap,
+    this.isEnable = true,
     this.icon,
     this.iconOnProcessing,
+    this.iconOnDisable,
     this.builder,
     this.separator,
   });

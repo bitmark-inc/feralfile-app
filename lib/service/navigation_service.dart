@@ -17,16 +17,22 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/moma_style_color.dart';
+import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 // ignore: implementation_imports
@@ -40,6 +46,10 @@ class NavigationService {
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+
+  BuildContext get context => navigatorKey.currentContext!;
+
+  bool get mounted => navigatorKey.currentContext?.mounted == true;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info("NavigationService.navigateTo: $routeName");
@@ -405,5 +415,150 @@ class NavigationService {
         "title": title,
       });
     }
+  }
+
+  Future<void> showOptionsAfterSharePostcard(
+      {required AssetToken assetToken, Function()? callBack}) async {
+    final theme = Theme.of(context);
+    final postcardService = injector.get<PostcardService>();
+    bool isProcessing = false;
+    final isStamped = assetToken.isStamped;
+    final options = [
+      OptionItem(
+        title: "stamp_minted".tr(),
+        titleStyle: theme.textTheme.moMASans700Black16
+            .copyWith(color: MoMAColors.moMA1, fontSize: 18),
+        icon: SvgPicture.asset("assets/images/moma_arrow_right.svg"),
+        onTap: () async {
+          Navigator.of(context).pop();
+          await callBack?.call();
+        },
+        separator: const Divider(
+          height: 1,
+          thickness: 1.0,
+          color: Color.fromRGBO(203, 203, 203, 1),
+        ),
+      ),
+      OptionItem(
+        title: 'share_on_'.tr(),
+        icon: SvgPicture.asset(
+          'assets/images/globe.svg',
+          width: 24,
+          height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset(
+          'assets/images/globe.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
+        ),
+        onTap: () async {
+          isProcessing = true;
+          shareToTwitter(token: assetToken);
+          Navigator.of(context).pop();
+          await callBack?.call();
+        },
+      ),
+      OptionItem(
+        title: 'download_stamp'.tr(),
+        isEnable: isStamped,
+        icon: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
+        ),
+        iconOnDisable: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            AppColor.disabledColor,
+            BlendMode.srcIn,
+          ),
+        ),
+        onTap: () async {
+          isProcessing = true;
+          try {
+            await postcardService.downloadStamp(
+                tokenId: assetToken.tokenId!,
+                stampIndex: assetToken.stampIndexWithStamping);
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            await UIHelper.showPostcardStampSaved(context);
+            await callBack?.call();
+          } catch (e) {
+            log.info("Download stamp failed: error ${e.toString()}");
+            if (!mounted) return;
+            Navigator.of(context).pop();
+
+            switch (e.runtimeType) {
+              case MediaPermissionException:
+                await UIHelper.showPostcardStampPhotoAccessFailed(context);
+                break;
+              default:
+                if (!mounted) return;
+                await UIHelper.showPostcardStampSavedFailed(context);
+            }
+            await callBack?.call();
+          }
+        },
+      ),
+      OptionItem(
+        title: 'download_postcard'.tr(),
+        isEnable: isStamped,
+        icon: SvgPicture.asset(
+          'assets/images/download.svg',
+          width: 24,
+          height: 24,
+        ),
+        iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+                AppColor.disabledColor, BlendMode.srcIn)),
+        iconOnDisable: SvgPicture.asset('assets/images/download.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+                AppColor.disabledColor, BlendMode.srcIn)),
+        onTap: () async {
+          isProcessing = true;
+          try {
+            await postcardService.downloadPostcard(assetToken.tokenId!);
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            await UIHelper.showPostcardSaved(context);
+          } catch (e) {
+            log.info("Download postcard failed: error ${e.toString()}");
+            if (!mounted) return;
+            Navigator.of(context).pop();
+            switch (e.runtimeType) {
+              case MediaPermissionException:
+                await UIHelper.showPostcardPhotoAccessFailed(context);
+                break;
+              default:
+                if (!mounted) return;
+                await UIHelper.showPostcardSavedFailed(context);
+            }
+          }
+        },
+      ),
+    ];
+    await UIHelper.showPostcardDrawerAction(context, options: options)
+        .then((value) {
+      if (!isProcessing) callBack?.call();
+    });
   }
 }
