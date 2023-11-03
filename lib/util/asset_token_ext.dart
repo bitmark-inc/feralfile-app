@@ -696,9 +696,7 @@ extension PostcardExtension on AssetToken {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
     return sharedPostcards.any((element) {
-      return !element.isExpired &&
-          element.owner == owner &&
-          element.tokenID == id;
+      return element.owner == owner && element.tokenID == id;
     });
   }
 
