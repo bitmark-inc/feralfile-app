@@ -252,7 +252,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       final location = processingStampPostcard.location;
       final counter = processingStampPostcard.counter;
       final contractAddress = assetToken.contractAddress ?? "";
-      await _postcardService.stampPostcardUntilSuccess(
+      final isStampSuccess = await _postcardService.stampPostcardUntilSuccess(
           assetToken.tokenId ?? "",
           walletIndex!.first,
           walletIndex.second,
@@ -264,18 +264,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return Navigator.of(context).mounted &&
             assetToken.processingStampPostcard != null;
       });
-      await _configurationService.setProcessingStampPostcard(
-          [processingStampPostcard],
-          isRemove: true);
-      await _postcardService.updateStampingPostcard([
-        StampingPostcard(
-          indexId: assetToken.id,
-          address: processingStampPostcard.address,
-          imagePath: processingStampPostcard.imagePath,
-          metadataPath: processingStampPostcard.metadataPath,
-          counter: counter,
-        )
-      ]);
+      if (isStampSuccess == true) {
+        await _configurationService.setProcessingStampPostcard(
+            [processingStampPostcard],
+            isRemove: true);
+        await _postcardService.updateStampingPostcard([
+          StampingPostcard(
+            indexId: assetToken.id,
+            address: processingStampPostcard.address,
+            imagePath: processingStampPostcard.imagePath,
+            metadataPath: processingStampPostcard.metadataPath,
+            counter: counter,
+          )
+        ]);
+      }
       setState(() {
         isProcessingStampPostcard = false;
       });
@@ -332,7 +334,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           });
         }
 
-        if (assetToken.isStamping) {
+        if (!assetToken.isStamped) {
           const duration = Duration(seconds: 10);
           timer?.cancel();
           timer = Timer.periodic(duration, (timer) {
