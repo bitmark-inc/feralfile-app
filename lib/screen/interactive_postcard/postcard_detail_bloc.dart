@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
@@ -33,16 +32,6 @@ class PostcardDetailGetInfoEvent extends PostcardDetailEvent {
   PostcardDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
-class PostcardDetailGetValueEvent extends PostcardDetailEvent {
-  final String contractAddress;
-  final String tokenId;
-
-  PostcardDetailGetValueEvent({
-    required this.contractAddress,
-    required this.tokenId,
-  });
-}
-
 class FetchLeaderboardEvent extends PostcardDetailEvent {}
 
 class RefreshLeaderboardEvent extends PostcardDetailEvent {}
@@ -61,7 +50,7 @@ class PostcardDetailBloc
     this._provenanceDao,
     this._indexerService,
     this._postcardService,
-  ) : super(PostcardDetailState(provenances: [], postcardValueLoaded: false)) {
+  ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
         final request = QueryListTokensRequest(
@@ -78,9 +67,6 @@ class PostcardDetailBloc
             imagePath: paths.first,
             metadataPath: paths.second,
           ));
-          add(PostcardDetailGetValueEvent(
-              contractAddress: assetToken.first.contractAddress ?? "",
-              tokenId: assetToken.first.tokenId ?? ""));
         }
         return;
       } else {
@@ -97,10 +83,6 @@ class PostcardDetailBloc
         final provenances =
             await _provenanceDao.findProvenanceByTokenID(event.identity.id);
         emit(state.copyWith(provenances: provenances));
-
-        add(PostcardDetailGetValueEvent(
-            contractAddress: assetToken?.contractAddress ?? "",
-            tokenId: assetToken?.tokenId ?? ""));
 
         if (assetToken != null &&
             assetToken.asset != null &&
@@ -120,13 +102,6 @@ class PostcardDetailBloc
           }
         }
       }
-    });
-
-    on<PostcardDetailGetValueEvent>((event, emit) async {
-      final postcardValue = await _postcardService.getPostcardValue(
-          contractAddress: event.contractAddress, tokenId: event.tokenId);
-      emit(state.copyWith(
-          postcardValue: postcardValue, postcardValueLoaded: true));
     });
 
     on<FetchLeaderboardEvent>((event, emit) async {
@@ -167,18 +142,6 @@ class PostcardDetailBloc
     });
   }
 
-  Future<PostcardValue?> getPostcardValue(
-      String contractAddress, String tokenId) async {
-    try {
-      final postcardService = injector<PostcardService>();
-      final postcardValue = await postcardService.getPostcardValue(
-          contractAddress: contractAddress, tokenId: tokenId);
-      return postcardValue;
-    } catch (e) {
-      return null;
-    }
-  }
-
   Pair<String?, String?> getUpdatingPath(AssetToken? asset) {
     String? imagePath;
     String? metadataPath;
@@ -190,7 +153,7 @@ class PostcardDetailBloc
       final isStamped = asset.isStamped;
       if (!isStamped) {
         if (stampingPostcard != null) {
-          if (state.isLastOwner &&
+          if ((state.assetToken?.isLastOwner ?? false) &&
               stampingPostcard.counter == asset.numberOwners) {
             log.info("[PostcardDetail] Stamping... ");
             imagePath = stampingPostcard.imagePath;
