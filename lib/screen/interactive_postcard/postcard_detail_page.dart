@@ -145,71 +145,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Future<void> _showSharingExpired(BuildContext context) async {
-    await UIHelper.showPostcardDrawerAction(context, options: [
-      OptionItem(
-        builder: (context, _) => Row(
-          children: [
-            const SizedBox(width: 15),
-            SizedBox(
-              width: 30,
-              child: SvgPicture.asset(
-                'assets/images/restart.svg',
-                width: 24,
-                height: 24,
-              ),
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Text(
-                "you_need_resend".tr(),
-                style: Theme.of(context).textTheme.moMASans700Black18,
-              ),
-            ),
-          ],
-        ),
-      ),
-      OptionItem(
-        builder: (context, _) => Row(
-          children: [
-            const SizedBox(width: 15),
-            SvgPicture.asset(
-              'assets/images/arrow_right.svg',
-              width: 24,
-              height: 24,
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Text(
-                "no_one_received".tr(),
-                style: Theme.of(context).textTheme.moMASans700AuGrey18,
-              ),
-            ),
-          ],
-        ),
-      ),
-      OptionItem(
-        builder: (context, _) => Row(
-          children: [
-            const SizedBox(width: 15),
-            SvgPicture.asset(
-              'assets/images/cross.svg',
-              width: 24,
-              height: 24,
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Text(
-                "resend_new_link".tr(),
-                style: Theme.of(context).textTheme.moMASans700AuGrey18,
-              ),
-            ),
-          ],
-        ),
-      )
-    ]);
-  }
-
   Future<void> _removeShareConfig(AssetToken assetToken) async {
     await _configurationService.removeSharedPostcardWhere(
         (p) => p.owner == assetToken.owner && p.tokenID == assetToken.id);
@@ -425,12 +360,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
 
         if (state.didSendNext) {
-          _removeShareConfig(assetToken);
-        }
-
-        if (state.isShareExpired() && state.canDoAction) {
-          if (!mounted) return;
-          _showSharingExpired(context);
           _removeShareConfig(assetToken);
         }
       }
