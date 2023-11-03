@@ -92,7 +92,7 @@ linter:
     prefer_is_not_operator: true
     prefer_iterable_whereType: true
     prefer_null_aware_operators: true
-    prefer_single_quotes: true
+    prefer_double_quotes: true
     prefer_spread_collections: true
     prefer_typing_uninitialized_variables: true
     require_trailing_commas: true
@@ -137,16 +137,25 @@ linter:
     # formatting: true
     lines_longer_than_80_chars: true
     # has a quick fix
+    always_use_package_imports: true
+    avoid_empty_else: true
     avoid_print: true
+    avoid_relative_lib_imports: true
+    avoid_types_as_parameter_names: true
     diagnostic_describe_all_properties: true
     discarded_futures: true
     empty_statements: true
     hash_and_equals: true
     implicit_reopen: true
     invalid_case_patterns: true
-    prefer_relative_imports: true
+    no_duplicate_case_values: true
     prefer_void_to_null: true
     use_key_in_widget_constructors: true
+    # recommended by don't have quick fix
+    unrelated_type_equality_checks: true
+    valid_regexps: true
+    control_flow_in_finally: true
+    collection_methods_unrelated_type: true
 
 analyzer:
   exclude:
