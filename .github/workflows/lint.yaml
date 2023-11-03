@@ -70,8 +70,15 @@ jobs:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           flutter analyze --no-preamble | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -reporter=github-pr-review
-      - name: dart fixes
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install codespell
+        run: pip install codespell
+      - name: Fix the code
         run: |
+          codespell -w
           dart format .
           dart fix --apply
       - name: suggester / dart fixes
@@ -115,11 +122,3 @@ jobs:
             *.dart
             *.swift
             *.kt
-      - uses: codespell-project/codespell-problem-matcher@v1
-      - name: codespell
-        uses: codespell-project/actions-codespell@v2
-        with:
-          check_filenames: true
-          ignore_words_file: .codespellignore
-          only_warn: 1
-          exclude_file: pubspec.yaml
