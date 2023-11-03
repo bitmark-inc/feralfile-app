@@ -77,9 +77,9 @@ jobs:
         run: pip install codespell
       - name: Fix the code
         run: |
-          codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg"
           dart format .
           dart fix --apply
+          codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg"
       - name: suggester / dart fixes
         uses: reviewdog/action-suggester@v1
         with:
