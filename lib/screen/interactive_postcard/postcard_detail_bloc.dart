@@ -153,21 +153,20 @@ class PostcardDetailBloc
       final isStamped = asset.isStamped;
       if (!isStamped) {
         if (stampingPostcard != null) {
-          if ((state.assetToken?.isLastOwner ?? false) &&
-              stampingPostcard.counter == asset.numberOwners) {
-            log.info("[PostcardDetail] Stamping... ");
-            imagePath = stampingPostcard.imagePath;
-            metadataPath = stampingPostcard.metadataPath;
-          } else {
-            postcardService
-                .updateStampingPostcard([stampingPostcard], isRemove: true);
-          }
+          log.info("[PostcardDetail] Stamping... ");
+          imagePath = stampingPostcard.imagePath;
+          metadataPath = stampingPostcard.metadataPath;
         } else {
           if (processingStampPostcard != null) {
             log.info("[PostcardDetail] Processing stamp... ");
             imagePath = processingStampPostcard.imagePath;
             metadataPath = processingStampPostcard.metadataPath;
           }
+        }
+      } else {
+        if (stampingPostcard != null) {
+          postcardService
+              .updateStampingPostcard([stampingPostcard], isRemove: true);
         }
       }
     }
