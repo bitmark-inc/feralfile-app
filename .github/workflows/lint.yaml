@@ -110,4 +110,4 @@ jobs:
           check_filenames: true
           ignore_words_file: .codespellignore
           only_warn: 1
-          exclude_file: pubspec.*
+          exclude_file: pubspec.yaml
