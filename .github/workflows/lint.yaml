@@ -103,8 +103,11 @@ jobs:
             *.dart
             *.swift
             *.kt
+      - uses: codespell-project/codespell-problem-matcher@v1
       - name: codespell
         uses: codespell-project/actions-codespell@v2
         with:
           check_filenames: true
+          ignore_words_file: .codespellignore
           only_warn: 1
+          exclude_file: pubspec.*
