@@ -70,9 +70,12 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     _postcardService
         .finalizeStamp(widget.payload.asset, widget.payload.imagePath,
             widget.payload.metadataPath, widget.payload.location)
-        .then((value) {
+        .then((final bool isStampSuccess) {
       _setTimer();
       if (mounted) {
+        if (!isStampSuccess) {
+          UIHelper.showPostcardStampFailed(context);
+        }
         setState(() {
           confirming = false;
         });
