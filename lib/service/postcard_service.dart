@@ -630,12 +630,12 @@ class PostcardServiceImpl extends PostcardService {
           imagePath: imagePath,
           metadataPath: metadataPath,
           counter: counter,
-        )
+        ),
       ]);
-      var postcardMetadata = asset.postcardMetadata;
+      final postcardMetadata = asset.postcardMetadata;
       final stampedLocation = location;
       postcardMetadata.locationInformation.add(stampedLocation);
-      var newAsset = asset.asset;
+      final newAsset = asset.asset;
       newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
       final pendingToken = asset.copyWith(asset: newAsset);
       await _tokensService.setCustomTokens([pendingToken]);

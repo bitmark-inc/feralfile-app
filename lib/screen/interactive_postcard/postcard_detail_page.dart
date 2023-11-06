@@ -242,7 +242,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Future<bool?> retryStampPostcardIfNeed(
-      BuildContext context, AssetToken assetToken) async {
+      final BuildContext context, final AssetToken assetToken) async {
     final processingStampPostcard = assetToken.processingStampPostcard;
     if (processingStampPostcard != null) {
       setState(() {
@@ -264,7 +264,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         counter,
         contractAddress,
       );
-      if (isStampSuccess == true) {
+      if (isStampSuccess) {
         await _configurationService.setProcessingStampPostcard(
             [processingStampPostcard],
             isRemove: true);
@@ -320,11 +320,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!mounted) return;
         if (isAutoStampIfNeed && !isProcessingStampPostcard) {
           isAutoStampIfNeed = false;
-          retryStampPostcardIfNeed(context, assetToken).then((value) {
+          unawaited(
+              retryStampPostcardIfNeed(context, assetToken).then((final value) {
             if (mounted && value == false) {
               UIHelper.showPostcardStampFailed(context);
             }
-          });
+          }));
         }
         setState(() {
           currentAsset = state.assetToken;
@@ -566,7 +567,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ));
   }
 
-  Widget _postcardAction(BuildContext context, AssetToken asset) {
+  Widget _postcardAction(final BuildContext context, final AssetToken asset) {
     final theme = Theme.of(context);
     if (asset.isCompleted || !asset.isLastOwner || isViewOnly != false) {
       return const SizedBox();
@@ -623,7 +624,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             onTap: () async {
               final isSuccess = await retryStampPostcardIfNeed(context, asset);
               if (mounted && isSuccess == false) {
-                UIHelper.showPostcardStampFailed(context);
+                await UIHelper.showPostcardStampFailed(context);
                 return;
               }
               await asset.sharePostcard(onSuccess: () {

@@ -1665,7 +1665,9 @@ class UIHelper {
     }, autoDismissAfter: const Duration(seconds: 2));
   }
 
-  static Future<void> showPostcardStampFailed(BuildContext context) async {
+  static Future<void> showPostcardStampFailed(
+    final BuildContext context,
+  ) async {
     await _showPostcardError(context, message: "postcard_stamp_failed".tr());
   }
 
