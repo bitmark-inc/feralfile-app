@@ -658,6 +658,7 @@ extension PostcardExtension on AssetToken {
     return processingStamp.firstWhereOrNull((element) {
       final bool = (element.indexId == tokenId &&
           element.address == owner &&
+          element.counter == numberOwners &&
           isLastOwner);
       return bool;
     });

@@ -514,7 +514,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               height: 20,
                             ),
                             if (!isViewOnly) ...[
-                              tion(context, asset),
+                              _postcardAction(context, asset),
                               const SizedBox(
                                 height: 20,
                               ),
@@ -566,7 +566,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ));
   }
 
-  Widget _postcardAction(BuildContext co_postcardAcntext, AssetToken asset) {
+  Widget _postcardAction(BuildContext context, AssetToken asset) {
     final theme = Theme.of(context);
     if (asset.isCompleted || !asset.isLastOwner || isViewOnly != false) {
       return const SizedBox();

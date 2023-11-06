@@ -594,15 +594,16 @@ class PostcardServiceImpl extends PostcardService {
       log.info("[POSTCARD] Wallet index not found");
       return false;
     }
-    final processingStampPostcard = ProcessingStampPostcard(
-      indexId: tokenId,
-      address: address,
-      imagePath: imagePath,
-      metadataPath: metadataPath,
-      counter: counter,
-      timestamp: DateTime.now(),
-      location: location,
-    );
+    final processingStampPostcard = asset.processingStampPostcard ??
+        ProcessingStampPostcard(
+          indexId: tokenId,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+          timestamp: DateTime.now(),
+          location: location,
+        );
     await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
     ]);
