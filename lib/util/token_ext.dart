@@ -12,6 +12,7 @@ extension AssetTokenExtension on List<CompactedAssetToken> {
         injector<ConfigurationService>().getRecentlySentToken();
     final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
     return whereNot((element) =>
+        element.pending == true ||
         (!isShowHidden && hiddenTokens.contains(element.id)) ||
         ((element.balance ?? 0) <= 0 && element.isDebugged != true) ||
         sentArtworks.any(
