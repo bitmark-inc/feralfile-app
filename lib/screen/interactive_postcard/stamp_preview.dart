@@ -140,8 +140,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
         ),
         body: BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
           listener: (context, state) {
-            if (!(state.isPostcardUpdatingOnBlockchain ||
-                state.isPostcardUpdating)) {
+            if (!(state.assetToken?.isStamping ?? true)) {
               timer?.cancel();
             }
           },

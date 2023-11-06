@@ -753,4 +753,12 @@ extension PostcardExtension on AssetToken {
     final totalDistance = listTravelInfo.totalDistance;
     return totalDistance;
   }
+
+  bool get didSendNext {
+    final artists = getArtists;
+    final artistOwner =
+        artists.firstWhereOrNull((element) => element.id == owner);
+    if (artistOwner == null) return false;
+    return artistOwner != artists.last;
+  }
 }

@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
@@ -20,7 +19,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -33,7 +31,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -255,7 +252,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       final location = processingStampPostcard.location;
       final counter = processingStampPostcard.counter;
       final contractAddress = assetToken.contractAddress ?? "";
-      await _postcardService.stampPostcardUntilSuccess(
+      final isStampSuccess = await _postcardService.stampPostcardUntilSuccess(
           assetToken.tokenId ?? "",
           walletIndex!.first,
           walletIndex.second,
@@ -264,20 +261,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           location,
           counter,
           contractAddress, () {
-        return Navigator.of(context).mounted;
+        return Navigator.of(context).mounted &&
+            assetToken.processingStampPostcard != null;
       });
-      await _configurationService.setProcessingStampPostcard(
-          [processingStampPostcard],
-          isRemove: true);
-      await _postcardService.updateStampingPostcard([
-        StampingPostcard(
-          indexId: assetToken.id,
-          address: processingStampPostcard.address,
-          imagePath: processingStampPostcard.imagePath,
-          metadataPath: processingStampPostcard.metadataPath,
-          counter: counter,
-        )
-      ]);
+      if (isStampSuccess == true) {
+        await _configurationService.setProcessingStampPostcard(
+            [processingStampPostcard],
+            isRemove: true);
+        await _postcardService.updateStampingPostcard([
+          StampingPostcard(
+            indexId: assetToken.id,
+            address: processingStampPostcard.address,
+            imagePath: processingStampPostcard.imagePath,
+            metadataPath: processingStampPostcard.metadataPath,
+            counter: counter,
+          )
+        ]);
+      }
       setState(() {
         isProcessingStampPostcard = false;
       });
@@ -322,7 +322,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         setState(() {
           currentAsset = state.assetToken;
           isViewOnly = viewOnly;
-          isSending = state.isSending();
+          isSending = state.assetToken?.isSending ?? false;
         });
         if (viewOnly) {
           return;
@@ -334,7 +334,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           });
         }
 
-        if (state.isPostcardUpdating) {
+        if (!assetToken.isStamped) {
           const duration = Duration(seconds: 10);
           timer?.cancel();
           timer = Timer.periodic(duration, (timer) {
@@ -359,7 +359,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
         }
 
-        if (state.didSendNext) {
+        if (assetToken.didSendNext) {
           _removeShareConfig(assetToken);
         }
       }
@@ -506,13 +506,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _postcardAction(context, state),
+                            _postcardAction(context, asset),
                             const SizedBox(height: 20),
-                            _postcardInfo(context, state),
+                            _postcardInfo(context, asset),
                             const SizedBox(
                               height: 20,
                             ),
-                            _postcardLeaderboard(context, state),
+                            _postcardLeaderboard(
+                                context, state.leaderboard, asset),
                             const SizedBox(
                               height: 20,
                             ),
@@ -524,12 +525,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _artworkInfo(
-                                context,
-                                asset,
-                                state.toArtworkDetailState(),
-                                artistNames,
-                                owners),
+                            _artworkInfo(context, asset, state.provenances,
+                                artistNames, owners),
                           ],
                         ),
                       ),
@@ -558,8 +555,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ));
   }
 
-  Widget _postcardAction(BuildContext context, PostcardDetailState state) {
-    final asset = state.assetToken!;
+  Widget _postcardAction(BuildContext context, AssetToken asset) {
     final theme = Theme.of(context);
     final place15StampsText = Text(
       "place_15_stamps".tr(),
@@ -630,7 +626,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             onTap: () async {
               await asset.sharePostcard(onSuccess: () {
                 setState(() {
-                  isSending = state.isSending();
+                  isSending = asset.isSending;
                 });
               }, onFailed: (e) {
                 if (e is DioException) {
@@ -670,7 +666,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             final jwtToken =
                 (await injector<AuthService>().getAuthToken()).jwtToken;
             final hasCustomerSupport =
-                _configurationService.hasMerchandiseSupport(indexId);
+            _configurationService.hasMerchandiseSupport(indexId);
             log.info("?indexId=$indexId&hasCS=$hasCustomerSupport");
             if (!context.mounted) return;
             final url =
@@ -684,16 +680,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _postcardInfo(BuildContext context, PostcardDetailState state) {
+  Widget _postcardInfo(BuildContext context, AssetToken asset) {
     return PostcardContainer(
-      child: _travelInfoWidget(state),
+      child: _travelInfoWidget(asset),
     );
   }
 
-  Widget _postcardLeaderboard(BuildContext context, PostcardDetailState state) {
+  Widget _postcardLeaderboard(BuildContext context,
+      PostcardLeaderboard? leaderboard, AssetToken assetToken) {
     final theme = Theme.of(context);
-    final item = state.leaderboard?.items
-        .firstWhereOrNull((element) => element.id == state.assetToken?.tokenId);
+    final item = leaderboard?.items
+        .firstWhereOrNull((element) => element.id == assetToken.tokenId);
     return PostcardContainer(
       child: GestureDetector(
         child: Stack(
@@ -727,7 +724,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           }
           Navigator.of(context).pushNamed(AppRouter.postcardLeaderboardPage,
               arguments: PostcardLeaderboardPagePayload(
-                assetToken: state.assetToken,
+                assetToken: assetToken,
               ));
         },
       ),
@@ -784,7 +781,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Widget _artworkInfo(
       BuildContext context,
       AssetToken asset,
-      ArtworkDetailState state,
+      List<Provenance> provenances,
       List<String?> artistNames,
       Map<String, int> owners) {
     return Column(
@@ -809,9 +806,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 },
               ),
             ] else ...[
-              state.provenances.isNotEmpty
+              provenances.isNotEmpty
                   ? PostcardContainer(
-                      child: _provenanceView(context, state.provenances))
+                      child: _provenanceView(context, provenances))
                   : const SizedBox()
             ],
             const SizedBox(height: 20.0),
@@ -1006,13 +1003,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Widget _travelInfoWidget(PostcardDetailState postcardDetailState) {
-    final asset = postcardDetailState.assetToken;
+  Widget _travelInfoWidget(AssetToken asset) {
     return BlocConsumer<TravelInfoBloc, TravelInfoState>(
       listener: (context, state) {},
       builder: (context, state) {
         final travelInfo = state.listTravelInfo;
-        if (travelInfo == null || asset == null) {
+        if (travelInfo == null) {
           return const SizedBox();
         }
         return PostcardTravelInfo(
@@ -1020,7 +1016,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           listTravelInfo: travelInfo,
           onCancelShare: () {
             setState(() {
-              isSending = postcardDetailState.isSending();
+              isSending = asset.isSending;
             });
           },
         );

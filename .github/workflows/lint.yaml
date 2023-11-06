@@ -68,15 +68,14 @@ jobs:
           annotate: true
           working-directory: ./
 
-  detect-secrets:
+  gitleaks:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: detect-secrets
-      uses: reviewdog/action-detect-secrets@master
+    - name: gitleaks
+      uses: reviewdog/action-gitleaks@v1
       with:
         reporter: github-pr-review
-        detect_secrets_flags: --all-files --force-use-all-plugins --exclude-files pubspec.*
 
   dotenv-linter:
     name: runner / dotenv-linter
@@ -89,7 +88,7 @@ jobs:
           reporter: github-code-suggestions
 
   misspell:
-    name: runner / misspell
+    name: Check code spelling
     runs-on: ubuntu-latest
     steps:
       - name: Check out code.
@@ -97,8 +96,18 @@ jobs:
       - name: misspell
         uses: reviewdog/action-misspell@v1
         with:
+          reporter: github-pr-review
+          level: warning
           locale: "US"
           pattern: |
             *.dart
             *.swift
             *.kt
+      - uses: codespell-project/codespell-problem-matcher@v1
+      - name: codespell
+        uses: codespell-project/actions-codespell@v2
+        with:
+          check_filenames: true
+          ignore_words_file: .codespellignore
+          only_warn: 1
+          exclude_file: pubspec.yaml

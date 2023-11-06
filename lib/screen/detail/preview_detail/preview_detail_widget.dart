@@ -192,7 +192,7 @@ class PostcardPreviewWidget extends StatefulWidget {
 class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
   final bloc = PostcardDetailBloc(
-      injector(), injector(), injector(), injector(), injector());
+      injector(), injector(), injector(), injector(), injector(), injector());
 
   @override
   void initState() {
