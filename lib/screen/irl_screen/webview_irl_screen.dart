@@ -428,7 +428,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
                 payload: InAppWebViewPayload(widget.payload.url,
                     isPlainUI: widget.payload.isPlainUI,
                     backgroundColor: widget.payload.statusBarColor,
-                    onWebViewCreated: (controller) {
+                    onWebViewCreated: (final controller) {
                   _controller = controller;
                   _addJavaScriptHandler();
                   if (widget.payload.localStorageItems != null) {
