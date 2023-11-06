@@ -62,11 +62,29 @@ jobs:
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub get
-      - name: Analyze Dart
-        uses: invertase/github-action-dart-analyzer@v1
+      - uses: reviewdog/action-setup@v1
         with:
-          annotate: true
-          working-directory: ./
+          reviewdog_version: latest
+      - name: Run reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          flutter analyze --no-preamble | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -reporter=github-pr-review
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install codespell
+        run: pip install codespell
+      - name: Fix the code
+        run: |
+          dart format .
+          dart fix --apply
+          codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg"
+      - name: suggester / dart fixes
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: dart fix
+          cleanup: true
 
   gitleaks:
     runs-on: ubuntu-latest
@@ -103,11 +121,3 @@ jobs:
             *.dart
             *.swift
             *.kt
-      - uses: codespell-project/codespell-problem-matcher@v1
-      - name: codespell
-        uses: codespell-project/actions-codespell@v2
-        with:
-          check_filenames: true
-          ignore_words_file: .codespellignore
-          only_warn: 1
-          exclude_file: pubspec.yaml
