@@ -64,7 +64,6 @@ linter:
     noop_primitive_operations: true
     null_check_on_nullable_type_parameter: true
     null_closures: true
-    omit_local_variable_types: true
     prefer_adjacent_string_concatenation: true
     prefer_collection_literals: true
     prefer_conditional_assignment: true
@@ -92,7 +91,7 @@ linter:
     prefer_is_not_operator: true
     prefer_iterable_whereType: true
     prefer_null_aware_operators: true
-    prefer_double_quotes: true
+    prefer_single_quotes: true
     prefer_spread_collections: true
     prefer_typing_uninitialized_variables: true
     require_trailing_commas: true
@@ -110,7 +109,6 @@ linter:
     unnecessary_const: true
     unnecessary_constructor_name: true
     unnecessary_getters_setters: true
-    unnecessary_lambdas: true
     unnecessary_late: true
     unnecessary_library_directive: true
     unnecessary_new: true
@@ -142,7 +140,6 @@ linter:
     avoid_print: true
     avoid_relative_lib_imports: true
     avoid_types_as_parameter_names: true
-    diagnostic_describe_all_properties: true
     discarded_futures: true
     empty_statements: true
     hash_and_equals: true
