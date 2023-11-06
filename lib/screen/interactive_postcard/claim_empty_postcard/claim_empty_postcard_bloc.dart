@@ -15,6 +15,8 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/models.dart';
+import "package:nft_collection/nft_collection.dart";
+import 'package:nft_collection/services/tokens_service.dart';
 
 import 'claim_empty_postcard_state.dart';
 
@@ -24,6 +26,7 @@ class ClaimEmptyPostCardBloc
   final configService = injector<ConfigurationService>();
   final accountService = injector<AccountService>();
   final navigationService = injector.get<NavigationService>();
+  final _tokensService = injector.get<TokensService>();
 
   ClaimEmptyPostCardBloc() : super(ClaimEmptyPostCardState()) {
     on<GetTokenEvent>((event, emit) async {
@@ -66,6 +69,12 @@ class ClaimEmptyPostCardBloc
           owners: {
             payToMintRequest.address: 1,
           },
+        );
+        await _tokensService.setCustomTokens([token]);
+        _tokensService.reindexAddresses([payToMintRequest.address]);
+        injector.get<ConfigurationService>().setListPostcardMint([tokenId]);
+        NftCollectionBloc.eventController.add(
+          GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
         emit(state.copyWith(assetToken: token));
       } else {
