@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import "package:autonomy_flutter/model/postcard_claim.dart";
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -28,36 +29,77 @@ class ClaimEmptyPostCardBloc
       final postcardMetadata = PostcardMetadata(
         locationInformation: [],
       );
-      final token = AssetToken(
-        asset: Asset.init(
-          artistName: 'MoMa',
-          maxEdition: 1,
-          mimeType: 'image/png',
-          title: event.claimRequest.name,
-          medium: 'software',
-          previewURL: event.claimRequest.previewURL,
-          artworkMetadata: event.createMetadata
-              ? jsonEncode(postcardMetadata.toJson())
-              : null,
-        ),
-        blockchain: "tezos",
-        fungible: true,
-        contractType: 'fa2',
-        tokenId: '1',
-        contractAddress: Environment.postcardContractAddress,
-        edition: 0,
-        editionName: "",
-        id: "tez-",
-        balance: 1,
-        owner: 'owner',
-        lastActivityTime: DateTime.now(),
-        lastRefreshedTime: DateTime(1),
-        pending: true,
-        originTokenInfo: [],
-        provenance: [],
-        owners: {},
-      );
-      emit(state.copyWith(assetToken: token));
+      if (event.claimRequest is PayToMintRequest) {
+        final payToMintRequest = event.claimRequest as PayToMintRequest;
+        final indexId = payToMintRequest.tokenId;
+        final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
+        print("[Pay to mint] tokenId: $tokenId");
+        print(tokenId);
+        final token = AssetToken(
+          asset: Asset.init(
+            indexID: tokenId,
+            artistName: 'MoMa',
+            maxEdition: 1,
+            mimeType: 'image/png',
+            title: event.claimRequest.name,
+            medium: 'software',
+            previewURL: event.claimRequest.previewURL,
+            artworkMetadata: event.createMetadata
+                ? jsonEncode(postcardMetadata.toJson())
+                : null,
+          ),
+          blockchain: "tezos",
+          fungible: true,
+          contractType: 'fa2',
+          tokenId: indexId,
+          contractAddress: Environment.postcardContractAddress,
+          edition: 0,
+          editionName: "",
+          id: tokenId,
+          balance: 1,
+          owner: payToMintRequest.address,
+          lastActivityTime: DateTime.now(),
+          lastRefreshedTime: DateTime(1),
+          pending: true,
+          originTokenInfo: [],
+          provenance: [],
+          owners: {
+            payToMintRequest.address: 1,
+          },
+        );
+        emit(state.copyWith(assetToken: token));
+      } else {
+        final token = AssetToken(
+          asset: Asset.init(
+            artistName: 'MoMa',
+            maxEdition: 1,
+            mimeType: 'image/png',
+            title: event.claimRequest.name,
+            medium: 'software',
+            previewURL: event.claimRequest.previewURL,
+            artworkMetadata: event.createMetadata
+                ? jsonEncode(postcardMetadata.toJson())
+                : null,
+          ),
+          blockchain: "tezos",
+          fungible: true,
+          contractType: 'fa2',
+          tokenId: '1',
+          contractAddress: Environment.postcardContractAddress,
+          edition: 0,
+          editionName: "",
+          id: "tez-",
+          balance: 1,
+          owner: 'owner',
+          lastActivityTime: DateTime.now(),
+          lastRefreshedTime: DateTime(1),
+          pending: true,
+          originTokenInfo: [],
+          provenance: [],
+          owners: {},
+        );
+        emit(state.copyWith(assetToken: token));
+      }
     });
 
     on<AcceptGiftEvent>((event, emit) async {
