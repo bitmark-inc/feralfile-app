@@ -39,7 +39,6 @@ class PostcardDetailState {
     List<Provenance>? provenances,
     String? imagePath,
     String? metadataPath,
-    bool? postcardValueLoaded,
     PostcardLeaderboard? leaderboard,
     bool? isFetchingLeaderboard,
   }) {

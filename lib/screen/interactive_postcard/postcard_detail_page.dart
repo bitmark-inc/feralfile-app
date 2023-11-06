@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
@@ -31,6 +32,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -562,7 +564,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       style: theme.textTheme.moMASans400Black12,
     );
     if (asset.isCompleted) {
-      return _postcardPhysical(context, state);
+      return _postcardPhysical(context, asset);
     }
     if (isViewOnly) {
       return const SizedBox();
@@ -573,7 +575,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         isProcessing: true,
       );
     }
-    if (!state.isLastOwner || !state.postcardValueLoaded) {
+    if (!asset.isLastOwner) {
       return place15StampsText;
     }
     if (!(asset.isStamping || asset.isStamped)) {
@@ -655,14 +657,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
   }
 
-  Widget _postcardPhysical(BuildContext context, PostcardDetailState state) {
+  Widget _postcardPhysical(BuildContext context, AssetToken assetToken) {
     return Column(
       children: [
         PostcardButton(
           text: "unlock_physical_objects".tr(),
           color: POSTCARD_PINK_BUTTON_COLOR,
           onTap: () async {
-            final indexId = state.assetToken!.id;
+            final indexId = assetToken.id;
             final jwtToken =
                 (await injector<AuthService>().getAuthToken()).jwtToken;
             final hasCustomerSupport =
