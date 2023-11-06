@@ -92,7 +92,7 @@ linter:
     prefer_is_not_operator: true
     prefer_iterable_whereType: true
     prefer_null_aware_operators: true
-    prefer_double_quotes: true
+    prefer_single_quotes: true
     prefer_spread_collections: true
     prefer_typing_uninitialized_variables: true
     require_trailing_commas: true
