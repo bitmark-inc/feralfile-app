@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,8 +34,7 @@ class ClaimEmptyPostCardBloc
         final payToMintRequest = event.claimRequest as PayToMintRequest;
         final indexId = payToMintRequest.tokenId;
         final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
-        print("[Pay to mint] tokenId: $tokenId");
-        print(tokenId);
+        log.info('[Pay to mint] tokenId: $tokenId');
         final token = AssetToken(
           asset: Asset.init(
             indexID: tokenId,
