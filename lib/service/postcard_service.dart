@@ -579,7 +579,7 @@ class PostcardServiceImpl extends PostcardService {
       },
     );
 
-    await _tokensService.setCustomTokens([token]);
+    //await _tokensService.setCustomTokens([token]);
     _tokensService.reindexAddresses([address]);
     injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
     NftCollectionBloc.eventController.add(
@@ -612,7 +612,7 @@ class PostcardServiceImpl extends PostcardService {
     );
 
     final tokenService = injector<TokensService>();
-    await tokenService.setCustomTokens([pendingToken]);
+    //await tokenService.setCustomTokens([pendingToken]);
     tokenService.reindexAddresses([address]);
     NftCollectionBloc.eventController.add(
       GetTokensByOwnerEvent(pageKey: PageKey.init()),

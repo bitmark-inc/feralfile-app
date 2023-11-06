@@ -209,7 +209,7 @@ class PendingTokenService {
           injector<TokensService>().postPendingToken(element);
         }
 
-        await _tokenService.setCustomTokens(pendingTokens);
+        //await _tokenService.setCustomTokens(pendingTokens);
         await _tokenService.reindexAddresses([owner]);
       }
 
