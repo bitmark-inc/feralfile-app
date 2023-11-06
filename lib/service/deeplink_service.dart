@@ -284,16 +284,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
           link: link,
           linkType: LinkType.postcardPayToMint,
           prefix: callingPostcardPayToMintPrefix);
-      await _handlePayToMint(link);
+      await _handlePayToMintDeepLink(link);
       return true;
     }
     memoryValues.deepLink.value = null;
     return false;
   }
 
-  Future<void> _handlePayToMint(String link) async {
+  Future<void> _handlePayToMintDeepLink(String link) async {
     log.info("[DeeplinkService] _handlePayToMint");
     _deepLinkHandlingMap.remove(link);
+    await _handlePayToMint();
+  }
+
+  Future<void> _handlePayToMint() async {
     final address = await _navigationService.navigateTo(
       AppRouter.selectAddressScreen,
       arguments: {
@@ -305,7 +309,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       },
     );
     if (address == null) return;
-    final url = "${Environment.payToMintBaseUrl}/moma-postcard?address=$address";
+    final url =
+        "${Environment.payToMintBaseUrl}/moma-postcard?address=$address";
     final response = (await _navigationService.goToIRLWebview(
             IRLWebScreenPayload(url,
                 isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
@@ -450,6 +455,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleIRL(url);
           memoryValues.irlLink.value = null;
         }
+        break;
+
+      case "moma_postcard_purchase":
+        await _handlePayToMint();
         break;
       case "autonomy_airdrop":
         final String? sharedCode = data["share_code"];
