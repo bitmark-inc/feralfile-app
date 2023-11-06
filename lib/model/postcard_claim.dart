@@ -229,14 +229,10 @@ class PayToMintRequest extends RequestPostcardResponse {
   PayToMintRequest({
     required this.address,
     required this.tokenId,
-    required String claimID,
-    required String name,
-    required String previewURL,
-  }) : super(
-          claimID: claimID,
-          name: name,
-          previewURL: previewURL,
-        );
+    required super.claimID,
+    required super.name,
+    required super.previewURL,
+  });
 
   @override
   Map<String, dynamic> toJson() {

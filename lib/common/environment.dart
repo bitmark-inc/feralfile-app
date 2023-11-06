@@ -158,10 +158,10 @@ class Environment {
       dotenv.env['POSTCARD_CONTRACT_ADDRESS'] ?? '';
 
   static String get merchandiseBaseUrl =>
-      dotenv.env['AUTONOMY_MERCHANDISE_BASE_URL'] ?? '';
+      dotenv.env["AUTONOMY_MERCHANDISE_BASE_URL"] ?? "";
 
   static String get payToMintBaseUrl =>
-      dotenv.env['PAY_TO_MINT_BASE_URL'] ?? '';
+      dotenv.env["PAY_TO_MINT_BASE_URL"] ?? "";
 
   static String get chatServerHmacKey =>
       dotenv.env['CHAT_SERVER_HMAC_KEY'] ?? '';
