@@ -213,6 +213,26 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
             fontSize: 18,
             color: MoMAColors.moMA8,
             onTap: () async {
+              bool isStampSuccess = true;
+              if (assetToken.isProcessingStamp) {
+                setState(() {
+                  confirming = true;
+                });
+                isStampSuccess = await _postcardService.finalizeStamp(
+                    assetToken,
+                    widget.payload.imagePath,
+                    widget.payload.metadataPath,
+                    widget.payload.location);
+                if (mounted) {
+                  UIHelper.showPostcardStampFailed(context);
+                  setState(() {
+                    confirming = false;
+                  });
+                }
+              }
+              if (!isStampSuccess) {
+                return;
+              }
               await assetToken.sharePostcard(
                 onSuccess: () async {
                   if (mounted) {

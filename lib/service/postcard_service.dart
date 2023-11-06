@@ -73,18 +73,6 @@ abstract class PostcardService {
       int counter,
       String contractAddress);
 
-  Future<bool> stampPostcardUntilSuccess(
-    String tokenId,
-    WalletStorage wallet,
-    int index,
-    File image,
-    File metadata,
-    Location? location,
-    int counter,
-    String contractAddress,
-    bool Function()? isContinue,
-  );
-
   List<StampingPostcard> getStampingPostcard();
 
   StampingPostcard? getStampingPostcardWithPath(
@@ -298,36 +286,6 @@ class PostcardServiceImpl extends PostcardService {
     } catch (e) {
       return false;
     }
-  }
-
-  @override
-  Future<bool> stampPostcardUntilSuccess(
-    String tokenId,
-    WalletStorage wallet,
-    int index,
-    File image,
-    File metadata,
-    Location? location,
-    int counter,
-    String contractAddress,
-    bool Function()? isContinue,
-  ) async {
-    bool isStampSuccess = false;
-    while (!isStampSuccess && (isContinue?.call() ?? true)) {
-      try {
-        isStampSuccess = await stampPostcard(tokenId, wallet, index, image,
-            metadata, location, counter, contractAddress);
-      } catch (e) {
-        log.info("[Postcard Service] stampPostcardUntilSuccess $e");
-      }
-      if (!isStampSuccess) {
-        log.info(
-            "[Postcard Service] Stamping postcard $tokenId failed, retrying...");
-      }
-    }
-    log.info(
-        "[Postcard Service] Stamping postcard $tokenId success: $isStampSuccess");
-    return isStampSuccess;
   }
 
   @override
@@ -648,7 +606,7 @@ class PostcardServiceImpl extends PostcardService {
     await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
     ]);
-    await stampPostcardUntilSuccess(
+    final isStampSuccess = await stampPostcard(
       tokenId,
       walletIndex.first,
       walletIndex.second,
@@ -657,37 +615,35 @@ class PostcardServiceImpl extends PostcardService {
       location,
       counter,
       contractAddress,
-      () {
-        return true;
-      },
     );
+    if (isStampSuccess) {
+      await _configurationService.setProcessingStampPostcard(
+        [processingStampPostcard],
+        isRemove: true,
+      );
 
-    await _configurationService.setProcessingStampPostcard(
-      [processingStampPostcard],
-      isRemove: true,
-    );
-
-    await updateStampingPostcard([
-      StampingPostcard(
-        indexId: asset.id,
-        address: address,
-        imagePath: imagePath,
-        metadataPath: metadataPath,
-        counter: counter,
-      )
-    ]);
-    var postcardMetadata = asset.postcardMetadata;
-    final stampedLocation = location;
-    postcardMetadata.locationInformation.add(stampedLocation);
-    var newAsset = asset.asset;
-    newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-    final pendingToken = asset.copyWith(asset: newAsset);
-    await _tokensService.setCustomTokens([pendingToken]);
-    _tokensService.reindexAddresses([address]);
-    NftCollectionBloc.eventController.add(
-      GetTokensByOwnerEvent(pageKey: PageKey.init()),
-    );
-    return true;
+      await updateStampingPostcard([
+        StampingPostcard(
+          indexId: asset.id,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+        )
+      ]);
+      var postcardMetadata = asset.postcardMetadata;
+      final stampedLocation = location;
+      postcardMetadata.locationInformation.add(stampedLocation);
+      var newAsset = asset.asset;
+      newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+      final pendingToken = asset.copyWith(asset: newAsset);
+      await _tokensService.setCustomTokens([pendingToken]);
+      _tokensService.reindexAddresses([address]);
+      NftCollectionBloc.eventController.add(
+        GetTokensByOwnerEvent(pageKey: PageKey.init()),
+      );
+    }
+    return isStampSuccess;
   }
 }
 
