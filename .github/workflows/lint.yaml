@@ -75,11 +75,23 @@ jobs:
           python-version: '3.10'
       - name: Install codespell
         run: pip install codespell
-      - name: Fix the code
+      - name: Get changed files
+        id: changed-files
         run: |
-          dart format .
-          dart fix --apply
-          codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg"
+            if ${{ github.event_name == 'pull_request' }}; then
+                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+            else
+                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+            fi
+      - name: List changed files
+        run: |
+          set -o pipefail
+          for file in ${{ steps.changed-files.outputs.changed_files }}; do
+            echo "fixing: $file"
+            dart format $file
+            dart fix --apply $file
+            codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg" $file
+          done
       - name: suggester / dart fixes
         uses: reviewdog/action-suggester@v1
         with:
