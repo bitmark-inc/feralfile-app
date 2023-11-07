@@ -264,7 +264,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         counter,
         contractAddress,
       );
-      if (isStampSuccess) {
+      if (isStampSuccess != false) {
         await _configurationService.setProcessingStampPostcard(
             [processingStampPostcard],
             isRemove: true);

@@ -26,12 +26,14 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -63,7 +65,7 @@ abstract class PostcardService {
 
   Future<AssetToken> getPostcard(String tokenId);
 
-  Future<bool> stampPostcard(
+  Future<bool?> stampPostcard(
       String tokenId,
       WalletStorage wallet,
       int index,
@@ -228,7 +230,7 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<bool> stampPostcard(
+  Future<bool?> stampPostcard(
       String tokenId,
       WalletStorage wallet,
       int index,
@@ -284,6 +286,12 @@ class PostcardServiceImpl extends PostcardService {
       }
       return isStampSuccess;
     } catch (e) {
+      if (e is DioException) {
+        final isAlreadyStamped = e.isPostcardAlreadyStamped;
+        if (isAlreadyStamped) {
+          return null;
+        }
+      }
       return false;
     }
   }
@@ -617,7 +625,7 @@ class PostcardServiceImpl extends PostcardService {
       counter,
       contractAddress,
     );
-    if (isStampSuccess) {
+    if (isStampSuccess != false) {
       await _configurationService.setProcessingStampPostcard(
         [processingStampPostcard],
         isRemove: true,
@@ -644,7 +652,7 @@ class PostcardServiceImpl extends PostcardService {
         GetTokensByOwnerEvent(pageKey: PageKey.init()),
       );
     }
-    return isStampSuccess;
+    return isStampSuccess != false;
   }
 }
 
