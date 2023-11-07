@@ -206,6 +206,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     }
     final assetToken = widget.payload.asset;
     if (!isSending) {
+      final box = context.findRenderObject() as RenderBox?;
       return Column(
         children: [
           PostcardAsyncButton(
@@ -229,6 +230,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
                     }
                   }
                 },
+                sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
               );
             },
           ),
