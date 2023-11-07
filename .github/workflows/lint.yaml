@@ -65,11 +65,6 @@ jobs:
       - uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest
-      - name: Run reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          flutter analyze --no-preamble | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -reporter=github-pr-review
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
@@ -83,11 +78,14 @@ jobs:
             else
                 echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
             fi
-      - name: List changed files
+      - name: Code review and auto-fix the changed files
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -o pipefail
           for file in ${{ steps.changed-files.outputs.changed_files }}; do
             echo "fixing: $file"
+            flutter analyze --no-preamble $file | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -reporter=github-pr-review
             dart format $file
             dart fix --apply $file
             codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg" $file
