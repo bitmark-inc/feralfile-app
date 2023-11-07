@@ -437,6 +437,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _handleActivationDeeplink(activationID, _getOtpFromBranchData(data));
         }
         break;
+      case 'autonomy_connect':
+        final wcUri = data['uri'];
+        final decodedWcUri = Uri.decodeFull(wcUri);
+        await _walletConnect2Service.connect(decodedWcUri);
+        break;
       default:
         memoryValues.branchDeeplinkData.value = null;
     }
