@@ -605,7 +605,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
       ),
     ];
-    if (!isSending) {
+    if (!isSending && !asset.isFinal) {
       timer?.cancel();
 
       return Column(
