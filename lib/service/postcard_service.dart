@@ -254,6 +254,7 @@ class PostcardServiceImpl extends PostcardService {
       final publicKey = await wallet.getTezosPublicKey(index: index);
       final lat = location?.lat;
       final lon = location?.lon;
+      throw DioException(requestOptions: RequestOptions(path: ""));
       final result = await _postcardApi.updatePostcard(
           tokenId: tokenId,
           data: image,
